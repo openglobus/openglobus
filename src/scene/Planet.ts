@@ -245,6 +245,7 @@ export class Planet extends RenderNode {
      */
     public _textureCoordsBufferCache: WebGLBufferExt[];
 
+    public quadTreeStrategyPrototype: typeof QuadTreeStrategy;
     public quadTreeStrategy: QuadTreeStrategy;
 
     /**
@@ -413,9 +414,9 @@ export class Planet extends RenderNode {
             transitionOpacityEnabled: options.transitionOpacityEnabled,
         };
 
-        this.quadTreeStrategy = options.quadTreeStrategyPrototype ?
-            new options.quadTreeStrategyPrototype(quadTreeParams) :
-            new EarthQuadTreeStrategy(quadTreeParams);
+        // Used in CameraDepthHandler
+        this.quadTreeStrategyPrototype = options.quadTreeStrategyPrototype || EarthQuadTreeStrategy;
+        this.quadTreeStrategy = new this.quadTreeStrategyPrototype(quadTreeParams);
 
         this._nightTexture = null;
 
@@ -965,14 +966,17 @@ export class Planet extends RenderNode {
 
     protected _preRender() {
         this.quadTreeStrategy.preRender();
-        this._preLoad();
-    }
-
-    protected _preLoad() {
         this.quadTreeStrategy.clearRenderedNodes();
         this._skipPreRender = false;
         this.quadTreeStrategy.preLoad();
+        //this._preLoad();
     }
+
+    // protected _preLoad() {
+    //     this.quadTreeStrategy.clearRenderedNodes();
+    //     this._skipPreRender = false;
+    //     this.quadTreeStrategy.preLoad();
+    // }
 
     /**
      * Creates default textures first for the North Pole and whole globe and second for the South Pole.
