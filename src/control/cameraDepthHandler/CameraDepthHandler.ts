@@ -52,7 +52,7 @@ export interface ICameraDepthHandlerParams extends IControlParams {
 
 export class CameraDepthHandler extends Control {
 
-    protected _depthCameraFrameHandler: CameraFrameHandler | null;
+    protected _frameHandler: CameraFrameHandler | null;
     protected _frameComposer: CameraFrameComposer;
 
     public readonly cameraGeoImage: GeoImage;
@@ -65,7 +65,7 @@ export class CameraDepthHandler extends Control {
         super(params);
 
         this._frameComposer = new CameraFrameComposer();
-        this._depthCameraFrameHandler = null;
+        this._frameHandler = null;
 
         this.cameraGeoImage = new GeoImage(`cameraGeoImage:${this.__id}`, {
             src: "test4.jpg",
@@ -97,8 +97,8 @@ export class CameraDepthHandler extends Control {
     }
 
     public get camera(): Camera | undefined {
-        if (this._depthCameraFrameHandler) {
-            return this._depthCameraFrameHandler.camera;
+        if (this._frameHandler) {
+            return this._frameHandler.camera;
         }
     }
 
@@ -125,7 +125,7 @@ export class CameraDepthHandler extends Control {
             useDepth: true
         });
 
-        this._depthCameraFrameHandler = new CameraFrameHandler({
+        this._frameHandler = new CameraFrameHandler({
             camera: this._createCamera(),
             frameBuffer: depthFramebuffer,
             frameHandler: this._depthHandlerCallback
@@ -137,7 +137,7 @@ export class CameraDepthHandler extends Control {
             this.renderer.addControl(this._frameComposer);
         }
 
-        this._frameComposer.add(this._depthCameraFrameHandler);
+        this._frameComposer.add(this._frameHandler);
 
         if (this.planet) {
 
@@ -161,8 +161,8 @@ export class CameraDepthHandler extends Control {
     }
 
     public get framebuffer(): Framebuffer | undefined {
-        if (this._depthCameraFrameHandler) {
-            return this._depthCameraFrameHandler.frameBuffer;
+        if (this._frameHandler) {
+            return this._frameHandler.frameBuffer;
         }
     }
 
@@ -235,9 +235,9 @@ export class CameraDepthHandler extends Control {
     }
 
     public getCartesianFromPixelTerrain(x: number, y: number): Vec3 | undefined {
-        if (this._depthCameraFrameHandler) {
-            let framebuffer = this._depthCameraFrameHandler.frameBuffer;
-            let camera = this._depthCameraFrameHandler.camera;
+        if (this._frameHandler) {
+            let framebuffer = this._frameHandler.frameBuffer;
+            let camera = this._frameHandler.camera;
             let distance = getDistanceFromPixel(x, y, camera, framebuffer);
             if (distance === 0) {
                 return;

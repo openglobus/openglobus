@@ -1105,7 +1105,7 @@ export class Planet extends RenderNode {
         let sh = this._setUniformsNoAtmos(cam);
         //
         // PASS 0: rendering base slice of layers, which is often zero height
-        this._renderingScreenNodes(sh, cam);
+        this._renderingScreenNodes(this.quadTreeStrategy, sh, cam);
     }
 
     protected _renderScreenNodesPASSAtmos() {
@@ -1113,7 +1113,7 @@ export class Planet extends RenderNode {
         let sh = this._setUniformsAtmos(cam);
         //
         // PASS 0: rendering base slice of layers, which is often zero height
-        this._renderingScreenNodes(sh, cam);
+        this._renderingScreenNodes(this.quadTreeStrategy, sh, cam);
     }
 
     protected _renderScreenNodesWithHeightPASSNoAtmos() {
@@ -1121,7 +1121,7 @@ export class Planet extends RenderNode {
         let sh = this._setUniformsNoAtmos(cam);
         //
         // PASS 1: rendering slices, and layers with heights, without transition opacity effect
-        this._renderingScreenNodesWithHeight(sh, cam);
+        this._renderingScreenNodesWithHeight(this.quadTreeStrategy, sh, cam);
     }
 
     protected _renderScreenNodesWithHeightPASSAtmos() {
@@ -1129,7 +1129,7 @@ export class Planet extends RenderNode {
         let sh = this._setUniformsAtmos(cam);
         //
         // PASS 1: rendering slices, and layers with heights, without transition opacity effect
-        this._renderingScreenNodesWithHeight(sh, cam);
+        this._renderingScreenNodesWithHeight(this.quadTreeStrategy, sh, cam);
     }
 
     protected _globalPreDraw() {
@@ -1346,14 +1346,14 @@ export class Planet extends RenderNode {
         return sh;
     }
 
-    protected _renderingFadingNodes = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number, outTransparentSegments?: Segment[], outOpaqueSegments?: Segment[]) => {
+    protected _renderingFadingNodes = (quadTreeStrategy: QuadTreeStrategy, nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number, outTransparentSegments?: Segment[], outOpaqueSegments?: Segment[]) => {
 
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
 
         for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
             let f = currentNode._fadingNodes[j].segment;
-            if (this.quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
+            if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
                 nodes.set(f.node.__id, true);
 
                 if (f._transitionOpacity < 1.0) {
@@ -1372,7 +1372,7 @@ export class Planet extends RenderNode {
         }
     }
 
-    protected _renderingFadingNodesNoDepth = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number, outOpaqueSegments?: Segment[]) => {
+    protected _renderingFadingNodesNoDepth = (quadTreeStrategy: QuadTreeStrategy, nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number, outOpaqueSegments?: Segment[]) => {
 
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
@@ -1382,7 +1382,7 @@ export class Planet extends RenderNode {
 
         for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
             let f = currentNode._fadingNodes[j].segment;
-            if (this.quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
+            if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
                 nodes.set(f.node.__id, true);
                 if (isFirstPass) {
                     isEq && f.equalize();
@@ -1398,25 +1398,26 @@ export class Planet extends RenderNode {
         gl.enable(gl.DEPTH_TEST);
     }
 
+    protected static __refreshLayersFadingOpacity__(layersRef: Layer[], minCurrZoom: number, maxCurrZoom: number) {
+        for (let i = layersRef.length - 1; i >= 0; --i) {
+            let li = layersRef[i];
+            if (li._fading && li._refreshFadingOpacity(minCurrZoom, maxCurrZoom)) {
+                layersRef.splice(i, 1);
+            }
+        }
+    }
+
     /**
      * Drawing nodes
      */
-    protected _renderingScreenNodes(sh: Program, cam: PlanetCamera) {
+    protected _renderingScreenNodes(quadTreeStrategy: QuadTreeStrategy, sh: Program, cam: PlanetCamera) {
 
-        let renderedNodes = this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex];
-
-        let firstPass = cam.isFirstPass;
+        let renderedNodes = quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex];
 
         let sl = this._visibleTileLayerSlices;
 
-        if (sl.length) {
-            let sli = sl[0];
-            for (let i = sli.length - 1; i >= 0; --i) {
-                let li = sli[i];
-                if (li._fading && firstPass && li._refreshFadingOpacity(this.quadTreeStrategy.minCurrZoom, this.quadTreeStrategy.maxCurrZoom)) {
-                    sli.splice(i, 1);
-                }
-            }
+        if (sl.length && cam.isFirstPass) {
+            Planet.__refreshLayersFadingOpacity__(sl[0], quadTreeStrategy.minCurrZoom, quadTreeStrategy.maxCurrZoom);
         }
 
         let nodes = new Map<number, boolean>;
@@ -1430,14 +1431,14 @@ export class Planet extends RenderNode {
         // as the segments with equalized sides, which means that there are no gaps
         // between currently rendered neighbours
         //
-        this.quadTreeStrategy._fadingOpaqueSegments = [];
+        quadTreeStrategy._fadingOpaqueSegments = [];
 
         if (cam.slope > 0.8 || !this.terrain || this.terrain.isEmpty /*|| cam.getAltitude() > 10000*/) {
             while (i--) {
                 let ri = renderedNodes[i];
                 let s = ri.segment;
 
-                this._renderingFadingNodesNoDepth(nodes, sh, ri, sl[0], 0, this.quadTreeStrategy._fadingOpaqueSegments);
+                this._renderingFadingNodesNoDepth(quadTreeStrategy, nodes, sh, ri, sl[0], 0, quadTreeStrategy._fadingOpaqueSegments);
 
                 isEq && s.equalize();
                 s.readyToEngage && s.engage();
@@ -1452,7 +1453,7 @@ export class Planet extends RenderNode {
                 let ri = renderedNodes[i];
                 let s = ri.segment;
 
-                this._renderingFadingNodes(nodes, sh, ri, sl[0], 0, transparentSegments, this.quadTreeStrategy._fadingOpaqueSegments);
+                this._renderingFadingNodes(quadTreeStrategy, nodes, sh, ri, sl[0], 0, transparentSegments, quadTreeStrategy._fadingOpaqueSegments);
 
                 if (s._transitionOpacity < 1) {
                     transparentSegments.push(s);
@@ -1474,17 +1475,13 @@ export class Planet extends RenderNode {
                 tj.screenRendering(sh, sl[0], 0);
             }
         }
-
     }
 
-    protected _renderingScreenNodesWithHeight(sh: Program, cam: PlanetCamera) {
+    protected _renderingScreenNodesWithHeight(quadTreeStrategy: QuadTreeStrategy, sh: Program, cam: PlanetCamera) {
 
-        let renderedNodes = this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex];
+        let renderedNodes = quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex];
 
         let gl = this.renderer!.handler.gl!;
-        let firstPass = cam.isFirstPass;
-
-        let sl = this._visibleTileLayerSlices;
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
         gl.disable(gl.CULL_FACE);
@@ -1492,20 +1489,19 @@ export class Planet extends RenderNode {
         let nodes = new Map<number, boolean>;
         let transparentSegments: Segment[] = [];
 
+        let sl = this._visibleTileLayerSlices;
+
         for (let j = 1, len = sl.length; j < len; j++) {
-            let slj = sl[j];
-            for (let i = slj.length - 1; i >= 0; --i) {
-                let li = slj[i];
-                if (li._fading && firstPass && li._refreshFadingOpacity(this.quadTreeStrategy.minCurrZoom, this.quadTreeStrategy.maxCurrZoom)) {
-                    slj.splice(i, 1);
-                }
+
+            if (cam.isFirstPass) {
+                Planet.__refreshLayersFadingOpacity__(sl[j], quadTreeStrategy.minCurrZoom, quadTreeStrategy.maxCurrZoom);
             }
 
             gl.polygonOffset(0, -j);
             let i = renderedNodes.length;
             while (i--) {
                 let ri = renderedNodes[i];
-                this._renderingFadingNodes(nodes, sh, ri, sl[j], j, transparentSegments);
+                this._renderingFadingNodes(quadTreeStrategy, nodes, sh, ri, sl[j], j, transparentSegments);
                 if (ri.segment._transitionOpacity < 1) {
                     ri.segment.initSlice(j);
                 } else {
