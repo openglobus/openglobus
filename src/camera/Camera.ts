@@ -13,8 +13,16 @@ import {Vec4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
 import {Quat} from "../math/Quat";
 import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
+import { Easing, EasingFunction } from "../utils/easing";
+import { LonLat } from "../LonLat";
 
-export type CameraEvents = ["viewchange", "moveend"];
+export type CameraEvents = [
+    "viewchange",
+    "moveend",
+    "flystart",
+    "flyend",
+    "flystop",
+];
 
 const EVENT_NAMES: CameraEvents = [
     /**
@@ -27,7 +35,25 @@ const EVENT_NAMES: CameraEvents = [
      * Camera is stopped.
      * @event og.Camera#moveend
      */
-    "moveend"
+    "moveend",
+
+    /**
+     * Triggered before camera flight.
+     * @event og.Camera#flystart
+     */
+    "flystart",
+
+    /**
+     * Triggered when camera finished flight.
+     * @event og.Camera#flyend
+     */
+    "flyend",
+
+    /**
+     * Triggered when flight was stopped.
+     * @event og.Camera#flystop
+     */
+    "flystop",
 ];
 
 export interface ICameraParams {
@@ -38,6 +64,35 @@ export interface ICameraParams {
     frustums?: NumberArray2[]
     width?: number;
     height?: number;
+}
+
+export interface IFlyCartesianParams extends IFlyBaseParams {
+    look?: Vec3 | LonLat;
+    up?: Vec3;
+}
+
+export interface IFlyBaseParams {
+    duration?: number;
+    ease?: EasingFunction;
+    completeCallback?: Function;
+    startCallback?: Function;
+    frameCallback?: Function;
+}
+
+export const DEFAULT_FLIGHT_DURATION = 800;
+export const DEFAULT_EASING = Easing.CubicInOut;
+
+type CameraFrame = {
+    eye: Vec3;
+    n: Vec3;
+    u: Vec3;
+    v: Vec3;
+}
+
+type CameraFlight = {
+    fly: (progress: number) => CameraFrame;
+    duration: number;
+    startedAt: number;
 }
 
 const getHorizontalViewAngleByFov = (fov: number, aspect: number) => DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * fov) * aspect);
@@ -172,6 +227,12 @@ class Camera {
 
     public _height: number;
 
+    protected _flight: CameraFlight | null;
+    protected _completeCallback: Function | null;
+    protected _frameCallback: Function | null;
+
+    protected _flying: boolean;
+
     // public dirForwardNED: Vec3;
     // public dirUpNED: Vec3;
     // public dirRightNED: Vec3;
@@ -212,6 +273,11 @@ class Camera {
         this._pb = this._b.clone();
         this._peye = this.eye.clone();
         this.isMoving = false;
+
+        this._flight = null;
+        this._completeCallback = null;
+        this._frameCallback = null;
+        this._flying = false;
 
         this._tanViewAngle_hrad = 0.0;
         this._tanViewAngle_hradOneByHeight = 0.0;
@@ -270,6 +336,70 @@ class Camera {
 
     public get id(): number {
         return this.__id;
+    }
+
+    /**
+     * Flies to the cartesian coordinates.
+     * @public
+     * @param {Vec3} [cartesian] - Finish cartesian coordinates.
+     * @param {IFlyCartesianParams} [params] - Flight parameters
+     */
+    flyCartesian(cartesian: Vec3, params?: IFlyCartesianParams): void {
+    }
+
+    /**
+     * Breaks the flight.
+     * @public
+     */
+    stopFlying() {
+        if (!this._flying) {
+            return;
+        }
+        this._flying = false;
+        this._flight = null;
+        this._frameCallback = null;
+        this.events.dispatch(this.events.flystop, this);
+    }
+
+    /**
+     * Prepare camera to the frame. Used in render node frame function.
+     * @public
+     */
+    public checkFly() {
+        if (this._flying && this._flight !== null) {
+            let progress = Math.min((Date.now() - this._flight.startedAt) / this._flight.duration, 1);
+
+            const frame = this._flight.fly(progress);
+            this.eye = frame.eye;
+            this._r = frame.u;
+            this._u = frame.v;
+            this._b = frame.n;
+            this._f.set(-this._b.x, -this._b.y, -this._b.z);
+
+            if (this._frameCallback) {
+                this._frameCallback();
+            }
+
+            this.update();
+
+            if (progress >= 1) {
+                this.stopFlying();
+                if (this._completeCallback) {
+                    this.events.dispatch(this.events.flyend, this);
+                    this._completeCallback();
+                    this._completeCallback = null;
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns camera is flying.
+     * @public
+     * @returns {boolean}
+     */
+    isFlying() {
+        return this._flying;
     }
 
     public checkMoveEnd() {
