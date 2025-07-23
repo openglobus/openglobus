@@ -36,7 +36,14 @@ class EntityCollectionNode {
 
     public _inTheQueue: boolean;
 
-    constructor(strategy: EntityCollectionsTreeStrategy, partId: number, parent: EntityCollectionNode | null, extent: Extent, planet: Planet, zoom: number) {
+    constructor(
+        strategy: EntityCollectionsTreeStrategy,
+        partId: number,
+        parent: EntityCollectionNode | null,
+        extent: Extent,
+        planet: Planet,
+        zoom: number
+    ) {
         this.strategy = strategy;
         this.layer = strategy._layer;
         this.parentNode = parent;
@@ -281,7 +288,7 @@ class EntityCollectionNode {
                     this.alignEntityToTheGround(ei, visibleNodes[renderingNodeId].segment);
                 }
             } else {
-                const n = l._planet!._renderedNodes;
+                const n = this.strategy.quadTreeStrategy._renderedNodes;
                 while (i--) {
                     let ei = e[i];
                     let j = n.length;

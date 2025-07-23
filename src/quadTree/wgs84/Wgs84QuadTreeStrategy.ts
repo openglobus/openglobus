@@ -1,25 +1,28 @@
-import * as quadTree from "../quadTree";
 import {Extent} from "../../Extent";
 import {EPSG4326} from "../../proj/EPSG4326";
 import {Node} from "../Node";
 import {Planet} from "../../scene/Planet";
 import {SegmentLonLatEqui} from "../../segment/SegmentLonLatEqui";
-import {QuadTreeStrategy} from "../QuadTreeStrategy";
+import {QuadTreeStrategy, QuadTreeStrategyParams} from "../QuadTreeStrategy";
+import {PlanetCamera} from "../../camera";
 
 export class Wgs84QuadTreeStrategy extends QuadTreeStrategy {
-    constructor(planet: Planet) {
-        super(planet, "wgs84", EPSG4326);
+    constructor(params: QuadTreeStrategyParams) {
+        super({name: "wgs84", proj: EPSG4326, ...params});
     }
 
-    public override init() {
+    public override init(camera: PlanetCamera) {
+
         this._quadTreeList = [
             new Node(
                 SegmentLonLatEqui,
-                this.planet,
+                this,
                 0, null,
                 0,
                 Extent.createFromArray([-180, -90, 180, 90])
             )
         ];
+
+        super.init(camera);
     }
 }

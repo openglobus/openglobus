@@ -676,7 +676,7 @@ class ElevationProfileScene extends RenderNode {
     public override frame() {
         if (this._clampToGround) {
             let __tempVec__ = new Vec3();
-            const nodes = this._planet!._renderedNodes;
+            const nodes = this._planet!.quadTreeStrategy._renderedNodes;
             const entities = this._groundPointersLayer.getEntities();
             for (let i = 0; i < entities.length; i++) {
                 let ei = entities[i];

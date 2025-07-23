@@ -537,7 +537,7 @@ class PlanetCamera extends Camera {
                 // camera path and orientations calculation
                 let g_i = ground_a.smerp(ground_b, d).normalize();
                 let ground_i = this.planet.getRayIntersectionEllipsoid(new Ray(zero, g_i));
-                
+
                 let height_i =
                     this._lonLat.height * d * d * d +
                     max_h * 3 * d * d * t +
@@ -629,7 +629,7 @@ class PlanetCamera extends Camera {
      * @public
      * @returns {boolean}
      */
-    isFlying() {
+    isFlying(): boolean {
         return this._flying;
     }
 

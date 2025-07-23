@@ -105,7 +105,7 @@ class GeoObject {
 
         this._position = utils.createVector3(options.position);
 
-        this._rtcPositionHigh = new Vec3();
+        this._rtcPositionHigh = new Vec3();``
         this._rtcPositionLow = new Vec3();
 
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
@@ -113,11 +113,11 @@ class GeoObject {
 
         this._localPosition = new Vec3();
 
-        this._color = utils.createColorRGBA(
-            options.color, options.object3d?.color
-                ? new Vec4(...Array.from(options.object3d.color))
-                : new Vec4(0.15, 0.15, 0.15, 1.0)
-        );
+        const [r = 0.15, g = 0.15, b = 0.15, a = 1.0] = options.object3d?.color 
+            ? Array.from(options.object3d.color) 
+            : [];
+        
+        this._color = utils.createColorRGBA(options.color, new Vec4(r, g, b, a));
 
         this._handler = null;
         this._handlerIndex = -1;

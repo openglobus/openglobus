@@ -106,14 +106,14 @@ export class Atmosphere extends Control {
 
     public initLookupTexturesShaders() {
         if (this.renderer) {
-            this.renderer.handler.addProgram(transmittance(this._parameters), true);
-            this.renderer.handler.addProgram(scattering(this._parameters), true);
+            this.renderer.handler.addProgram(transmittance(this._parameters));
+            this.renderer.handler.addProgram(scattering(this._parameters));
         }
     }
 
     public initBackgroundShader() {
         if (this.renderer) {
-            this.renderer.handler.addProgram(atmosphereBackgroundShader(this._parameters), true);
+            this.renderer.handler.addProgram(atmosphereBackgroundShader(this._parameters));
         }
     }
 

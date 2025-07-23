@@ -799,15 +799,15 @@ class Handler {
      * Adds shader program to the handler.
      * @public
      * @param {Program} program - Shader program.
-     * @param {boolean} [notActivate] - If it's true program will not compile.
+     * @param {boolean} [activate] - If false program will not compile.
      * @return {Program} -
      */
-    public addProgram(program: Program, notActivate: boolean = false): Program {
+    public addProgram(program: Program, activate: boolean = false): Program {
         if (!this.programs[program.name]) {
             let sc = new ProgramController(this, program);
             this.programs[program.name] = sc;
             this._initProgramController(sc);
-            if (notActivate) {
+            if (!activate) {
                 sc._activated = false;
             }
         } else {

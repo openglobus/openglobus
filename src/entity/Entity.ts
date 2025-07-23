@@ -531,11 +531,10 @@ class Entity {
      * Adds current entity into the specified entity collection.
      * @public
      * @param {EntityCollection | Vector} collection - Specified entity collection or vector layer.
-     * @param {boolean} [rightNow=false] - Entity insertion option for vector layer.
      * @returns {Entity} - This object.
      */
-    public addTo(collection: EntityCollection | Vector, rightNow: boolean = false): Entity {
-        collection.add(this, rightNow);
+    public addTo(collection: EntityCollection | Vector): Entity {
+        collection.add(this);
         return this;
     }
 

@@ -6,6 +6,7 @@ import {EntityCollection} from "../../entity/EntityCollection";
 import {EquiQuadTreeStrategy} from "./EquiQuadTreeStrategy";
 import {EntityCollectionsTreeStrategy} from "../EntityCollectionsTreeStrategy";
 import {EquiEntityCollectionNodeLonLat} from "./EquiEntityCollectionNodeLonLat";
+import {QuadTreeStrategy} from "../QuadTreeStrategy";
 
 export class EquiEntityCollectionsTreeStrategy extends EntityCollectionsTreeStrategy {
 
@@ -15,8 +16,8 @@ export class EquiEntityCollectionsTreeStrategy extends EntityCollectionsTreeStra
     public _renderingNodesWest: Record<number, boolean>;
     public _renderingNodesEast: Record<number, boolean>;
 
-    constructor(layer: Vector, nodeCapacity: number) {
-        super(layer, nodeCapacity);
+    constructor(quadTreeStrategy: QuadTreeStrategy, layer: Vector, nodeCapacity: number) {
+        super(quadTreeStrategy, layer, nodeCapacity);
 
         let planet = layer._planet!;
 
