@@ -1,28 +1,23 @@
 import * as math from "../math";
-import {type EventsHandler, createEvents} from "../Events";
-import {Frustum} from "./Frustum";
-import {Mat3} from "../math/Mat3";
-import type {NumberArray9} from "../math/Mat3";
-import {Mat4} from "../math/Mat4";
-import type {NumberArray16} from "../math/Mat4";
-import {Renderer} from "../renderer/Renderer";
-import {Vec2} from "../math/Vec2";
-import type {NumberArray2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
-import {Sphere} from "../bv/Sphere";
-import {Quat} from "../math/Quat";
-import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
+import { type EventsHandler, createEvents } from "../Events";
+import { Frustum } from "./Frustum";
+import { Mat3 } from "../math/Mat3";
+import type { NumberArray9 } from "../math/Mat3";
+import { Mat4 } from "../math/Mat4";
+import type { NumberArray16 } from "../math/Mat4";
+import { Renderer } from "../renderer/Renderer";
+import { Vec2 } from "../math/Vec2";
+import type { NumberArray2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
+import { Vec4 } from "../math/Vec4";
+import { Sphere } from "../bv/Sphere";
+import { Quat } from "../math/Quat";
+import { DEGREES_DOUBLE, RADIANS, RADIANS_HALF } from "../math";
 import { Easing, EasingFunction } from "../utils/easing";
 import { LonLat } from "../LonLat";
+import { Ray } from "../math/Ray";
 
-export type CameraEvents = [
-    "viewchange",
-    "moveend",
-    "flystart",
-    "flyend",
-    "flystop",
-];
+export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flystop"];
 
 const EVENT_NAMES: CameraEvents = [
     /**
@@ -53,7 +48,7 @@ const EVENT_NAMES: CameraEvents = [
      * Triggered when flight was stopped.
      * @event og.Camera#flystop
      */
-    "flystop",
+    "flystop"
 ];
 
 export interface ICameraParams {
@@ -61,7 +56,7 @@ export interface ICameraParams {
     viewAngle?: number;
     look?: Vec3;
     up?: Vec3;
-    frustums?: NumberArray2[]
+    frustums?: NumberArray2[];
     width?: number;
     height?: number;
 }
@@ -87,15 +82,16 @@ type CameraFrame = {
     n: Vec3;
     u: Vec3;
     v: Vec3;
-}
+};
 
 type CameraFlight = {
     fly: (progress: number) => CameraFrame;
     duration: number;
     startedAt: number;
-}
+};
 
-const getHorizontalViewAngleByFov = (fov: number, aspect: number) => DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * fov) * aspect);
+const getHorizontalViewAngleByFov = (fov: number, aspect: number) =>
+    DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * fov) * aspect);
 
 /**
  * Camera class.
@@ -114,7 +110,6 @@ const getHorizontalViewAngleByFov = (fov: number, aspect: number) => DEGREES_DOU
  * @fires EventsHandler<CameraEvents>#moveend
  */
 class Camera {
-
     static __counter__: number = 0;
     protected __id: number;
 
@@ -238,7 +233,6 @@ class Camera {
     // public dirRightNED: Vec3;
 
     constructor(options: ICameraParams = {}) {
-
         this.__id = Camera.__counter__++;
 
         this.events = createEvents<CameraEvents>(EVENT_NAMES, this);
@@ -292,7 +286,7 @@ class Camera {
 
                 let fr = new Frustum({
                     fov: this._viewAngle,
-                    aspect: this.getAspectRatio(),//this._aspect,
+                    aspect: this.getAspectRatio(), //this._aspect,
                     near: fi[0],
                     far: fi[1]
                 });
@@ -300,7 +294,11 @@ class Camera {
                 fr.cameraFrustumIndex = this.frustums.length;
                 this.frustums.push(fr);
                 //this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
-                this.frustumColors.push(fr._pickingColorU[0], fr._pickingColorU[1], fr._pickingColorU[2]);
+                this.frustumColors.push(
+                    fr._pickingColorU[0],
+                    fr._pickingColorU[1],
+                    fr._pickingColorU[2]
+                );
             }
         } else {
             let near = 0.1,
@@ -315,7 +313,11 @@ class Camera {
 
             fr.cameraFrustumIndex = this.frustums.length;
             this.frustums.push(fr);
-            this.frustumColors.push(fr._pickingColorU[0], fr._pickingColorU[1], fr._pickingColorU[2]);
+            this.frustumColors.push(
+                fr._pickingColorU[0],
+                fr._pickingColorU[1],
+                fr._pickingColorU[2]
+            );
         }
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
@@ -344,7 +346,64 @@ class Camera {
      * @param {Vec3} [cartesian] - Finish cartesian coordinates.
      * @param {IFlyCartesianParams} [params] - Flight parameters
      */
-    flyCartesian(cartesian: Vec3, params?: IFlyCartesianParams): void {
+    flyCartesian(cartesian: Vec3, params: IFlyCartesianParams = {}): void {
+        this.stopFlying();
+                params.look = params.look || Vec3.ZERO;
+                params.up = params.up || Vec3.UP;
+                params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
+                const ease = params.ease || DEFAULT_EASING;
+        
+                this._completeCallback = params.completeCallback || (() => {
+                });
+        
+                this._frameCallback = params.frameCallback || (() => {
+                });
+        
+                if (params.startCallback) {
+                    params.startCallback.call(this);
+                }
+        
+                let ground_a = this.eye.clone();
+        
+                let v_a = this._u,
+                    n_a = this._b;
+        
+                let up_b = params.up;
+                let ground_b = cartesian.clone();
+                let n_b = Vec3.sub(cartesian, params.look as Vec3);
+                let u_b = up_b.cross(n_b);
+                n_b.normalize();
+                u_b.normalize();
+                let v_b = n_b.cross(u_b);
+        
+                this._flight = {
+                    fly: (progress: number) => {
+                        let t = ease(progress);
+                        let d = 1 - t;
+                        // camera path and orientations calculation
+                        let g_i = ground_a.smerp(ground_b, d);
+                        let eye_i = g_i;
+                        let up_i = v_a.smerp(v_b, d);
+                        let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
+        
+                        let n = new Vec3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
+                        let u = up_i.cross(n);
+                        n.normalize();
+                        u.normalize();
+        
+                        let v = n.cross(u);
+                        return {
+                            eye: eye_i,
+                            n: n,
+                            u: u,
+                            v: v
+                        };
+                    },
+                    duration: params.duration,
+                    startedAt: Date.now()
+                }
+                this._flying = true;
+                this.events.dispatch(this.events.flystart, this);
     }
 
     /**
@@ -367,7 +426,10 @@ class Camera {
      */
     public checkFly() {
         if (this._flying && this._flight !== null) {
-            let progress = Math.min((Date.now() - this._flight.startedAt) / this._flight.duration, 1);
+            let progress = Math.min(
+                (Date.now() - this._flight.startedAt) / this._flight.duration,
+                1
+            );
 
             const frame = this._flight.fly(progress);
             this.eye = frame.eye;
@@ -441,7 +503,6 @@ class Camera {
      * @param {Vec3} [options.up] - Camera eye position. Default (0,1,0)
      */
     protected _init(options: ICameraParams) {
-
         this._setProj(this._viewAngle, this.getAspectRatio());
 
         this.set(
@@ -489,17 +550,41 @@ class Camera {
         Vec3.doubleToTwoFloat32Array(eye, this.eyeHigh, this.eyeLow);
 
         this._viewMatrix.set([
-            u.x, v.x, n.x, 0.0,
-            u.y, v.y, n.y, 0.0,
-            u.z, v.z, n.z, 0.0,
-            -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
+            u.x,
+            v.x,
+            n.x,
+            0.0,
+            u.y,
+            v.y,
+            n.y,
+            0.0,
+            u.z,
+            v.z,
+            n.z,
+            0.0,
+            -eye.dot(u),
+            -eye.dot(v),
+            -eye.dot(n),
+            1.0
         ]);
 
         this._viewMatrixRTE.set([
-            u.x, v.x, n.x, 0.0,
-            u.y, v.y, n.y, 0.0,
-            u.z, v.z, n.z, 0.0,
-            0, 0, 0, 1.0
+            u.x,
+            v.x,
+            n.x,
+            0.0,
+            u.y,
+            v.y,
+            n.y,
+            0.0,
+            u.z,
+            v.z,
+            n.z,
+            0.0,
+            0,
+            0,
+            0,
+            1.0
         ]);
 
         // do not clean up, someday it will be using
@@ -570,7 +655,12 @@ class Camera {
     protected _updateViewportParameters() {
         this._tanViewAngle_hrad = Math.tan(this._viewAngle * math.RADIANS_HALF);
         this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * (1.0 / this._height);
-        this._projSizeConst = Math.min(this._width < 512 ? 512 : this._width, this._height < 512 ? 512 : this._height) / (this._viewAngle * RADIANS);
+        this._projSizeConst =
+            Math.min(
+                this._width < 512 ? 512 : this._width,
+                this._height < 512 ? 512 : this._height
+            ) /
+            (this._viewAngle * RADIANS);
     }
 
     /**
@@ -795,8 +885,12 @@ class Camera {
         let px = (x - w) / w,
             py = -(y - h) / h;
 
-        let world1 = this.frustums[0].inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
-            world2 = this.frustums[0].inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
+        let world1 = this.frustums[0].inverseProjectionViewMatrix
+                .mulVec4(new Vec4(px, py, -1.0, 1.0))
+                .affinity(),
+            world2 = this.frustums[0].inverseProjectionViewMatrix
+                .mulVec4(new Vec4(px, py, 0.0, 1.0))
+                .affinity();
 
         return world2.subA(world1).toVec3().normalize();
     }
@@ -833,7 +927,12 @@ class Camera {
      * @param {Vec3} [center] - Point that the camera rotates around
      * @param {Vec3} [up] - Camera up vector
      */
-    public rotateAround(angle: number, isArc: boolean = false, center: Vec3 = Vec3.ZERO, up: Vec3 = Vec3.UP) {
+    public rotateAround(
+        angle: number,
+        isArc: boolean = false,
+        center: Vec3 = Vec3.ZERO,
+        up: Vec3 = Vec3.UP
+    ) {
         up = isArc ? this._u : up;
         let rot = Mat4.getRotation(angle, up);
         let trm = Mat4.getRotationAroundPoint(angle, center, up);
@@ -897,7 +996,7 @@ class Camera {
 
     public setCurrentFrustum(k: number) {
         this.currentFrustumIndex = k;
-        this.frustumColorIndex = (k + 1) * 10.0 / 255.0;
+        this.frustumColorIndex = ((k + 1) * 10.0) / 255.0;
         this.isFirstPass = k === this.FARTHEST_FRUSTUM_INDEX;
     }
 
@@ -986,4 +1085,4 @@ class Camera {
     }
 }
 
-export {Camera};
+export { Camera };

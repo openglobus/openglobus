@@ -1379,7 +1379,6 @@ export class Planet extends RenderNode {
 
         this._distBeforeMemClear += this._prevCamEye.distance(cam.eye);
         this._prevCamEye.copy(cam.eye);
-        cam.checkFly();
 
         // free memory
         if (this._createdNodesCount > this._maxNodes && this._distBeforeMemClear > this._minDistanceBeforeMemClear) {
