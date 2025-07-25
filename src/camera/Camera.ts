@@ -348,62 +348,62 @@ class Camera {
      */
     flyCartesian(cartesian: Vec3, params: IFlyCartesianParams = {}): void {
         this.stopFlying();
-                params.look = params.look || Vec3.ZERO;
-                params.up = params.up || Vec3.UP;
-                params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
-                const ease = params.ease || DEFAULT_EASING;
-        
-                this._completeCallback = params.completeCallback || (() => {
-                });
-        
-                this._frameCallback = params.frameCallback || (() => {
-                });
-        
-                if (params.startCallback) {
-                    params.startCallback.call(this);
-                }
-        
-                let ground_a = this.eye.clone();
-        
-                let v_a = this._u,
-                    n_a = this._b;
-        
-                let up_b = params.up;
-                let ground_b = cartesian.clone();
-                let n_b = Vec3.sub(cartesian, params.look as Vec3);
-                let u_b = up_b.cross(n_b);
-                n_b.normalize();
-                u_b.normalize();
-                let v_b = n_b.cross(u_b);
-        
-                this._flight = {
-                    fly: (progress: number) => {
-                        let t = ease(progress);
-                        let d = 1 - t;
-                        // camera path and orientations calculation
-                        let g_i = ground_a.smerp(ground_b, d);
-                        let eye_i = g_i;
-                        let up_i = v_a.smerp(v_b, d);
-                        let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
-        
-                        let n = new Vec3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
-                        let u = up_i.cross(n);
-                        n.normalize();
-                        u.normalize();
-        
-                        let v = n.cross(u);
-                        return {
-                            eye: eye_i,
-                            n: n,
-                            u: u,
-                            v: v
-                        };
-                    },
-                    duration: params.duration,
-                    startedAt: Date.now()
-                }
-                this._flying = true;
-                this.events.dispatch(this.events.flystart, this);
+        params.look = params.look || Vec3.ZERO;
+        params.up = params.up || Vec3.UP;
+        params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
+        const ease = params.ease || DEFAULT_EASING;
+
+        this._completeCallback = params.completeCallback || (() => {
+        });
+
+        this._frameCallback = params.frameCallback || (() => {
+        });
+
+        if (params.startCallback) {
+            params.startCallback.call(this);
+        }
+
+        let ground_a = this.eye.clone();
+
+        let v_a = this._u,
+            n_a = this._b;
+
+        let up_b = params.up;
+        let ground_b = cartesian.clone();
+        let n_b = Vec3.sub(cartesian, params.look as Vec3);
+        let u_b = up_b.cross(n_b);
+        n_b.normalize();
+        u_b.normalize();
+        let v_b = n_b.cross(u_b);
+
+        this._flight = {
+            fly: (progress: number) => {
+                let t = ease(progress);
+                let d = 1 - t;
+                // camera path and orientations calculation
+                let g_i = ground_a.smerp(ground_b, d);
+                let eye_i = g_i;
+                let up_i = v_a.smerp(v_b, d);
+                let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
+
+                let n = new Vec3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
+                let u = up_i.cross(n);
+                n.normalize();
+                u.normalize();
+
+                let v = n.cross(u);
+                return {
+                    eye: eye_i,
+                    n: n,
+                    u: u,
+                    v: v
+                };
+            },
+            duration: params.duration,
+            startedAt: Date.now()
+        }
+        this._flying = true;
+        this.events.dispatch(this.events.flystart, this);
     }
 
     /**
