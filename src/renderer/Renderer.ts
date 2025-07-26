@@ -1008,6 +1008,8 @@ class Renderer {
 
         e.dispatch(e.draw, this);
 
+        this.activeCamera!.checkFly();
+
         let frustums = this.activeCamera!.frustums;
 
         let pointerEvent = e.pointerEvent();

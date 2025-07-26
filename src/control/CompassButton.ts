@@ -116,15 +116,11 @@ export class CompassButton extends Control {
         if (c) {
             planet.flyCartesian(
                 c.normal().scaleTo(c.length() + c.distance(planet.camera.eye)),
-                null,
-                null,
-                0,
-                undefined,
-                undefined,
-                null,
-                null,
-                () => {
-                    planet.camera.look(c!);
+                {
+                    amplitude: 0,
+                    completeCallback: () => {
+                        planet.camera.look(c!);
+                    }
                 }
             );
         } else {
