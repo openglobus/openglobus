@@ -19,6 +19,7 @@ export interface IPlanetCameraParams extends ICameraParams {
 
 export interface IPlanetFlyCartesianParams extends IFlyCartesianParams {
     amplitude?: number;
+    preventLock?: boolean;
 }
 
 export interface IPlanetFlyDistanceParams extends IPlanetFlyCartesianParams {
@@ -393,9 +394,11 @@ class PlanetCamera extends Camera {
 
     override flyCartesian(cartesian: Vec3, params: IPlanetFlyCartesianParams = {}): void {
         this.stopFlying();
-        this.planet.layerLock.lock(this._keyLock);
-        this.planet.terrainLock.lock(this._keyLock);
-        this.planet.normalMapCreator.lock(this._keyLock);
+        if (!params.preventLock) {
+            this.planet.layerLock.lock(this._keyLock);
+            this.planet.terrainLock.lock(this._keyLock);
+            this.planet.normalMapCreator.lock(this._keyLock);
+        }
         params.amplitude = params.amplitude || 1.0;
         params.look = params.look || Vec3.ZERO;
         params.up = params.up || Vec3.NORTH;
