@@ -317,6 +317,141 @@ function createSliderControls() {
     cam0HeadPitchContainer.appendChild(cam0HeadPitchSlider);
     cam0HeadPitchContainer.appendChild(cam0HeadPitchValue);
 
+    // Yaw слайдер для scaner_base
+    const scanerBaseYawContainer = document.createElement('div');
+    scanerBaseYawContainer.style.marginBottom = '15px';
+
+    const scanerBaseYawLabel = document.createElement('label');
+    scanerBaseYawLabel.textContent = 'Scaner_base Yaw (-180° - 180°): ';
+    scanerBaseYawLabel.style.display = 'block';
+    scanerBaseYawLabel.style.marginBottom = '5px';
+
+    const scanerBaseYawSlider = document.createElement('input');
+    scanerBaseYawSlider.type = 'range';
+    scanerBaseYawSlider.min = '-180';
+    scanerBaseYawSlider.max = '180';
+    scanerBaseYawSlider.value = '90';
+    scanerBaseYawSlider.step = '0.1';
+    scanerBaseYawSlider.id = 'scanerBaseYawSlider';
+    scanerBaseYawSlider.style.width = '200px';
+
+    const scanerBaseYawValue = document.createElement('span');
+    scanerBaseYawValue.id = 'scanerBaseYawValue';
+    scanerBaseYawValue.textContent = '90°';
+    scanerBaseYawValue.style.marginLeft = '10px';
+
+    scanerBaseYawContainer.appendChild(scanerBaseYawLabel);
+    scanerBaseYawContainer.appendChild(scanerBaseYawSlider);
+    scanerBaseYawContainer.appendChild(scanerBaseYawValue);
+
+    // Pitch слайдер для scaner_link0
+    const scanerLink0PitchContainer = document.createElement('div');
+    scanerLink0PitchContainer.style.marginBottom = '15px';
+
+    const scanerLink0PitchLabel = document.createElement('label');
+    scanerLink0PitchLabel.textContent = 'Scaner_link0 Pitch (-90° - 90°): ';
+    scanerLink0PitchLabel.style.display = 'block';
+    scanerLink0PitchLabel.style.marginBottom = '5px';
+
+    const scanerLink0PitchSlider = document.createElement('input');
+    scanerLink0PitchSlider.type = 'range';
+    scanerLink0PitchSlider.min = '-90';
+    scanerLink0PitchSlider.max = '90';
+    scanerLink0PitchSlider.value = '0';
+    scanerLink0PitchSlider.step = '0.1';
+    scanerLink0PitchSlider.id = 'scanerLink0PitchSlider';
+    scanerLink0PitchSlider.style.width = '200px';
+
+    const scanerLink0PitchValue = document.createElement('span');
+    scanerLink0PitchValue.id = 'scanerLink0PitchValue';
+    scanerLink0PitchValue.textContent = '0°';
+    scanerLink0PitchValue.style.marginLeft = '10px';
+
+    scanerLink0PitchContainer.appendChild(scanerLink0PitchLabel);
+    scanerLink0PitchContainer.appendChild(scanerLink0PitchSlider);
+    scanerLink0PitchContainer.appendChild(scanerLink0PitchValue);
+
+    // Pitch слайдер для scaner_link1
+    const scanerLink1PitchContainer = document.createElement('div');
+    scanerLink1PitchContainer.style.marginBottom = '15px';
+
+    const scanerLink1PitchLabel = document.createElement('label');
+    scanerLink1PitchLabel.textContent = 'Scaner_link1 Pitch (-180° - 180°): ';
+    scanerLink1PitchLabel.style.display = 'block';
+    scanerLink1PitchLabel.style.marginBottom = '5px';
+
+    const scanerLink1PitchSlider = document.createElement('input');
+    scanerLink1PitchSlider.type = 'range';
+    scanerLink1PitchSlider.min = '-180';
+    scanerLink1PitchSlider.max = '180';
+    scanerLink1PitchSlider.value = '0';
+    scanerLink1PitchSlider.step = '0.1';
+    scanerLink1PitchSlider.id = 'scanerLink1PitchSlider';
+    scanerLink1PitchSlider.style.width = '200px';
+
+    const scanerLink1PitchValue = document.createElement('span');
+    scanerLink1PitchValue.id = 'scanerLink1PitchValue';
+    scanerLink1PitchValue.textContent = '0°';
+    scanerLink1PitchValue.style.marginLeft = '10px';
+
+    scanerLink1PitchContainer.appendChild(scanerLink1PitchLabel);
+    scanerLink1PitchContainer.appendChild(scanerLink1PitchSlider);
+    scanerLink1PitchContainer.appendChild(scanerLink1PitchValue);
+
+    // Pitch слайдер для scaner_joint
+    const scanerJointPitchContainer = document.createElement('div');
+    scanerJointPitchContainer.style.marginBottom = '15px';
+
+    const scanerJointPitchLabel = document.createElement('label');
+    scanerJointPitchLabel.textContent = 'Scaner_joint Pitch (-180° - 180°): ';
+    scanerJointPitchLabel.style.display = 'block';
+    scanerJointPitchLabel.style.marginBottom = '5px';
+
+    const scanerJointPitchSlider = document.createElement('input');
+    scanerJointPitchSlider.type = 'range';
+    scanerJointPitchSlider.min = '-180';
+    scanerJointPitchSlider.max = '180';
+    scanerJointPitchSlider.value = '90';
+    scanerJointPitchSlider.step = '0.1';
+    scanerJointPitchSlider.id = 'scanerJointPitchSlider';
+    scanerJointPitchSlider.style.width = '200px';
+
+    const scanerJointPitchValue = document.createElement('span');
+    scanerJointPitchValue.id = 'scanerJointPitchValue';
+    scanerJointPitchValue.textContent = '90°';
+    scanerJointPitchValue.style.marginLeft = '10px';
+
+    scanerJointPitchContainer.appendChild(scanerJointPitchLabel);
+    scanerJointPitchContainer.appendChild(scanerJointPitchSlider);
+    scanerJointPitchContainer.appendChild(scanerJointPitchValue);
+
+    // Yaw слайдер для scaner_head
+    const scanerHeadYawContainer = document.createElement('div');
+    scanerHeadYawContainer.style.marginBottom = '15px';
+
+    const scanerHeadYawLabel = document.createElement('label');
+    scanerHeadYawLabel.textContent = 'Scaner_head Yaw (-180° - 180°): ';
+    scanerHeadYawLabel.style.display = 'block';
+    scanerHeadYawLabel.style.marginBottom = '5px';
+
+    const scanerHeadYawSlider = document.createElement('input');
+    scanerHeadYawSlider.type = 'range';
+    scanerHeadYawSlider.min = '-180';
+    scanerHeadYawSlider.max = '180';
+    scanerHeadYawSlider.value = '0';
+    scanerHeadYawSlider.step = '0.1';
+    scanerHeadYawSlider.id = 'scanerHeadYawSlider';
+    scanerHeadYawSlider.style.width = '200px';
+
+    const scanerHeadYawValue = document.createElement('span');
+    scanerHeadYawValue.id = 'scanerHeadYawValue';
+    scanerHeadYawValue.textContent = '0°';
+    scanerHeadYawValue.style.marginLeft = '10px';
+
+    scanerHeadYawContainer.appendChild(scanerHeadYawLabel);
+    scanerHeadYawContainer.appendChild(scanerHeadYawSlider);
+    scanerHeadYawContainer.appendChild(scanerHeadYawValue);
+
     controlsContainer.appendChild(rollContainer);
     controlsContainer.appendChild(pitchContainer);
     controlsContainer.appendChild(wheelSteerContainer);
@@ -327,6 +462,11 @@ function createSliderControls() {
     controlsContainer.appendChild(cam0PitchContainer);
     controlsContainer.appendChild(cam0JointYawContainer);
     controlsContainer.appendChild(cam0HeadPitchContainer);
+    controlsContainer.appendChild(scanerBaseYawContainer);
+    controlsContainer.appendChild(scanerLink0PitchContainer);
+    controlsContainer.appendChild(scanerLink1PitchContainer);
+    controlsContainer.appendChild(scanerJointPitchContainer);
+    controlsContainer.appendChild(scanerHeadYawContainer);
 
     document.body.appendChild(controlsContainer);
 
@@ -341,6 +481,11 @@ function createSliderControls() {
         cam0PitchSlider,
         cam0JointYawSlider,
         cam0HeadPitchSlider,
+        scanerBaseYawSlider,
+        scanerLink0PitchSlider,
+        scanerLink1PitchSlider,
+        scanerJointPitchSlider,
+        scanerHeadYawSlider,
         rollValue,
         pitchValue,
         wheelSteerValue,
@@ -350,7 +495,12 @@ function createSliderControls() {
         rollRightBackValue,
         cam0PitchValue,
         cam0JointYawValue,
-        cam0HeadPitchValue
+        cam0HeadPitchValue,
+        scanerBaseYawValue,
+        scanerLink0PitchValue,
+        scanerLink1PitchValue,
+        scanerJointPitchValue,
+        scanerHeadYawValue
     };
 }
 
@@ -426,6 +576,80 @@ class MyScene extends RenderNode {
             cam0_head.appendChildren(entities, true);
         });
         cam0_joint.appendChild(cam0_head);
+        //
+
+        //
+        let scaner_base = new Entity({
+            cartesian: [1.213, 0.022, -0.485],
+            yaw: 90 * Math.PI / 180,
+            relativePosition: true,
+        });
+        window.scaner_base = scaner_base;
+
+        Gltf.loadGlb("./scaner_base.glb").then((gltf) => {
+            const entities = gltf.toEntities();
+            scaner_base.appendChildren(entities, true);
+        });
+        base.appendChild(scaner_base);
+        //
+
+        //
+        let scaner_link0 = new Entity({
+            cartesian: [0.17, -0.09, -0.18],
+            relativePosition: true,
+        });
+        window.scaner_link0 = scaner_link0;
+
+        Gltf.loadGlb("./scaner_link0.glb").then((gltf) => {
+            const entities = gltf.toEntities();
+            scaner_link0.appendChildren(entities, true);
+        });
+        scaner_base.appendChild(scaner_link0);
+        //
+
+        //
+        let scaner_link1 = new Entity({
+            cartesian: [0, 0.0, -0.838],
+            relativePosition: true,
+            pitch: 90 * Math.PI / 180
+        });
+        window.scaner_link1 = scaner_link1;
+
+        Gltf.loadGlb("./scaner_link1.glb").then((gltf) => {
+            const entities = gltf.toEntities();
+            scaner_link1.appendChildren(entities, true);
+        });
+        scaner_link0.appendChild(scaner_link1);
+        //
+
+        //
+        let scaner_joint = new Entity({
+            cartesian: [-0.035, -0.005, -0.755],
+            relativePosition: true,
+            pitch: 90 * Math.PI / 180
+        });
+        window.scaner_joint = scaner_joint;
+
+        Gltf.loadGlb("./scaner_joint.glb").then((gltf) => {
+            const entities = gltf.toEntities();
+            scaner_joint.appendChildren(entities, true);
+        });
+        scaner_link1.appendChild(scaner_joint);
+        //
+
+        //
+        let scaner_head = new Entity({
+            cartesian: [0.042, -.15, -0.175],
+            relativePosition: true,
+            pitch: 180 * Math.PI / 180
+        });
+        window.scaner_head = scaner_head;
+
+        Gltf.loadGlb("./scaner_head.glb").then((gltf) => {
+            const entities = gltf.toEntities();
+            scaner_head.appendChildren(entities, true);
+        });
+        scaner_joint.appendChild(scaner_head);
         //
 
         let suspLeftFront = new Entity({
@@ -749,6 +973,41 @@ class MyScene extends RenderNode {
             const cam0HeadPitchRadians = cam0HeadPitchDegrees * (Math.PI / 180);
             cam0_head.setPitch(cam0HeadPitchRadians);
             sliders.cam0HeadPitchValue.textContent = cam0HeadPitchDegrees.toFixed(1) + '°';
+        });
+
+        sliders.scanerBaseYawSlider.addEventListener('input', (e) => {
+            const scanerBaseYawDegrees = parseFloat(e.target.value);
+            const scanerBaseYawRadians = scanerBaseYawDegrees * (Math.PI / 180);
+            scaner_base.setYaw(scanerBaseYawRadians);
+            sliders.scanerBaseYawValue.textContent = scanerBaseYawDegrees.toFixed(1) + '°';
+        });
+
+        sliders.scanerLink0PitchSlider.addEventListener('input', (e) => {
+            const scanerLink0PitchDegrees = parseFloat(e.target.value);
+            const scanerLink0PitchRadians = scanerLink0PitchDegrees * (Math.PI / 180);
+            scaner_link0.setPitch(scanerLink0PitchRadians);
+            sliders.scanerLink0PitchValue.textContent = scanerLink0PitchDegrees.toFixed(1) + '°';
+        });
+
+        sliders.scanerLink1PitchSlider.addEventListener('input', (e) => {
+            const scanerLink1PitchDegrees = parseFloat(e.target.value);
+            const scanerLink1PitchRadians = scanerLink1PitchDegrees * (Math.PI / 180);
+            scaner_link1.setPitch(scanerLink1PitchRadians);
+            sliders.scanerLink1PitchValue.textContent = scanerLink1PitchDegrees.toFixed(1) + '°';
+        });
+
+        sliders.scanerJointPitchSlider.addEventListener('input', (e) => {
+            const scanerJointPitchDegrees = parseFloat(e.target.value);
+            const scanerJointPitchRadians = scanerJointPitchDegrees * (Math.PI / 180);
+            scaner_joint.setPitch(scanerJointPitchRadians);
+            sliders.scanerJointPitchValue.textContent = scanerJointPitchDegrees.toFixed(1) + '°';
+        });
+
+        sliders.scanerHeadYawSlider.addEventListener('input', (e) => {
+            const scanerHeadYawDegrees = parseFloat(e.target.value);
+            const scanerHeadYawRadians = scanerHeadYawDegrees * (Math.PI / 180);
+            scaner_head.setYaw(scanerHeadYawRadians);
+            sliders.scanerHeadYawValue.textContent = scanerHeadYawDegrees.toFixed(1) + '°';
         });
     }
 }
