@@ -182,11 +182,151 @@ function createSliderControls() {
     yawBackContainer.appendChild(yawBackSlider);
     yawBackContainer.appendChild(yawBackValue);
 
+    // Roll слайдер для suspRightFront
+    const rollRightContainer = document.createElement('div');
+    rollRightContainer.style.marginBottom = '15px';
+
+    const rollRightLabel = document.createElement('label');
+    rollRightLabel.textContent = 'SuspRightFront Roll (-90° - 90°): ';
+    rollRightLabel.style.display = 'block';
+    rollRightLabel.style.marginBottom = '5px';
+
+    const rollRightSlider = document.createElement('input');
+    rollRightSlider.type = 'range';
+    rollRightSlider.min = '-90';
+    rollRightSlider.max = '90';
+    rollRightSlider.value = '0';
+    rollRightSlider.step = '0.1';
+    rollRightSlider.id = 'rollRightSlider';
+    rollRightSlider.style.width = '200px';
+
+    const rollRightValue = document.createElement('span');
+    rollRightValue.id = 'rollRightValue';
+    rollRightValue.textContent = '0°';
+    rollRightValue.style.marginLeft = '10px';
+
+    rollRightContainer.appendChild(rollRightLabel);
+    rollRightContainer.appendChild(rollRightSlider);
+    rollRightContainer.appendChild(rollRightValue);
+
+    // Pitch слайдер для suspRightFront
+    const pitchRightContainer = document.createElement('div');
+    pitchRightContainer.style.marginBottom = '15px';
+
+    const pitchRightLabel = document.createElement('label');
+    pitchRightLabel.textContent = 'SuspRightFront Pitch (-45° - 45°): ';
+    pitchRightLabel.style.display = 'block';
+    pitchRightLabel.style.marginBottom = '5px';
+
+    const pitchRightSlider = document.createElement('input');
+    pitchRightSlider.type = 'range';
+    pitchRightSlider.min = '-45';
+    pitchRightSlider.max = '45';
+    pitchRightSlider.value = '-13';
+    pitchRightSlider.step = '0.1';
+    pitchRightSlider.id = 'pitchRightSlider';
+    pitchRightSlider.style.width = '200px';
+
+    const pitchRightValue = document.createElement('span');
+    pitchRightValue.id = 'pitchRightValue';
+    pitchRightValue.textContent = '-13°';
+    pitchRightValue.style.marginLeft = '10px';
+
+    pitchRightContainer.appendChild(pitchRightLabel);
+    pitchRightContainer.appendChild(pitchRightSlider);
+    pitchRightContainer.appendChild(pitchRightValue);
+
+    // Yaw слайдер для amortRightFront
+    const yawRightContainer = document.createElement('div');
+    yawRightContainer.style.marginBottom = '15px';
+
+    const yawRightLabel = document.createElement('label');
+    yawRightLabel.textContent = 'AmortRightFront Roll (-180° - 180°): ';
+    yawRightLabel.style.display = 'block';
+    yawRightLabel.style.marginBottom = '5px';
+
+    const yawRightSlider = document.createElement('input');
+    yawRightSlider.type = 'range';
+    yawRightSlider.min = '-180';
+    yawRightSlider.max = '180';
+    yawRightSlider.value = '0';
+    yawRightSlider.step = '0.1';
+    yawRightSlider.id = 'yawRightSlider';
+    yawRightSlider.style.width = '200px';
+
+    const yawRightValue = document.createElement('span');
+    yawRightValue.id = 'yawRightValue';
+    yawRightValue.textContent = '0°';
+    yawRightValue.style.marginLeft = '10px';
+
+    yawRightContainer.appendChild(yawRightLabel);
+    yawRightContainer.appendChild(yawRightSlider);
+    yawRightContainer.appendChild(yawRightValue);
+
+    // Roll слайдер для suspRightBack
+    const rollRightBackContainer = document.createElement('div');
+    rollRightBackContainer.style.marginBottom = '15px';
+
+    const rollRightBackLabel = document.createElement('label');
+    rollRightBackLabel.textContent = 'SuspRightBack Roll (-45° - 45°): ';
+    rollRightBackLabel.style.display = 'block';
+    rollRightBackLabel.style.marginBottom = '5px';
+
+    const rollRightBackSlider = document.createElement('input');
+    rollRightBackSlider.type = 'range';
+    rollRightBackSlider.min = '-45';
+    rollRightBackSlider.max = '45';
+    rollRightBackSlider.value = '0';
+    rollRightBackSlider.step = '0.1';
+    rollRightBackSlider.id = 'rollRightBackSlider';
+    rollRightBackSlider.style.width = '200px';
+
+    const rollRightBackValue = document.createElement('span');
+    rollRightBackValue.id = 'rollRightBackValue';
+    rollRightBackValue.textContent = '0°';
+    rollRightBackValue.style.marginLeft = '10px';
+
+    rollRightBackContainer.appendChild(rollRightBackLabel);
+    rollRightBackContainer.appendChild(rollRightBackSlider);
+    rollRightBackContainer.appendChild(rollRightBackValue);
+
+    // Yaw слайдер для amortRightBack
+    const yawRightBackContainer = document.createElement('div');
+    yawRightBackContainer.style.marginBottom = '15px';
+
+    const yawRightBackLabel = document.createElement('label');
+    yawRightBackLabel.textContent = 'AmortRightBack Yaw (-180° - 180°): ';
+    yawRightBackLabel.style.display = 'block';
+    yawRightBackLabel.style.marginBottom = '5px';
+
+    const yawRightBackSlider = document.createElement('input');
+    yawRightBackSlider.type = 'range';
+    yawRightBackSlider.min = '-180';
+    yawRightBackSlider.max = '180';
+    yawRightBackSlider.value = '0';
+    yawRightBackSlider.step = '0.1';
+    yawRightBackSlider.id = 'yawRightBackSlider';
+    yawRightBackSlider.style.width = '200px';
+
+    const yawRightBackValue = document.createElement('span');
+    yawRightBackValue.id = 'yawRightBackValue';
+    yawRightBackValue.textContent = '0°';
+    yawRightBackValue.style.marginLeft = '10px';
+
+    yawRightBackContainer.appendChild(yawRightBackLabel);
+    yawRightBackContainer.appendChild(yawRightBackSlider);
+    yawRightBackContainer.appendChild(yawRightBackValue);
+
     controlsContainer.appendChild(rollContainer);
     controlsContainer.appendChild(pitchContainer);
     controlsContainer.appendChild(yawContainer);
     controlsContainer.appendChild(rollBackContainer);
     controlsContainer.appendChild(yawBackContainer);
+    controlsContainer.appendChild(rollRightContainer);
+    controlsContainer.appendChild(pitchRightContainer);
+    controlsContainer.appendChild(yawRightContainer);
+    controlsContainer.appendChild(rollRightBackContainer);
+    controlsContainer.appendChild(yawRightBackContainer);
 
     document.body.appendChild(controlsContainer);
 
@@ -196,11 +336,21 @@ function createSliderControls() {
         yawSlider,
         rollBackSlider,
         yawBackSlider,
+        rollRightSlider,
+        pitchRightSlider,
+        yawRightSlider,
+        rollRightBackSlider,
+        yawRightBackSlider,
         rollValue,
         pitchValue,
         yawValue,
         rollBackValue,
-        yawBackValue
+        yawBackValue,
+        rollRightValue,
+        pitchRightValue,
+        yawRightValue,
+        rollRightBackValue,
+        yawRightBackValue
     };
 }
 
@@ -251,6 +401,25 @@ class MyScene extends RenderNode {
             }
         });
 
+
+        //
+        let suspRightFront = new Entity({
+            cartesian: new Vec3(0.253, 0.01, 0.711),
+            pitch: -13 * Math.PI / 180,
+            relativePosition: true,
+        });
+
+        window.suspRightFront = suspRightFront;
+
+        Gltf.loadGlb("./susp_right_front.glb").then((gltf) => {
+            const entities = gltf.toEntities();
+            for (let i = 0; i < entities.length; i++) {
+                entities[i].relativePosition = true;
+                suspRightFront.appendChild(entities[i]);
+            }
+        });
+        //
+
         let amortLeftFront = new Entity({
             cartesian: new Vec3(0.876, -0.3, -0.26),
             relativePosition: true,
@@ -265,6 +434,23 @@ class MyScene extends RenderNode {
         });
 
         suspLeftFront.appendChild(amortLeftFront);
+
+        //
+        let amortRightFront = new Entity({
+            cartesian: new Vec3(0.876, -0.3, 0.26),
+            relativePosition: true,
+            pitch: -77 * Math.PI / 180,
+        });
+
+        window.amortRightFront = amortRightFront;
+
+        Gltf.loadGlb("./amort_right_front.glb").then((gltf) => {
+            const entities = gltf.toEntities();
+            amortRightFront.appendChildren(entities, true);
+        });
+
+        suspRightFront.appendChild(amortRightFront);
+        //
 
 
         let suspLeftBack = new Entity({
@@ -285,6 +471,26 @@ class MyScene extends RenderNode {
 
         suspLeftFront.appendChild(suspLeftBack);
 
+        //
+        let suspRightBack = new Entity({
+            cartesian: new Vec3(-0.756, -0.243, 0.008),
+            relativePosition: true,
+            pitch: 13 * Math.PI / 180
+        });
+
+        window.suspRightBack = suspRightBack;
+
+        Gltf.loadGlb("./susp_right_back.glb").then((gltf) => {
+            const entities = gltf.toEntities();
+            for (let i = 0; i < entities.length; i++) {
+                entities[i].relativePosition = true;
+                suspRightBack.appendChild(entities[i]);
+            }
+        });
+
+        suspRightFront.appendChild(suspRightBack);
+        //
+
         let amortLeftBack = new Entity({
             cartesian: new Vec3(-0.625, -0.01, -0.263),
             relativePosition: true,
@@ -300,9 +506,27 @@ class MyScene extends RenderNode {
 
         suspLeftBack.appendChild(amortLeftBack);
 
+        //
+        let amortRightBack = new Entity({
+            cartesian: new Vec3(-0.622, -0.0, 0.263),
+            relativePosition: true,
+        });
+
+        window.amortRightBack = amortRightBack;
+
+        Gltf.loadGlb("./amort_right_back.glb").then((gltf) => {
+            const entities = gltf.toEntities()[0];
+            entities.relativePosition = true;
+            amortRightBack.appendChild(entities)
+        });
+
+        suspRightBack.appendChild(amortRightBack);
+        //
+
         suspLeftFront.appendChild(amortLeftFront);
 
         base.appendChild(suspLeftFront);
+        base.appendChild(suspRightFront);
 
 
         let wheelFrontLeft = new Entity({
@@ -349,7 +573,7 @@ class MyScene extends RenderNode {
             wheelBackLeft.setRoll(wheelRoll * Math.PI / 180);
             wheelMiddleLeft.setRoll(wheelRoll * Math.PI / 180);
             wheelRoll -= 0.3;
-        })
+        });
 
         collection.add(base);
 
@@ -391,6 +615,41 @@ class MyScene extends RenderNode {
             const yawBackRadians = yawBackDegrees * (Math.PI / 180);
             amortLeftBack.setYaw(yawBackRadians);
             sliders.yawBackValue.textContent = yawBackDegrees.toFixed(1) + '°';
+        });
+
+        sliders.rollRightSlider.addEventListener('input', (e) => {
+            const rollRightDegrees = parseFloat(e.target.value);
+            const rollRightRadians = rollRightDegrees * (Math.PI / 180);
+            suspRightFront.setRoll(rollRightRadians);
+            sliders.rollRightValue.textContent = rollRightDegrees.toFixed(1) + '°';
+        });
+
+        sliders.pitchRightSlider.addEventListener('input', (e) => {
+            const pitchRightDegrees = parseFloat(e.target.value);
+            const pitchRightRadians = pitchRightDegrees * (Math.PI / 180);
+            suspRightFront.setPitch(pitchRightRadians);
+            sliders.pitchRightValue.textContent = pitchRightDegrees.toFixed(1) + '°';
+        });
+
+        sliders.yawRightSlider.addEventListener('input', (e) => {
+            const yawRightDegrees = parseFloat(e.target.value);
+            const yawRightRadians = yawRightDegrees * (Math.PI / 180);
+            amortRightFront.setRoll(yawRightRadians);
+            sliders.yawRightValue.textContent = yawRightDegrees.toFixed(1) + '°';
+        });
+
+        sliders.rollRightBackSlider.addEventListener('input', (e) => {
+            const rollRightBackDegrees = parseFloat(e.target.value);
+            const rollRightBackRadians = rollRightBackDegrees * (Math.PI / 180);
+            suspRightBack.setRoll(rollRightBackRadians);
+            sliders.rollRightBackValue.textContent = rollRightBackDegrees.toFixed(1) + '°';
+        });
+
+        sliders.yawRightBackSlider.addEventListener('input', (e) => {
+            const yawRightBackDegrees = parseFloat(e.target.value);
+            const yawRightBackRadians = yawRightBackDegrees * (Math.PI / 180);
+            amortRightBack.setYaw(yawRightBackRadians);
+            sliders.yawRightBackValue.textContent = yawRightBackDegrees.toFixed(1) + '°';
         });
     }
 }
