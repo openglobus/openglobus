@@ -29,6 +29,7 @@ import {
     EntityCollection,
     scene,
     Gltf,
+    Easing
 } from "../../lib/og.es.js";
 
 let renderer = new Renderer("frame", {
@@ -50,7 +51,22 @@ class MyScene extends RenderNode {
 
         collection.addTo(this);
 
-        this.renderer.activeCamera.set(new Vec3(20, 21, 23), new Vec3(10, 0, 0));
+        const cameraPositions = [
+            [new Vec3(20, 21, 23), new Vec3(0, 2, 2), Vec3.UP, Easing.ElasticOut],
+            [new Vec3(40, 10, 15), new Vec3(10, 0, 0), Vec3.LEFT, Easing.ElasticOut],
+            [new Vec3(10, 30, 45), new Vec3(10, 0, 0), Vec3.DOWN, Easing.CubicInOut],
+            [new Vec3(40, 10, 15), new Vec3(10, 10, 0), Vec3.RIGHT, Easing.BackInOut],
+        ];
+        let i = 0;
+        setInterval(() => {
+            this.renderer.activeCamera.flyCartesian(cameraPositions[i][0], {
+                look: cameraPositions[i][1],
+                up: cameraPositions[i][2],
+                ease: cameraPositions[i][3],
+            });
+            i = (i + 1) % cameraPositions.length;
+        }, 1500);
+        console.log(this.renderer.activeCamera);
 
         DracoDecoderModule().then((decoderModule) => {
             Gltf.connectDracoDecoderModule(decoderModule);

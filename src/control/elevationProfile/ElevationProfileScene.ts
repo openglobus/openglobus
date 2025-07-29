@@ -198,7 +198,9 @@ class ElevationProfileScene extends RenderNode {
                 if (ll.height > maxHeight) maxHeight = ll.height;
             }
 
-            this._planet!.camera.flyExtent(new Extent(new LonLat(minLon, minLat), new LonLat(maxLon, maxLat)), maxHeight, null, 0);
+            this._planet!.camera.flyExtent(new Extent(new LonLat(minLon, minLat), new LonLat(maxLon, maxLat)), maxHeight, {
+                amplitude: 0
+            });
         }
     }
 

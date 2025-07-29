@@ -25,7 +25,7 @@ import {LonLat} from "../LonLat";
 import {Node} from "../quadTree/Node";
 import {NormalMapCreator} from "../utils/NormalMapCreator";
 import {PlainSegmentWorker} from "../utils/PlainSegmentWorker";
-import {DEFAULT_EASING, DEFAULT_FLIGHT_DURATION, PlanetCamera} from "../camera/PlanetCamera";
+import {IPlanetFlyCartesianParams, PlanetCamera} from "../camera/PlanetCamera";
 import {Quat} from "../math/Quat";
 import {QuadTreeStrategy} from "../quadTree/QuadTreeStrategy";
 import {Ray} from "../math/Ray";
@@ -42,7 +42,8 @@ import type {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../we
 import {Program} from "../webgl/Program";
 import {Segment} from "../segment/Segment";
 import type {AtmosphereParameters} from "../shaders/atmos/atmos";
-import { Easing, EasingFunction } from "../utils/easing";
+import { EasingFunction } from "../utils/easing";
+import { DEFAULT_EASING, DEFAULT_FLIGHT_DURATION } from "../camera/Camera";
 
 export interface IPlanetParams {
     name?: string;
@@ -1378,7 +1379,6 @@ export class Planet extends RenderNode {
 
         this._distBeforeMemClear += this._prevCamEye.distance(cam.eye);
         this._prevCamEye.copy(cam.eye);
-        cam.checkFly();
 
         // free memory
         if (this._createdNodesCount > this._maxNodes && this._distBeforeMemClear > this._minDistanceBeforeMemClear) {
@@ -2126,80 +2126,37 @@ export class Planet extends RenderNode {
      * @public
      * @param {Extent} extent - Geographical extent.
      * @param {Number} [height] - Height on the end of the flight route.
-     * @param {Vec3} [up] - Camera UP vector on the end of a flying.
-     * @param {Number} [ampl] - Altitude amplitude factor.
-     * @param {Number} [duration] - Animation duration
-     * @param {EasingFunction} [ease] - Animation easing
-     * @param {Function} [startCallback] - Callback that calls before the flying begins.
-     * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
-     * @param {Function} [frameCallback] - Each frame callback
+     * @param {IPlanetFlyCartesianParams} params - Flight parameters.
      */
     public flyExtent(
         extent: Extent,
         height?: number,
-        up?: Vec3,
-        ampl?: number,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING,
-        completeCallback?: Function,
-        startCallback?: Function,
-        frameCallback?: Function
+        params: IPlanetFlyCartesianParams = {}
     ) {
-        this.camera.flyExtent(extent, height, up, ampl, duration, ease, completeCallback, startCallback, frameCallback);
+        this.camera.flyExtent(extent, height, params);
     }
 
     /**
      * Fly camera to the point.
      * @public
-     * @param {Vec3} cartesian - Point coordinates.
-     * @param {Vec3} [look] - Camera "look at" point.
-     * @param {Vec3} [up] - Camera UP vector on the end of a flying.
-     * @param {Number} [ampl] - Altitude amplitude factor.
-     * @param {Number} [duration] - Animation duration
-     * @param {EasingFunction} [ease] - Animation easing
-     * @param {Function} [completeCallback] - Call the function in the end of flight
-     * @param {Function} [startCallback] - Call the function in the beginning
-     * @param {Function} [frameCallback] - Each frame callback
+     * @param {Vec3} cartesian - Fly cartesian coordinates.
+     * @param {IPlanetFlyCartesianParams} params - Flight parameters.
      */
-    public flyCartesian(
-        cartesian: Vec3,
-        look?: Vec3 | null,
-        up?: Vec3 | null,
-        ampl?: number,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING,
-        completeCallback?: Function | null,
-        startCallback?: Function | null,
-        frameCallback?: Function | null,
-    ) {
-        this.camera.flyCartesian(cartesian, look, up, ampl, duration, ease, completeCallback, startCallback, frameCallback);
+    public flyCartesian(cartesian: Vec3, params?: IPlanetFlyCartesianParams) {
+        this.camera.flyCartesian(cartesian, params);
     }
 
     /**
      * Fly camera to the geodetic position.
      * @public
      * @param {LonLat} lonlat - Fly geographical coordinates.
-     * @param {Vec3 | LonLat} [look] - Camera viewpoint in the end of the flight.
-     * @param {Vec3} [up] - Camera UP vector on the end of a flying.
-     * @param {Number} [ampl] - Altitude amplitude factor.
-     * @param {Number} [duration] - Animation duration
-     * @param {EasingFunction} [ease] - Animation easing
-     * @param {Function} [completeCallback] - Call the function in the end of flight
-     * @param {Function} [startCallback] - Call the function in the beginning
-     * @param {Function} [frameCallback] - Each frame callback
+     * @param {IPlanetFlyCartesianParams} params - Flight parameters.
      */
     public flyLonLat(
         lonlat: LonLat,
-        look?: Vec3 | LonLat,
-        up?: Vec3,
-        ampl?: number,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING,
-        completeCallback?: Function,
-        startCallback?: Function,
-        frameCallback?: Function
+        params: IPlanetFlyCartesianParams = {} 
     ) {
-        this.camera.flyLonLat(lonlat, look, up, ampl, duration, ease, completeCallback, startCallback, frameCallback);
+        this.camera.flyLonLat(lonlat, params);
     }
 
     /**

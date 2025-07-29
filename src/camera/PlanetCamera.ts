@@ -1,6 +1,6 @@
 import * as mercator from "../mercator";
 import * as math from "../math";
-import {Camera, CameraEvents, type ICameraParams} from "./Camera";
+import {Camera, DEFAULT_EASING, DEFAULT_FLIGHT_DURATION, type IFlyCartesianParams, type ICameraParams} from "./Camera";
 import {Key} from "../Lock";
 import {LonLat} from "../LonLat";
 import {Mat4} from "../math/Mat4";
@@ -11,54 +11,18 @@ import {Vec3} from "../math/Vec3";
 import {Extent} from "../Extent";
 import {Segment} from "../segment/Segment";
 import {RADIANS} from "../math";
-import { EventsHandler } from "../Events";
-import { Easing, EasingFunction } from "../utils/easing";
 
 export interface IPlanetCameraParams extends ICameraParams {
     minAltitude?: number;
     maxAltitude?: number;
 }
 
-export type PlanetCameraEventsList = [
-    "flystart",
-    "flyend",
-    "flystop",
-];
-
-const PLANET_CAMERA_EVENTS: PlanetCameraEventsList = [
-    /**
-     * Triggered before camera flight.
-     * @event og.PlanetCamera#flystart
-     */
-    "flystart",
-
-    /**
-     * Triggered when camera finished flight.
-     * @event og.PlanetCamera#flyend
-     */
-    "flyend",
-
-    /**
-     * Triggered when flight was stopped.
-     * @event og.PlanetCamera#flystop
-     */
-    "flystop",
-];
-
-export const DEFAULT_FLIGHT_DURATION = 800;
-export const DEFAULT_EASING = Easing.CubicInOut;
-
-type CameraFrame = {
-    eye: Vec3;
-    n: Vec3;
-    u: Vec3;
-    v: Vec3;
+export interface IPlanetFlyCartesianParams extends IFlyCartesianParams {
+    amplitude?: number;
 }
 
-type CameraFlight = {
-    fly: (progress: number) => CameraFrame;
-    duration: number;
-    startedAt: number;
+export interface IPlanetFlyDistanceParams extends IPlanetFlyCartesianParams {
+    distance?: number;
 }
 
 /**
@@ -78,9 +42,9 @@ type CameraFlight = {
  * @param {Vec3} [options.up] - Camera eye position. Default (0,1,0)
  * @fires og.Camera#viewchange
  * @fires og.Camera#moveend
- * @fires og.PlanetCamera#flystart
- * @fires og.PlanetCamera#flyend
- * @fires og.PlanetCamera#flystop
+ * @fires og.Camera#flystart
+ * @fires og.Camera#flyend
+ * @fires og.Camera#flystop
  */
 class PlanetCamera extends Camera {
     /**
@@ -89,8 +53,6 @@ class PlanetCamera extends Camera {
      * @type {Planet}
      */
     public planet: Planet;
-
-    public override events: EventsHandler<PlanetCameraEventsList> & EventsHandler<CameraEvents>;
 
     /**
      * Minimal altitude that camera can reach over the terrain.
@@ -145,11 +107,7 @@ class PlanetCamera extends Camera {
     public slope: number;
 
     protected _keyLock: Key;
-    protected _flight: CameraFlight | null;
-    protected _completeCallback: Function | null;
-    protected _frameCallback: Function | null;
 
-    protected _flying: boolean;
     protected _checkTerrainCollision: boolean;
 
     public eyeNorm: Vec3;
@@ -160,9 +118,6 @@ class PlanetCamera extends Camera {
                 frustums: options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
             }
         );
-
-        //@ts-ignore
-        this.events = this.events.registerNames(PLANET_CAMERA_EVENTS);
 
         this.planet = planet;
 
@@ -378,36 +333,15 @@ class PlanetCamera extends Camera {
      * @public
      * @param {Extent} extent - Current extent.
      * @param {number} [height] - Destination height.
-     * @param {Vec3} [up] - Camera UP in the end of flying. Default - (0,1,0)
-     * @param {Number} [ampl] - Altitude amplitude factor.
-     * @param {Number} [duration] - Animation duration
-     * @param {EasingFunction} [ease] - Animation easing
-     * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
-     * @param {Function} [startCallback] - Callback that calls before the flying begins.
-     * @param {Function} [frameCallback] - Each frame callback
+     * @param {IPlanetFlyCartesianParams} [params] - Flight parameters
      */
     public flyExtent(
         extent: Extent,
         height?: number | null,
-        up?: Vec3 | null,
-        ampl?: number | null,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING,
-        completeCallback?: Function | null,
-        startCallback?: Function | null,
-        frameCallback?: Function | null
+        params: IPlanetFlyCartesianParams = {}
     ) {
-        this.flyCartesian(
-            this.getExtentPosition(extent, height),
-            Vec3.ZERO,
-            up,
-            ampl == null ? 1 : ampl,
-            duration,
-            ease,
-            completeCallback,
-            startCallback,
-            frameCallback
-        );
+        params.look = Vec3.ZERO;
+        this.flyCartesian(this.getExtentPosition(extent, height), params);
     }
 
     public override viewDistance(cartesian: Vec3, distance: number = 10000.0) {
@@ -424,15 +358,24 @@ class PlanetCamera extends Camera {
         this.update();
     }
 
+    /**
+     * Flies to the geo coordinates.
+     * @public
+     * @param {LonLat} lonlat - Finish coordinates.
+     * @param {IPlanetFlyCartesianParams} [params] - Flight parameters
+     */
+    flyLonLat(
+        lonlat: LonLat,
+        params: IPlanetFlyCartesianParams = {}
+    ) {
+        let _lonLat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
+        this.flyCartesian(this.planet.ellipsoid.lonLatToCartesian(_lonLat), params);
+    }
+
     public flyDistance(
         cartesian: Vec3,
         distance: number = 10000.0,
-        ampl: number = 0.0,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING,
-        completeCallback?: Function,
-        startCallback?: Function,
-        frameCallback?: Function
+        params: IPlanetFlyCartesianParams = {},
     ) {
         let p0 = this.eye.add(this.getForward().scaleTo(distance));
         let _rot = Quat.getRotationBetweenVectors(p0.getNormal(), cartesian.getNormal());
@@ -442,63 +385,35 @@ class PlanetCamera extends Camera {
         } else {
             let newPos = cartesian.add(_rot.mulVec3(this.getBackward()).scale(distance)),
                 newUp = _rot.mulVec3(this.getUp());
-            this.flyCartesian(
-                newPos,
-                cartesian,
-                newUp,
-                ampl,
-                duration,
-                ease,
-                completeCallback,
-                startCallback,
-                frameCallback
-            );
+            params.look = cartesian;
+            params.up = newUp;
+            this.flyCartesian(newPos, params);
         }
     }
 
-    /**
-     * Flies to the cartesian coordinates.
-     * @public
-     * @param {Vec3} cartesian - Finish cartesian coordinates.
-     * @param {Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
-     * @param {Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
-     * @param {Number} [ampl=1.0] - Altitude amplitude factor.
-     * @param {Number} [duration] - Animation duration
-     * @param {EasingFunction} [ease] - Animation easing
-     * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
-     * @param {Function} [startCallback] - Callback that calls before the flying begins.
-     * @param {Function} [frameCallback] - Each frame callback
-     */
-    flyCartesian(
-        cartesian: Vec3,
-        look: Vec3 | LonLat | null = Vec3.ZERO,
-        up: Vec3 | null = Vec3.NORTH,
-        ampl: number = 1.0,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING,
-        completeCallback: Function | null = () => {
-        },
-        startCallback: Function | null = () => {
-        },
-        frameCallback: Function | null = () => {
-        }
-    ) {
-
+    override flyCartesian(cartesian: Vec3, params: IPlanetFlyCartesianParams = {}): void {
         this.stopFlying();
+        this.planet.layerLock.lock(this._keyLock);
+        this.planet.terrainLock.lock(this._keyLock);
+        this.planet.normalMapCreator.lock(this._keyLock);
+        params.amplitude = params.amplitude || 1.0;
+        params.look = params.look || Vec3.ZERO;
+        params.up = params.up || Vec3.NORTH;
+        params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
+        const ease = params.ease || DEFAULT_EASING;
 
-        look = look || Vec3.ZERO;
-        up = up || Vec3.NORTH;
+        this._completeCallback = params.completeCallback || (() => {
+        });
 
-        this._completeCallback = completeCallback;
+        this._frameCallback = params.frameCallback || (() => {
+        });
 
-        this._frameCallback = frameCallback;
-
-        if (startCallback) {
-            startCallback.call(this);
+        if (params.startCallback) {
+            params.startCallback.call(this);
         }
 
-        if (look instanceof LonLat) {
-            look = this.planet.ellipsoid.lonLatToCartesian(look);
+        if (params.look instanceof LonLat) {
+            params.look = this.planet.ellipsoid.lonLatToCartesian(params.look);
         }
 
         let ground_a = this.eye.clone();
@@ -507,11 +422,11 @@ class PlanetCamera extends Camera {
             n_a = this._b;
 
         let lonlat_b = this.planet.ellipsoid.cartesianToLonLat(cartesian);
-        let up_b = up;
+        let up_b = params.up;
         let ground_b = this.planet.ellipsoid.lonLatToCartesian(
             new LonLat(lonlat_b.lon, lonlat_b.lat, 0)
         );
-        let n_b = Vec3.sub(cartesian, look as Vec3);
+        let n_b = Vec3.sub(cartesian, params.look as Vec3);
         let u_b = up_b.cross(n_b);
         n_b.normalize();
         u_b.normalize();
@@ -520,7 +435,7 @@ class PlanetCamera extends Camera {
         let an = ground_a.getNormal();
         let bn = ground_b.getNormal();
         let anbn = 1.0 - an.dot(bn);
-        let hM_a = ampl * math.SQRT_HALF * Math.sqrt(anbn > 0.0 ? anbn : 0.0);
+        let hM_a = params.amplitude * math.SQRT_HALF * Math.sqrt(anbn > 0.0 ? anbn : 0.0);
 
         let maxHeight = 6639613;
         let currMaxHeight = Math.max(this._lonLat.height, lonlat_b.height);
@@ -561,76 +476,21 @@ class PlanetCamera extends Camera {
                     v: v
                 };
             },
-            duration,
+            duration: params.duration,
             startedAt: Date.now()
         }
         this._flying = true;
         this.events.dispatch(this.events.flystart, this);
     }
 
-    /**
-     * Flies to the geo coordinates.
-     * @public
-     * @param {LonLat} lonlat - Finish coordinates.
-     * @param {Vec3 | LonLat} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
-     * @param {Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
-     * @param {number} [ampl] - Altitude amplitude factor.
-     * @param {Number} [duration] - Animation duration
-     * @param {EasingFunction} [ease] - Animation easing
-     * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
-     * @param {Function} [startCallback] - Callback that calls befor the flying begins.
-     * @param {Function} [frameCallback] - each frame callback
-     */
-    flyLonLat(
-        lonlat: LonLat,
-        look?: Vec3 | LonLat,
-        up?: Vec3,
-        ampl?: number,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING,
-        completeCallback?: Function,
-        startCallback?: Function,
-        frameCallback?: Function
-    ) {
-        let _lonLat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
-        this.flyCartesian(
-            this.planet.ellipsoid.lonLatToCartesian(_lonLat),
-            look,
-            up,
-            ampl,
-            duration,
-            ease,
-            completeCallback,
-            startCallback,
-            frameCallback
-        );
-    }
-
-    /**
-     * Breaks the flight.
-     * @public
-     */
-    stopFlying() {
+    override stopFlying(): void {
         if (!this._flying) {
             return;
         }
         this.planet.layerLock.free(this._keyLock);
         this.planet.terrainLock.free(this._keyLock);
         this.planet.normalMapCreator.free(this._keyLock);
-
-        this._flying = false;
-        this._flight = null;
-        this._frameCallback = null;
-        this.events.dispatch(this.events.flystop, this);
-    }
-
-    /**
-     * Returns camera is flying.
-     * @public
-     * @returns {boolean}
-     */
-    isFlying() {
-        return this._flying;
+        super.stopFlying();
     }
 
     /**
@@ -711,42 +571,6 @@ class PlanetCamera extends Camera {
             this._r = r;
             this._b = b;
             this._f.set(-b.x, -b.y, -b.z);
-        }
-    }
-
-    /**
-     * Prepare camera to the frame. Used in render node frame function.
-     * @public
-     */
-    public checkFly() {
-        if (this._flying && this._flight !== null) {
-            let progress = Math.min((Date.now() - this._flight.startedAt) / this._flight.duration, 1);
-
-            this.planet.layerLock.lock(this._keyLock);
-            this.planet.terrainLock.lock(this._keyLock);
-            this.planet.normalMapCreator.lock(this._keyLock);
-
-            const frame = this._flight.fly(progress);
-            this.eye = frame.eye;
-            this._r = frame.u;
-            this._u = frame.v;
-            this._b = frame.n;
-            this._f.set(-this._b.x, -this._b.y, -this._b.z);
-
-            if (this._frameCallback) {
-                this._frameCallback();
-            }
-
-            this.update();
-
-            if (progress >= 1) {
-                this.stopFlying();
-                if (this._completeCallback) {
-                    this.events.dispatch(this.events.flyend, this);
-                    this._completeCallback();
-                    this._completeCallback = null;
-                }
-            }
         }
     }
 
