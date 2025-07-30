@@ -34,473 +34,198 @@ import {
 
 // Создаем HTML интерфейс для слайдеров
 function createSliderControls() {
+    // Основной контейнер для двух колонок
     const controlsContainer = document.createElement('div');
     controlsContainer.style.cssText = `
         position: absolute;
-        top: 10px;
-        left: 10px;
-        background: rgba(0, 0, 0, 0.8);
-        padding: 20px;
-        border-radius: 8px;
-        color: white;
-        font-family: Arial, sans-serif;
+        bottom: 10px;
+        left: 0;
+        width: 100vw;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        pointer-events: none;
         z-index: 1000;
     `;
 
-    // Roll слайдер для suspLeftFront
-    const rollContainer = document.createElement('div');
-    rollContainer.style.marginBottom = '15px';
-
-    const rollLabel = document.createElement('label');
-    rollLabel.textContent = 'SuspLeftFront Roll (-90° - 90°): ';
-    rollLabel.style.display = 'block';
-    rollLabel.style.marginBottom = '5px';
-
-    const rollSlider = document.createElement('input');
-    rollSlider.type = 'range';
-    rollSlider.min = '-90';
-    rollSlider.max = '90';
-    rollSlider.value = '0';
-    rollSlider.step = '0.1';
-    rollSlider.id = 'rollSlider';
-    rollSlider.style.width = '200px';
-
-    const rollValue = document.createElement('span');
-    rollValue.id = 'rollValue';
-    rollValue.textContent = '0°';
-    rollValue.style.marginLeft = '10px';
-
-    rollContainer.appendChild(rollLabel);
-    rollContainer.appendChild(rollSlider);
-    rollContainer.appendChild(rollValue);
-
-    // Pitch слайдер для suspLeftFront
-    const pitchContainer = document.createElement('div');
-    pitchContainer.style.marginBottom = '15px';
-
-    const pitchLabel = document.createElement('label');
-    pitchLabel.textContent = 'SuspLeftFront Pitch (-45° - 45°): ';
-    pitchLabel.style.display = 'block';
-    pitchLabel.style.marginBottom = '5px';
-
-    const pitchSlider = document.createElement('input');
-    pitchSlider.type = 'range';
-    pitchSlider.min = '-45';
-    pitchSlider.max = '45';
-    pitchSlider.value = '13';
-    pitchSlider.step = '0.1';
-    pitchSlider.id = 'pitchSlider';
-    pitchSlider.style.width = '200px';
-
-    const pitchValue = document.createElement('span');
-    pitchValue.id = 'pitchValue';
-    pitchValue.textContent = '13°';
-    pitchValue.style.marginLeft = '10px';
-
-    pitchContainer.appendChild(pitchLabel);
-    pitchContainer.appendChild(pitchSlider);
-    pitchContainer.appendChild(pitchValue);
-
-    // Общий слайдер поворота колес
-    const wheelSteerContainer = document.createElement('div');
-    wheelSteerContainer.style.marginBottom = '15px';
-
-    const wheelSteerLabel = document.createElement('label');
-    wheelSteerLabel.textContent = 'Wheel Steering (-90° - 90°): ';
-    wheelSteerLabel.style.display = 'block';
-    wheelSteerLabel.style.marginBottom = '5px';
-
-    const wheelSteerSlider = document.createElement('input');
-    wheelSteerSlider.type = 'range';
-    wheelSteerSlider.min = '-90';
-    wheelSteerSlider.max = '90';
-    wheelSteerSlider.value = '0';
-    wheelSteerSlider.step = '0.1';
-    wheelSteerSlider.id = 'wheelSteerSlider';
-    wheelSteerSlider.style.width = '200px';
-
-    const wheelSteerValue = document.createElement('span');
-    wheelSteerValue.id = 'wheelSteerValue';
-    wheelSteerValue.textContent = '0°';
-    wheelSteerValue.style.marginLeft = '10px';
-
-    wheelSteerContainer.appendChild(wheelSteerLabel);
-    wheelSteerContainer.appendChild(wheelSteerSlider);
-    wheelSteerContainer.appendChild(wheelSteerValue);
-
-    // Roll слайдер для suspLeftBack
-    const rollBackContainer = document.createElement('div');
-    rollBackContainer.style.marginBottom = '15px';
-
-    const rollBackLabel = document.createElement('label');
-    rollBackLabel.textContent = 'SuspLeftBack Roll (-45° - 45°): ';
-    rollBackLabel.style.display = 'block';
-    rollBackLabel.style.marginBottom = '5px';
-
-    const rollBackSlider = document.createElement('input');
-    rollBackSlider.type = 'range';
-    rollBackSlider.min = '-45';
-    rollBackSlider.max = '45';
-    rollBackSlider.value = '0';
-    rollBackSlider.step = '0.1';
-    rollBackSlider.id = 'rollBackSlider';
-    rollBackSlider.style.width = '200px';
-
-    const rollBackValue = document.createElement('span');
-    rollBackValue.id = 'rollBackValue';
-    rollBackValue.textContent = '0°';
-    rollBackValue.style.marginLeft = '10px';
-
-    rollBackContainer.appendChild(rollBackLabel);
-    rollBackContainer.appendChild(rollBackSlider);
-    rollBackContainer.appendChild(rollBackValue);
-
-    // Roll слайдер для suspRightFront
-    const rollRightContainer = document.createElement('div');
-    rollRightContainer.style.marginBottom = '15px';
-
-    const rollRightLabel = document.createElement('label');
-    rollRightLabel.textContent = 'SuspRightFront Roll (-90° - 90°): ';
-    rollRightLabel.style.display = 'block';
-    rollRightLabel.style.marginBottom = '5px';
-
-    const rollRightSlider = document.createElement('input');
-    rollRightSlider.type = 'range';
-    rollRightSlider.min = '-90';
-    rollRightSlider.max = '90';
-    rollRightSlider.value = '0';
-    rollRightSlider.step = '0.1';
-    rollRightSlider.id = 'rollRightSlider';
-    rollRightSlider.style.width = '200px';
-
-    const rollRightValue = document.createElement('span');
-    rollRightValue.id = 'rollRightValue';
-    rollRightValue.textContent = '0°';
-    rollRightValue.style.marginLeft = '10px';
-
-    rollRightContainer.appendChild(rollRightLabel);
-    rollRightContainer.appendChild(rollRightSlider);
-    rollRightContainer.appendChild(rollRightValue);
-
-    // Pitch слайдер для suspRightFront
-    const pitchRightContainer = document.createElement('div');
-    pitchRightContainer.style.marginBottom = '15px';
-
-    const pitchRightLabel = document.createElement('label');
-    pitchRightLabel.textContent = 'SuspRightFront Pitch (-45° - 45°): ';
-    pitchRightLabel.style.display = 'block';
-    pitchRightLabel.style.marginBottom = '5px';
-
-    const pitchRightSlider = document.createElement('input');
-    pitchRightSlider.type = 'range';
-    pitchRightSlider.min = '-45';
-    pitchRightSlider.max = '45';
-    pitchRightSlider.value = '-13';
-    pitchRightSlider.step = '0.1';
-    pitchRightSlider.id = 'pitchRightSlider';
-    pitchRightSlider.style.width = '200px';
-
-    const pitchRightValue = document.createElement('span');
-    pitchRightValue.id = 'pitchRightValue';
-    pitchRightValue.textContent = '-13°';
-    pitchRightValue.style.marginLeft = '10px';
-
-    pitchRightContainer.appendChild(pitchRightLabel);
-    pitchRightContainer.appendChild(pitchRightSlider);
-    pitchRightContainer.appendChild(pitchRightValue);
-
-    // Roll слайдер для suspRightBack
-    const rollRightBackContainer = document.createElement('div');
-    rollRightBackContainer.style.marginBottom = '15px';
-
-    const rollRightBackLabel = document.createElement('label');
-    rollRightBackLabel.textContent = 'SuspRightBack Roll (-45° - 45°): ';
-    rollRightBackLabel.style.display = 'block';
-    rollRightBackLabel.style.marginBottom = '5px';
-
-    const rollRightBackSlider = document.createElement('input');
-    rollRightBackSlider.type = 'range';
-    rollRightBackSlider.min = '-45';
-    rollRightBackSlider.max = '45';
-    rollRightBackSlider.value = '0';
-    rollRightBackSlider.step = '0.1';
-    rollRightBackSlider.id = 'rollRightBackSlider';
-    rollRightBackSlider.style.width = '200px';
-
-    const rollRightBackValue = document.createElement('span');
-    rollRightBackValue.id = 'rollRightBackValue';
-    rollRightBackValue.textContent = '0°';
-    rollRightBackValue.style.marginLeft = '10px';
-
-    rollRightBackContainer.appendChild(rollRightBackLabel);
-    rollRightBackContainer.appendChild(rollRightBackSlider);
-    rollRightBackContainer.appendChild(rollRightBackValue);
-
-    // Pitch слайдер для cam0_base
-    const cam0PitchContainer = document.createElement('div');
-    cam0PitchContainer.style.marginBottom = '15px';
-
-    const cam0PitchLabel = document.createElement('label');
-    cam0PitchLabel.textContent = 'Cam0_base Pitch (-90° - 90°): ';
-    cam0PitchLabel.style.display = 'block';
-    cam0PitchLabel.style.marginBottom = '5px';
-
-    const cam0PitchSlider = document.createElement('input');
-    cam0PitchSlider.type = 'range';
-    cam0PitchSlider.min = '-90';
-    cam0PitchSlider.max = '90';
-    cam0PitchSlider.value = '0';
-    cam0PitchSlider.step = '0.1';
-    cam0PitchSlider.id = 'cam0PitchSlider';
-    cam0PitchSlider.style.width = '200px';
-
-    const cam0PitchValue = document.createElement('span');
-    cam0PitchValue.id = 'cam0PitchValue';
-    cam0PitchValue.textContent = '0°';
-    cam0PitchValue.style.marginLeft = '10px';
-
-    cam0PitchContainer.appendChild(cam0PitchLabel);
-    cam0PitchContainer.appendChild(cam0PitchSlider);
-    cam0PitchContainer.appendChild(cam0PitchValue);
-
-    // Yaw слайдер для cam0_joint
-    const cam0JointYawContainer = document.createElement('div');
-    cam0JointYawContainer.style.marginBottom = '15px';
-
-    const cam0JointYawLabel = document.createElement('label');
-    cam0JointYawLabel.textContent = 'Cam0_joint Yaw (-180° - 180°): ';
-    cam0JointYawLabel.style.display = 'block';
-    cam0JointYawLabel.style.marginBottom = '5px';
-
-    const cam0JointYawSlider = document.createElement('input');
-    cam0JointYawSlider.type = 'range';
-    cam0JointYawSlider.min = '-180';
-    cam0JointYawSlider.max = '180';
-    cam0JointYawSlider.value = '0';
-    cam0JointYawSlider.step = '0.1';
-    cam0JointYawSlider.id = 'cam0JointYawSlider';
-    cam0JointYawSlider.style.width = '200px';
-
-    const cam0JointYawValue = document.createElement('span');
-    cam0JointYawValue.id = 'cam0JointYawValue';
-    cam0JointYawValue.textContent = '0°';
-    cam0JointYawValue.style.marginLeft = '10px';
-
-    cam0JointYawContainer.appendChild(cam0JointYawLabel);
-    cam0JointYawContainer.appendChild(cam0JointYawSlider);
-    cam0JointYawContainer.appendChild(cam0JointYawValue);
-
-    // Pitch слайдер для cam0_head
-    const cam0HeadPitchContainer = document.createElement('div');
-    cam0HeadPitchContainer.style.marginBottom = '15px';
-
-    const cam0HeadPitchLabel = document.createElement('label');
-    cam0HeadPitchLabel.textContent = 'Cam0_head Pitch (-90° - 90°): ';
-    cam0HeadPitchLabel.style.display = 'block';
-    cam0HeadPitchLabel.style.marginBottom = '5px';
-
-    const cam0HeadPitchSlider = document.createElement('input');
-    cam0HeadPitchSlider.type = 'range';
-    cam0HeadPitchSlider.min = '-90';
-    cam0HeadPitchSlider.max = '90';
-    cam0HeadPitchSlider.value = '0';
-    cam0HeadPitchSlider.step = '0.1';
-    cam0HeadPitchSlider.id = 'cam0HeadPitchSlider';
-    cam0HeadPitchSlider.style.width = '200px';
-
-    const cam0HeadPitchValue = document.createElement('span');
-    cam0HeadPitchValue.id = 'cam0HeadPitchValue';
-    cam0HeadPitchValue.textContent = '0°';
-    cam0HeadPitchValue.style.marginLeft = '10px';
-
-    cam0HeadPitchContainer.appendChild(cam0HeadPitchLabel);
-    cam0HeadPitchContainer.appendChild(cam0HeadPitchSlider);
-    cam0HeadPitchContainer.appendChild(cam0HeadPitchValue);
-
-    // Yaw слайдер для scaner_base
-    const scanerBaseYawContainer = document.createElement('div');
-    scanerBaseYawContainer.style.marginBottom = '15px';
-
-    const scanerBaseYawLabel = document.createElement('label');
-    scanerBaseYawLabel.textContent = 'Scaner_base Yaw (-180° - 180°): ';
-    scanerBaseYawLabel.style.display = 'block';
-    scanerBaseYawLabel.style.marginBottom = '5px';
-
-    const scanerBaseYawSlider = document.createElement('input');
-    scanerBaseYawSlider.type = 'range';
-    scanerBaseYawSlider.min = '-180';
-    scanerBaseYawSlider.max = '180';
-    scanerBaseYawSlider.value = '90';
-    scanerBaseYawSlider.step = '0.1';
-    scanerBaseYawSlider.id = 'scanerBaseYawSlider';
-    scanerBaseYawSlider.style.width = '200px';
-
-    const scanerBaseYawValue = document.createElement('span');
-    scanerBaseYawValue.id = 'scanerBaseYawValue';
-    scanerBaseYawValue.textContent = '90°';
-    scanerBaseYawValue.style.marginLeft = '10px';
-
-    scanerBaseYawContainer.appendChild(scanerBaseYawLabel);
-    scanerBaseYawContainer.appendChild(scanerBaseYawSlider);
-    scanerBaseYawContainer.appendChild(scanerBaseYawValue);
-
-    // Pitch слайдер для scaner_link0
-    const scanerLink0PitchContainer = document.createElement('div');
-    scanerLink0PitchContainer.style.marginBottom = '15px';
-
-    const scanerLink0PitchLabel = document.createElement('label');
-    scanerLink0PitchLabel.textContent = 'Scaner_link0 Pitch (-90° - 90°): ';
-    scanerLink0PitchLabel.style.display = 'block';
-    scanerLink0PitchLabel.style.marginBottom = '5px';
-
-    const scanerLink0PitchSlider = document.createElement('input');
-    scanerLink0PitchSlider.type = 'range';
-    scanerLink0PitchSlider.min = '-90';
-    scanerLink0PitchSlider.max = '90';
-    scanerLink0PitchSlider.value = '0';
-    scanerLink0PitchSlider.step = '0.1';
-    scanerLink0PitchSlider.id = 'scanerLink0PitchSlider';
-    scanerLink0PitchSlider.style.width = '200px';
-
-    const scanerLink0PitchValue = document.createElement('span');
-    scanerLink0PitchValue.id = 'scanerLink0PitchValue';
-    scanerLink0PitchValue.textContent = '0°';
-    scanerLink0PitchValue.style.marginLeft = '10px';
-
-    scanerLink0PitchContainer.appendChild(scanerLink0PitchLabel);
-    scanerLink0PitchContainer.appendChild(scanerLink0PitchSlider);
-    scanerLink0PitchContainer.appendChild(scanerLink0PitchValue);
-
-    // Pitch слайдер для scaner_link1
-    const scanerLink1PitchContainer = document.createElement('div');
-    scanerLink1PitchContainer.style.marginBottom = '15px';
-
-    const scanerLink1PitchLabel = document.createElement('label');
-    scanerLink1PitchLabel.textContent = 'Scaner_link1 Pitch (-180° - 180°): ';
-    scanerLink1PitchLabel.style.display = 'block';
-    scanerLink1PitchLabel.style.marginBottom = '5px';
-
-    const scanerLink1PitchSlider = document.createElement('input');
-    scanerLink1PitchSlider.type = 'range';
-    scanerLink1PitchSlider.min = '-180';
-    scanerLink1PitchSlider.max = '180';
-    scanerLink1PitchSlider.value = '0';
-    scanerLink1PitchSlider.step = '0.1';
-    scanerLink1PitchSlider.id = 'scanerLink1PitchSlider';
-    scanerLink1PitchSlider.style.width = '200px';
-
-    const scanerLink1PitchValue = document.createElement('span');
-    scanerLink1PitchValue.id = 'scanerLink1PitchValue';
-    scanerLink1PitchValue.textContent = '0°';
-    scanerLink1PitchValue.style.marginLeft = '10px';
-
-    scanerLink1PitchContainer.appendChild(scanerLink1PitchLabel);
-    scanerLink1PitchContainer.appendChild(scanerLink1PitchSlider);
-    scanerLink1PitchContainer.appendChild(scanerLink1PitchValue);
-
-    // Pitch слайдер для scaner_joint
-    const scanerJointPitchContainer = document.createElement('div');
-    scanerJointPitchContainer.style.marginBottom = '15px';
-
-    const scanerJointPitchLabel = document.createElement('label');
-    scanerJointPitchLabel.textContent = 'Scaner_joint Pitch (-180° - 180°): ';
-    scanerJointPitchLabel.style.display = 'block';
-    scanerJointPitchLabel.style.marginBottom = '5px';
-
-    const scanerJointPitchSlider = document.createElement('input');
-    scanerJointPitchSlider.type = 'range';
-    scanerJointPitchSlider.min = '-180';
-    scanerJointPitchSlider.max = '180';
-    scanerJointPitchSlider.value = '90';
-    scanerJointPitchSlider.step = '0.1';
-    scanerJointPitchSlider.id = 'scanerJointPitchSlider';
-    scanerJointPitchSlider.style.width = '200px';
-
-    const scanerJointPitchValue = document.createElement('span');
-    scanerJointPitchValue.id = 'scanerJointPitchValue';
-    scanerJointPitchValue.textContent = '90°';
-    scanerJointPitchValue.style.marginLeft = '10px';
-
-    scanerJointPitchContainer.appendChild(scanerJointPitchLabel);
-    scanerJointPitchContainer.appendChild(scanerJointPitchSlider);
-    scanerJointPitchContainer.appendChild(scanerJointPitchValue);
-
-    // Yaw слайдер для scaner_head
-    const scanerHeadYawContainer = document.createElement('div');
-    scanerHeadYawContainer.style.marginBottom = '15px';
-
-    const scanerHeadYawLabel = document.createElement('label');
-    scanerHeadYawLabel.textContent = 'Scaner_head Yaw (-180° - 180°): ';
-    scanerHeadYawLabel.style.display = 'block';
-    scanerHeadYawLabel.style.marginBottom = '5px';
-
-    const scanerHeadYawSlider = document.createElement('input');
-    scanerHeadYawSlider.type = 'range';
-    scanerHeadYawSlider.min = '-180';
-    scanerHeadYawSlider.max = '180';
-    scanerHeadYawSlider.value = '0';
-    scanerHeadYawSlider.step = '0.1';
-    scanerHeadYawSlider.id = 'scanerHeadYawSlider';
-    scanerHeadYawSlider.style.width = '200px';
-
-    const scanerHeadYawValue = document.createElement('span');
-    scanerHeadYawValue.id = 'scanerHeadYawValue';
-    scanerHeadYawValue.textContent = '0°';
-    scanerHeadYawValue.style.marginLeft = '10px';
-
-    scanerHeadYawContainer.appendChild(scanerHeadYawLabel);
-    scanerHeadYawContainer.appendChild(scanerHeadYawSlider);
-    scanerHeadYawContainer.appendChild(scanerHeadYawValue);
-
-    controlsContainer.appendChild(rollContainer);
-    controlsContainer.appendChild(pitchContainer);
-    controlsContainer.appendChild(wheelSteerContainer);
-    controlsContainer.appendChild(rollBackContainer);
-    controlsContainer.appendChild(rollRightContainer);
-    controlsContainer.appendChild(pitchRightContainer);
-    controlsContainer.appendChild(rollRightBackContainer);
-    controlsContainer.appendChild(cam0PitchContainer);
-    controlsContainer.appendChild(cam0JointYawContainer);
-    controlsContainer.appendChild(cam0HeadPitchContainer);
-    controlsContainer.appendChild(scanerBaseYawContainer);
-    controlsContainer.appendChild(scanerLink0PitchContainer);
-    controlsContainer.appendChild(scanerLink1PitchContainer);
-    controlsContainer.appendChild(scanerJointPitchContainer);
-    controlsContainer.appendChild(scanerHeadYawContainer);
+    // Левая колонка (Suspension, Wheel Steering)
+    const leftColumn = document.createElement('div');
+    leftColumn.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        margin-left: 10px;
+        pointer-events: auto;
+    `;
+
+    // Правая колонка (Camera, Scaner)
+    const rightColumn = document.createElement('div');
+    rightColumn.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        margin-right: 10px;
+        align-items: flex-end;
+        pointer-events: auto;
+    `;
+
+    // Функция для создания группы слайдеров
+    function createSliderGroup(title, sliders) {
+        const groupContainer = document.createElement('div');
+        groupContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            color: white;
+            font-family: Arial, sans-serif;
+        `;
+
+        const groupTitle = document.createElement('h3');
+        groupTitle.textContent = title;
+        groupTitle.style.cssText = `
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            text-align: center;
+            color: #ffd700;
+        `;
+        groupContainer.appendChild(groupTitle);
+
+        sliders.forEach(slider => {
+            groupContainer.appendChild(slider);
+        });
+
+        return groupContainer;
+    }
+
+    // Функция для создания отдельного слайдера
+    function createSlider(id, label, min, max, value, step = '0.1') {
+        const container = document.createElement('div');
+        container.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        `;
+
+        const labelElement = document.createElement('label');
+        labelElement.textContent = label;
+        labelElement.style.cssText = `
+            font-size: 11px;
+            color: #ccc;
+        `;
+
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = min;
+        slider.max = max;
+        slider.value = value;
+        slider.step = step;
+        slider.id = id;
+        slider.style.cssText = `
+            width: 180px;
+            height: 20px;
+        `;
+
+        const valueElement = document.createElement('span');
+        valueElement.id = id + 'Value';
+        valueElement.textContent = value + '°';
+        valueElement.style.cssText = `
+            font-size: 10px;
+            color: #aaa;
+            text-align: center;
+        `;
+
+        container.appendChild(labelElement);
+        container.appendChild(slider);
+        container.appendChild(valueElement);
+
+        return container;
+    }
+
+    // Suspension группа
+    const suspensionSliders = [
+        createSlider('rollSlider', 'LeftFront Roll', '-90', '90', '0'),
+        createSlider('pitchSlider', 'LeftFront Pitch', '-45', '45', '13'),
+        createSlider('rollBackSlider', 'LeftBack Roll', '-45', '45', '0'),
+        createSlider('rollRightSlider', 'RightFront Roll', '-90', '90', '0'),
+        createSlider('pitchRightSlider', 'RightFront Pitch', '-45', '45', '-13'),
+        createSlider('rollRightBackSlider', 'RightBack Roll', '-45', '45', '0')
+    ];
+
+    // Wheel Steering группа
+    const wheelSteeringSliders = [
+        createSlider('wheelSteerSlider', 'Wheel Steering', '-90', '90', '0')
+    ];
+
+    // Camera группа
+    const cameraSliders = [
+        createSlider('cam0PitchSlider', 'Cam0_base Pitch', '-90', '90', '0'),
+        createSlider('cam0JointYawSlider', 'Cam0_joint Yaw', '-180', '180', '0'),
+        createSlider('cam0HeadPitchSlider', 'Cam0_head Pitch', '-90', '90', '0')
+    ];
+
+    // Scaner группа
+    const scanerSliders = [
+        createSlider('scanerBaseYawSlider', 'Scaner_base Yaw', '-180', '180', '90'),
+        createSlider('scanerLink0PitchSlider', 'Scaner_link0 Pitch', '-90', '90', '0'),
+        createSlider('scanerLink1PitchSlider', 'Scaner_link1 Pitch', '-180', '180', '90'),
+        createSlider('scanerJointPitchSlider', 'Scaner_joint Pitch', '-180', '180', '90'),
+        createSlider('scanerHeadYawSlider', 'Scaner_head Yaw', '-180', '180', '0')
+    ];
+
+    // Создаем группы
+    const suspensionGroup = createSliderGroup('Suspension', suspensionSliders);
+    const wheelSteeringGroup = createSliderGroup('Wheel Steering', wheelSteeringSliders);
+    const cameraGroup = createSliderGroup('Camera', cameraSliders);
+    const scanerGroup = createSliderGroup('Scaner', scanerSliders);
+
+    // Добавляем группы в соответствующие колонки
+    leftColumn.appendChild(suspensionGroup);
+    leftColumn.appendChild(wheelSteeringGroup);
+    rightColumn.appendChild(cameraGroup);
+    rightColumn.appendChild(scanerGroup);
+
+    // Добавляем колонки в основной контейнер
+    controlsContainer.appendChild(leftColumn);
+    controlsContainer.appendChild(rightColumn);
 
     document.body.appendChild(controlsContainer);
 
+    // Возвращаем все слайдеры и значения для обработчиков событий
     return {
-        rollSlider,
-        pitchSlider,
-        wheelSteerSlider,
-        rollBackSlider,
-        rollRightSlider,
-        pitchRightSlider,
-        rollRightBackSlider,
-        cam0PitchSlider,
-        cam0JointYawSlider,
-        cam0HeadPitchSlider,
-        scanerBaseYawSlider,
-        scanerLink0PitchSlider,
-        scanerLink1PitchSlider,
-        scanerJointPitchSlider,
-        scanerHeadYawSlider,
-        rollValue,
-        pitchValue,
-        wheelSteerValue,
-        rollBackValue,
-        rollRightValue,
-        pitchRightValue,
-        rollRightBackValue,
-        cam0PitchValue,
-        cam0JointYawValue,
-        cam0HeadPitchValue,
-        scanerBaseYawValue,
-        scanerLink0PitchValue,
-        scanerLink1PitchValue,
-        scanerJointPitchValue,
-        scanerHeadYawValue
+        rollSlider: document.getElementById('rollSlider'),
+        pitchSlider: document.getElementById('pitchSlider'),
+        wheelSteerSlider: document.getElementById('wheelSteerSlider'),
+        rollBackSlider: document.getElementById('rollBackSlider'),
+        rollRightSlider: document.getElementById('rollRightSlider'),
+        pitchRightSlider: document.getElementById('pitchRightSlider'),
+        rollRightBackSlider: document.getElementById('rollRightBackSlider'),
+        cam0PitchSlider: document.getElementById('cam0PitchSlider'),
+        cam0JointYawSlider: document.getElementById('cam0JointYawSlider'),
+        cam0HeadPitchSlider: document.getElementById('cam0HeadPitchSlider'),
+        scanerBaseYawSlider: document.getElementById('scanerBaseYawSlider'),
+        scanerLink0PitchSlider: document.getElementById('scanerLink0PitchSlider'),
+        scanerLink1PitchSlider: document.getElementById('scanerLink1PitchSlider'),
+        scanerJointPitchSlider: document.getElementById('scanerJointPitchSlider'),
+        scanerHeadYawSlider: document.getElementById('scanerHeadYawSlider'),
+        rollValue: document.getElementById('rollSliderValue'),
+        pitchValue: document.getElementById('pitchSliderValue'),
+        wheelSteerValue: document.getElementById('wheelSteerSliderValue'),
+        rollBackValue: document.getElementById('rollBackSliderValue'),
+        rollRightValue: document.getElementById('rollRightSliderValue'),
+        pitchRightValue: document.getElementById('pitchRightSliderValue'),
+        rollRightBackValue: document.getElementById('rollRightBackSliderValue'),
+        cam0PitchValue: document.getElementById('cam0PitchSliderValue'),
+        cam0JointYawValue: document.getElementById('cam0JointYawSliderValue'),
+        cam0HeadPitchValue: document.getElementById('cam0HeadPitchSliderValue'),
+        scanerBaseYawValue: document.getElementById('scanerBaseYawSliderValue'),
+        scanerLink0PitchValue: document.getElementById('scanerLink0PitchSliderValue'),
+        scanerLink1PitchValue: document.getElementById('scanerLink1PitchSliderValue'),
+        scanerJointPitchValue: document.getElementById('scanerJointPitchSliderValue'),
+        scanerHeadYawValue: document.getElementById('scanerHeadYawSliderValue')
     };
 }
 
@@ -961,6 +686,16 @@ class MyScene extends RenderNode {
             sliders.cam0PitchValue.textContent = cam0PitchDegrees.toFixed(1) + '°';
         });
 
+        // Устанавливаем начальные значения для camera
+        cam0_base.setYaw(145 * Math.PI / 180);
+        
+        // Обновляем отображение значений слайдеров
+        sliders.pitchValue.textContent = '13.0°';
+        sliders.pitchRightValue.textContent = '-13.0°';
+        sliders.scanerBaseYawValue.textContent = '90.0°';
+        sliders.scanerLink1PitchValue.textContent = '90.0°';
+        sliders.scanerJointPitchValue.textContent = '90.0°';
+
         sliders.cam0JointYawSlider.addEventListener('input', (e) => {
             const cam0JointYawDegrees = parseFloat(e.target.value);
             const cam0JointYawRadians = cam0JointYawDegrees * (Math.PI / 180);
@@ -1009,6 +744,12 @@ class MyScene extends RenderNode {
             scaner_head.setYaw(scanerHeadYawRadians);
             sliders.scanerHeadYawValue.textContent = scanerHeadYawDegrees.toFixed(1) + '°';
         });
+
+        // Устанавливаем начальные значения для scaner объектов
+        scaner_base.setYaw(90 * Math.PI / 180);
+        scaner_link1.setPitch(90 * Math.PI / 180);
+        scaner_joint.setPitch(90 * Math.PI / 180);
+        scaner_head.setPitch(180 * Math.PI / 180);
     }
 }
 
