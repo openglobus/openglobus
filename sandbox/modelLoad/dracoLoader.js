@@ -38,7 +38,7 @@ function createSliderControls() {
     const controlsContainer = document.createElement('div');
     controlsContainer.style.cssText = `
         position: absolute;
-        bottom: 10px;
+        top: 10px;
         left: 0;
         width: 100vw;
         display: flex;
@@ -250,7 +250,11 @@ class MyScene extends RenderNode {
 
         this.renderer.activeCamera.set(new Vec3(10, 11, 13), new Vec3(0, 2, 2));
 
-        let base = new Entity();
+        let base = new Entity({
+            cartesian: new Vec3(6, 8, 9),
+            yaw: 110 * Math.PI / 180,
+            relativePosition: true,
+        });
         window.base = base;
 
         Gltf.loadGlb("./rover_base.glb").then((gltf) => {
