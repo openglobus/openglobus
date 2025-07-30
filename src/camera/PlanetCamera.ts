@@ -399,7 +399,7 @@ class PlanetCamera extends Camera {
             this.planet.terrainLock.lock(this._keyLock);
             this.planet.normalMapCreator.lock(this._keyLock);
         }
-        params.amplitude = params.amplitude || 1.0;
+        params.amplitude = params.amplitude != undefined ? params.amplitude : 1.0;
         params.look = params.look || Vec3.ZERO;
         params.up = params.up || Vec3.NORTH;
         params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
