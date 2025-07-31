@@ -9,6 +9,12 @@ import {Material} from "./Material";
 import type {NumberArray4} from "../math/Vec4";
 import type {FetchCache, IResponse} from "../utils/Loader";
 
+declare global {
+  interface Window {
+    nsGmx: any;
+  }
+}
+
 export interface IXYZParams extends ILayerParams {
     url?: string;
     subdomains?: string[];
@@ -21,6 +27,7 @@ export interface IXYZParams extends ILayerParams {
      * @default "default"
      */
     cache?: FetchCache;
+    headers?: any;
 }
 
 type XYZEventsList = [
@@ -217,7 +224,8 @@ export class XYZ extends Layer {
                         type: "imageBitmap",
                         filter: () => (seg.initialized && seg.node.getState() === RENDERING) || forceLoading,
                         options: {
-                            cache: this._cache
+                            cache: this._cache,
+                            headers: typeof window.nsGmx !== "undefined" && window.nsGmx.headers ? window.nsGmx.headers : undefined
                         }
                     },
                     (response: IResponse) => {
