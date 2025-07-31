@@ -1,24 +1,24 @@
 import {Extent} from "../Extent";
 import {Node} from "../quadTree/Node";
-import {Planet} from "../scene/Planet";
 import {SegmentLonLat} from "./SegmentLonLat";
 import {getTileCellIndex, TILEGROUP_COMMON} from "./Segment";
 import {equi} from "../proj/equi";
 import type {WebGLTextureExt} from "../webgl/Handler";
+import {QuadTreeStrategy} from "../quadTree";
 
 const MAX_POLE_ZOOM = 5;
 export const POLE_PIECE_SIZE = 5 / Math.pow(2, MAX_POLE_ZOOM);
 
 export class SegmentLonLatEqui extends SegmentLonLat {
-    constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
-        super(node, planet, tileZoom, extent);
+    constructor(node: Node, quadTreeStrategy: QuadTreeStrategy, tileZoom: number, extent: Extent) {
+        super(node, quadTreeStrategy, tileZoom, extent);
         this._projection = equi;
         this.isPole = false;
         this._tileGroup = TILEGROUP_COMMON;
     }
 
     protected override _getMaxZoom(): number {
-        let maxPoleZoom = 0;
+        let maxPoleZoom: number;
         if (this._extent.northEast.lat > 85) {
             //north pole limits
             let Yz = Math.floor((90.0 - this._extent.northEast.lat) / POLE_PIECE_SIZE);

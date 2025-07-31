@@ -164,17 +164,29 @@ export class SimpleNavigation extends Control {
             this._lookPos = this.renderer.getCartesianFromPixel(e.pos);
             if (this._lookPos) {
                 this._up = Vec3.UP;//this.renderer.activeCamera.getUp();
+            }else{
+                const cam = this.renderer.activeCamera;
+                let pl = new Plane(Vec3.ZERO, Vec3.UP);
+                let ray = new Ray(cam.eye, e.direction);
+                this._lookPos = new Vec3();
+                ray.hitPlaneRes(pl, this._lookPos)
+                this._up = Vec3.UP;
             }
         }
     }
 
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.renderer) {
-            let pos = this.renderer.getCartesianFromPixel(e),
-                dist = 10;
-            if (pos) {
-                dist = this.renderer.activeCamera.eye.distance(pos);
+            let pos: Vec3 | undefined;
+            pos = this.renderer.getCartesianFromPixel(e);
+            if (!pos) {
+                pos = new Vec3();
+                const cam = this.renderer.activeCamera;
+                let pl = new Plane(Vec3.ZERO, Vec3.UP);
+                let ray = new Ray(cam.eye, e.direction);
+                ray.hitPlaneRes(pl, pos);
             }
+            let dist = this.renderer.activeCamera.eye.distance(pos) * 8;
             this.force.addA(e.direction.scale(e.wheelDelta)).normalize().scale(dist);
         }
     }
@@ -197,37 +209,31 @@ export class SimpleNavigation extends Control {
 
     protected onCameraLookUp = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.setPitch(0.5);
         cam.update();
     }
 
     protected onCameraLookDown = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.setPitch(-0.5);
         cam.update();
     }
 
     protected onCameraTurnLeft = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.setYaw(0.5);
         cam.update();
     }
 
     protected onCameraTurnRight = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.setYaw(-0.5);
         cam.update();
     }
 
     protected onCameraRollLeft = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.setRoll(-0.5);
         cam.update();
     }
 
     protected onCameraRollRight = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.setRoll(0.5);
         cam.update();
     }
 
@@ -240,7 +246,7 @@ export class SimpleNavigation extends Control {
 
             let acc = this.force.scale(1.0 / this.mass);
             this.vel.addA(acc);
-            this.vel.scale(0.96);
+            this.vel.scale(0.77);
             this.force.set(0, 0, 0);
 
             let cam = this.renderer.activeCamera;

@@ -123,11 +123,15 @@ export class KML extends Vector {
 
         } else {
             return new Entity({
+                name,
                 polyline: {
                     pathLonLat: [lonLats],
                     thickness: lineWidth,
                     color: lineColor,
                     isClosed: false
+                },
+                properties: {
+                    name: name
                 }
             });
         }

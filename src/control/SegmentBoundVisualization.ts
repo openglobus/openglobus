@@ -33,8 +33,8 @@ export class SegmentBoundVisualization extends Control {
 
     protected _draw() {
         const planet = this.planet!;
-        for (let i = 0; i < planet._renderedNodes.length; i++) {
-            let si = planet._renderedNodes[i].segment as SegmentExt;
+        for (let i = 0; i < planet.quadTreeStrategy._renderedNodes.length; i++) {
+            let si = planet.quadTreeStrategy._renderedNodes[i].segment as SegmentExt;
             if (!si._sphereEntity) {
                 si._sphereEntity = new Entity({
                     billboard: {

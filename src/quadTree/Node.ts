@@ -3,8 +3,8 @@ import {EPSG3857} from "../proj/EPSG3857";
 import {binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt} from "../utils/shared";
 import {LonLat} from "../LonLat";
 import {MAX, MIN} from "../math";
-import {Planet} from "../scene/Planet";
 import {Segment} from "../segment/Segment";
+import {QuadTreeStrategy} from "./QuadTreeStrategy";
 
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
@@ -61,17 +61,17 @@ let __staticCounter = 0;
  * Quad tree planet segment node.
  * @constructor
  * @param {Segment} segmentPrototype - Planet segment node constructor.
- * @param {Planet} planet - Planet scene instance.
+ * @param {QuadTreeStrategy} quadTreeStrategy - Quad tree strategy handler.
  * @param {number} partId - NorthEast, SouthWest etc.
  * @param {Node} parent - Parent of this node.
  * @param {number} id - Tree node identifier (id * 4 + 1);
  * @param {number} tileZoom - Deep index of the quad tree.
- * @param {Extent} extent - Planet segment extent.
+ * @param {Extent} extent - Segment extent.
  */
 class Node {
     public __id: number;
     public SegmentPrototype: typeof Segment;
-    public planet: Planet;
+    public quadTreeStrategy: QuadTreeStrategy;
     public parentNode: Node | null;
     public partId: number;
     public nodeId: number;
@@ -90,18 +90,18 @@ class Node {
 
     constructor(
         SegmentPrototype: typeof Segment,
-        planet: Planet,
+        quadTreeStrategy: QuadTreeStrategy,
         partId: number,
         parent: Node | null,
         tileZoom: number,
         extent: Extent
     ) {
-        planet._createdNodesCount++;
+        quadTreeStrategy.planet._createdNodesCount++;
 
         this.__id = __staticCounter++;
 
         this.SegmentPrototype = SegmentPrototype;
-        this.planet = planet;
+        this.quadTreeStrategy = quadTreeStrategy;
         this.parentNode = parent;
         this.partId = partId;
         this.nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
@@ -112,9 +112,8 @@ class Node {
         this.ready = false;
         this.neighbors = [[], [], [], []];
         this.equalizedSideWithNodeId = [this.nodeId, this.nodeId, this.nodeId, this.nodeId];
-        // @todo: this.nodes = null;
         this.nodes = [];
-        this.segment = new SegmentPrototype(this, planet, tileZoom, extent);
+        this.segment = new SegmentPrototype(this, quadTreeStrategy, tileZoom, extent);
         this._cameraInside = false;
         this.inFrustum = 0;
         this._fadingNodes = [];
@@ -123,7 +122,7 @@ class Node {
 
     public createChildNodes() {
         this.ready = true;
-        const p = this.planet;
+        const qts = this.quadTreeStrategy;
         const ps = this.segment;
         const ext = ps._extent;
         const z = ps.tileZoom + 1;
@@ -134,10 +133,10 @@ class Node {
         const c = new LonLat(sw.lon + size_x, sw.lat + size_y);
         const nd = this.nodes;
 
-        nd[NW] = new Node(this.SegmentPrototype, p, NW, this, z, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
-        nd[NE] = new Node(this.SegmentPrototype, p, NE, this, z, new Extent(c, new LonLat(ne.lon, ne.lat)));
-        nd[SW] = new Node(this.SegmentPrototype, p, SW, this, z, new Extent(new LonLat(sw.lon, sw.lat), c));
-        nd[SE] = new Node(this.SegmentPrototype, p, SE, this, z, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
+        nd[NW] = new Node(this.SegmentPrototype, qts, NW, this, z, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
+        nd[NE] = new Node(this.SegmentPrototype, qts, NE, this, z, new Extent(c, new LonLat(ne.lon, ne.lat)));
+        nd[SW] = new Node(this.SegmentPrototype, qts, SW, this, z, new Extent(new LonLat(sw.lon, sw.lat), c));
+        nd[SE] = new Node(this.SegmentPrototype, qts, SE, this, z, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
     }
 
     public createBounds() {
@@ -209,10 +208,6 @@ class Node {
         }
     }
 
-    // public isBrother(node: Node): boolean {
-    //     return !(this.parentNode || node.parentNode) || (this.parentNode!.nodeId === node.parentNode!.nodeId);
-    // }
-
     public traverseNodes(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean, zoomPassNode?: Node) {
         if (!this.ready) {
             this.createChildNodes();
@@ -227,7 +222,7 @@ class Node {
     }
 
     public renderTree(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean, zoomPassNode?: Node) {
-        if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES) {
+        if (this.quadTreeStrategy._renderedNodes.length >= MAX_RENDERED_NODES) {
             return;
         }
 
@@ -239,7 +234,7 @@ class Node {
         this.clearNeighbors();
 
         let seg = this.segment,
-            planet = this.planet;
+            planet = this.quadTreeStrategy.planet;
 
         this._cameraInside = false;
 
@@ -300,13 +295,13 @@ class Node {
                 cam.eye.distance2(seg._se) < horizonDist;
 
             if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
-                planet.quadTreeStrategy.collectVisibleNode(this);
+                this.quadTreeStrategy.collectVisibleNode(this);
             }
 
             if (seg.tileZoom < 2) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
             } else if (
-                seg.terrainReady && (!maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet.lodSize
+                seg.terrainReady && (!maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < this.quadTreeStrategy.lodSize
                     || maxZoom && ((seg.tileZoom === maxZoom) || !altVis))
             ) {
 
@@ -317,7 +312,7 @@ class Node {
                     this.state = NOTRENDERING;
                 }
 
-            } else if (seg.terrainReady && seg.checkZoom() && (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
+            } else if (seg.terrainReady && seg.checkZoom() && (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.quadTreeStrategy._maxLodSize)) {
                 this.traverseNodes(cam, maxZoom, seg, stopLoading, zoomPassNode);
             } else if (altVis) {
                 seg.passReady = maxZoom ? seg.terrainReady : false;
@@ -361,12 +356,12 @@ class Node {
         }
 
         // Calculate minimal and maximal zoom index on the screen
-        if (!this._cameraInside && seg.tileZoom > this.planet.maxCurrZoom) {
-            this.planet.maxCurrZoom = seg.tileZoom;
+        if (!this._cameraInside && seg.tileZoom > this.quadTreeStrategy.maxCurrZoom) {
+            this.quadTreeStrategy.maxCurrZoom = seg.tileZoom;
         }
 
-        if (seg.tileZoom < this.planet.minCurrZoom) {
-            this.planet.minCurrZoom = seg.tileZoom;
+        if (seg.tileZoom < this.quadTreeStrategy.minCurrZoom) {
+            this.quadTreeStrategy.minCurrZoom = seg.tileZoom;
         }
 
         seg._addViewExtent();
@@ -421,7 +416,7 @@ class Node {
                         pn = pn.parentNode;
                     }
 
-                    // not sure it's necessary here
+                    // not sure that it's necessary here
                     this.parentNode.whileTerrainLoading();
 
                     this._fadingNodes.push(this.parentNode);
@@ -433,7 +428,7 @@ class Node {
                         for (let i = 0; i < this.nodes.length; i++) {
                             let ni = this.nodes[i];
 
-                            // not sure it's necessary here
+                            // not sure that it's necessary here
                             ni.whileTerrainLoading();
 
                             this._fadingNodes.push(ni);
@@ -488,10 +483,10 @@ class Node {
     public addToRender(inFrustum: number) {
         this.state = RENDERING;
 
-        let nodes = this.planet._renderedNodes;
+        let nodes = this.quadTreeStrategy._renderedNodes;
 
         //@ts-ignore
-        if (!this.planet._transitionOpacityEnabled) {
+        if (!this.quadTreeStrategy._transitionOpacityEnabled) {
             this.getRenderedNodesNeighbors(nodes);
             nodes.push(this);
         } else {
@@ -502,12 +497,12 @@ class Node {
         }
 
         if (!this.segment.terrainReady) {
-            this.planet._renderCompleted = false;
-            this.planet._terrainCompleted = false;
+            this.quadTreeStrategy._renderCompleted = false;
+            this.quadTreeStrategy._terrainCompleted = false;
         }
 
         let k = 0,
-            rf = this.planet._renderedNodesInFrustum;
+            rf = this.quadTreeStrategy._renderedNodesInFrustum;
         while (inFrustum) {
             if (inFrustum & 1) {
                 rf[k].push(this);

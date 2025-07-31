@@ -117,6 +117,8 @@ class Entity {
 
     static __counter__: number = 0;
 
+    protected _name: string;
+
     /**
      * Uniq identifier.
      * @public
@@ -311,9 +313,11 @@ class Entity {
 
         this.__id = Entity.__counter__++;
 
+        this._name = options.name || `entity:${this.__id}`;
+
         this.properties = options.properties || {};
 
-        this.properties.name = this.properties.name != undefined ? this.properties.name : "";
+        //this.properties.name = this.properties.name != undefined ? this.properties.name : "";
 
         this.childEntities = [];
 
@@ -393,6 +397,17 @@ class Entity {
 
         this.strip = this._createOptionFeature<Strip, IStripParams>("strip", options.strip);
 
+    }
+
+    public get name(): string {
+        return this._name;
+    }
+
+    public set name(name: string) {
+        if (name !== this._name) {
+            this._name = name;
+            //ec && ec.events.dispatch(ec.events.entityname, this);
+        }
     }
 
     public get isEmpty(): boolean {
@@ -531,11 +546,10 @@ class Entity {
      * Adds current entity into the specified entity collection.
      * @public
      * @param {EntityCollection | Vector} collection - Specified entity collection or vector layer.
-     * @param {boolean} [rightNow=false] - Entity insertion option for vector layer.
      * @returns {Entity} - This object.
      */
-    public addTo(collection: EntityCollection | Vector, rightNow: boolean = false): Entity {
-        collection.add(this, rightNow);
+    public addTo(collection: EntityCollection | Vector): Entity {
+        collection.add(this);
         return this;
     }
 
@@ -722,6 +736,9 @@ class Entity {
         this._rollRad = this._qRot.getRoll();
 
         this._updateAbsolutePosition();
+
+        // ?
+        //this._useDirectQuaternion = false;
     }
 
     /**
@@ -972,7 +989,13 @@ class Entity {
             this._rootCartesian.copy(parent._rootCartesian);
 
             if (!this._useDirectQuaternion) {
-                this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
+                //this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
+
+                if (parent && this.forceGlobalRotation) {
+                    this._qRot.setPitchYawRoll(parent._pitchRad, parent._yawRad, parent._rollRad);
+                } else {
+                    this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
+                }
             }
             parent._absoluteQRot.mulRes(this._qRot, this._absoluteQRot);
 
@@ -1304,6 +1327,21 @@ class Entity {
             return this._entityCollection.events;
         }
         return null;
+    }
+
+    /**
+     * Append child entity.
+     * @public
+     * @param {Entity[]} entities - Child entities.
+     * @param {boolean} [forceRelativePosition] - Force relative position property.
+     */
+    public appendChildren(entities: Entity[], forceRelativePosition?: boolean) {
+        for (let i = 0; i < entities.length; i++) {
+            if (forceRelativePosition !== undefined) {
+                entities[i].relativePosition = forceRelativePosition;
+            }
+            this.appendChild(entities[i]);
+        }
     }
 
     /**
