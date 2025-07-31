@@ -765,9 +765,7 @@ class Vector extends Layer {
                                 if (seg._extent.isInside(ll)) {
                                     let cart = p._path3v[c_j][c_j_h] as Vec3;
                                     seg.getTerrainPoint(cart, ll, res);
-                                    let alt = (rtg && p.altitude) || 0.0;
-                                    alt += p._pathLonLatMerc[c_j][c_j_h].height || 0.0;
-                                    alt += altModifier;
+                                    let alt = (rtg && p.altitude) || altModifier;
                                     if (alt) {
                                         let n = this._planet!.ellipsoid.getSurfaceNormal3v(res);
                                         p.setPoint3v(res.addA(n.scale(alt)), c_j_h, c_j, true);
