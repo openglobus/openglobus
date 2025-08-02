@@ -32,9 +32,9 @@ import {
     Easing
 } from "../../lib/og.es.js";
 
-// Создаем HTML интерфейс для слайдеров
+// Create HTML interface for sliders
 function createSliderControls() {
-    // Основной контейнер для двух колонок
+    // Main container for two columns
     const controlsContainer = document.createElement('div');
     controlsContainer.style.cssText = `
         position: absolute;
@@ -48,35 +48,35 @@ function createSliderControls() {
         z-index: 1000;
     `;
 
-    // Левая колонка (Suspension, Wheel Steering)
+    // Left column (Suspension, Wheel Steering)
     const leftColumn = document.createElement('div');
     leftColumn.style.cssText = `
         display: flex;
         flex-direction: column;
-        gap: 30px;
+        gap: 20px;
         margin-left: 10px;
         pointer-events: auto;
     `;
 
-    // Правая колонка (Camera, Scaner)
+    // Right column (Camera, Scaner)
     const rightColumn = document.createElement('div');
     rightColumn.style.cssText = `
         display: flex;
         flex-direction: column;
-        gap: 30px;
+        gap: 20px;
         margin-right: 10px;
         align-items: flex-end;
         pointer-events: auto;
     `;
 
-    // Функция для создания группы слайдеров
+    // Function to create slider group
     function createSliderGroup(title, sliders) {
         const groupContainer = document.createElement('div');
         groupContainer.style.cssText = `
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            min-width: 200px;
+            gap: 6px;
+            min-width: 280px;
             background: rgba(0, 0, 0, 0.8);
             padding: 20px;
             border-radius: 8px;
@@ -101,13 +101,13 @@ function createSliderControls() {
         return groupContainer;
     }
 
-    // Функция для создания отдельного слайдера
+    // Function to create individual slider
     function createSlider(id, label, min, max, value, step = '0.1') {
-        const container = document.createElement('div');
-        container.style.cssText = `
+        const mainContainer = document.createElement('div');
+        mainContainer.style.cssText = `
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 3px;
         `;
 
         const labelElement = document.createElement('label');
@@ -115,6 +115,15 @@ function createSliderControls() {
         labelElement.style.cssText = `
             font-size: 11px;
             color: #ccc;
+            margin-bottom: 2px;
+        `;
+
+        const sliderContainer = document.createElement('div');
+        sliderContainer.style.cssText = `
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
         `;
 
         const slider = document.createElement('input');
@@ -127,6 +136,7 @@ function createSliderControls() {
         slider.style.cssText = `
             width: 180px;
             height: 20px;
+            flex: 1;
         `;
 
         const valueElement = document.createElement('span');
@@ -135,17 +145,19 @@ function createSliderControls() {
         valueElement.style.cssText = `
             font-size: 10px;
             color: #aaa;
-            text-align: center;
+            min-width: 40px;
+            text-align: right;
         `;
 
-        container.appendChild(labelElement);
-        container.appendChild(slider);
-        container.appendChild(valueElement);
+        mainContainer.appendChild(labelElement);
+        sliderContainer.appendChild(slider);
+        sliderContainer.appendChild(valueElement);
+        mainContainer.appendChild(sliderContainer);
 
-        return container;
+        return mainContainer;
     }
 
-    // Suspension группа
+    // Suspension group
     const suspensionSliders = [
         createSlider('rollSlider', 'LeftFront Roll', '-90', '90', '0'),
         createSlider('pitchSlider', 'LeftFront Pitch', '-45', '45', '13'),
@@ -155,19 +167,24 @@ function createSliderControls() {
         createSlider('rollRightBackSlider', 'RightBack Roll', '-45', '45', '0')
     ];
 
-    // Wheel Steering группа
+    // Wheel Steering group
     const wheelSteeringSliders = [
         createSlider('wheelSteerSlider', 'Wheel Steering', '-90', '90', '0')
     ];
 
-    // Camera группа
+    // Base group
+    const baseSliders = [
+        createSlider('baseYawSlider', 'Base Yaw', '-180', '180', '110')
+    ];
+
+    // Camera group
     const cameraSliders = [
         createSlider('cam0PitchSlider', 'Cam0_base Pitch', '-90', '90', '0'),
         createSlider('cam0JointYawSlider', 'Cam0_joint Yaw', '-180', '180', '0'),
         createSlider('cam0HeadPitchSlider', 'Cam0_head Pitch', '-90', '90', '0')
     ];
 
-    // Scaner группа
+    // Scaner group
     const scanerSliders = [
         createSlider('scanerBaseYawSlider', 'Scaner_base Yaw', '-180', '180', '90'),
         createSlider('scanerLink0PitchSlider', 'Scaner_link0 Pitch', '-90', '90', '0'),
@@ -176,29 +193,32 @@ function createSliderControls() {
         createSlider('scanerHeadYawSlider', 'Scaner_head Yaw', '-180', '180', '0')
     ];
 
-    // Создаем группы
+    // Create groups
     const suspensionGroup = createSliderGroup('Suspension', suspensionSliders);
     const wheelSteeringGroup = createSliderGroup('Wheel Steering', wheelSteeringSliders);
+    const baseGroup = createSliderGroup('Base', baseSliders);
     const cameraGroup = createSliderGroup('Camera', cameraSliders);
     const scanerGroup = createSliderGroup('Scaner', scanerSliders);
 
-    // Добавляем группы в соответствующие колонки
+    // Add groups to corresponding columns
     leftColumn.appendChild(suspensionGroup);
     leftColumn.appendChild(wheelSteeringGroup);
+    leftColumn.appendChild(baseGroup);
     rightColumn.appendChild(cameraGroup);
     rightColumn.appendChild(scanerGroup);
 
-    // Добавляем колонки в основной контейнер
+    // Add columns to main container
     controlsContainer.appendChild(leftColumn);
     controlsContainer.appendChild(rightColumn);
 
     document.body.appendChild(controlsContainer);
 
-    // Возвращаем все слайдеры и значения для обработчиков событий
+    // Return all sliders and values for event handlers
     return {
         rollSlider: document.getElementById('rollSlider'),
         pitchSlider: document.getElementById('pitchSlider'),
         wheelSteerSlider: document.getElementById('wheelSteerSlider'),
+        baseYawSlider: document.getElementById('baseYawSlider'),
         rollBackSlider: document.getElementById('rollBackSlider'),
         rollRightSlider: document.getElementById('rollRightSlider'),
         pitchRightSlider: document.getElementById('pitchRightSlider'),
@@ -214,6 +234,7 @@ function createSliderControls() {
         rollValue: document.getElementById('rollSliderValue'),
         pitchValue: document.getElementById('pitchSliderValue'),
         wheelSteerValue: document.getElementById('wheelSteerSliderValue'),
+        baseYawValue: document.getElementById('baseYawSliderValue'),
         rollBackValue: document.getElementById('rollBackSliderValue'),
         rollRightValue: document.getElementById('rollRightSliderValue'),
         pitchRightValue: document.getElementById('pitchRightSliderValue'),
@@ -231,7 +252,7 @@ function createSliderControls() {
 
 let renderer = new Renderer("frame", {
     msaa: 8,
-    controls: [new control.SimpleNavigation({ speed: 0.01 }), new control.GeoObjectEditor()],
+    controls: [new control.SimpleNavigation({ speed: 0.01 })],
     autoActivate: true
 });
 
@@ -250,6 +271,57 @@ class MyScene extends RenderNode {
 
         this.renderer.activeCamera.set(new Vec3(10, 11, 13), new Vec3(0, 2, 2));
 
+        // Load all models first
+        const [
+            roverBaseGltf,
+            cam0BaseGltf,
+            cam0JointGltf,
+            cam0HeadGltf,
+            scanerBaseGltf,
+            scanerLink0Gltf,
+            scanerLink1Gltf,
+            scanerJointGltf,
+            scanerHeadGltf,
+            suspLeftFrontGltf,
+            suspRightFrontGltf,
+            amortLeftFrontGltf,
+            amortRightFrontGltf,
+            suspLeftBackGltf,
+            suspRightBackGltf,
+            amortLeftBackGltf,
+            amortRightBackGltf,
+            wheelFrontLeftGltf,
+            wheelBackLeftGltf,
+            wheelMiddleLeftGltf,
+            wheelFrontRightGltf,
+            wheelBackRightGltf,
+            wheelMiddleRightGltf
+        ] = await Promise.all([
+            Gltf.loadGlb("./rover_base.glb"),
+            Gltf.loadGlb("./cam0_base.glb"),
+            Gltf.loadGlb("./cam0_joint.glb"),
+            Gltf.loadGlb("./cam0_head.glb"),
+            Gltf.loadGlb("./scaner_base.glb"),
+            Gltf.loadGlb("./scaner_link0.glb"),
+            Gltf.loadGlb("./scaner_link1.glb"),
+            Gltf.loadGlb("./scaner_joint.glb"),
+            Gltf.loadGlb("./scaner_head.glb"),
+            Gltf.loadGlb("./susp_left_front.glb"),
+            Gltf.loadGlb("./susp_right_front.glb"),
+            Gltf.loadGlb("./amort_left_front.glb"),
+            Gltf.loadGlb("./amort_right_front.glb"),
+            Gltf.loadGlb("./susp_left_back.glb"),
+            Gltf.loadGlb("./susp_right_back.glb"),
+            Gltf.loadGlb("./amort_left_back.glb"),
+            Gltf.loadGlb("./amort_right_back.glb"),
+            Gltf.loadGlb("./wheel_left.glb"),
+            Gltf.loadGlb("./wheel_left.glb"),
+            Gltf.loadGlb("./wheel_left.glb"),
+            Gltf.loadGlb("./wheel_left.glb"),
+            Gltf.loadGlb("./wheel_left.glb"),
+            Gltf.loadGlb("./wheel_left.glb")
+        ]);
+
         let base = new Entity({
             cartesian: new Vec3(6, 8, 9),
             yaw: 110 * Math.PI / 180,
@@ -257,12 +329,10 @@ class MyScene extends RenderNode {
         });
         window.base = base;
 
-        Gltf.loadGlb("./rover_base.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            for (let i = 0; i < entities.length; i++) {
-                base.appendChild(entities[i]);
-            }
-        });
+        const roverBaseEntities = roverBaseGltf.toEntities();
+        for (let i = 0; i < roverBaseEntities.length; i++) {
+            base.appendChild(roverBaseEntities[i]);
+        }
 
         //
         let cam0_base = new Entity({
@@ -272,10 +342,8 @@ class MyScene extends RenderNode {
         });
         window.cam0_base = cam0_base;
 
-        Gltf.loadGlb("./cam0_base.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            cam0_base.appendChildren(entities, true);
-        });
+        const cam0BaseEntities = cam0BaseGltf.toEntities();
+        cam0_base.appendChildren(cam0BaseEntities, true);
         base.appendChild(cam0_base);
         //
 
@@ -286,10 +354,8 @@ class MyScene extends RenderNode {
         });
         window.cam0_joint = cam0_joint;
 
-        Gltf.loadGlb("./cam0_joint.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            cam0_joint.appendChildren(entities, true);
-        });
+        const cam0JointEntities = cam0JointGltf.toEntities();
+        cam0_joint.appendChildren(cam0JointEntities, true);
         cam0_base.appendChild(cam0_joint);
         //
 
@@ -300,10 +366,8 @@ class MyScene extends RenderNode {
         });
         window.cam0_head = cam0_head;
 
-        Gltf.loadGlb("./cam0_head.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            cam0_head.appendChildren(entities, true);
-        });
+        const cam0HeadEntities = cam0HeadGltf.toEntities();
+        cam0_head.appendChildren(cam0HeadEntities, true);
         cam0_joint.appendChild(cam0_head);
         //
 
@@ -315,10 +379,8 @@ class MyScene extends RenderNode {
         });
         window.scaner_base = scaner_base;
 
-        Gltf.loadGlb("./scaner_base.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            scaner_base.appendChildren(entities, true);
-        });
+        const scanerBaseEntities = scanerBaseGltf.toEntities();
+        scaner_base.appendChildren(scanerBaseEntities, true);
         base.appendChild(scaner_base);
         //
 
@@ -329,10 +391,8 @@ class MyScene extends RenderNode {
         });
         window.scaner_link0 = scaner_link0;
 
-        Gltf.loadGlb("./scaner_link0.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            scaner_link0.appendChildren(entities, true);
-        });
+        const scanerLink0Entities = scanerLink0Gltf.toEntities();
+        scaner_link0.appendChildren(scanerLink0Entities, true);
         scaner_base.appendChild(scaner_link0);
         //
 
@@ -344,10 +404,8 @@ class MyScene extends RenderNode {
         });
         window.scaner_link1 = scaner_link1;
 
-        Gltf.loadGlb("./scaner_link1.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            scaner_link1.appendChildren(entities, true);
-        });
+        const scanerLink1Entities = scanerLink1Gltf.toEntities();
+        scaner_link1.appendChildren(scanerLink1Entities, true);
         scaner_link0.appendChild(scaner_link1);
         //
 
@@ -359,10 +417,8 @@ class MyScene extends RenderNode {
         });
         window.scaner_joint = scaner_joint;
 
-        Gltf.loadGlb("./scaner_joint.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            scaner_joint.appendChildren(entities, true);
-        });
+        const scanerJointEntities = scanerJointGltf.toEntities();
+        scaner_joint.appendChildren(scanerJointEntities, true);
         scaner_link1.appendChild(scaner_joint);
         //
 
@@ -374,10 +430,8 @@ class MyScene extends RenderNode {
         });
         window.scaner_head = scaner_head;
 
-        Gltf.loadGlb("./scaner_head.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            scaner_head.appendChildren(entities, true);
-        });
+        const scanerHeadEntities = scanerHeadGltf.toEntities();
+        scaner_head.appendChildren(scanerHeadEntities, true);
         scaner_joint.appendChild(scaner_head);
         //
 
@@ -389,13 +443,11 @@ class MyScene extends RenderNode {
 
         window.suspLeftFront = suspLeftFront;
 
-        Gltf.loadGlb("./susp_left_front.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            for (let i = 0; i < entities.length; i++) {
-                entities[i].relativePosition = true;
-                suspLeftFront.appendChild(entities[i]);
-            }
-        });
+        const suspLeftFrontEntities = suspLeftFrontGltf.toEntities();
+        for (let i = 0; i < suspLeftFrontEntities.length; i++) {
+            suspLeftFrontEntities[i].relativePosition = true;
+            suspLeftFront.appendChild(suspLeftFrontEntities[i]);
+        }
 
 
         //
@@ -407,13 +459,11 @@ class MyScene extends RenderNode {
 
         window.suspRightFront = suspRightFront;
 
-        Gltf.loadGlb("./susp_right_front.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            for (let i = 0; i < entities.length; i++) {
-                entities[i].relativePosition = true;
-                suspRightFront.appendChild(entities[i]);
-            }
-        });
+        const suspRightFrontEntities = suspRightFrontGltf.toEntities();
+        for (let i = 0; i < suspRightFrontEntities.length; i++) {
+            suspRightFrontEntities[i].relativePosition = true;
+            suspRightFront.appendChild(suspRightFrontEntities[i]);
+        }
         //
 
         let amortLeftFront = new Entity({
@@ -424,10 +474,8 @@ class MyScene extends RenderNode {
 
         window.amortLeftFront = amortLeftFront;
 
-        Gltf.loadGlb("./amort_left_front.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            amortLeftFront.appendChildren(entities, true);
-        });
+        const amortLeftFrontEntities = amortLeftFrontGltf.toEntities();
+        amortLeftFront.appendChildren(amortLeftFrontEntities, true);
 
         suspLeftFront.appendChild(amortLeftFront);
 
@@ -440,10 +488,8 @@ class MyScene extends RenderNode {
 
         window.amortRightFront = amortRightFront;
 
-        Gltf.loadGlb("./amort_right_front.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            amortRightFront.appendChildren(entities, true);
-        });
+        const amortRightFrontEntities = amortRightFrontGltf.toEntities();
+        amortRightFront.appendChildren(amortRightFrontEntities, true);
 
         suspRightFront.appendChild(amortRightFront);
         //
@@ -457,13 +503,11 @@ class MyScene extends RenderNode {
 
         window.suspLeftBack = suspLeftBack;
 
-        Gltf.loadGlb("./susp_left_back.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            for (let i = 0; i < entities.length; i++) {
-                entities[i].relativePosition = true;
-                suspLeftBack.appendChild(entities[i]);
-            }
-        });
+        const suspLeftBackEntities = suspLeftBackGltf.toEntities();
+        for (let i = 0; i < suspLeftBackEntities.length; i++) {
+            suspLeftBackEntities[i].relativePosition = true;
+            suspLeftBack.appendChild(suspLeftBackEntities[i]);
+        }
 
         suspLeftFront.appendChild(suspLeftBack);
 
@@ -476,13 +520,11 @@ class MyScene extends RenderNode {
 
         window.suspRightBack = suspRightBack;
 
-        Gltf.loadGlb("./susp_right_back.glb").then((gltf) => {
-            const entities = gltf.toEntities();
-            for (let i = 0; i < entities.length; i++) {
-                entities[i].relativePosition = true;
-                suspRightBack.appendChild(entities[i]);
-            }
-        });
+        const suspRightBackEntities = suspRightBackGltf.toEntities();
+        for (let i = 0; i < suspRightBackEntities.length; i++) {
+            suspRightBackEntities[i].relativePosition = true;
+            suspRightBack.appendChild(suspRightBackEntities[i]);
+        }
 
         suspRightFront.appendChild(suspRightBack);
         //
@@ -494,11 +536,9 @@ class MyScene extends RenderNode {
 
         window.amortLeftBack = amortLeftBack;
 
-        Gltf.loadGlb("./amort_left_back.glb").then((gltf) => {
-            const entities = gltf.toEntities()[0];
-            entities.relativePosition = true;
-            amortLeftBack.appendChild(entities)
-        });
+        const amortLeftBackEntities = amortLeftBackGltf.toEntities()[0];
+        amortLeftBackEntities.relativePosition = true;
+        amortLeftBack.appendChild(amortLeftBackEntities);
 
         suspLeftBack.appendChild(amortLeftBack);
 
@@ -510,11 +550,9 @@ class MyScene extends RenderNode {
 
         window.amortRightBack = amortRightBack;
 
-        Gltf.loadGlb("./amort_right_back.glb").then((gltf) => {
-            const entities = gltf.toEntities()[0];
-            entities.relativePosition = true;
-            amortRightBack.appendChild(entities)
-        });
+        const amortRightBackEntities = amortRightBackGltf.toEntities()[0];
+        amortRightBackEntities.relativePosition = true;
+        amortRightBack.appendChild(amortRightBackEntities);
 
         suspRightBack.appendChild(amortRightBack);
         //
@@ -541,23 +579,17 @@ class MyScene extends RenderNode {
             relativePosition: true,
         });
 
-        Gltf.loadGlb("./wheel_left.glb").then((gltf) => {
-            const entities = gltf.toEntities()[0];
-            entities.relativePosition = true;
-            wheelFrontLeft.appendChild(entities);
-        });
+        const wheelFrontLeftEntities = wheelFrontLeftGltf.toEntities();
+        wheelFrontLeftEntities[0].relativePosition = true;
+        wheelFrontLeft.appendChild(wheelFrontLeftEntities[0]);
 
-        Gltf.loadGlb("./wheel_left.glb").then((gltf) => {
-            const entities = gltf.toEntities()[0];
-            entities.relativePosition = true;
-            wheelBackLeft.appendChild(entities);
-        });
+        const wheelBackLeftEntities = wheelBackLeftGltf.toEntities();
+        wheelBackLeftEntities[0].relativePosition = true;
+        wheelBackLeft.appendChild(wheelBackLeftEntities[0]);
 
-        Gltf.loadGlb("./wheel_left.glb").then((gltf) => {
-            const entities = gltf.toEntities()[0];
-            entities.relativePosition = true;
-            wheelMiddleLeft.appendChild(entities);
-        });
+        const wheelMiddleLeftEntities = wheelMiddleLeftGltf.toEntities();
+        wheelMiddleLeftEntities[0].relativePosition = true;
+        wheelMiddleLeft.appendChild(wheelMiddleLeftEntities[0]);
 
         amortLeftFront.appendChild(wheelFrontLeft);
         amortLeftBack.appendChild(wheelBackLeft);
@@ -583,23 +615,17 @@ class MyScene extends RenderNode {
             yaw: 180 * Math.PI / 180
         });
 
-        Gltf.loadGlb("./wheel_left.glb").then((gltf) => {
-            const entities = gltf.toEntities()[0];
-            entities.relativePosition = true;
-            wheelFrontRight.appendChild(entities);
-        });
+        const wheelFrontRightEntities = wheelFrontRightGltf.toEntities();
+        wheelFrontRightEntities[0].relativePosition = true;
+        wheelFrontRight.appendChild(wheelFrontRightEntities[0]);
 
-        Gltf.loadGlb("./wheel_left.glb").then((gltf) => {
-            const entities = gltf.toEntities()[0];
-            entities.relativePosition = true;
-            wheelBackRight.appendChild(entities);
-        });
+        const wheelBackRightEntities = wheelBackRightGltf.toEntities();
+        wheelBackRightEntities[0].relativePosition = true;
+        wheelBackRight.appendChild(wheelBackRightEntities[0]);
 
-        Gltf.loadGlb("./wheel_left.glb").then((gltf) => {
-            const entities = gltf.toEntities()[0];
-            entities.relativePosition = true;
-            wheelMiddleRight.appendChild(entities);
-        });
+        const wheelMiddleRightEntities = wheelMiddleRightGltf.toEntities();
+        wheelMiddleRightEntities[0].relativePosition = true;
+        wheelMiddleRight.appendChild(wheelMiddleRightEntities[0]);
 
         amortRightFront.appendChild(wheelFrontRight);
         amortRightBack.appendChild(wheelBackRight);
@@ -625,10 +651,10 @@ class MyScene extends RenderNode {
 
         collection.add(base);
 
-        // Создаем слайдеры после загрузки модели
+        // Create sliders after model loading
         const sliders = createSliderControls();
 
-        // Настройка обработчиков событий для слайдеров
+        // Setup event handlers for sliders
         sliders.rollSlider.addEventListener('input', (e) => {
             const rollDegrees = parseFloat(e.target.value);
             const rollRadians = rollDegrees * (Math.PI / 180);
@@ -646,13 +672,20 @@ class MyScene extends RenderNode {
         sliders.wheelSteerSlider.addEventListener('input', (e) => {
             const wheelSteerDegrees = parseFloat(e.target.value);
             const wheelSteerRadians = wheelSteerDegrees * (Math.PI / 180);
-            // Передние амортизаторы используют setRoll
+            // Front shock absorbers use setRoll
             amortLeftFront.setRoll(wheelSteerRadians);
             amortRightFront.setRoll(wheelSteerRadians);
-            // Задние амортизаторы используют setYaw
+            // Rear shock absorbers use setYaw
             amortLeftBack.setYaw(wheelSteerRadians);
             amortRightBack.setYaw(wheelSteerRadians);
             sliders.wheelSteerValue.textContent = wheelSteerDegrees.toFixed(1) + '°';
+        });
+
+        sliders.baseYawSlider.addEventListener('input', (e) => {
+            const baseYawDegrees = parseFloat(e.target.value);
+            const baseYawRadians = baseYawDegrees * (Math.PI / 180);
+            base.setYaw(baseYawRadians);
+            sliders.baseYawValue.textContent = baseYawDegrees.toFixed(1) + '°';
         });
 
         sliders.rollBackSlider.addEventListener('input', (e) => {
@@ -690,12 +723,13 @@ class MyScene extends RenderNode {
             sliders.cam0PitchValue.textContent = cam0PitchDegrees.toFixed(1) + '°';
         });
 
-        // Устанавливаем начальные значения для camera
+        // Set initial values for camera
         cam0_base.setYaw(145 * Math.PI / 180);
         
-        // Обновляем отображение значений слайдеров
+        // Update slider value display
         sliders.pitchValue.textContent = '13.0°';
         sliders.pitchRightValue.textContent = '-13.0°';
+        sliders.baseYawValue.textContent = '110.0°';
         sliders.scanerBaseYawValue.textContent = '90.0°';
         sliders.scanerLink1PitchValue.textContent = '90.0°';
         sliders.scanerJointPitchValue.textContent = '90.0°';
@@ -749,7 +783,7 @@ class MyScene extends RenderNode {
             sliders.scanerHeadYawValue.textContent = scanerHeadYawDegrees.toFixed(1) + '°';
         });
 
-        // Устанавливаем начальные значения для scaner объектов
+        // Set initial values for scaner objects
         scaner_base.setYaw(90 * Math.PI / 180);
         scaner_link1.setPitch(90 * Math.PI / 180);
         scaner_joint.setPitch(90 * Math.PI / 180);
