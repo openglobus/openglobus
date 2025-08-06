@@ -1233,7 +1233,7 @@ export class Planet extends RenderNode {
 
             gl.uniform3fv(shu.lightPosition, this._lightPosition);
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionOrthoMatrix());
 
             if (this.baseLayer) {
                 gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
@@ -1265,7 +1265,7 @@ export class Planet extends RenderNode {
             sh = h.programs.drawnode_screen_nl._program;
             shu = sh.uniforms;
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionOrthoMatrix());
         }
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
@@ -1292,7 +1292,7 @@ export class Planet extends RenderNode {
 
             gl.uniform3fv(shu.lightPosition, this._lightPosition);
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionOrthoMatrix());
 
             if (this.baseLayer) {
                 gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
@@ -1337,7 +1337,7 @@ export class Planet extends RenderNode {
             sh = h.programs.drawnode_screen_nl._program;
             shu = sh.uniforms;
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionOrthoMatrix());
         }
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
@@ -1550,7 +1550,7 @@ export class Planet extends RenderNode {
         gl.enable(gl.CULL_FACE);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionOrthoMatrix());
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
@@ -1598,7 +1598,7 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionOrthoMatrix());
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);

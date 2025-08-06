@@ -1344,7 +1344,7 @@ class Renderer {
         if (!frustum) return;
 
         let screenPos = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-        let viewPosition = frustum.inverseProjectionMatrix.mulVec4(screenPos);
+        let viewPosition = frustum.inverseProjectionOrthoMatrix.mulVec4(screenPos);
         let dir = (px as IBaseInputState).direction || camera.unproject(px.x, px.y);
         dist = -(viewPosition.z / viewPosition.w) / dir.dot(camera.getForward());
 

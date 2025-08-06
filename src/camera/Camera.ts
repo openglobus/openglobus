@@ -1054,6 +1054,10 @@ class Camera {
         return this.frustum.projectionMatrix._m;
     }
 
+    public getProjectionOrthoMatrix(): NumberArray16 {
+        return this.frustum.projectionOrthoMatrix._m;
+    }
+
     /**
      * Returns projection and model matrix product.
      * @public
