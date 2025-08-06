@@ -314,7 +314,7 @@ export class MouseNavigation extends Control {
             let d_v_h = this.vel_h * this.dt;
             let d_v_v = this.vel_v * this.dt;
             cam.rotateHorizontal(d_v_h, false, this._targetRotationPoint, this._tUp);
-            cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
+            cam.rotateVertical(d_v_v, this._targetRotationPoint, 0);
             this.events.dispatch(this.events.rotate, this);
             this._curPitch = cam.getPitch();
             this._curYaw = cam.getYaw();
