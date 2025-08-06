@@ -212,6 +212,14 @@ class Frustum {
             m[i] = p[i] * (1 - t) + o[i] * t;
         }
 
+        // for (let i = 0; i < 16; i++) {
+        //     if (i === 10 || i === 11 || i === 14 || i === 15) {
+        //         m[i] = p[i];
+        //     } else {
+        //         m[i] = p[i] * (1 - t) + o[i] * t;
+        //     }
+        // }
+
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
     }
 
