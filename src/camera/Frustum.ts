@@ -194,10 +194,15 @@ class Frustum {
         const perspWidth = perspHeight * aspect;
         const perspMatrix = new Mat4().setPerspective(-perspWidth / 2, perspWidth / 2, -perspHeight / 2, perspHeight / 2, near, far);
 
+        let ratio_size_per_depth = Math.atan(RADIANS * angle / 2.0) * 2.0;
+        let size_y = ratio_size_per_depth * orthoDistance;
+        let size_x = ratio_size_per_depth * orthoDistance * aspect;
+
         const orthoHeight = 2 * orthoDistance * Math.tan(angle * RADIANS_HALF);
-        const orthoWidth = orthoHeight * aspect;
-        const orthoScale = near / orthoDistance;
-        const orthoMatrix = new Mat4().setOrtho(-orthoWidth * orthoScale / 2, orthoWidth * orthoScale / 2, -orthoHeight * orthoScale / 2, orthoHeight * orthoScale / 2, near, far);
+        //const orthoWidth = orthoHeight * aspect;
+        //const orthoScale = near / orthoDistance;
+        //const orthoMatrix = new Mat4().setOrtho(-orthoWidth * orthoScale / 2, orthoWidth * orthoScale / 2, -orthoHeight * orthoScale / 2, orthoHeight * orthoScale / 2, near, far);
+        const orthoMatrix = new Mat4().setOrtho(-size_x, size_x, -size_y, size_y, near, far);
 
         const m = this.projectionMatrix._m;
         const p = perspMatrix._m;
