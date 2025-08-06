@@ -44,6 +44,9 @@ class Frustum {
      */
     public inverseProjectionMatrix: Mat4;
 
+    public projectionOrthoMatrix: Mat4;
+    public inverseProjectionOrthoMatrix: Mat4;
+
     /**
      * Product of projection and view matrices.
      * @protected
@@ -99,8 +102,10 @@ class Frustum {
 
         this._f = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
 
-        this.projectionMatrix = new Mat4();
+        this.projectionOrthoMatrix = new Mat4();
+        this.inverseProjectionOrthoMatrix = new Mat4();
 
+        this.projectionMatrix = new Mat4();
         this.inverseProjectionMatrix = new Mat4();
 
         this.projectionViewMatrix = new Mat4();
@@ -167,6 +172,10 @@ class Frustum {
         return this.projectionMatrix._m;
     }
 
+    public getProjectionOrthoMatrix(): NumberArray16 {
+        return this.projectionOrthoMatrix._m;
+    }
+
     public getInverseProjectionMatrix(): NumberArray16 {
         return this.inverseProjectionMatrix._m;
     }
@@ -192,20 +201,20 @@ class Frustum {
 
         const perspHeight = 2 * near * Math.tan(angle * RADIANS_HALF);
         const perspWidth = perspHeight * aspect;
-        const perspMatrix = new Mat4().setPerspective(-perspWidth / 2, perspWidth / 2, -perspHeight / 2, perspHeight / 2, near, far);
+        this.projectionMatrix = new Mat4().setPerspective(-perspWidth / 2, perspWidth / 2, -perspHeight / 2, perspHeight / 2, near, far);
 
         //const orthoHeight = 2 * orthoDistance * Math.tan(angle * RADIANS_HALF);
         //const orthoWidth = orthoHeight * aspect;
         //const orthoScale = near / orthoDistance;
         //const orthoMatrix = new Mat4().setOrtho(-orthoWidth * orthoScale / 2, orthoWidth * orthoScale / 2, -orthoHeight * orthoScale / 2, orthoHeight * orthoScale / 2, near, far);
 
-        let ratio_size_per_depth = /*RADIANS * angle;/*/Math.atan(RADIANS * angle / 2.0) * 2.0;
+        let ratio_size_per_depth = Math.atan(RADIANS * angle / 2.0) * 2.0;
         let size_y = ratio_size_per_depth * orthoDistance;
         let size_x = ratio_size_per_depth * orthoDistance * aspect;
         const orthoMatrix = new Mat4().setOrtho(-size_x, size_x, -size_y, size_y, near, far);
 
-        const m = this.projectionMatrix._m;
-        const p = perspMatrix._m;
+        const m = this.projectionOrthoMatrix._m;
+        const p = this.projectionMatrix._m;
         const o = orthoMatrix._m;
 
         for (let i = 0; i < 16; i++) {
@@ -221,6 +230,7 @@ class Frustum {
         // }
 
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
+        this.projectionOrthoMatrix.inverseTo(this.inverseProjectionOrthoMatrix);
     }
 
 
