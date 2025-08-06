@@ -269,7 +269,7 @@ class MyScene extends RenderNode {
 
         collection.addTo(this);
 
-        this.renderer.activeCamera.set(new Vec3(10, 11, 13), new Vec3(0, 2, 2));
+        this.renderer.activeCamera.set(new Vec3(10, 0, 0), new Vec3(0, 0, 0));
 
         // Load all models first
         const [
@@ -323,8 +323,8 @@ class MyScene extends RenderNode {
         ]);
 
         let base = new Entity({
-            cartesian: new Vec3(6, 8, 9),
-            yaw: 110 * Math.PI / 180,
+            //cartesian: new Vec3(6, 8, 9),
+            //yaw: 110 * Math.PI / 180,
             relativePosition: true,
         });
         window.base = base;
@@ -725,7 +725,7 @@ class MyScene extends RenderNode {
 
         // Set initial values for camera
         cam0_base.setYaw(145 * Math.PI / 180);
-        
+
         // Update slider value display
         sliders.pitchValue.textContent = '13.0°';
         sliders.pitchRightValue.textContent = '-13.0°';

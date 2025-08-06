@@ -3,7 +3,7 @@ import {Mat4, type NumberArray16} from "../math/Mat4";
 import type {NumberArray4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
 import {Vec3} from "../math/Vec3";
-import {RADIANS_HALF} from "../math";
+import {RADIANS_HALF, RADIANS} from "../math";
 
 function planeNormalize(plane: NumberArray4) {
     let t = 1.0 / Math.sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
@@ -179,24 +179,37 @@ class Frustum {
      * @param {number} near - Near camera distance.
      * @param {number} far - Far camera distance.
      */
-    public setProjectionMatrix(angle: number, aspect: number, near: number, far: number) {
-        this.top = near * Math.tan(angle * RADIANS_HALF);
-        this.bottom = -this.top;
-        this.right = this.top * aspect;
-        this.left = -this.right;
+    public setProjectionMatrix(
+        angle: number,
+        aspect: number,
+        near: number,
+        far: number,
+        t: number = 0, // 0 = perspective, 1 = orthographic
+        orthoDistance: number = 10
+    ): void {
         this.near = near;
         this.far = far;
 
-        this.projectionMatrix.setPerspective(
-            this.left,
-            this.right,
-            this.bottom,
-            this.top,
-            near,
-            far
-        );
+        const perspHeight = 2 * near * Math.tan(angle * RADIANS_HALF);
+        const perspWidth = perspHeight * aspect;
+        const perspMatrix = new Mat4().setPerspective(-perspWidth / 2, perspWidth / 2, -perspHeight / 2, perspHeight / 2, near, far);
+
+        const orthoHeight = 2 * orthoDistance * Math.tan(angle * RADIANS_HALF);
+        const orthoWidth = orthoHeight * aspect;
+        const orthoScale = near / orthoDistance;
+        const orthoMatrix = new Mat4().setOrtho(-orthoWidth * orthoScale / 2, orthoWidth * orthoScale / 2, -orthoHeight * orthoScale / 2, orthoHeight * orthoScale / 2, near, far);
+
+        const m = this.projectionMatrix._m;
+        const p = perspMatrix._m;
+        const o = orthoMatrix._m;
+
+        for (let i = 0; i < 16; i++) {
+            m[i] = p[i] * (1 - t) + o[i] * t;
+        }
+
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
     }
+
 
     public setProjectionViewRTEMatrix(viewRTEMatrix: Mat4) {
         this.projectionViewRTEMatrix = this.projectionMatrix.mul(viewRTEMatrix);

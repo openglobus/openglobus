@@ -649,36 +649,36 @@ export class Mat4 {
     /**
      * Creates current orthographic projection matrix.
      * @public
-     * @param {number} left -
-     * @param {number} right -
-     * @param {number} bottom -
-     * @param {number} top -
-     * @param {number} near -
-     * @param {number} far -
+     * @param {number} left - Left plane
+     * @param {number} right - Right plane
+     * @param {number} bottom - Bottom plane
+     * @param {number} top - Top plane
+     * @param {number} near - Near plane
+     * @param {number} far - Far plane
      * @return {Mat4} -
      */
     public setOrtho(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4 {
 
-        let lr = 1.0 / (left - right),
-            bt = 1.0 / (bottom - top),
-            nf = 1.0 / (near - far),
+        let lr = 1.0 / (right - left),
+            bt = 1.0 / (top - bottom),
+            nf = 1.0 / (far - near),
             m = this._m;
 
-        m[0] = -2.0 * lr;
+        m[0] = 2.0 * lr;
         m[1] = 0;
         m[2] = 0;
         m[3] = 0;
         m[4] = 0;
-        m[5] = -2.0 * bt;
+        m[5] = 2.0 * bt;
         m[6] = 0;
         m[7] = 0;
         m[8] = 0;
         m[9] = 0;
-        m[10] = 2.0 * nf;
+        m[10] = -2.0 * nf;
         m[11] = 0;
-        m[12] = (left + right) * lr;
-        m[13] = (top + bottom) * bt;
-        m[14] = (far + near) * nf;
+        m[12] = -(right + left) * lr;
+        m[13] = -(top + bottom) * bt;
+        m[14] = -(far + near) * nf;
         m[15] = 1.0;
 
         return this;

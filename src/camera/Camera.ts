@@ -1,21 +1,21 @@
 import * as math from "../math";
-import { type EventsHandler, createEvents } from "../Events";
-import { Frustum } from "./Frustum";
-import { Mat3 } from "../math/Mat3";
-import type { NumberArray9 } from "../math/Mat3";
-import { Mat4 } from "../math/Mat4";
-import type { NumberArray16 } from "../math/Mat4";
-import { Renderer } from "../renderer/Renderer";
-import { Vec2 } from "../math/Vec2";
-import type { NumberArray2 } from "../math/Vec2";
-import { Vec3 } from "../math/Vec3";
-import { Vec4 } from "../math/Vec4";
-import { Sphere } from "../bv/Sphere";
-import { Quat } from "../math/Quat";
-import { DEGREES_DOUBLE, RADIANS, RADIANS_HALF } from "../math";
-import { Easing, EasingFunction } from "../utils/easing";
-import { LonLat } from "../LonLat";
-import { Ray } from "../math/Ray";
+import {type EventsHandler, createEvents} from "../Events";
+import {Frustum} from "./Frustum";
+import {Mat3} from "../math/Mat3";
+import type {NumberArray9} from "../math/Mat3";
+import {Mat4} from "../math/Mat4";
+import type {NumberArray16} from "../math/Mat4";
+import {Renderer} from "../renderer/Renderer";
+import {Vec2} from "../math/Vec2";
+import type {NumberArray2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import {Sphere} from "../bv/Sphere";
+import {Quat} from "../math/Quat";
+import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
+import {Easing, EasingFunction} from "../utils/easing";
+import {LonLat} from "../LonLat";
+import {Ray} from "../math/Ray";
 
 export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flystop"];
 
@@ -59,6 +59,8 @@ export interface ICameraParams {
     frustums?: NumberArray2[];
     width?: number;
     height?: number;
+    perspectiveToOrtho?: number;
+    orthoDistance?: number;
 }
 
 export interface IFlyCartesianParams extends IFlyBaseParams {
@@ -232,10 +234,16 @@ class Camera {
     // public dirUpNED: Vec3;
     // public dirRightNED: Vec3;
 
+    protected _perspectiveToOrtho: number;
+    protected _orthoDistance: number;
+
     constructor(options: ICameraParams = {}) {
         this.__id = Camera.__counter__++;
 
         this.events = createEvents<CameraEvents>(EVENT_NAMES, this);
+
+        this._perspectiveToOrtho = options.perspectiveToOrtho || 0;
+        this._orthoDistance = options.orthoDistance || 10;
 
         this._width = options.width || 1;
 
@@ -630,6 +638,24 @@ class Camera {
         return this._width / this._height;
     }
 
+    public get perspectiveToOrtho(): number {
+        return this._perspectiveToOrtho;
+    }
+
+    public set perspectiveToOrtho(t: number) {
+        this._perspectiveToOrtho = t;
+        this.refresh();
+    }
+
+    public get orthoDistance(): number {
+        return this._orthoDistance;
+    }
+
+    public set orthoDistance(d: number) {
+        this._orthoDistance = d;
+        this.refresh();
+    }
+
     /**
      * Sets up camera projection
      * @public
@@ -643,7 +669,9 @@ class Camera {
                 angle,
                 aspect,
                 this.frustums[i].near,
-                this.frustums[i].far
+                this.frustums[i].far,
+                this._perspectiveToOrtho,
+                this._orthoDistance
             );
         }
 
@@ -1085,4 +1113,4 @@ class Camera {
     }
 }
 
-export { Camera };
+export {Camera};
