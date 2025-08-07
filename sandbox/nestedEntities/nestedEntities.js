@@ -49,6 +49,7 @@ class MyScene extends RenderNode {
         collection.addTo(this);
 
         this.renderer.activeCamera.set(new Vec3(10, 0, 0), new Vec3(0, 0, 0));
+        this.renderer.activeCamera.isOrthographic = true;
 
         this.renderer.activeCamera.update();
 

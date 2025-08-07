@@ -57,6 +57,7 @@ export interface ICameraParams {
     frustums?: NumberArray2[];
     width?: number;
     height?: number;
+    isOrthographic?: boolean;
 }
 
 export interface IFlyCartesianParams extends IFlyBaseParams {
@@ -117,6 +118,8 @@ class Camera {
      * @type {Events}
      */
     public events: EventsHandler<CameraEvents>;
+
+    protected _isOrthographic: boolean;
 
     /**
      * Camera position.
@@ -235,6 +238,8 @@ class Camera {
 
         this.events = createEvents<CameraEvents>(EVENT_NAMES, this);
 
+        this._isOrthographic = options.isOrthographic ?? false;
+
         this._width = options.width || 1;
 
         this._height = options.height || 1;
@@ -332,6 +337,15 @@ class Camera {
             options.look || new Vec3(),
             options.up || new Vec3(0.0, 1.0, 0.0)
         );
+    }
+
+    public get isOrthographic(): boolean {
+        return this._isOrthographic;
+    }
+
+    public set isOrthographic(isOrthographic: boolean) {
+        this._isOrthographic = isOrthographic;
+        this.refresh();
     }
 
     public get id(): number {
@@ -637,16 +651,10 @@ class Camera {
     protected _setProj(viewAngle: number, aspect: number) {
         this._viewAngle = viewAngle;
         for (let i = 0, len = this.frustums.length; i < len; i++) {
-            this.frustums[i].setProjectionMatrix(
-                viewAngle,
-                aspect,
-                this.frustums[i].near,
-                this.frustums[i].far
-            );
+            let fi = this.frustums[i];
+            fi.setProjectionMatrix(viewAngle, aspect, fi.near, fi.far, this._isOrthographic);
         }
-
         this._horizontalViewAngle = getHorizontalViewAngleByFov(viewAngle, aspect);
-
         this._updateViewportParameters();
     }
 

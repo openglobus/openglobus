@@ -179,47 +179,49 @@ class Frustum {
      * @param {number} near - Near camera distance.
      * @param {number} far - Far camera distance.
      */
-    public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number) {
-        this.top = near * Math.tan(viewAngle * RADIANS_HALF);
-        this.bottom = -this.top;
-        this.right = this.top * aspect;
-        this.left = -this.right;
-        this.near = near;
-        this.far = far;
+    public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic?: boolean) {
+        if (isOrthographic) {
+            const focusDist = 10;
 
-        this.projectionMatrix.setPerspective(
-            this.left,
-            this.right,
-            this.bottom,
-            this.top,
-            near,
-            far
-        );
+            let heightAtFocus = 2 * Math.tan(viewAngle / 2) * focusDist;
+            let widthAtFocus = heightAtFocus * aspect;
+            let scale = near / focusDist;
+            let orthoHeight = heightAtFocus * scale;
+            let orthoWidth = widthAtFocus * scale;
+            //let interpHeight = heightAtFocus * (1 - t) + orthoHeight * t;
+            //let interpWidth = widthAtFocus * (1 - t) + orthoWidth * t;
+            this.top = orthoHeight / 2;
+            this.bottom = -this.top;
+            this.right = orthoWidth / 2;
+            this.left = -this.right;
+            this.near = near;
+            this.far = far;
 
-        const focusDist = 10;
+            this.projectionMatrix.setOrthographic(
+                this.left,
+                this.right,
+                this.bottom,
+                this.top,
+                near,
+                far
+            );
+        } else {
+            this.top = near * Math.tan(viewAngle * RADIANS_HALF);
+            this.bottom = -this.top;
+            this.right = this.top * aspect;
+            this.left = -this.right;
+            this.near = near;
+            this.far = far;
 
-        let heightAtFocus = 2 * Math.tan(viewAngle / 2) * focusDist;
-        let widthAtFocus = heightAtFocus * aspect;
-        let scale = near / focusDist;
-        let orthoHeight = heightAtFocus * scale;
-        let orthoWidth = widthAtFocus * scale;
-        //let interpHeight = heightAtFocus * (1 - t) + orthoHeight * t;
-        //let interpWidth = widthAtFocus * (1 - t) + orthoWidth * t;
-        this.top = orthoHeight / 2;
-        this.bottom = -this.top;
-        this.right = orthoWidth / 2;
-        this.left = -this.right;
-        this.near = near;
-        this.far = far;
-
-        this.projectionMatrix.setOrthographic(
-            this.left,
-            this.right,
-            this.bottom,
-            this.top,
-            near,
-            far
-        );
+            this.projectionMatrix.setPerspective(
+                this.left,
+                this.right,
+                this.bottom,
+                this.top,
+                near,
+                far
+            );
+        }
 
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
     }
