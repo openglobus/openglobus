@@ -657,7 +657,7 @@ export class Mat4 {
      * @param {number} far -
      * @return {Mat4} -
      */
-    public setOrtho(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4 {
+    public setOrthographic(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4 {
 
         let lr = 1.0 / (left - right),
             bt = 1.0 / (bottom - top),

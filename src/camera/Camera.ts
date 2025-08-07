@@ -1,21 +1,19 @@
-import * as math from "../math";
-import { type EventsHandler, createEvents } from "../Events";
-import { Frustum } from "./Frustum";
-import { Mat3 } from "../math/Mat3";
-import type { NumberArray9 } from "../math/Mat3";
-import { Mat4 } from "../math/Mat4";
-import type { NumberArray16 } from "../math/Mat4";
-import { Renderer } from "../renderer/Renderer";
-import { Vec2 } from "../math/Vec2";
-import type { NumberArray2 } from "../math/Vec2";
-import { Vec3 } from "../math/Vec3";
-import { Vec4 } from "../math/Vec4";
-import { Sphere } from "../bv/Sphere";
-import { Quat } from "../math/Quat";
-import { DEGREES_DOUBLE, RADIANS, RADIANS_HALF } from "../math";
-import { Easing, EasingFunction } from "../utils/easing";
-import { LonLat } from "../LonLat";
-import { Ray } from "../math/Ray";
+import {type EventsHandler, createEvents} from "../Events";
+import {Frustum} from "./Frustum";
+import {Mat3} from "../math/Mat3";
+import type {NumberArray9} from "../math/Mat3";
+import {Mat4} from "../math/Mat4";
+import type {NumberArray16} from "../math/Mat4";
+import {Renderer} from "../renderer/Renderer";
+import {Vec2} from "../math/Vec2";
+import type {NumberArray2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import {Sphere} from "../bv/Sphere";
+import {Quat} from "../math/Quat";
+import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
+import {Easing, EasingFunction} from "../utils/easing";
+import {LonLat} from "../LonLat";
 
 export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flystop"];
 
@@ -633,34 +631,30 @@ class Camera {
     /**
      * Sets up camera projection
      * @public
-     * @param {number} angle - Camera view angle
+     * @param {number} viewAngle - Camera view angle
      * @param {number} aspect - Screen aspect ratio
      */
-    protected _setProj(angle: number, aspect: number) {
-        this._viewAngle = angle;
+    protected _setProj(viewAngle: number, aspect: number) {
+        this._viewAngle = viewAngle;
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setProjectionMatrix(
-                angle,
+                viewAngle,
                 aspect,
                 this.frustums[i].near,
                 this.frustums[i].far
             );
         }
 
-        this._horizontalViewAngle = getHorizontalViewAngleByFov(angle, aspect);
+        this._horizontalViewAngle = getHorizontalViewAngleByFov(viewAngle, aspect);
 
         this._updateViewportParameters();
     }
 
     protected _updateViewportParameters() {
-        this._tanViewAngle_hrad = Math.tan(this._viewAngle * math.RADIANS_HALF);
+        this._tanViewAngle_hrad = Math.tan(this._viewAngle * RADIANS_HALF);
         this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * (1.0 / this._height);
         this._projSizeConst =
-            Math.min(
-                this._width < 512 ? 512 : this._width,
-                this._height < 512 ? 512 : this._height
-            ) /
-            (this._viewAngle * RADIANS);
+            Math.min(this._width < 512 ? 512 : this._width, this._height < 512 ? 512 : this._height) / (this._viewAngle * RADIANS);
     }
 
     /**
@@ -878,21 +872,36 @@ class Camera {
      * @param {number} y - Screen Y coordinate
      * @returns {Vec3} - Direction vector
      */
-    public unproject(x: number, y: number) {
+    public unproject(x: number, y: number, dist?: number) {
         let w = this._width * 0.5,
             h = this._height * 0.5;
 
         let px = (x - w) / w,
             py = -(y - h) / h;
 
-        let world1 = this.frustums[0].inverseProjectionViewMatrix
-                .mulVec4(new Vec4(px, py, -1.0, 1.0))
-                .affinity(),
-            world2 = this.frustums[0].inverseProjectionViewMatrix
-                .mulVec4(new Vec4(px, py, 0.0, 1.0))
-                .affinity();
+        let f = this.frustums[0];
+        let invPV = f.inverseProjectionViewMatrix;
 
-        return world2.subA(world1).toVec3().normalize();
+        let nearPoint = invPV.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
+            farPoint = invPV.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
+
+        let dir = farPoint.subA(nearPoint).toVec3().normalize();
+
+        let cv = f.right - f.left,
+            ch = f.top - f.bottom;
+
+        let dx = cv * px,
+            dy = ch * py;
+
+        let p0 = this.eye.add(this.getUp().scale(dy).addA(this.getRight().scale(dx)));
+
+        if (dist) {
+            let p1 = p0.addA(dir.scaleTo(dist));
+            let dir2 = p1.sub(this.eye);
+            return dir2.normalize();
+        }
+
+        return dir;
     }
 
     /**
@@ -967,12 +976,16 @@ class Camera {
 
     /**
      * Gets 3d size factor. Uses in LOD distance calculation.
+     * It is very important function used in Node.ts
      * @public
-     * @param {Vec3} p - Far point.
-     * @param {Vec3} r - Far point.
+     * @param {Vec3} p - Point in 3d.
+     * @param {Vec3} r - size.
      * @returns {number} - Size factor.
      */
     public projectedSize(p: Vec3, r: number): number {
+        //
+        //@todo: orthographic
+        //
         return Math.atan(r / this.eye.distance(p)) * this._projSizeConst;
     }
 
@@ -1085,4 +1098,4 @@ class Camera {
     }
 }
 
-export { Camera };
+export {Camera};

@@ -320,6 +320,16 @@ export class Vec3 {
         return tangent.subA(normal).normalize();
     }
 
+    static isOrthogonal(a: Vec3, b: Vec3, epsilon = 1e-6): boolean {
+        const dot = a.x * b.x + a.y * b.y + a.z * b.z;
+        return Math.abs(dot) < epsilon;
+    }
+
+    public isOrthogonal(b: Vec3, epsilon = 1e-6): boolean {
+        const dot = this.x * b.x + this.y * b.y + this.z * b.z;
+        return Math.abs(dot) < epsilon;
+    }
+
     /**
      * Returns vector components division product one to another.
      * @static

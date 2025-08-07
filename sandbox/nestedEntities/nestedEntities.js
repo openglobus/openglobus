@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import {
     control,
     Entity,
@@ -17,31 +16,19 @@ let renderer = new Renderer("frame", {
     autoActivate: true
 });
 
+window.renderer = renderer;
+
 class MyScene extends RenderNode {
     constructor() {
         super("MyScene");
     }
 
     init() {
-        const baseObj = Object3d.createCube(0.4, 2, 0.4).translate(new Vec3(0, 1, 0)).setMaterial({
-            ambient: "#882a2a",
-            diffuse: "#fb3434",
+        const baseObj = Object3d.createCube(1, 1, 1).translate(new Vec3(0, 0, 0)).setMaterial({
+            ambient: "#c2c2c2",
+            diffuse: "#ffffff",
             shininess: 1
         });
-
-        const frustumObj = Object3d.createFrustum(3, 2, 1).setMaterial({
-            ambient: "#236028",
-            diffuse: "#1cdd23",
-            shininess: 1
-        });
-
-        const cylinderObj = Object3d.createCylinder(1, 0, 1)
-            .applyMat4(new Mat4().setRotation(new Vec3(1, 0, 0), (90 * Math.PI) / 180))
-            .setMaterial({
-                ambient: "#773381",
-                diffuse: "#ef00ff",
-                shininess: 1
-            });
 
         let parentEntity = new Entity({
             cartesian: new Vec3(0, 0, 0),
@@ -55,42 +42,21 @@ class MyScene extends RenderNode {
             }
         });
 
-        let childEntity = new Entity({
-            cartesian: new Vec3(0, 1, 0),
-            independentPicking: true,
-            relativePosition: true,
-            geoObject: {
-                color: "rgb(90,90,90)",
-                instanced: true,
-                tag: `frustumObj`,
-                object3d: frustumObj
-            }
-        });
-
-        let childChildEntity = new Entity({
-            cartesian: new Vec3(0, 3, -1),
-            independentPicking: true,
-            relativePosition: true,
-            geoObject: {
-                color: "rgb(90,90,90)",
-                instanced: true,
-                tag: `cylinderObj`,
-                object3d: cylinderObj
-            }
-        });
-
-        childEntity.appendChild(childChildEntity);
-        parentEntity.appendChild(childEntity);
-
         let collection = new EntityCollection({
             entities: [parentEntity]
         });
 
         collection.addTo(this);
 
-        this.renderer.activeCamera.set(new Vec3(-4, 11, 13), new Vec3(1, 0, 0));
+        this.renderer.activeCamera.set(new Vec3(10, 0, 0), new Vec3(0, 0, 0));
 
         this.renderer.activeCamera.update();
+
+        this.renderer.events.on("rclick", (e) => {
+            let dist = this.renderer.getDistanceFromPixel(e.pos);
+            let dir = this.renderer.activeCamera.unproject(e.x, e.y, dist);
+            console.log(dir);
+        })
     }
 }
 
