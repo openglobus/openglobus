@@ -1330,29 +1330,23 @@ class Renderer {
 
         _tempDepth_[0] = _tempDepth_[1] = 0.0;
 
-        let dist = 0;
-
         this.readDepth(nx, ny, _tempDepth_);
 
-        if (_tempDepth_[1] === -1) {
-            return;
-        }
+        if (_tempDepth_[1] === -1) return;
 
         let depth = _tempDepth_[0],
             frustum = camera.frustums[_tempDepth_[1]];
 
         if (!frustum) return;
 
-        let screenPos = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-        let viewPosition = frustum.inverseProjectionMatrix.mulVec4(screenPos);
-        let zView = -viewPosition.z / viewPosition.w;
+        let ndc = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+        let view = frustum.inverseProjectionMatrix.mulVec4(ndc);
+        let zView = -view.z / view.w;
 
-        if (camera.isOrthographic) {
-            return zView;
-        }
+        if (camera.isOrthographic) return zView;
 
         let dir = (px as IBaseInputState).direction || camera.unproject(px.x, px.y);
-        return zView / dir.dot(camera.getForward());
+        return zView / Math.max(1e-6, dir.dot(camera.getForward()));
     }
 
     /**
