@@ -181,46 +181,31 @@ class Frustum {
      */
     public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic?: boolean) {
         if (isOrthographic) {
-            const focusDist = 10;
+            let focusDist = 10;
+            let h = Math.tan(viewAngle * RADIANS_HALF) * focusDist;
+            let w = h * aspect;
 
-            let heightAtFocus = 2 * Math.tan(viewAngle / 2) * focusDist;
-            let widthAtFocus = heightAtFocus * aspect;
-            let scale = near / focusDist;
-            let orthoHeight = heightAtFocus * scale;
-            let orthoWidth = widthAtFocus * scale;
-            //let interpHeight = heightAtFocus * (1 - t) + orthoHeight * t;
-            //let interpWidth = widthAtFocus * (1 - t) + orthoWidth * t;
-            this.top = orthoHeight / 2;
+            this.top = h;
             this.bottom = -this.top;
-            this.right = orthoWidth / 2;
+            this.right = w;
             this.left = -this.right;
             this.near = near;
             this.far = far;
 
-            this.projectionMatrix.setOrthographic(
-                this.left,
-                this.right,
-                this.bottom,
-                this.top,
-                near,
-                far
-            );
+            this.projectionMatrix.setOrthographic(this.left, this.right, this.bottom, this.top, near, far);
+
         } else {
-            this.top = near * Math.tan(viewAngle * RADIANS_HALF);
+            let h = near * Math.tan(viewAngle * RADIANS_HALF);
+            let w = h * aspect;
+
+            this.top = h;
             this.bottom = -this.top;
-            this.right = this.top * aspect;
+            this.right = w;
             this.left = -this.right;
             this.near = near;
             this.far = far;
 
-            this.projectionMatrix.setPerspective(
-                this.left,
-                this.right,
-                this.bottom,
-                this.top,
-                near,
-                far
-            );
+            this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, near, far);
         }
 
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
