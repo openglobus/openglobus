@@ -179,36 +179,30 @@ class Frustum {
      * @param {number} near - Near camera distance.
      * @param {number} far - Far camera distance.
      */
-    public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic?: boolean) {
+    public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic?: boolean, focusDistance: number = 10) {
+
         if (isOrthographic) {
-            let focusDist = 10;
-            let h = Math.tan(viewAngle * RADIANS_HALF) * focusDist;
+            let h = Math.tan(viewAngle * RADIANS_HALF) * focusDistance;
             let w = h * aspect;
-
-            this.top = h;
-            this.bottom = -this.top;
-            this.right = w;
-            this.left = -this.right;
-            this.near = near;
-            this.far = far;
-
-            this.projectionMatrix.setOrthographic(this.left, this.right, this.bottom, this.top, near, far);
-
+            this._setFrustumParams(h, w, near, far);
+            this.projectionMatrix.setOrthographic(this.left, this.right, this.bottom, this.top, this.near, this.far);
         } else {
             let h = near * Math.tan(viewAngle * RADIANS_HALF);
             let w = h * aspect;
-
-            this.top = h;
-            this.bottom = -this.top;
-            this.right = w;
-            this.left = -this.right;
-            this.near = near;
-            this.far = far;
-
-            this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, near, far);
+            this._setFrustumParams(h, w, near, far);
+            this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, this.near, this.far);
         }
 
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
+    }
+
+    protected _setFrustumParams(top: number, right: number, near: number, far: number) {
+        this.top = top;
+        this.right = right;
+        this.bottom = -this.top;
+        this.left = -this.right;
+        this.near = near;
+        this.far = far;
     }
 
     public setProjectionViewRTEMatrix(viewRTEMatrix: Mat4) {

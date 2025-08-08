@@ -58,6 +58,7 @@ export interface ICameraParams {
     width?: number;
     height?: number;
     isOrthographic?: boolean;
+    focusDistance?: number;
 }
 
 export interface IFlyCartesianParams extends IFlyBaseParams {
@@ -120,6 +121,8 @@ class Camera {
     public events: EventsHandler<CameraEvents>;
 
     protected _isOrthographic: boolean;
+
+    protected _focusDistance: number;
 
     /**
      * Camera position.
@@ -240,6 +243,8 @@ class Camera {
 
         this._isOrthographic = options.isOrthographic ?? false;
 
+        this._focusDistance = options.focusDistance != undefined ? options.focusDistance : 10;
+
         this._width = options.width || 1;
 
         this._height = options.height || 1;
@@ -346,6 +351,19 @@ class Camera {
     public set isOrthographic(isOrthographic: boolean) {
         this._isOrthographic = isOrthographic;
         this.refresh();
+    }
+
+    public get focusDistance(): number {
+        return this._focusDistance;
+    }
+
+    public set focusDistance(dist: number) {
+        if (dist !== this._focusDistance) {
+            this._focusDistance = dist;
+            if (this._isOrthographic) {
+                this.refresh();
+            }
+        }
     }
 
     public get id(): number {
@@ -554,49 +572,22 @@ class Camera {
      * @virtual
      */
     public update() {
-        let u = this._r,
-            v = this._u,
-            n = this._b,
-            eye = this.eye;
+        let u = this._r, v = this._u, n = this._b, eye = this.eye;
 
         Vec3.doubleToTwoFloat32Array(eye, this.eyeHigh, this.eyeLow);
 
         this._viewMatrix.set([
-            u.x,
-            v.x,
-            n.x,
-            0.0,
-            u.y,
-            v.y,
-            n.y,
-            0.0,
-            u.z,
-            v.z,
-            n.z,
-            0.0,
-            -eye.dot(u),
-            -eye.dot(v),
-            -eye.dot(n),
-            1.0
+            u.x, v.x, n.x, 0.0,
+            u.y, v.y, n.y, 0.0,
+            u.z, v.z, n.z, 0.0,
+            -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
         ]);
 
         this._viewMatrixRTE.set([
-            u.x,
-            v.x,
-            n.x,
-            0.0,
-            u.y,
-            v.y,
-            n.y,
-            0.0,
-            u.z,
-            v.z,
-            n.z,
-            0.0,
-            0,
-            0,
-            0,
-            1.0
+            u.x, v.x, n.x, 0.0,
+            u.y, v.y, n.y, 0.0,
+            u.z, v.z, n.z, 0.0,
+            0, 0, 0, 1.0
         ]);
 
         // do not clean up, someday it will be using
@@ -652,7 +643,7 @@ class Camera {
         this._viewAngle = viewAngle;
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             let fi = this.frustums[i];
-            fi.setProjectionMatrix(viewAngle, aspect, fi.near, fi.far, this._isOrthographic);
+            fi.setProjectionMatrix(viewAngle, aspect, fi.near, fi.far, this._isOrthographic, this._focusDistance);
         }
         this._horizontalViewAngle = getHorizontalViewAngleByFov(viewAngle, aspect);
         this._updateViewportParameters();
