@@ -161,9 +161,12 @@ export class SimpleNavigation extends Control {
 
     protected _onRDown = (e: IMouseState) => {
         if (this.renderer) {
-            this._lookPos = this.renderer.getCartesianFromPixel(e.pos);
 
+            this._lookPos = this.renderer.getCartesianFromPixel(e.pos);
             console.log("lookPos=", this._lookPos);
+
+            let dist = this.renderer.getDistanceFromPixel(e.pos);
+            console.log("dist=", dist);
 
             if (this._lookPos) {
                 this._up = Vec3.UP;

@@ -1358,10 +1358,12 @@ class Renderer {
      * @returns {Vec3 | undefined} -
      */
     public getCartesianFromPixel(px: Vec2 | IBaseInputState): Vec3 | undefined {
-        let distance = this.getDistanceFromPixel(px);
-        if (distance) {
-            let direction = (px as IBaseInputState).direction || this.activeCamera.unproject(px.x, px.y);
-            return direction.scaleTo(distance).addA(this.activeCamera.eye);
+        let dist = this.getDistanceFromPixel(px);
+        if (dist) {
+            let direction = this.activeCamera.isOrthographic ?
+                this.activeCamera.unproject(px.x, px.y, dist) :
+                (px as IBaseInputState).direction || this.activeCamera.unproject(px.x, px.y);
+            return direction.scaleTo(dist).addA(this.activeCamera.eye);
         }
     }
 

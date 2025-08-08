@@ -880,7 +880,7 @@ class Camera {
 
         let f = this.frustums[0];
 
-        if (this.isOrthographic) {
+        if (dist && this.isOrthographic) {
 
             dist = dist || this._focusDistance;
 
