@@ -42,13 +42,37 @@ class MyScene extends RenderNode {
             }
         });
 
+        let cube2 = new Entity({
+            cartesian: new Vec3(1, 0, 1),
+            independentPicking: true,
+            geoObject: {
+                color: "rgb(90,90,90)",
+                scale: 1,
+                instanced: true,
+                tag: `baseObj`,
+                object3d: baseObj
+            }
+        });
+
+        let cube3 = new Entity({
+            cartesian: new Vec3(-1, 5, 1),
+            independentPicking: true,
+            geoObject: {
+                color: "rgb(90,90,90)",
+                scale: 1,
+                instanced: true,
+                tag: `baseObj`,
+                object3d: baseObj
+            }
+        });
+
         let collection = new EntityCollection({
-            entities: [parentEntity]
+            entities: [parentEntity, cube2, cube3]
         });
 
         collection.addTo(this);
 
-        this.renderer.activeCamera.set(new Vec3(10, 0, 0), new Vec3(0, 0, 0));
+        this.renderer.activeCamera.set(new Vec3(0, 10, 0), new Vec3(0, 0, 0), new Vec3(0, 0, 1));
         this.renderer.activeCamera.isOrthographic = true;
 
         this.renderer.activeCamera.update();
