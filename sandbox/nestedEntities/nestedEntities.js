@@ -30,10 +30,22 @@ class MyScene extends RenderNode {
             shininess: 1
         });
 
+        window.test = () => {
+            parentEntity.setPitch(0);
+            cube2.setPitch(0);
+            cube3.setPitch(0);
+
+            parentEntity.setYaw(0);
+            cube2.setYaw(0);
+            cube3.setYaw(0);
+
+            this.renderer.activeCamera.set(new Vec3(10.5, 0, 0), new Vec3(0, 0, 0), new Vec3(0, 1, 0));
+        }
+
         let parentEntity = new Entity({
             cartesian: new Vec3(0, 0, 0),
             independentPicking: true,
-            yaw: 45 * Math.PI / 180,
+            //yaw: 45 * Math.PI / 180,
             pitch: 45 * Math.PI / 180,
             geoObject: {
                 color: "rgb(90,90,90)",
@@ -47,7 +59,7 @@ class MyScene extends RenderNode {
         let cube2 = new Entity({
             cartesian: new Vec3(5, 0, 5),
             independentPicking: true,
-            yaw: 45 * Math.PI / 180,
+            //yaw: 45 * Math.PI / 180,
             pitch: 45 * Math.PI / 180,
             geoObject: {
                 color: "rgb(90,90,90)",
@@ -59,9 +71,9 @@ class MyScene extends RenderNode {
         });
 
         let cube3 = new Entity({
-            cartesian: new Vec3(-1, 5, 1),
+            cartesian: new Vec3(-1, 3, 1),
             independentPicking: true,
-            yaw: 45 * Math.PI / 180,
+            //yaw: 45 * Math.PI / 180,
             pitch: 45 * Math.PI / 180,
             geoObject: {
                 color: "rgb(90,90,90)",
@@ -78,7 +90,7 @@ class MyScene extends RenderNode {
 
         collection.addTo(this);
 
-        this.renderer.activeCamera.set(new Vec3(-10, 10, 10), new Vec3(0, 0, 0));
+        this.renderer.activeCamera.set(new Vec3(0, 10, 10), new Vec3(0, 0, 0));
         this.renderer.activeCamera.isOrthographic = true;
 
         this.renderer.activeCamera.update();
