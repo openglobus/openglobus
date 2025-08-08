@@ -33,6 +33,8 @@ class MyScene extends RenderNode {
         let parentEntity = new Entity({
             cartesian: new Vec3(0, 0, 0),
             independentPicking: true,
+            yaw: 45 * Math.PI / 180,
+            pitch: 45 * Math.PI / 180,
             geoObject: {
                 color: "rgb(90,90,90)",
                 scale: 1,
@@ -43,8 +45,10 @@ class MyScene extends RenderNode {
         });
 
         let cube2 = new Entity({
-            cartesian: new Vec3(1, 0, 1),
+            cartesian: new Vec3(5, 0, 5),
             independentPicking: true,
+            yaw: 45 * Math.PI / 180,
+            pitch: 45 * Math.PI / 180,
             geoObject: {
                 color: "rgb(90,90,90)",
                 scale: 1,
@@ -57,6 +61,8 @@ class MyScene extends RenderNode {
         let cube3 = new Entity({
             cartesian: new Vec3(-1, 5, 1),
             independentPicking: true,
+            yaw: 45 * Math.PI / 180,
+            pitch: 45 * Math.PI / 180,
             geoObject: {
                 color: "rgb(90,90,90)",
                 scale: 1,
@@ -72,7 +78,7 @@ class MyScene extends RenderNode {
 
         collection.addTo(this);
 
-        this.renderer.activeCamera.set(new Vec3(0, 10, 0), new Vec3(0, 0, 0), new Vec3(0, 0, 1));
+        this.renderer.activeCamera.set(new Vec3(-10, 10, 10), new Vec3(0, 0, 0));
         this.renderer.activeCamera.isOrthographic = true;
 
         this.renderer.activeCamera.update();
