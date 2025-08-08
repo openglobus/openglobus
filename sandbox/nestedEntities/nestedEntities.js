@@ -54,9 +54,9 @@ class MyScene extends RenderNode {
         this.renderer.activeCamera.update();
 
         this.renderer.events.on("rclick", (e) => {
-            let dist = this.renderer.getDistanceFromPixel(e.pos);
-            let dir = this.renderer.activeCamera.unproject(e.x, e.y, dist);
-            console.log(dir);
+            //let dist = this.renderer.getDistanceFromPixel(e.pos);
+            //let dir = this.renderer.activeCamera.unproject(e.x, e.y, dist);
+            //console.log(dir);
         })
     }
 }

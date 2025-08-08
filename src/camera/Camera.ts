@@ -879,28 +879,27 @@ class Camera {
             py = -(y - h) / h;
 
         let f = this.frustums[0];
-        let invPV = f.inverseProjectionViewMatrix;
 
-        let nearPoint = invPV.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
-            farPoint = invPV.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
+        if (this.isOrthographic) {
 
-        let dir = farPoint.subA(nearPoint).toVec3().normalize();
+            dist = dist || this._focusDistance;
 
-        let cv = f.right - f.left,
-            ch = f.top - f.bottom;
+            let dx = (f.right - f.left) * px,
+                dy = (f.top - f.bottom) * py;
 
-        let dx = cv * px,
-            dy = ch * py;
+            let p0 = this.eye.add(this.getUp().scale(dy).addA(this.getRight().scale(dx)));
 
-        let p0 = this.eye.add(this.getUp().scale(dy).addA(this.getRight().scale(dx)));
-
-        if (dist) {
+            let dir = this.getForward();
             let p1 = p0.addA(dir.scaleTo(dist));
-            let dir2 = p1.sub(this.eye);
-            return dir2.normalize();
-        }
 
-        return dir;
+            return p1.sub(this.eye).normalize();
+
+        } else {
+            let invPV = f.inverseProjectionViewMatrix;
+            let nearPoint = invPV.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
+                farPoint = invPV.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
+            return farPoint.subA(nearPoint).toVec3().normalize();
+        }
     }
 
     /**

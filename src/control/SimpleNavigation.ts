@@ -163,7 +163,8 @@ export class SimpleNavigation extends Control {
         if (this.renderer) {
             this._lookPos = this.renderer.getCartesianFromPixel(e.pos);
 
-            //console.log("lookPos=", this._lookPos);
+            console.log("lookPos=", this._lookPos);
+
             if (this._lookPos) {
                 this._up = Vec3.UP;
             } else {
