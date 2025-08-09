@@ -871,7 +871,7 @@ class Camera {
      * @param {number} y - Screen Y coordinate
      * @returns {Vec3} - Direction vector
      */
-    public unproject(x: number, y: number, dist?: number) {
+    public unproject(x: number, y: number, dist?: number, outPos?: Vec3) {
         let w = this._width * 0.5,
             h = this._height * 0.5;
 
@@ -880,20 +880,30 @@ class Camera {
 
         let f = this.frustums[0];
 
-        if (dist && this.isOrthographic) {
+        if (this.isOrthographic) {
+            if (dist) {
+                let dx = 0.5 * (f.right - f.left) * px,
+                    dy = 0.5 * (f.top - f.bottom) * py;
 
-            dist = dist || this._focusDistance;
+                console.log(dx, dy);
 
-            let dx = (f.right - f.left) * px,
-                dy = (f.top - f.bottom) * py;
+                let wdy = this.getUp().scale(dy),
+                    wdx = this.getRight().scale(dx);
 
-            let p0 = this.eye.add(this.getUp().scale(dy).addA(this.getRight().scale(dx)));
+                let wd = wdy.addA(wdx);
+                let p0 = this.eye.add(wd);
 
-            let dir = this.getForward();
-            let p1 = p0.addA(dir.scaleTo(dist));
+                let dir = this.getForward();
+                let p1 = p0.addA(dir.scaleTo(dist));
 
-            return p1.sub(this.eye).normalize();
+                if (outPos) {
+                    outPos.copy(p1);
+                }
 
+                return p1.sub(this.eye).normalize();
+            } else {
+                return this.getForward();
+            }
         } else {
             let invPV = f.inverseProjectionViewMatrix;
             let nearPoint = invPV.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),

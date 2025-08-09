@@ -1343,6 +1343,9 @@ class Renderer {
         let view = frustum.inverseProjectionMatrix.mulVec4(ndc);
         let zView = -view.z / view.w;
 
+        //
+        // todo: maybe lets calculate distance to camera eye?????
+        //
         if (camera.isOrthographic) return zView;
 
         let dir = (px as IBaseInputState).direction || camera.unproject(px.x, px.y);
@@ -1358,10 +1361,14 @@ class Renderer {
     public getCartesianFromPixel(px: Vec2 | IBaseInputState): Vec3 | undefined {
         let dist = this.getDistanceFromPixel(px);
         if (dist) {
-            let direction = this.activeCamera.isOrthographic ?
-                this.activeCamera.unproject(px.x, px.y, dist) :
-                (px as IBaseInputState).direction || this.activeCamera.unproject(px.x, px.y);
-            return direction.scaleTo(dist).addA(this.activeCamera.eye);
+            if (this.activeCamera.isOrthographic) {
+                let res = new Vec3();
+                this.activeCamera.unproject(px.x, px.y, dist, res);
+                return res;
+            } else {
+                let direction = (px as IBaseInputState).direction || this.activeCamera.unproject(px.x, px.y);
+                return direction.scaleTo(dist).addA(this.activeCamera.eye);
+            }
         }
     }
 

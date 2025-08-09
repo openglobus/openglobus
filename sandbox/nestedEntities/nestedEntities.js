@@ -85,7 +85,7 @@ class MyScene extends RenderNode {
         });
 
         let collection = new EntityCollection({
-            entities: [parentEntity, cube2, cube3]
+            entities: [parentEntity, cube2]
         });
 
         collection.addTo(this);
