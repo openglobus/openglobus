@@ -885,8 +885,6 @@ class Camera {
                 let dx = 0.5 * (f.right - f.left) * px,
                     dy = 0.5 * (f.top - f.bottom) * py;
 
-                console.log(dx, dy);
-
                 let wdy = this.getUp().scale(dy),
                     wdx = this.getRight().scale(dx);
 
