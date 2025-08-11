@@ -12,7 +12,7 @@ import type {WebGLBufferExt} from "../webgl/Handler";
 import {input} from "../input/input";
 import {isEmpty} from "../utils/shared";
 import {LabelWorker} from "../entity/LabelWorker";
-import {randomi} from "../math";
+import {MAX_FLOAT, randomi} from "../math";
 import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame";
 import {toneMapping} from "../shaders/tone_mapping/toneMapping";
@@ -1370,6 +1370,30 @@ class Renderer {
                 return direction.scaleTo(dist).addA(this.activeCamera.eye);
             }
         }
+    }
+
+    public getDepthMinDistance(): number {
+        let cnv = this.handler!.canvas!;
+        let w = cnv.width,
+            h = cnv.height,
+            min = MAX_FLOAT;
+        for (let i = 0; i < h; i++) {
+            for (let j = 0; j < w; j++) {
+                let d = this.getDistanceFromPixel(new Vec2(j, i));
+                if (d && (d < min)) {
+                    min = d;
+                }
+            }
+        }
+        return min < MAX_FLOAT ? min : 0;
+    }
+
+    public setOrthographicProjection(isOrtho: boolean) {
+        let dist = this.getDepthMinDistance();
+        if (dist && isOrtho) {
+            this.activeCamera.focusDistance = dist;
+        }
+        this.activeCamera.isOrthographic = isOrtho;
     }
 
     /**

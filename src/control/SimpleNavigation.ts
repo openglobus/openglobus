@@ -121,27 +121,19 @@ export class SimpleNavigation extends Control {
 
     protected _onMouseLeftButtonHold = (e: IMouseState) => {
         if (this.renderer && this._grabbedPoint && e.moving) {
-
             let cam = this.renderer.activeCamera;
-
             if (cam.isOrthographic) {
-                let nx = this._grabbedScreenPoint.x - e.nx;
-                let ny = this._grabbedScreenPoint.y - e.ny;
-
+                let nx = e.nx - this._grabbedScreenPoint.x;
+                let ny = e.ny - this._grabbedScreenPoint.y;
                 let f = cam.frustum;
-
-                let dx = (f.right - f.left) * nx,
-                    dy = -(f.top - f.bottom) * ny;
-
+                let dx = -(f.right - f.left) * nx,
+                    dy = (f.top - f.bottom) * ny;
                 let cam_sy = cam.getUp().scale(dy),
                     cam_sx = cam.getRight().scale(dx);
-
                 cam.eye = this._eye0.add(cam_sx.add(cam_sy));
             } else {
-
                 let camSlope = Math.abs(cam.getForward().dot(Vec3.UP));
                 let p0 = this._grabbedPoint, p1, p2;
-
                 if (camSlope > 0.7) {
                     p1 = Vec3.add(p0, Vec3.LEFT);
                     p2 = Vec3.add(p0, cam.getRight());
@@ -149,7 +141,6 @@ export class SimpleNavigation extends Control {
                     p1 = Vec3.add(p0, cam.getRight());
                     p2 = Vec3.add(p0, Vec3.UP);
                 }
-
                 let px = new Vec3();
                 if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                     cam.eye = cam.eye.add(p0.sub(px));
