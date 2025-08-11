@@ -51,7 +51,7 @@ export class SimpleNavigation extends Control {
         this._eye0 = new Vec3();
         this._wheelPos = new Vec3();
 
-        this._savedFocusDistance = 10;
+        this._savedFocusDistance = 0;
         this._savedEye = new Vec3();
     }
 
@@ -61,7 +61,10 @@ export class SimpleNavigation extends Control {
 
     public override onactivate() {
         super.onactivate();
+
         let r = this.renderer!;
+
+        this._savedFocusDistance = r.activeCamera.focusDistance;
 
         r.events.on("mousewheel", this._onMouseWheel);
         r.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
@@ -217,7 +220,6 @@ export class SimpleNavigation extends Control {
                 ray.hitPlaneRes(pl, pos);
             }
             this._wheelPos.copy(pos);
-            //this._savedFocusDistance = this._wheelPos.distance(this._eye0);
             let dist = this.renderer.activeCamera.eye.distance(pos) * 8;
             this.force.addA(e.direction.scale(e.wheelDelta)).normalize().scale(dist);
         }
@@ -289,9 +291,11 @@ export class SimpleNavigation extends Control {
             let cam = this.renderer.activeCamera;
             cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
 
+            let dv = this.vel.length() * Math.sign(this.vel.getNormal().dot(cam.getForward())) * this.dt;
+
             if (cam.isOrthographic) {
-                let dd = this._wheelPos.distance(cam.eye);
-                cam.focusDistance = dd - this._savedFocusDistance;
+                this._savedFocusDistance -= dv;
+                cam.focusDistance = this._savedFocusDistance;
                 cam.update();
             } else {
                 cam.update();
