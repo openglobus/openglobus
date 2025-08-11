@@ -15,9 +15,15 @@ import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
 import {Easing, EasingFunction} from "../utils/easing";
 import {LonLat} from "../LonLat";
 
-export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flystop"];
+export type CameraEvents = ["beforeproj", "viewchange", "moveend", "flystart", "flyend", "flystop"];
 
 const EVENT_NAMES: CameraEvents = [
+    /**
+     * When camera projection is changed.
+     * @event og.Camera#beforeproj
+     */
+    "beforeproj",
+
     /**
      * When camera has been updated.
      * @event og.Camera#viewchange
@@ -349,8 +355,11 @@ class Camera {
     }
 
     public set isOrthographic(isOrthographic: boolean) {
-        this._isOrthographic = isOrthographic;
-        this.refresh();
+        if (this._isOrthographic !== isOrthographic) {
+            this.events.dispatch(this.events.beforeproj, isOrthographic);
+            this._isOrthographic = isOrthographic;
+            this.refresh();
+        }
     }
 
     public get focusDistance(): number {
