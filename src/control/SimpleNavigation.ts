@@ -2,6 +2,7 @@ import {Control} from "./Control";
 import type {IControlParams} from "./Control";
 import {input} from "../input/input";
 import type {IMouseState} from "../renderer/RendererEvents";
+import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import * as math from "../math";
 import {Ray} from "../math/Ray";
@@ -24,6 +25,7 @@ export class SimpleNavigation extends Control {
     protected _up: Vec3 | null;
 
     protected _grabbedPoint: Vec3 | undefined;
+    protected _grabbedScreenPoint: Vec2;
     protected _eye0: Vec3;
 
     constructor(options: ISimpleNavigationParams = {}) {
@@ -38,6 +40,7 @@ export class SimpleNavigation extends Control {
 
         this._lookPos = undefined;
         this._grabbedPoint = undefined;
+        this._grabbedScreenPoint = new Vec2();
         this._up = null;
 
         this._eye0 = new Vec3();
@@ -66,8 +69,8 @@ export class SimpleNavigation extends Control {
         r.events.on("rhold", this._onRHold, this);
         r.events.on("rdown", this._onRDown, this);
 
-        r.events.on("lhold", this._onMouseLeftButtonDown);
-        r.events.on("ldown", this._onMouseLeftButtonClick);
+        r.events.on("lhold", this._onMouseLeftButtonHold);
+        r.events.on("ldown", this._onMouseLeftButtonDown);
         r.events.on("lup", this._onMouseLeftButtonUp);
 
         r.events.on("draw", this.onDraw, this, -1000);
@@ -91,17 +94,18 @@ export class SimpleNavigation extends Control {
         r.events.off("rhold", this._onRHold);
         r.events.off("rdown", this._onRDown);
 
-        r.events.off("lhold", this._onMouseLeftButtonDown);
-        r.events.off("ldown", this._onMouseLeftButtonClick);
+        r.events.off("lhold", this._onMouseLeftButtonHold);
+        r.events.off("ldown", this._onMouseLeftButtonDown);
         r.events.off("lup", this._onMouseLeftButtonUp);
 
         r.events.off("draw", this.onDraw);
     }
 
-    protected _onMouseLeftButtonClick = (e: IMouseState) => {
+    protected _onMouseLeftButtonDown = (e: IMouseState) => {
         if (this._active && this.renderer) {
             this.renderer.handler.canvas!.classList.add("ogGrabbingPoiner");
             this._grabbedPoint = this.renderer.getCartesianFromPixel(e);
+            this._grabbedScreenPoint.set(e.nx, e.ny);
             if (this._grabbedPoint) {
                 this._eye0.copy(this.renderer.activeCamera.eye);
             }
@@ -115,17 +119,27 @@ export class SimpleNavigation extends Control {
         }
     }
 
-    protected _onMouseLeftButtonDown = (e: IMouseState) => {
-        if (this._active && this.renderer) {
-            if (!this._grabbedPoint) {
-                return;
-            }
+    protected _onMouseLeftButtonHold = (e: IMouseState) => {
+        if (this.renderer && this._grabbedPoint && e.moving) {
 
-            if (e.moving) {
-                let cam = this.renderer.activeCamera;
+            let cam = this.renderer.activeCamera;
+
+            if (cam.isOrthographic) {
+                let nx = this._grabbedScreenPoint.x - e.nx;
+                let ny = this._grabbedScreenPoint.y - e.ny;
+
+                let f = cam.frustum;
+
+                let dx = (f.right - f.left) * nx,
+                    dy = -(f.top - f.bottom) * ny;
+
+                let cam_sy = cam.getUp().scale(dy),
+                    cam_sx = cam.getRight().scale(dx);
+
+                cam.eye = this._eye0.add(cam_sx.add(cam_sy));
+            } else {
 
                 let camSlope = Math.abs(cam.getForward().dot(Vec3.UP));
-
                 let p0 = this._grabbedPoint, p1, p2;
 
                 if (camSlope > 0.7) {
@@ -161,13 +175,7 @@ export class SimpleNavigation extends Control {
 
     protected _onRDown = (e: IMouseState) => {
         if (this.renderer) {
-
             this._lookPos = this.renderer.getCartesianFromPixel(e.pos);
-            console.log("lookPos=", this._lookPos);
-
-            let dist = this.renderer.getDistanceFromPixel(e.pos);
-            console.log("dist=", dist);
-
             if (this._lookPos) {
                 this._up = Vec3.UP;
             } else {

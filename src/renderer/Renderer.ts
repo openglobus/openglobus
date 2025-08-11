@@ -1344,7 +1344,7 @@ class Renderer {
         let zView = -view.z / view.w;
 
         //
-        // todo: maybe lets calculate distance to camera eye?????
+        // todo: maybe lets calculate distance to camera eye????? No?
         //
         if (camera.isOrthographic) return zView;
 
