@@ -152,7 +152,7 @@ export class SimpleNavigation extends Control {
 
                 let px = new Vec3();
                 if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
-                    cam.eye = this._eye0.addA(px.subA(p0).negate());
+                    cam.eye = cam.eye.add(p0.sub(px));
                 }
             }
         }
