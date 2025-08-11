@@ -1389,11 +1389,14 @@ class Renderer {
     }
 
     public setOrthographicProjection(isOrtho: boolean) {
-        let dist = this.getDepthMinDistance();
-        if (dist && isOrtho) {
-            this.activeCamera.focusDistance = dist;
+        if (isOrtho !== this.activeCamera.isOrthographic) {
+            let dist = this.getDepthMinDistance();
+            if (dist && isOrtho) {
+                this.activeCamera.focusDistance = dist;
+            }
+            this.activeCamera.isOrthographic = isOrtho;
+            this.events.dispatch(this.events.projchanged, this.activeCamera);
         }
-        this.activeCamera.isOrthographic = isOrtho;
     }
 
     /**
