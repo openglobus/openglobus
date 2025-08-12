@@ -289,6 +289,33 @@ export class SimpleNavigation extends Control {
         cam.update();
     }
 
+    protected _handleMouseWheel() {
+        let cam = this.renderer!.activeCamera;
+        let oldEye = cam.eye.clone();
+        cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
+
+        if (cam.isOrthographic) {
+            let oldDist = oldEye.distance(this._wheelPos);
+            let newDist = cam.eye.distance(this._wheelPos);
+            let distRatio = newDist / oldDist;
+            let oldFocusDistance = cam.focusDistance;
+            cam.focusDistance = cam.focusDistance * distRatio;
+
+            //correct cam position back
+            let focusDistanceChange = cam.focusDistance - oldFocusDistance;
+            cam.eye = cam.eye.add(cam.getForward().scale(focusDistanceChange));
+        }
+
+        cam.update();
+    }
+
+    protected onDraw() {
+        this._updateVel();
+        if (this.renderer && this.vel.length() > 0.01) {
+            this._handleMouseWheel();
+        }
+    }
+
     protected get dt(): number {
         return 0.001 * this.renderer!.handler.deltaTime;
     }
@@ -298,32 +325,5 @@ export class SimpleNavigation extends Control {
         this.vel.addA(acc);
         this.vel.scale(0.77);
         this.force.set(0, 0, 0);
-    }
-
-    protected onDraw() {
-
-        this._updateVel();
-
-        if (this.renderer && this.vel.length() > 0.01) {
-
-            let cam = this.renderer.activeCamera;
-            let oldEye = cam.eye.clone();
-
-            cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
-
-            if (cam.isOrthographic) {
-                let oldDist = oldEye.distance(this._wheelPos);
-                let newDist = cam.eye.distance(this._wheelPos);
-                let distRatio = newDist / oldDist;
-                let oldFocusDistance = cam.focusDistance;
-                cam.focusDistance = cam.focusDistance * distRatio;
-
-                //correct cam position back
-                let focusDistanceChange = cam.focusDistance - oldFocusDistance;
-                cam.eye = cam.eye.add(cam.getForward().scale(focusDistanceChange));
-            } else {
-                cam.update();
-            }
-        }
     }
 }
