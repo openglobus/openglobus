@@ -211,23 +211,35 @@ export class SimpleNavigation extends Control {
         if (this.renderer) {
 
             let cam = this.renderer.activeCamera;
-            this._eye0.copy(cam.eye);
-            let pos = this.renderer.getCartesianFromPixel(e);
 
-            if (!pos) {
-                debugger;
-                pos = new Vec3();
-                const cam = this.renderer.activeCamera;
-                let pl = new Plane(Vec3.ZERO, Vec3.UP);
-                let ray = new Ray(cam.eye, e.direction);
-                ray.hitPlaneRes(pl, pos);
+            if (cam.isOrthographic) {
+                this._eye0.copy(cam.eye);
+                let pos = this.renderer.getCartesianFromPixel(e);
+                if (!pos) {
+                    pos = new Vec3();
+                    const cam = this.renderer.activeCamera;
+                    let pl = new Plane(Vec3.ZERO, Vec3.UP);
+                    let ray = new Ray(cam.eye, e.direction);
+                    ray.hitPlaneRes(pl, pos);
+                }
+                this._wheelPos.copy(pos);
+                let dir = pos.sub(cam.eye).normalize();
+                let dist = cam.eye.distance(pos) * 8;
+                this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
+            } else {
+                this._eye0.copy(cam.eye);
+                let pos = this.renderer.getCartesianFromPixel(e);
+                if (!pos) {
+                    pos = new Vec3();
+                    const cam = this.renderer.activeCamera;
+                    let pl = new Plane(Vec3.ZERO, Vec3.UP);
+                    let ray = new Ray(cam.eye, e.direction);
+                    ray.hitPlaneRes(pl, pos);
+                }
+                let dir = e.direction;
+                let dist = cam.eye.distance(pos) * 8;
+                this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
             }
-
-            let dir = pos.sub(cam.eye).normalize();
-            this._wheelPos.copy(pos);
-
-            let dist = cam.eye.distance(pos) * 8;
-            this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
         }
     }
 
@@ -295,10 +307,15 @@ export class SimpleNavigation extends Control {
         if (this.renderer && this.vel.length() > 0.01) {
 
             let cam = this.renderer.activeCamera;
+            let oldEye = cam.eye.clone();
+
             cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
 
             if (cam.isOrthographic) {
-                cam.focusDistance = cam.eye.distance(this._wheelPos);
+                let oldDistance = oldEye.distance(this._wheelPos);
+                let newDistance = cam.eye.distance(this._wheelPos);
+                let distanceRatio = newDistance / oldDistance;
+                cam.focusDistance = cam.focusDistance * distanceRatio;
             } else {
                 cam.update();
             }
