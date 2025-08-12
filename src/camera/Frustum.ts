@@ -174,28 +174,35 @@ class Frustum {
     /**
      * Sets up camera projection matrix.
      * @public
-     * @param {number} angle - Camera's vertical fov view angle.
+     * @param {number} viewAngle - Camera's vertical fov view angle.
      * @param {number} aspect - Screen aspect ratio.
      * @param {number} near - Near camera distance.
      * @param {number} far - Far camera distance.
      */
-    public setProjectionMatrix(angle: number, aspect: number, near: number, far: number) {
-        this.top = near * Math.tan(angle * RADIANS_HALF);
+    public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic?: boolean, focusDistance: number = 10) {
+
+        if (isOrthographic) {
+            let h = focusDistance * Math.tan(viewAngle * RADIANS_HALF);
+            let w = h * aspect;
+            this._setFrustumParams(h, w, near, far);
+            this.projectionMatrix.setOrthographic(this.left, this.right, this.bottom, this.top, this.near, this.far);
+        } else {
+            let h = near * Math.tan(viewAngle * RADIANS_HALF);
+            let w = h * aspect;
+            this._setFrustumParams(h, w, near, far);
+            this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, this.near, this.far);
+        }
+
+        this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
+    }
+
+    protected _setFrustumParams(top: number, right: number, near: number, far: number) {
+        this.top = top;
+        this.right = right;
         this.bottom = -this.top;
-        this.right = this.top * aspect;
         this.left = -this.right;
         this.near = near;
         this.far = far;
-
-        this.projectionMatrix.setPerspective(
-            this.left,
-            this.right,
-            this.bottom,
-            this.top,
-            near,
-            far
-        );
-        this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
     }
 
     public setProjectionViewRTEMatrix(viewRTEMatrix: Mat4) {

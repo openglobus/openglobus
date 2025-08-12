@@ -12,7 +12,7 @@ import type {WebGLBufferExt} from "../webgl/Handler";
 import {input} from "../input/input";
 import {isEmpty} from "../utils/shared";
 import {LabelWorker} from "../entity/LabelWorker";
-import {randomi} from "../math";
+import {MAX_FLOAT, randomi} from "../math";
 import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame";
 import {toneMapping} from "../shaders/tone_mapping/toneMapping";
@@ -1250,9 +1250,8 @@ class Renderer {
         }
     }
 
-    protected _readDepthBuffer() {
-        this.depthFramebuffer!.readPixelBuffersAsync();
-        //console.log("read depth");
+    protected _readDepthBuffer(callback?: () => void) {
+        this.depthFramebuffer!.readPixelBuffersAsync(callback);
     }
 
     protected _readPickingBuffer_webgl1() {
@@ -1283,26 +1282,6 @@ class Renderer {
 
     public readDepth(x: number, y: number, outDepth: NumberArray3 | Float32Array) {
 
-        // let depthFramebuffer = this.depthFramebuffer!;
-        //
-        // let w = depthFramebuffer.width;
-        // let h = depthFramebuffer.height;
-        //
-        // let sx = Math.round(x * w);
-        // let sy = Math.round(y * h);
-        //
-        // let ind = (sy * w + sx) * 4;
-        //
-        // let _tempDepthPix_ = depthFramebuffer.pixelBuffers[1].data;
-        // let _tempFrustumPix_ = depthFramebuffer.pixelBuffers[0].data!;
-        //
-        // if (_tempDepthPix_) {
-        //     outDepth[0] = _tempDepthPix_[ind];
-        //     outDepth[1] = Math.round(_tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
-        // }
-
-        //////
-
         let ddd = new Float32Array(4);
         let fff = new Uint8Array(4);
 
@@ -1330,25 +1309,26 @@ class Renderer {
 
         _tempDepth_[0] = _tempDepth_[1] = 0.0;
 
-        let dist = 0;
-
         this.readDepth(nx, ny, _tempDepth_);
 
-        if (_tempDepth_[1] === -1) {
-            return;
-        }
+        if (_tempDepth_[1] === -1) return;
 
         let depth = _tempDepth_[0],
             frustum = camera.frustums[_tempDepth_[1]];
 
         if (!frustum) return;
 
-        let screenPos = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-        let viewPosition = frustum.inverseProjectionMatrix.mulVec4(screenPos);
-        let dir = (px as IBaseInputState).direction || camera.unproject(px.x, px.y);
-        dist = -(viewPosition.z / viewPosition.w) / dir.dot(camera.getForward());
+        let ndc = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+        let view = frustum.inverseProjectionMatrix.mulVec4(ndc);
+        let zView = -view.z / view.w;
 
-        return dist;
+        //
+        // todo: maybe lets calculate distance to camera eye????? No?
+        //
+        if (camera.isOrthographic) return zView;
+
+        let dir = (px as IBaseInputState).direction || camera.unproject(px.x, px.y);
+        return zView / Math.max(1e-6, dir.dot(camera.getForward()));
     }
 
     /**
@@ -1358,10 +1338,45 @@ class Renderer {
      * @returns {Vec3 | undefined} -
      */
     public getCartesianFromPixel(px: Vec2 | IBaseInputState): Vec3 | undefined {
-        let distance = this.getDistanceFromPixel(px);
-        if (distance) {
-            let direction = (px as IBaseInputState).direction || this.activeCamera.unproject(px.x, px.y);
-            return direction.scaleTo(distance).addA(this.activeCamera.eye);
+        let dist = this.getDistanceFromPixel(px);
+        if (dist) {
+            if (this.activeCamera.isOrthographic) {
+                let res = new Vec3();
+                this.activeCamera.unproject(px.x, px.y, dist, res);
+                return res;
+            } else {
+                let direction = (px as IBaseInputState).direction || this.activeCamera.unproject(px.x, px.y);
+                return direction.scaleTo(dist).addA(this.activeCamera.eye);
+            }
+        }
+    }
+
+    public getDepthMinDistance(): number {
+        let cnv = this.handler!.canvas!;
+        let w = cnv.width,
+            h = cnv.height,
+            min = MAX_FLOAT;
+        for (let i = 0; i < h; i++) {
+            for (let j = 0; j < w; j++) {
+                let d = this.getDistanceFromPixel(new Vec2(j, i));
+                if (d && (d < min)) {
+                    min = d;
+                }
+            }
+        }
+        return min < MAX_FLOAT ? min : 0;
+    }
+
+    public setOrthographicProjection(isOrtho: boolean) {
+        if (isOrtho !== this.activeCamera.isOrthographic) {
+            this._readDepthBuffer(() => {
+                let dist = this.getDepthMinDistance();
+                if (dist && isOrtho) {
+                    this.activeCamera.focusDistance = dist;
+                }
+                this.activeCamera.isOrthographic = isOrtho;
+                this.events.dispatch(this.events.projchanged, this.activeCamera);
+            });
         }
     }
 
