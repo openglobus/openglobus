@@ -182,7 +182,7 @@ class Frustum {
     public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic?: boolean, focusDistance: number = 10) {
 
         if (isOrthographic) {
-            let h = Math.tan(viewAngle * RADIANS_HALF) * focusDistance;
+            let h = focusDistance * Math.tan(viewAngle * RADIANS_HALF);
             let w = h * aspect;
             this._setFrustumParams(h, w, near, far);
             this.projectionMatrix.setOrthographic(this.left, this.right, this.bottom, this.top, this.near, this.far);
