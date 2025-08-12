@@ -315,7 +315,12 @@ export class SimpleNavigation extends Control {
                 let oldDist = oldEye.distance(this._wheelPos);
                 let newDist = cam.eye.distance(this._wheelPos);
                 let distRatio = newDist / oldDist;
+                let oldFocusDistance = cam.focusDistance;
                 cam.focusDistance = cam.focusDistance * distRatio;
+
+                //correct cam position back
+                let focusDistanceChange = cam.focusDistance - oldFocusDistance;
+                cam.eye = cam.eye.add(cam.getForward().scale(focusDistanceChange));
             } else {
                 cam.update();
             }
