@@ -792,3 +792,5 @@ class MyScene extends RenderNode {
 }
 
 renderer.addNodes([new scene.Axes(), new MyScene()]);
+
+window.renderer = renderer;

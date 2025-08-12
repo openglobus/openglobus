@@ -1250,9 +1250,8 @@ class Renderer {
         }
     }
 
-    protected _readDepthBuffer() {
-        this.depthFramebuffer!.readPixelBuffersAsync();
-        //console.log("read depth");
+    protected _readDepthBuffer(callback?: () => void) {
+        this.depthFramebuffer!.readPixelBuffersAsync(callback);
     }
 
     protected _readPickingBuffer_webgl1() {
@@ -1390,12 +1389,14 @@ class Renderer {
 
     public setOrthographicProjection(isOrtho: boolean) {
         if (isOrtho !== this.activeCamera.isOrthographic) {
-            let dist = this.getDepthMinDistance();
-            if (dist && isOrtho) {
-                this.activeCamera.focusDistance = dist;
-            }
-            this.activeCamera.isOrthographic = isOrtho;
-            this.events.dispatch(this.events.projchanged, this.activeCamera);
+            this._readDepthBuffer(() => {
+                let dist = this.getDepthMinDistance();
+                if (dist && isOrtho) {
+                    this.activeCamera.focusDistance = dist;
+                }
+                this.activeCamera.isOrthographic = isOrtho;
+                this.events.dispatch(this.events.projchanged, this.activeCamera);
+            });
         }
     }
 
