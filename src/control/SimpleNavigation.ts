@@ -312,10 +312,10 @@ export class SimpleNavigation extends Control {
             cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
 
             if (cam.isOrthographic) {
-                let oldDistance = oldEye.distance(this._wheelPos);
-                let newDistance = cam.eye.distance(this._wheelPos);
-                let distanceRatio = newDistance / oldDistance;
-                cam.focusDistance = cam.focusDistance * distanceRatio;
+                let oldDist = oldEye.distance(this._wheelPos);
+                let newDist = cam.eye.distance(this._wheelPos);
+                let distRatio = newDist / oldDist;
+                cam.focusDistance = cam.focusDistance * distRatio;
             } else {
                 cam.update();
             }
