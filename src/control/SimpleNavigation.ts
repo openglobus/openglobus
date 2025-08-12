@@ -211,12 +211,10 @@ export class SimpleNavigation extends Control {
         if (this.renderer) {
 
             let cam = this.renderer.activeCamera;
-            this._eye0.copy(cam.eye);
             let pos = this.renderer.getCartesianFromPixel(e);
 
             if (!pos) {
                 pos = new Vec3();
-                const cam = this.renderer.activeCamera;
                 let pl = new Plane(Vec3.ZERO, Vec3.UP);
                 let ray = new Ray(cam.eye, e.direction);
                 ray.hitPlaneRes(pl, pos);
