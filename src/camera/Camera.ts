@@ -309,8 +309,8 @@ class Camera {
                 );
             }
         } else {
-            let near = 0.1,
-                far = 1000.0;
+            let near = 1,
+                far = 500.0;
 
             let fr = new Frustum({
                 fov: this._viewAngle,
