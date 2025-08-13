@@ -28,7 +28,11 @@ export class SimpleNavigation extends Control {
     protected _grabbedPoint: Vec3 | undefined;
     protected _grabbedScreenPoint: Vec2;
     protected _eye0: Vec3;
+    protected _wheelDist: number;
     protected _wheelPos: Vec3;
+    protected _wheelDelta: number = 0;
+    protected _nx: number = 0;
+    protected _ny: number = 0;
 
     constructor(options: ISimpleNavigationParams = {}) {
         super({
@@ -46,6 +50,7 @@ export class SimpleNavigation extends Control {
         this._up = null;
 
         this._eye0 = new Vec3();
+        this._wheelDist = 0;
         this._wheelPos = new Vec3();
     }
 
@@ -193,10 +198,8 @@ export class SimpleNavigation extends Control {
 
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.renderer) {
-
             let cam = this.renderer.activeCamera;
             let pos = this.renderer.getCartesianFromPixel(e);
-
             if (!pos) {
                 pos = new Vec3();
                 let pl = new Plane(Vec3.ZERO, Vec3.UP);
@@ -206,9 +209,35 @@ export class SimpleNavigation extends Control {
 
             this._wheelPos.copy(pos);
 
-            let dir = pos.sub(cam.eye).normalize();
-            let dist = cam.eye.distance(pos) * 8;
-            this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
+            if (cam.isOrthographic) {
+                this._wheelDist = this.renderer.getDistanceFromPixel(e.pos) || 0;
+                if (!this._wheelDist) return;
+
+                this._wheelDelta = e.wheelDelta;
+                this._nx = e.nx;
+                this._ny = e.ny;
+
+                // cam.eye = pos.add(cam.getBackward().scale(this._wheelDist));
+                // cam.focusDistance -= cam.focusDistance * 0.0005 * e.wheelDelta;
+                //
+                // let f = cam.frustums[0];
+                // let dx = (f.right - f.left) * (0.5 - e.nx),
+                //     dy = -(f.top - f.bottom) * (0.5 - e.ny);
+                // let wdy = cam.getUp().scale(dy),
+                //     wdx = cam.getRight().scale(dx);
+                //
+                // cam.eye.addA(wdx.add(wdy));
+                // cam.update();
+
+                let dir = pos.sub(cam.eye).normalize();
+                let dist = cam.eye.distance(pos) * 8;
+                this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
+
+            } else {
+                let dir = pos.sub(cam.eye).normalize();
+                let dist = cam.eye.distance(pos) * 8;
+                this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
+            }
         }
     }
 
@@ -260,19 +289,20 @@ export class SimpleNavigation extends Control {
 
     protected _handleMouseWheel() {
         let cam = this.renderer!.activeCamera;
-        let oldEye = cam.eye.clone();
-        cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
 
         if (cam.isOrthographic) {
-            let oldDist = oldEye.distance(this._wheelPos);
-            let newDist = cam.eye.distance(this._wheelPos);
-            let distRatio = newDist / oldDist;
-            let oldFocusDistance = cam.focusDistance;
-            cam.focusDistance = cam.focusDistance * distRatio;
+            cam.eye = this._wheelPos.add(cam.getBackward().scale(this._wheelDist));
+            cam.focusDistance -= cam.focusDistance * this.vel.scaleTo(this.dt).length() * 0.00005 * this._wheelDelta;
 
-            //correct cam position back
-            let focusDistanceChange = cam.focusDistance - oldFocusDistance * distRatio;
-            cam.eye = cam.eye.add(cam.getForward().scale(focusDistanceChange));
+            let f = cam.frustums[0];
+            let dx = (f.right - f.left) * (0.5 - this._nx),
+                dy = -(f.top - f.bottom) * (0.5 - this._ny);
+            let wdy = cam.getUp().scale(dy),
+                wdx = cam.getRight().scale(dx);
+
+            cam.eye.addA(wdx.add(wdy));
+        } else {
+            cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
         }
 
         cam.update();
