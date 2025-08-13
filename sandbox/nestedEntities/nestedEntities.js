@@ -24,7 +24,7 @@ class MyScene extends RenderNode {
     }
 
     init() {
-        const baseObj = Object3d.createCube(40, 40, 40).translate(new Vec3(0, 0, 0)).setMaterial({
+        const baseObj = Object3d.createCube(10, 10, 10).translate(new Vec3(0, 0, 0)).setMaterial({
             ambient: "#c2c2c2",
             diffuse: "#ffffff",
             shininess: 1
@@ -46,7 +46,7 @@ class MyScene extends RenderNode {
             cartesian: new Vec3(0, 0, 0),
             independentPicking: true,
             //yaw: 45 * Math.PI / 180,
-            pitch: 45 * Math.PI / 180,
+            //pitch: 45 * Math.PI / 180,
             geoObject: {
                 color: "rgb(90,90,90)",
                 scale: 1,
@@ -60,7 +60,7 @@ class MyScene extends RenderNode {
             cartesian: new Vec3(45, 0, 5),
             independentPicking: true,
             //yaw: 45 * Math.PI / 180,
-            pitch: 45 * Math.PI / 180,
+            //pitch: 45 * Math.PI / 180,
             geoObject: {
                 color: "rgb(90,90,90)",
                 scale: 1,

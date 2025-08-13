@@ -193,10 +193,8 @@ export class SimpleNavigation extends Control {
 
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.renderer) {
-
             let cam = this.renderer.activeCamera;
             let pos = this.renderer.getCartesianFromPixel(e);
-
             if (!pos) {
                 pos = new Vec3();
                 let pl = new Plane(Vec3.ZERO, Vec3.UP);
@@ -204,11 +202,38 @@ export class SimpleNavigation extends Control {
                 ray.hitPlaneRes(pl, pos);
             }
 
-            this._wheelPos.copy(pos);
+            if (cam.isOrthographic) {
+                let dist = this.renderer.getDistanceFromPixel(e.pos);
+                if (!dist) return;
+                let dir = pos.sub(cam.eye).normalize();
 
-            let dir = pos.sub(cam.eye).normalize();
-            let dist = cam.eye.distance(pos) * 8;
-            this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
+                cam.eye = pos.add(cam.getBackward().scale(dist));
+                cam.update();
+                cam.focusDistance -= 0.01 * e.wheelDelta;
+
+                let w = this.renderer.handler.getWidth() * 0.5,
+                    h = this.renderer.handler.getHeight() * 0.5;
+
+                let px = (e.x - w) / w,
+                    py = -(e.y - h) / h;
+
+                let f = cam.frustums[0];
+
+                let dx = 0.5 * (f.right - f.left) * px,
+                    dy = 0.5 * (f.top - f.bottom) * py;
+
+                let wdy = cam.getUp().scale(-dy),
+                    wdx = cam.getRight().scale(-dx);
+
+                cam.eye.addA(wdx.add(wdy));
+                cam.update();
+
+            } else {
+                this._wheelPos.copy(pos);
+                let dir = pos.sub(cam.eye).normalize();
+                let dist = cam.eye.distance(pos) * 8;
+                this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
+            }
         }
     }
 
