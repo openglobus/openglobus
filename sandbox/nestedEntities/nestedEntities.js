@@ -95,7 +95,6 @@ class MyScene extends RenderNode {
         this.renderer.activeCamera.isOrthographic = true;
 
         this.renderer.getDepthMinDistanceAsync().then((dist) => {
-            console.log(dist);
             if (!dist) {
                 dist = this.renderer.activeCamera.eye.length();
             }
