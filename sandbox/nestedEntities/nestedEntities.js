@@ -91,9 +91,17 @@ class MyScene extends RenderNode {
         collection.addTo(this);
 
         this.renderer.activeCamera.set(new Vec3(0, 10, 10), new Vec3(0, 0, 0));
-        this.renderer.activeCamera.isOrthographic = true;
-
         this.renderer.activeCamera.update();
+
+        this.renderer.getDepthMinDistanceAsync().then((dist) => {
+            console.log(dist);
+            if (!dist) {
+                dist = this.renderer.activeCamera.eye.length();
+            }
+            this.renderer.activeCamera.focusDistance = dist;
+            this.renderer.activeCamera.isOrthographic = true;
+        });
+
 
         this.renderer.events.on("rclick", (e) => {
             //let dist = this.renderer.getDistanceFromPixel(e.pos);

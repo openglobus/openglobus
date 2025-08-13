@@ -30,9 +30,6 @@ export class SimpleNavigation extends Control {
     protected _eye0: Vec3;
     protected _wheelPos: Vec3;
 
-    protected _savedFocusDistance: number;
-    protected _savedEye: Vec3;
-
     constructor(options: ISimpleNavigationParams = {}) {
         super({
             name: "SimpleNavigation",
@@ -50,13 +47,9 @@ export class SimpleNavigation extends Control {
 
         this._eye0 = new Vec3();
         this._wheelPos = new Vec3();
-
-        this._savedFocusDistance = 0;
-        this._savedEye = new Vec3();
     }
 
     override oninit() {
-
     }
 
     public override onactivate() {
@@ -64,7 +57,11 @@ export class SimpleNavigation extends Control {
 
         let r = this.renderer!;
 
-        this._savedFocusDistance = r.activeCamera.focusDistance;
+        if (r.activeCamera.isOrthographic) {
+            r.getDepthMinDistanceAsync().then((dist) => {
+                r.activeCamera.focusDistance = dist;
+            });
+        }
 
         r.events.on("mousewheel", this._onMouseWheel);
         r.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
@@ -86,8 +83,6 @@ export class SimpleNavigation extends Control {
         r.events.on("lup", this._onMouseLeftButtonUp);
 
         r.events.on("draw", this.onDraw, this, -1000);
-
-        r.events.on("projchanged", this._onProjChanged);
     }
 
     public override ondeactivate() {
@@ -113,17 +108,6 @@ export class SimpleNavigation extends Control {
         r.events.off("lup", this._onMouseLeftButtonUp);
 
         r.events.off("draw", this.onDraw);
-
-        r.events.off("projchanged", this._onProjChanged);
-    }
-
-    protected _onProjChanged = (cam: Camera) => {
-        if (cam.isOrthographic) {
-            this._savedFocusDistance = cam.focusDistance;
-            if (this.renderer) {
-                this._savedEye.copy(this.renderer.activeCamera.eye);
-            }
-        }
     }
 
     protected _onMouseLeftButtonDown = (e: IMouseState) => {
