@@ -1356,27 +1356,35 @@ class Renderer {
         let w = cnv.width,
             h = cnv.height,
             min = MAX_FLOAT;
-        for (let i = 0; i < h; i++) {
-            for (let j = 0; j < w; j++) {
-                let d = this.getDistanceFromPixel(new Vec2(j, i));
-                if (d && (d < min)) {
-                    min = d;
-                }
+        let size = h * w;
+        let p = new Vec2();
+        for (let i = 0; i < size; i++) {
+            p.x = i % w;
+            p.y = Math.floor(i / w);
+            let d = this.getDistanceFromPixel(p);
+            if (d && (d < min)) {
+                min = d;
             }
         }
         return min < MAX_FLOAT ? min : 0;
     }
 
-    public setOrthographicProjection(isOrtho: boolean) {
-        if (isOrtho !== this.activeCamera.isOrthographic) {
+    public getDepthMinDistanceAsync(): Promise<number> {
+        return new Promise((resolve, reject) => {
             this._readDepthBuffer(() => {
-                let dist = this.getDepthMinDistance();
-                if (dist && isOrtho) {
-                    this.activeCamera.focusDistance = dist;
-                }
-                this.activeCamera.isOrthographic = isOrtho;
-                this.events.dispatch(this.events.projchanged, this.activeCamera);
+                resolve(this.getDepthMinDistance());
             });
+        });
+    }
+
+    public async setOrthographicProjection(isOrtho: boolean) {
+        if (isOrtho !== this.activeCamera.isOrthographic) {
+            let dist = await this.getDepthMinDistanceAsync();
+            if (dist && isOrtho) {
+                this.activeCamera.focusDistance = dist;
+            }
+            this.activeCamera.isOrthographic = isOrtho;
+            this.events.dispatch(this.events.projchanged, this.activeCamera);
         }
     }
 
