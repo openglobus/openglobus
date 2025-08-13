@@ -92,6 +92,7 @@ class MyScene extends RenderNode {
 
         this.renderer.activeCamera.set(new Vec3(0, 100, 100), new Vec3(0, 0, 0));
         this.renderer.activeCamera.update();
+        this.renderer.activeCamera.isOrthographic = true;
 
         this.renderer.getDepthMinDistanceAsync().then((dist) => {
             console.log(dist);
