@@ -271,8 +271,8 @@ export class SimpleNavigation extends Control {
             cam.focusDistance = cam.focusDistance * distRatio;
 
             //correct cam position back
-            // let focusDistanceChange = cam.focusDistance / distRatio - oldFocusDistance;
-            // cam.eye = cam.eye.add(cam.getForward().scale(focusDistanceChange));
+            let focusDistanceChange = cam.focusDistance - oldFocusDistance * distRatio;
+            cam.eye = cam.eye.add(cam.getForward().scale(focusDistanceChange));
         }
 
         cam.update();

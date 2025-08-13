@@ -12,7 +12,7 @@ import {
 
 let renderer = new Renderer("frame", {
     msaa: 8,
-    controls: [new control.SimpleNavigation({ speed: 0.01 }), new control.GeoObjectEditor()],
+    controls: [new control.SimpleNavigation({ speed: 0.01 })],
     autoActivate: true
 });
 
@@ -24,7 +24,7 @@ class MyScene extends RenderNode {
     }
 
     init() {
-        const baseObj = Object3d.createCube(1, 1, 1).translate(new Vec3(0, 0, 0)).setMaterial({
+        const baseObj = Object3d.createCube(40, 40, 40).translate(new Vec3(0, 0, 0)).setMaterial({
             ambient: "#c2c2c2",
             diffuse: "#ffffff",
             shininess: 1
@@ -57,7 +57,7 @@ class MyScene extends RenderNode {
         });
 
         let cube2 = new Entity({
-            cartesian: new Vec3(5, 0, 5),
+            cartesian: new Vec3(45, 0, 5),
             independentPicking: true,
             //yaw: 45 * Math.PI / 180,
             pitch: 45 * Math.PI / 180,
@@ -90,7 +90,7 @@ class MyScene extends RenderNode {
 
         collection.addTo(this);
 
-        this.renderer.activeCamera.set(new Vec3(0, 10, 10), new Vec3(0, 0, 0));
+        this.renderer.activeCamera.set(new Vec3(0, 100, 100), new Vec3(0, 0, 0));
         this.renderer.activeCamera.update();
 
         this.renderer.getDepthMinDistanceAsync().then((dist) => {
