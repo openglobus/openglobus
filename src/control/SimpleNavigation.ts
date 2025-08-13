@@ -205,7 +205,6 @@ export class SimpleNavigation extends Control {
             if (cam.isOrthographic) {
                 let dist = this.renderer.getDistanceFromPixel(e.pos);
                 if (!dist) return;
-                let dir = pos.sub(cam.eye).normalize();
 
                 cam.eye = pos.add(cam.getBackward().scale(dist));
                 cam.focusDistance -= cam.focusDistance * 0.0005 * e.wheelDelta;
