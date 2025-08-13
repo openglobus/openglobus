@@ -208,7 +208,7 @@ export class SimpleNavigation extends Control {
                 let dir = pos.sub(cam.eye).normalize();
 
                 cam.eye = pos.add(cam.getBackward().scale(dist));
-                cam.focusDistance -= 0.01 * e.wheelDelta;
+                cam.focusDistance -= cam.focusDistance * 0.0005 * e.wheelDelta;
 
                 let w = this.renderer.handler.getWidth() * 0.5,
                     h = this.renderer.handler.getHeight() * 0.5;
