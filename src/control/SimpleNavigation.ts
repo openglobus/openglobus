@@ -183,11 +183,11 @@ export class SimpleNavigation extends Control {
         }
     }
 
-    protected _onRDown = async (e: IMouseState) => {
+    protected _onRDown = (e: IMouseState) => {
         if (this.renderer) {
             this.stop();
             this._lookPos = undefined;
-            this._lookPos = await this.renderer.getCartesianFromPixelAsync(e.pos);
+            this._lookPos = this.renderer.getCartesianFromPixel(e.pos);
             if (this._lookPos) {
                 this._up = Vec3.UP;
             } else {
