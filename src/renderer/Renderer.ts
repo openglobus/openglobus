@@ -1351,6 +1351,14 @@ class Renderer {
         }
     }
 
+    public getCartesianFromPixelAsync(px: Vec2 | IBaseInputState): Promise<Vec3 | undefined> {
+        return new Promise((resolve, reject) => {
+            this._readDepthBuffer(() => {
+                resolve(this.getCartesianFromPixel(px));
+            });
+        });
+    }
+
     public getDepthMinDistance(): number {
         let cnv = this.handler!.canvas!;
         let w = cnv.width,

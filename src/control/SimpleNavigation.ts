@@ -22,6 +22,9 @@ export class SimpleNavigation extends Control {
     public vel: Vec3;
     public mass: number;
 
+    public focusVel: number = 0;
+    public focusForce: number = 0;
+
     protected _lookPos: Vec3 | undefined;
     protected _up: Vec3 | null;
 
@@ -30,7 +33,6 @@ export class SimpleNavigation extends Control {
     protected _eye0: Vec3;
     protected _wheelDist: number;
     protected _wheelPos: Vec3;
-    protected _wheelDelta: number = 0;
     protected _nx: number = 0;
     protected _ny: number = 0;
 
@@ -117,6 +119,7 @@ export class SimpleNavigation extends Control {
 
     protected _onMouseLeftButtonDown = (e: IMouseState) => {
         if (this._active && this.renderer) {
+            this.stop();
             this.renderer.handler.canvas!.classList.add("ogGrabbingPoiner");
             this._grabbedPoint = this.renderer.getCartesianFromPixel(e);
             this._grabbedScreenPoint.set(e.nx, e.ny);
@@ -180,9 +183,11 @@ export class SimpleNavigation extends Control {
         }
     }
 
-    protected _onRDown = (e: IMouseState) => {
+    protected _onRDown = async (e: IMouseState) => {
         if (this.renderer) {
-            this._lookPos = this.renderer.getCartesianFromPixel(e.pos);
+            this.stop();
+            this._lookPos = undefined;
+            this._lookPos = await this.renderer.getCartesianFromPixelAsync(e.pos);
             if (this._lookPos) {
                 this._up = Vec3.UP;
             } else {
@@ -199,41 +204,27 @@ export class SimpleNavigation extends Control {
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.renderer) {
             let cam = this.renderer.activeCamera;
-            let pos = this.renderer.getCartesianFromPixel(e);
-            if (!pos) {
-                pos = new Vec3();
-                let pl = new Plane(Vec3.ZERO, Vec3.UP);
-                let ray = new Ray(cam.eye, e.direction);
-                ray.hitPlaneRes(pl, pos);
-            }
-
-            this._wheelPos.copy(pos);
 
             if (cam.isOrthographic) {
-                this._wheelDist = this.renderer.getDistanceFromPixel(e.pos) || 0;
-                if (!this._wheelDist) return;
-
-                this._wheelDelta = e.wheelDelta;
+                let f = cam.frustums[0];
+                let dx = -(f.right - f.left) * (0.5 - e.nx),
+                    dy = (f.top - f.bottom) * (0.5 - e.ny);
+                let wdy = cam.getUp().scale(dy),
+                    wdx = cam.getRight().scale(dx);
+                let p = cam.eye.add(wdx.add(wdy));
+                this._wheelPos = p.add(cam.getForward());
+                this._wheelDist = 1;
                 this._nx = e.nx;
                 this._ny = e.ny;
-
-                // cam.eye = pos.add(cam.getBackward().scale(this._wheelDist));
-                // cam.focusDistance -= cam.focusDistance * 0.0005 * e.wheelDelta;
-                //
-                // let f = cam.frustums[0];
-                // let dx = (f.right - f.left) * (0.5 - e.nx),
-                //     dy = -(f.top - f.bottom) * (0.5 - e.ny);
-                // let wdy = cam.getUp().scale(dy),
-                //     wdx = cam.getRight().scale(dx);
-                //
-                // cam.eye.addA(wdx.add(wdy));
-                // cam.update();
-
-                let dir = pos.sub(cam.eye).normalize();
-                let dist = cam.eye.distance(pos) * 8;
-                this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
-
+                this.focusForce = 0.05 * e.wheelDelta;
             } else {
+                let pos = this.renderer.getCartesianFromPixel(e);
+                if (!pos) {
+                    pos = new Vec3();
+                    let pl = new Plane(Vec3.ZERO, Vec3.UP);
+                    let ray = new Ray(cam.eye, e.direction);
+                    ray.hitPlaneRes(pl, pos);
+                }
                 let dir = pos.sub(cam.eye).normalize();
                 let dist = cam.eye.distance(pos) * 8;
                 this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
@@ -290,9 +281,9 @@ export class SimpleNavigation extends Control {
     protected _handleMouseWheel() {
         let cam = this.renderer!.activeCamera;
 
-        if (cam.isOrthographic) {
+        if (cam.isOrthographic && Math.abs(this.focusVel) > 0.01) {
             cam.eye = this._wheelPos.add(cam.getBackward().scale(this._wheelDist));
-            cam.focusDistance -= cam.focusDistance * this.vel.scaleTo(this.dt).length() * 0.00005 * this._wheelDelta;
+            cam.focusDistance -= cam.focusDistance * this.focusVel * this.dt;
 
             let f = cam.frustums[0];
             let dx = (f.right - f.left) * (0.5 - this._nx),
@@ -301,18 +292,16 @@ export class SimpleNavigation extends Control {
                 wdx = cam.getRight().scale(dx);
 
             cam.eye.addA(wdx.add(wdy));
-        } else {
+            cam.update();
+        } else if (this.vel.length() > 0.01) {
             cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
+            cam.update();
         }
-
-        cam.update();
     }
 
     protected onDraw() {
         this._updateVel();
-        if (this.renderer && this.vel.length() > 0.01) {
-            this._handleMouseWheel();
-        }
+        this._handleMouseWheel();
     }
 
     protected get dt(): number {
@@ -324,5 +313,14 @@ export class SimpleNavigation extends Control {
         this.vel.addA(acc);
         this.vel.scale(0.77);
         this.force.set(0, 0, 0);
+
+        this.focusVel += this.focusForce;
+        this.focusVel *= 0.77;
+        this.focusForce = 0;
+    }
+
+    public stop() {
+        this.focusVel = 0;
+        this.vel.clear();
     }
 }
