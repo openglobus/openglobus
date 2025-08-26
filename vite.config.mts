@@ -7,6 +7,7 @@ import glsl from 'vite-plugin-glsl';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 /**
  * @param {{ mode: 'development' | 'production' }} param0
  * @returns {import('vite').UserConfig}
@@ -31,10 +32,9 @@ export default function ({mode}: { mode: 'development' | 'production' }) {
                 output: {
                     entryFileNames: `og.[format].js`,
                     assetFileNames: `[name][extname]`,
-                    sourcemapExcludeSources: true,
+                    sourcemapExcludeSources: !isDev,
                 },
-                plugins: [
-                    // doesn't work for esm modules
+                plugins: !isDev ? [
                     terser({
                         compress: true,
                         mangle: true,
@@ -42,12 +42,12 @@ export default function ({mode}: { mode: 'development' | 'production' }) {
                             comments: false
                         }
                     })
-                ]
+                ] : [] // important no plugins for development mode
             }
         },
         plugins: [
             glsl({
-                include: [                      // Glob pattern, or array of glob patterns to import
+                include: [
                     '**/*.glsl', '**/*.wgsl',
                     '**/*.vert', '**/*.frag',
                     '**/*.vs', '**/*.fs'
