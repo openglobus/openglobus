@@ -33,7 +33,7 @@ export default function forceTerserPlugin({ filePath }) {
             if (result.code && result.map) {
                 await Promise.all([
                     writeFile(filePath, result.code, 'utf-8'),
-                    writeFile(mapPath, result.map,  'utf-8'),
+                    writeFile(mapPath, result.map, 'utf-8'),
                 ]);
                 console.log(`✔ ${fileName} and ${mapFileName} regenerated with Terser`);
             } else {

@@ -1,21 +1,19 @@
-import * as math from "../math";
-import { type EventsHandler, createEvents } from "../Events";
-import { Frustum } from "./Frustum";
-import { Mat3 } from "../math/Mat3";
-import type { NumberArray9 } from "../math/Mat3";
-import { Mat4 } from "../math/Mat4";
-import type { NumberArray16 } from "../math/Mat4";
-import { Renderer } from "../renderer/Renderer";
-import { Vec2 } from "../math/Vec2";
-import type { NumberArray2 } from "../math/Vec2";
-import { Vec3 } from "../math/Vec3";
-import { Vec4 } from "../math/Vec4";
-import { Sphere } from "../bv/Sphere";
-import { Quat } from "../math/Quat";
-import { DEGREES_DOUBLE, RADIANS, RADIANS_HALF } from "../math";
-import { Easing, EasingFunction } from "../utils/easing";
-import { LonLat } from "../LonLat";
-import { Ray } from "../math/Ray";
+import {type EventsHandler, createEvents} from "../Events";
+import {Frustum} from "./Frustum";
+import {Mat3} from "../math/Mat3";
+import type {NumberArray9} from "../math/Mat3";
+import {Mat4} from "../math/Mat4";
+import type {NumberArray16} from "../math/Mat4";
+import {Renderer} from "../renderer/Renderer";
+import {Vec2} from "../math/Vec2";
+import type {NumberArray2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import {Sphere} from "../bv/Sphere";
+import {Quat} from "../math/Quat";
+import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
+import {Easing, EasingFunction} from "../utils/easing";
+import {LonLat} from "../LonLat";
 
 export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flystop"];
 
@@ -59,6 +57,8 @@ export interface ICameraParams {
     frustums?: NumberArray2[];
     width?: number;
     height?: number;
+    isOrthographic?: boolean;
+    focusDistance?: number;
 }
 
 export interface IFlyCartesianParams extends IFlyBaseParams {
@@ -119,6 +119,10 @@ class Camera {
      * @type {Events}
      */
     public events: EventsHandler<CameraEvents>;
+
+    protected _isOrthographic: boolean;
+
+    protected _focusDistance: number;
 
     /**
      * Camera position.
@@ -237,6 +241,10 @@ class Camera {
 
         this.events = createEvents<CameraEvents>(EVENT_NAMES, this);
 
+        this._isOrthographic = options.isOrthographic ?? false;
+
+        this._focusDistance = options.focusDistance != undefined ? options.focusDistance : 10;
+
         this._width = options.width || 1;
 
         this._height = options.height || 1;
@@ -301,8 +309,8 @@ class Camera {
                 );
             }
         } else {
-            let near = 0.1,
-                far = 1000.0;
+            let near = 1,
+                far = 500.0;
 
             let fr = new Frustum({
                 fov: this._viewAngle,
@@ -334,6 +342,30 @@ class Camera {
             options.look || new Vec3(),
             options.up || new Vec3(0.0, 1.0, 0.0)
         );
+    }
+
+    public get isOrthographic(): boolean {
+        return this._isOrthographic;
+    }
+
+    public set isOrthographic(isOrthographic: boolean) {
+        if (this._isOrthographic !== isOrthographic) {
+            this._isOrthographic = isOrthographic;
+            this.refresh();
+        }
+    }
+
+    public get focusDistance(): number {
+        return this._focusDistance;
+    }
+
+    public set focusDistance(dist: number) {
+        if (dist !== this._focusDistance) {
+            this._focusDistance = dist;
+            if (this._isOrthographic) {
+                this.refresh();
+            }
+        }
     }
 
     public get id(): number {
@@ -542,49 +574,22 @@ class Camera {
      * @virtual
      */
     public update() {
-        let u = this._r,
-            v = this._u,
-            n = this._b,
-            eye = this.eye;
+        let u = this._r, v = this._u, n = this._b, eye = this.eye;
 
         Vec3.doubleToTwoFloat32Array(eye, this.eyeHigh, this.eyeLow);
 
         this._viewMatrix.set([
-            u.x,
-            v.x,
-            n.x,
-            0.0,
-            u.y,
-            v.y,
-            n.y,
-            0.0,
-            u.z,
-            v.z,
-            n.z,
-            0.0,
-            -eye.dot(u),
-            -eye.dot(v),
-            -eye.dot(n),
-            1.0
+            u.x, v.x, n.x, 0.0,
+            u.y, v.y, n.y, 0.0,
+            u.z, v.z, n.z, 0.0,
+            -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
         ]);
 
         this._viewMatrixRTE.set([
-            u.x,
-            v.x,
-            n.x,
-            0.0,
-            u.y,
-            v.y,
-            n.y,
-            0.0,
-            u.z,
-            v.z,
-            n.z,
-            0.0,
-            0,
-            0,
-            0,
-            1.0
+            u.x, v.x, n.x, 0.0,
+            u.y, v.y, n.y, 0.0,
+            u.z, v.z, n.z, 0.0,
+            0, 0, 0, 1.0
         ]);
 
         // do not clean up, someday it will be using
@@ -633,34 +638,24 @@ class Camera {
     /**
      * Sets up camera projection
      * @public
-     * @param {number} angle - Camera view angle
+     * @param {number} viewAngle - Camera view angle
      * @param {number} aspect - Screen aspect ratio
      */
-    protected _setProj(angle: number, aspect: number) {
-        this._viewAngle = angle;
+    protected _setProj(viewAngle: number, aspect: number) {
+        this._viewAngle = viewAngle;
         for (let i = 0, len = this.frustums.length; i < len; i++) {
-            this.frustums[i].setProjectionMatrix(
-                angle,
-                aspect,
-                this.frustums[i].near,
-                this.frustums[i].far
-            );
+            let fi = this.frustums[i];
+            fi.setProjectionMatrix(viewAngle, aspect, fi.near, fi.far, this._isOrthographic, this._focusDistance);
         }
-
-        this._horizontalViewAngle = getHorizontalViewAngleByFov(angle, aspect);
-
+        this._horizontalViewAngle = getHorizontalViewAngleByFov(viewAngle, aspect);
         this._updateViewportParameters();
     }
 
     protected _updateViewportParameters() {
-        this._tanViewAngle_hrad = Math.tan(this._viewAngle * math.RADIANS_HALF);
+        this._tanViewAngle_hrad = Math.tan(this._viewAngle * RADIANS_HALF);
         this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * (1.0 / this._height);
         this._projSizeConst =
-            Math.min(
-                this._width < 512 ? 512 : this._width,
-                this._height < 512 ? 512 : this._height
-            ) /
-            (this._viewAngle * RADIANS);
+            Math.min(this._width < 512 ? 512 : this._width, this._height < 512 ? 512 : this._height) / (this._viewAngle * RADIANS);
     }
 
     /**
@@ -878,21 +873,43 @@ class Camera {
      * @param {number} y - Screen Y coordinate
      * @returns {Vec3} - Direction vector
      */
-    public unproject(x: number, y: number) {
+    public unproject(x: number, y: number, dist?: number, outPos?: Vec3) {
         let w = this._width * 0.5,
             h = this._height * 0.5;
 
         let px = (x - w) / w,
             py = -(y - h) / h;
 
-        let world1 = this.frustums[0].inverseProjectionViewMatrix
-                .mulVec4(new Vec4(px, py, -1.0, 1.0))
-                .affinity(),
-            world2 = this.frustums[0].inverseProjectionViewMatrix
-                .mulVec4(new Vec4(px, py, 0.0, 1.0))
-                .affinity();
+        let f = this.frustums[0];
 
-        return world2.subA(world1).toVec3().normalize();
+        if (this.isOrthographic) {
+            if (dist) {
+                let dx = 0.5 * (f.right - f.left) * px,
+                    dy = 0.5 * (f.top - f.bottom) * py;
+
+                let wdy = this.getUp().scale(dy),
+                    wdx = this.getRight().scale(dx);
+
+                let wd = wdy.addA(wdx);
+                let p0 = this.eye.add(wd);
+
+                let dir = this.getForward();
+                let p1 = p0.addA(dir.scaleTo(dist));
+
+                if (outPos) {
+                    outPos.copy(p1);
+                }
+
+                return p1.sub(this.eye).normalize();
+            } else {
+                return this.getForward();
+            }
+        } else {
+            let invPV = f.inverseProjectionViewMatrix;
+            let nearPoint = invPV.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
+                farPoint = invPV.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
+            return farPoint.subA(nearPoint).toVec3().normalize();
+        }
     }
 
     /**
@@ -967,12 +984,16 @@ class Camera {
 
     /**
      * Gets 3d size factor. Uses in LOD distance calculation.
+     * It is very important function used in Node.ts
      * @public
-     * @param {Vec3} p - Far point.
-     * @param {Vec3} r - Far point.
+     * @param {Vec3} p - Point in 3d.
+     * @param {Vec3} r - size.
      * @returns {number} - Size factor.
      */
     public projectedSize(p: Vec3, r: number): number {
+        //
+        //@todo: orthographic
+        //
         return Math.atan(r / this.eye.distance(p)) * this._projSizeConst;
     }
 
@@ -1085,4 +1106,4 @@ class Camera {
     }
 }
 
-export { Camera };
+export {Camera};

@@ -23,7 +23,16 @@ export default [
 
         languageOptions: {
             globals: {
-                window: true
+                window: true,
+                vi: true,
+                test: true,
+                expect: true,
+                describe: true,
+                it: true,
+                beforeEach: true,
+                afterEach: true,
+                beforeAll: true,
+                afterAll: true
             },
 
             parser: tsParser,

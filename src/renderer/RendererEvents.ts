@@ -18,6 +18,7 @@ export function createRendererEvents(renderer: Renderer) {
 }
 
 export type RendererEventsType = [
+    "projchanged",
     "changerelativecenter",
     "draw",
     "drawtransparent",
@@ -1027,6 +1028,16 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 }
 
 const RENDERER_EVENTS: RendererEventsType = [
+    /**
+     * Triggered when camera projection is changed
+     * @event og.RendererEvents#projchanged
+     */
+    "projchanged",
+
+    /**
+     * Triggered when relative center is changed
+     * @event og.RendererEvents#changerelativecenter
+     */
     "changerelativecenter",
 
     /**

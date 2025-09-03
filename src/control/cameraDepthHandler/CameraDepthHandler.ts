@@ -10,6 +10,7 @@ import {Vec4} from "../../math/Vec4";
 import {Vec3} from "../../math/Vec3";
 import {LonLat} from "../../LonLat";
 import {GeoImage} from "../../layer/GeoImage";
+import {QuadTreeStrategy} from "../../quadTree";
 
 
 function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer: Framebuffer): number {
@@ -45,22 +46,26 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
 const CAM_WIDTH = 640;
 const CAM_HEIGHT = 480;
 
-export interface ICameraDepthhandlerParams extends IControlParams {
+export interface ICameraDepthHandlerParams extends IControlParams {
 
 }
 
 export class CameraDepthHandler extends Control {
 
-    protected _depthHandler: CameraFrameHandler | null;
+    protected _frameHandler: CameraFrameHandler | null;
     protected _frameComposer: CameraFrameComposer;
 
     public readonly cameraGeoImage: GeoImage;
 
-    constructor(params: ICameraDepthhandlerParams) {
+    protected _quadTreeStrategy: QuadTreeStrategy | null;
+
+    protected _skipPreRender = false;
+
+    constructor(params: ICameraDepthHandlerParams) {
         super(params);
 
         this._frameComposer = new CameraFrameComposer();
-        this._depthHandler = null;
+        this._frameHandler = null;
 
         this.cameraGeoImage = new GeoImage(`cameraGeoImage:${this.__id}`, {
             src: "test4.jpg",
@@ -69,19 +74,21 @@ export class CameraDepthHandler extends Control {
             isBaseLayer: false,
             opacity: 0.7
         });
+
+        this._quadTreeStrategy = null;
     }
 
     protected _createCamera(): Camera {
         if (this.planet) {
             return new PlanetCamera(this.planet, {
-                frustums: [[10, 10000]],
+                frustums: [[100, 1000000000]],
                 width: CAM_WIDTH,
                 height: CAM_HEIGHT,
                 viewAngle: 45
             })
         } else {
             return new Camera({
-                frustums: [[10, 10000]],
+                frustums: [[100, 1000000000]],
                 width: CAM_WIDTH,
                 height: CAM_HEIGHT,
                 viewAngle: 45
@@ -90,8 +97,8 @@ export class CameraDepthHandler extends Control {
     }
 
     public get camera(): Camera | undefined {
-        if (this._depthHandler) {
-            return this._depthHandler.camera;
+        if (this._frameHandler) {
+            return this._frameHandler.camera;
         }
     }
 
@@ -118,7 +125,7 @@ export class CameraDepthHandler extends Control {
             useDepth: true
         });
 
-        this._depthHandler = new CameraFrameHandler({
+        this._frameHandler = new CameraFrameHandler({
             camera: this._createCamera(),
             frameBuffer: depthFramebuffer,
             frameHandler: this._depthHandlerCallback
@@ -130,12 +137,32 @@ export class CameraDepthHandler extends Control {
             this.renderer.addControl(this._frameComposer);
         }
 
-        this._frameComposer.add(this._depthHandler);
+        this._frameComposer.add(this._frameHandler);
+
+        if (this.planet) {
+
+            const quadTreeParams = {
+                planet: this.planet,
+                maxEqualZoomAltitude: this.planet.quadTreeStrategy.maxEqualZoomAltitude,
+                minEqualZoomAltitude: this.planet.quadTreeStrategy.minEqualZoomAltitude,
+                minEqualZoomCameraSlope: this.planet.quadTreeStrategy.minEqualZoomCameraSlope,
+                transitionOpacityEnabled: false,
+            };
+
+            this._quadTreeStrategy = new this.planet.quadTreeStrategyPrototype(quadTreeParams);
+
+            this._quadTreeStrategy.init(this.camera as PlanetCamera);
+
+            this._quadTreeStrategy.preRender();
+            this._quadTreeStrategy.clearRenderedNodes();
+            this._skipPreRender = false;
+            this._quadTreeStrategy.preLoad();
+        }
     }
 
     public get framebuffer(): Framebuffer | undefined {
-        if (this._depthHandler) {
-            return this._depthHandler.frameBuffer;
+        if (this._frameHandler) {
+            return this._frameHandler.frameBuffer;
         }
     }
 
@@ -143,12 +170,24 @@ export class CameraDepthHandler extends Control {
 
         if (!this.planet) return;
 
-        let cam = frameHandler.camera,
-            framebuffer = frameHandler.frameBuffer,
+        let framebuffer = frameHandler.frameBuffer,
             gl = framebuffer.handler.gl!;
 
         framebuffer.activate();
 
+        if (this._quadTreeStrategy) {
+            let cam = frameHandler.camera as PlanetCamera;
+
+            if (this._skipPreRender) {
+                this._quadTreeStrategy.collectRenderNodes(cam);
+            }
+
+            this._skipPreRender = true;
+
+            console.log(this._quadTreeStrategy._renderedNodes);
+            //this.planet.renderDepthFramebuffer(cam, this._quadTreeStrategy);
+        }
+        /*
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
@@ -165,7 +204,7 @@ export class CameraDepthHandler extends Control {
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
         // drawing planet nodes
-        let rn = this.planet._renderedNodes;
+        let rn = this.planet.quadTreeStrategy._renderedNodes;
 
         let i = rn.length;
         while (i--) {
@@ -174,11 +213,10 @@ export class CameraDepthHandler extends Control {
             }
         }
 
-        //@ts-ignore
-        for (let i = 0; i < this.planet._fadingOpaqueSegments.length; ++i) {
-            //@ts-ignore
-            this.planet._fadingOpaqueSegments[i].depthRendering(sh);
+        for (let i = 0; i < this.planet.quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
+            this.planet.quadTreeStrategy._fadingOpaqueSegments[i].depthRendering(sh);
         }
+        */
 
         framebuffer.deactivate();
 
@@ -194,38 +232,12 @@ export class CameraDepthHandler extends Control {
         if (lt && rt && rb && lb) {
             this.cameraGeoImage.setCorners([[lt.lon, lt.lat], [rt.lon, rt.lat], [rb.lon, rb.lat], [lb.lon, lb.lat]]);
         }
-
-        // let r = globus.renderer;
-        //
-        // // PASS to depth visualization
-        // r.screenDepthFramebuffer.activate();
-        // sh = h.programs.depth;
-        // let p = sh._program;
-        //
-        // gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer);
-        // gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-        //
-        // sh.activate();
-        //
-        // gl.activeTexture(gl.TEXTURE0);
-        // gl.bindTexture(gl.TEXTURE_2D, framebuffer.textures[0]);
-        // gl.uniform1i(p.uniforms.depthTexture, 0);
-        //
-        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        //
-        // r.screenDepthFramebuffer.deactivate();
-        // gl.enable(gl.BLEND);
-
-        // frameHandler.cameraEntity.setCartesian3v(cam.eye);
-        // frameHandler.cameraEntity.setPitch(cam.getPitch());
-        // frameHandler.cameraEntity.setYaw(cam.getYaw());
-        // frameHandler.cameraEntity.setRoll(cam.getRoll());
     }
 
     public getCartesianFromPixelTerrain(x: number, y: number): Vec3 | undefined {
-        if (this._depthHandler) {
-            let framebuffer = this._depthHandler.frameBuffer;
-            let camera = this._depthHandler.camera;
+        if (this._frameHandler) {
+            let framebuffer = this._frameHandler.frameBuffer;
+            let camera = this._frameHandler.camera;
             let distance = getDistanceFromPixel(x, y, camera, framebuffer);
             if (distance === 0) {
                 return;

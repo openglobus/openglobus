@@ -1,10 +1,10 @@
-import { DecoderModule } from "draco3d";
-import { Entity } from "../../entity";
-import { Quat } from "../../math/Quat";
-import { Vec3 } from "../../math/Vec3";
-import { Mat4, NumberArray16 } from "../../math/Mat4";
-import { Object3d } from "../../Object3d";
-import { Glb } from "./glbParser";
+import {DecoderModule} from "draco3d";
+import {Entity} from "../../entity";
+import {Quat} from "../../math/Quat";
+import {Vec3} from "../../math/Vec3";
+import {Mat4, NumberArray16} from "../../math/Mat4";
+import {Object3d} from "../../Object3d";
+import {Glb} from "./glbParser";
 import {
     Accessor,
     AccessorComponentType,
@@ -23,9 +23,11 @@ import {
 
 export class Gltf {
     private static _dracoDecoderModule: DecoderModule | null = null;
+
     public static connectDracoDecoderModule(decoder: any): void {
         Gltf._dracoDecoderModule = decoder;
     }
+
     public static async loadGlb(url: string) {
         const data = await Glb.load(url);
         return new Gltf(data);
@@ -79,7 +81,7 @@ export class Gltf {
 
     private _nodeToEntity(node: GltfNode, parent?: Entity): Entity {
         const entity = new Entity({
-            name: `node_${node.name}`,
+            name: node.name,
             cartesian: new Vec3(0, 0, 0),
             relativePosition: parent !== undefined,
         });
@@ -197,7 +199,7 @@ export class Gltf {
                     const source =
                         this.gltf.gltf.textures[
                             material.pbrMetallicRoughness.baseColorTexture.index
-                        ].source;
+                            ].source;
                     if (source !== undefined) {
                         mat.baseColorTexture = {
                             image: this._images[source],
@@ -209,12 +211,12 @@ export class Gltf {
                     const source =
                         this.gltf.gltf.textures[
                             material.pbrMetallicRoughness.metallicRoughnessTexture.index
-                        ].source;
+                            ].source;
                     if (source !== undefined) {
                         mat.metallicRoughnessTexture = {
                             image: this._images[source],
                             texCoord:
-                                material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord
+                            material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord
                         };
                     }
                 }
@@ -344,7 +346,7 @@ export class Gltf {
             draco.destroy(decoder);
 
             primitive = {
-                name: `${meshData.name}_${material.name}_${index}`,
+                name: `${meshData.name}/${material.name}/${index}`,
                 vertices: attributes.POSITION,
                 indices: indices,
                 mode: primitiveData.mode ? primitiveData.mode : PrimitiveMode.triangles,
@@ -358,7 +360,7 @@ export class Gltf {
                 ? this.gltf.gltf.accessors[texcoordAccessorKey]
                 : undefined;
             primitive = {
-                name: `${meshData.name}_${material.name}_${index}`,
+                name: `${meshData.name}/${material.name}/${index}`,
                 indices: primitiveData.indices
                     ? Gltf._access(this.gltf.gltf.accessors[primitiveData.indices], this.gltf)
                     : undefined,

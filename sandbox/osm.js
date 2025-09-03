@@ -87,24 +87,19 @@ globus.planet.addControl(new control.KeyboardNavigation({
     })
 );
 
-let toneMappingFramebufferPreview = new control.FramebufferPreview({
-    title: "toneMappingFramebuffer",
-    framebuffer: globus.renderer.toneMappingFramebuffer,
-    flippedUV: true
-});
-globus.planet.addControl(toneMappingFramebufferPreview);
+// let toneMappingFramebufferPreview = new control.FramebufferPreview({
+//     title: "toneMappingFramebuffer",
+//     framebuffer: globus.renderer.toneMappingFramebuffer,
+//     flippedUV: true
+// });
+// globus.planet.addControl(toneMappingFramebufferPreview);
 
-let pickingFramebufferPreview = new control.FramebufferPreview({
-    title: "pickingFramebuffer",
-    framebuffer: globus.renderer.pickingFramebuffer,
-    flippedUV: true
-});
-globus.planet.addControl(pickingFramebufferPreview);
-
-
-globus.planet.addControl(new control.KeyboardNavigation({
-    camera: depthHandler.camera
-}));
+// let pickingFramebufferPreview = new control.FramebufferPreview({
+//     title: "pickingFramebuffer",
+//     framebuffer: globus.renderer.pickingFramebuffer,
+//     flippedUV: true
+// });
+// globus.planet.addControl(pickingFramebufferPreview);
 
 globus.planet.renderer.controls.SimpleSkyBackground.colorOne = "black";
 globus.planet.renderer.controls.SimpleSkyBackground.colorTwo = "black";

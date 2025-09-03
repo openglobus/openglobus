@@ -53,8 +53,8 @@ export interface IPolylineParams {
     pathColors?: SegmentPathColor[];
     path3v?: SegmentPath3vExt[];
     pathLonLat?: SegmentPathLonLatExt[];
-    visibleSpherePosition?: Cartesian,
-    visibleSphereRadius?: number
+    visibleSpherePosition?: Cartesian;
+    visibleSphereRadius?: number;
 }
 
 /**
