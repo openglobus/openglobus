@@ -250,7 +250,7 @@ export class QuadTreeStrategy {
         this._renderedNodes = [];
     }
 
-    protected _clearRenderNodesInFrustum() {
+    protected _clearRenderNodesInFrustum() {1
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i].length = 0;
             this._renderedNodesInFrustum[i] = [];
@@ -258,7 +258,7 @@ export class QuadTreeStrategy {
     }
 
     protected _collectRenderedNodesMaxZoom(cam: PlanetCamera) {
-        if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
+        if (cam.isOrthographic || cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
 
             this.minCurrZoom = this.maxCurrZoom;
 
