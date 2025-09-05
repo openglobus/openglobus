@@ -129,8 +129,6 @@ export class MouseNavigation extends Control {
 
     protected _velInertia: number;
 
-    protected _orthoDepth: number = 0;
-
     protected _hold: boolean = false;
 
     protected _prevVel: Vec3 = new Vec3();
@@ -432,11 +430,12 @@ export class MouseNavigation extends Control {
 
         if (!this._grabbedPoint) return;
 
-        this._grabbedDist = this.renderer!.activeCamera.eye.distance(this._grabbedPoint);
         this._targetDragPoint = this._grabbedPoint;
+
         if (this.planet.camera.isOrthographic) {
-            const dist = this.renderer!.getDistanceFromPixel(e.pos);
-            if (dist) this._orthoDepth = dist;
+            this._grabbedDist = this.renderer!.getDistanceFromPixel(e.pos)!;
+        } else {
+            this._grabbedDist = this.renderer!.activeCamera.eye.distance(this._grabbedPoint);
         }
 
         this.renderer!.handler.canvas!.classList.add("ogGrabbingPoiner");
@@ -458,15 +457,13 @@ export class MouseNavigation extends Control {
     }
 
     protected _onLHold = (e: IMouseState) => {
-        if (this._grabbedPoint && this.planet) {
-            if (!e.moving) {
-                return;
-            }
+        if (this._grabbedPoint && this.planet && e.moving) {
+
             let cam = this.planet.camera;
 
             if (cam.isOrthographic) {
 
-                const dist = this._orthoDepth || this._grabbedDist;
+                const dist = this._grabbedDist;
                 const p1 = new Vec3();
                 const dir = cam.unproject(e.x, e.y, dist, p1);
 
@@ -479,14 +476,12 @@ export class MouseNavigation extends Control {
 
                 this._targetDragPoint = _targetDragPoint;
 
-                let newEye = new Vec3();
-
                 let rot = Quat.getRotationBetweenVectors(
                     this._targetDragPoint.getNormal(),
                     this._grabbedPoint.getNormal()
                 );
 
-                newEye.copy(rot.mulVec3(cam.eye));
+                let newEye = rot.mulVec3(cam.eye);
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
 
             } else if (cam.slope > MIN_SLOPE) {
@@ -501,15 +496,14 @@ export class MouseNavigation extends Control {
 
                 this._targetDragPoint = _targetDragPoint;
 
-                let newEye = new Vec3();
-
                 let rot = Quat.getRotationBetweenVectors(
                     this._targetDragPoint.getNormal(),
                     this._grabbedPoint.getNormal()
                 );
 
-                newEye.copy(rot.mulVec3(cam.eye));
+                let newEye = rot.mulVec3(cam.eye);
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
+
             } else {
                 let p0 = this._grabbedPoint,
                     p1 = Vec3.add(p0, cam.getRight()),
