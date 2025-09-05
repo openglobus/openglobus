@@ -129,6 +129,8 @@ export class MouseNavigation extends Control {
 
     protected _velInertia: number;
 
+    protected _orthoDepth: number = 0;
+
     protected _hold: boolean = false;
 
     protected _prevVel: Vec3 = new Vec3();
@@ -329,14 +331,15 @@ export class MouseNavigation extends Control {
     protected _onRDown = (e: IMouseState) => {
         if (this.planet) {
             this.planet.stopFlying();
-            this._targetRotationPoint = this._getTargetPoint(e.pos)!;
-            if (this._targetRotationPoint) {
+            const tp = this._getTargetPoint(e.pos);
+            this._targetRotationPoint = tp ? tp : null;
+            if (tp) {
                 this._targetZoomPoint = null;
                 this._targetDragPoint = null;
 
                 this.vel.set(0, 0, 0);
-                this._tUp = this._targetRotationPoint.getNormal();
-                this._tRad = this.planet.camera.eye.distance(this._targetRotationPoint);
+                this._tUp = tp.getNormal();
+                this._tRad = this.planet.camera.eye.distance(tp);
             }
         }
     }
@@ -344,11 +347,14 @@ export class MouseNavigation extends Control {
     protected _getTargetPoint(p: Vec2): Vec3 | null {
         if (this.planet) {
 
-            return this.renderer!.getCartesianFromPixel(p);
+            if (this.planet.camera.isOrthographic) {
+                return this.renderer!.getCartesianFromPixel(p) || null;
+            }
 
             if (this.planet.camera.getAltitude() > 80000) {
                 return this.planet.getCartesianFromPixelEllipsoid(p) || null;
             }
+
             return this.planet.getCartesianFromPixelTerrain(p) || null;
         }
         return null;
@@ -427,6 +433,11 @@ export class MouseNavigation extends Control {
         if (!this._grabbedPoint) return;
 
         this._grabbedDist = this.renderer!.activeCamera.eye.distance(this._grabbedPoint);
+        this._targetDragPoint = this._grabbedPoint;
+        if (this.planet.camera.isOrthographic) {
+            const dist = this.renderer!.getDistanceFromPixel(e.pos);
+            if (dist) this._orthoDepth = dist;
+        }
 
         this.renderer!.handler.canvas!.classList.add("ogGrabbingPoiner");
 
@@ -448,9 +459,38 @@ export class MouseNavigation extends Control {
 
     protected _onLHold = (e: IMouseState) => {
         if (this._grabbedPoint && this.planet) {
+            if (!e.moving) {
+                return;
+            }
             let cam = this.planet.camera;
 
-            if (cam.slope > MIN_SLOPE) {
+            if (cam.isOrthographic) {
+
+                const dist = this._orthoDepth || this._grabbedDist;
+                const p1 = new Vec3();
+                const dir = cam.unproject(e.x, e.y, dist, p1);
+
+                const p0 = p1.sub(dir.scaleTo(dist));
+                const _targetDragPoint = new Ray(p0, dir).hitSphere(this._grabbedSphere);
+
+                if (!_targetDragPoint) {
+                    return;
+                }
+
+                this._targetDragPoint = _targetDragPoint;
+
+                let newEye = new Vec3();
+
+                let rot = Quat.getRotationBetweenVectors(
+                    this._targetDragPoint.getNormal(),
+                    this._grabbedPoint.getNormal()
+                );
+
+                newEye.copy(rot.mulVec3(cam.eye));
+                this.force = newEye.sub(cam.eye).scale(this.dragInertia);
+
+            } else if (cam.slope > MIN_SLOPE) {
+
                 this._grabbedDist = cam.eye.distance(this._grabbedPoint);
                 let dir = cam.unproject(e.x, e.y, this._grabbedDist);
                 let _targetDragPoint = new Ray(cam.eye, dir).hitSphere(this._grabbedSphere);
@@ -519,7 +559,7 @@ export class MouseNavigation extends Control {
                 let d_v = this.vel.scaleTo(this.dt);
                 let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
-                if (false && this.fixedUp) {
+                if (this.fixedUp) {
                     cam.eye.copy(newEye);
                     this._corrRoll();
                     cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
