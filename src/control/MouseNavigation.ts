@@ -594,6 +594,8 @@ export class MouseNavigation extends Control {
             let vel_normal = this.vel.getNormal();
             let velDir = Math.sign(vel_normal.dot(cam.getForward()));
 
+            cam.focusDistance = cam.getAltitude();
+
             //let dist = a.distance(eye);
             // let mult = 50;
             //
