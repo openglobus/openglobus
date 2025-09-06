@@ -8,7 +8,7 @@ import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {input} from "../input/input";
 import {Plane} from "../math/Plane";
-import { createEvents, type EventsHandler } from "../Events";
+import {createEvents, type EventsHandler} from "../Events";
 
 interface IMouseNavigationParams extends IControlParams {
     fixedUp?: boolean;
@@ -90,6 +90,8 @@ export class MouseNavigation extends Control {
 
     protected _grabbedPoint: Vec3 | null;
 
+    protected _grabbedDist: number;
+
     protected _targetZoomPoint: Vec3 | null;
 
     protected _targetDragPoint: Vec3 | null;
@@ -165,6 +167,7 @@ export class MouseNavigation extends Control {
 
         this._lookPos = undefined;
         this._grabbedPoint = null;
+        this._grabbedDist = 0;
 
         this._targetZoomPoint = null;
         this._targetDragPoint = null;
@@ -326,24 +329,30 @@ export class MouseNavigation extends Control {
     protected _onRDown = (e: IMouseState) => {
         if (this.planet) {
             this.planet.stopFlying();
-            this._targetRotationPoint = this._getTargetPoint(e.pos)!;
-            if (this._targetRotationPoint) {
-
+            const tp = this._getTargetPoint(e.pos);
+            this._targetRotationPoint = tp ? tp : null;
+            if (tp) {
                 this._targetZoomPoint = null;
                 this._targetDragPoint = null;
 
                 this.vel.set(0, 0, 0);
-                this._tUp = this._targetRotationPoint.getNormal();
-                this._tRad = this.planet.camera.eye.distance(this._targetRotationPoint);
+                this._tUp = tp.getNormal();
+                this._tRad = this.planet.camera.eye.distance(tp);
             }
         }
     }
 
     protected _getTargetPoint(p: Vec2): Vec3 | null {
         if (this.planet) {
+
+            if (this.planet.camera.isOrthographic) {
+                return this.renderer!.getCartesianFromPixel(p) || null;
+            }
+
             if (this.planet.camera.getAltitude() > 80000) {
                 return this.planet.getCartesianFromPixelEllipsoid(p) || null;
             }
+
             return this.planet.getCartesianFromPixelTerrain(p) || null;
         }
         return null;
@@ -421,6 +430,14 @@ export class MouseNavigation extends Control {
 
         if (!this._grabbedPoint) return;
 
+        this._targetDragPoint = this._grabbedPoint;
+
+        if (this.planet.camera.isOrthographic) {
+            this._grabbedDist = this.renderer!.getDistanceFromPixel(e.pos)!;
+        } else {
+            this._grabbedDist = this.renderer!.activeCamera.eye.distance(this._grabbedPoint);
+        }
+
         this.renderer!.handler.canvas!.classList.add("ogGrabbingPoiner");
 
         this._grabbedSphere.radius = this._grabbedPoint.length();
@@ -440,11 +457,18 @@ export class MouseNavigation extends Control {
     }
 
     protected _onLHold = (e: IMouseState) => {
-        if (this._grabbedPoint && this.planet) {
+        if (this._grabbedPoint && this.planet && e.moving) {
+
             let cam = this.planet.camera;
 
-            if (cam.slope > MIN_SLOPE) {
-                let _targetDragPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
+            if (cam.isOrthographic) {
+
+                const dist = this._grabbedDist;
+                const p1 = new Vec3();
+                const dir = cam.unproject(e.x, e.y, dist, p1);
+
+                const p0 = p1.sub(dir.scaleTo(dist));
+                const _targetDragPoint = new Ray(p0, dir).hitSphere(this._grabbedSphere);
 
                 if (!_targetDragPoint) {
                     return;
@@ -452,15 +476,34 @@ export class MouseNavigation extends Control {
 
                 this._targetDragPoint = _targetDragPoint;
 
-                let newEye = new Vec3();
+                let rot = Quat.getRotationBetweenVectors(
+                    this._targetDragPoint.getNormal(),
+                    this._grabbedPoint.getNormal()
+                );
+
+                let newEye = rot.mulVec3(cam.eye);
+                this.force = newEye.sub(cam.eye).scale(this.dragInertia);
+
+            } else if (cam.slope > MIN_SLOPE) {
+
+                this._grabbedDist = cam.eye.distance(this._grabbedPoint);
+                let dir = cam.unproject(e.x, e.y, this._grabbedDist);
+                let _targetDragPoint = new Ray(cam.eye, dir).hitSphere(this._grabbedSphere);
+
+                if (!_targetDragPoint) {
+                    return;
+                }
+
+                this._targetDragPoint = _targetDragPoint;
 
                 let rot = Quat.getRotationBetweenVectors(
                     this._targetDragPoint.getNormal(),
                     this._grabbedPoint.getNormal()
                 );
 
-                newEye.copy(rot.mulVec3(cam.eye));
+                let newEye = rot.mulVec3(cam.eye);
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
+
             } else {
                 let p0 = this._grabbedPoint,
                     p1 = Vec3.add(p0, cam.getRight()),
@@ -550,6 +593,8 @@ export class MouseNavigation extends Control {
 
             let vel_normal = this.vel.getNormal();
             let velDir = Math.sign(vel_normal.dot(cam.getForward()));
+
+            cam.focusDistance = cam.getAltitude();
 
             //let dist = a.distance(eye);
             // let mult = 50;
