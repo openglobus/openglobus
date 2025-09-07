@@ -862,8 +862,8 @@ class Camera {
      * @param {Vec2} pos - Screen X coordinate
      * @returns {Vec3} - Direction vector
      */
-    public unproject2v(pos: Vec2) {
-        return this.unproject(pos.x, pos.y);
+    public unproject2v(pos: Vec2, dist?: number, outPos?: Vec3) {
+        return this.unproject(pos.x, pos.y, dist, outPos);
     }
 
     /**

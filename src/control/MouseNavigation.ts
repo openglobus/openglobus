@@ -374,6 +374,24 @@ export class MouseNavigation extends Control {
 
             let cam = this.planet.camera;
 
+            /*
+            this._grabbedDist = this.renderer!.getDistanceFromPixel(e.pos)!;
+
+
+            let dist = this._grabbedDist;
+            let p1 = new Vec3();
+            let dir = cam.unproject(e.x, e.y, dist, p1);
+
+            const p0 = p1.sub(dir.scaleTo(dist));
+            const _targetDragPoint = new Ray(p0, dir).hitSphere(this._grabbedSphere);
+
+            if (!_targetDragPoint) {
+                return;
+            }
+
+            this._targetZoomPoint = _targetDragPoint;
+            */
+
             this._curPitch = cam.getPitch();
             this._curYaw = cam.getYaw();
             this._curRoll = cam.getRoll();
@@ -596,22 +614,6 @@ export class MouseNavigation extends Control {
 
             cam.focusDistance = cam.getAltitude();
 
-            //let dist = a.distance(eye);
-            // let mult = 50;
-            //
-            // if (dist <= 1 || cam.getAltitude() < 2) {
-            //     mult = 1;
-            // } else if (dist < 10) {
-            //     mult = 5;
-            // } else if (dist < 20) {
-            //     mult = 10;
-            // }
-
-            // let maxVel = dist * mult;
-            // if (this.vel.length() > maxVel) {
-            //     this.vel = vel_normal.scaleTo(maxVel);
-            // }
-
             let d_v = this.vel.scaleTo(this.dt);
 
             // if camera eye position under the dome of the grabbed sphere
@@ -649,7 +651,7 @@ export class MouseNavigation extends Control {
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
 
                 cam.update();
-                let dirCurr = cam.unproject2v(this._currScreenPos);
+                let dirCurr = cam.unproject2v(this._currScreenPos); //cam.eye.distance(this._targetZoomPoint)
                 let dirNew = a.sub(cam.eye).normalize();
 
                 let px0 = new Vec3();
