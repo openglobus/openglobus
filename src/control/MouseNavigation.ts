@@ -368,29 +368,27 @@ export class MouseNavigation extends Control {
             if (!_targetZoomPoint)
                 return;
 
-            this._targetZoomPoint = _targetZoomPoint;
-
-            this._grabbedSphere.radius = this._targetZoomPoint.length();
-
             let cam = this.planet.camera;
 
-            /*
-            this._grabbedDist = this.renderer!.getDistanceFromPixel(e.pos)!;
+            this._targetZoomPoint = _targetZoomPoint;
+            this._grabbedSphere.radius = this._targetZoomPoint.length();
 
+            if(cam.isOrthographic) {
+                let zoomDist = this.renderer!.getDistanceFromPixel(e.pos)!;
 
-            let dist = this._grabbedDist;
-            let p1 = new Vec3();
-            let dir = cam.unproject(e.x, e.y, dist, p1);
+                let dist = zoomDist;
+                let p1 = new Vec3();
+                let dir = cam.unproject(e.x, e.y, dist, p1);
 
-            const p0 = p1.sub(dir.scaleTo(dist));
-            const _targetDragPoint = new Ray(p0, dir).hitSphere(this._grabbedSphere);
+                const p0 = p1.sub(dir.scaleTo(dist));
+                const _targetZoomPoint = new Ray(p0, dir).hitSphere(this._grabbedSphere);
 
-            if (!_targetDragPoint) {
-                return;
+                if (!_targetZoomPoint) {
+                    return;
+                }
+
+                this._targetZoomPoint = _targetZoomPoint;
             }
-
-            this._targetZoomPoint = _targetDragPoint;
-            */
 
             this._curPitch = cam.getPitch();
             this._curYaw = cam.getYaw();
@@ -651,7 +649,7 @@ export class MouseNavigation extends Control {
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
 
                 cam.update();
-                let dirCurr = cam.unproject2v(this._currScreenPos); //cam.eye.distance(this._targetZoomPoint)
+                let dirCurr = cam.unproject2v(this._currScreenPos, cam.eye.distance(this._targetZoomPoint));
                 let dirNew = a.sub(cam.eye).normalize();
 
                 let px0 = new Vec3();
