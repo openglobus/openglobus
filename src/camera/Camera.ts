@@ -992,14 +992,14 @@ class Camera {
      */
     public projectedSize(p: Vec3, r: number): number {
 
-
-        // if (this.isOrthographic) {
-        //     const m = this.frustums[0].projectionMatrix._m;
-        //     const orthoScale = this._height * m[5] * 0.5;
-        //     return r * orthoScale;
-        // }
-
-        return Math.atan(r / this.eye.distance(p)) * this._projSizeConst;
+        // @todo: cleanup
+        if (this.isOrthographic) {
+            const m = this.frustums[0].projectionMatrix._m;
+            const orthoScale = this._height * m[5] * 0.5;
+            return r * orthoScale;
+        } else {
+            return Math.atan(r / this.eye.distance(p)) * this._projSizeConst;
+        }
     }
 
     /**
