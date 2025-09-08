@@ -374,7 +374,7 @@ export class MouseNavigation extends Control {
                 //
                 //@todo make map coordinates under the pointer
                 //
-                
+
                 sx = this.renderer!.handler.getWidth() * 0.5;
                 sy = this.renderer!.handler.getHeight() * 0.5;
 
@@ -384,7 +384,7 @@ export class MouseNavigation extends Control {
                 this._targetZoomPoint = _targetZoomPoint;
                 this._grabbedSphere.radius = this._targetZoomPoint.length();
 
-                let zoomDist = this.renderer!.getDistanceFromPixel(new Vec2(sx, sy))!;
+                let zoomDist = cam.eye.distance(_targetZoomPoint);//this.renderer!.getDistanceFromPixel(new Vec2(sx, sy))!;
 
                 let dist = zoomDist;
                 let p1 = new Vec3();
@@ -681,8 +681,13 @@ export class MouseNavigation extends Control {
             cam.checkTerrainCollision();
 
             if (cam.isOrthographic) {
+                //
                 //@todo make map coordinates under the pointer
-                cam.focusDistance = cam.getAltitude();
+                //
+                let alt = cam.getAltitude();
+                if (alt) {
+                    cam.focusDistance = Math.abs(alt);
+                }
             }
         }
     }
