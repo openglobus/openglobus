@@ -363,31 +363,44 @@ export class MouseNavigation extends Control {
 
             this._targetRotationPoint = null;
             this._targetDragPoint = null;
-            let _targetZoomPoint = this._getTargetPoint(e.pos);
 
-            if (!_targetZoomPoint)
-                return;
+            let sx = e.x,
+                sy = e.y;
 
             let cam = this.planet.camera;
 
-            this._targetZoomPoint = _targetZoomPoint;
-            this._grabbedSphere.radius = this._targetZoomPoint.length();
+            if (cam.isOrthographic) {
 
-            if(cam.isOrthographic) {
-                let zoomDist = this.renderer!.getDistanceFromPixel(e.pos)!;
+                //
+                //@todo make map coordinates under the pointer
+                //
+                
+                sx = this.renderer!.handler.getWidth() * 0.5;
+                sy = this.renderer!.handler.getHeight() * 0.5;
+
+                let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
+                if (!_targetZoomPoint) return;
+
+                this._targetZoomPoint = _targetZoomPoint;
+                this._grabbedSphere.radius = this._targetZoomPoint.length();
+
+                let zoomDist = this.renderer!.getDistanceFromPixel(new Vec2(sx, sy))!;
 
                 let dist = zoomDist;
                 let p1 = new Vec3();
-                let dir = cam.unproject(e.x, e.y, dist, p1);
+                let dir = cam.unproject(sx, sy, dist, p1);
 
                 const p0 = p1.sub(dir.scaleTo(dist));
-                const _targetZoomPoint = new Ray(p0, dir).hitSphere(this._grabbedSphere);
-
-                if (!_targetZoomPoint) {
-                    return;
-                }
+                _targetZoomPoint = new Ray(p0, dir).hitSphere(this._grabbedSphere);
+                if (!_targetZoomPoint) return;
 
                 this._targetZoomPoint = _targetZoomPoint;
+            } else {
+                let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
+                if (!_targetZoomPoint) return;
+
+                this._targetZoomPoint = _targetZoomPoint;
+                this._grabbedSphere.radius = this._targetZoomPoint.length();
             }
 
             this._curPitch = cam.getPitch();
@@ -396,12 +409,12 @@ export class MouseNavigation extends Control {
 
             if (Math.sign(e.wheelDelta) !== this._wheelDirection) {
                 this.vel.scale(0.3);
-                this._currScreenPos.set(e.x, e.y);
+                this._currScreenPos.set(sx, sy);
                 this._wheelDirection = Math.sign(e.wheelDelta);
                 return;
             }
 
-            this._currScreenPos.set(e.x, e.y);
+            this._currScreenPos.set(sx, sy);
             this._wheelDirection = Math.sign(e.wheelDelta);
             let scale = 20;
             this._velInertia = 0.83;
@@ -473,7 +486,7 @@ export class MouseNavigation extends Control {
     }
 
     protected _onLHold = (e: IMouseState) => {
-        if (this._grabbedPoint && this.planet && e.moving) {
+        if (this._grabbedPoint && this.planet) {
 
             let cam = this.planet.camera;
 
@@ -610,8 +623,6 @@ export class MouseNavigation extends Control {
             let vel_normal = this.vel.getNormal();
             let velDir = Math.sign(vel_normal.dot(cam.getForward()));
 
-            cam.focusDistance = cam.getAltitude();
-
             let d_v = this.vel.scaleTo(this.dt);
 
             // if camera eye position under the dome of the grabbed sphere
@@ -666,7 +677,13 @@ export class MouseNavigation extends Control {
                 // let px0 = new Ray(cam.eye, dirCurr).hitSphere(this._grabbedSphere)!;
                 // let px1 = new Ray(cam.eye, dirNew).hitSphere(this._grabbedSphere)!;
             }
+
             cam.checkTerrainCollision();
+
+            if (cam.isOrthographic) {
+                //@todo make map coordinates under the pointer
+                cam.focusDistance = cam.getAltitude();
+            }
         }
     }
 

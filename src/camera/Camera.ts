@@ -991,9 +991,14 @@ class Camera {
      * @returns {number} - Size factor.
      */
     public projectedSize(p: Vec3, r: number): number {
-        //
-        //@todo: orthographic
-        //
+
+
+        // if (this.isOrthographic) {
+        //     const m = this.frustums[0].projectionMatrix._m;
+        //     const orthoScale = this._height * m[5] * 0.5;
+        //     return r * orthoScale;
+        // }
+
         return Math.atan(r / this.eye.distance(p)) * this._projSizeConst;
     }
 
