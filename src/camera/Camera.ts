@@ -862,8 +862,8 @@ class Camera {
      * @param {Vec2} pos - Screen X coordinate
      * @returns {Vec3} - Direction vector
      */
-    public unproject2v(pos: Vec2) {
-        return this.unproject(pos.x, pos.y);
+    public unproject2v(pos: Vec2, dist?: number, outPos?: Vec3) {
+        return this.unproject(pos.x, pos.y, dist, outPos);
     }
 
     /**
@@ -991,10 +991,15 @@ class Camera {
      * @returns {number} - Size factor.
      */
     public projectedSize(p: Vec3, r: number): number {
-        //
-        //@todo: orthographic
-        //
-        return Math.atan(r / this.eye.distance(p)) * this._projSizeConst;
+
+        // @todo: cleanup
+        if (this.isOrthographic) {
+            const m = this.frustums[0].projectionMatrix._m;
+            const orthoScale = this._height * m[5] * 0.5;
+            return r * orthoScale;
+        } else {
+            return Math.atan(r / this.eye.distance(p)) * this._projSizeConst;
+        }
     }
 
     /**
