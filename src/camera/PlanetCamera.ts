@@ -551,10 +551,9 @@ class PlanetCamera extends Camera {
 
         let eyeNorm = eye.getNormal();
         let slope = b.dot(eyeNorm);
-
+        if (u.dot(eyeNorm) <= 0) return;
         if (minSlope) {
             let dSlope = slope - this.slope;
-
             if (slope < minSlope && dSlope < 0) return;
 
             if (
