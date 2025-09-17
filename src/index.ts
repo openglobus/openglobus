@@ -45,7 +45,7 @@ import {
 import {Renderer} from './renderer/Renderer';
 import {LightSource} from './light/LightSource';
 import {Clock} from './Clock';
-import {Events} from './Events';
+import {Events, type EventsHandler, createEvents} from './Events';
 import {Extent} from './Extent';
 import {LonLat} from './LonLat';
 import {RenderNode} from './scene/RenderNode';
@@ -128,6 +128,8 @@ export {
     Renderer,
     Clock,
     Events,
+    EventsHandler,
+    createEvents,
     Extent,
     LonLat,
     RenderNode,
