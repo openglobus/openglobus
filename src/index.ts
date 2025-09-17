@@ -51,6 +51,7 @@ import {LonLat} from './LonLat';
 import {RenderNode} from './scene/RenderNode';
 import {Planet} from './scene/Planet';
 import {Popup} from './Popup';
+import {Loader, type IResponse} from './utils/Loader';
 
 import {
     EarthQuadTreeStrategy,
@@ -86,9 +87,9 @@ import {
 } from './terrain/index';
 
 import {MoveAxisEntity} from "./control/geoObjectEditor/MoveAxisEntity";
-import { Gltf } from './utils/gltf/gltfParser';
-import { Easing } from './utils/easing';
-import type { EasingFunction } from './utils/easing';
+import {Gltf} from './utils/gltf/gltfParser';
+import {Easing} from './utils/easing';
+import type {EasingFunction} from './utils/easing';
 
 export {
     bv,
@@ -149,4 +150,6 @@ export {
     Object3d,
     Gltf,
     MoveAxisEntity,
+    Loader,
+    IResponse
 };
