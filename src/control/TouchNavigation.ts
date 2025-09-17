@@ -165,7 +165,6 @@ export class TouchNavigation extends Control {
     protected onTouchStart(e: ITouchState) {
         const handler = this.renderer!.handler;
         this._touching = true;
-
         if (e.sys!.touches.length === 2) {
             const t0 = this.touches[0];
             const t1 = this.touches[1];
@@ -303,7 +302,8 @@ export class TouchNavigation extends Control {
 
                 const zoomCur = t0.vec.sub(t1.vec);
                 const zoomPrev = t0.vecPrev.sub(t1.vecPrev);
-                const scale = zoomCur.length() / zoomPrev.length();
+                let scale = zoomCur.length() / zoomPrev.length();
+                scale = scale > 1.08 ? 1.08 : scale < 0.92 ? 0.92 : scale;
 
                 let d = distanceToPointOnEarth * -(1 - scale);
                 cam.eye.addA(cam.getForward().scale(d));
@@ -315,7 +315,7 @@ export class TouchNavigation extends Control {
                 var l = 0.5 / distanceToPointOnEarth * cam._lonLat.height * math.RADIANS;
                 if (l > 0.003) l = 0.003;
                 cam.rotateHorizontal(l * -panOffset.x, false, this.pointOnEarth, this.earthUp!);
-                cam.rotateVertical(l * -panOffset.y, this.pointOnEarth);
+                cam.rotateVertical(l * -panOffset.y, this.pointOnEarth, 0.1);
 
                 cam.checkTerrainCollision();
                 cam.update();
@@ -410,8 +410,11 @@ export class TouchNavigation extends Control {
             cam.update();
             this.events.dispatch(this.events.inertiamove, this);
         }
+        this.setLock(cam.eye.distance(prevEye) / cam.getAltitude() > 0.01);
+    }
 
-        if (cam.eye.distance(prevEye) / cam.getAltitude() > 0.01) {
+    private setLock(lock: boolean): void {
+        if (lock) {
             this.planet!.layerLock.lock(this._keyLock);
             this.planet!.terrainLock.lock(this._keyLock);
             this.planet!._normalMapCreator.lock(this._keyLock);

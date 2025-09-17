@@ -123,6 +123,21 @@ export class SimpleNavigation extends Control {
             this.renderer.handler.canvas!.classList.add("ogGrabbingPoiner");
             this._grabbedPoint = this.renderer.getCartesianFromPixel(e);
             this._grabbedScreenPoint.set(e.nx, e.ny);
+
+            // let depth = this.renderer.getDepthMinDistance();
+            // console.log(depth);
+
+            if (!this._grabbedPoint) {
+                let cam = this.renderer.activeCamera;
+                let p0 = new Vec3(),
+                    p1 = new Vec3(1, 0, 0),
+                    p2 = new Vec3(0, 0, 1);
+                let px = new Vec3();
+                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+                    this._grabbedPoint = px;
+                }
+            }
+
             if (this._grabbedPoint) {
                 this._eye0.copy(this.renderer.activeCamera.eye);
             }
