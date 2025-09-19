@@ -48,7 +48,7 @@ in vec2 tc;
 layout (location = 0) out vec4 fragColor;
 
 void main(void) {
-    vec4 hdrColor = texture(hdrBuffer, tc).rgba;
+    vec4 hdrColor = texture(hdrBuffer, tc);
 
     float oneByGamma = gamma / gamma;
     float oneByWhitePoint = whitepoint / whitepoint;

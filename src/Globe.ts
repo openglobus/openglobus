@@ -217,9 +217,9 @@ class Globe {
                 autoActivate: false,
                 pixelRatio: options.dpi || (window.devicePixelRatio + 0.15),
                 context: {
-                    //alpha: false,
+                    alpha: true, // turn on for transparent background
                     antialias: false,
-                    premultipliedAlpha: false,
+                    premultipliedAlpha: true,
                     preserveDrawingBuffer: false
                 }
             }), {
