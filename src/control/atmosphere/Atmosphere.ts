@@ -254,6 +254,7 @@ export class Atmosphere extends Control {
         gl.disable(gl.DEPTH_TEST);
 
         r.enableBlendOneSrcAlpha();
+        //r.enableBlendDefault();
 
         sh.activate();
         gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer!);
