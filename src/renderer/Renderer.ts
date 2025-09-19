@@ -1249,8 +1249,8 @@ class Renderer {
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
             this.screenDepthFramebuffer!.deactivate();
-            gl.enable(gl.BLEND);
         }
+        gl.enable(gl.BLEND);
     }
 
     protected _readDepthBuffer(callback?: () => void) {
