@@ -1571,7 +1571,7 @@ export class Planet extends RenderNode {
         }
 
         // Here is set blending for transparent overlays
-        renderer.enableBlendDefault();
+        //renderer.enableBlendDefault();
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {

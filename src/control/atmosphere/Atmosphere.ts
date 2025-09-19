@@ -253,6 +253,8 @@ export class Atmosphere extends Control {
 
         gl.disable(gl.DEPTH_TEST);
 
+        r.enableBlendOneSrcAlpha();
+
         sh.activate();
         gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -277,6 +279,8 @@ export class Atmosphere extends Control {
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.enable(gl.DEPTH_TEST);
+
+        r.enableBlendDefault();
     }
 }
 
