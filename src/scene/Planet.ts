@@ -41,8 +41,6 @@ import type {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../we
 import {Program} from "../webgl/Program";
 import {Segment} from "../segment/Segment";
 import type {AtmosphereParameters} from "../shaders/atmos/atmos";
-import { DEFAULT_EASING, DEFAULT_FLIGHT_DURATION } from "../camera/Camera";
-import {Easing, EasingFunction} from "../utils/easing";
 
 export interface IPlanetParams {
     name?: string;
@@ -68,6 +66,7 @@ export interface IPlanetParams {
     minDistanceBeforeMemClear?: number;
     vectorTileSize?: number;
     maxNodesCount?: number;
+    transparentBackground?: boolean;
 }
 
 export type PlanetEventsList = [
@@ -342,6 +341,8 @@ export class Planet extends RenderNode {
     private _minDistanceBeforeMemClear: number = 0;
     private _maxNodes: number;
 
+    protected _transparentBackground: boolean;
+
     constructor(options: IPlanetParams = {}) {
         super(options.name);
 
@@ -477,6 +478,8 @@ export class Planet extends RenderNode {
 
         this._nightTextureSrc = options.nightTextureSrc || null;
         this._specularTextureSrc = options.specularTextureSrc || null;
+
+        this._transparentBackground = options.transparentBackground || false;
     }
 
     /**
@@ -760,8 +763,10 @@ export class Planet extends RenderNode {
                 h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos());
             }
 
-            if (this.renderer.controls.SimpleSkyBackground) {
-                this.renderer.controls.SimpleSkyBackground.deactivate();
+            if (!this._transparentBackground) {
+                if (this.renderer.controls.SimpleSkyBackground) {
+                    this.renderer.controls.SimpleSkyBackground.deactivate();
+                }
             }
 
         } else {
@@ -771,10 +776,12 @@ export class Planet extends RenderNode {
 
             this._atmosphere.deactivate();
 
-            if (!this.renderer.controls.SimpleSkyBackground) {
-                this.addControl(new SimpleSkyBackground());
-            } else {
-                this.renderer.controls.SimpleSkyBackground.activate();
+            if (!this._transparentBackground) {
+                if (!this.renderer.controls.SimpleSkyBackground) {
+                    this.addControl(new SimpleSkyBackground());
+                } else {
+                    this.renderer.controls.SimpleSkyBackground.activate();
+                }
             }
 
             if (h.isWebGl2()) {

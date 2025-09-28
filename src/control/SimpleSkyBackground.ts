@@ -55,12 +55,12 @@ export class SimpleSkyBackground extends Control {
 
     public override onactivate() {
         super.onactivate();
-        //this.planet!.events.on("draw", this._drawBackground, this);
+        this.planet!.events.on("draw", this._drawBackground, this);
     }
 
     public override ondeactivate() {
         super.ondeactivate();
-        //this.planet!.events.off("draw", this._drawBackground);
+        this.planet!.events.off("draw", this._drawBackground);
     }
 
     protected _drawBackground() {

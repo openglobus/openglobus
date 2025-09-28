@@ -30,6 +30,7 @@ interface IRendererParams {
     gamma?: number;
     exposure?: number;
     dpi?: number;
+    clearColor?: [number, number, number, number]
 }
 
 interface IPickingObject {
@@ -250,6 +251,8 @@ class Renderer {
 
     protected _readPickingBuffer: () => void;
 
+    public clearColor: Float32Array;
+
     constructor(handler: Handler | string | HTMLCanvasElement, params: IRendererParams = {}) {
 
         this.div = null;
@@ -262,6 +265,8 @@ class Renderer {
                 autoActivate: true
             });
         }
+
+        this.clearColor = new Float32Array(params.clearColor || [0, 0, 0, 1]);
 
         this.exposure = params.exposure || 3.01;
 
@@ -1001,7 +1006,7 @@ class Renderer {
         let h = this.handler,
             gl = h.gl!;
 
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clearColor(this.clearColor[0], this.clearColor[1], this.clearColor[2], this.clearColor[3]);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         this.enableBlendDefault();
