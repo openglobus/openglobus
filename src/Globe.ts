@@ -62,6 +62,7 @@ export interface IGlobeParams {
     gamma?: number;
     exposure?: number;
     maxNodesCount?: number;
+    transparentBackground?: boolean;
 }
 
 const DEFAULT_NIGHT_SRC = `/night.png`;
@@ -217,9 +218,9 @@ class Globe {
                 autoActivate: false,
                 pixelRatio: options.dpi || (window.devicePixelRatio + 0.15),
                 context: {
-                    //alpha: false,
+                    alpha: options.transparentBackground,
                     antialias: false,
-                    premultipliedAlpha: false,
+                    premultipliedAlpha: true,
                     preserveDrawingBuffer: false
                 }
             }), {
@@ -228,6 +229,7 @@ class Globe {
                 fontsSrc: options.fontsSrc,
                 gamma: options.gamma,
                 exposure: options.exposure,
+                ...(options.transparentBackground && {clearColor: [0, 0, 0, 0]})
             }
         );
 
@@ -260,6 +262,7 @@ class Globe {
             minDistanceBeforeMemClear: options.minDistanceBeforeMemClear,
             vectorTileSize: options.vectorTileSize,
             maxNodesCount: options.maxNodesCount,
+            transparentBackground: options.transparentBackground,
         });
 
         // Attach terrain provider (can be one object or array)
