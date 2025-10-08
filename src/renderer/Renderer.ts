@@ -996,8 +996,10 @@ class Renderer {
      */
     public draw() {
         this.activeCamera!.checkMoveEnd();
-
         let e = this.events;
+        let pointerEvent = e.pointerEvent();
+        let pointerFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown;
+        let touchTrigger = e.touchState.touchStart || e.touchState.touchEnd;
         e.handleEvents();
 
         let sceneFramebuffer = this.sceneFramebuffer!;
@@ -1017,8 +1019,7 @@ class Renderer {
 
         let frustums = this.activeCamera!.frustums;
 
-        let pointerEvent = e.pointerEvent();
-        let pointerFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown && !e.touchState.touching && !e.touchState.moving;
+        
 
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
@@ -1046,7 +1047,7 @@ class Renderer {
 
             e.dispatch(e.drawtransparent, this);
 
-            if (pointerEvent && pointerFree) {
+            if ((pointerEvent && pointerFree) || touchTrigger) {
                 this._drawPickingBuffer(0);
             }
 
@@ -1066,7 +1067,7 @@ class Renderer {
 
                 this._drawEntityCollections(i);
 
-                if (pointerEvent && pointerFree) {
+                if ((pointerEvent && pointerFree) || touchTrigger) {
                     this._drawPickingBuffer(i);
                 }
 
@@ -1080,7 +1081,7 @@ class Renderer {
 
         this.blitFramebuffer && (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0);
 
-        if (pointerEvent && pointerFree) {
+        if ((pointerEvent && pointerFree) || touchTrigger) {
             this._readPickingBuffer();
             this._readDepthBuffer();
         }

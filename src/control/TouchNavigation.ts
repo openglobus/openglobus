@@ -288,14 +288,14 @@ export class TouchNavigation extends Control {
             t1.y = (e.sys!.touches.item(1)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
 
             const middle = t0.vec.add(t1.vec).scale(0.5);
-            const earthMiddlePoint = this.planet!.getCartesianFromPixelTerrain(
+            const earthMiddlePoint = this.planet!.getCartesianFromPixelEllipsoid(
                 middle
             );
             if (earthMiddlePoint) {
-                this.pointOnEarth = earthMiddlePoint
+                this.pointOnEarth = earthMiddlePoint;
 
-                const prevAngle = Math.atan2(t0.prev_y - t1.prev_y, t0.prev_x - t1.prev_x)
-                const curAngle = Math.atan2(t0.y - t1.y, t0.x - t1.x)
+                const prevAngle = Math.atan2(t0.prev_y - t1.prev_y, t0.prev_x - t1.prev_x);
+                const curAngle = Math.atan2(t0.y - t1.y, t0.x - t1.x);
 
                 const deltaAngle = curAngle - prevAngle;
                 const distanceToPointOnEarth = cam.eye.distance(this.pointOnEarth);
@@ -304,7 +304,6 @@ export class TouchNavigation extends Control {
                 const zoomPrev = t0.vecPrev.sub(t1.vecPrev);
                 let scale = zoomCur.length() / zoomPrev.length();
                 scale = scale > 1.08 ? 1.08 : scale < 0.92 ? 0.92 : scale;
-
                 let d = distanceToPointOnEarth * -(1 - scale);
                 cam.eye.addA(cam.getForward().scale(d));
                 cam.rotateAround(-deltaAngle, false, this.pointOnEarth, this.earthUp!);

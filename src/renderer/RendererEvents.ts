@@ -337,14 +337,10 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     }
 
     public pointerEvent(): boolean {
-        let ms = this.mouseState,
-            ts = this.touchState;
+        let ms = this.mouseState;
         return (
             ms.moving ||
             ms.justStopped ||
-            ts.moving ||
-            ts.touchStart ||
-            ts.touchEnd ||
             ms.wheelDelta !== 0
         )
     }
