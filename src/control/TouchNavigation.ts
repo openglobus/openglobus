@@ -24,8 +24,8 @@ interface ITouchNavigationParams extends IControlParams {
      */
     minSlope?: number;
     /**
-     * Limit for touch jerk speed to prevent unexpected camera movement.
-     * Default: 0.08
+     * Limit for touch jerk speed to prevent unexpected camera zooming.
+     * Default: 0.3
      */
     jerkLimit?: number;
 }
@@ -57,7 +57,7 @@ const TOUCH_NAVIGATION_EVENTS: TouchNavigationEventsList = [
 ];
 const DEFAULT_INERTIA = 0.007;
 const DEFAULT_MIN_SLOPE = 0.1;
-const DEFAULT_JERK_LIMIT = 0.08;
+const DEFAULT_JERK_LIMIT = 0.3;
 
 class TouchExt {
     public x: number;
