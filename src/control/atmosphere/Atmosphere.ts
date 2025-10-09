@@ -26,6 +26,7 @@ export interface IAtmosphereParams extends IControlParams {
     sunIntensity?: number,
     ozoneDensityHeight?: number,
     ozoneDensityWide?: number,
+    disableSunDisk?: boolean
 }
 
 export class Atmosphere extends Control {
@@ -64,6 +65,7 @@ export class Atmosphere extends Control {
             SUN_INTENSITY: options.sunIntensity || 1.0,
             ozoneDensityHeight: options.ozoneDensityHeight || 25e3,
             ozoneDensityWide: options.ozoneDensityWide || 15e3,
+            disableSunDisk: options.disableSunDisk
         }
     }
 
@@ -301,6 +303,9 @@ function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): Program
             corners: "vec3"
         },
         vertexShader: atmosphere_vert,
-        fragmentShader: stringTemplate2(atmosphere_frag, atmosParams)
+        fragmentShader: stringTemplate2(atmosphere_frag, {
+            ...atmosParams,
+            disableSunDisk: atmosParams?.disableSunDisk ? 1 : 0
+        })
     });
 }
