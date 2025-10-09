@@ -13,7 +13,21 @@ import {Plane} from "../math/Plane";
 import { createEvents, EventsHandler } from "../Events";
 
 interface ITouchNavigationParams extends IControlParams {
+    /**
+     * Inertia factor.
+     * Default: 0.007
+     */
     inertia?: number;
+    /**
+     * Limit for tilt angle.
+     * Default: 0.1
+     */
+    minSlope?: number;
+    /**
+     * Limit for touch jerk speed to prevent unexpected camera zooming.
+     * Default: 0.3
+     */
+    jerkLimit?: number;
 }
 
 export type TouchNavigationEventsList = [
@@ -41,6 +55,9 @@ const TOUCH_NAVIGATION_EVENTS: TouchNavigationEventsList = [
      */
     "doubletapzoom",
 ];
+const DEFAULT_INERTIA = 0.007;
+const DEFAULT_MIN_SLOPE = 0.1;
+const DEFAULT_JERK_LIMIT = 0.3;
 
 class TouchExt {
     public x: number;
@@ -86,8 +103,10 @@ class TouchExt {
  * Touch pad planet camera dragging control.
  * @class
  * @extends {Control}
- * @param {ITouchNavigationParams} [options] - Mouse navigation options:
+ * @param {ITouchNavigationParams} [options] - Touch navigation options:
  * @param {number} [options.inertia] - inertia factor. Default is 0.007
+ * @param {number} [options.minSlope] - minimal slope for vertical camera movement. Default is 0.1
+ * @param {number} [options.jerkLimit] - limit for touch jerk speed to prevent unexpected camera movement. Default is 0.08
  * @fires og.TouchNavigation#inertiamove
  * @fires og.TouchNavigation#drag
  * @fires og.TouchNavigation#doubletapzoom
@@ -96,6 +115,8 @@ export class TouchNavigation extends Control {
 
     public grabbedPoint: Vec3;
     public inertia: number;
+    public minSlope: number;
+    public jerkLimit: number;
     public events: EventsHandler<TouchNavigationEventsList>;
 
     protected grabbedSpheroid: Sphere;
@@ -117,7 +138,9 @@ export class TouchNavigation extends Control {
 
         this.events = createEvents<TouchNavigationEventsList>(TOUCH_NAVIGATION_EVENTS, this);
         this.grabbedPoint = new Vec3();
-        this.inertia = options.inertia != undefined ? options.inertia : 0.007;
+        this.inertia = options.inertia != undefined ? options.inertia : DEFAULT_INERTIA;
+        this.minSlope = options.minSlope != undefined ? options.minSlope : DEFAULT_MIN_SLOPE;
+        this.jerkLimit = options.jerkLimit != undefined ? options.jerkLimit : DEFAULT_JERK_LIMIT;
         this.grabbedSpheroid = new Sphere();
         this.planet = null;
         this.qRot = new Quat();
@@ -288,14 +311,14 @@ export class TouchNavigation extends Control {
             t1.y = (e.sys!.touches.item(1)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
 
             const middle = t0.vec.add(t1.vec).scale(0.5);
-            const earthMiddlePoint = this.planet!.getCartesianFromPixelTerrain(
+            const earthMiddlePoint = this.planet!.getCartesianFromPixelEllipsoid(
                 middle
             );
             if (earthMiddlePoint) {
-                this.pointOnEarth = earthMiddlePoint
+                this.pointOnEarth = earthMiddlePoint;
 
-                const prevAngle = Math.atan2(t0.prev_y - t1.prev_y, t0.prev_x - t1.prev_x)
-                const curAngle = Math.atan2(t0.y - t1.y, t0.x - t1.x)
+                const prevAngle = Math.atan2(t0.prev_y - t1.prev_y, t0.prev_x - t1.prev_x);
+                const curAngle = Math.atan2(t0.y - t1.y, t0.x - t1.x);
 
                 const deltaAngle = curAngle - prevAngle;
                 const distanceToPointOnEarth = cam.eye.distance(this.pointOnEarth);
@@ -303,8 +326,9 @@ export class TouchNavigation extends Control {
                 const zoomCur = t0.vec.sub(t1.vec);
                 const zoomPrev = t0.vecPrev.sub(t1.vecPrev);
                 let scale = zoomCur.length() / zoomPrev.length();
-                scale = scale > 1.08 ? 1.08 : scale < 0.92 ? 0.92 : scale;
-
+                const jerkMax = 1 + this.jerkLimit;
+                const jerkMin = 1 - this.jerkLimit;
+                scale = scale > jerkMax ? jerkMax : scale < jerkMin ? jerkMin : scale;
                 let d = distanceToPointOnEarth * -(1 - scale);
                 cam.eye.addA(cam.getForward().scale(d));
                 cam.rotateAround(-deltaAngle, false, this.pointOnEarth, this.earthUp!);
@@ -315,7 +339,7 @@ export class TouchNavigation extends Control {
                 var l = 0.5 / distanceToPointOnEarth * cam._lonLat.height * math.RADIANS;
                 if (l > 0.003) l = 0.003;
                 cam.rotateHorizontal(l * -panOffset.x, false, this.pointOnEarth, this.earthUp!);
-                cam.rotateVertical(l * -panOffset.y, this.pointOnEarth, 0.1);
+                cam.rotateVertical(l * -panOffset.y, this.pointOnEarth, this.minSlope);
 
                 cam.checkTerrainCollision();
                 cam.update();
