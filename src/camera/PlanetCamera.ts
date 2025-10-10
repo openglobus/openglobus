@@ -453,13 +453,13 @@ class PlanetCamera extends Camera {
                 let t = ease(progress);
                 let d = 1 - t;
                 let eye_i: Vec3;
-                
                 if (t >= 1) {
                     eye_i = cartesian.clone();
                 } else {
                     // camera path calculation
-                    let g_i = ground_a.smerp(ground_b, d).normalize();
+                    let g_i = ground_a.smerp(cartesian, d).normalize();
                     let ground_i = this.planet.getRayIntersectionEllipsoid(new Ray(zero, g_i));
+
                     let height_i =
                         this._lonLat.height * d * d * d +
                         max_h * 3 * d * d * t +
@@ -468,7 +468,7 @@ class PlanetCamera extends Camera {
 
                     eye_i = ground_i!.addA(g_i.scale(height_i));
                 }
-                // camera orientation calculation
+                // orientation calculation
                 let up_i = v_a.smerp(v_b, d);
                 let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
 
