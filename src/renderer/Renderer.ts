@@ -20,7 +20,7 @@ import {TextureAtlas} from "../utils/TextureAtlas";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
-import {NumberArray4, Vec4} from "../math/Vec4";
+import {Vec4} from "../math/Vec4";
 
 interface IRendererParams {
     controls?: Control[];
@@ -204,6 +204,8 @@ class Renderer {
     protected _format: string;
     protected _type: string;
 
+    protected _depthRefreshRequired: boolean;
+
     public sceneFramebuffer: Framebuffer | Multisample | null;
 
     protected blitFramebuffer: Framebuffer | null;
@@ -309,6 +311,8 @@ class Renderer {
         this._depthCallbacks = [];
 
         this.depthFramebuffer = null;
+
+        this._depthRefreshRequired = false;
 
         let urlParams = new URLSearchParams(location.search);
         let msaaParam = urlParams.get('og_msaa');
@@ -848,6 +852,14 @@ class Renderer {
     }
 
     /**
+     * Forces the depth buffer to be refreshed in the next frame.
+     * Has effect for terrain altitude estimate precision.
+     */
+    public markForDepthRefresh(): void {
+        this._depthRefreshRequired = true;
+    }
+
+    /**
      * @protected
      */
     protected _drawEntityCollections(depthOrder: number) {
@@ -1000,6 +1012,10 @@ class Renderer {
         let pointerEvent = e.pointerEvent();
         let pointerFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown;
         let touchTrigger = e.touchState.touchStart || e.touchState.touchEnd;
+        const refreshDepth = (pointerEvent && pointerFree)
+            || touchTrigger
+            || this._depthRefreshRequired;
+        this._depthRefreshRequired = false;
         e.handleEvents();
 
         let sceneFramebuffer = this.sceneFramebuffer!;
@@ -1047,7 +1063,7 @@ class Renderer {
 
             e.dispatch(e.drawtransparent, this);
 
-            if ((pointerEvent && pointerFree) || touchTrigger) {
+            if (refreshDepth) {
                 this._drawPickingBuffer(0);
             }
 
@@ -1067,7 +1083,7 @@ class Renderer {
 
                 this._drawEntityCollections(i);
 
-                if ((pointerEvent && pointerFree) || touchTrigger) {
+                if (refreshDepth) {
                     this._drawPickingBuffer(i);
                 }
 
@@ -1081,7 +1097,7 @@ class Renderer {
 
         this.blitFramebuffer && (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0);
 
-        if ((pointerEvent && pointerFree) || touchTrigger) {
+        if (refreshDepth) {
             this._readPickingBuffer();
             this._readDepthBuffer();
         }
