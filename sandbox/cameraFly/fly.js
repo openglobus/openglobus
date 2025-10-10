@@ -12,15 +12,15 @@ const globus = new Globe({
     target: "earth",
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
-    layers: [new Bing()],
+    layers: [new OpenStreetMap(), new Bing()],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts"
 });
 
 let i = 0;
 let positions = [
-    [new LonLat(18.13534485885474, 68.67810407890877, 302.3275792848293), new LonLat(18.13534485885474, 68.6781489039229, 226.178891625212)],
-    [new LonLat(18.13729287744565, 68.678802266203, 296.18474249449235), new LonLat(18.13729287744565, 68.6788470912134, 216.63051217048513)],
+    [new LonLat(10.13176, 46.18868, 10779), new LonLat(9.98464, 46.06157, 3039)],
+    [new LonLat(11, 45, 10779), new LonLat(10, 44.9, 0)],
 ];
 
 const performFlight = (ease) => {
