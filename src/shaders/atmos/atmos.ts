@@ -26,6 +26,7 @@ export interface AtmosphereParameters {
     SUN_INTENSITY: number,
     ozoneDensityHeight: number,
     ozoneDensityWide: number,
+    disableSunDisk?: boolean
 }
 
 const DEFAULT_PARAMS: AtmosphereParameters = {
@@ -46,6 +47,7 @@ const DEFAULT_PARAMS: AtmosphereParameters = {
     SUN_INTENSITY: 1.0,
     ozoneDensityHeight: 25e3,
     ozoneDensityWide: 15e3,
+    disableSunDisk: false
 }
 
 export function transmittance(atmosParams?: AtmosphereParameters): Program {

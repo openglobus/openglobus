@@ -276,6 +276,7 @@ export class AtmosphereConfig extends Control {
             SUN_INTENSITY: 0,
             ozoneDensityHeight: 0,
             ozoneDensityWide: 0,
+            disableSunDisk: false
         }
     }
 

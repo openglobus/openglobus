@@ -2,6 +2,8 @@ precision lowp float;
 
 #include "../../shaders/atmos/common.glsl"
 
+#define DISABLE_SUN_DISK ${disableSunDisk}
+
 uniform mat4 viewMatrix;
 uniform vec3 sunPos;
 uniform vec3 camPos;
@@ -178,15 +180,19 @@ void mainImage(out vec4 fragColor)
     //    }
     // }
 
-    float distanceToGround = 0.0;
-    bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
-    if (!hitGround)
+    #if !DISABLE_SUN_DISK
     {
-        vec3 sunLum = sunWithBloom(rayDirection, lightDirection) * vec3(1.0, 1.0, 0.8);
-        // limit the bloom effect
-        sunLum = smoothstep(0.002, 1.0, sunLum);
-        light += sunLum * SUN_INTENSITY * transmittanceFromCameraToSpace;
+        float distanceToGround = 0.0;
+        bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
+        if (!hitGround)
+        {
+            vec3 sunLum = sunWithBloom(rayDirection, lightDirection) * vec3(1.0, 1.0, 0.8);
+            // limit the bloom effect
+            sunLum = smoothstep(0.002, 1.0, sunLum);
+            light += sunLum * SUN_INTENSITY * transmittanceFromCameraToSpace;
+        }
     }
+    #endif
 
     fragColor = vec4(pow(opacity * light * 8.0, vec3(1.0 / 2.2)), valueHSV(light) * clamp(opacity, 0.0, 1.0));
 }
