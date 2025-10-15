@@ -427,12 +427,12 @@ class Vector extends Layer {
 
         if (entity._layer && this.isEqual(entity._layer)) {
 
-            this._entities.splice(entity._layerIndex, 1);
-
-            this._reindexEntitiesArray(entity._layerIndex);
+            if (!entity.parent) {
+                this._entities.splice(entity._layerIndex, 1);
+                this._reindexEntitiesArray(entity._layerIndex);
+            }
 
             entity._layer = null;
-
             entity._layerIndex = -1;
 
             if (entity._entityCollection) {
