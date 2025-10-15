@@ -496,7 +496,16 @@ class EntityCollection {
      */
     public removeEntity(entity: Entity) {
         if (this.belongs(entity)) {
-            if (!entity.parent) {
+
+            if (entity.parent) {
+                let arr = entity.parent.childEntities;
+                for (let i = 0, len = arr.length; i < len; i++) {
+                    if (arr[i].isEqual(entity)) {
+                        arr.splice(i, 1);
+                        break;
+                    }
+                }
+            } else {
                 this._entities.splice(entity._entityCollectionIndex, 1);
                 this.reindexEntitiesArray(entity._entityCollectionIndex);
             }

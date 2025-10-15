@@ -13,8 +13,8 @@ import {
 let renderer = new Renderer("frame", {
     msaa: 8,
     controls: [
-        new control.SimpleNavigation({speed: 0.01}),
-       // new control.GeoObjectEditor()
+        new control.SimpleNavigation({ speed: 0.01 }),
+        new control.GeoObjectEditor()
     ],
     autoActivate: true
 });
@@ -76,6 +76,19 @@ class MyScene extends RenderNode {
             }
         });
 
+        let childEntity2 = new Entity({
+            cartesian: new Vec3(0, 1, 0),
+            independentPicking: true,
+            relativePosition: true,
+            yaw: 90 * Math.PI / 180,
+            geoObject: {
+                color: "rgb(255,255,255)",
+                instanced: true,
+                tag: `frustumObj`,
+                object3d: frustumObj,
+            }
+        });
+
         let childChildEntity = new Entity({
             cartesian: new Vec3(0, 3, -1),
             independentPicking: true,
@@ -88,8 +101,22 @@ class MyScene extends RenderNode {
             }
         });
 
+        let childChildEntity2 = new Entity({
+            cartesian: new Vec3(0, 3, -1),
+            independentPicking: true,
+            relativePosition: true,
+            geoObject: {
+                color: "rgb(90,90,90)",
+                instanced: true,
+                tag: `cylinderObj`,
+                object3d: cylinderObj,
+            }
+        });
+
         childEntity.appendChild(childChildEntity);
+        childEntity2.appendChild(childChildEntity2);
         parentEntity.appendChild(childEntity);
+        parentEntity.appendChild(childEntity2);
 
         let collection = new EntityCollection({
             entities: [parentEntity]
