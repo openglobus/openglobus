@@ -692,7 +692,12 @@ export class GeoObjectHandler {
         if (tagData.numInstances === 0) {
             tagData.clear();
             this._instanceDataMap.delete(tag);
-            this._instanceDataMapValues = [];
+            for (let i = 0; this._instanceDataMapValues.length; i++) {
+                if (this._instanceDataMapValues[i].numInstances === 0) {
+                    this._instanceDataMapValues.splice(i, 1);
+                    break;
+                }
+            }
             this._clearDataTagQueue();
             isEmpty = true;
         }

@@ -415,7 +415,6 @@ class EntityCollection {
 
         for (let i = 0; i < entity.childEntities.length; i++) {
             entity.childEntities[i]._entityCollection = this;
-            entity.childEntities[i]._entityCollectionIndex = entity._entityCollectionIndex;
             this._addRecursively(entity.childEntities[i]);
         }
     }
@@ -460,6 +459,7 @@ class EntityCollection {
     }
 
     protected _removeRecursively(entity: Entity) {
+        entity.parent = null;
         entity._entityCollection = null;
         entity._entityCollectionIndex = -1;
 
@@ -495,33 +495,37 @@ class EntityCollection {
      * @param {Entity} entity - Entity to remove.
      */
     public removeEntity(entity: Entity) {
-        this._entities.splice(entity._entityCollectionIndex, 1);
-        this.reindexEntitiesArray(entity._entityCollectionIndex);
-
-        // clear picking color
-        if (this.renderNode && this.renderNode.renderer) {
-            this.renderNode.renderer.clearPickingColor(entity);
-            entity._pickingColor.clear();
-        }
-
         if (this.belongs(entity)) {
-            this._removeRecursively(entity);
-        }
+            if (!entity.parent) {
+                this._entities.splice(entity._entityCollectionIndex, 1);
+                this.reindexEntitiesArray(entity._entityCollectionIndex);
+            }
 
-        this.events.dispatch(this.events.entityremove, entity);
+            // clear picking color
+            if (this.renderNode && this.renderNode.renderer) {
+                this.renderNode.renderer.clearPickingColor(entity);
+                entity._pickingColor.clear();
+            }
+
+            this._removeRecursively(entity);
+
+            this.events.dispatch(this.events.entityremove, entity);
+        }
     }
 
     public _removeEntitySilent(entity: Entity) {
-        this._entities.splice(entity._entityCollectionIndex, 1);
-        this.reindexEntitiesArray(entity._entityCollectionIndex);
-
-        // clear picking color
-        if (this.renderNode && this.renderNode.renderer) {
-            this.renderNode.renderer.clearPickingColor(entity);
-            entity._pickingColor.clear();
-        }
-
         if (this.belongs(entity)) {
+            if (!entity.parent) {
+                this._entities.splice(entity._entityCollectionIndex, 1);
+                this.reindexEntitiesArray(entity._entityCollectionIndex);
+            }
+
+            // clear picking color
+            if (this.renderNode && this.renderNode.renderer) {
+                this.renderNode.renderer.clearPickingColor(entity);
+                entity._pickingColor.clear();
+            }
+
             this._removeRecursively(entity);
         }
     }
