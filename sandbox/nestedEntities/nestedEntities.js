@@ -12,11 +12,12 @@ import {
 
 let renderer = new Renderer("frame", {
     msaa: 8,
-    controls: [new control.SimpleNavigation({ speed: 0.01 })],
+    controls: [
+        new control.SimpleNavigation({ speed: 0.01 }),
+        new control.GeoObjectEditor()
+    ],
     autoActivate: true
 });
-
-window.renderer = renderer;
 
 class MyScene extends RenderNode {
     constructor() {
@@ -24,92 +25,114 @@ class MyScene extends RenderNode {
     }
 
     init() {
-        const baseObj = Object3d.createCube(10, 10, 10).translate(new Vec3(0, 0, 0)).setMaterial({
-            ambient: "#c2c2c2",
-            diffuse: "#ffffff",
-            shininess: 1
-        });
 
-        window.test = () => {
-            parentEntity.setPitch(0);
-            cube2.setPitch(0);
-            cube3.setPitch(0);
+        const baseObj = Object3d
+            .createCube(0.4, 2, 0.4)
+            .translate(new Vec3(0, 1, 0))
+            .setMaterial({
+                ambient: "#882a2a",
+                diffuse: "#fb3434",
+                shininess: 1
+            });
 
-            parentEntity.setYaw(0);
-            cube2.setYaw(0);
-            cube3.setYaw(0);
+        const frustumObj = Object3d
+            .createFrustum(3, 2, 1)
+            .setMaterial({
+                ambient: "#236028",
+                diffuse: "#1cdd23",
+                shininess: 1
+            });
 
-            this.renderer.activeCamera.set(new Vec3(10.5, 0, 0), new Vec3(0, 0, 0), new Vec3(0, 1, 0));
-        }
+        const cylinderObj = Object3d
+            .createCylinder(1, 0, 3)
+            .applyMat4(new Mat4().setRotation(new Vec3(1, 0, 0), 90 * Math.PI / 180))
+            .setMaterial({
+                ambient: "#773381",
+                diffuse: "#ef00ff",
+                shininess: 1
+            });
 
         let parentEntity = new Entity({
-            cartesian: new Vec3(0, 0, 0),
+            cartesian: new Vec3(1, 1, 1),
             independentPicking: true,
-            //yaw: 45 * Math.PI / 180,
-            //pitch: 45 * Math.PI / 180,
             geoObject: {
                 color: "rgb(90,90,90)",
                 scale: 1,
                 instanced: true,
                 tag: `baseObj`,
-                object3d: baseObj
+                object3d: baseObj,
             }
         });
 
-        let cube2 = new Entity({
-            cartesian: new Vec3(45, 0, 5),
+        let childEntity = new Entity({
+            cartesian: new Vec3(0, 1, 0),
             independentPicking: true,
-            //yaw: 45 * Math.PI / 180,
-            //pitch: 45 * Math.PI / 180,
+            relativePosition: true,
             geoObject: {
                 color: "rgb(90,90,90)",
-                scale: 1,
                 instanced: true,
-                tag: `baseObj`,
-                object3d: baseObj
+                tag: `frustumObj`,
+                object3d: frustumObj,
             }
         });
 
-        let cube3 = new Entity({
-            cartesian: new Vec3(-1, 3, 1),
+        let childEntity2 = new Entity({
+            cartesian: new Vec3(0, 1, 0),
             independentPicking: true,
-            //yaw: 45 * Math.PI / 180,
-            pitch: 45 * Math.PI / 180,
+            relativePosition: true,
+            yaw: 90 * Math.PI / 180,
             geoObject: {
-                color: "rgb(90,90,90)",
-                scale: 1,
+                color: "rgb(255,255,255)",
                 instanced: true,
-                tag: `baseObj`,
-                object3d: baseObj
+                tag: `frustumObj`,
+                object3d: frustumObj,
             }
         });
+
+        let childChildEntity = new Entity({
+            cartesian: new Vec3(0, 3, -1),
+            independentPicking: true,
+            relativePosition: true,
+            geoObject: {
+                color: "rgb(90,90,90)",
+                instanced: true,
+                tag: `cylinderObj`,
+                object3d: cylinderObj,
+            }
+        });
+
+        let childChildEntity2 = new Entity({
+            cartesian: new Vec3(0, 3, -1),
+            independentPicking: true,
+            relativePosition: true,
+            geoObject: {
+                color: "rgb(90,90,90)",
+                instanced: true,
+                tag: `cylinderObj`,
+                object3d: cylinderObj,
+            }
+        });
+
+        childEntity.appendChild(childChildEntity);
+        childEntity2.appendChild(childChildEntity2);
+        parentEntity.appendChild(childEntity);
+        parentEntity.appendChild(childEntity2);
 
         let collection = new EntityCollection({
-            entities: [parentEntity, cube2]
+            entities: [parentEntity]
         });
 
         collection.addTo(this);
 
-        this.renderer.activeCamera.set(new Vec3(0, 100, 100), new Vec3(0, 0, 0));
+        window.collection = collection;
+
+        this.renderer.activeCamera.set(new Vec3(-4, 11, 13), new Vec3(1, 0, 0));
+
         this.renderer.activeCamera.update();
-        this.renderer.activeCamera.isOrthographic = true;
-
-        this.renderer.getDepthMinDistanceAsync().then((dist) => {
-            if (!dist) {
-                dist = this.renderer.activeCamera.eye.length();
-            }
-            this.renderer.activeCamera.focusDistance = dist;
-            this.renderer.activeCamera.isOrthographic = true;
-        });
-
-
-        this.renderer.events.on("rclick", (e) => {
-            //let dist = this.renderer.getDistanceFromPixel(e.pos);
-            //let dir = this.renderer.activeCamera.unproject(e.x, e.y, dist);
-            //console.log(dir);
-        })
     }
 }
 
-renderer.addNodes([new scene.Axes(), new MyScene()]);
-
+renderer.addNodes([
+    new scene.Axes(),
+    new MyScene()
+]);

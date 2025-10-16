@@ -415,7 +415,6 @@ class EntityCollection {
 
         for (let i = 0; i < entity.childEntities.length; i++) {
             entity.childEntities[i]._entityCollection = this;
-            entity.childEntities[i]._entityCollectionIndex = entity._entityCollectionIndex;
             this._addRecursively(entity.childEntities[i]);
         }
     }
@@ -489,40 +488,45 @@ class EntityCollection {
         }
     }
 
+    protected _removeEntity(entity: Entity) {
+        if (entity.parent) {
+            let arr = entity.parent.childEntities;
+            for (let i = 0, len = arr.length; i < len; i++) {
+                if (arr[i].isEqual(entity)) {
+                    arr.splice(i, 1);
+                    break;
+                }
+            }
+            entity.parent = null;
+        } else {
+            this._entities.splice(entity._entityCollectionIndex, 1);
+            this.reindexEntitiesArray(entity._entityCollectionIndex);
+        }
+
+        // clear picking color
+        if (this.renderNode && this.renderNode.renderer) {
+            this.renderNode.renderer.clearPickingColor(entity);
+            entity._pickingColor.clear();
+        }
+
+        this._removeRecursively(entity);
+    }
+
     /**
      * Removes entity from this collection.
      * @public
      * @param {Entity} entity - Entity to remove.
      */
     public removeEntity(entity: Entity) {
-        this._entities.splice(entity._entityCollectionIndex, 1);
-        this.reindexEntitiesArray(entity._entityCollectionIndex);
-
-        // clear picking color
-        if (this.renderNode && this.renderNode.renderer) {
-            this.renderNode.renderer.clearPickingColor(entity);
-            entity._pickingColor.clear();
-        }
-
         if (this.belongs(entity)) {
-            this._removeRecursively(entity);
+            this._removeEntity(entity);
+            this.events.dispatch(this.events.entityremove, entity);
         }
-
-        this.events.dispatch(this.events.entityremove, entity);
     }
 
     public _removeEntitySilent(entity: Entity) {
-        this._entities.splice(entity._entityCollectionIndex, 1);
-        this.reindexEntitiesArray(entity._entityCollectionIndex);
-
-        // clear picking color
-        if (this.renderNode && this.renderNode.renderer) {
-            this.renderNode.renderer.clearPickingColor(entity);
-            entity._pickingColor.clear();
-        }
-
         if (this.belongs(entity)) {
-            this._removeRecursively(entity);
+            this._removeEntity(entity);
         }
     }
 
