@@ -1456,9 +1456,6 @@ class Renderer {
 
         this.colorObjects.clear();
 
-        // @ts-ignore
-        this.colorObjects = null;
-
         this._pickingCallbacks = [];
 
         this.pickingFramebuffer = null;
