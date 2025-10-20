@@ -1,5 +1,5 @@
 import * as shaders from "../shaders/ray/ray";
-import {concatArrays, makeArrayTyped, spliceArray} from "../utils/shared";
+import {concatArrays, concatTypedArrays, makeArrayTyped, spliceArray} from "../utils/shared";
 import type {TypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";
 import {Ray} from "./Ray";
@@ -41,6 +41,7 @@ class RayHandler {
     protected _rays: Ray[];
 
     protected _vertexBuffer: WebGLBufferExt | null;
+    protected _texCoordBuffer: WebGLBufferExt | null;
     protected _startPositionHighBuffer: WebGLBufferExt | null;
     protected _startPositionLowBuffer: WebGLBufferExt | null;
     protected _endPositionHighBuffer: WebGLBufferExt | null;
@@ -50,6 +51,7 @@ class RayHandler {
     protected _pickingColorBuffer: WebGLBufferExt | null;
 
     protected _vertexArr: TypedArray | number[];
+    protected _texCoordArr: TypedArray;
     protected _startPositionHighArr: TypedArray | number[];
     protected _startPositionLowArr: TypedArray | number[];
     protected _endPositionHighArr: TypedArray | number[];
@@ -79,6 +81,7 @@ class RayHandler {
         this._rays = [];
 
         this._vertexBuffer = null;
+        this._texCoordBuffer = null;
         this._startPositionHighBuffer = null;
         this._startPositionLowBuffer = null;
         this._endPositionHighBuffer = null;
@@ -88,6 +91,7 @@ class RayHandler {
         this._pickingColorBuffer = null;
 
         this._vertexArr = [];
+        this._texCoordArr = new Float32Array([]);
         this._startPositionHighArr = [];
         this._startPositionLowArr = [];
         this._endPositionHighArr = [];
@@ -103,6 +107,7 @@ class RayHandler {
         this._buffersUpdateCallbacks[THICKNESS_BUFFER] = this.createThicknessBuffer;
         this._buffersUpdateCallbacks[RGBA_BUFFER] = this.createRgbaBuffer;
         this._buffersUpdateCallbacks[PICKINGCOLOR_BUFFER] = this.createPickingColorBuffer;
+        this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this.createTexCoordBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
@@ -157,6 +162,8 @@ class RayHandler {
         //@ts-ignore
         this._vertexArr = null;
         //@ts-ignore
+        this._texCoordArr = null;
+        //@ts-ignore
         this._startPositionHighArr = null;
         //@ts-ignore
         this._startPositionLowArr = null;
@@ -170,6 +177,7 @@ class RayHandler {
         this._rgbaArr = null;
 
         this._vertexArr = new Float32Array([]);
+        this._texCoordArr = new Float32Array([]);
         this._startPositionHighArr = new Float32Array([]);
         this._startPositionLowArr = new Float32Array([]);
         this._endPositionHighArr = new Float32Array([]);
@@ -187,13 +195,14 @@ class RayHandler {
             let gl = this._renderer.handler.gl;
 
             if (gl) {
-                gl.deleteBuffer(this._startPositionHighBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._startPositionLowBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._endPositionHighBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._endPositionLowBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._thicknessBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._rgbaBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._vertexBuffer as WebGLBuffer);
+                gl.deleteBuffer(this._startPositionHighBuffer!);
+                gl.deleteBuffer(this._startPositionLowBuffer!);
+                gl.deleteBuffer(this._endPositionHighBuffer!);
+                gl.deleteBuffer(this._endPositionLowBuffer!);
+                gl.deleteBuffer(this._thicknessBuffer!);
+                gl.deleteBuffer(this._rgbaBuffer!);
+                gl.deleteBuffer(this._vertexBuffer!);
+                gl.deleteBuffer(this._texCoordBuffer!);
             }
 
             this._startPositionHighBuffer = null;
@@ -203,6 +212,7 @@ class RayHandler {
             this._thicknessBuffer = null;
             this._rgbaBuffer = null;
             this._vertexBuffer = null;
+            this._texCoordBuffer = null;
         }
     }
 
@@ -240,6 +250,8 @@ class RayHandler {
                 [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             );
         }
+
+        this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
         let x = ray._startPositionHigh.x,
             y = ray._startPositionHigh.y,
@@ -332,6 +344,9 @@ class RayHandler {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer!);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer as WebGLBuffer);
+        gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
 
@@ -726,6 +741,13 @@ class RayHandler {
             h.gl!.DYNAMIC_DRAW
         );
     }
+
+    public createTexCoordBuffer() {
+        let h = this._renderer!.handler;
+        h.gl!.deleteBuffer(this._texCoordBuffer as WebGLBuffer);
+        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 2, this._texCoordArr.length / 2);
+    }
+
 
     public createPickingColorBuffer() {
         let h = this._renderer!.handler;
