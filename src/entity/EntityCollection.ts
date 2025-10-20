@@ -602,6 +602,8 @@ class EntityCollection {
 
             this.updateBillboardsTextureAtlas();
             this.updateLabelsFontAtlas();
+            this.updateStrokeTextureAtlas();
+
             this.createPickingColors();
         }
     }
@@ -649,6 +651,24 @@ class EntityCollection {
             // }
             this.labelHandler.updateFonts();
         }
+    }
+
+    /**
+     * Updates stroke texture atlas.
+     * @public
+     */
+    public updateStrokeTextureAtlas() {
+        // Rays
+        let r = this.rayHandler.rays;
+        for (let i = 0; i < r.length; i++) {
+            r[i].setSrc(r[i].getSrc());
+        }
+
+        //Polylines
+        //@todo
+
+        //Strips
+        //@todo
     }
 
     /**

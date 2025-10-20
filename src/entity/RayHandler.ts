@@ -14,6 +14,7 @@ const END_POSITION_BUFFER = 2;
 const RGBA_BUFFER = 3;
 const THICKNESS_BUFFER = 4;
 const VERTEX_BUFFER = 5;
+const TEXCOORD_BUFFER = 6;
 
 /*
  * og.RayHandler
@@ -33,7 +34,7 @@ class RayHandler {
      */
     public pickingEnabled: boolean;
 
-    protected _entityCollection: EntityCollection;
+    public _entityCollection: EntityCollection;
 
     protected _renderer: Renderer | null;
 
@@ -110,6 +111,10 @@ class RayHandler {
         for (let i = 0; i < curr.length; i++) {
             dest.push(curr[i]);
         }
+    }
+
+    public get rays(): Ray[] {
+        return [...this._rays];
     }
 
     public initProgram() {
@@ -731,6 +736,48 @@ class RayHandler {
             3,
             this._pickingColorArr.length / 3
         );
+    }
+
+    public setTexCoordArr(index: number, tcoordArr: number[] | TypedArray) {
+        let i = index * 12;
+        let a = this._texCoordArr;
+
+        a[i] = tcoordArr[0];
+        a[i + 1] = tcoordArr[1];
+
+        a[i + 2] = tcoordArr[2];
+        a[i + 3] = tcoordArr[3];
+
+        a[i + 4] = tcoordArr[4];
+        a[i + 5] = tcoordArr[5];
+
+        a[i + 6] = tcoordArr[6];
+        a[i + 7] = tcoordArr[7];
+
+        a[i + 8] = tcoordArr[8];
+        a[i + 9] = tcoordArr[9];
+
+        a[i + 10] = tcoordArr[10];
+        a[i + 11] = tcoordArr[11];
+
+        this._changedBuffers[TEXCOORD_BUFFER] = true;
+    }
+
+    public refreshTexCoordsArr() {
+        let bc = this._entityCollection;
+        if (bc && this._renderer) {
+            let ta = this._renderer.strokeTextureAtlas;
+            for (let i = 0; i < this._rays.length; i++) {
+                let ri = this._rays[i];
+                let img = ri.getImage();
+                if (img) {
+                    let imageNode = ta.get(img.__nodeIndex!);
+                    if (imageNode) {
+                        this.setTexCoordArr(ri._handlerIndex, imageNode.texCoords);
+                    }
+                }
+            }
+        }
     }
 }
 

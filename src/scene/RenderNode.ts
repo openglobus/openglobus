@@ -319,11 +319,18 @@ class RenderNode extends BaseNode {
         }
     }
 
-    // public updateGeoObjectsTexCoords() {
-    //     for (let i = 0; i < this.entityCollections.length; i++) {
-    //         this.entityCollections[i].geoObjectHandler.refreshTexCoordsArr();
-    //     }
-    // }
+    public updateTexCoords() {
+        //Ray
+        for (let i = 0; i < this.entityCollections.length; i++) {
+            this.entityCollections[i].rayHandler.refreshTexCoordsArr();
+        }
+
+        //Polyline
+        //@todo
+
+        //Strips
+        //@todo
+    }
 
     public frame() {
         // virtual

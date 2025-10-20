@@ -5,6 +5,7 @@ import type {NumberArray3} from "../math/Vec3";
 import type {NumberArray4} from "../math/Vec4";
 import {Entity} from "./Entity";
 import {RayHandler} from "./RayHandler";
+import type {HTMLImageElementExt} from "../utils/ImagesCacheManager";
 
 export interface IRayParams {
     thickness?: number;
@@ -13,7 +14,8 @@ export interface IRayParams {
     startColor?: string | NumberArray4;
     endColor?: string | NumberArray4;
     visibility?: boolean;
-
+    src?: string;
+    image?: HTMLImageElement;
 }
 
 /**
@@ -79,6 +81,20 @@ class Ray {
      */
     public _handlerIndex: number;
 
+    /**
+     * Stroke image src.
+     * @protected
+     * @type {string}
+     */
+    protected _src: string | null;
+
+    /**
+     * Stroke image object.
+     * @protected
+     * @type {Object}
+     */
+    protected _image: HTMLImageElement & { __nodeIndex?: number } | null;
+
     constructor(options: IRayParams = {}) {
 
         this.__id = Ray.__counter__++;
@@ -109,6 +125,10 @@ class Ray {
         this._handler = null;
 
         this._handlerIndex = -1;
+
+        this._image = options.image || null;
+
+        this._src = options.src || null;
     }
 
     /**
@@ -137,6 +157,53 @@ class Ray {
 
     public getLength(): number {
         return this._startPosition.distance(this._endPosition);
+    }
+
+    /**
+     * Sets image template url source.
+     * @public
+     * @param {string} src - Image url.
+     */
+    public setSrc(src: string | null) {
+        this._src = src;
+        let bh = this._handler;
+        if (bh && src && src.length) {
+            let rn = bh._entityCollection.renderNode;
+            if (rn && rn.renderer) {
+                let ta = rn.renderer.strokeTextureAtlas;
+                ta.loadImage(src, (img: HTMLImageElementExt)=> {
+                    if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
+                        this._image = img;
+                        bh!.setTexCoordArr(
+                            this._handlerIndex,
+                            ta.get(this._image!.__nodeIndex!)!.texCoords
+                        );
+                    } else {
+                        ta.addImage(img);
+                        ta.createTexture();
+                        this._image = img;
+                        rn!.updateTexCoords();
+                    }
+                });
+            }
+        }
+    }
+
+    public getSrc(): string | null {
+        return this._src;
+    }
+
+    /**
+     * Sets image template object.
+     * @public
+     * @param {Object} image - JavaScript image object.
+     */
+    public setImage(image: HTMLImageElement) {
+        this.setSrc(image.src);
+    }
+
+    public getImage(): HTMLImageElementExt | null {
+        return this._image;
     }
 
     /**
