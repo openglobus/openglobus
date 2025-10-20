@@ -11,9 +11,11 @@ export function rayScreen(): Program {
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             resolution: "float",
-            uOpacity: "float"
+            uOpacity: "float",
+            texAtlas: "sampler2d"
         },
         attributes: {
+            a_texCoords: "vec2",
             a_vertices: "vec2",
             a_startPosHigh: "vec3",
             a_startPosLow: "vec3",

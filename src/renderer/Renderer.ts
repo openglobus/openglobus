@@ -215,25 +215,25 @@ class Renderer {
     protected _initialized: boolean;
 
     /**
-     * Texture atlas for the billboards images. One atlas per node.
+     * Texture atlas for the billboards images.
      * @public
      * @type {TextureAtlas}
      */
     public billboardsTextureAtlas: TextureAtlas;
 
     /**
-     * Texture atlas for the billboards images. One atlas per node.
-     * @public
-     * @type {TextureAtlas}
-     */
-    public geoObjectsTextureAtlas: TextureAtlas;
-
-    /**
-     * Texture font atlas for the font families and styles. One atlas per node.
+     * Texture font atlas for the font families and styles.
      * @public
      * @type {FontAtlas}
      */
     public fontAtlas: FontAtlas;
+
+    /**
+     * Texture atlas for the rays, polylines and strips entities.
+     * @public
+     * @type {TextureAtlas}
+     */
+    public strokeTextureAtlas: TextureAtlas;
 
     protected _entityCollections: EntityCollection[][];
 
@@ -335,25 +335,25 @@ class Renderer {
         this._initialized = false;
 
         /**
-         * Texture atlas for the billboards images. One atlas per node.
+         * Texture atlas for the billboards images.
          * @public
          * @type {TextureAtlas}
          */
         this.billboardsTextureAtlas = new TextureAtlas();
 
         /**
-         * Texture atlas for the billboards images. One atlas per node.
-         * @public
-         * @type {TextureAtlas}
-         */
-        this.geoObjectsTextureAtlas = new TextureAtlas();
-
-        /**
-         * Texture font atlas for the font families and styles. One atlas per node.
+         * Texture font atlas for the font families and styles.
          * @public
          * @type {FontAtlas}
          */
         this.fontAtlas = new FontAtlas(params.fontsSrc);
+
+        /**
+         * Texture atlas for the rays, polylines and strips.
+         * @public
+         * @type {TextureAtlas}
+         */
+        this.strokeTextureAtlas = new TextureAtlas();
 
         this._entityCollections = [[]];
 
@@ -586,9 +586,8 @@ class Renderer {
         this.handler.initialize();
 
         this.billboardsTextureAtlas.assignHandler(this.handler);
-        this.geoObjectsTextureAtlas.assignHandler(this.handler);
-
         this.fontAtlas.assignHandler(this.handler);
+        this.strokeTextureAtlas.assignHandler(this.handler);
 
         this.handler.setFrameCallback(() => {
             this.draw();
@@ -886,7 +885,9 @@ class Renderer {
                 }
             }
 
+            //
             // billboards pass
+            //
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
 
@@ -896,7 +897,9 @@ class Renderer {
                 eci._fadingOpacity && eci.billboardHandler.draw();
             }
 
+            //
             // labels pass
+            //
             let fa = this.fontAtlas.atlasesArr;
             for (i = 0; i < fa.length; i++) {
                 gl.activeTexture(gl.TEXTURE0 + i);
@@ -907,6 +910,12 @@ class Renderer {
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].labelHandler.draw();
             }
+
+            //
+            // Lines, Rays and Strips
+            //
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
 
             // rays
             i = ec.length;
@@ -1475,8 +1484,8 @@ class Renderer {
 
         // todo
         //this.billboardsTextureAtlas.clear();
-        //this.geoObjectsTextureAtlas.clear()
         //this.fontAtlas.clear();
+        //this.strokeTextureAtlas.clear();
 
         this._entityCollections = [[]];
 
