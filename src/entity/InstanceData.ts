@@ -374,7 +374,7 @@ export class InstanceData {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
 
             let h = this._geoObjectHandler._renderer.handler,
-                gl = h.gl!;
+                gl = h.gl;
 
             h.deleteTexture(this._colorTexture);
             h.deleteTexture(this._normalTexture);
@@ -384,19 +384,21 @@ export class InstanceData {
             this._normalTexture = null;
             this._metallicRoughnessTexture = null;
 
-            gl.deleteBuffer(this._sizeBuffer!);
-            gl.deleteBuffer(this._translateBuffer!);
-            gl.deleteBuffer(this._vertexBuffer!);
-            gl.deleteBuffer(this._rtcPositionHighBuffer!);
-            gl.deleteBuffer(this._rtcPositionLowBuffer!);
-            gl.deleteBuffer(this._qRotBuffer!);
-            gl.deleteBuffer(this._rgbaBuffer!);
-            gl.deleteBuffer(this._normalsBuffer!);
-            gl.deleteBuffer(this._indicesBuffer!);
-            gl.deleteBuffer(this._pickingColorBuffer!);
-            gl.deleteBuffer(this._visibleBuffer!);
-            gl.deleteBuffer(this._texCoordBuffer!);
-            gl.deleteBuffer(this._localPositionBuffer!);
+            if(gl) {
+                gl.deleteBuffer(this._sizeBuffer!);
+                gl.deleteBuffer(this._translateBuffer!);
+                gl.deleteBuffer(this._vertexBuffer!);
+                gl.deleteBuffer(this._rtcPositionHighBuffer!);
+                gl.deleteBuffer(this._rtcPositionLowBuffer!);
+                gl.deleteBuffer(this._qRotBuffer!);
+                gl.deleteBuffer(this._rgbaBuffer!);
+                gl.deleteBuffer(this._normalsBuffer!);
+                gl.deleteBuffer(this._indicesBuffer!);
+                gl.deleteBuffer(this._pickingColorBuffer!);
+                gl.deleteBuffer(this._visibleBuffer!);
+                gl.deleteBuffer(this._texCoordBuffer!);
+                gl.deleteBuffer(this._localPositionBuffer!);
+            }
         }
 
         this._sizeBuffer = null;
