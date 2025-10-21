@@ -1448,7 +1448,7 @@ class Renderer {
         this.renderNodes = {};
 
         //@ts-ignore
-        this.activeCamera = null;
+        //this.activeCamera = null;
 
         this.controls = {};
 
@@ -1484,7 +1484,7 @@ class Renderer {
         this.handler.destroy();
 
         // @ts-ignore
-        this.handler = null;
+        //this.handler = null;
 
         this._initialized = false;
     }
