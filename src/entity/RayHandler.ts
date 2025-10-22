@@ -316,6 +316,8 @@ class RayHandler {
 
         gl.uniform1f(shu.uOpacity, ec._fadingOpacity);
 
+        gl.uniform1i(shu.u_texAtlas, 0);
+
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
 

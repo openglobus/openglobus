@@ -15,7 +15,7 @@ export function rayScreen(): Program {
             texAtlas: "sampler2d"
         },
         attributes: {
-            a_texCoords: "vec2",
+            a_texCoord: "vec2",
             a_vertices: "vec2",
             a_startPosHigh: "vec3",
             a_startPosLow: "vec3",
