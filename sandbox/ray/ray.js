@@ -23,20 +23,32 @@ class MyScene extends RenderNode {
 
     init() {
 
-        let rayEntity = new Entity({
-            cartesian: new Vec3(1, 1, 1),
-            independentPicking: true,
+        let rayEntity1 = new Entity({
             ray: {
-                thickness: 5,
-                startPosition: [0, 0, 0],
-                endPosition: [10, 10, 10],
-                startColor: "red",
-                endColor: "green",
+                thickness: 10,
+                startPosition: [1, 0, 1],
+                endPosition: [1, 10, 1],
+                startColor: "white",
+                endColor: "white",
+                src: "./template.png",
+                //src: "data:image/png;base64,R0lGODlhAQABAIAAAP7//wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+            }
+        });
+
+        let rayEntity2 = new Entity({
+            ray: {
+                thickness: 20,
+                startPosition: [2, 0, 0],
+                endPosition: [2, 5, 0],
+                startColor: "white",
+                endColor: "white",
+                src: "./template2.png",
+                //src: "data:image/png;base64,R0lGODlhAQABAIAAAP7//wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
             }
         });
 
         let collection = new EntityCollection({
-            entities: [rayEntity]
+            entities: [rayEntity1, rayEntity2]
         });
 
         collection.addTo(this);

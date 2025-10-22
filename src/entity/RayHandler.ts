@@ -251,7 +251,7 @@ class RayHandler {
             );
         }
 
-        this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
         let x = ray._startPositionHigh.x,
             y = ray._startPositionHigh.y,
@@ -747,7 +747,7 @@ class RayHandler {
     public createTexCoordBuffer() {
         let h = this._renderer!.handler;
         h.gl!.deleteBuffer(this._texCoordBuffer as WebGLBuffer);
-        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 2, this._texCoordArr.length / 2);
+        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 4, this._texCoordArr.length / 4);
     }
 
 
@@ -762,27 +762,39 @@ class RayHandler {
         );
     }
 
-    public setTexCoordArr(index: number, tcoordArr: number[] | TypedArray) {
-        let i = index * 12;
+    public setTexCoordArr(index: number, tcoordArr: number[] | TypedArray, minY: number, imgHeight: number) {
+        let i = index * 24;
         let a = this._texCoordArr;
 
         a[i] = tcoordArr[0];
         a[i + 1] = tcoordArr[1];
+        a[i + 2] = minY;
+        a[i + 3] = imgHeight;
 
-        a[i + 2] = tcoordArr[2];
-        a[i + 3] = tcoordArr[3];
+        a[i + 4] = tcoordArr[2];
+        a[i + 5] = tcoordArr[3];
+        a[i + 6] = minY;
+        a[i + 7] = imgHeight;
 
-        a[i + 4] = tcoordArr[4];
-        a[i + 5] = tcoordArr[5];
+        a[i + 8] = tcoordArr[4];
+        a[i + 9] = tcoordArr[5];
+        a[i + 10] = minY;
+        a[i + 11] = imgHeight;
 
-        a[i + 6] = tcoordArr[6];
-        a[i + 7] = tcoordArr[7];
+        a[i + 12] = tcoordArr[6];
+        a[i + 13] = tcoordArr[7];
+        a[i + 14] = minY;
+        a[i + 15] = imgHeight;
 
-        a[i + 8] = tcoordArr[8];
-        a[i + 9] = tcoordArr[9];
+        a[i + 16] = tcoordArr[8];
+        a[i + 17] = tcoordArr[9];
+        a[i + 18] = minY;
+        a[i + 19] = imgHeight;
 
-        a[i + 10] = tcoordArr[10];
-        a[i + 11] = tcoordArr[11];
+        a[i + 20] = tcoordArr[10];
+        a[i + 21] = tcoordArr[11];
+        a[i + 22] = minY;
+        a[i + 23] = imgHeight;
 
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }

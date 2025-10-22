@@ -3,11 +3,13 @@ precision highp float;
 uniform sampler2D texAtlas;
 
 varying vec4 v_rgba;
-varying vec2 v_texCoord;
+varying vec4 v_texCoord;
 
-void main () {
+void main() {
 
-    vec4 color = texture2D(texAtlas, v_texCoord);
+    float repeat = 2.0;
 
-    gl_FragColor = v_rgba + color;
+    vec4 color = texture2D(texAtlas, v_texCoord.xy);
+
+    gl_FragColor = v_rgba * color;
 }

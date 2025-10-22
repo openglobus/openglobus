@@ -7,10 +7,10 @@ attribute vec3 a_endPosHigh;
 attribute vec3 a_endPosLow;
 attribute vec2 a_vertices;
 attribute float a_thickness;
-attribute vec2 a_texCoord;
+attribute vec4 a_texCoord;
 
 varying vec4 v_rgba;
-varying vec2 v_texCoord;
+varying vec4 v_texCoord;
 
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;

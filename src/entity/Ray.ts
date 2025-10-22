@@ -171,12 +171,17 @@ class Ray {
             let rn = bh._entityCollection.renderNode;
             if (rn && rn.renderer) {
                 let ta = rn.renderer.strokeTextureAtlas;
-                ta.loadImage(src, (img: HTMLImageElementExt)=> {
+                ta.loadImage(src, (img: HTMLImageElementExt) => {
                     if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
                         this._image = img;
+                        let taData = ta.get(img!.__nodeIndex!)!;
+                        let minY = 0,
+                            imgHeight = 0;
                         bh!.setTexCoordArr(
                             this._handlerIndex,
-                            ta.get(this._image!.__nodeIndex!)!.texCoords
+                            taData.texCoords,
+                            minY,
+                            imgHeight
                         );
                     } else {
                         ta.addImage(img);
