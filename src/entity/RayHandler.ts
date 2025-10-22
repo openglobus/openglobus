@@ -807,9 +807,11 @@ class RayHandler {
                 let ri = this._rays[i];
                 let img = ri.getImage();
                 if (img) {
-                    let imageNode = ta.get(img.__nodeIndex!);
-                    if (imageNode) {
-                        this.setTexCoordArr(ri._handlerIndex, imageNode.texCoords);
+                    let taData = ta.get(img.__nodeIndex!);
+                    if (taData) {
+                        let minY = taData.texCoords[1],
+                            imgHeight = taData.texCoords[3] - minY;
+                        this.setTexCoordArr(ri._handlerIndex, taData.texCoords, minY, imgHeight);
                     }
                 }
             }
