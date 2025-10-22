@@ -30,7 +30,7 @@ class MyScene extends RenderNode {
                 endPosition: [1, 10, 1],
                 startColor: "white",
                 endColor: "white",
-                src: "./template.png",
+                src: "./template3.png",
                 //src: "data:image/png;base64,R0lGODlhAQABAIAAAP7//wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
             }
         });

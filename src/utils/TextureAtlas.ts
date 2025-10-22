@@ -303,17 +303,11 @@ class TextureAtlasNode {
             const dh = rc.getHeight() - h;
 
             if (dw > dh) {
-                // this.childNodes[0].rect = new Rectangle(rc.left, rc.top, rc.left + w, rc.bottom);
-                // this.childNodes[1].rect = new Rectangle(rc.left + w, rc.top, rc.right, rc.bottom);
                 this.childNodes[0].rect.set(rc.left, rc.top, rc.left + w, rc.bottom);
                 this.childNodes[1].rect.set(rc.left + w, rc.top, rc.right, rc.bottom);
-
             } else {
-                // this.childNodes[0].rect = new Rectangle(rc.left, rc.top, rc.right, rc.top + h);
-                // this.childNodes[1].rect = new Rectangle(rc.left, rc.top + h, rc.right, rc.bottom);
                 this.childNodes[0].rect.set(rc.left, rc.top, rc.right, rc.top + h);
                 this.childNodes[1].rect.set(rc.left, rc.top + h, rc.right, rc.bottom);
-
             }
 
             return this.childNodes[0].insert(img);
