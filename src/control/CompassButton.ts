@@ -102,8 +102,8 @@ export class CompassButton extends Control {
         });
 
         btn.appendTo(this.renderer!.div!);
-
         btn.events.on("click", this._onClick, this);
+        btn.events.on("touchstart", this._onClick, this);
 
         this._svg = btn.select("svg");
 
