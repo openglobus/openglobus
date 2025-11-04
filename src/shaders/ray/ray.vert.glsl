@@ -8,9 +8,11 @@ attribute vec3 a_endPosLow;
 attribute vec2 a_vertices;
 attribute float a_thickness;
 attribute vec4 a_texCoord;
+attribute float a_texOffset;
 
 varying vec4 v_rgba;
 varying vec4 v_texCoord;
+varying float v_texOffset;
 
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
@@ -21,6 +23,7 @@ uniform float uOpacity;
 
 void main() {
 
+    v_texOffset = a_texOffset;
     v_rgba = vec4(a_rgba.rgb, a_rgba.a * uOpacity);
     v_texCoord = a_texCoord;
 

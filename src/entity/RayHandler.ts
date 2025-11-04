@@ -1,5 +1,5 @@
 import * as shaders from "../shaders/ray/ray";
-import {concatArrays, concatTypedArrays, makeArrayTyped, spliceArray} from "../utils/shared";
+import {concatArrays, concatTypedArrays, makeArrayTyped, spliceArray, spliceTypedArray} from "../utils/shared";
 import type {TypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";
 import {Ray} from "./Ray";
@@ -15,6 +15,7 @@ const RGBA_BUFFER = 3;
 const THICKNESS_BUFFER = 4;
 const VERTEX_BUFFER = 5;
 const TEXCOORD_BUFFER = 6;
+const TEXOFFSET_BUFFER = 7;
 
 /*
  * og.RayHandler
@@ -49,6 +50,7 @@ class RayHandler {
     protected _thicknessBuffer: WebGLBufferExt | null;
     protected _rgbaBuffer: WebGLBufferExt | null;
     protected _pickingColorBuffer: WebGLBufferExt | null;
+    protected _texOffsetBuffer: WebGLBufferExt | null;
 
     protected _vertexArr: TypedArray | number[];
     protected _texCoordArr: TypedArray;
@@ -59,6 +61,7 @@ class RayHandler {
     protected _thicknessArr: TypedArray | number[];
     protected _rgbaArr: TypedArray | number[];
     protected _pickingColorArr: TypedArray | number[];
+    protected _texOffsetArr: TypedArray;
 
     protected _buffersUpdateCallbacks: Function[];
     protected _changedBuffers: boolean[];
@@ -89,6 +92,7 @@ class RayHandler {
         this._thicknessBuffer = null;
         this._rgbaBuffer = null;
         this._pickingColorBuffer = null;
+        this._texOffsetBuffer = null;
 
         this._vertexArr = [];
         this._texCoordArr = new Float32Array([]);
@@ -99,6 +103,7 @@ class RayHandler {
         this._thicknessArr = [];
         this._rgbaArr = [];
         this._pickingColorArr = [];
+        this._texOffsetArr = new Float32Array([]);
 
         this._buffersUpdateCallbacks = [];
         this._buffersUpdateCallbacks[VERTEX_BUFFER] = this.createVertexBuffer;
@@ -108,6 +113,7 @@ class RayHandler {
         this._buffersUpdateCallbacks[RGBA_BUFFER] = this.createRgbaBuffer;
         this._buffersUpdateCallbacks[PICKINGCOLOR_BUFFER] = this.createPickingColorBuffer;
         this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this.createTexCoordBuffer;
+        this._buffersUpdateCallbacks[TEXOFFSET_BUFFER] = this.createTexOffsetBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
@@ -175,6 +181,8 @@ class RayHandler {
         this._thicknessArr = null;
         //@ts-ignore
         this._rgbaArr = null;
+        //@ts-ignore
+        this._texOffsetArr = null;
 
         this._vertexArr = new Float32Array([]);
         this._texCoordArr = new Float32Array([]);
@@ -184,6 +192,7 @@ class RayHandler {
         this._endPositionLowArr = new Float32Array([]);
         this._thicknessArr = new Float32Array([]);
         this._rgbaArr = new Float32Array([]);
+        this._texOffsetArr = new Float32Array([]);
 
         this._removeRays();
         this._deleteBuffers();
@@ -203,6 +212,7 @@ class RayHandler {
                 gl.deleteBuffer(this._rgbaBuffer!);
                 gl.deleteBuffer(this._vertexBuffer!);
                 gl.deleteBuffer(this._texCoordBuffer!);
+                gl.deleteBuffer(this._texOffsetBuffer!);
             }
 
             this._startPositionHighBuffer = null;
@@ -213,6 +223,7 @@ class RayHandler {
             this._rgbaBuffer = null;
             this._vertexBuffer = null;
             this._texCoordBuffer = null;
+            this._texOffsetBuffer = null;
         }
     }
 
@@ -250,6 +261,8 @@ class RayHandler {
                 [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             );
         }
+
+        this._texOffsetArr = concatTypedArrays(this._texOffsetArr, [0, 0, 0, 0, 0, 0]);
 
         this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
@@ -347,8 +360,11 @@ class RayHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer!);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
         gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._texOffsetBuffer!);
+        gl.vertexAttribPointer(sha.a_texOffset, this._texOffsetBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
 
@@ -387,6 +403,7 @@ class RayHandler {
 
         let i = ri * 24;
         this._rgbaArr = spliceArray(this._rgbaArr, i, 24);
+        this._texCoordArr = spliceTypedArray(this._texCoordArr, i, 24);
 
         i = ri * 18;
         this._startPositionHighArr = spliceArray(this._startPositionHighArr, i, 18);
@@ -400,6 +417,7 @@ class RayHandler {
 
         i = ri * 6;
         this._thicknessArr = spliceArray(this._thicknessArr, i, 6);
+        this._texOffsetArr = spliceTypedArray(this._texOffsetArr, i, 6);
 
         this.reindexRaysArray(ri);
         this.refresh();
@@ -746,10 +764,15 @@ class RayHandler {
 
     public createTexCoordBuffer() {
         let h = this._renderer!.handler;
-        h.gl!.deleteBuffer(this._texCoordBuffer as WebGLBuffer);
+        h.gl!.deleteBuffer(this._texCoordBuffer!);
         this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 4, this._texCoordArr.length / 4);
     }
 
+    public createTexOffsetBuffer() {
+        let h = this._renderer!.handler;
+        h.gl!.deleteBuffer(this._texOffsetBuffer!);
+        this._texOffsetBuffer = h.createArrayBuffer(this._texOffsetArr, 1, this._texOffsetArr.length);
+    }
 
     public createPickingColorBuffer() {
         let h = this._renderer!.handler;
@@ -798,6 +821,21 @@ class RayHandler {
 
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
+
+    public setTexOffsetArr(index: number, value: number) {
+        let i = index * 6;
+        let a = this._texOffsetArr;
+
+        a[i] = value;
+        a[i + 1] = value;
+        a[i + 2] = value;
+        a[i + 3] = value;
+        a[i + 4] = value;
+        a[i + 5] = value;
+
+        this._changedBuffers[TEXOFFSET_BUFFER] = true;
+    }
+
 
     public refreshTexCoordsArr() {
         let bc = this._entityCollection;

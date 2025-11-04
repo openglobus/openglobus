@@ -16,6 +16,7 @@ export interface IRayParams {
     visibility?: boolean;
     src?: string;
     image?: HTMLImageElement;
+    texOffset?: number;
 }
 
 /**
@@ -95,6 +96,8 @@ class Ray {
      */
     protected _image: HTMLImageElement & { __nodeIndex?: number } | null;
 
+    protected _texOffset: number;
+
     constructor(options: IRayParams = {}) {
 
         this.__id = Ray.__counter__++;
@@ -129,6 +132,8 @@ class Ray {
         this._image = options.image || null;
 
         this._src = options.src || null;
+
+        this._texOffset = options.texOffset || 0;
     }
 
     /**
@@ -305,6 +310,15 @@ class Ray {
         }
 
         this._handler && this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
+    }
+
+    public get texOffset(): number {
+        return this._texOffset;
+    }
+
+    public set texOffset(value: number) {
+        this._texOffset = value;
+        this._handler && this._handler.setTexOffsetArr(this._handlerIndex, value);
     }
 
     /**
