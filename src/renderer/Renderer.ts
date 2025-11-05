@@ -22,7 +22,7 @@ import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 
-interface IRendererParams {
+export interface IRendererParams {
     controls?: Control[];
     msaa?: number;
     autoActivate?: boolean;
