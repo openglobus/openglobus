@@ -38,11 +38,8 @@ void main() {
     float focalSize = 2.0 * dist * resolution;
     vec3 vert = right * a_thickness * focalSize * a_vertices.x;
 
-//    vec3 startPos = a_startPosHigh + a_startPosLow;
-//    vec3 endPos = a_endPosHigh + a_endPosLow;
-//    vec3 center = startPos + 0.5 * (endPos - startPos);
-    float imageSize = 50.0;
-    repeat = length(v) * 1.0/focalSize / imageSize;
+    float imageSize = 100.0;
+    repeat = (1.0 / imageSize) * length(v) / focalSize;
 
     vec3 highDiff;
     if(a_vertices.y == 0.0){
