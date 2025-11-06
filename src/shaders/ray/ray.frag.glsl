@@ -5,11 +5,9 @@ uniform sampler2D texAtlas;
 varying vec4 v_rgba;
 varying vec4 v_texCoord;
 varying float v_texOffset;
+varying float repeat;
 
 void main() {
-
-    float repeat = 10.0;
-
     vec2 uv = v_texCoord.xy;
     float min = v_texCoord.z;
     float height = v_texCoord.w;
