@@ -73,7 +73,10 @@ void main() {
 
     repeat = distance(nStart, nEnd) / a_strokeSize;
 
+    //@todo
+    // Lets try to find shortest distance to the ray from camera, and use the value in the focalDistance
+
     // Could be optimization some times
-    //float repeat = (1.0 / a_strokeSize) * length(v) / focalSize;
+    repeat = (1.0 / a_strokeSize) * length(v) / focalSize;
     //repeat = min(repeat, 100.0);
 }
