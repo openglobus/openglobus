@@ -37,18 +37,18 @@ void main() {
     vec3 v = (a_endPosHigh - a_startPosHigh) + (a_endPosLow - a_startPosLow);
 
     vec3 look = (a_startPosHigh - eyePositionHigh) + (a_startPosLow - eyePositionLow) + v * a_vertices.y;
-    vec3 up = normalize(normalize(v));
-    vec3 right = normalize(cross(look,up));
+    vec3 up = normalize(v);
+    vec3 right = normalize(cross(look, up));
 
-    float dist = dot(look, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
+    float dist = abs(dot(look, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2])));
     float focalSize = 2.0 * dist * resolution;
     vec3 vert = right * a_thickness * focalSize * a_vertices.x;
 
     vec3 highDiff;
-    if(a_vertices.y == 0.0){
+    if (a_vertices.y == 0.0) {
         highDiff = a_startPosHigh - eyePositionHigh;
         vert += a_startPosLow - eyePositionLow;
-    }else{
+    } else {
         highDiff = a_endPosHigh - eyePositionHigh;
         vert += a_endPosLow - eyePositionLow;
     }
@@ -63,20 +63,19 @@ void main() {
     highDiff = highDiff * step(1.0, length(highDiff));
     vec3 lowDiff = a_startPosLow - eyePositionLow;
     vec4 vStart = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-    vec2 nStart = project(projectionMatrix * vStart);
 
     highDiff = a_endPosHigh - eyePositionHigh;
     highDiff = highDiff * step(1.0, length(highDiff));
     lowDiff = a_endPosLow - eyePositionLow;
     vec4 vEnd = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+
+    vec2 nStart = project(projectionMatrix * vStart);
     vec2 nEnd = project(projectionMatrix * vEnd);
 
-    repeat = distance(nStart, nEnd) / a_strokeSize;
+    repeat = min(distance(nStart, nEnd), viewport.y) / a_strokeSize;
+    //repeat = min(repeat, length(v) / (a_strokeSize * focalSize));
 
-    //@todo
-    // Lets try to find shortest distance to the ray from camera, and use the value in the focalDistance
+    //repeat = viewport.y / a_strokeSize;
 
-    // Could be optimization some times
-    repeat = (1.0 / a_strokeSize) * length(v) / focalSize;
-    //repeat = min(repeat, 100.0);
+    //repeat = length(v) / (a_strokeSize * focalSize);
 }
