@@ -56,6 +56,9 @@ void main() {
     mat4 viewMatrixRTE = viewMatrix;
     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
+    gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
+
+
     highDiff = a_startPosHigh - eyePositionHigh;
     highDiff = highDiff * step(1.0, length(highDiff));
     vec3 lowDiff = a_startPosLow - eyePositionLow;
@@ -71,7 +74,6 @@ void main() {
     repeat = distance(nStart, nEnd) / a_strokeSize;
 
     // Could be optimization some times
-    repeat = (1.0 / a_strokeSize) * length(v) / focalSize;
-
-    gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
+    //float repeat = (1.0 / a_strokeSize) * length(v) / focalSize;
+    //repeat = min(repeat, 100.0);
 }
