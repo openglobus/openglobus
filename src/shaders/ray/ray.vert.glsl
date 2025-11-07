@@ -9,6 +9,7 @@ attribute vec2 a_vertices;
 attribute float a_thickness;
 attribute vec4 a_texCoord;
 attribute float a_texOffset;
+attribute float a_strokeSize;
 
 varying vec4 v_rgba;
 varying vec4 v_texCoord;
@@ -55,9 +56,6 @@ void main() {
     mat4 viewMatrixRTE = viewMatrix;
     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-    float imageSize = 100.0;
-//    repeat = (1.0 / imageSize) * length(v) / focalSize;
-
     highDiff = a_startPosHigh - eyePositionHigh;
     highDiff = highDiff * step(1.0, length(highDiff));
     vec3 lowDiff = a_startPosLow - eyePositionLow;
@@ -70,7 +68,10 @@ void main() {
     vec4 vEnd = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
     vec2 nEnd = project(projectionMatrix * vEnd);
 
-    repeat = distance(nStart, nEnd) / imageSize;
+    repeat = distance(nStart, nEnd) / a_strokeSize;
+
+    // Could be optimization some times
+    //repeat = (1.0 / a_strokeSize) * length(v) / focalSize;
 
     gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
 }

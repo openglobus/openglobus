@@ -24,7 +24,8 @@ export function rayScreen(): Program {
             a_endPosLow: "vec3",
             a_thickness: "float",
             a_rgba: "vec4",
-            a_texOffset: "float"
+            a_texOffset: "float",
+            a_strokeSize: "float"
         },
         vertexShader: ray_vert,
         fragmentShader: ray_frag
