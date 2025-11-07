@@ -71,7 +71,7 @@ void main() {
     repeat = distance(nStart, nEnd) / a_strokeSize;
 
     // Could be optimization some times
-    //repeat = (1.0 / a_strokeSize) * length(v) / focalSize;
+    repeat = (1.0 / a_strokeSize) * length(v) / focalSize;
 
     gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
 }
