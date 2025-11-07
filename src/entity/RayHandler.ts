@@ -16,6 +16,7 @@ const THICKNESS_BUFFER = 4;
 const VERTEX_BUFFER = 5;
 const TEXCOORD_BUFFER = 6;
 const TEXOFFSET_BUFFER = 7;
+const STROKESIZE_BUFFER = 8;
 
 /*
  * og.RayHandler
@@ -51,6 +52,7 @@ class RayHandler {
     protected _rgbaBuffer: WebGLBufferExt | null;
     protected _pickingColorBuffer: WebGLBufferExt | null;
     protected _texOffsetBuffer: WebGLBufferExt | null;
+    protected _strokeSizeBuffer: WebGLBufferExt | null;
 
     protected _vertexArr: TypedArray | number[];
     protected _texCoordArr: TypedArray;
@@ -62,6 +64,7 @@ class RayHandler {
     protected _rgbaArr: TypedArray | number[];
     protected _pickingColorArr: TypedArray | number[];
     protected _texOffsetArr: TypedArray;
+    protected _strokeSizeArr: TypedArray;
 
     protected _buffersUpdateCallbacks: Function[];
     protected _changedBuffers: boolean[];
@@ -93,6 +96,7 @@ class RayHandler {
         this._rgbaBuffer = null;
         this._pickingColorBuffer = null;
         this._texOffsetBuffer = null;
+        this._strokeSizeBuffer = null;
 
         this._vertexArr = [];
         this._texCoordArr = new Float32Array([]);
@@ -104,6 +108,7 @@ class RayHandler {
         this._rgbaArr = [];
         this._pickingColorArr = [];
         this._texOffsetArr = new Float32Array([]);
+        this._strokeSizeArr = new Float32Array([]);
 
         this._buffersUpdateCallbacks = [];
         this._buffersUpdateCallbacks[VERTEX_BUFFER] = this.createVertexBuffer;
@@ -114,6 +119,8 @@ class RayHandler {
         this._buffersUpdateCallbacks[PICKINGCOLOR_BUFFER] = this.createPickingColorBuffer;
         this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this.createTexCoordBuffer;
         this._buffersUpdateCallbacks[TEXOFFSET_BUFFER] = this.createTexOffsetBuffer;
+        this._buffersUpdateCallbacks[STROKESIZE_BUFFER] = this.createStrokeSizeBuffer;
+
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
@@ -183,6 +190,8 @@ class RayHandler {
         this._rgbaArr = null;
         //@ts-ignore
         this._texOffsetArr = null;
+        //@ts-ignore
+        this._strokeSizeArr = null;
 
         this._vertexArr = new Float32Array([]);
         this._texCoordArr = new Float32Array([]);
@@ -193,6 +202,7 @@ class RayHandler {
         this._thicknessArr = new Float32Array([]);
         this._rgbaArr = new Float32Array([]);
         this._texOffsetArr = new Float32Array([]);
+        this._strokeSizeArr = new Float32Array([]);
 
         this._removeRays();
         this._deleteBuffers();
@@ -213,6 +223,7 @@ class RayHandler {
                 gl.deleteBuffer(this._vertexBuffer!);
                 gl.deleteBuffer(this._texCoordBuffer!);
                 gl.deleteBuffer(this._texOffsetBuffer!);
+                gl.deleteBuffer(this._strokeSizeBuffer!);
             }
 
             this._startPositionHighBuffer = null;
@@ -224,6 +235,7 @@ class RayHandler {
             this._vertexBuffer = null;
             this._texCoordBuffer = null;
             this._texOffsetBuffer = null;
+            this._strokeSizeBuffer = null;
         }
     }
 
@@ -262,12 +274,16 @@ class RayHandler {
             );
         }
 
-        this._texOffsetArr = concatTypedArrays(this._texOffsetArr, [0, 0, 0, 0, 0, 0]);
+        let x = ray.texOffset;
+        this._texOffsetArr = concatTypedArrays(this._texOffsetArr, [x, x, x, x, x, x]);
+
+        x = ray.strokeSize;
+        this._strokeSizeArr = concatTypedArrays(this._strokeSizeArr, [x, x, x, x, x, x]);
 
         this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
-        let x = ray._startPositionHigh.x,
-            y = ray._startPositionHigh.y,
+        x = ray._startPositionHigh.x;
+        let y = ray._startPositionHigh.y,
             z = ray._startPositionHigh.z;
         this._startPositionHighArr = concatArrays(this._startPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
@@ -338,6 +354,7 @@ class RayHandler {
         gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
 
         gl.uniform1f(shu.resolution, r.activeCamera!._tanViewAngle_hradOneByHeight);
+        gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._startPositionHighBuffer!);
         gl.vertexAttribPointer(sha.a_startPosHigh, this._startPositionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -365,6 +382,9 @@ class RayHandler {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texOffsetBuffer!);
         gl.vertexAttribPointer(sha.a_texOffset, this._texOffsetBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._strokeSizeBuffer!);
+        gl.vertexAttribPointer(sha.a_strokeSize, this._strokeSizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
 
@@ -418,6 +438,7 @@ class RayHandler {
         i = ri * 6;
         this._thicknessArr = spliceArray(this._thicknessArr, i, 6);
         this._texOffsetArr = spliceTypedArray(this._texOffsetArr, i, 6);
+        this._strokeSizeArr = spliceTypedArray(this._strokeSizeArr, i, 6);
 
         this.reindexRaysArray(ri);
         this.refresh();
@@ -774,6 +795,12 @@ class RayHandler {
         this._texOffsetBuffer = h.createArrayBuffer(this._texOffsetArr, 1, this._texOffsetArr.length);
     }
 
+    public createStrokeSizeBuffer() {
+        let h = this._renderer!.handler;
+        h.gl!.deleteBuffer(this._strokeSizeBuffer!);
+        this._strokeSizeBuffer = h.createArrayBuffer(this._strokeSizeArr, 1, this._strokeSizeArr.length);
+    }
+
     public createPickingColorBuffer() {
         let h = this._renderer!.handler;
         h.gl!.deleteBuffer(this._pickingColorBuffer as WebGLBuffer);
@@ -834,6 +861,20 @@ class RayHandler {
         a[i + 5] = value;
 
         this._changedBuffers[TEXOFFSET_BUFFER] = true;
+    }
+
+    public setStrokeSizeArr(index: number, value: number) {
+        let i = index * 6;
+        let a = this._strokeSizeArr;
+
+        a[i] = value;
+        a[i + 1] = value;
+        a[i + 2] = value;
+        a[i + 3] = value;
+        a[i + 4] = value;
+        a[i + 5] = value;
+
+        this._changedBuffers[STROKESIZE_BUFFER] = true;
     }
 
 

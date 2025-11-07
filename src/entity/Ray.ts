@@ -17,6 +17,7 @@ export interface IRayParams {
     src?: string;
     image?: HTMLImageElement;
     texOffset?: number;
+    strokeSize?: number;
 }
 
 /**
@@ -98,6 +99,8 @@ class Ray {
 
     protected _texOffset: number;
 
+    protected _strokeSize: number;
+
     constructor(options: IRayParams = {}) {
 
         this.__id = Ray.__counter__++;
@@ -134,6 +137,8 @@ class Ray {
         this._src = options.src || null;
 
         this._texOffset = options.texOffset || 0;
+
+        this._strokeSize = options.strokeSize != undefined ? options.strokeSize : 32;
     }
 
     /**
@@ -319,6 +324,15 @@ class Ray {
     public set texOffset(value: number) {
         this._texOffset = value;
         this._handler && this._handler.setTexOffsetArr(this._handlerIndex, value);
+    }
+
+    public get strokeSize(): number {
+        return this._strokeSize;
+    }
+
+    public set strokeSize(value: number) {
+        this._strokeSize = value;
+        this._handler && this._handler.setStrokeSizeArr(this._handlerIndex, value);
     }
 
     /**

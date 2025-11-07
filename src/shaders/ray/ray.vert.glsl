@@ -21,6 +21,11 @@ uniform vec3 eyePositionHigh;
 uniform vec3 eyePositionLow;
 uniform float resolution;
 uniform float uOpacity;
+uniform vec2 viewport;
+
+vec2 project(vec4 p) {
+    return (0.5 * p.xyz / p.w + 0.5).xy * viewport;
+}
 
 void main() {
 
@@ -38,9 +43,6 @@ void main() {
     float focalSize = 2.0 * dist * resolution;
     vec3 vert = right * a_thickness * focalSize * a_vertices.x;
 
-    float imageSize = 100.0;
-    repeat = (1.0 / imageSize) * length(v) / focalSize;
-
     vec3 highDiff;
     if(a_vertices.y == 0.0){
         highDiff = a_startPosHigh - eyePositionHigh;
@@ -53,11 +55,22 @@ void main() {
     mat4 viewMatrixRTE = viewMatrix;
     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-    // Hack for iMac M1, looks like it doesnt
-    // work correctly with zeroes in highDiff
-    // if(length(highDiff) < 1.0){
-    //     highDiff = vec3(0.0);
-    // }
+    float imageSize = 100.0;
+//    repeat = (1.0 / imageSize) * length(v) / focalSize;
+
+    highDiff = a_startPosHigh - eyePositionHigh;
+    highDiff = highDiff * step(1.0, length(highDiff));
+    vec3 lowDiff = a_startPosLow - eyePositionLow;
+    vec4 vStart = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+    vec2 nStart = project(projectionMatrix * vStart);
+
+    highDiff = a_endPosHigh - eyePositionHigh;
+    highDiff = highDiff * step(1.0, length(highDiff));
+    lowDiff = a_endPosLow - eyePositionLow;
+    vec4 vEnd = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+    vec2 nEnd = project(projectionMatrix * vEnd);
+
+    repeat = distance(nStart, nEnd) / imageSize;
 
     gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
 }
