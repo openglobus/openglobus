@@ -177,29 +177,34 @@ class Ray {
     public setSrc(src: string | null) {
         this._src = src;
         let bh = this._handler;
-        if (bh && src && src.length) {
+        if (bh) {
             let rn = bh._entityCollection.renderNode;
             if (rn && rn.renderer) {
                 let ta = rn.renderer.strokeTextureAtlas;
-                ta.loadImage(src, (img: HTMLImageElementExt) => {
-                    if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
-                        this._image = img;
-                        let taData = ta.get(img!.__nodeIndex!)!;
-                        let minY = taData.texCoords[1],
-                            imgHeight = taData.texCoords[3] - minY;
-                        bh!.setTexCoordArr(
-                            this._handlerIndex,
-                            taData.texCoords,
-                            minY,
-                            imgHeight
-                        );
-                    } else {
-                        ta.addImage(img);
-                        ta.createTexture();
-                        this._image = img;
-                        rn!.updateTexCoords();
-                    }
-                });
+                if (src && src.length) {
+                    ta.loadImage(src, (img: HTMLImageElementExt) => {
+                        if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
+                            this._image = img;
+                            let taData = ta.get(img!.__nodeIndex!)!;
+                            let minY = taData.texCoords[1],
+                                imgHeight = taData.texCoords[3] - minY;
+                            bh!.setTexCoordArr(
+                                this._handlerIndex,
+                                taData.texCoords,
+                                minY,
+                                imgHeight
+                            );
+                        } else {
+                            ta.addImage(img);
+                            ta.createTexture();
+                            this._image = img;
+                            rn!.updateTexCoords();
+                        }
+                    });
+                } else {
+                    bh!.setTextureEnabled(this._handlerIndex, false);
+                    rn!.updateTexCoords();
+                }
             }
         }
     }
