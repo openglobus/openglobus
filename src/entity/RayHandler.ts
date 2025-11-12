@@ -852,7 +852,7 @@ class RayHandler {
     public setTextureEnabled(index: number, enabled: boolean) {
         let i = index * 24;
         let a = this._texCoordArr;
-        let f = enabled ? 0 : 1;
+        let f = enabled ? 1 : 0;
 
         a[i + 3] = f;
         a[i + 7] = f;
