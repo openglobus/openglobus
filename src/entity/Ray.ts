@@ -202,7 +202,7 @@ class Ray {
                         }
                     });
                 } else {
-                    bh!.setTextureEnabled(this._handlerIndex, false);
+                    bh!.setTextureDisabled(this._handlerIndex);
                     rn!.updateTexCoords();
                 }
             }

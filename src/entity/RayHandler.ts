@@ -849,17 +849,16 @@ class RayHandler {
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
-    public setTextureEnabled(index: number, enabled: boolean) {
+    public setTextureDisabled(index: number) {
         let i = index * 24;
         let a = this._texCoordArr;
-        let f = enabled ? 1 : 0;
 
-        a[i + 3] = f;
-        a[i + 7] = f;
-        a[i + 11] = f;
-        a[i + 15] = f;
-        a[i + 19] = f;
-        a[i + 23] = f;
+        a[i + 3] = 0;
+        a[i + 7] = 0;
+        a[i + 11] = 0;
+        a[i + 15] = 0;
+        a[i + 19] = 0;
+        a[i + 23] = 0;
 
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
