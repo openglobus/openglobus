@@ -1988,6 +1988,18 @@ export class Planet extends RenderNode {
         this.quadTreeStrategy.clearRenderedNodes();
     }
 
+    /**
+     * Destroy planet.
+     * @public
+     */
+    public override destroy() {
+        this._terrainWorker.destroy();
+        this._plainSegmentWorker.destroy();
+        this.renderer?.destroy()
+        this.onremove();
+        super.destroy();
+    }
+
     // function checkTerrainCollision(entity) {
     //     let _tempTerrPoint = new Vec3();
     //     let nodes = globus.planet._renderedNodes;

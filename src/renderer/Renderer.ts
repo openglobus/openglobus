@@ -1433,6 +1433,8 @@ class Renderer {
     }
 
     public destroy() {
+        this.labelWorker.destroy();
+
         for (let i in this.controls) {
             this.controls[i].remove();
         }
