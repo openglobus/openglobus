@@ -62,10 +62,8 @@ export class BaseWorker<T> {
             w.onmessage = null;
             w.terminate();
         }
-        //@ts-ignore
-        this._pendingQueue = null;
-        //@ts-ignore
-        this._workerQueue = null;
+        this._pendingQueue = [];
+        this._workerQueue = [];
     }
 
     public get pendingQueue(): T[] {
