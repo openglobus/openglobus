@@ -19,6 +19,7 @@ import {
 } from "../utils/shared";
 import type {TypedArray} from "../utils/shared";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
+import type {HTMLImageElementExt} from "../utils/ImagesCacheManager";
 
 const VERTICES_BUFFER = 0;
 const INDEX_BUFFER = 1;
@@ -55,6 +56,10 @@ export interface IPolylineParams {
     pathLonLat?: SegmentPathLonLatExt[];
     visibleSpherePosition?: Cartesian;
     visibleSphereRadius?: number;
+    src?: string;
+    image?: HTMLImageElement;
+    texOffset?: number;
+    strokeSize?: number;
 }
 
 /**
@@ -181,6 +186,24 @@ class Polyline {
 
     public __doubleToTwoFloats: (pos: Vec3, highPos: Vec3, lowPos: Vec3) => void;
 
+    /**
+     * Stroke image src.
+     * @protected
+     * @type {string}
+     */
+    protected _src: string | null;
+
+    /**
+     * Stroke image object.
+     * @protected
+     * @type {Object}
+     */
+    protected _image: HTMLImageElement & { __nodeIndex?: number } | null;
+
+    protected _texOffset: number;
+
+    protected _strokeSize: number;
+
     constructor(options: IPolylineParams = {}) {
 
         this.__id = Polyline.__counter__++;
@@ -236,6 +259,14 @@ class Polyline {
         this._handler = null;
         this._handlerIndex = -1;
 
+        this._image = options.image || null;
+
+        this._src = options.src || null;
+
+        this._texOffset = options.texOffset || 0;
+
+        this._strokeSize = options.strokeSize != undefined ? options.strokeSize : 32;
+
         this._buffersUpdateCallbacks = [];
         this._buffersUpdateCallbacks[VERTICES_BUFFER] = this._createVerticesBuffer;
         this._buffersUpdateCallbacks[INDEX_BUFFER] = this._createIndexBuffer;
@@ -255,6 +286,80 @@ class Polyline {
         }
 
         this._refresh();
+    }
+
+    public get texOffset(): number {
+        return this._texOffset;
+    }
+
+    public set texOffset(value: number) {
+        this._texOffset = value;
+        this._setTexOffsetArr(value);
+    }
+
+    public get strokeSize(): number {
+        return this._strokeSize;
+    }
+
+    public set strokeSize(value: number) {
+        this._strokeSize = value;
+        this._setStrokeSizeArr(value);
+    }
+
+    /**
+     * Sets image template url source.
+     * @public
+     * @param {string} src - Image url.
+     */
+    public setSrc(src: string | null) {
+        this._src = src;
+        let bh = this._handler;
+        if (bh) {
+            let rn = bh._entityCollection.renderNode;
+            if (rn && rn.renderer) {
+                let ta = rn.renderer.strokeTextureAtlas;
+                if (src && src.length) {
+                    ta.loadImage(src, (img: HTMLImageElementExt) => {
+                        if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
+                            this._image = img;
+                            let taData = ta.get(img!.__nodeIndex!)!;
+                            let minY = taData.texCoords[1],
+                                imgHeight = taData.texCoords[3] - minY;
+                            bh!._setTexCoordArr(
+                                taData.texCoords,
+                                minY,
+                                imgHeight
+                            );
+                        } else {
+                            ta.addImage(img);
+                            ta.createTexture();
+                            this._image = img;
+                            rn!.updateTexCoords();
+                        }
+                    });
+                } else {
+                    bh!.setTextureDisabled();
+                    rn!.updateTexCoords();
+                }
+            }
+        }
+    }
+
+    public getSrc(): string | null {
+        return this._src;
+    }
+
+    /**
+     * Sets image template object.
+     * @public
+     * @param {Object} image - JavaScript image object.
+     */
+    public setImage(image: HTMLImageElement) {
+        this.setSrc(image.src);
+    }
+
+    public getImage(): HTMLImageElementExt | null {
+        return this._image;
     }
 
     /**
