@@ -196,15 +196,15 @@ class BaseBillboardHandler {
     protected _deleteBuffers() {
         if (this._renderer) {
             let gl = this._renderer.handler.gl!;
-            gl.deleteBuffer(this._positionHighBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._positionLowBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._sizeBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._offsetBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._rgbaBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._rotationBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._vertexBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._texCoordBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._pickingColorBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._positionHighBuffer!);
+            gl.deleteBuffer(this._positionLowBuffer!);
+            gl.deleteBuffer(this._sizeBuffer!);
+            gl.deleteBuffer(this._offsetBuffer!);
+            gl.deleteBuffer(this._rgbaBuffer!);
+            gl.deleteBuffer(this._rotationBuffer!);
+            gl.deleteBuffer(this._vertexBuffer!);
+            gl.deleteBuffer(this._texCoordBuffer!);
+            gl.deleteBuffer(this._pickingColorBuffer!);
         }
 
         this._positionHighBuffer = null;

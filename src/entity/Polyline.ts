@@ -19,10 +19,12 @@ import {
 } from "../utils/shared";
 import type {TypedArray} from "../utils/shared";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
+import type {HTMLImageElementExt} from "../utils/ImagesCacheManager";
 
 const VERTICES_BUFFER = 0;
 const INDEX_BUFFER = 1;
 const COLORS_BUFFER = 2;
+const TEXCOORD_BUFFER = 3;
 
 const DEFAULT_COLOR = "#0000FF";
 
@@ -55,6 +57,10 @@ export interface IPolylineParams {
     pathLonLat?: SegmentPathLonLatExt[];
     visibleSpherePosition?: Cartesian;
     visibleSphereRadius?: number;
+    src?: string;
+    image?: HTMLImageElement;
+    texOffset?: number;
+    strokeSize?: number;
 }
 
 /**
@@ -149,12 +155,14 @@ class Polyline {
     protected _orders: TypedArray | number[];
     protected _indexes: TypedArray | number[];
     protected _colors: TypedArray | number[];
+    protected _texCoordArr: TypedArray | number[];
 
     protected _verticesHighBuffer: WebGLBufferExt | null;
     protected _verticesLowBuffer: WebGLBufferExt | null;
     protected _ordersBuffer: WebGLBufferExt | null;
     protected _indexesBuffer: WebGLBufferExt | null;
     protected _colorsBuffer: WebGLBufferExt | null;
+    protected _texCoordBuffer: WebGLBufferExt | null;
 
     protected _pickingColor: NumberArray3;
 
@@ -180,6 +188,24 @@ class Polyline {
     protected _visibleSphere: Float32Array;
 
     public __doubleToTwoFloats: (pos: Vec3, highPos: Vec3, lowPos: Vec3) => void;
+
+    /**
+     * Stroke image src.
+     * @protected
+     * @type {string}
+     */
+    protected _src: string | null;
+
+    /**
+     * Stroke image object.
+     * @protected
+     * @type {Object}
+     */
+    protected _image: HTMLImageElement & { __nodeIndex?: number } | null;
+
+    protected _texOffset: number;
+
+    protected _strokeSize: number;
 
     constructor(options: IPolylineParams = {}) {
 
@@ -219,12 +245,14 @@ class Polyline {
         this._orders = [];
         this._indexes = [];
         this._colors = [];
+        this._texCoordArr = [];
 
         this._verticesHighBuffer = null;
         this._verticesLowBuffer = null;
         this._ordersBuffer = null;
         this._indexesBuffer = null;
         this._colorsBuffer = null;
+        this._texCoordBuffer = null;
 
         this._pickingColor = [0, 0, 0];
 
@@ -236,10 +264,19 @@ class Polyline {
         this._handler = null;
         this._handlerIndex = -1;
 
+        this._image = options.image || null;
+
+        this._src = options.src || null;
+
+        this._texOffset = options.texOffset || 0;
+
+        this._strokeSize = options.strokeSize != undefined ? options.strokeSize : 32;
+
         this._buffersUpdateCallbacks = [];
         this._buffersUpdateCallbacks[VERTICES_BUFFER] = this._createVerticesBuffer;
         this._buffersUpdateCallbacks[INDEX_BUFFER] = this._createIndexBuffer;
         this._buffersUpdateCallbacks[COLORS_BUFFER] = this._createColorsBuffer;
+        this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this._createTexCoordBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
@@ -255,6 +292,132 @@ class Polyline {
         }
 
         this._refresh();
+    }
+
+    public get texOffset(): number {
+        return this._texOffset;
+    }
+
+    public set texOffset(value: number) {
+        this._texOffset = value;
+    }
+
+    public get strokeSize(): number {
+        return this._strokeSize;
+    }
+
+    public set strokeSize(value: number) {
+        this._strokeSize = value;
+    }
+
+    /**
+     * Sets image template url source.
+     * @public
+     * @param {string} src - Image url.
+     */
+    public setSrc(src: string | null) {
+        this._src = src;
+        let bh = this._handler;
+        if (bh) {
+            let rn = bh._entityCollection.renderNode;
+            if (rn && rn.renderer) {
+                let ta = rn.renderer.strokeTextureAtlas;
+                if (src && src.length) {
+                    ta.loadImage(src, (img: HTMLImageElementExt) => {
+                        if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
+                            this._image = img;
+                            let taData = ta.get(img!.__nodeIndex!)!;
+                            let minY = taData.texCoords[1],
+                                imgHeight = taData.texCoords[3] - minY;
+                            this._setTexCoordArr(
+                                taData.texCoords,
+                                minY,
+                                imgHeight
+                            );
+                        } else {
+                            ta.addImage(img);
+                            ta.createTexture();
+                            this._image = img;
+                            rn!.updateTexCoords();
+                        }
+                    });
+                } else {
+                    this.setTextureDisabled();
+                    rn!.updateTexCoords();
+                }
+            }
+        }
+    }
+
+    public getSrc(): string | null {
+        return this._src;
+    }
+
+    /**
+     * Sets image template object.
+     * @public
+     * @param {Object} image - JavaScript image object.
+     */
+    public setImage(image: HTMLImageElement) {
+        this.setSrc(image.src);
+    }
+
+    public getImage(): HTMLImageElementExt | null {
+        return this._image;
+    }
+
+    public _setTexCoordArr(tcoordArr: number[] | TypedArray, minY: number, imgHeight: number) {
+        let index = 0;
+        let i = index * 24;
+        let a = this._texCoordArr;
+
+        // a[i] = tcoordArr[0];
+        // a[i + 1] = tcoordArr[1];
+        // a[i + 2] = minY;
+        // a[i + 3] = imgHeight;
+        //
+        // a[i + 4] = tcoordArr[2];
+        // a[i + 5] = tcoordArr[3];
+        // a[i + 6] = minY;
+        // a[i + 7] = imgHeight;
+        //
+        // a[i + 8] = tcoordArr[4];
+        // a[i + 9] = tcoordArr[5];
+        // a[i + 10] = minY;
+        // a[i + 11] = imgHeight;
+        //
+        // a[i + 12] = tcoordArr[6];
+        // a[i + 13] = tcoordArr[7];
+        // a[i + 14] = minY;
+        // a[i + 15] = imgHeight;
+        //
+        // a[i + 16] = tcoordArr[8];
+        // a[i + 17] = tcoordArr[9];
+        // a[i + 18] = minY;
+        // a[i + 19] = imgHeight;
+        //
+        // a[i + 20] = tcoordArr[10];
+        // a[i + 21] = tcoordArr[11];
+        // a[i + 22] = minY;
+        // a[i + 23] = imgHeight;
+
+        this._changedBuffers[TEXCOORD_BUFFER] = true;
+    }
+
+    public setTextureDisabled() {
+        // let index = 0;
+        // let i = index * 24;
+        // let a = this._texCoordArr;
+        //
+        // a[i + 3] = 0;
+        // a[i + 7] = 0;
+        // a[i + 11] = 0;
+        // a[i + 15] = 0;
+        // a[i + 19] = 0;
+        // a[i + 23] = 0;
+        //
+        // this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._strokeSize = 0;
     }
 
     /**
@@ -1843,6 +2006,8 @@ class Polyline {
         this._indexes = null;
         //@ts-ignore
         this._colors = null;
+        //@ts-ignore
+        this._texCoordArr = null;
 
         this._verticesHigh = [];
         this._verticesLow = [];
@@ -1921,12 +2086,15 @@ class Polyline {
         this._indexes = null;
         //@ts-ignore
         this._colors = null;
+        //@ts-ignore
+        this._texCoordArr = null;
 
         this._verticesHigh = [];
         this._verticesLow = [];
         this._orders = [];
         this._indexes = [];
         this._colors = [];
+        this._texCoordArr = [];
 
         this._deleteBuffers();
 
@@ -2121,8 +2289,14 @@ class Polyline {
             gl.uniform1f(shu.thickness, this.thickness * 0.5);
             gl.uniform1f(shu.opacity, this._opacity * ec._fadingOpacity);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._colorsBuffer as WebGLBuffer);
+            gl.uniform1f(shu.texOffset, this._texOffset);
+            gl.uniform1f(shu.strokeSize, this._strokeSize);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._colorsBuffer!);
             gl.vertexAttribPointer(sha.color, this._colorsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
+            gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             let v = this._verticesHighBuffer!;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);
@@ -2136,10 +2310,10 @@ class Polyline {
             gl.vertexAttribPointer(sha.currentLow, v.itemSize, gl.FLOAT, false, 12, 48);
             gl.vertexAttribPointer(sha.nextLow, v.itemSize, gl.FLOAT, false, 12, 96);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer!);
             gl.vertexAttribPointer(sha.order, this._ordersBuffer!.itemSize, gl.FLOAT, false, 4, 0);
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer!);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
 
             gl.enable(gl.CULL_FACE);
@@ -2240,17 +2414,19 @@ class Polyline {
             let r = this._renderNode.renderer!,
                 gl = r.handler.gl!;
 
-            gl.deleteBuffer(this._verticesHighBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._verticesLowBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._ordersBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._indexesBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._colorsBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._verticesHighBuffer!);
+            gl.deleteBuffer(this._verticesLowBuffer!);
+            gl.deleteBuffer(this._ordersBuffer!);
+            gl.deleteBuffer(this._indexesBuffer!);
+            gl.deleteBuffer(this._colorsBuffer!);
+            gl.deleteBuffer(this._texCoordBuffer!);
 
             this._verticesHighBuffer = null;
             this._verticesLowBuffer = null;
             this._ordersBuffer = null;
             this._indexesBuffer = null;
             this._colorsBuffer = null;
+            this._texCoordBuffer = null;
         }
     }
 
@@ -2264,8 +2440,8 @@ class Polyline {
         let numItems = this._verticesHigh.length / 3;
 
         if (!this._verticesHighBuffer || this._verticesHighBuffer.numItems !== numItems) {
-            h.gl!.deleteBuffer(this._verticesHighBuffer as WebGLBuffer);
-            h.gl!.deleteBuffer(this._verticesLowBuffer as WebGLBuffer);
+            h.gl!.deleteBuffer(this._verticesHighBuffer!);
+            h.gl!.deleteBuffer(this._verticesLowBuffer!);
             this._verticesHighBuffer = h.createStreamArrayBuffer(3, numItems);
             this._verticesLowBuffer = h.createStreamArrayBuffer(3, numItems);
         }
@@ -2273,8 +2449,8 @@ class Polyline {
         this._verticesHigh = makeArrayTyped(this._verticesHigh);
         this._verticesLow = makeArrayTyped(this._verticesLow);
 
-        h.setStreamArrayBuffer(this._verticesHighBuffer!, this._verticesHigh as Float32Array);
-        h.setStreamArrayBuffer(this._verticesLowBuffer!, this._verticesLow as Float32Array);
+        h.setStreamArrayBuffer(this._verticesHighBuffer!, this._verticesHigh as TypedArray);
+        h.setStreamArrayBuffer(this._verticesLowBuffer!, this._verticesLow as TypedArray);
     }
 
     /**
@@ -2283,22 +2459,30 @@ class Polyline {
      */
     protected _createIndexBuffer() {
         let h = this._renderNode!.renderer!.handler;
-        h.gl!.deleteBuffer(this._ordersBuffer as WebGLBuffer);
-        h.gl!.deleteBuffer(this._indexesBuffer as WebGLBuffer);
+        h.gl!.deleteBuffer(this._ordersBuffer!);
+        h.gl!.deleteBuffer(this._indexesBuffer!);
 
         this._orders = makeArrayTyped(this._orders);
-        this._ordersBuffer = h.createArrayBuffer(this._orders as Uint8Array, 1, this._orders.length / 2);
+        this._ordersBuffer = h.createArrayBuffer(this._orders as TypedArray, 1, this._orders.length / 2);
 
         this._indexes = makeArrayTyped(this._indexes, Uint32Array);
-        this._indexesBuffer = h.createElementArrayBuffer(this._indexes as Uint32Array, 1, this._indexes.length);
+        this._indexesBuffer = h.createElementArrayBuffer(this._indexes as TypedArray, 1, this._indexes.length);
     }
 
     protected _createColorsBuffer() {
         let h = this._renderNode!.renderer!.handler;
-        h.gl!.deleteBuffer(this._colorsBuffer as WebGLBuffer);
+        h.gl!.deleteBuffer(this._colorsBuffer!);
 
+        //@todo: change to STREAM teh same as _createVerticesBuffer
         this._colors = makeArrayTyped(this._colors);
-        this._colorsBuffer = h.createArrayBuffer(new Float32Array(this._colors), 4, this._colors.length / 4);
+        this._colorsBuffer = h.createArrayBuffer(this._colors as TypedArray, 4, this._colors.length / 4);
+    }
+
+    public _createTexCoordBuffer() {
+        let h = this._renderNode!.renderer!.handler;
+        h.gl!.deleteBuffer(this._texCoordBuffer!);
+        this._texCoordArr = makeArrayTyped(this._texCoordArr);
+        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr as TypedArray, 4, this._texCoordArr.length / 4);
     }
 
     public setVisibleSphere(p: Vec3, r: number) {
