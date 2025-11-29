@@ -43,7 +43,6 @@ class RayHandler {
     protected _rays: Ray[];
 
     protected _vertexBuffer: WebGLBufferExt | null;
-    protected _texCoordBuffer: WebGLBufferExt | null;
     protected _startPositionHighBuffer: WebGLBufferExt | null;
     protected _startPositionLowBuffer: WebGLBufferExt | null;
     protected _endPositionHighBuffer: WebGLBufferExt | null;
@@ -51,11 +50,11 @@ class RayHandler {
     protected _thicknessBuffer: WebGLBufferExt | null;
     protected _rgbaBuffer: WebGLBufferExt | null;
     protected _pickingColorBuffer: WebGLBufferExt | null;
+    protected _texCoordBuffer: WebGLBufferExt | null;
     protected _texOffsetBuffer: WebGLBufferExt | null;
     protected _strokeSizeBuffer: WebGLBufferExt | null;
 
     protected _vertexArr: TypedArray | number[];
-    protected _texCoordArr: TypedArray;
     protected _startPositionHighArr: TypedArray | number[];
     protected _startPositionLowArr: TypedArray | number[];
     protected _endPositionHighArr: TypedArray | number[];
@@ -63,6 +62,7 @@ class RayHandler {
     protected _thicknessArr: TypedArray | number[];
     protected _rgbaArr: TypedArray | number[];
     protected _pickingColorArr: TypedArray | number[];
+    protected _texCoordArr: TypedArray;
     protected _texOffsetArr: TypedArray;
     protected _strokeSizeArr: TypedArray;
 
@@ -87,7 +87,6 @@ class RayHandler {
         this._rays = [];
 
         this._vertexBuffer = null;
-        this._texCoordBuffer = null;
         this._startPositionHighBuffer = null;
         this._startPositionLowBuffer = null;
         this._endPositionHighBuffer = null;
@@ -95,11 +94,11 @@ class RayHandler {
         this._thicknessBuffer = null;
         this._rgbaBuffer = null;
         this._pickingColorBuffer = null;
+        this._texCoordBuffer = null;
         this._texOffsetBuffer = null;
         this._strokeSizeBuffer = null;
 
         this._vertexArr = [];
-        this._texCoordArr = new Float32Array([]);
         this._startPositionHighArr = [];
         this._startPositionLowArr = [];
         this._endPositionHighArr = [];
@@ -107,6 +106,7 @@ class RayHandler {
         this._thicknessArr = [];
         this._rgbaArr = [];
         this._pickingColorArr = [];
+        this._texCoordArr = new Float32Array([]);
         this._texOffsetArr = new Float32Array([]);
         this._strokeSizeArr = new Float32Array([]);
 
@@ -175,8 +175,6 @@ class RayHandler {
         //@ts-ignore
         this._vertexArr = null;
         //@ts-ignore
-        this._texCoordArr = null;
-        //@ts-ignore
         this._startPositionHighArr = null;
         //@ts-ignore
         this._startPositionLowArr = null;
@@ -188,6 +186,8 @@ class RayHandler {
         this._thicknessArr = null;
         //@ts-ignore
         this._rgbaArr = null;
+        //@ts-ignore
+        this._texCoordArr = null;
         //@ts-ignore
         this._texOffsetArr = null;
         //@ts-ignore
