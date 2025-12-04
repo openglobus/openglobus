@@ -658,14 +658,12 @@ class EntityCollection {
      * @public
      */
     public updateStrokeTextureAtlas() {
+
         // Rays
-        let r = this.rayHandler.rays;
-        for (let i = 0; i < r.length; i++) {
-            r[i].setSrc(r[i].getSrc());
-        }
+        this.rayHandler.reloadTextures();
 
         //Polylines
-        //@todo
+        this.polylineHandler.reloadTextures();
 
         //Strips
         //@todo
@@ -746,6 +744,8 @@ class EntityCollection {
             this._clearEntity(entity.childEntities[i]);
         }
     }
+
+
 }
 
 type EntityCollectionEventList = [

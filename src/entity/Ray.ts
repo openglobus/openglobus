@@ -198,12 +198,12 @@ class Ray {
                             ta.addImage(img);
                             ta.createTexture();
                             this._image = img;
-                            rn!.updateTexCoords();
+                            rn!.updateStrokeTexCoords();
                         }
                     });
                 } else {
                     bh!.setTextureDisabled(this._handlerIndex);
-                    rn!.updateTexCoords();
+                    rn!.updateStrokeTexCoords();
                 }
             }
         }

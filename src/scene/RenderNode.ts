@@ -313,23 +313,23 @@ class RenderNode extends BaseNode {
     //     // }
     // }
 
+    /*
+        @todo: use one atlas for both handlers?
+     */
     public updateBillboardsTexCoords() {
         for (let i = 0; i < this.entityCollections.length; i++) {
             this.entityCollections[i].billboardHandler.refreshTexCoordsArr();
         }
     }
 
-    public updateTexCoords() {
-        //Ray
+    public updateStrokeTexCoords() {
         for (let i = 0; i < this.entityCollections.length; i++) {
-            this.entityCollections[i].rayHandler.refreshTexCoordsArr();
+            let ei = this.entityCollections[i];
+            ei.rayHandler.refreshTexCoordsArr();
+            ei.polylineHandler.refreshTexCoordsArr();
+            //Strips etc.
+            //@todo
         }
-
-        //Polyline
-        //@todo
-
-        //Strips
-        //@todo
     }
 
     public frame() {

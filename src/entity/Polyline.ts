@@ -338,12 +338,12 @@ class Polyline {
                             ta.addImage(img);
                             ta.createTexture();
                             this._image = img;
-                            rn!.updateTexCoords();
+                            rn!.updateStrokeTexCoords();
                         }
                     });
                 } else {
                     this.setTextureDisabled();
-                    rn!.updateTexCoords();
+                    rn!.updateStrokeTexCoords();
                 }
             }
         }
@@ -370,6 +370,7 @@ class Polyline {
         let index = 0;
         let i = index * 24;
         let a = this._texCoordArr;
+        debugger;
 
         // a[i] = tcoordArr[0];
         // a[i + 1] = tcoordArr[1];
@@ -2014,6 +2015,7 @@ class Polyline {
         this._orders = [];
         this._indexes = [];
         this._colors = [];
+        this._texCoordArr = [];
 
         this._path3v.length = 0;
         this._pathLonLat.length = 0;
