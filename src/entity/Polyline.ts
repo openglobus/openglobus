@@ -157,6 +157,8 @@ class Polyline {
     protected _colors: TypedArray | number[];
     protected _texCoordArr: TypedArray | number[];
 
+    protected _atlasTexCoords: number[];
+
     protected _verticesHighBuffer: WebGLBufferExt | null;
     protected _verticesLowBuffer: WebGLBufferExt | null;
     protected _ordersBuffer: WebGLBufferExt | null;
@@ -246,6 +248,8 @@ class Polyline {
         this._indexes = [];
         this._colors = [];
         this._texCoordArr = [];
+
+        this._atlasTexCoords = [];
 
         this._verticesHighBuffer = null;
         this._verticesLowBuffer = null;
@@ -366,58 +370,24 @@ class Polyline {
         return this._image;
     }
 
-    public _setTexCoordArr(tcoordArr: number[] | TypedArray, minY: number, imgHeight: number) {
-        let index = 0;
-        let i = index * 24;
-        let a = this._texCoordArr;
-        debugger;
+    public _setTexCoordArr(tcoordArr: number[], minY: number, imgHeight: number) {
+        this._texCoordArr = [];
 
-        // a[i] = tcoordArr[0];
-        // a[i + 1] = tcoordArr[1];
-        // a[i + 2] = minY;
-        // a[i + 3] = imgHeight;
-        //
-        // a[i + 4] = tcoordArr[2];
-        // a[i + 5] = tcoordArr[3];
-        // a[i + 6] = minY;
-        // a[i + 7] = imgHeight;
-        //
-        // a[i + 8] = tcoordArr[4];
-        // a[i + 9] = tcoordArr[5];
-        // a[i + 10] = minY;
-        // a[i + 11] = imgHeight;
-        //
-        // a[i + 12] = tcoordArr[6];
-        // a[i + 13] = tcoordArr[7];
-        // a[i + 14] = minY;
-        // a[i + 15] = imgHeight;
-        //
-        // a[i + 16] = tcoordArr[8];
-        // a[i + 17] = tcoordArr[9];
-        // a[i + 18] = minY;
-        // a[i + 19] = imgHeight;
-        //
-        // a[i + 20] = tcoordArr[10];
-        // a[i + 21] = tcoordArr[11];
-        // a[i + 22] = minY;
-        // a[i + 23] = imgHeight;
+        // unsafe, but we are not suppose to change it
+        this._atlasTexCoords = tcoordArr;
+
+        Polyline.setPathTexCoords(
+            this._path3v,
+            tcoordArr,
+            minY,
+            imgHeight,
+            this._texCoordArr
+        );
 
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
     public setTextureDisabled() {
-        // let index = 0;
-        // let i = index * 24;
-        // let a = this._texCoordArr;
-        //
-        // a[i + 3] = 0;
-        // a[i + 7] = 0;
-        // a[i + 11] = 0;
-        // a[i + 15] = 0;
-        // a[i + 19] = 0;
-        // a[i + 23] = 0;
-        //
-        // this._changedBuffers[TEXCOORD_BUFFER] = true;
         this._strokeSize = 0;
     }
 
@@ -874,6 +844,44 @@ class Polyline {
         outOrders.push(1, -1, 2, -2);
     }
 
+    /**
+
+     [1, -1, 2, -2] - orders for triangle strip line segment
+
+     (2)-------(-2)
+     |          |
+     |          |
+     |          |
+     |          |
+     (1)-------(-1)
+
+     */
+    static setPathTexCoords(
+        path3v: SegmentPath3vExt[],
+        tCoordArr: number[],
+        minY: number,
+        imgHeight: number,
+        outTexCoords: number[]
+    ) {
+        for (let j = 0, len = path3v.length; j < len; j++) {
+            var path = path3v[j];
+
+            if (path.length === 0) {
+                continue;
+            }
+
+            if (j > 0) {
+                outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
+            }
+
+            for (let i = 0, len = path.length; i < len; i++) {
+                outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
+            }
+
+            outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
+        }
+    }
+
     static setPathColors(
         pathLonLat: SegmentPathLonLatExt[],
         pathColors: SegmentPathColor[],
@@ -903,11 +911,6 @@ class Polyline {
             }
 
             for (let i = 0, len = path.length; i < len; i++) {
-                var cur = path[i];
-
-                if (cur instanceof Array) {
-                    cur = new LonLat(cur[0], cur[1], cur[2]);
-                }
 
                 if (pathColors_j && pathColors_j[i]) {
                     color = pathColors_j[i];
@@ -919,7 +922,6 @@ class Polyline {
                 a = color[A] != undefined ? color[A] : 1.0;
 
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
-
             }
 
             if (pathColors_j && pathColors_j[path.length - 1]) {
@@ -948,6 +950,7 @@ class Polyline {
         outVerticesLow: number[],
         outOrders: number[],
         outIndexes: number[],
+        outTexCoords: number[],
         ellipsoid: Ellipsoid,
         outTransformedPathCartesian: SegmentPath3vExt[],
         outPathLonLat: SegmentPathLonLatExt[],
@@ -1049,6 +1052,7 @@ class Polyline {
             }
 
             outOrders.push(1, -1, 2, -2);
+            outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
 
             for (let i = 0, len = path.length; i < len; i++) {
                 var cur = path[i];
@@ -1089,6 +1093,7 @@ class Polyline {
 
                 outOrders.push(1, -1, 2, -2);
                 outIndexes.push(index++, index++, index++, index++);
+                outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
 
                 if ((cur as LonLat).lon < outExtent.southWest.lon) {
                     outExtent.southWest.lon = (cur as LonLat).lon;
@@ -1163,6 +1168,7 @@ class Polyline {
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
 
             outOrders.push(1, -1, 2, -2);
+            outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
 
             if (j < pathLonLat.length - 1 && pathLonLat[j + 1].length !== 0) {
                 index += 8;
@@ -2058,6 +2064,7 @@ class Polyline {
             this._verticesLow as number[],
             this._orders as number[],
             this._indexes as number[],
+            this._texCoordArr as number[],
             (this._renderNode as Planet).ellipsoid,
             this._path3v,
             this._pathLonLat,
