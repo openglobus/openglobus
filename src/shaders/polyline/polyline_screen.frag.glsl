@@ -1,10 +1,12 @@
 precision highp float;
 
+uniform sampler2D texAtlas;
 uniform vec4 visibleSphere;
 
 varying vec3 uCamPos;
-varying vec4 vColor;
+varying vec4 v_rgba;
 varying vec3 vPos;
+varying vec2 vTexCoord;
 
 //${UTILS}
 
@@ -18,5 +20,11 @@ void main() {
         }
     }
 
-    gl_FragColor = vec4(vColor.rgb, vColor.a);
+    vec2 uv = vTexCoord.xy;
+    //float min = v_texCoord.z;
+    //float height = v_texCoord.w;
+
+    vec4 color = texture2D(texAtlas, uv);
+    //gl_FragColor = vec4(v_rgba.rgb, v_rgba.a);
+    gl_FragColor = color;
 }

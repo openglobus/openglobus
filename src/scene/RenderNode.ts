@@ -313,17 +313,24 @@ class RenderNode extends BaseNode {
     //     // }
     // }
 
+    /*
+        @todo: use one atlas for both handlers?
+     */
     public updateBillboardsTexCoords() {
         for (let i = 0; i < this.entityCollections.length; i++) {
             this.entityCollections[i].billboardHandler.refreshTexCoordsArr();
         }
     }
 
-    // public updateGeoObjectsTexCoords() {
-    //     for (let i = 0; i < this.entityCollections.length; i++) {
-    //         this.entityCollections[i].geoObjectHandler.refreshTexCoordsArr();
-    //     }
-    // }
+    public updateStrokeTexCoords() {
+        for (let i = 0; i < this.entityCollections.length; i++) {
+            let ei = this.entityCollections[i];
+            ei.rayHandler.refreshTexCoordsArr();
+            ei.polylineHandler.refreshTexCoordsArr();
+            //Strips etc.
+            //@todo
+        }
+    }
 
     public frame() {
         // virtual

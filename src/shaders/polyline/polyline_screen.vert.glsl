@@ -8,6 +8,8 @@ attribute vec3 prevLow;
 attribute vec3 currentLow;
 attribute vec3 nextLow;
 
+attribute vec2 texCoord;
+
 attribute float order;
 
 attribute vec4 color;
@@ -22,9 +24,10 @@ uniform float opacity;
 uniform float depthOffset;
 
 
-varying vec4 vColor;
+varying vec4 v_rgba;
 varying vec3 vPos;
 varying vec3 uCamPos;
+varying vec2 vTexCoord;
 
 const float NEAR = -1.0;
 
@@ -50,7 +53,7 @@ void main() {
     uCamPos = rtcEyePositionHigh + rtcEyePositionLow;
     vPos = currentHigh + currentLow;
 
-    vColor = vec4(color.rgb, color.a * opacity);
+    v_rgba = vec4(color.rgb, color.a * opacity);
 
     mat4 viewMatrixRTE = view;
     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -72,7 +75,7 @@ void main() {
     lowDiff = nextLow - rtcEyePositionLow;
     vec4 vNext = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-/*Clip near plane, the point behind view plane*/
+    /*Clip near plane, the point behind view plane*/
     if (vCurrent.z > NEAR) {
         if (vPrev.z < NEAR && abs(order) == 1.0) {
             vCurrent = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
@@ -111,6 +114,8 @@ void main() {
     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));
 
     float d = thickness * sign(order);
+
+    vTexCoord = texCoord;
 
     vec2 m;
     if (dotNP >= 0.99991) {
