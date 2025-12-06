@@ -1,6 +1,7 @@
 import {Entity} from "./Entity";
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";
+import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import type {NumberArray2} from "../math/Vec2";
@@ -847,14 +848,14 @@ class Polyline {
     /**
 
      [1, -1, 2, -2] - orders for triangle strip line segment
-
+     t2        t3
      (2)-------(-2)
      |          |
      |          |
      |          |
      |          |
      (1)-------(-1)
-
+     t0        t1
      */
     static setPathTexCoords(
         path3v: SegmentPath3vExt[],
@@ -863,6 +864,11 @@ class Polyline {
         imgHeight: number,
         outTexCoords: number[]
     ) {
+        let t0 = new Vec2(tCoordArr[0], tCoordArr[1]),
+            t1 = new Vec2(tCoordArr[8], tCoordArr[9]),
+            t2 = new Vec2(tCoordArr[2], tCoordArr[3]),
+            t3 = new Vec2(tCoordArr[4], tCoordArr[5]);
+
         for (let j = 0, len = path3v.length; j < len; j++) {
             var path = path3v[j];
 
@@ -871,14 +877,14 @@ class Polyline {
             }
 
             if (j > 0) {
-                outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
+                outTexCoords.push(t0.x, t0.y, t1.x, t1.y, t2.x, t2.y, t3.x, t3.y);
             }
 
             for (let i = 0, len = path.length; i < len; i++) {
-                outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
+                outTexCoords.push(t0.x, t0.y, t1.x, t1.y, t2.x, t2.y, t3.x, t3.y);
             }
 
-            outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
+            outTexCoords.push(t0.x, t0.y, t1.x, t1.y, t2.x, t2.y, t3.x, t3.y);
         }
     }
 
@@ -1931,7 +1937,6 @@ class Polyline {
     /**
      * Gets polyline opacity.
      * @public
-     * @param {number} opacity - Opacity.
      */
     public getOpacity(): number {
         return this._opacity;
@@ -1940,7 +1945,7 @@ class Polyline {
     /**
      * Sets Polyline thickness in screen pixels.
      * @public
-     * @param {number} thickness - Thickness.
+     * @param {number} altitude - ALtitude value.
      */
     public setAltitude(altitude: number) {
         this.altitude = altitude;
@@ -2167,7 +2172,7 @@ class Polyline {
 
     /**
      * Sets polyline color
-     * @param {string} htmlColor- HTML color
+     * @param {string} htmlColor - HTML color.
      */
     public setColorHTML(htmlColor: string) {
         this._defaultColor = htmlColorToFloat32Array(htmlColor);
@@ -2305,7 +2310,7 @@ class Polyline {
             gl.vertexAttribPointer(sha.color, this._colorsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
-            gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(sha.texCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             let v = this._verticesHighBuffer!;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);
@@ -2491,7 +2496,7 @@ class Polyline {
         let h = this._renderNode!.renderer!.handler;
         h.gl!.deleteBuffer(this._texCoordBuffer!);
         this._texCoordArr = makeArrayTyped(this._texCoordArr);
-        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr as TypedArray, 4, this._texCoordArr.length / 4);
+        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr as TypedArray, 2, this._texCoordArr.length / 2);
     }
 
     public setVisibleSphere(p: Vec3, r: number) {
