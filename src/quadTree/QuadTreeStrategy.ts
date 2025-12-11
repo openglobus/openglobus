@@ -175,10 +175,18 @@ export class QuadTreeStrategy {
         }
     }
 
-    public clearLayerMaterial(layer: Layer) {
+    /**
+     * clears layer material from the quad tree list. 
+     * @param layer 
+     * @param keepRendered if true, keeps materials that are currently rendered.
+     */
+    public clearLayerMaterial(layer: Layer, keepRendered: boolean = false) {
         let lid = layer.__id;
         for (let i = 0, len = this._quadTreeList.length; i < len; i++) {
-            this._quadTreeList[i].traverseTree(function (node: Node) {
+            this._quadTreeList[i].traverseTree((node: Node) => {
+                if (keepRendered && this._renderedNodes.includes(node)) {
+                    return;
+                }
                 let mats = node.segment.materials;
                 if (mats[lid]) {
                     mats[lid].clear();
