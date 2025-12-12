@@ -1,13 +1,16 @@
+#version 300 es
 precision highp float;
 
 uniform sampler2D texAtlas;
 uniform vec4 visibleSphere;
 
-varying vec3 uCamPos;
-varying vec4 v_rgba;
-varying vec3 vPos;
-varying vec4 vTexCoord;
-varying float repeat;
+in vec3 uCamPos;
+in vec4 v_rgba;
+in vec3 vPos;
+in vec4 vTexCoord;
+flat in float repeat;
+
+out vec4 fragColor;
 
 //${UTILS}
 
@@ -32,7 +35,7 @@ void main() {
     float localY = fract((uv.y + v_texOffset - min) / height * repeat);
     uv.y = clamp(min + localY * height, min + EPS, min + height - EPS);
 
-    vec4 color = texture2D(texAtlas, uv);
-    //gl_FragColor = vec4(v_rgba.rgb, v_rgba.a);
-    gl_FragColor = color;
+    vec4 color = texture(texAtlas, uv);
+    //fragColor = vec4(v_rgba.rgb, v_rgba.a);
+    fragColor = color;
 }

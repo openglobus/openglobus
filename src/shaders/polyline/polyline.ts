@@ -18,7 +18,8 @@ export function polyline_screen(): Program {
             opacity: "float",
             depthOffset: "float",
             visibleSphere: "vec4",
-            texAtlas: "sampler2d"
+            texAtlas: "sampler2d",
+            strokeSize: "float"
         },
         attributes: {
             prevHigh: "vec3",

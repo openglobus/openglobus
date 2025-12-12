@@ -1,18 +1,19 @@
+#version 300 es
 precision highp float;
 
-attribute vec3 prevHigh;
-attribute vec3 currentHigh;
-attribute vec3 nextHigh;
+in vec3 prevHigh;
+in vec3 currentHigh;
+in vec3 nextHigh;
 
-attribute vec3 prevLow;
-attribute vec3 currentLow;
-attribute vec3 nextLow;
+in vec3 prevLow;
+in vec3 currentLow;
+in vec3 nextLow;
 
-attribute vec4 texCoord;
+in vec4 texCoord;
 
-attribute float order;
+in float order;
 
-attribute vec4 color;
+in vec4 color;
 
 uniform float thickness;
 uniform mat4 proj;
@@ -22,13 +23,13 @@ uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
 uniform float opacity;
 uniform float depthOffset;
+uniform float strokeSize;
 
-
-varying vec4 v_rgba;
-varying vec3 vPos;
-varying vec3 uCamPos;
-varying vec4 vTexCoord;
-varying float repeat;
+out vec4 v_rgba;
+out vec3 vPos;
+out vec3 uCamPos;
+out vec4 vTexCoord;
+flat out float repeat;
 
 const float NEAR = -1.0;
 
@@ -141,7 +142,6 @@ void main() {
         }
     }
 
-    float strokeSize = 32.0;
     repeat = min(distance(sCurrent, sPrev), viewport.y) / strokeSize;
 
     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
