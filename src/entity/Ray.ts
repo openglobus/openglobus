@@ -186,13 +186,9 @@ class Ray {
                         if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
                             this._image = img;
                             let taData = ta.get(img!.__nodeIndex!)!;
-                            let minY = taData.texCoords[1],
-                                imgHeight = taData.texCoords[3] - minY;
                             bh!.setTexCoordArr(
                                 this._handlerIndex,
-                                taData.texCoords,
-                                minY,
-                                imgHeight
+                                taData.texCoords
                             );
                         } else {
                             ta.addImage(img);

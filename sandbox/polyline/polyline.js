@@ -34,7 +34,7 @@ class MyScene extends RenderNode {
 
         let e2 = new Entity({
             polyline: {
-                path3v: [[[5, 0, 5], [5, 15, 5], [0, 15, 0]]],
+                path3v: [[[5, 0, 5], [5, 15, 5], [0, 15, 0], [5, 150, 5]]],
                 thickness: 2.5,
                 src: "./template2.png",
                 isClosed: false

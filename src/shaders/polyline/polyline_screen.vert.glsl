@@ -28,6 +28,7 @@ varying vec4 v_rgba;
 varying vec3 vPos;
 varying vec3 uCamPos;
 varying vec4 vTexCoord;
+varying float repeat;
 
 const float NEAR = -1.0;
 
@@ -139,6 +140,9 @@ void main() {
             m = sCurrent + normalNext * d;
         }
     }
+
+    float strokeSize = 32.0;
+    repeat = min(distance(sCurrent, sPrev), viewport.y) / strokeSize;
 
     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
 }

@@ -7,6 +7,7 @@ varying vec3 uCamPos;
 varying vec4 v_rgba;
 varying vec3 vPos;
 varying vec4 vTexCoord;
+varying float repeat;
 
 //${UTILS}
 
@@ -24,10 +25,12 @@ void main() {
     float min = vTexCoord.z;
     float height = vTexCoord.w;
 
-    float repeat = 10.0;
+    float v_texOffset = 0.0;
 
-    float localY = fract((uv.y - min) / height * repeat);
-    uv.y = clamp(min + localY * height, min, min + height);
+    float EPS = 0.5 / 1024.0; //Atlas height
+
+    float localY = fract((uv.y + v_texOffset - min) / height * repeat);
+    uv.y = clamp(min + localY * height, min + EPS, min + height - EPS);
 
     vec4 color = texture2D(texAtlas, uv);
     //gl_FragColor = vec4(v_rgba.rgb, v_rgba.a);
