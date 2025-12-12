@@ -8,7 +8,7 @@ attribute vec3 prevLow;
 attribute vec3 currentLow;
 attribute vec3 nextLow;
 
-attribute vec2 texCoord;
+attribute vec4 texCoord;
 
 attribute float order;
 
@@ -27,7 +27,7 @@ uniform float depthOffset;
 varying vec4 v_rgba;
 varying vec3 vPos;
 varying vec3 uCamPos;
-varying vec2 vTexCoord;
+varying vec4 vTexCoord;
 
 const float NEAR = -1.0;
 

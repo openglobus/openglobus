@@ -819,7 +819,11 @@ class RayHandler {
         );
     }
 
-    public setTexCoordArr(index: number, tcoordArr: number[] | TypedArray, minY: number, imgHeight: number) {
+    public setTexCoordArr(index: number, tcoordArr: number[] | TypedArray) {
+
+        let minY = tcoordArr[1],
+            imgHeight = tcoordArr[3] - minY;
+
         let i = index * 24;
         let a = this._texCoordArr;
 
@@ -909,9 +913,7 @@ class RayHandler {
                 if (img) {
                     let taData = ta.get(img.__nodeIndex!);
                     if (taData) {
-                        let minY = taData.texCoords[1],
-                            imgHeight = taData.texCoords[3] - minY;
-                        this.setTexCoordArr(ri._handlerIndex, taData.texCoords, minY, imgHeight);
+                        this.setTexCoordArr(ri._handlerIndex, taData.texCoords);
                     }
                 }
             }

@@ -29,7 +29,7 @@ export function polyline_screen(): Program {
             nextLow: "vec3",
             order: "float",
             color: "vec4",
-            texCoord: "vec2"
+            texCoord: "vec4"
         },
         vertexShader: polyline_screen_vert,
         fragmentShader: polyline_screen_frag

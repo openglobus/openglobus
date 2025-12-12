@@ -6,7 +6,7 @@ uniform vec4 visibleSphere;
 varying vec3 uCamPos;
 varying vec4 v_rgba;
 varying vec3 vPos;
-varying vec2 vTexCoord;
+varying vec4 vTexCoord;
 
 //${UTILS}
 
@@ -21,8 +21,13 @@ void main() {
     }
 
     vec2 uv = vTexCoord.xy;
-    //float min = v_texCoord.z;
-    //float height = v_texCoord.w;
+    float min = vTexCoord.z;
+    float height = vTexCoord.w;
+
+    float repeat = 10.0;
+
+    float localY = fract((uv.y - min) / height * repeat);
+    uv.y = clamp(min + localY * height, min, min + height);
 
     vec4 color = texture2D(texAtlas, uv);
     //gl_FragColor = vec4(v_rgba.rgb, v_rgba.a);

@@ -332,13 +332,7 @@ class Polyline {
                         if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
                             this._image = img;
                             let taData = ta.get(img!.__nodeIndex!)!;
-                            let minY = taData.texCoords[1],
-                                imgHeight = taData.texCoords[3] - minY;
-                            this._setTexCoordArr(
-                                taData.texCoords,
-                                minY,
-                                imgHeight
-                            );
+                            this._setTexCoordArr(taData.texCoords);
                         } else {
                             ta.addImage(img);
                             ta.createTexture();
@@ -371,7 +365,7 @@ class Polyline {
         return this._image;
     }
 
-    public _setTexCoordArr(tcoordArr: number[], minY: number, imgHeight: number) {
+    public _setTexCoordArr(tcoordArr: number[]) {
         this._texCoordArr = [];
 
         // unsafe, but we are not suppose to change it
@@ -380,8 +374,6 @@ class Polyline {
         Polyline.setPathTexCoords(
             this._path3v,
             tcoordArr,
-            minY,
-            imgHeight,
             this._texCoordArr
         );
 
@@ -860,14 +852,16 @@ class Polyline {
     static setPathTexCoords(
         path3v: SegmentPath3vExt[],
         tCoordArr: number[],
-        minY: number,
-        imgHeight: number,
         outTexCoords: number[]
     ) {
-        let t0 = new Vec2(tCoordArr[0], tCoordArr[1]),
-            t1 = new Vec2(tCoordArr[8], tCoordArr[9]),
-            t2 = new Vec2(tCoordArr[2], tCoordArr[3]),
-            t3 = new Vec2(tCoordArr[4], tCoordArr[5]);
+
+        let minY = tCoordArr[1],
+            imgHeight = tCoordArr[3] - minY;
+
+        let t0 = new Vec2(tCoordArr[4], tCoordArr[5]),
+            t1 = new Vec2(tCoordArr[2], tCoordArr[3]),
+            t2 = new Vec2(tCoordArr[8], tCoordArr[9]),
+            t3 = new Vec2(tCoordArr[0], tCoordArr[1]);
 
         for (let j = 0, len = path3v.length; j < len; j++) {
             var path = path3v[j];
@@ -877,14 +871,14 @@ class Polyline {
             }
 
             if (j > 0) {
-                outTexCoords.push(t0.x, t0.y, t1.x, t1.y, t2.x, t2.y, t3.x, t3.y);
+                outTexCoords.push(t0.x, t0.y, minY, imgHeight, t1.x, t1.y, minY, imgHeight, t2.x, t2.y, minY, imgHeight, t3.x, t3.y, minY, imgHeight,);
             }
 
             for (let i = 0, len = path.length; i < len; i++) {
-                outTexCoords.push(t0.x, t0.y, t1.x, t1.y, t2.x, t2.y, t3.x, t3.y);
+                outTexCoords.push(t0.x, t0.y, minY, imgHeight, t1.x, t1.y, minY, imgHeight, t2.x, t2.y, minY, imgHeight, t3.x, t3.y, minY, imgHeight,);
             }
 
-            outTexCoords.push(t0.x, t0.y, t1.x, t1.y, t2.x, t2.y, t3.x, t3.y);
+            outTexCoords.push(t0.x, t0.y, minY, imgHeight, t1.x, t1.y, minY, imgHeight, t2.x, t2.y, minY, imgHeight, t3.x, t3.y, minY, imgHeight,);
         }
     }
 
@@ -1058,7 +1052,7 @@ class Polyline {
             }
 
             outOrders.push(1, -1, 2, -2);
-            outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
+            outTexCoords.push(0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0);
 
             for (let i = 0, len = path.length; i < len; i++) {
                 var cur = path[i];
@@ -1099,7 +1093,7 @@ class Polyline {
 
                 outOrders.push(1, -1, 2, -2);
                 outIndexes.push(index++, index++, index++, index++);
-                outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
+                outTexCoords.push(0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0);
 
                 if ((cur as LonLat).lon < outExtent.southWest.lon) {
                     outExtent.southWest.lon = (cur as LonLat).lon;
@@ -1174,7 +1168,7 @@ class Polyline {
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
 
             outOrders.push(1, -1, 2, -2);
-            outTexCoords.push(0, 0, 1, 0, 1, 0, 1, 1);
+            outTexCoords.push(0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0);
 
             if (j < pathLonLat.length - 1 && pathLonLat[j + 1].length !== 0) {
                 index += 8;
@@ -2496,7 +2490,7 @@ class Polyline {
         let h = this._renderNode!.renderer!.handler;
         h.gl!.deleteBuffer(this._texCoordBuffer!);
         this._texCoordArr = makeArrayTyped(this._texCoordArr);
-        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr as TypedArray, 2, this._texCoordArr.length / 2);
+        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr as TypedArray, 4, this._texCoordArr.length / 4);
     }
 
     public setVisibleSphere(p: Vec3, r: number) {
