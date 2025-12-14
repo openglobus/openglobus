@@ -2,7 +2,6 @@ import * as mercator from "../mercator";
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";
 import {Segment} from "../segment/Segment";
-import {EPSG_AXES_REVERSED} from "../utils/ProjectionList"
 import {XYZ} from "./XYZ";
 import type {IXYZParams} from "./XYZ";
 
