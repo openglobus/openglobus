@@ -127,7 +127,7 @@ class WMS extends XYZ {
 
     static get_bbox_v1_3_0(extent: Extent, srs: string): string {
         if (srs === "epsg:4326") {
-        return `${extent.getSouth()},${extent.getWest()},${extent.getNorth()},${extent.getEast()}`;
+            return `${extent.getSouth()},${extent.getWest()},${extent.getNorth()},${extent.getEast()}`;
     }
     return `${extent.getWest()},${extent.getSouth()},${extent.getEast()},${extent.getNorth()}`;
     }
