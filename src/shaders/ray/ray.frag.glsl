@@ -1,11 +1,14 @@
+#version 300 es
 precision highp float;
 
 uniform sampler2D texAtlas;
 
-varying vec4 v_rgba;
-varying vec4 v_texCoord;
-varying float v_texOffset;
-varying float repeat;
+in vec4 v_rgba;
+in vec4 v_texCoord;
+in float v_texOffset;
+flat in float repeat;
+
+out vec4 fragColor;
 
 void main() {
     vec2 uv = v_texCoord.xy;
@@ -13,14 +16,14 @@ void main() {
     float height = v_texCoord.w;
 
     if(height == 0.0){
-        gl_FragColor = v_rgba;
+        fragColor = v_rgba;
     }else {
         float EPS = 0.5 / 1024.0; //Atlas height
 
         float localY = fract((uv.y + v_texOffset - min) / height * repeat);
         uv.y = clamp(min + localY * height, min + EPS, min + height - EPS);
 
-        vec4 color = texture2D(texAtlas, uv);
-        gl_FragColor = v_rgba * color;
+        vec4 color = texture(texAtlas, uv);
+        fragColor = v_rgba * color;
     }
 }

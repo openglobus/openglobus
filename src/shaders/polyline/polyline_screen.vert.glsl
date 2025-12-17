@@ -10,9 +10,7 @@ in vec3 currentLow;
 in vec3 nextLow;
 
 in vec4 texCoord;
-
 in float order;
-
 in vec4 color;
 
 uniform float thickness;

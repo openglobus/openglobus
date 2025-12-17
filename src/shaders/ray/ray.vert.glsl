@@ -1,20 +1,21 @@
+#version 300 es
 precision highp float;
 
-attribute vec4 a_rgba;
-attribute vec3 a_startPosHigh;
-attribute vec3 a_startPosLow;
-attribute vec3 a_endPosHigh;
-attribute vec3 a_endPosLow;
-attribute vec2 a_vertices;
-attribute float a_thickness;
-attribute vec4 a_texCoord;
-attribute float a_texOffset;
-attribute float a_strokeSize;
+in vec4 a_rgba;
+in vec3 a_startPosHigh;
+in vec3 a_startPosLow;
+in vec3 a_endPosHigh;
+in vec3 a_endPosLow;
+in vec2 a_vertices;
+in float a_thickness;
+in vec4 a_texCoord;
+in float a_texOffset;
+in float a_strokeSize;
 
-varying vec4 v_rgba;
-varying vec4 v_texCoord;
-varying float v_texOffset;
-varying float repeat;
+out vec4 v_rgba;
+out vec4 v_texCoord;
+out float v_texOffset;
+flat out float repeat;
 
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
