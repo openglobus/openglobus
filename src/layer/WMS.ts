@@ -70,7 +70,7 @@ class WMS extends XYZ {
      */
     public imageHeight: number;
 
-    protected _getBbox: (extent: Extent) => string;
+    protected _getBbox: (extent: Extent, srs: string) => string;
 
     protected _version: string;
 
@@ -125,8 +125,11 @@ class WMS extends XYZ {
         return `${extent.getWest()},${extent.getSouth()},${extent.getEast()},${extent.getNorth()}`;
     }
 
-    static get_bbox_v1_3_0(extent: Extent): string {
-        return `${extent.getSouth()},${extent.getWest()},${extent.getNorth()},${extent.getEast()}`;
+    static get_bbox_v1_3_0(extent: Extent, srs: string): string {
+        if (srs === "epsg:4326") {
+            return `${extent.getSouth()},${extent.getWest()},${extent.getNorth()},${extent.getEast()}`;
+    }
+    return `${extent.getWest()},${extent.getSouth()},${extent.getEast()},${extent.getNorth()}`;
     }
 
     public override _checkSegment(segment: Segment) {
@@ -145,7 +148,7 @@ class WMS extends XYZ {
             this._version,
             "GetMap",
             segment._projection.code,
-            this._getBbox(segment.getExtent()),
+            this._getBbox(segment.getExtent(), segment._projection.code),
             this.imageWidth,
             this.imageHeight,
             this._extra
