@@ -33,7 +33,7 @@ class SkyBox extends RenderNode {
         this.drawMode = this.renderer!.handler.gl!.TRIANGLES;
     }
 
-    public override frame() {
+    public override preFrame() {
         let h = this.renderer!.handler;
         let gl = h.gl!;
         let cam = this.renderer!.activeCamera!;
