@@ -23,6 +23,7 @@ const globus = new Globe({
     skybox: skybox,
     controls: [
         new control.MouseNavigation({ minSlope: 0.35 }),
-        new control.KeyboardNavigation({ autoActivate: true })
+        new control.KeyboardNavigation({ autoActivate: true }),
+        new control.ToggleWireframe()
     ]
 })
