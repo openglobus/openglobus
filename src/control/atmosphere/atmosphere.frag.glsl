@@ -130,10 +130,11 @@ void mainImage(out vec4 fragColor)
 
         if (intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 100000.0, distanceToGround) && hitGround)
         {
-            discard;
+            fragColor = vec4(0.47, 0.47, 0.5, 1.0);
+            return;
         }
 
-        float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(SAMPLE_COUNT);
+        float segmentLength = abs(((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(SAMPLE_COUNT));
 
         float t = segmentLength * 0.5;
 
@@ -194,7 +195,9 @@ void mainImage(out vec4 fragColor)
     }
     #endif
 
-    fragColor = vec4(pow(opacity * light * 8.0, vec3(1.0 / 2.2)), valueHSV(light) * clamp(opacity, 0.0, 1.0));
+    vec4 color = vec4(pow(opacity * light * 8.0, vec3(1.0 / 2.2)), valueHSV(light) * clamp(opacity, 0.0, 1.0));
+
+    fragColor = color;
 }
 
 void main(void)
