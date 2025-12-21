@@ -144,8 +144,8 @@ void main() {
 
     repeat = min(distance(sCurrent, sPrev), viewport.y) / strokeSize;
 
-    float repeatNext = min(distance(sCurrent, sNext), viewport.y) / strokeSize;
-    v_texOffset = repeatNext * strokeSize / viewport.y + texOffset;
+    //float repeatNext = min(distance(sCurrent, sNext), viewport.y) / strokeSize;
+    v_texOffset = texOffset;
 
     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
 }
