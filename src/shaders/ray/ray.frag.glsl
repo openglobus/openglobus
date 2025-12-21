@@ -11,13 +11,15 @@ flat in float repeat;
 out vec4 fragColor;
 
 void main() {
-    vec2 uv = v_texCoord.xy;
-    float min = v_texCoord.z;
+
     float height = v_texCoord.w;
 
     if(height == 0.0){
         fragColor = v_rgba;
     }else {
+        vec2 uv = v_texCoord.xy;
+        float min = v_texCoord.z;
+
         float EPS = 0.5 / 1024.0; //Atlas height
 
         float localY = fract((uv.y + v_texOffset - min) / height * repeat);

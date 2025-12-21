@@ -28,6 +28,7 @@ out vec3 vPos;
 out vec3 uCamPos;
 out vec4 vTexCoord;
 flat out float repeat;
+flat out float v_texOffset;
 
 const float NEAR = -1.0;
 
@@ -141,6 +142,7 @@ void main() {
     }
 
     repeat = min(distance(sCurrent, sPrev), viewport.y) / strokeSize;
+    v_texOffset = 0.0;
 
     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
 }

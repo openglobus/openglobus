@@ -3,12 +3,14 @@ precision highp float;
 
 uniform sampler2D texAtlas;
 uniform vec4 visibleSphere;
+uniform float texOffset;
 
 in vec3 uCamPos;
 in vec4 v_rgba;
 in vec3 vPos;
 in vec4 vTexCoord;
 flat in float repeat;
+flat in float v_texOffset;
 
 out vec4 fragColor;
 
@@ -24,18 +26,25 @@ void main() {
         }
     }
 
-    vec2 uv = vTexCoord.xy;
-    float min = vTexCoord.z;
     float height = vTexCoord.w;
 
-    float v_texOffset = 0.0;
+    if(height == 0.0){
+        fragColor = vec4(v_rgba.rgb, v_rgba.a);
+    }else {
 
-    float EPS = 0.5 / 1024.0; //Atlas height
+        vec2 uv = vTexCoord.xy;
+        float min = vTexCoord.z;
 
-    float localY = fract((uv.y + v_texOffset - min) / height * repeat);
-    uv.y = clamp(min + localY * height, min + EPS, min + height - EPS);
+        float offset = texOffset + v_texOffset;
 
-    vec4 color = texture(texAtlas, uv);
-    //fragColor = vec4(v_rgba.rgb, v_rgba.a);
-    fragColor = color;
+        float EPS = 0.5 / 1024.0; //Atlas height
+
+        float localY = fract((uv.y + offset - min) / height * repeat);
+        uv.y = clamp(min + localY * height, min + EPS, min + height - EPS);
+
+        vec4 color = texture(texAtlas, uv);
+        color.a *= v_rgba.a;
+
+        fragColor = color;
+    }
 }
