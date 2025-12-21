@@ -132,6 +132,34 @@ class PolylineHandler {
             Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
         }
     }
+
+    public reloadTextures() {
+        for (let i = 0; i < this._polylines.length; i++) {
+            let ri = this._polylines[i];
+            ri.setSrc(ri.getSrc());
+        }
+    }
+
+    public get polylines(): Polyline[] {
+        return [...this._polylines];
+    }
+
+    public refreshTexCoordsArr() {
+        let bc = this._entityCollection;
+        if (bc && this._renderer) {
+            let ta = this._renderer.strokeTextureAtlas;
+            for (let i = 0; i < this._polylines.length; i++) {
+                let ri = this._polylines[i];
+                let img = ri.getImage();
+                if (img) {
+                    let taData = ta.get(img.__nodeIndex!);
+                    if (taData) {
+                        ri._setTexCoordArr(taData.texCoords);
+                    }
+                }
+            }
+        }
+    }
 }
 
 export {PolylineHandler};

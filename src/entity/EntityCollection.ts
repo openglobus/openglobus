@@ -602,6 +602,8 @@ class EntityCollection {
 
             this.updateBillboardsTextureAtlas();
             this.updateLabelsFontAtlas();
+            this.updateStrokeTextureAtlas();
+
             this.createPickingColors();
         }
     }
@@ -649,6 +651,22 @@ class EntityCollection {
             // }
             this.labelHandler.updateFonts();
         }
+    }
+
+    /**
+     * Updates stroke texture atlas.
+     * @public
+     */
+    public updateStrokeTextureAtlas() {
+
+        // Rays
+        this.rayHandler.reloadTextures();
+
+        //Polylines
+        this.polylineHandler.reloadTextures();
+
+        //Strips
+        //@todo
     }
 
     /**
@@ -726,6 +744,8 @@ class EntityCollection {
             this._clearEntity(entity.childEntities[i]);
         }
     }
+
+
 }
 
 type EntityCollectionEventList = [

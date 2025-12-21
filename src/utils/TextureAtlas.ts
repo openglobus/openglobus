@@ -129,7 +129,7 @@ class TextureAtlas {
             return this.get(image.__nodeIndex);
         }
     }
-
+    
     protected _completeNode(nodes: Map<number, TextureAtlasNode>, node?: TextureAtlasNode | null) {
         if (node) {
 
@@ -143,21 +143,36 @@ class TextureAtlas {
 
             let tc = node.texCoords;
 
+            /**
+             *   V0=V5-_--------V4
+             *    |             |
+             *    |             |
+             *    |             |
+             *    |             |
+             *   V1------------V2=V3
+             */
+
+            // V0
             tc[0] = (r.left + bs) / w;
             tc[1] = (r.top + bs) / h;
 
+            // V1
             tc[2] = (r.left + bs) / w;
             tc[3] = (r.bottom - bs) / h;
 
+            // V2
             tc[4] = (r.right - bs) / w;
             tc[5] = (r.bottom - bs) / h;
 
+            // V3 = V2
             tc[6] = (r.right - bs) / w;
             tc[7] = (r.bottom - bs) / h;
 
+            // V4
             tc[8] = (r.right - bs) / w;
             tc[9] = (r.top + bs) / h;
 
+            // V5 = V0
             tc[10] = (r.left + bs) / w;
             tc[11] = (r.top + bs) / h;
 
@@ -303,17 +318,11 @@ class TextureAtlasNode {
             const dh = rc.getHeight() - h;
 
             if (dw > dh) {
-                // this.childNodes[0].rect = new Rectangle(rc.left, rc.top, rc.left + w, rc.bottom);
-                // this.childNodes[1].rect = new Rectangle(rc.left + w, rc.top, rc.right, rc.bottom);
                 this.childNodes[0].rect.set(rc.left, rc.top, rc.left + w, rc.bottom);
                 this.childNodes[1].rect.set(rc.left + w, rc.top, rc.right, rc.bottom);
-
             } else {
-                // this.childNodes[0].rect = new Rectangle(rc.left, rc.top, rc.right, rc.top + h);
-                // this.childNodes[1].rect = new Rectangle(rc.left, rc.top + h, rc.right, rc.bottom);
                 this.childNodes[0].rect.set(rc.left, rc.top, rc.right, rc.top + h);
                 this.childNodes[1].rect.set(rc.left, rc.top + h, rc.right, rc.bottom);
-
             }
 
             return this.childNodes[0].insert(img);
