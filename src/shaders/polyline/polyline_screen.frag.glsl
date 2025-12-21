@@ -3,7 +3,6 @@ precision highp float;
 
 uniform sampler2D texAtlas;
 uniform vec4 visibleSphere;
-uniform float texOffset;
 
 in vec3 uCamPos;
 in vec4 v_rgba;
@@ -33,13 +32,12 @@ void main() {
     }else {
 
         vec2 uv = vTexCoord.xy;
-        float min = vTexCoord.z;
 
-        float offset = texOffset + v_texOffset;
+        float min = vTexCoord.z;
 
         float EPS = 0.5 / 1024.0; //Atlas height
 
-        float localY = fract((uv.y + offset - min) / height * repeat);
+        float localY = fract((uv.y + v_texOffset - min) / height * repeat);
         uv.y = clamp(min + localY * height, min + EPS, min + height - EPS);
 
         vec4 color = texture(texAtlas, uv);

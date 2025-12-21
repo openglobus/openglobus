@@ -22,6 +22,7 @@ uniform vec3 rtcEyePositionLow;
 uniform float opacity;
 uniform float depthOffset;
 uniform float strokeSize;
+uniform float texOffset;
 
 out vec4 v_rgba;
 out vec3 vPos;
@@ -76,7 +77,7 @@ void main() {
     lowDiff = nextLow - rtcEyePositionLow;
     vec4 vNext = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-    /*Clip near plane, the point behind view plane*/
+/*Clip near plane, the point behind view plane*/
     if (vCurrent.z > NEAR) {
         if (vPrev.z < NEAR && abs(order) == 1.0) {
             vCurrent = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
@@ -142,7 +143,9 @@ void main() {
     }
 
     repeat = min(distance(sCurrent, sPrev), viewport.y) / strokeSize;
-    v_texOffset = 0.0;
+
+    float repeatNext = min(distance(sCurrent, sNext), viewport.y) / strokeSize;
+    v_texOffset = repeatNext * strokeSize / viewport.y + texOffset;
 
     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
 }
