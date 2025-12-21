@@ -154,9 +154,7 @@ class PolylineHandler {
                 if (img) {
                     let taData = ta.get(img.__nodeIndex!);
                     if (taData) {
-                        let minY = taData.texCoords[1],
-                            imgHeight = taData.texCoords[3] - minY;
-                        ri._setTexCoordArr(taData.texCoords, minY, imgHeight);
+                        ri._setTexCoordArr(taData.texCoords);
                     }
                 }
             }
