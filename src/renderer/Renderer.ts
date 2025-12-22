@@ -1021,7 +1021,7 @@ class Renderer {
         let pointerEvent = e.pointerEvent();
         let pointerFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown;
         let touchTrigger = e.touchState.touchStart || e.touchState.touchEnd;
-        const refreshDepth = (pointerEvent && pointerFree)
+        const refreshPicking = (pointerEvent && pointerFree)
             || touchTrigger
             || this._depthRefreshRequired;
         this._depthRefreshRequired = false;
@@ -1043,8 +1043,6 @@ class Renderer {
         this.activeCamera!.checkFly();
 
         let frustums = this.activeCamera!.frustums;
-
-        
 
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
@@ -1072,7 +1070,7 @@ class Renderer {
 
             e.dispatch(e.drawtransparent, this);
 
-            if (refreshDepth) {
+            if (refreshPicking) {
                 this._drawPickingBuffer(0);
             }
 
@@ -1092,7 +1090,7 @@ class Renderer {
 
                 this._drawEntityCollections(i);
 
-                if (refreshDepth) {
+                if (refreshPicking) {
                     this._drawPickingBuffer(i);
                 }
 
@@ -1106,7 +1104,7 @@ class Renderer {
 
         this.blitFramebuffer && (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0);
 
-        if (refreshDepth) {
+        if (refreshPicking) {
             this._readPickingBuffer();
             this._readDepthBuffer();
         }
