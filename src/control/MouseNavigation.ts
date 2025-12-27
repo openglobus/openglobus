@@ -52,6 +52,9 @@ const DEFAULT_DRAG_INERTIA = 170;
 // Camera moves vertically (up/down) when slope is less than this threshold
 const MIN_SLOPE = 0.35;
 
+// Vertical rotation is reduced when camera is close to poles
+const POLE_THRESHOLD = 0.99;
+
 /**
  * Mouse navigation.
  * @class
@@ -518,11 +521,33 @@ export class MouseNavigation extends Control {
                 var targetPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
                 if (targetPoint) {
                     let _a = Math.acos(this._grabbedPoint.z / this._grabbedSphere.radius) - Math.acos(targetPoint.z / this._grabbedSphere.radius);
+
+                    // Reduce vertical rotation when camera is close to poles (only when moving towards pole)
+                    let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
+                    if (_a < 0 && northProximity >= POLE_THRESHOLD) {
+                        // Moving towards north pole and close to it
+                        _a = 0;
+                    } else if (_a < 0 && northProximity > 0) {
+                        // Moving towards north pole, apply gradual reduction
+                        let factor = 1 - (northProximity / POLE_THRESHOLD);
+                        _a *= factor;
+                    } else if (_a > 0 && northProximity <= -POLE_THRESHOLD) {
+                        // Moving towards south pole and close to it
+                        _a = 0;
+                    } else if (_a > 0 && northProximity < 0) {
+                        // Moving towards south pole, apply gradual reduction
+                        let factor = 1 - (Math.abs(northProximity) / POLE_THRESHOLD);
+                        _a *= factor;
+                    }
+
                     let _vRot = Quat.axisAngleToQuat(cam.getRight(), _a);
                     let _hRot = Quat.getRotationBetweenVectors(
                         (new Vec3(targetPoint.x, targetPoint.y, 0)).getNormal(),
                         (new Vec3(this._grabbedPoint.x, this._grabbedPoint.y, 0.0)).getNormal());
+
+                        
                     var rot = _hRot.mul(_vRot);
+
                     //var rot = _hRot;
 
                     //var lim = rot.mulVec3(cam.eye).normal().dot(Vec3.UP);
