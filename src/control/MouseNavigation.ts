@@ -525,19 +525,9 @@ export class MouseNavigation extends Control {
                     // Reduce vertical rotation when camera is close to poles (only when moving towards pole)
                     let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
                     if (_a < 0 && northProximity >= POLE_THRESHOLD) {
-                        // Moving towards north pole and close to it
                         _a = 0;
-                    } else if (_a < 0 && northProximity > 0) {
-                        // Moving towards north pole, apply gradual reduction
-                        let factor = 1 - (northProximity / POLE_THRESHOLD);
-                        _a *= factor;
                     } else if (_a > 0 && northProximity <= -POLE_THRESHOLD) {
-                        // Moving towards south pole and close to it
                         _a = 0;
-                    } else if (_a > 0 && northProximity < 0) {
-                        // Moving towards south pole, apply gradual reduction
-                        let factor = 1 - (Math.abs(northProximity) / POLE_THRESHOLD);
-                        _a *= factor;
                     }
 
                     let _vRot = Quat.axisAngleToQuat(cam.getRight(), _a);
@@ -545,15 +535,8 @@ export class MouseNavigation extends Control {
                         (new Vec3(targetPoint.x, targetPoint.y, 0)).getNormal(),
                         (new Vec3(this._grabbedPoint.x, this._grabbedPoint.y, 0.0)).getNormal());
 
-                        
                     var rot = _hRot.mul(_vRot);
 
-                    //var rot = _hRot;
-
-                    //var lim = rot.mulVec3(cam.eye).normal().dot(Vec3.UP);
-                    // if (lim > 0.8|| lim < -0.8) {
-                    //     rot = Quat.yRotation(rot.getYaw());
-                    // }
                     cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, Vec3.NORTH);
                     cam.update();
                     this.force.set(0, 0, 0)
