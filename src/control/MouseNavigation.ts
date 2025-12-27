@@ -537,10 +537,12 @@ export class MouseNavigation extends Control {
 
                     var rot = _hRot.mul(_vRot);
 
-                    cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, Vec3.NORTH);
-                    cam.update();
-                    this.force.set(0, 0, 0)
-                    return;
+                    // cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, Vec3.NORTH);
+                    // cam.update();
+                    this.force.set(0, 0, 0);
+
+                    let newEye = rot.mulVec3(cam.eye);
+                    this.force = newEye.sub(cam.eye).scale(this.dragInertia);
                 }
 
                 // this._grabbedDist = cam.eye.distance(this._grabbedPoint);
