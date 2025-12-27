@@ -515,23 +515,43 @@ export class MouseNavigation extends Control {
 
             } else if (cam.slope > MIN_SLOPE) {
 
-                this._grabbedDist = cam.eye.distance(this._grabbedPoint);
-                let dir = cam.unproject(e.x, e.y, this._grabbedDist);
-                let _targetDragPoint = new Ray(cam.eye, dir).hitSphere(this._grabbedSphere);
+                var targetPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
+                if (targetPoint) {
+                    let _a = Math.acos(this._grabbedPoint.z / this._grabbedSphere.radius) - Math.acos(targetPoint.z / this._grabbedSphere.radius);
+                    let _vRot = Quat.axisAngleToQuat(cam.getRight(), _a);
+                    let _hRot = Quat.getRotationBetweenVectors(
+                        (new Vec3(targetPoint.x, targetPoint.y, 0)).getNormal(),
+                        (new Vec3(this._grabbedPoint.x, this._grabbedPoint.y, 0.0)).getNormal());
+                    var rot = _hRot.mul(_vRot);
+                    //var rot = _hRot;
 
-                if (!_targetDragPoint) {
+                    //var lim = rot.mulVec3(cam.eye).normal().dot(Vec3.UP);
+                    // if (lim > 0.8|| lim < -0.8) {
+                    //     rot = Quat.yRotation(rot.getYaw());
+                    // }
+                    cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, Vec3.NORTH);
+                    cam.update();
+                    this.force.set(0, 0, 0)
                     return;
                 }
 
-                this._targetDragPoint = _targetDragPoint;
-
-                let rot = Quat.getRotationBetweenVectors(
-                    this._targetDragPoint.getNormal(),
-                    this._grabbedPoint.getNormal()
-                );
-
-                let newEye = rot.mulVec3(cam.eye);
-                this.force = newEye.sub(cam.eye).scale(this.dragInertia);
+                // this._grabbedDist = cam.eye.distance(this._grabbedPoint);
+                // let dir = cam.unproject(e.x, e.y, this._grabbedDist);
+                // let _targetDragPoint = new Ray(cam.eye, dir).hitSphere(this._grabbedSphere);
+                //
+                // if (!_targetDragPoint) {
+                //     return;
+                // }
+                //
+                // this._targetDragPoint = _targetDragPoint;
+                //
+                // let rot = Quat.getRotationBetweenVectors(
+                //     this._targetDragPoint.getNormal(),
+                //     this._grabbedPoint.getNormal()
+                // );
+                //
+                // let newEye = rot.mulVec3(cam.eye);
+                // this.force = newEye.sub(cam.eye).scale(this.dragInertia);
 
             } else {
                 let p0 = this._grabbedPoint,
@@ -582,20 +602,20 @@ export class MouseNavigation extends Control {
                 let d_v = this.vel.scaleTo(this.dt);
                 let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
-                if (this.fixedUp) {
-                    cam.eye.copy(newEye);
-                    this._corrRoll();
-                    cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
-                } else {
-                    let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
-                    cam.rotate(rot);
-                    cam.eye.copy(newEye);
-                }
-            } else {
-                let d_v = this.vel.scaleTo(this.dt);
-                let newEye = cam.eye.add(d_v);
+                //if (this.fixedUp) {
                 cam.eye.copy(newEye);
-                cam.checkTerrainCollision();
+                this._corrRoll();
+                cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+                // } else {
+                //     let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
+                //     cam.rotate(rot);
+                //     cam.eye.copy(newEye);
+                // }
+            } else {
+                // let d_v = this.vel.scaleTo(this.dt);
+                // let newEye = cam.eye.add(d_v);
+                // cam.eye.copy(newEye);
+                // cam.checkTerrainCollision();
             }
 
             this.events.dispatch(this.events.drag, this);
