@@ -660,10 +660,13 @@ export class MouseNavigation extends Control {
                     cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
                 }
             } else {
+                console.log("corr")
                 let d_v = this.vel.scaleTo(this.dt);
                 let newEye = cam.eye.add(d_v);
                 cam.eye.copy(newEye);
                 cam.checkTerrainCollision();
+                this._corrRoll();
+                cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
             }
 
             this.events.dispatch(this.events.drag, this);
