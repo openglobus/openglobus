@@ -135,9 +135,9 @@ export class MouseNavigation extends Control {
 
     protected _hold: boolean = false;
 
-    protected _prevVel: Vec3 = new Vec3();
+    //protected _prevVel: Vec3 = new Vec3();
 
-    protected _screenPosIsChanged: boolean = true;
+    //protected _screenPosIsChanged: boolean = true;
 
     protected _rotHDir: number;
     protected _rotVDir: number;
@@ -533,15 +533,6 @@ export class MouseNavigation extends Control {
 
                 let hdg = cam.getHeading();
                 let fix = false;//cam.slope < 0.8 || hdg > (90 - 10) && hdg < (90 + 10) || hdg > (270 - 10) && hdg < (270 + 10);
-                // let fix = false;
-                // if (cam.slope < 0.98) {
-                //     let yaw = cam.getYaw() * DEGREES;
-                //     if (yaw < -45 && yaw > -135 || yaw > 45 && yaw < 135) {
-                //         fix = true
-                //     }
-                // } else {
-                //
-                // }
 
                 let rot: Quat;
 
@@ -565,12 +556,13 @@ export class MouseNavigation extends Control {
                         planeNormal.normalize();
                         // Project camera up vector onto the plane
                         upProj = Vec3.proj_b_to_plane(cam.getUp(), planeNormal);
-                        if (upProj.length() < EPS6) {
+                        if (upProj.length() < 1e-6) {
                             upProj = Vec3.NORTH;
                         } else {
                             upProj.normalize();
                         }
                     }
+
                     // Calculate angle along the projected up axis
                     let _a = Math.acos(this._grabbedPoint.dot(upProj) / this._grabbedSphere.radius)
                         - Math.acos(_targetDragPoint.dot(upProj) / this._grabbedSphere.radius);
@@ -635,7 +627,7 @@ export class MouseNavigation extends Control {
             this.vel.set(0.0, 0.0, 0.0);
 
             if (!this._currScreenPos.equal(e.pos)) {
-                this._screenPosIsChanged = true;
+                //this._screenPosIsChanged = true;
                 this._currScreenPos.copy(e.pos);
             }
 
@@ -653,17 +645,17 @@ export class MouseNavigation extends Control {
             this._velInertia = DEFAULT_VELINERTIA;
             let cam = this.planet!.camera;
 
-            if (Math.abs(cam.eyeNorm.dot(Vec3.NORTH)) > 0.9) {
-                this.fixedUp = false;
-            }
-
-            if (!this._screenPosIsChanged) {
-                if (this.vel.length() > this._prevVel.length()) {
-                    this.fixedUp = false;
-                }
-            }
-            this._screenPosIsChanged = false;
-            this._prevVel.copy(this.vel);
+            // if (Math.abs(cam.eyeNorm.dot(Vec3.NORTH)) > 0.9) {
+            //     this.fixedUp = false;
+            // }
+            //
+            // if (!this._screenPosIsChanged) {
+            //     if (this.vel.length() > this._prevVel.length()) {
+            //         this.fixedUp = false;
+            //     }
+            // }
+            // this._screenPosIsChanged = false;
+            // this._prevVel.copy(this.vel);
 
             if (cam.slope > this.minSlope) {
                 let d_v = this.vel.scaleTo(this.dt);
