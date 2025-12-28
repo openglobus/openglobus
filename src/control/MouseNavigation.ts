@@ -645,7 +645,7 @@ export class MouseNavigation extends Control {
             // this._screenPosIsChanged = false;
             // this._prevVel.copy(this.vel);
 
-            if (cam.slope > this.minSlope) {
+            //if (cam.slope > this.minSlope) {
                 let d_v = this.vel.scaleTo(this.dt);
                 let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
@@ -659,12 +659,12 @@ export class MouseNavigation extends Control {
                     this._corrRoll();
                     cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
                 }
-            } else {
-                let d_v = this.vel.scaleTo(this.dt);
-                let newEye = cam.eye.add(d_v);
-                cam.eye.copy(newEye);
-                cam.checkTerrainCollision();
-            }
+            // } else {
+            //     let d_v = this.vel.scaleTo(this.dt);
+            //     let newEye = cam.eye.add(d_v);
+            //     cam.eye.copy(newEye);
+            //     cam.checkTerrainCollision();
+            // }
 
             this.events.dispatch(this.events.drag, this);
         }
