@@ -18,6 +18,7 @@ interface IMouseNavigationParams extends IControlParams {
     minSlope?: number;
     mass?: number;
     zoomSpeed?: number;
+    arcMode?: boolean;
 }
 
 export type MouseNavigationEventsList = [
@@ -87,6 +88,9 @@ export class MouseNavigation extends Control {
 
     public vel_roll: number;
     public force_roll: number;
+
+    protected _arcMode: boolean = false;
+    protected _arcModeManual: boolean = false;
 
     public events: EventsHandler<MouseNavigationEventsList>;
 
@@ -200,6 +204,9 @@ export class MouseNavigation extends Control {
         this._grabbedCameraHeight = 0;
 
         this._isTouchPad = false;
+
+        this._arcModeManual = options.arcMode !== undefined ? options.arcMode : false;
+        this._arcMode = false;
     }
 
     override oninit() {
@@ -302,6 +309,13 @@ export class MouseNavigation extends Control {
             this._velInertia = 0.6; //0.8, 0.2
             this.force_h = 0.5 * (e.x - e.prev_x);
             this.force_v = 0.5 * (e.y - e.prev_y);
+
+            // temporary fix
+            let hdg = this.planet!.camera.getHeading();
+            this._arcMode = false;
+            if (!isNaN(hdg) && (hdg > 45 && hdg < 340)) {
+                this._arcMode = true;
+            }
         }
     }
 
@@ -517,10 +531,9 @@ export class MouseNavigation extends Control {
                 let newEye = rot.mulVec3(cam.eye);
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
 
-            } else if (cam.slope > MIN_SLOPE) {
+            } else if (cam.slope > this.minSlope) {
 
-                //var targetPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
-
+                // Need distance for orthographic camera
                 this._grabbedDist = cam.eye.distance(this._grabbedPoint);
                 let dir = cam.unproject(e.x, e.y, this._grabbedDist);
                 let _targetDragPoint = new Ray(cam.eye, dir).hitSphere(this._grabbedSphere);
@@ -531,19 +544,12 @@ export class MouseNavigation extends Control {
 
                 this._targetDragPoint = _targetDragPoint;
 
-                let hdg = cam.getHeading();
-                let fix = false;//cam.slope < 0.8 || hdg > (90 - 10) && hdg < (90 + 10) || hdg > (270 - 10) && hdg < (270 + 10);
-
                 let rot: Quat;
-
-                if (fix) {
-
-                    console.log("FIX");
+                if (this._arcMode || this._arcModeManual) {
                     rot = Quat.getRotationBetweenVectors(
                         this._targetDragPoint.getNormal(),
                         this._grabbedPoint.getNormal()
                     );
-
                 } else {
 
                     // Calculate plane normal from NORTH (Z) and camera right vector
@@ -564,19 +570,19 @@ export class MouseNavigation extends Control {
                     }
 
                     // Calculate angle along the projected up axis
-                    let _a = Math.acos(this._grabbedPoint.dot(upProj) / this._grabbedSphere.radius)
-                        - Math.acos(_targetDragPoint.dot(upProj) / this._grabbedSphere.radius);
+                    let _a = Math.acos(_targetDragPoint.dot(upProj) / this._grabbedSphere.radius) - Math.acos(this._grabbedPoint.dot(upProj) / this._grabbedSphere.radius);
 
                     // Reduce vertical rotation when camera is close to poles (only when moving towards pole)
                     let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
-                    if (_a < 0 && northProximity >= POLE_THRESHOLD) {
+                    if (_a > 0 && northProximity >= POLE_THRESHOLD) {
                         _a = 0;
-                    } else if (_a > 0 && northProximity <= -POLE_THRESHOLD) {
+                    } else if (_a < 0 && northProximity <= -POLE_THRESHOLD) {
                         _a = 0;
                     }
 
-                    let _vRot = Quat.axisAngleToQuat(cam.getRight(), _a);
+                    let _vRot = Quat.axisAngleToQuat(cam.getRight(), -_a);
 
+                    // This is oroginal NORTH hRot calculation
                     // let _hRot = Quat.getRotationBetweenVectors(
                     //     (new Vec3(_targetDragPoint.x, _targetDragPoint.y, 0)).getNormal(),
                     //     (new Vec3(this._grabbedPoint.x, this._grabbedPoint.y, 0.0)).getNormal());
@@ -593,24 +599,6 @@ export class MouseNavigation extends Control {
 
                 let newEye = rot.mulVec3(cam.eye);
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
-
-                // this._grabbedDist = cam.eye.distance(this._grabbedPoint);
-                // let dir = cam.unproject(e.x, e.y, this._grabbedDist);
-                // let _targetDragPoint = new Ray(cam.eye, dir).hitSphere(this._grabbedSphere);
-                //
-                // if (!_targetDragPoint) {
-                //     return;
-                // }
-                //
-                // this._targetDragPoint = _targetDragPoint;
-                //
-                // let rot = Quat.getRotationBetweenVectors(
-                //     this._targetDragPoint.getNormal(),
-                //     this._grabbedPoint.getNormal()
-                // );
-                //
-                // let newEye = rot.mulVec3(cam.eye);
-                // this.force = newEye.sub(cam.eye).scale(this.dragInertia);
 
             } else {
                 let p0 = this._grabbedPoint,
@@ -661,15 +649,16 @@ export class MouseNavigation extends Control {
                 let d_v = this.vel.scaleTo(this.dt);
                 let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
-                //if (this.fixedUp) {
-                cam.eye.copy(newEye);
-                this._corrRoll();
-                cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
-                // } else {
-                //     let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
-                //     cam.rotate(rot);
-                //     cam.eye.copy(newEye);
-                // }
+
+                if (this._arcMode || this._arcModeManual) {
+                    let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
+                    cam.rotate(rot);
+                    cam.eye.copy(newEye);
+                } else {
+                    cam.eye.copy(newEye);
+                    this._corrRoll();
+                    cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+                }
             } else {
                 let d_v = this.vel.scaleTo(this.dt);
                 let newEye = cam.eye.add(d_v);
