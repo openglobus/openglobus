@@ -27,6 +27,7 @@ const globus = new Globe({
         new control.MouseNavigation({ minSlope: 0.35 }),
         new control.KeyboardNavigation({ autoActivate: true }),
         new control.ToggleWireframe(),
-        new control.TimelineControl()
+        new control.TimelineControl(),
+        new control.CompassButton()
     ]
 })
