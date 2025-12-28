@@ -532,7 +532,7 @@ export class MouseNavigation extends Control {
                 this._targetDragPoint = _targetDragPoint;
 
                 let hdg = cam.getHeading();
-                let fix = hdg > (90 - 10) && hdg < (90 + 10) || hdg > (270 - 10) && hdg < (270 + 10);
+                let fix = cam.slope < 0.75 || hdg > (90 - 10) && hdg < (90 + 10) || hdg > (270 - 10) && hdg < (270 + 10);
                 // let fix = false;
                 // if (cam.slope < 0.98) {
                 //     let yaw = cam.getYaw() * DEGREES;
@@ -679,10 +679,10 @@ export class MouseNavigation extends Control {
                 //     cam.eye.copy(newEye);
                 // }
             } else {
-                // let d_v = this.vel.scaleTo(this.dt);
-                // let newEye = cam.eye.add(d_v);
-                // cam.eye.copy(newEye);
-                // cam.checkTerrainCollision();
+                let d_v = this.vel.scaleTo(this.dt);
+                let newEye = cam.eye.add(d_v);
+                cam.eye.copy(newEye);
+                cam.checkTerrainCollision();
             }
 
             this.events.dispatch(this.events.drag, this);
