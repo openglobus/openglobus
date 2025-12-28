@@ -532,7 +532,7 @@ export class MouseNavigation extends Control {
                 this._targetDragPoint = _targetDragPoint;
 
                 let hdg = cam.getHeading();
-                let fix = cam.slope < 0.75 || hdg > (90 - 10) && hdg < (90 + 10) || hdg > (270 - 10) && hdg < (270 + 10);
+                let fix = false;//cam.slope < 0.8 || hdg > (90 - 10) && hdg < (90 + 10) || hdg > (270 - 10) && hdg < (270 + 10);
                 // let fix = false;
                 // if (cam.slope < 0.98) {
                 //     let yaw = cam.getYaw() * DEGREES;
