@@ -9,7 +9,7 @@ import {Vec3} from "../math/Vec3";
 import {input} from "../input/input";
 import {Plane} from "../math/Plane";
 import {createEvents, type EventsHandler} from "../Events";
-import {EPS6} from "../math";
+import {DEGREES, EPS6} from "../math";
 
 interface IMouseNavigationParams extends IControlParams {
     fixedUp?: boolean;
@@ -531,53 +531,73 @@ export class MouseNavigation extends Control {
 
                 this._targetDragPoint = _targetDragPoint;
 
-                // Calculate plane normal from NORTH (Z) and camera right vector
-                let planeNormal = Vec3.NORTH.cross(cam.getRight());
-                let upProj: Vec3;
-                // If vectors are parallel, fallback to simple Z calculation
-                if (planeNormal.length() < 1e-6) {
-                    upProj = Vec3.NORTH;
+                let hdg = cam.getHeading();
+                let fix = hdg > (90 - 10) && hdg < (90 + 10) || hdg > (270 - 10) && hdg < (270 + 10);
+                // let fix = false;
+                // if (cam.slope < 0.98) {
+                //     let yaw = cam.getYaw() * DEGREES;
+                //     if (yaw < -45 && yaw > -135 || yaw > 45 && yaw < 135) {
+                //         fix = true
+                //     }
+                // } else {
+                //
+                // }
+
+                let rot: Quat;
+
+                if (fix) {
+
+                    console.log("FIX");
+                    rot = Quat.getRotationBetweenVectors(
+                        this._targetDragPoint.getNormal(),
+                        this._grabbedPoint.getNormal()
+                    );
+
                 } else {
-                    planeNormal.normalize();
-                    // Project camera up vector onto the plane
-                    upProj = Vec3.proj_b_to_plane(cam.getUp(), planeNormal);
-                    if (upProj.length() < EPS6) {
+
+                    // Calculate plane normal from NORTH (Z) and camera right vector
+                    let planeNormal = Vec3.NORTH.cross(cam.getRight());
+                    let upProj: Vec3;
+                    // If vectors are parallel, fallback to simple Z calculation
+                    if (planeNormal.length() < 1e-6) {
                         upProj = Vec3.NORTH;
                     } else {
-                        upProj.normalize();
+                        planeNormal.normalize();
+                        // Project camera up vector onto the plane
+                        upProj = Vec3.proj_b_to_plane(cam.getUp(), planeNormal);
+                        if (upProj.length() < EPS6) {
+                            upProj = Vec3.NORTH;
+                        } else {
+                            upProj.normalize();
+                        }
                     }
+                    // Calculate angle along the projected up axis
+                    let _a = Math.acos(this._grabbedPoint.dot(upProj) / this._grabbedSphere.radius)
+                        - Math.acos(_targetDragPoint.dot(upProj) / this._grabbedSphere.radius);
+
+                    // Reduce vertical rotation when camera is close to poles (only when moving towards pole)
+                    let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
+                    if (_a < 0 && northProximity >= POLE_THRESHOLD) {
+                        _a = 0;
+                    } else if (_a > 0 && northProximity <= -POLE_THRESHOLD) {
+                        _a = 0;
+                    }
+
+                    let _vRot = Quat.axisAngleToQuat(cam.getRight(), _a);
+
+                    // let _hRot = Quat.getRotationBetweenVectors(
+                    //     (new Vec3(_targetDragPoint.x, _targetDragPoint.y, 0)).getNormal(),
+                    //     (new Vec3(this._grabbedPoint.x, this._grabbedPoint.y, 0.0)).getNormal());
+
+                    let targetProj = Vec3.proj_b_to_plane(_targetDragPoint, upProj);
+                    let grabbedProj = Vec3.proj_b_to_plane(this._grabbedPoint, upProj);
+
+                    // Calculate horizontal rotation around upProj axis
+                    let _hRot = Quat.getRotationBetweenVectors(
+                        targetProj.getNormal(), grabbedProj.getNormal());
+
+                    rot = _hRot.mul(_vRot);
                 }
-                // Calculate angle along the projected up axis
-                let _a = Math.acos(this._grabbedPoint.dot(upProj) / this._grabbedSphere.radius) - Math.acos(_targetDragPoint.dot(upProj) / this._grabbedSphere.radius);
-
-                // Reduce vertical rotation when camera is close to poles (only when moving towards pole)
-                let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
-                if (_a < 0 && northProximity >= POLE_THRESHOLD) {
-                    _a = 0;
-                } else if (_a > 0 && northProximity <= -POLE_THRESHOLD) {
-                    _a = 0;
-                }
-
-                console.log(_a);
-                let _vRot = Quat.axisAngleToQuat(cam.getRight(), _a);
-
-                let _hRot = Quat.getRotationBetweenVectors(
-                    (new Vec3(_targetDragPoint.x, _targetDragPoint.y, 0)).getNormal(),
-                    (new Vec3(this._grabbedPoint.x, this._grabbedPoint.y, 0.0)).getNormal());
-
-                // let targetProj = Vec3.proj_b_to_plane(_targetDragPoint, Vec3.NORTH);
-                // let grabbedProj = Vec3.proj_b_to_plane(this._grabbedPoint, Vec3.NORTH);
-                //
-                // // Calculate horizontal rotation around upProj axis
-                // let _hRot = Quat.getRotationBetweenVectors(
-                //     grabbedProj.getNormal(),
-                //     targetProj.getNormal());
-
-                var rot = _hRot.mul(_vRot);
-
-                // cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, Vec3.NORTH);
-                // cam.update();
-                //this.force.set(0, 0, 0);
 
                 let newEye = rot.mulVec3(cam.eye);
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
