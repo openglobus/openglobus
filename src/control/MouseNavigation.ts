@@ -538,7 +538,8 @@ export class MouseNavigation extends Control {
                 this._targetDragPoint = _targetDragPoint;
 
                 let rot: Quat;
-                if (this._arcMode || this._arcModeManual) {
+
+                if (this.isArcMode) {
                     rot = Quat.getRotationBetweenVectors(
                         this._targetDragPoint.getNormal(),
                         this._grabbedPoint.getNormal()
@@ -562,8 +563,11 @@ export class MouseNavigation extends Control {
                         }
                     }
 
+                    upProj = Vec3.NORTH;
+
                     // Calculate angle along the projected up axis
-                    let _a = Math.acos(_targetDragPoint.dot(upProj) / this._grabbedSphere.radius) - Math.acos(this._grabbedPoint.dot(upProj) / this._grabbedSphere.radius);
+                    let _a = Math.acos(_targetDragPoint.dot(upProj) / this._grabbedSphere.radius)
+                        - Math.acos(this._grabbedPoint.dot(upProj) / this._grabbedSphere.radius);
 
                     // Reduce vertical rotation when camera is close to poles (only when moving towards pole)
                     let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
@@ -573,7 +577,8 @@ export class MouseNavigation extends Control {
                         _a = 0;
                     }
 
-                    let _vRot = Quat.axisAngleToQuat(cam.getRight(), -_a);
+                    //let _vRot = Quat.axisAngleToQuat(cam.getRight(), -_a);
+                    let _vRot = Quat.axisAngleToQuat(upProj.cross(cam.eyeNorm).normalize(), -_a);
 
                     // This is oroginal NORTH hRot calculation
                     // let _hRot = Quat.getRotationBetweenVectors(
@@ -621,6 +626,11 @@ export class MouseNavigation extends Control {
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
     }
 
+    public get isArcMode(): boolean {
+        return false;
+        return this._arcMode || this._arcModeManual;
+    }
+
     protected _handleDrag() {
         if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.1) {
             this._velInertia = DEFAULT_VELINERTIA;
@@ -643,7 +653,7 @@ export class MouseNavigation extends Control {
                 let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
 
-                if (this._arcMode || this._arcModeManual) {
+                if (this.isArcMode) {
                     let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
                     cam.rotate(rot);
                     cam.eye.copy(newEye);
@@ -725,7 +735,7 @@ export class MouseNavigation extends Control {
             cam.eye = rot.mulVec3(eye);
             cam.rotate(rot);
 
-            if (!(this._arcMode || this._arcModeManual)) {
+            if (!this.isArcMode) {
 
                 this._corrRoll();
                 // restore camera direction
