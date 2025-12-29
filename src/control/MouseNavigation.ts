@@ -9,16 +9,15 @@ import {Vec3} from "../math/Vec3";
 import {input} from "../input/input";
 import {Plane} from "../math/Plane";
 import {createEvents, type EventsHandler} from "../Events";
-import {DEGREES, EPS6} from "../math";
 
 interface IMouseNavigationParams extends IControlParams {
-    fixedUp?: boolean;
     inertia?: number;
     dragInertia?: number;
     minSlope?: number;
     mass?: number;
     zoomSpeed?: number;
     arcMode?: boolean;
+    poleThreshold?: number;
 }
 
 export type MouseNavigationEventsList = [
@@ -55,19 +54,19 @@ const DEFAULT_DRAG_INERTIA = 170;
 const MIN_SLOPE = 0.35;
 
 // Vertical rotation is reduced when camera is close to poles
-const POLE_THRESHOLD = 0.99;
+const POLE_THRESHOLD = 0.79;
 
 /**
  * Mouse navigation.
  * @class
  * @extends {Control}
  * @param {IMouseNavigationParams} [options] - Mouse navigation options:
- * @param {boolean} [options.fixedUp] - fix up at north pole
+ * @param {boolean} [options.arcMode] - arc rotaion mode
  * @param {number} [options.inertia] - inertia factor
  * @param {number} [options.dragInertia] - drag inertia
  * @param {number} [options.mass] - camera mass, affects velocity. Default is 1
  * @param {number} [options.minSlope] - minimal slope for vertical camera movement. Default is 0.35
- * @param {number} [options.zoomSpeed] - zoom speed factor. Default is 1
+ * @param {number} [options.poleThreshold] - Vertical rotation is reduced when camera is close to poles
  * @fires og.MouseNavigation#drag
  * @fires og.MouseNavigation#zoom
  * @fires og.MouseNavigation#rotate
@@ -85,6 +84,7 @@ export class MouseNavigation extends Control {
     public inertia: number;
     public dragInertia: number;
     public zoomSpeed: number;
+    public poleThreshold: number;
 
     public vel_roll: number;
     public force_roll: number;
@@ -116,8 +116,6 @@ export class MouseNavigation extends Control {
     protected _tRad: number;
 
     protected _shiftBusy = false;
-
-    protected fixedUp: boolean;
 
     protected _curPitch: number;
 
@@ -172,6 +170,8 @@ export class MouseNavigation extends Control {
         this.minSlope = options.minSlope != undefined ? options.minSlope : MIN_SLOPE;
         this.dragInertia = options.dragInertia != undefined ? options.dragInertia : DEFAULT_DRAG_INERTIA;
         this.zoomSpeed = options.zoomSpeed != undefined ? options.zoomSpeed : 1;
+        this.poleThreshold = options.poleThreshold != undefined ? options.poleThreshold : POLE_THRESHOLD;
+
 
         this._lookPos = undefined;
         this._grabbedPoint = null;
@@ -190,8 +190,6 @@ export class MouseNavigation extends Control {
         this._currScreenPos = new Vec2();
 
         this._grabbedSphere = new Sphere();
-
-        this.fixedUp = options.fixedUp != undefined ? options.fixedUp : true;
 
         this._rot = new Quat();
 
@@ -445,7 +443,6 @@ export class MouseNavigation extends Control {
 
             let dir = this._targetZoomPoint.sub(cam.eye);
             if (dir.length() > 6000 && this._wheelDirection > 0 && cam.eye.getNormal().negate().dot(dir.normalize()) < 0.3) {
-                this.fixedUp = false;
                 scale = 4.3;
             }
 
@@ -497,10 +494,6 @@ export class MouseNavigation extends Control {
         this._curRoll = this.planet.camera.getRoll();
 
         this._currScreenPos.copy(e.pos);
-
-        if (this.planet!.camera.getUp().dot(new Vec3(0, 0, 1)) > 0.3) {
-            this.fixedUp = true;
-        }
     }
 
     protected _onLHold = (e: IMouseState) => {
@@ -574,9 +567,9 @@ export class MouseNavigation extends Control {
 
                     // Reduce vertical rotation when camera is close to poles (only when moving towards pole)
                     let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
-                    if (_a > 0 && northProximity >= POLE_THRESHOLD) {
+                    if (_a > 0 && northProximity >= this.poleThreshold) {
                         _a = 0;
-                    } else if (_a < 0 && northProximity <= -POLE_THRESHOLD) {
+                    } else if (_a < 0 && northProximity <= -this.poleThreshold) {
                         _a = 0;
                     }
 
@@ -655,6 +648,14 @@ export class MouseNavigation extends Control {
                     cam.rotate(rot);
                     cam.eye.copy(newEye);
                 } else {
+                    // Check if newEye exceeds pole threshold
+                    let newNorthProximity = newEye.getNormal().dot(Vec3.NORTH);
+                    let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
+                    if ((newNorthProximity > northProximity && newNorthProximity >= this.poleThreshold) ||
+                        (newNorthProximity < northProximity && newNorthProximity <= -this.poleThreshold)) {
+                        this.vel.scale(0.8);
+                    }
+
                     cam.eye.copy(newEye);
                     this._corrRoll();
                     cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
@@ -724,7 +725,7 @@ export class MouseNavigation extends Control {
             cam.eye = rot.mulVec3(eye);
             cam.rotate(rot);
 
-            if (this.fixedUp) {
+            if (!(this._arcMode || this._arcModeManual)) {
 
                 this._corrRoll();
                 // restore camera direction
