@@ -54,7 +54,7 @@ const DEFAULT_DRAG_INERTIA = 170;
 const MIN_SLOPE = 0.35;
 
 // Vertical rotation is reduced when camera is close to poles
-const POLE_THRESHOLD = 0.79;
+const DEFAULT_POLE_THRESHOLD = 0.999;
 
 /**
  * Mouse navigation.
@@ -170,7 +170,7 @@ export class MouseNavigation extends Control {
         this.minSlope = options.minSlope != undefined ? options.minSlope : MIN_SLOPE;
         this.dragInertia = options.dragInertia != undefined ? options.dragInertia : DEFAULT_DRAG_INERTIA;
         this.zoomSpeed = options.zoomSpeed != undefined ? options.zoomSpeed : 1;
-        this.poleThreshold = options.poleThreshold != undefined ? options.poleThreshold : POLE_THRESHOLD;
+        this.poleThreshold = options.poleThreshold != undefined ? options.poleThreshold : DEFAULT_POLE_THRESHOLD;
 
 
         this._lookPos = undefined;
