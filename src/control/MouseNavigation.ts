@@ -18,6 +18,7 @@ interface IMouseNavigationParams extends IControlParams {
     zoomSpeed?: number;
     arcMode?: boolean;
     poleThreshold?: number;
+    lockNorth?: boolean;
 }
 
 export type MouseNavigationEventsList = [
@@ -67,6 +68,7 @@ const DEFAULT_POLE_THRESHOLD = 0.999;
  * @param {number} [options.mass] - camera mass, affects velocity. Default is 1
  * @param {number} [options.minSlope] - minimal slope for vertical camera movement. Default is 0.35
  * @param {number} [options.poleThreshold] - Vertical rotation is reduced when camera is close to poles
+ * @param {number} [options.lockNorth] - If true, keeps the compass (north) fixed when rotating the scene with the mouse
  * @fires og.MouseNavigation#drag
  * @fires og.MouseNavigation#zoom
  * @fires og.MouseNavigation#rotate
@@ -85,6 +87,7 @@ export class MouseNavigation extends Control {
     public dragInertia: number;
     public zoomSpeed: number;
     public poleThreshold: number;
+    public lockNorth: boolean;
 
     public vel_roll: number;
     public force_roll: number;
@@ -205,6 +208,8 @@ export class MouseNavigation extends Control {
 
         this._arcModeManual = options.arcMode !== undefined ? options.arcMode : false;
         this._arcMode = false;
+
+        this.lockNorth = options.lockNorth !== undefined ? options.lockNorth : false;
     }
 
     override oninit() {
@@ -546,24 +551,24 @@ export class MouseNavigation extends Control {
                     );
                 } else {
 
-                    // Calculate plane normal from NORTH (Z) and camera right vector
-                    let planeNormal = Vec3.NORTH.cross(cam.getRight());
-                    let upProj: Vec3;
-                    // If vectors are parallel, fallback to simple Z calculation
-                    if (planeNormal.length() < 1e-6) {
-                        upProj = Vec3.NORTH;
-                    } else {
-                        planeNormal.normalize();
-                        // Project camera up vector onto the plane
-                        upProj = Vec3.proj_b_to_plane(cam.getUp(), planeNormal);
-                        if (upProj.length() < 1e-6) {
-                            upProj = Vec3.NORTH;
-                        } else {
-                            upProj.normalize();
-                        }
-                    }
+                    // // Calculate plane normal from NORTH (Z) and camera right vector
+                    // let planeNormal = Vec3.NORTH.cross(cam.getRight());
+                    // let upProj: Vec3;
+                    // // If vectors are parallel, fallback to simple Z calculation
+                    // if (planeNormal.length() < 1e-6) {
+                    //     upProj = Vec3.NORTH;
+                    // } else {
+                    //     planeNormal.normalize();
+                    //     // Project camera up vector onto the plane
+                    //     upProj = Vec3.proj_b_to_plane(cam.getUp(), planeNormal);
+                    //     if (upProj.length() < 1e-6) {
+                    //         upProj = Vec3.NORTH;
+                    //     } else {
+                    //         upProj.normalize();
+                    //     }
+                    // }
 
-                    upProj = Vec3.NORTH;
+                    let upProj = Vec3.NORTH;
 
                     // Calculate angle along the projected up axis
                     let _a = Math.acos(_targetDragPoint.dot(upProj) / this._grabbedSphere.radius)
@@ -579,11 +584,6 @@ export class MouseNavigation extends Control {
 
                     //let _vRot = Quat.axisAngleToQuat(cam.getRight(), -_a);
                     let _vRot = Quat.axisAngleToQuat(upProj.cross(cam.eyeNorm).normalize(), -_a);
-
-                    // This is oroginal NORTH hRot calculation
-                    // let _hRot = Quat.getRotationBetweenVectors(
-                    //     (new Vec3(_targetDragPoint.x, _targetDragPoint.y, 0)).getNormal(),
-                    //     (new Vec3(this._grabbedPoint.x, this._grabbedPoint.y, 0.0)).getNormal());
 
                     let targetProj = Vec3.proj_b_to_plane(_targetDragPoint, upProj);
                     let grabbedProj = Vec3.proj_b_to_plane(this._grabbedPoint, upProj);
@@ -627,8 +627,7 @@ export class MouseNavigation extends Control {
     }
 
     public get isArcMode(): boolean {
-        return false;
-        return this._arcMode || this._arcModeManual;
+        return this.lockNorth ? false: (this._arcMode || this._arcModeManual);
     }
 
     protected _handleDrag() {
