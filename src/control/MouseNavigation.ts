@@ -21,6 +21,7 @@ interface IMouseNavigationParams extends IControlParams {
     mode?: NavigationMode;
     poleThreshold?: number;
     disableRotation?: boolean;
+    disableTilt?: boolean;
 }
 
 export type MouseNavigationEventsList = [
@@ -74,7 +75,8 @@ const MODE_ADAPTIVE = 2;
  * @param {number} [options.mass] - camera mass, affects velocity. Default is 1
  * @param {number} [options.minSlope] - minimal slope for vertical camera movement. Default is 0.35
  * @param {number} [options.poleThreshold] - Vertical rotation is reduced when camera is close to poles
- * @param {boolean} [options.disableRotation] - Disables rotation and tilt controls (right mouse button and touchpad). Default is false
+ * @param {boolean} [options.disableRotation] - Disables horizontal rotation controls (right mouse button and touchpad). Default is false
+ * @param {boolean} [options.disableTilt] - Disables vertical tilt controls (right mouse button and touchpad). Default is false
  * @fires og.MouseNavigation#drag
  * @fires og.MouseNavigation#zoom
  * @fires og.MouseNavigation#rotate
@@ -95,6 +97,7 @@ export class MouseNavigation extends Control {
     public poleThreshold: number;
     public mode: number;
     public disableRotation: boolean;
+    public disableTilt: boolean;
 
     public vel_roll: number;
     public force_roll: number;
@@ -181,6 +184,7 @@ export class MouseNavigation extends Control {
         this.zoomSpeed = options.zoomSpeed != undefined ? options.zoomSpeed : 1;
         this.poleThreshold = options.poleThreshold != undefined ? options.poleThreshold : DEFAULT_POLE_THRESHOLD;
         this.disableRotation = options.disableRotation != undefined ? options.disableRotation : false;
+        this.disableTilt = options.disableTilt != undefined ? options.disableTilt : false;
 
         this._lookPos = undefined;
         this._grabbedPoint = null;
@@ -313,13 +317,17 @@ export class MouseNavigation extends Control {
     }
 
     protected _onRHold = (e: IMouseState) => {
-        if (this.disableRotation) {
+        if (this.disableRotation && this.disableTilt) {
             return;
         }
         if (this._targetRotationPoint) {
             this._velInertia = 0.6; //0.8, 0.2
-            this.force_h = 0.5 * (e.x - e.prev_x);
-            this.force_v = 0.5 * (e.y - e.prev_y);
+            if (!this.disableRotation) {
+                this.force_h = 0.5 * (e.x - e.prev_x);
+            }
+            if (!this.disableTilt) {
+                this.force_v = 0.5 * (e.y - e.prev_y);
+            }
 
             // temporary fix
             let hdg = this.planet!.camera.getHeading();
@@ -331,12 +339,12 @@ export class MouseNavigation extends Control {
     }
 
     protected _handleRotation() {
-        if (this.disableRotation) {
+        if (this.disableRotation && this.disableTilt) {
             return;
         }
         if (this.planet && this._targetRotationPoint) {
             let cam = this.planet!.camera;
-            if (this.vel_h === 0.0 && this.vel_v === 0.0) {
+            if ((this.disableRotation || this.vel_h === 0.0) && (this.disableTilt || this.vel_v === 0.0)) {
                 return;
             }
             // let l = (0.3 / this._tRad) * math.RADIANS;
@@ -346,10 +354,14 @@ export class MouseNavigation extends Control {
             //     l = 0.003;
             // }
 
-            let d_v_h = this.vel_h * this.dt;
-            let d_v_v = this.vel_v * this.dt;
-            cam.rotateHorizontal(d_v_h, false, this._targetRotationPoint, this._tUp);
-            cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
+            if (!this.disableRotation) {
+                let d_v_h = this.vel_h * this.dt;
+                cam.rotateHorizontal(d_v_h, false, this._targetRotationPoint, this._tUp);
+            }
+            if (!this.disableTilt) {
+                let d_v_v = this.vel_v * this.dt;
+                cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
+            }
             this.events.dispatch(this.events.rotate, this);
             this._curPitch = cam.getPitch();
             this._curYaw = cam.getYaw();
@@ -359,7 +371,7 @@ export class MouseNavigation extends Control {
     }
 
     protected _onRDown = (e: IMouseState) => {
-        if (this.disableRotation) {
+        if (this.disableRotation && this.disableTilt) {
             return;
         }
         if (this.planet) {
