@@ -10,15 +10,16 @@ import {input} from "../input/input";
 import {Plane} from "../math/Plane";
 import {createEvents, type EventsHandler} from "../Events";
 
+export type NavigationMode = "lockNorth" | "adaptive" | "free";
+
 interface IMouseNavigationParams extends IControlParams {
     inertia?: number;
     dragInertia?: number;
     minSlope?: number;
     mass?: number;
     zoomSpeed?: number;
-    arcMode?: boolean;
+    mode?: NavigationMode;
     poleThreshold?: number;
-    lockNorth?: boolean;
 }
 
 export type MouseNavigationEventsList = [
@@ -57,18 +58,21 @@ const MIN_SLOPE = 0.35;
 // Vertical rotation is reduced when camera is close to poles
 const DEFAULT_POLE_THRESHOLD = 0.999;
 
+const MODE_FREE = 0;
+const MODE_LOCK_NORTH = 1;
+const MODE_ADAPTIVE = 2;
+
 /**
  * Mouse navigation.
  * @class
  * @extends {Control}
  * @param {IMouseNavigationParams} [options] - Mouse navigation options:
- * @param {boolean} [options.arcMode] - arc rotaion mode
+ * @param {NavigationMode} [options.mode] - Navigation mode: "lockNorth" (keeps north fixed), "adaptive" (default, auto-detects arc mode), "free" (arc rotation mode)
  * @param {number} [options.inertia] - inertia factor
  * @param {number} [options.dragInertia] - drag inertia
  * @param {number} [options.mass] - camera mass, affects velocity. Default is 1
  * @param {number} [options.minSlope] - minimal slope for vertical camera movement. Default is 0.35
  * @param {number} [options.poleThreshold] - Vertical rotation is reduced when camera is close to poles
- * @param {number} [options.lockNorth] - If true, keeps the compass (north) fixed when rotating the scene with the mouse
  * @fires og.MouseNavigation#drag
  * @fires og.MouseNavigation#zoom
  * @fires og.MouseNavigation#rotate
@@ -87,13 +91,12 @@ export class MouseNavigation extends Control {
     public dragInertia: number;
     public zoomSpeed: number;
     public poleThreshold: number;
-    public lockNorth: boolean;
+    public mode: number;
 
     public vel_roll: number;
     public force_roll: number;
 
-    protected _arcMode: boolean = false;
-    protected _arcModeManual: boolean = false;
+    protected _freeMode: boolean = false;
 
     public events: EventsHandler<MouseNavigationEventsList>;
 
@@ -206,10 +209,9 @@ export class MouseNavigation extends Control {
 
         this._isTouchPad = false;
 
-        this._arcModeManual = options.arcMode !== undefined ? options.arcMode : false;
-        this._arcMode = false;
+        this._freeMode = false;
 
-        this.lockNorth = options.lockNorth !== undefined ? options.lockNorth : false;
+        this.mode = this._modeToNumber(options.mode || "adaptive");
     }
 
     override oninit() {
@@ -315,9 +317,9 @@ export class MouseNavigation extends Control {
 
             // temporary fix
             let hdg = this.planet!.camera.getHeading();
-            this._arcMode = false;
+            this._freeMode = false;
             if (!isNaN(hdg) && (hdg > 45 && hdg < 340)) {
-                this._arcMode = true;
+                this._freeMode = true;
             }
         }
     }
@@ -544,29 +546,13 @@ export class MouseNavigation extends Control {
 
                 let rot: Quat;
 
-                if (this.isArcMode) {
+                if (this.freeMode) {
                     rot = Quat.getRotationBetweenVectors(
                         this._targetDragPoint.getNormal(),
                         this._grabbedPoint.getNormal()
                     );
                 } else {
 
-                    // // Calculate plane normal from NORTH (Z) and camera right vector
-                    // let planeNormal = Vec3.NORTH.cross(cam.getRight());
-                    // let upProj: Vec3;
-                    // // If vectors are parallel, fallback to simple Z calculation
-                    // if (planeNormal.length() < 1e-6) {
-                    //     upProj = Vec3.NORTH;
-                    // } else {
-                    //     planeNormal.normalize();
-                    //     // Project camera up vector onto the plane
-                    //     upProj = Vec3.proj_b_to_plane(cam.getUp(), planeNormal);
-                    //     if (upProj.length() < 1e-6) {
-                    //         upProj = Vec3.NORTH;
-                    //     } else {
-                    //         upProj.normalize();
-                    //     }
-                    // }
 
                     let upProj = Vec3.NORTH;
 
@@ -626,8 +612,30 @@ export class MouseNavigation extends Control {
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
     }
 
-    public get isArcMode(): boolean {
-        return this.lockNorth ? false: (this._arcMode || this._arcModeManual);
+    public get freeMode(): boolean {
+        if (this.mode === MODE_LOCK_NORTH) {
+            return false;
+        }
+        if (this.mode === MODE_FREE) {
+            return true;
+        }
+        return this._freeMode;
+    }
+
+    public setMode(mode: NavigationMode): void {
+        this.mode = this._modeToNumber(mode);
+    }
+
+    protected _modeToNumber(mode: NavigationMode): number {
+        switch (mode) {
+            case "lockNorth":
+                return MODE_LOCK_NORTH;
+            case "free":
+                return MODE_FREE;
+            case "adaptive":
+            default:
+                return MODE_ADAPTIVE;
+        }
     }
 
     protected _handleDrag() {
@@ -652,7 +660,7 @@ export class MouseNavigation extends Control {
                 let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
 
-                if (this.isArcMode) {
+                if (this.freeMode) {
                     let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
                     cam.rotate(rot);
                     cam.eye.copy(newEye);
@@ -734,7 +742,7 @@ export class MouseNavigation extends Control {
             cam.eye = rot.mulVec3(eye);
             cam.rotate(rot);
 
-            if (!this.isArcMode) {
+            if (!this.freeMode) {
 
                 this._corrRoll();
                 // restore camera direction
