@@ -24,9 +24,9 @@ const globus = new Globe({
     atmosphereEnabled: true,
     skybox: skybox,
     navigation: {
-        mode: "lockNorth",
-        disableRotation: true,
-        disableTilt: true
+        mode: "free",//lockNorth, adaptive
+        // disableRotation: true,
+        // disableTilt: true
     }
     // controls: [
     //     new control.Navigation({
