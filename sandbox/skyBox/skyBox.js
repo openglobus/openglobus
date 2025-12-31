@@ -23,15 +23,15 @@ const globus = new Globe({
     layers: [new OpenStreetMap()],
     atmosphereEnabled: true,
     skybox: skybox,
-    controls: [
-        new control.Navigation({
-            mode: "lockNorth",
-            disableRotation: false,
-            disableTilt: false
-        }),
-        new control.KeyboardNavigation({ autoActivate: true }),
-        new control.ToggleWireframe(),
-        new control.TimelineControl(),
-        new control.CompassButton()
-    ]
+    // controls: [
+    //     new control.Navigation({
+    //         mode: "lockNorth",
+    //         disableRotation: false,
+    //         disableTilt: false
+    //     }),
+    //     new control.KeyboardNavigation({ autoActivate: true }),
+    //     new control.ToggleWireframe(),
+    //     new control.TimelineControl(),
+    //     new control.CompassButton()
+    // ]
 })
