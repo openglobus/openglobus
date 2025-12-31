@@ -82,13 +82,13 @@ export class GeoImageDragControl extends Control {
 
     protected _onLUp(ms: IMouseState) {
         this._catchCorner = false;
-        ms.renderer.controls.mouseNavigation.activate();
+        ms.renderer.controls.navigation.activate();
     }
 
     protected _onLDown(ms: IMouseState) {
         if (this._cornerIndex !== -1) {
             this._catchCorner = true;
-            ms.renderer.controls.mouseNavigation.deactivate();
+            ms.renderer.controls.navigation.deactivate();
         }
     }
 

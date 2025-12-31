@@ -199,7 +199,7 @@ class SelectionScene extends RenderNode {
             this._cornerEntity[0].geoObject?.setVisibility(true);
             this._cornerEntity[1].geoObject?.setVisibility(true);
 
-            this.renderer?.controls.mouseNavigation?.deactivate();
+            this.renderer?.controls.navigation?.deactivate();
             this._startLonLat = this._planet.getLonLatFromPixelTerrain(e);
 
             let startPos = this._planet.ellipsoid.lonLatToCartesian(this._startLonLat);
@@ -236,7 +236,7 @@ class SelectionScene extends RenderNode {
             this._startLonLat = null;
         }
         e.renderer.handler.canvas.style.cursor = 'default';
-        this.renderer?.controls.mouseNavigation?.activate();
+        this.renderer?.controls.navigation?.activate();
     }
 
     _drawLine(startLonLat: any, endLonLat: any, startPos?: any) {

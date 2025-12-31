@@ -9,7 +9,7 @@ export * from "./LayerAnimation";
 export * from "./LayerSwitcher";
 export * from "./Lighting";
 export * from "./OldMouseNavigation";
-export * from "./MouseNavigation";
+export * from "./Navigation";
 export * from "./RulerSwitcher";
 export * from "./ScaleControl";
 export * from "./ShowFps";

@@ -12,7 +12,7 @@ import {createEvents, type EventsHandler} from "../Events";
 
 export type NavigationMode = "lockNorth" | "adaptive" | "free";
 
-interface IMouseNavigationParams extends IControlParams {
+export interface INavigationParams extends IControlParams {
     inertia?: number;
     dragInertia?: number;
     minSlope?: number;
@@ -24,28 +24,28 @@ interface IMouseNavigationParams extends IControlParams {
     disableTilt?: boolean;
 }
 
-export type MouseNavigationEventsList = [
+export type NavigationEventsList = [
     "drag",
     "zoom",
     "rotate",
 ];
 
-const MOUSE_NAVIGATION_EVENTS: MouseNavigationEventsList = [
+const NAVIGATION_EVENTS: NavigationEventsList = [
     /**
      * Triggered on view drag.
-     * @event og.MouseNavigation#drag
+     * @event og.Navigation#drag
      */
     "drag",
 
     /**
      * Triggered on zoom.
-     * @event og.MouseNavigation#zoom
+     * @event og.Navigation#zoom
      */
     "zoom",
 
     /**
      * Triggered on rotate.
-     * @event og.MouseNavigation#rotate
+     * @event og.Navigation#rotate
      */
     "rotate",
 ];
@@ -65,10 +65,10 @@ const MODE_LOCK_NORTH = 1;
 const MODE_ADAPTIVE = 2;
 
 /**
- * Mouse navigation.
+ * Navigation.
  * @class
  * @extends {Control}
- * @param {IMouseNavigationParams} [options] - Mouse navigation options:
+ * @param {INavigationParams} [options] - Navigation options:
  * @param {NavigationMode} [options.mode] - Navigation mode: "lockNorth" (keeps north fixed), "adaptive" (default, auto-detects arc mode), "free" (arc rotation mode)
  * @param {number} [options.inertia] - inertia factor
  * @param {number} [options.dragInertia] - drag inertia
@@ -77,11 +77,11 @@ const MODE_ADAPTIVE = 2;
  * @param {number} [options.poleThreshold] - Vertical rotation is reduced when camera is close to poles
  * @param {boolean} [options.disableRotation] - Disables horizontal rotation controls (right mouse button and touchpad). Default is false
  * @param {boolean} [options.disableTilt] - Disables vertical tilt controls (right mouse button and touchpad). Default is false
- * @fires og.MouseNavigation#drag
- * @fires og.MouseNavigation#zoom
- * @fires og.MouseNavigation#rotate
+ * @fires og.Navigation#drag
+ * @fires og.Navigation#zoom
+ * @fires og.Navigation#rotate
  */
-export class MouseNavigation extends Control {
+export class Navigation extends Control {
 
     public force: Vec3;
     public force_h: number;
@@ -104,7 +104,7 @@ export class MouseNavigation extends Control {
 
     protected _freeMode: boolean = false;
 
-    public events: EventsHandler<MouseNavigationEventsList>;
+    public events: EventsHandler<NavigationEventsList>;
 
     protected _lookPos: Vec3 | undefined;
 
@@ -156,14 +156,14 @@ export class MouseNavigation extends Control {
     protected _rotHDir: number;
     protected _rotVDir: number;
 
-    constructor(options: IMouseNavigationParams = {}) {
+    constructor(options: INavigationParams = {}) {
         super({
-            name: "mouseNavigation",
+            name: "navigation",
             autoActivate: true,
             ...options
         });
 
-        this.events = createEvents<MouseNavigationEventsList>(MOUSE_NAVIGATION_EVENTS, this);
+        this.events = createEvents<NavigationEventsList>(NAVIGATION_EVENTS, this);
 
         this.force = new Vec3();
         this.force_h = 0;
@@ -865,3 +865,4 @@ export class MouseNavigation extends Control {
         this._targetDragPoint = null;
     }
 }
+

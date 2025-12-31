@@ -237,8 +237,8 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _navActivate() {
         if (this.renderer) {
-            if (this.renderer.controls.mouseNavigation) {
-                this.renderer.controls.mouseNavigation.activate();
+            if (this.renderer.controls.navigation) {
+                this.renderer.controls.navigation.activate();
             }
             if (this.renderer.controls.SimpleNavigation) {
                 this.renderer.controls.SimpleNavigation.activate();
@@ -248,8 +248,8 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _navDeactivate() {
         if (this.renderer) {
-            if (this.renderer.controls.mouseNavigation) {
-                this.renderer.controls.mouseNavigation.deactivate();
+            if (this.renderer.controls.navigation) {
+                this.renderer.controls.navigation.deactivate();
             }
             if (this.renderer.controls.SimpleNavigation) {
                 this.renderer.controls.SimpleNavigation.deactivate();
