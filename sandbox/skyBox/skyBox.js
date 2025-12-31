@@ -23,6 +23,11 @@ const globus = new Globe({
     layers: [new OpenStreetMap()],
     atmosphereEnabled: true,
     skybox: skybox,
+    navigation: {
+        mode: "lockNorth",
+        disableRotation: true,
+        disableTilt: true
+    }
     // controls: [
     //     new control.Navigation({
     //         mode: "lockNorth",

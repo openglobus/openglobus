@@ -702,7 +702,6 @@ export class Navigation extends Control {
                     cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
                 }
             } else {
-                console.log("corr")
                 let d_v = this.vel.scaleTo(this.dt);
                 let newEye = cam.eye.add(d_v);
                 cam.eye.copy(newEye);
@@ -785,6 +784,10 @@ export class Navigation extends Control {
 
                 let dp = px1.sub(px0);
                 cam.eye = cam.eye.add(dp);
+
+                // Looks like it helps to fix unpredictable camera loose focus wheb zoomOut
+                this._corrRoll();
+                cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
 
                 // ver.2
                 // let px0 = new Ray(cam.eye, dirCurr).hitSphere(this._grabbedSphere)!;
