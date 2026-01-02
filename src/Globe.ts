@@ -6,7 +6,7 @@ import {EmptyTerrain} from "./terrain/EmptyTerrain";
 import {Handler} from "./webgl/Handler";
 import {isEmpty} from "./utils/shared";
 import {Layer} from "./layer/Layer";
-import {MouseNavigation} from "./control/MouseNavigation";
+import {Navigation} from "./control/Navigation";
 import type {NumberArray2} from "./math/Vec2";
 import type {NumberArray4} from "./math/Vec4";
 import {Planet} from "./scene/Planet";
@@ -50,6 +50,18 @@ export interface IGlobeParams {
         active?: boolean;
         stopped?: boolean
     };
+    navigation?: {
+        active?: boolean;
+        inertia?: number;
+        dragInertia?: number;
+        minSlope?: number;
+        mass?: number;
+        zoomSpeed?: number;
+        mode?: "lockNorth" | "adaptive" | "free";
+        poleThreshold?: number;
+        disableRotation?: boolean;
+        disableTilt?: boolean;
+    };
     layers?: Layer[];
     viewExtent?: Extent | NumberArray4;
     autoActivate?: boolean;
@@ -87,7 +99,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  *     target: 'globus',
  *     name: 'Earth',
  *     controls: [
- *          new control.MouseNavigation(),
+ *          new control.Navigation(),
  *          new control.KeyboardNavigation(),
  *          new control.EarthCoordinates(),
  *          new control.LayerSwitcher({),
@@ -159,6 +171,8 @@ class Globe {
     public planet: Planet;
 
     public sun: Sun;
+
+    public navigation: Navigation;
 
     constructor(options: IGlobeParams) {
 
@@ -285,7 +299,7 @@ class Globe {
         } else {
             this.planet.addControls([
                 new ZoomControl(),
-                new MouseNavigation(),
+                new Navigation(),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
@@ -296,10 +310,13 @@ class Globe {
 
         const _controls = this.renderer.controls;
         let sun;
+        let navigation;
         for (let i in _controls) {
             if (_controls[i] instanceof Sun) {
                 sun = _controls[i] as Sun;
-                break;
+            }
+            if (_controls[i] instanceof Navigation) {
+                navigation = _controls[i] as Navigation;
             }
         }
 
@@ -316,6 +333,46 @@ class Globe {
             }
             if (options.sun.stopped === true) {
                 this.sun.stop();
+            }
+        }
+
+        if (!navigation) {
+            this.navigation = new Navigation();
+            this.planet.addControl(this.navigation);
+        } else {
+            this.navigation = navigation;
+        }
+
+        if (options.navigation) {
+            if (options.navigation.active !== undefined && !options.navigation.active) {
+                this.navigation.deactivate();
+            }
+            if (options.navigation.inertia !== undefined) {
+                this.navigation.inertia = options.navigation.inertia;
+            }
+            if (options.navigation.dragInertia !== undefined) {
+                this.navigation.dragInertia = options.navigation.dragInertia;
+            }
+            if (options.navigation.minSlope !== undefined) {
+                this.navigation.minSlope = options.navigation.minSlope;
+            }
+            if (options.navigation.mass !== undefined) {
+                this.navigation.mass = options.navigation.mass;
+            }
+            if (options.navigation.zoomSpeed !== undefined) {
+                this.navigation.zoomSpeed = options.navigation.zoomSpeed;
+            }
+            if (options.navigation.mode !== undefined) {
+                this.navigation.setMode(options.navigation.mode);
+            }
+            if (options.navigation.poleThreshold !== undefined) {
+                this.navigation.poleThreshold = options.navigation.poleThreshold;
+            }
+            if (options.navigation.disableRotation !== undefined) {
+                this.navigation.disableRotation = options.navigation.disableRotation;
+            }
+            if (options.navigation.disableTilt !== undefined) {
+                this.navigation.disableTilt = options.navigation.disableTilt;
             }
         }
 

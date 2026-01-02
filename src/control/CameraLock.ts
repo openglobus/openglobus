@@ -5,7 +5,7 @@ import {Vec3} from "../math/Vec3";
 import {createEvents, type EventsHandler} from "../Events";
 import {Entity} from "../entity/Entity";
 import type {IMouseState} from "../renderer/RendererEvents";
-import {MouseNavigation} from "./MouseNavigation";
+import {Navigation} from "./Navigation";
 import {Planet} from "../scene/Planet";
 import {input} from "../input/input";
 import {RADIANS} from "../math";
@@ -114,8 +114,8 @@ export class CameraLock extends Control {
     }
 
     protected _activateNav() {
-        if (this.renderer && this.renderer.controls.mouseNavigation) {
-            this.renderer.controls.mouseNavigation.activate();
+        if (this.renderer && this.renderer.controls.navigation) {
+            this.renderer.controls.navigation.activate();
         }
 
         if (this.renderer && this.renderer.controls.simpleNavigation) {
@@ -124,9 +124,9 @@ export class CameraLock extends Control {
     }
 
     protected _deactivateNav() {
-        if (this.renderer && this.renderer.controls.mouseNavigation) {
-            this.renderer.controls.mouseNavigation.deactivate();
-            (this.renderer.controls.mouseNavigation as MouseNavigation).stop();
+        if (this.renderer && this.renderer.controls.navigation) {
+            this.renderer.controls.navigation.deactivate();
+            (this.renderer.controls.navigation as Navigation).stop();
         }
 
         if (this.renderer && this.renderer.controls.simpleNavigation) {
