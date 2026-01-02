@@ -244,7 +244,7 @@ class RulerScene extends RenderNode {
 
     protected _onCornerLdown = (e: IMouseState) => {
         if (!this._startLonLat) {
-            this.renderer?.controls.mouseNavigation?.deactivate();
+            this.renderer?.controls.navigation?.deactivate();
             this._startClick.set(e.x, e.y);
             let coords = e.pickingObject.getCartesian();
             this._startPos = this._planet!.getPixelFromCartesian(coords);
@@ -259,7 +259,7 @@ class RulerScene extends RenderNode {
 
     protected _onLUp = () => {
         if (this._pickedCorner) {
-            this.renderer!.controls.mouseNavigation?.activate();
+            this.renderer!.controls.navigation?.activate();
             this._pickedCorner = null;
             this._anchorLonLat = null;
         }

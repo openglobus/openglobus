@@ -594,7 +594,7 @@ class ElevationProfileScene extends RenderNode {
 
     protected _onGroundPointerLDown = (e: IMouseState) => {
         this._clampToGround = false;
-        this.renderer!.controls.mouseNavigation.deactivate();
+        this.renderer!.controls.navigation.deactivate();
         this._pickedGroundEntity = e.pickingObject;
         const coords = this._pickedGroundEntity!.getCartesian();
         this._startClickPos.set(e.x, e.y);
@@ -603,7 +603,7 @@ class ElevationProfileScene extends RenderNode {
 
     protected _onGroundPointerLUp = (e: IMouseState) => {
         this._clampToGround = true;
-        this.renderer!.controls.mouseNavigation.activate();
+        this.renderer!.controls.navigation.activate();
         this._pickedGroundEntity = null;
     }
 
@@ -616,12 +616,12 @@ class ElevationProfileScene extends RenderNode {
     }
 
     protected _onHeadPointerLDown = (e: IMouseState) => {
-        this.renderer!.controls.mouseNavigation.deactivate();
+        this.renderer!.controls.navigation.deactivate();
         this._pickedHeadEntity = e.pickingObject;
     }
 
     protected _onHeadPointerLUp = (e: IMouseState) => {
-        this.renderer!.controls.mouseNavigation.activate();
+        this.renderer!.controls.navigation.activate();
         this._pickedHeadEntity = null;
     }
 

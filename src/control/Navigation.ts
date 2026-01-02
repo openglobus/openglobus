@@ -10,37 +10,42 @@ import {input} from "../input/input";
 import {Plane} from "../math/Plane";
 import {createEvents, type EventsHandler} from "../Events";
 
-interface IMouseNavigationParams extends IControlParams {
-    fixedUp?: boolean;
+export type NavigationMode = "lockNorth" | "adaptive" | "free";
+
+export interface INavigationParams extends IControlParams {
     inertia?: number;
     dragInertia?: number;
     minSlope?: number;
     mass?: number;
     zoomSpeed?: number;
+    mode?: NavigationMode;
+    poleThreshold?: number;
+    disableRotation?: boolean;
+    disableTilt?: boolean;
 }
 
-export type MouseNavigationEventsList = [
+export type NavigationEventsList = [
     "drag",
     "zoom",
     "rotate",
 ];
 
-const MOUSE_NAVIGATION_EVENTS: MouseNavigationEventsList = [
+const NAVIGATION_EVENTS: NavigationEventsList = [
     /**
      * Triggered on view drag.
-     * @event og.MouseNavigation#drag
+     * @event og.Navigation#drag
      */
     "drag",
 
     /**
      * Triggered on zoom.
-     * @event og.MouseNavigation#zoom
+     * @event og.Navigation#zoom
      */
     "zoom",
 
     /**
      * Triggered on rotate.
-     * @event og.MouseNavigation#rotate
+     * @event og.Navigation#rotate
      */
     "rotate",
 ];
@@ -52,22 +57,31 @@ const DEFAULT_DRAG_INERTIA = 170;
 // Camera moves vertically (up/down) when slope is less than this threshold
 const MIN_SLOPE = 0.35;
 
+// Vertical rotation is reduced when camera is close to poles
+const DEFAULT_POLE_THRESHOLD = 0.999;
+
+const MODE_FREE = 0;
+const MODE_LOCK_NORTH = 1;
+const MODE_ADAPTIVE = 2;
+
 /**
- * Mouse navigation.
+ * Navigation.
  * @class
  * @extends {Control}
- * @param {IMouseNavigationParams} [options] - Mouse navigation options:
- * @param {boolean} [options.fixedUp] - fix up at north pole
+ * @param {INavigationParams} [options] - Navigation options:
+ * @param {NavigationMode} [options.mode] - Navigation mode: "lockNorth" (keeps north fixed), "adaptive" (default, auto-detects arc mode), "free" (arc rotation mode)
  * @param {number} [options.inertia] - inertia factor
  * @param {number} [options.dragInertia] - drag inertia
  * @param {number} [options.mass] - camera mass, affects velocity. Default is 1
  * @param {number} [options.minSlope] - minimal slope for vertical camera movement. Default is 0.35
- * @param {number} [options.zoomSpeed] - zoom speed factor. Default is 1
- * @fires og.MouseNavigation#drag
- * @fires og.MouseNavigation#zoom
- * @fires og.MouseNavigation#rotate
+ * @param {number} [options.poleThreshold] - Vertical rotation is reduced when camera is close to poles
+ * @param {boolean} [options.disableRotation] - Disables horizontal rotation controls (right mouse button and touchpad). Default is false
+ * @param {boolean} [options.disableTilt] - Disables vertical tilt controls (right mouse button and touchpad). Default is false
+ * @fires og.Navigation#drag
+ * @fires og.Navigation#zoom
+ * @fires og.Navigation#rotate
  */
-export class MouseNavigation extends Control {
+export class Navigation extends Control {
 
     public force: Vec3;
     public force_h: number;
@@ -80,11 +94,17 @@ export class MouseNavigation extends Control {
     public inertia: number;
     public dragInertia: number;
     public zoomSpeed: number;
+    public poleThreshold: number;
+    public mode: number;
+    public disableRotation: boolean;
+    public disableTilt: boolean;
 
     public vel_roll: number;
     public force_roll: number;
 
-    public events: EventsHandler<MouseNavigationEventsList>;
+    protected _freeMode: boolean = false;
+
+    public events: EventsHandler<NavigationEventsList>;
 
     protected _lookPos: Vec3 | undefined;
 
@@ -109,8 +129,6 @@ export class MouseNavigation extends Control {
 
     protected _shiftBusy = false;
 
-    protected fixedUp: boolean;
-
     protected _curPitch: number;
 
     protected _curYaw: number;
@@ -131,21 +149,21 @@ export class MouseNavigation extends Control {
 
     protected _hold: boolean = false;
 
-    protected _prevVel: Vec3 = new Vec3();
+    //protected _prevVel: Vec3 = new Vec3();
 
-    protected _screenPosIsChanged: boolean = true;
+    //protected _screenPosIsChanged: boolean = true;
 
     protected _rotHDir: number;
     protected _rotVDir: number;
 
-    constructor(options: IMouseNavigationParams = {}) {
+    constructor(options: INavigationParams = {}) {
         super({
-            name: "mouseNavigation",
+            name: "navigation",
             autoActivate: true,
             ...options
         });
 
-        this.events = createEvents<MouseNavigationEventsList>(MOUSE_NAVIGATION_EVENTS, this);
+        this.events = createEvents<NavigationEventsList>(NAVIGATION_EVENTS, this);
 
         this.force = new Vec3();
         this.force_h = 0;
@@ -164,6 +182,9 @@ export class MouseNavigation extends Control {
         this.minSlope = options.minSlope != undefined ? options.minSlope : MIN_SLOPE;
         this.dragInertia = options.dragInertia != undefined ? options.dragInertia : DEFAULT_DRAG_INERTIA;
         this.zoomSpeed = options.zoomSpeed != undefined ? options.zoomSpeed : 1;
+        this.poleThreshold = options.poleThreshold != undefined ? options.poleThreshold : DEFAULT_POLE_THRESHOLD;
+        this.disableRotation = options.disableRotation != undefined ? options.disableRotation : false;
+        this.disableTilt = options.disableTilt != undefined ? options.disableTilt : false;
 
         this._lookPos = undefined;
         this._grabbedPoint = null;
@@ -183,8 +204,6 @@ export class MouseNavigation extends Control {
 
         this._grabbedSphere = new Sphere();
 
-        this.fixedUp = options.fixedUp != undefined ? options.fixedUp : true;
-
         this._rot = new Quat();
 
         this._curPitch = 0;
@@ -196,6 +215,10 @@ export class MouseNavigation extends Control {
         this._grabbedCameraHeight = 0;
 
         this._isTouchPad = false;
+
+        this._freeMode = false;
+
+        this.mode = this._modeToNumber(options.mode || "adaptive");
     }
 
     override oninit() {
@@ -294,17 +317,34 @@ export class MouseNavigation extends Control {
     }
 
     protected _onRHold = (e: IMouseState) => {
+        if (this.disableRotation && this.disableTilt) {
+            return;
+        }
         if (this._targetRotationPoint) {
             this._velInertia = 0.6; //0.8, 0.2
-            this.force_h = 0.5 * (e.x - e.prev_x);
-            this.force_v = 0.5 * (e.y - e.prev_y);
+            if (!this.disableRotation) {
+                this.force_h = 0.5 * (e.x - e.prev_x);
+            }
+            if (!this.disableTilt) {
+                this.force_v = 0.5 * (e.y - e.prev_y);
+            }
+
+            // temporary fix
+            let hdg = this.planet!.camera.getHeading();
+            this._freeMode = false;
+            if (!isNaN(hdg) && (hdg > 45 && hdg < 340)) {
+                this._freeMode = true;
+            }
         }
     }
 
     protected _handleRotation() {
+        if (this.disableRotation && this.disableTilt) {
+            return;
+        }
         if (this.planet && this._targetRotationPoint) {
             let cam = this.planet!.camera;
-            if (this.vel_h === 0.0 && this.vel_v === 0.0) {
+            if ((this.disableRotation || this.vel_h === 0.0) && (this.disableTilt || this.vel_v === 0.0)) {
                 return;
             }
             // let l = (0.3 / this._tRad) * math.RADIANS;
@@ -314,10 +354,14 @@ export class MouseNavigation extends Control {
             //     l = 0.003;
             // }
 
-            let d_v_h = this.vel_h * this.dt;
-            let d_v_v = this.vel_v * this.dt;
-            cam.rotateHorizontal(d_v_h, false, this._targetRotationPoint, this._tUp);
-            cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
+            if (!this.disableRotation) {
+                let d_v_h = this.vel_h * this.dt;
+                cam.rotateHorizontal(d_v_h, false, this._targetRotationPoint, this._tUp);
+            }
+            if (!this.disableTilt) {
+                let d_v_v = this.vel_v * this.dt;
+                cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
+            }
             this.events.dispatch(this.events.rotate, this);
             this._curPitch = cam.getPitch();
             this._curYaw = cam.getYaw();
@@ -327,6 +371,9 @@ export class MouseNavigation extends Control {
     }
 
     protected _onRDown = (e: IMouseState) => {
+        if (this.disableRotation && this.disableTilt) {
+            return;
+        }
         if (this.planet) {
             this.planet.stopFlying();
             const tp = this._getTargetPoint(e.pos);
@@ -427,7 +474,6 @@ export class MouseNavigation extends Control {
 
             let dir = this._targetZoomPoint.sub(cam.eye);
             if (dir.length() > 6000 && this._wheelDirection > 0 && cam.eye.getNormal().negate().dot(dir.normalize()) < 0.3) {
-                this.fixedUp = false;
                 scale = 4.3;
             }
 
@@ -479,10 +525,6 @@ export class MouseNavigation extends Control {
         this._curRoll = this.planet.camera.getRoll();
 
         this._currScreenPos.copy(e.pos);
-
-        if (this.planet!.camera.getUp().dot(new Vec3(0, 0, 1)) > 0.3) {
-            this.fixedUp = true;
-        }
     }
 
     protected _onLHold = (e: IMouseState) => {
@@ -513,8 +555,9 @@ export class MouseNavigation extends Control {
                 let newEye = rot.mulVec3(cam.eye);
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
 
-            } else if (cam.slope > MIN_SLOPE) {
+            } else if (cam.slope > this.minSlope) {
 
+                // Need distance for orthographic camera
                 this._grabbedDist = cam.eye.distance(this._grabbedPoint);
                 let dir = cam.unproject(e.x, e.y, this._grabbedDist);
                 let _targetDragPoint = new Ray(cam.eye, dir).hitSphere(this._grabbedSphere);
@@ -525,10 +568,42 @@ export class MouseNavigation extends Control {
 
                 this._targetDragPoint = _targetDragPoint;
 
-                let rot = Quat.getRotationBetweenVectors(
-                    this._targetDragPoint.getNormal(),
-                    this._grabbedPoint.getNormal()
-                );
+                let rot: Quat;
+
+                if (this.freeMode) {
+                    rot = Quat.getRotationBetweenVectors(
+                        this._targetDragPoint.getNormal(),
+                        this._grabbedPoint.getNormal()
+                    );
+                } else {
+
+
+                    let upProj = Vec3.NORTH;
+
+                    // Calculate angle along the projected up axis
+                    let _a = Math.acos(_targetDragPoint.dot(upProj) / this._grabbedSphere.radius)
+                        - Math.acos(this._grabbedPoint.dot(upProj) / this._grabbedSphere.radius);
+
+                    // Reduce vertical rotation when camera is close to poles (only when moving towards pole)
+                    let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
+                    if (_a > 0 && northProximity >= this.poleThreshold) {
+                        _a = 0;
+                    } else if (_a < 0 && northProximity <= -this.poleThreshold) {
+                        _a = 0;
+                    }
+
+                    //let _vRot = Quat.axisAngleToQuat(cam.getRight(), -_a);
+                    let _vRot = Quat.axisAngleToQuat(upProj.cross(cam.eyeNorm).normalize(), -_a);
+
+                    let targetProj = Vec3.proj_b_to_plane(_targetDragPoint, upProj);
+                    let grabbedProj = Vec3.proj_b_to_plane(this._grabbedPoint, upProj);
+
+                    // Calculate horizontal rotation around upProj axis
+                    let _hRot = Quat.getRotationBetweenVectors(
+                        targetProj.getNormal(), grabbedProj.getNormal());
+
+                    rot = _hRot.mul(_vRot);
+                }
 
                 let newEye = rot.mulVec3(cam.eye);
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
@@ -548,7 +623,7 @@ export class MouseNavigation extends Control {
             this.vel.set(0.0, 0.0, 0.0);
 
             if (!this._currScreenPos.equal(e.pos)) {
-                this._screenPosIsChanged = true;
+                //this._screenPosIsChanged = true;
                 this._currScreenPos.copy(e.pos);
             }
 
@@ -561,41 +636,78 @@ export class MouseNavigation extends Control {
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
     }
 
+    public get freeMode(): boolean {
+        if (this.mode === MODE_LOCK_NORTH) {
+            return false;
+        }
+        if (this.mode === MODE_FREE) {
+            return true;
+        }
+        return this._freeMode;
+    }
+
+    public setMode(mode: NavigationMode): void {
+        this.mode = this._modeToNumber(mode);
+    }
+
+    protected _modeToNumber(mode: NavigationMode): number {
+        switch (mode) {
+            case "lockNorth":
+                return MODE_LOCK_NORTH;
+            case "free":
+                return MODE_FREE;
+            case "adaptive":
+            default:
+                return MODE_ADAPTIVE;
+        }
+    }
+
     protected _handleDrag() {
         if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.1) {
             this._velInertia = DEFAULT_VELINERTIA;
             let cam = this.planet!.camera;
 
-            if (Math.abs(cam.eyeNorm.dot(Vec3.NORTH)) > 0.9) {
-                this.fixedUp = false;
-            }
-
-            if (!this._screenPosIsChanged) {
-                if (this.vel.length() > this._prevVel.length()) {
-                    this.fixedUp = false;
-                }
-            }
-            this._screenPosIsChanged = false;
-            this._prevVel.copy(this.vel);
+            // if (Math.abs(cam.eyeNorm.dot(Vec3.NORTH)) > 0.9) {
+            //     this.fixedUp = false;
+            // }
+            //
+            // if (!this._screenPosIsChanged) {
+            //     if (this.vel.length() > this._prevVel.length()) {
+            //         this.fixedUp = false;
+            //     }
+            // }
+            // this._screenPosIsChanged = false;
+            // this._prevVel.copy(this.vel);
 
             if (cam.slope > this.minSlope) {
                 let d_v = this.vel.scaleTo(this.dt);
                 let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
-                if (this.fixedUp) {
-                    cam.eye.copy(newEye);
-                    this._corrRoll();
-                    cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
-                } else {
+
+                if (this.freeMode) {
                     let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
                     cam.rotate(rot);
                     cam.eye.copy(newEye);
+                } else {
+                    // Check if newEye exceeds pole threshold
+                    let newNorthProximity = newEye.getNormal().dot(Vec3.NORTH);
+                    let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
+                    if ((newNorthProximity > northProximity && newNorthProximity >= this.poleThreshold) ||
+                        (newNorthProximity < northProximity && newNorthProximity <= -this.poleThreshold)) {
+                        this.vel.scale(0.8);
+                    }
+
+                    cam.eye.copy(newEye);
+                    this._corrRoll();
+                    cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
                 }
             } else {
                 let d_v = this.vel.scaleTo(this.dt);
                 let newEye = cam.eye.add(d_v);
                 cam.eye.copy(newEye);
                 cam.checkTerrainCollision();
+                this._corrRoll();
+                cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
             }
 
             this.events.dispatch(this.events.drag, this);
@@ -653,7 +765,7 @@ export class MouseNavigation extends Control {
             cam.eye = rot.mulVec3(eye);
             cam.rotate(rot);
 
-            if (this.fixedUp) {
+            if (!this.freeMode) {
 
                 this._corrRoll();
                 // restore camera direction
@@ -672,6 +784,10 @@ export class MouseNavigation extends Control {
 
                 let dp = px1.sub(px0);
                 cam.eye = cam.eye.add(dp);
+
+                // Looks like it helps to fix unpredictable camera loose focus wheb zoomOut
+                this._corrRoll();
+                cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
 
                 // ver.2
                 // let px0 = new Ray(cam.eye, dirCurr).hitSphere(this._grabbedSphere)!;
@@ -752,3 +868,4 @@ export class MouseNavigation extends Control {
         this._targetDragPoint = null;
     }
 }
+
