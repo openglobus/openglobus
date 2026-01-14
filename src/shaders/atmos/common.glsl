@@ -51,6 +51,21 @@ vec3 sunWithBloom(vec3 rayDir, vec3 sunDir)
     return vec3(gaussianBloom + invBloom);
 }
 
+vec3 sunWithBloomScaled(vec3 rayDir, vec3 sunDir, float angularScale)
+{
+    float minSunCosTheta = cos(SUN_ANGULAR_RADIUS * angularScale);
+    float cosTheta = dot(rayDir, sunDir);
+
+    if (cosTheta >= minSunCosTheta)
+    return vec3(1.0);
+
+    float offset = minSunCosTheta - cosTheta;
+    float gaussianBloom = exp(- offset * 15000.0) * 0.7;
+    float invBloom = 1.0 / (0.09 + offset * 200.0) * 0.01;
+
+    return vec3(gaussianBloom + invBloom);
+}
+
 float rayleighPhase(float angle)
 {
     return 3.0 / (16.0 * PI) * (1.0 + (angle * angle));

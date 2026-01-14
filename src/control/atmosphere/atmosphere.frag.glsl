@@ -207,7 +207,18 @@ void mainImage(out vec4 fragColor)
         bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
         if (!hitGround)
         {
-            vec3 sunLum = sunWithBloom(rayDirection, lightDirection) * vec3(1.0, 1.0, 0.8);
+            vec3 sunLum;
+            if (isOrthographic != 0.0) {
+                float z = 1.0 / tan(fov * 0.5 * PI / 180.0);
+                vec3 viewRay = normalize(vec3(uv, -z));
+                vec4 rd = transpose(viewMatrix) * vec4(viewRay, 1.0);
+                vec3 pseudoRayDirection = normalize(rd.xyz);
+                const float sunOrthoAngularScale = 2.0;
+                sunLum = sunWithBloomScaled(pseudoRayDirection, lightDirection, sunOrthoAngularScale) * vec3(1.0, 1.0, 0.8);
+            } else {
+                sunLum = sunWithBloom(rayDirection, lightDirection) * vec3(1.0, 1.0, 0.8);
+            }
+
             // limit the bloom effect
             sunLum = smoothstep(0.002, 1.0, sunLum);
             light += sunLum * SUN_INTENSITY * transmittanceFromCameraToSpace;
