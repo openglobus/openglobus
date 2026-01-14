@@ -2,7 +2,7 @@ precision lowp float;
 
 #include "../../shaders/atmos/common.glsl"
 
-#define DISABLE_SUN_DISK ${disableSunDisk}
+#define DISABLE_SUN_DISK ${ disableSunDisk }
 
 uniform mat4 viewMatrix;
 uniform vec3 sunPos;
@@ -10,6 +10,8 @@ uniform vec3 camPos;
 uniform vec2 iResolution;
 uniform float fov;
 uniform float opacity;
+uniform float isOrthographic;
+uniform vec4 frustumParams;// x=left-right, y=top-bottom, z=right, w=top
 
 uniform sampler2D transmittanceTexture;
 uniform sampler2D scatteringTexture;
@@ -85,11 +87,29 @@ void mainImage(out vec4 fragColor)
     vec3 lightDirection = normalize(sunPos);
 
     vec2 uv = (2.0 * gl_FragCoord.xy - iResolution.xy) / iResolution.y;
-    float fieldOfView = fov;
-    float z = 1.0 / tan(fieldOfView * 0.5 * PI / 180.0);
-    vec3 rayDirection = normalize(vec3(uv, -z));
-    vec4 rd = transpose(viewMatrix) * vec4(rayDirection, 1.0);
-    rayDirection = rd.xyz;
+    vec3 rayDirection;
+
+    if (isOrthographic != 0.0) {
+        float px = uv.x * iResolution.y / iResolution.x;
+        float py = uv.y;
+        float dx = 0.5 * frustumParams.x * px;
+        float dy = 0.5 * frustumParams.y * py;
+
+        mat4 viewMatrixT = transpose(viewMatrix);
+        vec3 right = normalize(viewMatrixT[0].xyz);
+        vec3 up = normalize(viewMatrixT[1].xyz);
+        vec3 backward = normalize(viewMatrixT[2].xyz);
+        vec3 forward = -backward;
+
+        rayDirection = forward;
+        cameraPosition = cameraPosition + right * dx + up * dy;
+    } else {
+        float fieldOfView = fov;
+        float z = 1.0 / tan(fieldOfView * 0.5 * PI / 180.0);
+        rayDirection = normalize(vec3(uv, -z));
+        vec4 rd = transpose(viewMatrix) * vec4(rayDirection, 1.0);
+        rayDirection = rd.xyz;
+    }
 
     vec3 light = vec3(0.0);
     vec3 transmittanceFromCameraToSpace = vec3(1.0);

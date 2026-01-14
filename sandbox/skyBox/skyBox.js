@@ -27,16 +27,16 @@ const globus = new Globe({
         mode: "free",//lockNorth, adaptive
         // disableRotation: true,
         // disableTilt: true
-    }
-    // controls: [
-    //     new control.Navigation({
-    //         mode: "lockNorth",
-    //         disableRotation: false,
-    //         disableTilt: false
-    //     }),
-    //     new control.KeyboardNavigation({ autoActivate: true }),
-    //     new control.ToggleWireframe(),
-    //     new control.TimelineControl(),
-    //     new control.CompassButton()
-    // ]
+    },
+    controls: [
+        new control.Navigation({
+            mode: "lockNorth",
+            disableRotation: false,
+            disableTilt: false
+        }),
+        new control.KeyboardNavigation({ autoActivate: true }),
+        new control.ToggleWireframe(),
+        new control.TimelineControl(),
+        new control.CompassButton()
+    ]
 })

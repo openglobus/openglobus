@@ -279,6 +279,10 @@ export class Atmosphere extends Control {
         gl.uniform1f(shu.fov, cam.getViewAngle());
         gl.uniform1f(shu.opacity, this.opacity);
 
+        let f = cam.frustum;
+        gl.uniform1f(shu.isOrthographic, cam.isOrthographic ? 1.0 : 0.0);
+        gl.uniform4fv(shu.frustumParams, [f.right - f.left, f.top - f.bottom, f.right, f.top]);
+
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.enable(gl.DEPTH_TEST);
@@ -297,7 +301,9 @@ function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): Program
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             sunPos: "vec3",
-            opacity: "float"
+            opacity: "float",
+            isOrthographic: "float",
+            frustumParams: "vec4"
         },
         attributes: {
             corners: "vec3"
