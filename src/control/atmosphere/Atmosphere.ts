@@ -1,4 +1,4 @@
-import {type AtmosphereParameters, transmittance, scattering} from "../../shaders/atmos/atmos";
+import {type AtmosphereParameters, transmittance, scattering, getAtmospherePresetByEllipsoid} from "../../shaders/atmos/atmos";
 import {Framebuffer} from "../../webgl/Framebuffer";
 import {Program} from '../../webgl/Program';
 import {Control, type IControlParams} from "../Control";
@@ -14,6 +14,7 @@ export interface IAtmosphereParams extends IControlParams {
     mieScale?: number,
     groundAlbedo?: number,
     bottomRadius?: number,
+    equatorialRadius?: number,
     rayleighScatteringCoefficient_0?: number,
     rayleighScatteringCoefficient_1?: number,
     rayleighScatteringCoefficient_2?: number,
@@ -35,6 +36,10 @@ export class Atmosphere extends Control {
     public opacity: number;
 
     protected _parameters: AtmosphereParameters;
+    protected _overrideBottomRadius: boolean;
+    protected _overrideEquatorialRadius: boolean;
+    protected _overrideOpticalParams: boolean;
+    protected _options: IAtmosphereParams;
 
     constructor(options: IAtmosphereParams = {}) {
         super({
@@ -47,25 +52,80 @@ export class Atmosphere extends Control {
 
         this.opacity = 1.0;
 
-        this._parameters = {
-            ATMOS_HEIGHT: options.height || 100000.0,
-            RAYLEIGH_SCALE: options.rayleighScale || 0.08,
-            MIE_SCALE: options.mieScale || 0.012,
-            GROUND_ALBEDO: options.groundAlbedo || 0.05,
-            BOTTOM_RADIUS: options.bottomRadius || 6356752.3142451793,
-            rayleighScatteringCoefficient_0: options.rayleighScatteringCoefficient_0 || 5.802,
-            rayleighScatteringCoefficient_1: options.rayleighScatteringCoefficient_1 || 13.558,
-            rayleighScatteringCoefficient_2: options.rayleighScatteringCoefficient_2 || 33.100,
-            mieScatteringCoefficient: options.mieScatteringCoefficient || 3.996,
-            mieExtinctionCoefficient: options.mieExtinctionCoefficient || 4.440,
-            ozoneAbsorptionCoefficient_0: options.ozoneAbsorptionCoefficient_0 || 0.650,
-            ozoneAbsorptionCoefficient_1: options.ozoneAbsorptionCoefficient_1 || 1.881,
-            ozoneAbsorptionCoefficient_2: options.ozoneAbsorptionCoefficient_2 || 0.085,
-            SUN_ANGULAR_RADIUS: options.sunAngularRadius || 0.004685,
-            SUN_INTENSITY: options.sunIntensity || 1.0,
-            ozoneDensityHeight: options.ozoneDensityHeight || 25e3,
-            ozoneDensityWide: options.ozoneDensityWide || 15e3,
-            disableSunDisk: options.disableSunDisk
+        this._options = options;
+        this._overrideBottomRadius = "bottomRadius" in options;
+        this._overrideEquatorialRadius = "equatorialRadius" in options;
+        this._overrideOpticalParams = ("height" in options) ||
+            ("rayleighScale" in options) ||
+            ("mieScale" in options) ||
+            ("groundAlbedo" in options) ||
+            ("rayleighScatteringCoefficient_0" in options) ||
+            ("rayleighScatteringCoefficient_1" in options) ||
+            ("rayleighScatteringCoefficient_2" in options) ||
+            ("mieScatteringCoefficient" in options) ||
+            ("mieExtinctionCoefficient" in options) ||
+            ("ozoneAbsorptionCoefficient_0" in options) ||
+            ("ozoneAbsorptionCoefficient_1" in options) ||
+            ("ozoneAbsorptionCoefficient_2" in options) ||
+            ("ozoneDensityHeight" in options) ||
+            ("ozoneDensityWide" in options) ||
+            ("sunAngularRadius" in options) ||
+            ("sunIntensity" in options);
+
+        // temporary defaults; real preset is selected once we know the planet ellipsoid (see oninit)
+        this._parameters = getAtmospherePresetByEllipsoid();
+        this._parameters.disableSunDisk = options.disableSunDisk;
+    }
+
+    protected _syncPlanetRadiiAndPreset() {
+        if (!this.planet) return;
+
+        const ell = this.planet.ellipsoid;
+        // NOTE: Atmosphere shaders use both polar and equatorial radii; the equatorial radius must NOT be hardcoded
+        // to Earth, otherwise Mars (and other bodies) get incorrect atmosphere geometry.
+
+        // base preset from shaders/atmos/atmos.ts
+        this._parameters = getAtmospherePresetByEllipsoid(ell);
+
+        if (!this._overrideBottomRadius) {
+            this._parameters.BOTTOM_RADIUS = ell.getPolarSize();
+        } else {
+            this._parameters.BOTTOM_RADIUS = this._options.bottomRadius!;
+        }
+        if (!this._overrideEquatorialRadius) {
+            this._parameters.EQUATORIAL_RADIUS = ell.getEquatorialSize();
+        } else {
+            this._parameters.EQUATORIAL_RADIUS = this._options.equatorialRadius!;
+        }
+
+        if (this._overrideOpticalParams) {
+            const o = this._options as any;
+            const p = this._parameters as any;
+            const map: [keyof IAtmosphereParams, keyof AtmosphereParameters][] = [
+                ["height", "ATMOS_HEIGHT"],
+                ["rayleighScale", "RAYLEIGH_SCALE"],
+                ["mieScale", "MIE_SCALE"],
+                ["groundAlbedo", "GROUND_ALBEDO"],
+                ["rayleighScatteringCoefficient_0", "rayleighScatteringCoefficient_0"],
+                ["rayleighScatteringCoefficient_1", "rayleighScatteringCoefficient_1"],
+                ["rayleighScatteringCoefficient_2", "rayleighScatteringCoefficient_2"],
+                ["mieScatteringCoefficient", "mieScatteringCoefficient"],
+                ["mieExtinctionCoefficient", "mieExtinctionCoefficient"],
+                ["ozoneAbsorptionCoefficient_0", "ozoneAbsorptionCoefficient_0"],
+                ["ozoneAbsorptionCoefficient_1", "ozoneAbsorptionCoefficient_1"],
+                ["ozoneAbsorptionCoefficient_2", "ozoneAbsorptionCoefficient_2"],
+                ["sunAngularRadius", "SUN_ANGULAR_RADIUS"],
+                ["sunIntensity", "SUN_INTENSITY"],
+                ["ozoneDensityHeight", "ozoneDensityHeight"],
+                ["ozoneDensityWide", "ozoneDensityWide"]
+            ];
+            for (const [ok, pk] of map) {
+                if (ok in this._options) p[pk] = o[ok];
+            }
+        }
+
+        if ("disableSunDisk" in this._options) {
+            this._parameters.disableSunDisk = this._options.disableSunDisk;
         }
     }
 
@@ -95,6 +155,7 @@ export class Atmosphere extends Control {
             // Draw atmosphere lookup textures
             //
             this._initLookupTextures();
+            this._syncPlanetRadiiAndPreset();
 
             this.initLookupTexturesShaders();
             this.drawLookupTextures();

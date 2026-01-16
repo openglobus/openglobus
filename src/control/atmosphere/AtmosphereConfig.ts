@@ -264,6 +264,7 @@ export class AtmosphereConfig extends Control {
             MIE_SCALE: 0,
             GROUND_ALBEDO: 0,
             BOTTOM_RADIUS: 0,
+            EQUATORIAL_RADIUS: 0,
             rayleighScatteringCoefficient_0: 0,
             rayleighScatteringCoefficient_1: 0,
             rayleighScatteringCoefficient_2: 0,

@@ -14,7 +14,7 @@ const float GROUND_ALBEDO = float(${GROUND_ALBEDO}) / PI;
 // Sphere
 const float BOTTOM_RADIUS = float(${BOTTOM_RADIUS});
 const float TOP_RADIUS = BOTTOM_RADIUS + ATMOS_HEIGHT;
-const float EQUATORIAL_RADIUS = 6378137.0;
+const float EQUATORIAL_RADIUS = float(${EQUATORIAL_RADIUS});
 
 // Ellipsoid
 const vec3 bottomRadii = vec3(EQUATORIAL_RADIUS, EQUATORIAL_RADIUS, BOTTOM_RADIUS);

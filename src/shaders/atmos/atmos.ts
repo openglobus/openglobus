@@ -13,7 +13,8 @@ export interface AtmosphereParameters {
     RAYLEIGH_SCALE: number,
     MIE_SCALE: number,
     GROUND_ALBEDO: number,
-    BOTTOM_RADIUS: number
+    BOTTOM_RADIUS: number,
+    EQUATORIAL_RADIUS: number,
     rayleighScatteringCoefficient_0: number,
     rayleighScatteringCoefficient_1: number,
     rayleighScatteringCoefficient_2: number,
@@ -29,12 +30,13 @@ export interface AtmosphereParameters {
     disableSunDisk?: boolean
 }
 
-const DEFAULT_PARAMS: AtmosphereParameters = {
+export const DEFAULT_PARAMS: AtmosphereParameters = {
     ATMOS_HEIGHT: 100000.0,
     RAYLEIGH_SCALE: 0.08,
     MIE_SCALE: 0.012,
     GROUND_ALBEDO: 0.05,
     BOTTOM_RADIUS: 6356752.3142451793,
+    EQUATORIAL_RADIUS: 6378137.0,
     rayleighScatteringCoefficient_0: 5.802,
     rayleighScatteringCoefficient_1: 13.558,
     rayleighScatteringCoefficient_2: 33.100,
@@ -50,6 +52,41 @@ const DEFAULT_PARAMS: AtmosphereParameters = {
     disableSunDisk: false
 }
 
+export const MARS_PARAMS: AtmosphereParameters = {
+    ATMOS_HEIGHT: 60000.0,
+    RAYLEIGH_SCALE: 0.18,
+    MIE_SCALE: 0.08,
+    GROUND_ALBEDO: 0.15,
+    BOTTOM_RADIUS: 3389508.0,
+    EQUATORIAL_RADIUS: 3396200.0,
+    rayleighScatteringCoefficient_0: 1.0,
+    rayleighScatteringCoefficient_1: 1.2,
+    rayleighScatteringCoefficient_2: 1.4,
+    mieScatteringCoefficient: 10.0,
+    mieExtinctionCoefficient: 20.0,
+    ozoneAbsorptionCoefficient_0: 0.10,
+    ozoneAbsorptionCoefficient_1: 0.15,
+    ozoneAbsorptionCoefficient_2: 0.80,
+    SUN_ANGULAR_RADIUS: 0.004685,
+    SUN_INTENSITY: 1.0,
+    ozoneDensityHeight: 10e3,
+    ozoneDensityWide: 30e3,
+    disableSunDisk: false
+};
+
+type EllipsoidLike = { getEquatorialSize(): number; getPolarSize(): number };
+
+function _isMarsEllipsoid(ellipsoid?: EllipsoidLike): boolean {
+    if (!ellipsoid) return false;
+    return ellipsoid.getEquatorialSize() === 3396200.0 && ellipsoid.getPolarSize() === 3389508.0;
+}
+
+export function getAtmospherePresetByEllipsoid(ellipsoid?: EllipsoidLike): AtmosphereParameters {
+    const preset = _isMarsEllipsoid(ellipsoid) ? MARS_PARAMS : DEFAULT_PARAMS;
+    // copy (callers mutate)
+    return JSON.parse(JSON.stringify(preset));
+}
+
 export function transmittance(atmosParams?: AtmosphereParameters): Program {
     return new Program("transmittance", {
         uniforms: {
@@ -59,7 +96,7 @@ export function transmittance(atmosParams?: AtmosphereParameters): Program {
             a_position: "vec2"
         },
         vertexShader: transmittance_vert,
-        fragmentShader: stringTemplate2(transmittance_frag, atmosParams)
+        fragmentShader: stringTemplate2(transmittance_frag, atmosParams || DEFAULT_PARAMS)
     });
 }
 
@@ -73,7 +110,7 @@ export function scattering(atmosParams?: AtmosphereParameters): Program {
             a_position: "vec2"
         },
         vertexShader: scattering_vert,
-        fragmentShader: stringTemplate2(scattering_frag, atmosParams)
+        fragmentShader: stringTemplate2(scattering_frag, atmosParams || DEFAULT_PARAMS)
     });
 }
 
