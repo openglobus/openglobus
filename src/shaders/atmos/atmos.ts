@@ -76,17 +76,6 @@ export const MARS_PARAMS: AtmosphereParameters = {
 
 type EllipsoidLike = { getEquatorialSize(): number; getPolarSize(): number };
 
-function _isMarsEllipsoid(ellipsoid?: EllipsoidLike): boolean {
-    if (!ellipsoid) return false;
-    return ellipsoid.getEquatorialSize() === 3396200.0 && ellipsoid.getPolarSize() === 3389508.0;
-}
-
-export function getAtmospherePresetByEllipsoid(ellipsoid?: EllipsoidLike): AtmosphereParameters {
-    const preset = _isMarsEllipsoid(ellipsoid) ? MARS_PARAMS : DEFAULT_PARAMS;
-    // copy (callers mutate)
-    return JSON.parse(JSON.stringify(preset));
-}
-
 export function transmittance(atmosParams?: AtmosphereParameters): Program {
     return new Program("transmittance", {
         uniforms: {
