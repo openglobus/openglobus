@@ -1,0 +1,86 @@
+<html>
+
+<head>
+    <title>OpenGlobus - Mars planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../lib/og.css" type="text/css"/>
+</head>
+
+</html>
+
+<body>
+<div id="globus" style="width:100%;height:100%;"></div>
+<script type="module" id="og-sandbox-script">
+
+    'use strict';
+
+    import {
+        Globe,
+        XYZ,
+        control,
+        RgbTerrain,
+        quadTreeStrategyType,
+        mars
+    } from "../../lib/og.es.js";
+
+    const sat1 = new XYZ("Mars-Viking", {
+        isBaseLayer: true,
+        url: "https://terrain.openglobus.org/mars/sat/{z}/{x}/{y}.png",
+        maxNativeZoom: 8,
+    });
+
+    const sat_arcgis = new XYZ("Mars-arcgis", {
+        isBaseLayer: true,
+        url: "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
+    });
+
+    var highResTerrain = new RgbTerrain("Mars", {
+        geoidSrc: null,
+        maxZoom: 8,
+        maxNativeZoom: 8,
+        url: "https://{s}.terrain.openglobus.org/mars/dem/{z}/{x}/{y}.png",
+        heightFactor: 1.2
+    });
+
+    let globe = new Globe({
+        ellipsoid: mars,
+        name: "mars",
+        quadTreeStrategyPrototype: quadTreeStrategyType.equi,
+        target: "globus",
+        terrain: highResTerrain,
+        layers: [sat1, sat_arcgis],
+        nightTextureSrc: null,
+        specularTextureSrc: null,
+        atmosphereParameters: {
+            ATMOS_HEIGHT: 60000.0,
+            RAYLEIGH_SCALE: 0.18,
+            MIE_SCALE: 0.08,
+            GROUND_ALBEDO: 0.15,
+            BOTTOM_RADIUS: 3389508.0 - 3000, // fix sea level
+            EQUATORIAL_RADIUS: 3396200.0 - 3000, // fix sea level
+            rayleighScatteringCoefficient_0: 1.0,
+            rayleighScatteringCoefficient_1: 1.2,
+            rayleighScatteringCoefficient_2: 1.4,
+            mieScatteringCoefficient: 10.0,
+            mieExtinctionCoefficient: 20.0,
+            ozoneAbsorptionCoefficient_0: 0.10,
+            ozoneAbsorptionCoefficient_1: 0.15,
+            ozoneAbsorptionCoefficient_2: 0.80,
+            ozoneDensityHeight: 10e3,
+            ozoneDensityWide: 30e3,
+            SUN_ANGULAR_RADIUS: 0.004685,
+            SUN_INTENSITY: 1.0,
+            disableSunDisk: false
+        },
+        atmosphereEnabled: true
+    });
+
+    globe.planet.addControls([new control.DebugInfo()]);
+    globe.planet.addControls([new control.TimelineControl()]);
+    globe.planet.addControls([new control.LayerSwitcher()]);
+
+    // globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "rgb(183, 133, 135)";
+    // globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "rgb(41, 41, 41)";
+
+</script>
+</body>

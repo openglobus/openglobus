@@ -1,4 +1,5 @@
 import path from 'node:path';
+import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import terser from '@rollup/plugin-terser';
 import {viteStaticCopy} from 'vite-plugin-static-copy';
@@ -14,8 +15,12 @@ const __dirname = path.dirname(__filename);
  */
 export default function ({mode}: { mode: 'development' | 'production' }) {
     const isDev = mode === 'development';
+    const ogVersion = JSON.parse(readFileSync(path.resolve(__dirname, './package.json'), 'utf8')).version;
 
     return {
+        define: {
+            __OG_VERSION__: JSON.stringify(ogVersion)
+        },
         build: {
             minify: !isDev,
             lib: {
