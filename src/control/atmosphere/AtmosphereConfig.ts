@@ -51,7 +51,7 @@ const TEMPLATE =
          
          <div class="og-option og-atmosphere-sunAngularRadius"></div> 
          <div class="og-option og-atmosphere-sunIntensity"></div> 
-         <div class="og-option og-atmosphere-earthAlbedo"></div>
+         <div class="og-option og-atmosphere-groundAlbedo"></div>
        
     </div>`;
 
@@ -103,6 +103,7 @@ export class AtmosphereConfig extends Control {
     protected _sunAngularRadius: Slider;
     protected _sunIntensity: Slider;
     protected _groundAlbedo: Slider;
+    protected _equatorialRadius: Slider;
     protected _ozoneDensityHeight: Slider;
     protected _ozoneDensityWide: Slider;
 
@@ -181,8 +182,13 @@ export class AtmosphereConfig extends Control {
         });
 
         this._bottomRadius = new Slider({
-            label: "Planet Radius",
+            label: "Polar Radius (BOTTOM_RADIUS)",
             max: 5 * 6356752.3142451793
+        });
+
+        this._equatorialRadius = new Slider({
+            label: "Equatorial Radius (EQUATORIAL_RADIUS)",
+            max: 5 * 6378137.0
         });
 
         this._mieScatteringCoefficient = new Slider({
@@ -254,7 +260,7 @@ export class AtmosphereConfig extends Control {
         });
 
         this._groundAlbedo = new Slider({
-            label: "Earth Albedo",
+            label: "Ground Albedo (GROUND_ALBEDO)",
             max: 10 * 0.05
         });
 
@@ -264,6 +270,7 @@ export class AtmosphereConfig extends Control {
             MIE_SCALE: 0,
             GROUND_ALBEDO: 0,
             BOTTOM_RADIUS: 0,
+            EQUATORIAL_RADIUS: 0,
             rayleighScatteringCoefficient_0: 0,
             rayleighScatteringCoefficient_1: 0,
             rayleighScatteringCoefficient_2: 0,
@@ -303,7 +310,7 @@ export class AtmosphereConfig extends Control {
             this.$ozoneAbsorptionCoefficientC = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneAbsorptionCoefficientC");
             this.$sunAngularRadius = this._panel.el.querySelector(".og-option.og-atmosphere-sunAngularRadius");
             this.$sunIntensity = this._panel.el.querySelector(".og-option.og-atmosphere-sunIntensity");
-            this.$groundAlbedo = this._panel.el.querySelector(".og-option.og-atmosphere-earthAlbedo");
+            this.$groundAlbedo = this._panel.el.querySelector(".og-option.og-atmosphere-groundAlbedo");
             this.$ozoneDensityHeight = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneDensityHeight");
             this.$ozoneDensityWide = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneDensityWide");
         }
@@ -318,6 +325,7 @@ export class AtmosphereConfig extends Control {
         this._rayleight.appendTo(this.$rayleight!);
         this._mie.appendTo(this.$mie!);
         this._bottomRadius.appendTo(this.$bottomRadius!);
+        this._equatorialRadius.appendTo(this.$bottomRadius!);
         this._mieScatteringCoefficient.appendTo(this.$mieScatteringCoefficient!);
         this._mieExtinctionCoefficient.appendTo(this.$mieExtinctionCoefficient!);
         this._rayleighScatteringCoefficientA.appendTo(this.$rayleighScatteringCoefficientA!);
@@ -336,10 +344,15 @@ export class AtmosphereConfig extends Control {
 
             this._parameters = this.planet.atmosphereControl.parameters;
 
+            // make slider ranges planet-aware
+            this._bottomRadius.max = 5 * this.planet.ellipsoid.getPolarSize();
+            this._equatorialRadius.max = 5 * this.planet.ellipsoid.getEquatorialSize();
+
             this._height.value = this._parameters.ATMOS_HEIGHT;
             this._rayleight.value = this._parameters.RAYLEIGH_SCALE;
             this._mie.value = this._parameters.MIE_SCALE;
             this._bottomRadius.value = this._parameters.BOTTOM_RADIUS;
+            this._equatorialRadius.value = this._parameters.EQUATORIAL_RADIUS;
             this._mieScatteringCoefficient.value = this._parameters.mieScatteringCoefficient;
             this._mieExtinctionCoefficient.value = this._parameters.mieExtinctionCoefficient;
             this._rayleighScatteringCoefficientA.value = this._parameters.rayleighScatteringCoefficient_0;
@@ -385,6 +398,11 @@ export class AtmosphereConfig extends Control {
 
         this._bottomRadius.events.on("change", (val: number) => {
             this._parameters.BOTTOM_RADIUS = val;
+            this._update();
+        });
+
+        this._equatorialRadius.events.on("change", (val: number) => {
+            this._parameters.EQUATORIAL_RADIUS = val;
             this._update();
         });
 

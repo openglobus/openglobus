@@ -18,11 +18,17 @@ bool intersectSphere(vec3 rayOrigin, vec3 rayDirection, float radius, inout floa
     float b = dot(rayDirection, rayOrigin);
     float c = dot(rayOrigin, rayOrigin) - radius * radius;
     float d = b * b - c;
-    if (d < 0.0) {
+    // Be robust near tangents: small negative due to precision should be treated as 0.
+    if (d < -1e-6) {
         return false;
     }
+    d = max(d, 0.0);
     t1 = -b - sqrt(d);
     t2 = -b + sqrt(d);
+    // No hit in the forward ray direction.
+    if (t2 < 0.0) {
+        return false;
+    }
     return true;
 }
 

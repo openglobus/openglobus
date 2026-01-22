@@ -348,11 +348,11 @@ export class Planet extends RenderNode {
 
         this._createdNodesCount = 0;
 
-        this._atmosphere = new Atmosphere(options.atmosphereParameters);
-
         this.transitionTime = 580;
 
         this.ellipsoid = options.ellipsoid || wgs84;
+
+        this._atmosphere = new Atmosphere(options.atmosphereParameters);
 
         this.lightEnabled = true;
 

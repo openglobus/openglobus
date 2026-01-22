@@ -14,7 +14,7 @@ const float GROUND_ALBEDO = float(${GROUND_ALBEDO}) / PI;
 // Sphere
 const float BOTTOM_RADIUS = float(${BOTTOM_RADIUS});
 const float TOP_RADIUS = BOTTOM_RADIUS + ATMOS_HEIGHT;
-const float EQUATORIAL_RADIUS = 6378137.0;
+const float EQUATORIAL_RADIUS = float(${EQUATORIAL_RADIUS});
 
 // Ellipsoid
 const vec3 bottomRadii = vec3(EQUATORIAL_RADIUS, EQUATORIAL_RADIUS, BOTTOM_RADIUS);
@@ -43,6 +43,21 @@ vec3 sunWithBloom(vec3 rayDir, vec3 sunDir)
 
     if (cosTheta >= minSunCosTheta)
         return vec3(1.0);
+
+    float offset = minSunCosTheta - cosTheta;
+    float gaussianBloom = exp(- offset * 15000.0) * 0.7;
+    float invBloom = 1.0 / (0.09 + offset * 200.0) * 0.01;
+
+    return vec3(gaussianBloom + invBloom);
+}
+
+vec3 sunWithBloomScaled(vec3 rayDir, vec3 sunDir, float angularScale)
+{
+    float minSunCosTheta = cos(SUN_ANGULAR_RADIUS * angularScale);
+    float cosTheta = dot(rayDir, sunDir);
+
+    if (cosTheta >= minSunCosTheta)
+    return vec3(1.0);
 
     float offset = minSunCosTheta - cosTheta;
     float gaussianBloom = exp(- offset * 15000.0) * 0.7;

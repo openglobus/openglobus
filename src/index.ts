@@ -13,6 +13,10 @@ import * as webgl from './webgl/index';
 
 export * from './Globe';
 
+declare const __OG_VERSION__: string;
+export const version = __OG_VERSION__;
+((globalThis as any).og ??= {}).version = __OG_VERSION__;
+
 import {Geoid} from './terrain/Geoid';
 
 import {input} from './input/input';
