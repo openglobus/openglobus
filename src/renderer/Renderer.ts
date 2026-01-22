@@ -660,7 +660,7 @@ class Renderer {
             this.handler.addPrograms([depth()]);
 
             this.sceneFramebuffer = new Multisample(this.handler, {
-                size: 1,
+                size: 2,
                 msaa: this._msaa,
                 internalFormat: this._internalFormat,
                 filter: "LINEAR"
@@ -669,9 +669,15 @@ class Renderer {
             this.sceneFramebuffer.init();
 
             this.blitFramebuffer = new Framebuffer(this.handler, {
-                size: 1,
                 useDepth: false,
                 targets: [{
+                    // DIFFUSE
+                    internalFormat: this._internalFormat,
+                    format: this._format,
+                    type: this._type,
+                    filter: "NEAREST"
+                }, {
+                    // NORMAL
                     internalFormat: this._internalFormat,
                     format: this._format,
                     type: this._type,
@@ -1102,7 +1108,10 @@ class Renderer {
 
         sceneFramebuffer.deactivate();
 
-        this.blitFramebuffer && (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0);
+        if(this.blitFramebuffer) {
+            (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0); //diffuse
+            (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 1); //normal
+        }
 
         if (refreshPicking) {
             this._readPickingBuffer();
