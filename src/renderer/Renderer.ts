@@ -53,23 +53,6 @@ let __depthCallbackCounter__ = 0;
 
 let _tempDepth_ = new Float32Array(2);
 
-// function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: number): Promise<void> {
-//     return new Promise<void>((resolve, reject) => {
-//         function check() {
-//             const res = gl.clientWaitSync(sync, flags, 0);
-//             if (res == gl.WAIT_FAILED) {
-//                 reject();
-//             } else if (res == gl.TIMEOUT_EXPIRED) {
-//                 requestAnimationFrame(check);
-//             } else {
-//                 resolve();
-//             }
-//         }
-//
-//         check();
-//     });
-// }
-
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
