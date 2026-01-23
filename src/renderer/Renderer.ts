@@ -225,8 +225,6 @@ class Renderer {
 
     protected _currentOutput: string;
 
-    protected _fnScreenFrame: Function | null;
-
     public labelWorker: LabelWorker;
 
     public screenDepthFramebuffer: Framebuffer | null;
@@ -344,8 +342,6 @@ class Renderer {
         this._entityCollections = [[]];
 
         this._currentOutput = "screen";
-
-        this._fnScreenFrame = null;
 
         this.labelWorker = new LabelWorker(4);
 
@@ -690,8 +686,6 @@ class Renderer {
         });
 
         this.toneMappingFramebuffer.init();
-
-        this._fnScreenFrame = this._screenFrameMSAA;
 
         this.screenTexture = {
             screen: this.toneMappingFramebuffer!.textures[0],
@@ -1068,7 +1062,7 @@ class Renderer {
             //
             this.deferredFramebuffer!.activate();
 
-            gl.clearColor(this.clearColor[0], this.clearColor[1], this.clearColor[2], this.clearColor[3]);
+            gl.clearColor(0, 0, 0, 0.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             i = rn.length;
@@ -1081,6 +1075,8 @@ class Renderer {
 
             this.deferredFramebuffer!.deactivate();
 
+            this.deferredFramebuffer!.blitTo(this.diffuseFramebuffer!, 0);
+            this.deferredFramebuffer!.blitTo(this.normalFramebuffer!, 1);
             this.deferredFramebuffer!.blitDepthTo(this.forwardFramebuffer!);
 
             //
@@ -1137,7 +1133,7 @@ class Renderer {
         }
 
         // Tone mapping followed by rendering on the screen
-        this._fnScreenFrame!();
+        this._screenFrameMSAA!();
 
         e.dispatch(e.postdraw, this);
 
@@ -1154,9 +1150,6 @@ class Renderer {
 
     protected _deferredShadingPASS() {
 
-        this.deferredFramebuffer!.blitTo(this.diffuseFramebuffer!, 0);
-        this.deferredFramebuffer!.blitTo(this.normalFramebuffer!, 1);
-
         let h = this.handler;
 
         let sh = h.programs.deferredShading,
@@ -1164,15 +1157,12 @@ class Renderer {
             gl = h.gl!;
 
         gl.disable(gl.DEPTH_TEST);
-        gl.depthMask(false);
+        //gl.depthMask(false);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         this.forwardFramebuffer!.activate();
-
-        // gl.clearColor(0.0, 0.0, 0.0, 0.0);
-        // gl.clear(gl.COLOR_BUFFER_BIT);
 
         sh.activate();
 
@@ -1188,7 +1178,7 @@ class Renderer {
 
         this.forwardFramebuffer!.deactivate();
 
-        gl.depthMask(true);
+        //gl.depthMask(true);
         gl.enable(gl.DEPTH_TEST);
     }
 
