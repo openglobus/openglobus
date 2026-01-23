@@ -145,4 +145,22 @@ export class Multisample extends BaseFramebuffer {
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
     }
+
+    public blitDepthTo(framebuffer: BaseFramebuffer) {
+        const gl = this.handler.gl!;
+
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._fbo);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer._fbo);
+
+        gl.blitFramebuffer(
+            0, 0, this._width, this._height,
+            0, 0, framebuffer._width, framebuffer._height,
+            gl.DEPTH_BUFFER_BIT,
+            gl.NEAREST
+        );
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+    }
 }

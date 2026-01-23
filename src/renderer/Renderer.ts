@@ -1081,6 +1081,8 @@ class Renderer {
 
             this.deferredFramebuffer!.deactivate();
 
+            this.deferredFramebuffer!.blitDepthTo(this.forwardFramebuffer!);
+
             //
             //deferred shading pass
             //
@@ -1162,6 +1164,7 @@ class Renderer {
             gl = h.gl!;
 
         gl.disable(gl.DEPTH_TEST);
+        gl.depthMask(false);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -1175,16 +1178,17 @@ class Renderer {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.diffuseFramebuffer!.textures[0]);
-        gl.uniform1i(p.uniforms.hdrBuffer, 0);
+        gl.uniform1i(p.uniforms.diffuseTexture, 0);
 
-        gl.activeTexture(gl.TEXTURE0);
+        gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, this.normalFramebuffer!.textures[0]);
-        gl.uniform1i(p.uniforms.hdrBuffer, 0);
+        gl.uniform1i(p.uniforms.normalTexture, 1);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         this.forwardFramebuffer!.deactivate();
 
+        gl.depthMask(true);
         gl.enable(gl.DEPTH_TEST);
     }
 
