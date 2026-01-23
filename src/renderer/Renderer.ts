@@ -208,7 +208,8 @@ class Renderer {
 
     public sceneFramebuffer: Framebuffer | Multisample | null;
 
-    protected blitFramebuffer: Framebuffer | null;
+    protected diffuseFramebuffer: Framebuffer | null;
+    protected normalFramebuffer: Framebuffer | null;
 
     protected toneMappingFramebuffer: Framebuffer | null;
 
@@ -328,7 +329,8 @@ class Renderer {
 
         this.sceneFramebuffer = null;
 
-        this.blitFramebuffer = null;
+        this.diffuseFramebuffer = null;
+        this.normalFramebuffer = null;
 
         this.toneMappingFramebuffer = null;
 
@@ -668,16 +670,9 @@ class Renderer {
 
             this.sceneFramebuffer.init();
 
-            this.blitFramebuffer = new Framebuffer(this.handler, {
+            this.diffuseFramebuffer = new Framebuffer(this.handler, {
                 useDepth: false,
                 targets: [{
-                    // DIFFUSE
-                    internalFormat: this._internalFormat,
-                    format: this._format,
-                    type: this._type,
-                    filter: "NEAREST"
-                }, {
-                    // NORMAL
                     internalFormat: this._internalFormat,
                     format: this._format,
                     type: this._type,
@@ -685,7 +680,18 @@ class Renderer {
                 }]
             });
 
-            this.blitFramebuffer.init();
+            this.normalFramebuffer = new Framebuffer(this.handler, {
+                useDepth: false,
+                targets: [{
+                    internalFormat: this._internalFormat,
+                    format: this._format,
+                    type: this._type,
+                    filter: "NEAREST"
+                }]
+            });
+
+            this.diffuseFramebuffer.init();
+            this.normalFramebuffer.init();
 
             this.toneMappingFramebuffer = new Framebuffer(this.handler, {
                 useDepth: false
@@ -748,7 +754,8 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(c.width, c.height);
         this.sceneFramebuffer!.setSize(c.width * 0.5, c.height * 0.5);
-        this.blitFramebuffer && this.blitFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
+        this.diffuseFramebuffer && this.diffuseFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
+        this.normalFramebuffer && this.normalFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
     }
 
     public _resizeEnd() {
@@ -756,7 +763,8 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(c.width, c.height);
         this.sceneFramebuffer!.setSize(c.width, c.height);
-        this.blitFramebuffer && this.blitFramebuffer.setSize(c.width, c.height, true);
+        this.diffuseFramebuffer && this.diffuseFramebuffer.setSize(c.width, c.height, true);
+        this.normalFramebuffer && this.normalFramebuffer.setSize(c.width, c.height, true);
 
         this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(c.width, c.height, true);
         this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
@@ -1108,9 +1116,9 @@ class Renderer {
 
         sceneFramebuffer.deactivate();
 
-        if(this.blitFramebuffer) {
-            (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0); //diffuse
-            (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 1); //normal
+        if(this.diffuseFramebuffer && this.normalFramebuffer) {
+            (sceneFramebuffer as Multisample).blitTo(this.diffuseFramebuffer, 0);
+            (sceneFramebuffer as Multisample).blitTo(this.normalFramebuffer, 1);
         }
 
         if (refreshPicking) {
@@ -1155,7 +1163,7 @@ class Renderer {
 
         // screen texture
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.blitFramebuffer!.textures[0]);
+        gl.bindTexture(gl.TEXTURE_2D, this.normalFramebuffer!.textures[0]);
         gl.uniform1i(p.uniforms.hdrBuffer, 0);
 
         gl.uniform1f(p.uniforms.gamma, this.gamma);
@@ -1487,7 +1495,8 @@ class Renderer {
 
         this.sceneFramebuffer = null;
 
-        this.blitFramebuffer = null;
+        this.diffuseFramebuffer = null;
+        this.normalFramebuffer = null;
 
         this.toneMappingFramebuffer = null;
 
