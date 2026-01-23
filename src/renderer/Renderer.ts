@@ -632,7 +632,7 @@ class Renderer {
         ]);
 
         this.forwardFramebuffer = new Multisample(this.handler, {
-            size: 2,
+            size: 1,
             msaa: this._msaa,
             internalFormat: this._internalFormat,
             filter: "LINEAR"
@@ -1125,7 +1125,7 @@ class Renderer {
             this._clearEntityCollectionQueue(i);
         }
 
-        //this.forwardFramebuffer!.deactivate();
+        this.forwardFramebuffer!.deactivate();
 
         this.forwardFramebuffer!.blitTo(this.hdrFramebuffer!);
 
@@ -1166,10 +1166,10 @@ class Renderer {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
-        this.hdrFramebuffer!.activate();
+        this.forwardFramebuffer!.activate();
 
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        // gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        // gl.clear(gl.COLOR_BUFFER_BIT);
 
         sh.activate();
 
@@ -1183,7 +1183,9 @@ class Renderer {
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        this.hdrFramebuffer!.deactivate();
+        this.forwardFramebuffer!.deactivate();
+
+        gl.enable(gl.DEPTH_TEST);
     }
 
     protected _screenFrameMSAA() {
