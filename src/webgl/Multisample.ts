@@ -135,14 +135,8 @@ export class Multisample extends BaseFramebuffer {
         gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
 
         gl.blitFramebuffer(
-            0,
-            0,
-            this._width,
-            this._height,
-            0,
-            0,
-            framebuffer._width,
-            framebuffer._height,
+            0, 0, this._width, this._height,
+            0, 0, framebuffer._width, framebuffer._height,
             gl.COLOR_BUFFER_BIT,
             this._glFilter
         );
