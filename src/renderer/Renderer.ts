@@ -1157,7 +1157,7 @@ class Renderer {
             gl = h.gl!;
 
         gl.disable(gl.DEPTH_TEST);
-        //gl.depthMask(false);
+        gl.depthMask(false);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -1178,7 +1178,7 @@ class Renderer {
 
         this.forwardFramebuffer!.deactivate();
 
-        //gl.depthMask(true);
+        gl.depthMask(true);
         gl.enable(gl.DEPTH_TEST);
     }
 
