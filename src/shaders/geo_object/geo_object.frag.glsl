@@ -37,7 +37,6 @@ void main(void) {
         lightWeighting = vColor.rgb;
     }
 
-    lightWeighting = vec3(1.0);
     normalColor = vec4(normalize(vNormal) * 0.5 + 0.5, 1.0);
 
     if (uUseTexture > 0.0) {
