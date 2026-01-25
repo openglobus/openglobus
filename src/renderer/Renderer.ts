@@ -22,6 +22,7 @@ import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
+import {BaseFramebuffer} from "../webgl/BaseFramebuffer";
 
 export interface IRendererParams {
     controls?: Control[];
@@ -191,10 +192,8 @@ class Renderer {
     protected _depthRefreshRequired: boolean;
 
     protected forwardFramebuffer: Multisample | null;
-    protected deferredFramebuffer: Multisample | null;
+    protected deferredFramebuffer: Framebuffer | null;
     protected hdrFramebuffer: Framebuffer | null;
-    protected diffuseFramebuffer: Framebuffer | null;
-    protected normalFramebuffer: Framebuffer | null;
 
     protected toneMappingFramebuffer: Framebuffer | null;
 
@@ -311,8 +310,6 @@ class Renderer {
         this.forwardFramebuffer = null;
         this.deferredFramebuffer = null;
         this.hdrFramebuffer = null;
-        this.diffuseFramebuffer = null;
-        this.normalFramebuffer = null;
 
         this.toneMappingFramebuffer = null;
 
@@ -636,12 +633,27 @@ class Renderer {
 
         this.forwardFramebuffer.init();
 
-        this.deferredFramebuffer = new Multisample(this.handler, {
-            size: 2,
-            msaa: this._msaa,
-            internalFormat: this._internalFormat,
-            filter: "LINEAR"
+        this.deferredFramebuffer = new Framebuffer(this.handler, {
+            useDepth: false,
+            targets: [{
+                internalFormat: this._internalFormat,
+                format: this._format,
+                type: this._type,
+                filter: "NEAREST"
+            }, {
+                internalFormat: this._internalFormat,
+                format: this._format,
+                type: this._type,
+                filter: "NEAREST"
+            }, {
+                attachment: "DEPTH_ATTACHMENT",
+                internalFormat: "DEPTH_COMPONENT24",
+                format: "DEPTH_COMPONENT",
+                type: "UNSIGNED_INT",
+                filter: "NEAREST"
+            }]
         });
+
 
         this.deferredFramebuffer.init();
 
@@ -656,30 +668,6 @@ class Renderer {
         });
 
         this.hdrFramebuffer.init();
-
-        this.diffuseFramebuffer = new Framebuffer(this.handler, {
-            useDepth: false,
-            targets: [{
-                internalFormat: this._internalFormat,
-                format: this._format,
-                type: this._type,
-                filter: "NEAREST"
-            }]
-        });
-
-        this.diffuseFramebuffer.init();
-
-        this.normalFramebuffer = new Framebuffer(this.handler, {
-            useDepth: false,
-            targets: [{
-                internalFormat: this._internalFormat,
-                format: this._format,
-                type: this._type,
-                filter: "NEAREST"
-            }]
-        });
-
-        this.normalFramebuffer.init();
 
         this.toneMappingFramebuffer = new Framebuffer(this.handler, {
             useDepth: false
@@ -739,9 +727,7 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(c.width, c.height);
         this.forwardFramebuffer!.setSize(c.width * 0.5, c.height * 0.5);
-        this.deferredFramebuffer!.setSize(c.width * 0.5, c.height * 0.5);
-        this.diffuseFramebuffer && this.diffuseFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
-        this.normalFramebuffer && this.normalFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
+        this.deferredFramebuffer!.setSize(c.width * 0.5, c.height * 0.5, true);
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
     }
 
@@ -750,9 +736,7 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(c.width, c.height);
         this.forwardFramebuffer!.setSize(c.width, c.height);
-        this.deferredFramebuffer!.setSize(c.width, c.height);
-        this.diffuseFramebuffer && this.diffuseFramebuffer.setSize(c.width, c.height, true);
-        this.normalFramebuffer && this.normalFramebuffer.setSize(c.width, c.height, true);
+        this.deferredFramebuffer!.setSize(c.width, c.height, true);
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(c.width, c.height, true);
 
         this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(c.width, c.height, true);
@@ -1075,9 +1059,7 @@ class Renderer {
 
             this.deferredFramebuffer!.deactivate();
 
-            this.deferredFramebuffer!.blitTo(this.diffuseFramebuffer!, 0);
-            this.deferredFramebuffer!.blitTo(this.normalFramebuffer!, 1);
-            this.deferredFramebuffer!.blitDepthTo(this.forwardFramebuffer!);
+            BaseFramebuffer.blitTo(this.forwardFramebuffer!, this.deferredFramebuffer!, null, gl.DEPTH_BUFFER_BIT, gl.NEAREST);
 
             //
             //deferred shading pass
@@ -1167,12 +1149,16 @@ class Renderer {
         sh.activate();
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.diffuseFramebuffer!.textures[0]);
+        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[0]);
         gl.uniform1i(p.uniforms.diffuseTexture, 0);
 
         gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this.normalFramebuffer!.textures[0]);
+        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[1]);
         gl.uniform1i(p.uniforms.normalTexture, 1);
+
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[2]);
+        gl.uniform1i(p.uniforms.depthTexture, 2);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -1528,13 +1514,9 @@ class Renderer {
         this._depthCallbacks = [];
 
         this.depthFramebuffer = null;
-
         this.forwardFramebuffer = null;
         this.deferredFramebuffer = null;
         this.hdrFramebuffer = null;
-        this.diffuseFramebuffer = null;
-        this.normalFramebuffer = null;
-
         this.toneMappingFramebuffer = null;
 
         // todo

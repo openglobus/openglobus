@@ -8,6 +8,7 @@ export function deferredShading(): Program {
         uniforms: {
             diffuseTexture: "sampler2d",
             normalTexture: "sampler2d",
+            depthTexture: "sampler2d",
         },
         attributes: {
             corners: "vec3"
