@@ -1133,6 +1133,7 @@ class Renderer {
 
             this.enableBlendDefault();
 
+            //@todo need to remove it
             i = rn.length;
             while (i--) {
                 rn[i].drawNode();
