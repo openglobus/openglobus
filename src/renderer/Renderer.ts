@@ -191,7 +191,7 @@ class Renderer {
 
     protected _depthRefreshRequired: boolean;
 
-    protected forwardFramebuffer: Multisample | null;
+    protected forwardFramebuffer: Framebuffer | null;
     protected deferredFramebuffer: Framebuffer | null;
     protected hdrFramebuffer: Framebuffer | null;
 
@@ -624,11 +624,15 @@ class Renderer {
             depth()
         ]);
 
-        this.forwardFramebuffer = new Multisample(this.handler, {
-            size: 1,
-            msaa: this._msaa,
-            internalFormat: this._internalFormat,
-            filter: "LINEAR"
+        this.forwardFramebuffer = new Framebuffer(this.handler, {
+            useDepth: true,
+            depthComponent: "DEPTH_COMPONENT24",
+            targets: [{
+                internalFormat: this._internalFormat,
+                format: this._format,
+                type: this._type,
+                filter: "NEAREST"
+            }]
         });
 
         this.forwardFramebuffer.init();
@@ -1107,7 +1111,7 @@ class Renderer {
 
         this.forwardFramebuffer!.deactivate();
 
-        this.forwardFramebuffer!.blitTo(this.hdrFramebuffer!);
+        //this.forwardFramebuffer!.blitTo(this.hdrFramebuffer!);
 
         if (refreshPicking) {
             this._readPickingBuffer();
@@ -1189,7 +1193,8 @@ class Renderer {
 
         // screen texture
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.hdrFramebuffer!.textures[0]);
+        //gl.bindTexture(gl.TEXTURE_2D, this.hdrFramebuffer!.textures[0]);
+        gl.bindTexture(gl.TEXTURE_2D, this.forwardFramebuffer!.textures[0]);
         gl.uniform1i(p.uniforms.hdrBuffer, 0);
 
         gl.uniform1f(p.uniforms.gamma, this.gamma);
