@@ -843,18 +843,11 @@ class Renderer {
         let ec = this._entityCollections[depthOrder];
 
         if (ec.length) {
-            let gl = this.handler.gl!;
 
             this.enableBlendDefault();
 
-            // Point Clouds
-            let i = ec.length;
-            // while (i--) {
-            //     ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
-            // }
-
             // GeoObjects
-            i = ec.length;
+            let i = ec.length;
             while (i--) {
                 let eci = ec[i];
                 if (ec[i]._fadingOpacity) {
@@ -1131,38 +1124,50 @@ class Renderer {
             }
 
             //
-            //opaque objects
+            // Deferred geometry pass for opaque objects
             //
             this.deferredFramebuffer!.activate();
 
             gl.clearColor(0, 0, 0, 0.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+            this.enableBlendDefault();
+
             i = rn.length;
             while (i--) {
-                this.enableBlendDefault();
                 rn[i].drawNode();
             }
 
+            e.dispatch(e.deferredgeometrypass, this);
+
+            //
+            // Transfer opaque geometry depth data to the next rendering stage
+            //
             this._drawOpaqueEntityCollections(0);
 
             this.deferredFramebuffer!.deactivate();
 
-            this.forwardFramebuffer!.activate();
-
             this._copyDeferredDepthToForwardMultisample();
 
             //
-            //deferred shading pass
+            // Deferred shading pass
             //
+            this.forwardFramebuffer!.activate();
+
             this._deferredShadingPASS();
 
+            //
+            // Forward rendering and transparent object pass
+            //
             this._drawForwardEntityCollections(0);
 
-            e.dispatch(e.drawtransparent, this);
+            e.dispatch(e.forwardpass, this);
 
             this.forwardFramebuffer!.deactivate();
 
+            //
+            // Picking passes
+            //
             if (refreshPicking) {
                 this._drawPickingBuffer(0);
             }
@@ -1173,7 +1178,7 @@ class Renderer {
         }
 
         //
-        // EntityCollections PASS
+        // Depth ordered EntityCollections passes
         //
         for (let i = 1; i < this._entityCollections.length; i++) {
             gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -1194,8 +1199,6 @@ class Renderer {
         }
 
         this.forwardFramebuffer!.deactivate();
-
-        this.forwardFramebuffer!.blitTo(this.hdrFramebuffer!);
 
         if (refreshPicking) {
             this._readPickingBuffer();
@@ -1288,6 +1291,8 @@ class Renderer {
         let sh = h.programs.toneMapping,
             p = sh._program,
             gl = h.gl!;
+
+        this.forwardFramebuffer!.blitTo(this.hdrFramebuffer!);
 
         gl.disable(gl.DEPTH_TEST);
 

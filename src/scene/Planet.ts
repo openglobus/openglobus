@@ -853,7 +853,7 @@ export class Planet extends RenderNode {
             }
         }
 
-        this.renderer!.events.on("drawtransparent", () => {
+        this.renderer!.events.on("forwardpass", () => {
             this._renderScreenNodesWithHeightPASS();
         });
 
