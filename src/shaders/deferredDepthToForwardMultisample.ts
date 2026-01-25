@@ -1,7 +1,7 @@
 import {Program} from "../webgl/Program";
 
-export function forwardDepthToMultisample() {
-    return new Program("forwardDepthToMultisample", {
+export function deferredDepthToForwardMultisample() {
+    return new Program("deferredDepthToForwardMultisample", {
         uniforms: {
             depthTexture: "sampler2D"
         },

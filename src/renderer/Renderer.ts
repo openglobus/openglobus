@@ -17,13 +17,12 @@ import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame";
 import {toneMapping} from "../shaders/tone_mapping/toneMapping";
 import {deferredShading} from "../shaders/deferredShading/deferredShading";
-import {forwardDepthToMultisample} from "../shaders/forwardDepthToMultisample";
+import {deferredDepthToForwardMultisample} from "../shaders/deferredDepthToForwardMultisample";
 import {TextureAtlas} from "../utils/TextureAtlas";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
-import {BaseFramebuffer} from "../webgl/BaseFramebuffer";
 
 export interface IRendererParams {
     controls?: Control[];
@@ -623,15 +622,18 @@ class Renderer {
             deferredShading(),
             toneMapping(),
             depth(),
-            forwardDepthToMultisample()
+            deferredDepthToForwardMultisample()
         ]);
+
+        const depthComponent = "DEPTH_COMPONENT24";
+        const depthType = "UNSIGNED_INT";
 
         this.forwardFramebuffer = new Multisample(this.handler, {
             size: 1,
             msaa: this._msaa,
             internalFormat: this._internalFormat,
             filter: "NEAREST",
-            depthComponent: "DEPTH_COMPONENT24"
+            depthComponent: depthComponent
         });
 
         this.forwardFramebuffer.init();
@@ -650,9 +652,9 @@ class Renderer {
                 filter: "NEAREST"
             }, {
                 attachment: "DEPTH_ATTACHMENT",
-                internalFormat: "DEPTH_COMPONENT24",
+                internalFormat: depthComponent,
                 format: "DEPTH_COMPONENT",
-                type: "UNSIGNED_INT",
+                type: depthType,
                 filter: "NEAREST"
             }]
         });
@@ -689,11 +691,6 @@ class Renderer {
             this._resizeStart();
             this.events.dispatch(this.events.resize, this.handler.canvas);
             this._resizeEnd();
-            //clearTimeout(__resizeTimeout);
-            // __resizeTimeout = setTimeout(() => {
-            //     this._resizeEnd();
-            //     this.events.dispatch(this.events.resizeend, this.handler.canvas);
-            // }, 320);
             this.events.dispatch(this.events.resizeend, this.handler.canvas);
         };
 
@@ -1153,31 +1150,7 @@ class Renderer {
 
             this.forwardFramebuffer!.activate();
 
-            gl.disable(gl.BLEND);
-            gl.colorMask(false, false, false, false);
-            gl.depthMask(true);
-            gl.enable(gl.DEPTH_TEST);
-            gl.depthFunc(gl.ALWAYS);
-            gl.clear(gl.DEPTH_BUFFER_BIT);
-
-            const sh = h.programs.forwardDepthToMultisample,
-                p = sh._program;
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
-            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-
-            sh.activate();
-
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[2]);
-            gl.uniform1i(p.uniforms.depthTexture, 0);
-
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-            gl.colorMask(true, true, true, true);
-            gl.depthFunc(gl.LESS);
-            gl.enable(gl.DEPTH_TEST);
-            gl.enable(gl.BLEND);
+            this._copyDeferredDepthToForwardMultisample();
 
             //
             //deferred shading pass
@@ -1243,6 +1216,36 @@ class Renderer {
     public getImageDataURL(type: string = "image/png", quality: number = 1.0): string {
         this.draw();
         return this.handler.canvas ? this.handler.canvas.toDataURL(type, quality) : "";
+    }
+
+    protected _copyDeferredDepthToForwardMultisample() {
+        let h = this.handler,
+            gl = h.gl!,
+            sh = h.programs.deferredDepthToForwardMultisample,
+            p = sh._program;
+
+        gl.disable(gl.BLEND);
+        gl.colorMask(false, false, false, false);
+        gl.depthMask(true);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.ALWAYS);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
+        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+        sh.activate();
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[2]);
+        gl.uniform1i(p.uniforms.depthTexture, 0);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        gl.colorMask(true, true, true, true);
+        gl.depthFunc(gl.LESS);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
     }
 
     protected _deferredShadingPASS() {
