@@ -5,7 +5,7 @@ import {createRendererEvents} from "./RendererEvents";
 import type {IBaseInputState, RendererEventsHandler} from "./RendererEvents";
 import {depth} from "../shaders/depth";
 import {EntityCollection} from "../entity/EntityCollection";
-import {Framebuffer, Multisample} from "../webgl/index";
+import {Framebuffer} from "../webgl/index";
 import {FontAtlas} from "../utils/FontAtlas";
 import {Handler} from "../webgl/Handler";
 import type {WebGLBufferExt} from "../webgl/Handler";
@@ -26,7 +26,6 @@ import {BaseFramebuffer} from "../webgl/BaseFramebuffer";
 
 export interface IRendererParams {
     controls?: Control[];
-    msaa?: number;
     autoActivate?: boolean;
     fontsSrc?: string;
     gamma?: number;
@@ -45,8 +44,6 @@ interface IFrameCallbackHandler {
     callback: Function;
     sender: any;
 }
-
-const MSAA_DEFAULT = 0;
 
 let __pickingCallbackCounter__ = 0;
 
@@ -183,8 +180,6 @@ class Renderer {
 
     public depthFramebuffer: Framebuffer | null;
 
-    protected _msaa: number;
-
     protected _internalFormat: string;
     protected _format: string;
     protected _type: string;
@@ -295,14 +290,6 @@ class Renderer {
 
         this._depthRefreshRequired = false;
 
-        let urlParams = new URLSearchParams(location.search);
-        let msaaParam = urlParams.get('og_msaa');
-        if (msaaParam) {
-            this._msaa = Number(urlParams.get('og_msaa'));
-        } else {
-            this._msaa = params.msaa != undefined ? params.msaa : MSAA_DEFAULT;
-        }
-
         this._internalFormat = "RGBA16F";
         this._format = "RGBA";
         this._type = "FLOAT";
@@ -404,7 +391,7 @@ class Renderer {
      * @param {Function} callback - Rendering callback.
      * @returns {Number} Handler id
      */
-    public addPickingCallback(sender: any, callback: Function) {
+    public addPickingCallback(sender: any, callback: Function): number {
         let id = __pickingCallbackCounter__++;
         this._pickingCallbacks.push({
             id: id, callback: callback, sender: sender
@@ -612,12 +599,6 @@ class Renderer {
         });
         this.screenDepthFramebuffer.init();
 
-        let _maxMSAA = this.getMaxMSAA(this._internalFormat);
-
-        if (this._msaa > _maxMSAA) {
-            this._msaa = _maxMSAA;
-        }
-
         this.handler.addPrograms([
             deferredShading(),
             toneMapping(),
@@ -813,16 +794,6 @@ class Renderer {
         for (let i = 0; i < nodesArr.length; i++) {
             this.addNode(nodesArr[i]);
         }
-    }
-
-    public getMaxMSAA(internalFormat: string) {
-        let gl = this.handler.gl!;
-        let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, (gl as any)[internalFormat], gl.SAMPLES);
-        return samples[0];
-    }
-
-    public getMSAA(): number {
-        return this._msaa;
     }
 
     /**
@@ -1116,7 +1087,7 @@ class Renderer {
         }
 
         // Tone mapping followed by rendering on the screen
-        this._screenFrameMSAA!();
+        this._screenFrame();
 
         e.dispatch(e.postdraw, this);
 
@@ -1165,7 +1136,7 @@ class Renderer {
         gl.enable(gl.DEPTH_TEST);
     }
 
-    protected _screenFrameMSAA() {
+    protected _screenFrame() {
         let h = this.handler;
 
         let sh = h.programs.toneMapping,
@@ -1206,24 +1177,6 @@ class Renderer {
         gl.uniform1i(p.uniforms.texture, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        gl.enable(gl.DEPTH_TEST);
-    }
-
-    protected _screenFrameNoMSAA() {
-
-        let h = this.handler;
-        let sh = h.programs.screenFrame,
-            p = sh._program,
-            gl = h.gl!;
-
-        gl.disable(gl.DEPTH_TEST);
-        sh.activate();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
-        gl.uniform1i(p.uniforms.texture, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
-        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         gl.enable(gl.DEPTH_TEST);
     }
 
