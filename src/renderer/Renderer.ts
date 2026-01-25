@@ -631,7 +631,7 @@ class Renderer {
             msaa: this._msaa,
             internalFormat: this._internalFormat,
             filter: "NEAREST",
-            depthComponent: "DEPTH_COMPONENT16"
+            depthComponent: "DEPTH_COMPONENT24"
         });
 
         this.forwardFramebuffer.init();
@@ -650,9 +650,9 @@ class Renderer {
                 filter: "NEAREST"
             }, {
                 attachment: "DEPTH_ATTACHMENT",
-                internalFormat: "DEPTH_COMPONENT16",
+                internalFormat: "DEPTH_COMPONENT24",
                 format: "DEPTH_COMPONENT",
-                type: "UNSIGNED_SHORT",
+                type: "UNSIGNED_INT",
                 filter: "NEAREST"
             }]
         });
