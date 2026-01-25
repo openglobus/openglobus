@@ -22,7 +22,7 @@ export type RendererEventsType = [
     "changerelativecenter",
     "draw",
     "forwardpass",
-    "deferredgeometrypass",
+    "gbufferpass",
     "postdraw",
     "resize",
     "resizeend",
@@ -1051,9 +1051,9 @@ const RENDERER_EVENTS: RendererEventsType = [
 
     /**
      * Triggered for deferred opaque geometry pass
-     * @event og.RendererEvents#deferredgeometrypass
+     * @event og.RendererEvents#gbufferpass
      */
-    "deferredgeometrypass",
+    "gbufferpass",
 
     /**
      * Triggered after scene frame is rendered(after render nodes).

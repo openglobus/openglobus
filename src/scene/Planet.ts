@@ -853,6 +853,10 @@ export class Planet extends RenderNode {
             }
         }
 
+        this.renderer!.events.on("gbufferpass", () => {
+            this._renderScreenNodesPASS();
+        });
+
         this.renderer!.events.on("forwardpass", () => {
             this._renderScreenNodesWithHeightPASS();
         });
@@ -1208,9 +1212,9 @@ export class Planet extends RenderNode {
      * @public
      * @override
      */
-    public override frame() {
-        this._renderScreenNodesPASS();
-    }
+    // public override frame() {
+    //     this._renderScreenNodesPASS();
+    // }
 
     public lockQuadTree() {
         this._collectRenderNodesIsActive = false;

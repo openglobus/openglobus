@@ -1133,20 +1133,20 @@ class Renderer {
 
             this.enableBlendDefault();
 
-            i = rn.length;
-            while (i--) {
-                rn[i].drawNode();
-            }
+            // i = rn.length;
+            // while (i--) {
+            //     rn[i].drawNode();
+            // }
 
-            e.dispatch(e.deferredgeometrypass, this);
+            e.dispatch(e.gbufferpass, this);
 
-            //
-            // Transfer opaque geometry depth data to the next rendering stage
-            //
             this._drawOpaqueEntityCollections(0);
 
             this.deferredFramebuffer!.deactivate();
 
+            //
+            // Transfer opaque geometry depth data to the next rendering stage
+            //
             this._copyDeferredDepthToForwardMultisample();
 
             //
