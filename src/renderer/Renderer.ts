@@ -17,6 +17,7 @@ import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame";
 import {toneMapping} from "../shaders/tone_mapping/toneMapping";
 import {deferredShading} from "../shaders/deferredShading/deferredShading";
+import {forwardDepthToMultisample} from "../shaders/forwardDepthToMultisample";
 import {TextureAtlas} from "../utils/TextureAtlas";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
@@ -621,14 +622,16 @@ class Renderer {
         this.handler.addPrograms([
             deferredShading(),
             toneMapping(),
-            depth()
+            depth(),
+            forwardDepthToMultisample()
         ]);
 
         this.forwardFramebuffer = new Multisample(this.handler, {
             size: 1,
             msaa: this._msaa,
             internalFormat: this._internalFormat,
-            filter: "LINEAR"
+            filter: "NEAREST",
+            depthComponent: "DEPTH_COMPONENT16"
         });
 
         this.forwardFramebuffer.init();
@@ -647,9 +650,9 @@ class Renderer {
                 filter: "NEAREST"
             }, {
                 attachment: "DEPTH_ATTACHMENT",
-                internalFormat: "DEPTH_COMPONENT24",
+                internalFormat: "DEPTH_COMPONENT16",
                 format: "DEPTH_COMPONENT",
-                type: "UNSIGNED_INT",
+                type: "UNSIGNED_SHORT",
                 filter: "NEAREST"
             }]
         });
@@ -837,6 +840,95 @@ class Renderer {
      */
     public markForDepthRefresh(): void {
         this._depthRefreshRequired = true;
+    }
+
+    protected _drawOpaqueEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+
+        if (ec.length) {
+            let gl = this.handler.gl!;
+
+            this.enableBlendDefault();
+
+            // Point Clouds
+            let i = ec.length;
+            // while (i--) {
+            //     ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
+            // }
+
+            // GeoObjects
+            i = ec.length;
+            while (i--) {
+                let eci = ec[i];
+                if (ec[i]._fadingOpacity) {
+                    eci.events.dispatch(eci.events.draw, eci);
+                    ec[i].geoObjectHandler.draw();
+                }
+            }
+        }
+    }
+
+    protected _drawForwardEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+
+        if (ec.length) {
+            let gl = this.handler.gl!;
+
+            this.enableBlendDefault();
+
+            // Point Clouds
+            let i = ec.length;
+
+            //
+            // billboards pass
+            //
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
+
+            i = ec.length;
+            while (i--) {
+                let eci = ec[i];
+                eci._fadingOpacity && eci.billboardHandler.draw();
+            }
+
+            //
+            // labels pass
+            //
+            let fa = this.fontAtlas.atlasesArr;
+            for (i = 0; i < fa.length; i++) {
+                gl.activeTexture(gl.TEXTURE0 + i);
+                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture!);
+            }
+
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].labelHandler.draw();
+            }
+
+            //
+            // Lines, Rays and Strips
+            //
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
+
+            // rays
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].rayHandler.draw();
+            }
+
+            // polyline pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
+            }
+
+            // Strip pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].stripHandler.draw();
+            }
+        }
     }
 
     /**
@@ -1055,21 +1147,44 @@ class Renderer {
                 rn[i].drawNode();
             }
 
-            this._drawEntityCollections(0);
+            this._drawOpaqueEntityCollections(0);
 
             this.deferredFramebuffer!.deactivate();
 
-            BaseFramebuffer.blitTo(this.forwardFramebuffer!, this.deferredFramebuffer!, null, gl.DEPTH_BUFFER_BIT, gl.NEAREST);
+            this.forwardFramebuffer!.activate();
+
+            gl.disable(gl.BLEND);
+            gl.colorMask(false, false, false, false);
+            gl.depthMask(true);
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.ALWAYS);
+            gl.clear(gl.DEPTH_BUFFER_BIT);
+
+            const sh = h.programs.forwardDepthToMultisample,
+                p = sh._program;
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
+            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+            sh.activate();
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[2]);
+            gl.uniform1i(p.uniforms.depthTexture, 0);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            gl.colorMask(true, true, true, true);
+            gl.depthFunc(gl.LESS);
+            gl.enable(gl.DEPTH_TEST);
+            gl.enable(gl.BLEND);
 
             //
             //deferred shading pass
             //
             this._deferredShadingPASS();
 
-            //
-            //forward rendering for the transparent objects
-            //
-            this.forwardFramebuffer!.activate();
+            this._drawForwardEntityCollections(0);
 
             e.dispatch(e.drawtransparent, this);
 
@@ -1115,7 +1230,7 @@ class Renderer {
         }
 
         // Tone mapping followed by rendering on the screen
-        this._screenFrameMSAA!();
+        this._screenFrame();
 
         e.dispatch(e.postdraw, this);
 
@@ -1144,8 +1259,6 @@ class Renderer {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
-        this.forwardFramebuffer!.activate();
-
         sh.activate();
 
         gl.activeTexture(gl.TEXTURE0);
@@ -1162,13 +1275,11 @@ class Renderer {
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        this.forwardFramebuffer!.deactivate();
-
         gl.depthMask(true);
         gl.enable(gl.DEPTH_TEST);
     }
 
-    protected _screenFrameMSAA() {
+    protected _screenFrame() {
         let h = this.handler;
 
         let sh = h.programs.toneMapping,
