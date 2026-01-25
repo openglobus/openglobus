@@ -1133,10 +1133,10 @@ class Renderer {
 
             this.enableBlendDefault();
 
-            // i = rn.length;
-            // while (i--) {
-            //     rn[i].drawNode();
-            // }
+            i = rn.length;
+            while (i--) {
+                rn[i].drawNode();
+            }
 
             e.dispatch(e.gbufferpass, this);
 
