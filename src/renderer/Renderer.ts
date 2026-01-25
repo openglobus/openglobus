@@ -480,6 +480,14 @@ class Renderer {
         }
     }
 
+    public get viewportWidth(): number {
+        return this.handler.canvas!.width;
+    }
+
+    public get viewportHeight(): number {
+        return this.handler.canvas!.height;
+    }
+
     /**
      * Get the client width.
      * @public
@@ -503,20 +511,20 @@ class Renderer {
      * @public
      * @returns {Vec2} -
      */
-    public getCenter(): Vec2 {
+    public getViewportCenter(): Vec2 {
         let cnv = this.handler.canvas!;
         return new Vec2(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
     }
 
-    /**
-     * Get center of the screen viewport
-     * @public
-     * @returns {Vec2} -
-     */
-    public getClientCenter(): Vec2 {
-        let cnv = this.handler.canvas!;
-        return new Vec2(Math.round(cnv.clientWidth * 0.5), Math.round(cnv.clientHeight * 0.5));
-    }
+    // /**
+    //  * Get center of the screen viewport
+    //  * @public
+    //  * @returns {Vec2} -
+    //  */
+    // public getClientCenter(): Vec2 {
+    //     let cnv = this.handler.canvas!;
+    //     return new Vec2(Math.round(cnv.clientWidth * 0.5), Math.round(cnv.clientHeight * 0.5));
+    // }
 
     /**
      * Add the given control to the renderer.
@@ -723,24 +731,28 @@ class Renderer {
     }
 
     public _resizeStart() {
-        let c = this.handler.canvas!;
 
-        this.activeCamera!.setViewportSize(c.width, c.height);
-        this.forwardFramebuffer!.setSize(c.width * 0.5, c.height * 0.5);
-        this.deferredFramebuffer!.setSize(c.width * 0.5, c.height * 0.5, true);
-        this.hdrFramebuffer && this.hdrFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
+        let w = this.viewportWidth,
+            h = this.viewportHeight;
+
+        this.activeCamera!.setViewportSize(w, h);
+        this.forwardFramebuffer!.setSize(w * 0.5, h * 0.5);
+        this.deferredFramebuffer!.setSize(w * 0.5, h * 0.5, true);
+        this.hdrFramebuffer && this.hdrFramebuffer.setSize(w * 0.5, h * 0.5, true);
     }
 
     public _resizeEnd() {
-        let c = this.handler.canvas!;
 
-        this.activeCamera!.setViewportSize(c.width, c.height);
-        this.forwardFramebuffer!.setSize(c.width, c.height);
-        this.deferredFramebuffer!.setSize(c.width, c.height, true);
-        this.hdrFramebuffer && this.hdrFramebuffer.setSize(c.width, c.height, true);
+        let w = this.viewportWidth,
+            h = this.viewportHeight;
 
-        this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(c.width, c.height, true);
-        this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+        this.activeCamera!.setViewportSize(w, h);
+        this.forwardFramebuffer!.setSize(w, h);
+        this.deferredFramebuffer!.setSize(w, h, true);
+        this.hdrFramebuffer && this.hdrFramebuffer.setSize(w, h, true);
+
+        this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(w, h, true);
+        this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(this.handler.canvas!.clientWidth, this.handler.canvas!.clientHeight, true);
         //this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         this.screenTexture.screen = this.toneMappingFramebuffer!.textures[0];
