@@ -5,7 +5,7 @@ import {createRendererEvents} from "./RendererEvents";
 import type {IBaseInputState, RendererEventsHandler} from "./RendererEvents";
 import {depth} from "../shaders/depth";
 import {EntityCollection} from "../entity/EntityCollection";
-import {Framebuffer} from "../webgl/index";
+import {Framebuffer, Multisample} from "../webgl/index";
 import {FontAtlas} from "../utils/FontAtlas";
 import {Handler} from "../webgl/Handler";
 import type {WebGLBufferExt} from "../webgl/Handler";
@@ -17,15 +17,16 @@ import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame";
 import {toneMapping} from "../shaders/tone_mapping/toneMapping";
 import {deferredShading} from "../shaders/deferredShading/deferredShading";
+import {deferredDepthToForwardMultisample} from "../shaders/deferredDepthToForwardMultisample";
 import {TextureAtlas} from "../utils/TextureAtlas";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
-import {BaseFramebuffer} from "../webgl/BaseFramebuffer";
 
 export interface IRendererParams {
     controls?: Control[];
+    msaa?: number;
     autoActivate?: boolean;
     fontsSrc?: string;
     gamma?: number;
@@ -44,6 +45,8 @@ interface IFrameCallbackHandler {
     callback: Function;
     sender: any;
 }
+
+const MSAA_DEFAULT = 0;
 
 let __pickingCallbackCounter__ = 0;
 
@@ -180,13 +183,15 @@ class Renderer {
 
     public depthFramebuffer: Framebuffer | null;
 
+    protected _msaa: number;
+
     protected _internalFormat: string;
     protected _format: string;
     protected _type: string;
 
     protected _depthRefreshRequired: boolean;
 
-    protected forwardFramebuffer: Framebuffer | null;
+    protected forwardFramebuffer: Multisample | null;
     protected deferredFramebuffer: Framebuffer | null;
     protected hdrFramebuffer: Framebuffer | null;
 
@@ -290,6 +295,14 @@ class Renderer {
 
         this._depthRefreshRequired = false;
 
+        let urlParams = new URLSearchParams(location.search);
+        let msaaParam = urlParams.get('og_msaa');
+        if (msaaParam) {
+            this._msaa = Number(urlParams.get('og_msaa'));
+        } else {
+            this._msaa = params.msaa != undefined ? params.msaa : MSAA_DEFAULT;
+        }
+
         this._internalFormat = "RGBA16F";
         this._format = "RGBA";
         this._type = "FLOAT";
@@ -391,7 +404,7 @@ class Renderer {
      * @param {Function} callback - Rendering callback.
      * @returns {Number} Handler id
      */
-    public addPickingCallback(sender: any, callback: Function): number {
+    public addPickingCallback(sender: any, callback: Function) {
         let id = __pickingCallbackCounter__++;
         this._pickingCallbacks.push({
             id: id, callback: callback, sender: sender
@@ -599,21 +612,28 @@ class Renderer {
         });
         this.screenDepthFramebuffer.init();
 
+        let _maxMSAA = this.getMaxMSAA(this._internalFormat);
+
+        if (this._msaa > _maxMSAA) {
+            this._msaa = _maxMSAA;
+        }
+
         this.handler.addPrograms([
             deferredShading(),
             toneMapping(),
-            depth()
+            depth(),
+            deferredDepthToForwardMultisample()
         ]);
 
-        this.forwardFramebuffer = new Framebuffer(this.handler, {
-            useDepth: true,
-            depthComponent: "DEPTH_COMPONENT24",
-            targets: [{
-                internalFormat: this._internalFormat,
-                format: this._format,
-                type: this._type,
-                filter: "NEAREST"
-            }]
+        const depthComponent = "DEPTH_COMPONENT24";
+        const depthType = "UNSIGNED_INT";
+
+        this.forwardFramebuffer = new Multisample(this.handler, {
+            size: 1,
+            msaa: this._msaa,
+            internalFormat: this._internalFormat,
+            filter: "NEAREST",
+            depthComponent: depthComponent
         });
 
         this.forwardFramebuffer.init();
@@ -632,9 +652,9 @@ class Renderer {
                 filter: "NEAREST"
             }, {
                 attachment: "DEPTH_ATTACHMENT",
-                internalFormat: "DEPTH_COMPONENT24",
+                internalFormat: depthComponent,
                 format: "DEPTH_COMPONENT",
-                type: "UNSIGNED_INT",
+                type: depthType,
                 filter: "NEAREST"
             }]
         });
@@ -671,11 +691,6 @@ class Renderer {
             this._resizeStart();
             this.events.dispatch(this.events.resize, this.handler.canvas);
             this._resizeEnd();
-            //clearTimeout(__resizeTimeout);
-            // __resizeTimeout = setTimeout(() => {
-            //     this._resizeEnd();
-            //     this.events.dispatch(this.events.resizeend, this.handler.canvas);
-            // }, 320);
             this.events.dispatch(this.events.resizeend, this.handler.canvas);
         };
 
@@ -796,6 +811,16 @@ class Renderer {
         }
     }
 
+    public getMaxMSAA(internalFormat: string) {
+        let gl = this.handler.gl!;
+        let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, (gl as any)[internalFormat], gl.SAMPLES);
+        return samples[0];
+    }
+
+    public getMSAA(): number {
+        return this._msaa;
+    }
+
     /**
      * TODO: replace with cache friendly linked list by BillboardHandler, LabelHandler etc.
      */
@@ -812,6 +837,88 @@ class Renderer {
      */
     public markForDepthRefresh(): void {
         this._depthRefreshRequired = true;
+    }
+
+    protected _drawOpaqueEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+
+        if (ec.length) {
+
+            this.enableBlendDefault();
+
+            // GeoObjects
+            let i = ec.length;
+            while (i--) {
+                let eci = ec[i];
+                if (ec[i]._fadingOpacity) {
+                    eci.events.dispatch(eci.events.draw, eci);
+                    ec[i].geoObjectHandler.draw();
+                }
+            }
+        }
+    }
+
+    protected _drawForwardEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+
+        if (ec.length) {
+            let gl = this.handler.gl!;
+
+            this.enableBlendDefault();
+
+            // Point Clouds
+            let i = ec.length;
+
+            //
+            // billboards pass
+            //
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
+
+            i = ec.length;
+            while (i--) {
+                let eci = ec[i];
+                eci._fadingOpacity && eci.billboardHandler.draw();
+            }
+
+            //
+            // labels pass
+            //
+            let fa = this.fontAtlas.atlasesArr;
+            for (i = 0; i < fa.length; i++) {
+                gl.activeTexture(gl.TEXTURE0 + i);
+                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture!);
+            }
+
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].labelHandler.draw();
+            }
+
+            //
+            // Lines, Rays and Strips
+            //
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
+
+            // rays
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].rayHandler.draw();
+            }
+
+            // polyline pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
+            }
+
+            // Strip pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].stripHandler.draw();
+            }
+        }
     }
 
     /**
@@ -1017,36 +1124,50 @@ class Renderer {
             }
 
             //
-            //opaque objects
+            // Deferred geometry pass for opaque objects
             //
             this.deferredFramebuffer!.activate();
 
             gl.clearColor(0, 0, 0, 0.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-            i = rn.length;
-            while (i--) {
-                this.enableBlendDefault();
-                rn[i].drawNode();
-            }
+            this.enableBlendDefault();
 
-            this._drawEntityCollections(0);
+            // i = rn.length;
+            // while (i--) {
+            //     rn[i].drawNode();
+            // }
+
+            e.dispatch(e.gbufferpass, this);
+
+            this._drawOpaqueEntityCollections(0);
 
             this.deferredFramebuffer!.deactivate();
 
-            BaseFramebuffer.blitTo(this.forwardFramebuffer!, this.deferredFramebuffer!, null, gl.DEPTH_BUFFER_BIT, gl.NEAREST);
+            //
+            // Transfer opaque geometry depth data to the next rendering stage
+            //
+            this._copyDeferredDepthToForwardMultisample();
 
             //
-            //deferred shading + forward pass
+            // Deferred shading pass
             //
             this.forwardFramebuffer!.activate();
 
             this._deferredShadingPASS();
 
-            e.dispatch(e.drawtransparent, this);
+            //
+            // Forward rendering and transparent object pass
+            //
+            this._drawForwardEntityCollections(0);
+
+            e.dispatch(e.forwardpass, this);
 
             this.forwardFramebuffer!.deactivate();
 
+            //
+            // Picking passes
+            //
             if (refreshPicking) {
                 this._drawPickingBuffer(0);
             }
@@ -1057,7 +1178,7 @@ class Renderer {
         }
 
         //
-        // EntityCollections PASS
+        // Depth ordered EntityCollections passes
         //
         for (let i = 1; i < this._entityCollections.length; i++) {
             gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -1079,8 +1200,6 @@ class Renderer {
 
         this.forwardFramebuffer!.deactivate();
 
-        //this.forwardFramebuffer!.blitTo(this.hdrFramebuffer!);
-
         if (refreshPicking) {
             this._readPickingBuffer();
             this._readDepthBuffer();
@@ -1100,6 +1219,36 @@ class Renderer {
     public getImageDataURL(type: string = "image/png", quality: number = 1.0): string {
         this.draw();
         return this.handler.canvas ? this.handler.canvas.toDataURL(type, quality) : "";
+    }
+
+    protected _copyDeferredDepthToForwardMultisample() {
+        let h = this.handler,
+            gl = h.gl!,
+            sh = h.programs.deferredDepthToForwardMultisample,
+            p = sh._program;
+
+        gl.disable(gl.BLEND);
+        gl.colorMask(false, false, false, false);
+        gl.depthMask(true);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.ALWAYS);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
+        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+        sh.activate();
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[2]);
+        gl.uniform1i(p.uniforms.depthTexture, 0);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        gl.colorMask(true, true, true, true);
+        gl.depthFunc(gl.LESS);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
     }
 
     protected _deferredShadingPASS() {
@@ -1143,6 +1292,8 @@ class Renderer {
             p = sh._program,
             gl = h.gl!;
 
+        this.forwardFramebuffer!.blitTo(this.hdrFramebuffer!);
+
         gl.disable(gl.DEPTH_TEST);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
@@ -1157,8 +1308,7 @@ class Renderer {
 
         // screen texture
         gl.activeTexture(gl.TEXTURE0);
-        //gl.bindTexture(gl.TEXTURE_2D, this.hdrFramebuffer!.textures[0]);
-        gl.bindTexture(gl.TEXTURE_2D, this.forwardFramebuffer!.textures[0]);
+        gl.bindTexture(gl.TEXTURE_2D, this.hdrFramebuffer!.textures[0]);
         gl.uniform1i(p.uniforms.hdrBuffer, 0);
 
         gl.uniform1f(p.uniforms.gamma, this.gamma);
@@ -1177,6 +1327,24 @@ class Renderer {
         gl.uniform1i(p.uniforms.texture, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
+        gl.enable(gl.DEPTH_TEST);
+    }
+
+    protected _screenFrameNoMSAA() {
+
+        let h = this.handler;
+        let sh = h.programs.screenFrame,
+            p = sh._program,
+            gl = h.gl!;
+
+        gl.disable(gl.DEPTH_TEST);
+        sh.activate();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
+        gl.uniform1i(p.uniforms.texture, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
+        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         gl.enable(gl.DEPTH_TEST);
     }
 

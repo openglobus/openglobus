@@ -13,6 +13,39 @@ import {
 } from "../../lib/og.es.js";
 
 
+//
+// Geodetic grid
+//
+var grid = [];
+//meridians
+for (let i = -180; i < 180; i += 10) {
+    var mer = [];
+    for (let j = -90; j <= 90; j++) {
+        mer.push(new LonLat(i, j, 20000));
+    }
+    grid.push(mer);
+}
+
+//parallels
+for (let i = -90; i < 90; i += 10) {
+    var mer = [];
+    for (let j = -180; j <= 180; j++) {
+        mer.push(new LonLat(j, i, 20000));
+    }
+    grid.push(mer);
+}
+
+var collection = new Vector("Collection", {
+    'entities':
+        [{
+            'polyline': {
+                'pathLonLat': grid,
+                'thickness': 1,
+                'color': "rgba(68, 157, 205, 0.92)"
+            }
+        }]
+});
+
 let objLayer = new Vector("Obj.Layer", {
     scaleByDistance: [50, 50000, 1]
 });
@@ -21,7 +54,8 @@ let globe = new Globe({
     target: "earth",
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
-    layers: [new OpenStreetMap(), new Bing(), objLayer],
+    layers: [new OpenStreetMap(), new Bing(), objLayer, collection],
+    msaa: 8
 });
 
 globe.planet.addControls([

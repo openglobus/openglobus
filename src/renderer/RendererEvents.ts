@@ -21,7 +21,8 @@ export type RendererEventsType = [
     "projchanged",
     "changerelativecenter",
     "draw",
-    "drawtransparent",
+    "forwardpass",
+    "gbufferpass",
     "postdraw",
     "resize",
     "resizeend",
@@ -1044,9 +1045,15 @@ const RENDERER_EVENTS: RendererEventsType = [
 
     /**
      * Triggered after all transparent object are drawn
-     * @event og.RendererEvents#drawtransparent
+     * @event og.RendererEvents#forwardpass
      */
-    "drawtransparent",
+    "forwardpass",
+
+    /**
+     * Triggered for deferred opaque geometry pass
+     * @event og.RendererEvents#gbufferpass
+     */
+    "gbufferpass",
 
     /**
      * Triggered after scene frame is rendered(after render nodes).
