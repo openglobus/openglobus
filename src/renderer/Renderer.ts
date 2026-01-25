@@ -1066,14 +1066,11 @@ class Renderer {
             BaseFramebuffer.blitTo(this.forwardFramebuffer!, this.deferredFramebuffer!, null, gl.DEPTH_BUFFER_BIT, gl.NEAREST);
 
             //
-            //deferred shading pass
-            //
-            this._deferredShadingPASS();
-
-            //
-            //forward rendering for the transparent objects
+            //deferred shading + forward pass
             //
             this.forwardFramebuffer!.activate();
+
+            this._deferredShadingPASS();
 
             e.dispatch(e.drawtransparent, this);
 
@@ -1148,8 +1145,6 @@ class Renderer {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
-        this.forwardFramebuffer!.activate();
-
         sh.activate();
 
         gl.activeTexture(gl.TEXTURE0);
@@ -1165,8 +1160,6 @@ class Renderer {
         gl.uniform1i(p.uniforms.depthTexture, 2);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-        this.forwardFramebuffer!.deactivate();
 
         gl.depthMask(true);
         gl.enable(gl.DEPTH_TEST);
