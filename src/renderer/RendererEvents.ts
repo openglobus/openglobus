@@ -7,6 +7,7 @@ import type {MouseHandlerEvent, MouseEventExt} from "../input/MouseHandler";
 import {Renderer} from "./Renderer";
 import {TouchHandler} from "../input/TouchHandler";
 import type {TouchEventExt} from "../input/TouchHandler";
+import {PointerHandler, type PointerEventExt} from "../input/PointerHandler";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
@@ -143,7 +144,7 @@ export interface ITouchState extends IBaseInputState {
     /** Currently touching.*/
     touching: boolean;
     /** JavaScript mouse system event message. */
-    sys: TouchEventExt | null;
+    sys: TouchEventExt | PointerEventExt | null;
 }
 
 const LB_M = 0b0001;
@@ -185,6 +186,13 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
      * @type {TouchHandler}
      */
     protected _touchHandler: TouchHandler;
+
+    /**
+     * Low level touch events handler.
+     * @protected
+     * @type {PointerHandler}
+     */
+    protected _pointerHandler: PointerHandler;
 
     /**
      * Low level mouse events handler.
@@ -247,6 +255,8 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         this._touchHandler = new TouchHandler(renderer.handler.canvas!);
 
         this._mouseHandler = new MouseHandler(renderer.handler.canvas!);
+
+        this._pointerHandler = new PointerHandler(renderer.handler.canvas!);
 
         this._keyboardHandler = new KeyboardHandler();
 
@@ -425,6 +435,11 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         this._touchHandler.setEvent("touchend", this, this.onTouchEnd);
         this._touchHandler.setEvent("touchcancel", this, this.onTouchCancel);
         this._touchHandler.setEvent("touchmove", this, this.onTouchMove);
+
+        this._pointerHandler.setEvent("pointerdown", this, this.onPointerDown);
+        this._pointerHandler.setEvent("pointerup", this, this.onPointerUp);
+        this._pointerHandler.setEvent("pointercancel", this, this.onPointerCancel);
+        this._pointerHandler.setEvent("pointermove", this, this.onPointerMove);
     }
 
     /**
@@ -682,6 +697,91 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
         ts.clientX = event.touches.item(0)!.clientX - event.offsetLeft;
         ts.clientY = event.touches.item(0)!.clientY - event.offsetTop;
+
+        let h = this.renderer.handler;
+
+        ts.x = ts.clientX * h.pixelRatio;
+        ts.y = ts.clientY * h.pixelRatio;
+
+        ts.nx = ts.x / h.canvas!.width;
+        ts.ny = ts.y / h.canvas!.height;
+
+        ts.sys = event;
+        ts.moving = true;
+
+        let dX = ts.x - ts.prev_x
+        let dY = ts.y - ts.prev_y
+        if (Math.abs(dX) > 9 || Math.abs(dY) > 9) {
+            this._dblTchBegins = 0;
+            this._oneTouchStart = false;
+        }
+    }
+
+    protected onPointerDown(event: PointerEventExt) {
+        let ts = this.touchState;
+        ts.sys = event;
+
+        ts.clientX = event.pointers[0].clientX - event.offsetLeft;
+        ts.clientY = event.pointers[0].clientY - event.offsetTop;
+
+        let h = this.renderer.handler;
+
+        ts.pos.x = ts.x = ts.clientX * h.pixelRatio;
+        ts.pos.y = ts.y = ts.clientY * h.pixelRatio;
+
+        ts.nx = ts.x / h.canvas!.width;
+        ts.ny = ts.y / h.canvas!.height;
+        ts.prev_x = ts.x;
+        ts.prev_y = ts.y;
+        ts.touchStart = true;
+        ts.touching = true;
+
+        if (event.pointers.length === 1) {
+            this._dblTchCoords.x = ts.x;
+            this._dblTchCoords.y = ts.y;
+            this._oneTouchStart = true;
+        } else {
+            this._oneTouchStart = false;
+        }
+    }
+
+    /**
+     * @protected
+     */
+    protected onPointerUp(event: PointerEventExt) {
+        let ts = this.touchState;
+        ts.sys = event;
+        ts.touchEnd = true;
+
+        if (event.pointers.length === 0) {
+            ts.prev_x = ts.x;
+            ts.prev_y = ts.y;
+
+            if (this._oneTouchStart) {
+                if (this._dblTchBegins) {
+                    let deltatime = window.performance.now() - this._dblTchBegins;
+                    if (deltatime <= ts.doubleTouchDelay) {
+                        ts.doubleTouch = true;
+                    }
+                    this._dblTchBegins = 0;
+                }
+                this._dblTchBegins = window.performance.now();
+                this._oneTouchStart = false;
+            }
+        }
+    }
+
+    protected onPointerCancel(event: PointerEventExt) {
+        let ts = this.touchState;
+        ts.sys = event;
+        ts.touchCancel = true;
+    }
+
+    protected onPointerMove(event: PointerEventExt) {
+        let ts = this.touchState;
+
+        ts.clientX = event.pointers[0].clientX - event.offsetLeft;
+        ts.clientY = event.pointers[0].clientY - event.offsetTop;
 
         let h = this.renderer.handler;
 
