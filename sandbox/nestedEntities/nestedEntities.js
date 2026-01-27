@@ -129,6 +129,35 @@ class MyScene extends RenderNode {
         this.renderer.activeCamera.set(new Vec3(-4, 11, 13), new Vec3(1, 0, 0));
 
         this.renderer.activeCamera.update();
+
+        this.renderer.events.on("touchstart", onTouchStart, this);
+        this.renderer.events.on("touchend", onTouchEnd, this);
+        this.renderer.events.on("touchcancel", onTouchCancel, this);
+        this.renderer.events.on("touchmove", onTouchMove, this);
+
+        function activePointersString(activePointers) {
+            let text = "";
+            return activePointers.forEach((pointer, id) => {
+                text += `ID ${id}: (${Math.round(pointer.clientX)}, ${Math.round(pointer.clientY)})\n`;
+            });
+            return text;
+        }
+
+        function onTouchStart(event) {
+            console.log("onTouchStart", activePointersString(event.activePointers));
+        }
+
+        function onTouchEnd(event) {
+            console.log("onTouchEnd", activePointersString(event.activePointers));
+        }
+
+        function onTouchCancel(event) {
+            console.log("ouTouchCancel", activePointersString(event.activePointers));
+        }
+
+        function onTouchMove(event) {
+            console.log("onTouchMove", activePointersString(event.activePointers));
+        }
     }
 }
 

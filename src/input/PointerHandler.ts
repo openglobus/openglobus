@@ -2,6 +2,7 @@ export type PointerEventExt = PointerEvent & {
     offsetLeft: number;
     offsetTop: number,
     pointers: PointerEvent[];
+    activePointers: Map<number, PointerEvent>;
 };
 type PointerHandlerEventCallback = (sys: PointerEventExt) => void;
 
@@ -23,13 +24,13 @@ class PointerHandler {
         switch (event) {
             case "pointercancel":
                 this.$el.addEventListener('pointercancel', function (event: PointerEvent) {
-                    event.preventDefault();
                     if (_this._activePointers.delete(event.pointerId)) {
                         const rect = this.getBoundingClientRect();
                         const eventExt: PointerEventExt = Object.assign(event, {
                             offsetLeft: rect.left,
                             offsetTop: rect.top,
-                            pointers: [..._this._activePointers.values()]
+                            pointers: [..._this._activePointers.values()],
+                            activePointers: _this._activePointers
                         });
                         callback.call(sender, eventExt);
                     }
@@ -38,14 +39,14 @@ class PointerHandler {
 
             case "pointerdown":
                 this.$el.addEventListener('pointerdown', function (event: PointerEvent) {
-                    event.preventDefault();
                     if (event.pointerType === "touch") {
                         _this._activePointers.set(event.pointerId, event);
                         const rect = this.getBoundingClientRect();
                         const eventExt: PointerEventExt = Object.assign(event, {
                             offsetLeft: rect.left,
                             offsetTop: rect.top,
-                            pointers: [..._this._activePointers.values()]
+                            pointers: [..._this._activePointers.values()],
+                            activePointers: _this._activePointers
                         });
                         callback.call(sender, eventExt);
                     }
@@ -54,13 +55,13 @@ class PointerHandler {
 
             case "pointerup":
                 this.$el.addEventListener('pointerup', function (event: PointerEvent) {
-                    event.preventDefault();
                     if (_this._activePointers.delete(event.pointerId)) {
                         const rect = this.getBoundingClientRect();
                         const eventExt: PointerEventExt = Object.assign(event, {
                             offsetLeft: rect.left,
                             offsetTop: rect.top,
-                            pointers: [..._this._activePointers.values()]
+                            pointers: [..._this._activePointers.values()],
+                            activePointers: _this._activePointers
                         });
                         callback.call(sender, eventExt);
                     }
@@ -69,14 +70,14 @@ class PointerHandler {
 
             case "pointermove":
                 this.$el.addEventListener('pointermove', function (event: PointerEvent) {
-                    event.preventDefault();
                     if (event.pointerType === "touch" && _this._activePointers.has(event.pointerId)) {
                         _this._activePointers.set(event.pointerId, event);
                         const rect = this.getBoundingClientRect();
                         const eventExt: PointerEventExt = Object.assign(event, {
                             offsetLeft: rect.left,
                             offsetTop: rect.top,
-                            pointers: [..._this._activePointers.values()]
+                            pointers: [..._this._activePointers.values()],
+                            activePointers: _this._activePointers
                         });
                         callback.call(sender, eventExt);
                     }
