@@ -188,19 +188,19 @@ export class TouchNavigation extends Control {
     protected onTouchStart(e: ITouchState) {
         const handler = this.renderer!.handler;
         this._touching = true;
-        if (e.sys!.touches.length === 2) {
+        if (e.sys!.pointers.length === 2) {
             const t0 = this.touches[0];
             const t1 = this.touches[1];
 
-            t0.x = (e.sys!.touches.item(0)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-            t0.y = (e.sys!.touches.item(0)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            t0.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t0.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
             t0.prev_x = t0.x;
             t0.prev_y = t0.y;
 
             t0.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(new Vec2(t0.x, t0.y)) || null;
 
-            t1.x = (e.sys!.touches.item(1)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-            t1.y = (e.sys!.touches.item(1)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            t1.x = (e.sys!.pointers[1].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t1.y = (e.sys!.pointers[1].clientY - e.sys!.offsetTop) * handler.pixelRatio;
             t1.prev_x = t1.x;
             t1.prev_y = t1.y;
 
@@ -219,7 +219,7 @@ export class TouchNavigation extends Control {
                 t1.grabbedSpheroid.radius = t1.grabbedPoint.length();
                 this.stopRotation();
             }
-        } else if (e.sys!.touches.length === 1) {
+        } else if (e.sys!.pointers.length === 1) {
             this._startTouchOne(e);
         }
     }
@@ -228,8 +228,8 @@ export class TouchNavigation extends Control {
         const t = this.touches[0];
         const handler = this.renderer!.handler;
 
-        t.x = (e.sys!.touches.item(0)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-        t.y = (e.sys!.touches.item(0)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
+        t.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+        t.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
         t.prev_x = t.x;
         t.prev_y = t.y;
 
@@ -266,11 +266,11 @@ export class TouchNavigation extends Control {
     }
 
     protected onTouchEnd(e: ITouchState) {
-        if (e.sys!.touches.length === 0) {
+        if (e.sys!.pointers.length === 0) {
             this._touching = false;
         }
 
-        if (e.sys!.touches.length === 1) {
+        if (e.sys!.pointers.length === 1) {
             this._startTouchOne(e);
         }
 
@@ -288,7 +288,7 @@ export class TouchNavigation extends Control {
     protected onTouchMove(e: ITouchState) {
         let cam = this.planet!.camera;
         const handler = this.renderer!.handler;
-        if (e.sys!.touches.length === 2) {
+        if (e.sys!.pointers.length === 2) {
             this.renderer!.controlsBag.scaleRot = 1;
 
             let t0 = this.touches[0],
@@ -302,13 +302,13 @@ export class TouchNavigation extends Control {
 
             t0.prev_x = t0.x;
             t0.prev_y = t0.y;
-            t0.x = (e.sys!.touches.item(0)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-            t0.y = (e.sys!.touches.item(0)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            t0.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t0.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
 
             t1.prev_x = t1.x;
             t1.prev_y = t1.y;
-            t1.x = (e.sys!.touches.item(1)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-            t1.y = (e.sys!.touches.item(1)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            t1.x = (e.sys!.pointers[1].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t1.y = (e.sys!.pointers[1].clientY - e.sys!.offsetTop) * handler.pixelRatio;
 
             const middle = t0.vec.add(t1.vec).scale(0.5);
             const earthMiddlePoint = this.planet!.getCartesianFromPixelEllipsoid(
@@ -346,13 +346,13 @@ export class TouchNavigation extends Control {
                 this.events.dispatch(this.events.drag, this);
             }
             this.scaleRot = 0;
-        } else if (e.sys!.touches.length === 1) {
+        } else if (e.sys!.pointers.length === 1) {
             let t = this.touches[0];
 
             t.prev_x = t.x;
             t.prev_y = t.y;
-            t.x = (e.sys!.touches.item(0)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-            t.y = (e.sys!.touches.item(0)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            t.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
 
             if (!t.grabbedPoint) {
                 return;
