@@ -137,26 +137,26 @@ class MyScene extends RenderNode {
 
         function activePointersString(activePointers) {
             let text = "";
-            return activePointers.forEach((pointer, id) => {
+            activePointers.forEach((pointer, id) => {
                 text += `ID ${id}: (${Math.round(pointer.clientX)}, ${Math.round(pointer.clientY)})\n`;
             });
             return text;
         }
 
         function onTouchStart(event) {
-            console.log("onTouchStart", activePointersString(event.activePointers));
+            console.log("onTouchStart", activePointersString(event.sys.activePointers));
         }
 
         function onTouchEnd(event) {
-            console.log("onTouchEnd", activePointersString(event.activePointers));
+            console.log("onTouchEnd", activePointersString(event.sys.activePointers));
         }
 
         function onTouchCancel(event) {
-            console.log("ouTouchCancel", activePointersString(event.activePointers));
+            console.log("ouTouchCancel", activePointersString(event.sys.activePointers));
         }
 
         function onTouchMove(event) {
-            console.log("onTouchMove", activePointersString(event.activePointers));
+            console.log("onTouchMove", activePointersString(event.sys.activePointers));
         }
     }
 }

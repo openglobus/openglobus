@@ -14,6 +14,8 @@ class PointerHandler {
 
     constructor(htmlObject: HTMLElement) {
         this.$el = htmlObject;
+        this.$el.style.touchAction = 'none';
+        this.$el.style.userSelect = 'none';
         this._activePointers = new Map();
     }
 
