@@ -7,7 +7,6 @@ import {Vec3} from "../math/Vec3";
 import * as math from "../math";
 import {Ray} from "../math/Ray";
 import {Plane} from "../math/Plane";
-import {Camera} from "../camera/Camera";
 
 interface ISimpleNavigationParams extends IControlParams {
     speed?: number;
