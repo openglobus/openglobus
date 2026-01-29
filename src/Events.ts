@@ -112,7 +112,7 @@ export class Events<T extends string[]> {
      * @param {any} [sender] - Event callback function owner.
      * @param {number} [priority] - Priority of event callback.
      */
-    public on(name: string, callback: EventCallback, sender?: any, priority: number = 0) {
+    public on(name: string, callback: EventCallback, sender?: unknown, priority: number = 0) {
         if (this._stamp(name, callback)) {
             if ((this as any)[name]) {
                 let c = callback.bind(sender || this._sender) as EventCallbackStamp;
