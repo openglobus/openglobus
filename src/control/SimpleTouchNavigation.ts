@@ -75,33 +75,55 @@ export class SimpleTouchNavigation extends Control {
     protected onTouchStart = (e: ITouchState) => {
         if (!this._active || !this.renderer) return;
 
+        const handler = this.renderer.handler;
+
+        let direction;
+        let cam = this.renderer.activeCamera;
+
         if (e.sys!.pointers.length === 1) {
-
-            this._grabbedPoint = this.renderer.getCartesianFromPixel(e);
-            this._grabbedScreenPoint.set(e.nx, e.ny);
-
-            if (!this._grabbedPoint) {
-                let cam = this.renderer.activeCamera;
-                let p0 = new Vec3(),
-                    p1 = new Vec3(1, 0, 0),
-                    p2 = new Vec3(0, 0, 1);
-                let px = new Vec3();
-                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
-                    this._grabbedPoint = px;
-                }
-            }
-
-            if (this._grabbedPoint) {
-                this._eye0.copy(this.renderer.activeCamera.eye);
-            }
-
+            let t0 = new Vec2();
+            t0.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t0.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            this._grabbedPoint = this.renderer.getCartesianFromPixel(t0);
+            this._grabbedScreenPoint.set(t0.x / handler.getWidth(), t0.y / handler.getHeight());
+            direction = cam.unproject(t0.x, t0.y);
         } else if (e.sys!.pointers.length === 2) {
 
+            let t0 = new Vec2();
+            t0.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t0.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+
+            let t1 = new Vec2();
+            t1.x = (e.sys!.pointers[1].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t1.y = (e.sys!.pointers[1].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+
+            const middle = t0.add(t1).scale(0.5);
+            this._grabbedPoint = this.renderer.getCartesianFromPixel(middle);
+            this._grabbedScreenPoint.set(middle.x / handler.getWidth(), middle.y / handler.getHeight());
+
+            direction = cam.unproject(middle.x, middle.y);
+        } else {
+            this._grabbedPoint = undefined;
+            return;
+        }
+
+        if (!this._grabbedPoint) {
+            let p0 = new Vec3(0, 0, 0),
+                p1 = new Vec3(1, 0, 0),
+                p2 = new Vec3(0, 0, 1);
+            let px = new Vec3();
+            if (new Ray(cam.eye, direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+                this._grabbedPoint = px;
+            }
+        }
+
+        if (this._grabbedPoint) {
+            this._eye0.copy(this.renderer.activeCamera.eye);
         }
     }
 
     protected onTouchEnd = (e: ITouchState) => {
-        console.log("onTouchEnd", activePointersString(e.sys!.activePointers));
+        this.onTouchStart(e);
     }
 
     protected onTouchCancel = (e: ITouchState) => {
@@ -113,11 +135,17 @@ export class SimpleTouchNavigation extends Control {
         if (!this.renderer || !this._grabbedPoint) return;
 
         let cam = this.renderer.activeCamera;
+        const handler = this.renderer.handler;
 
         if (e.sys!.pointers.length === 1) {
+
+            let t0 = new Vec2();
+            t0.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t0.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+
             if (cam.isOrthographic) {
-                let nx = e.nx - this._grabbedScreenPoint.x;
-                let ny = e.ny - this._grabbedScreenPoint.y;
+                let nx = t0.x / handler.getWidth() - this._grabbedScreenPoint.x;
+                let ny = t0.y / handler.getHeight() - this._grabbedScreenPoint.y;
                 let f = cam.frustum;
                 let dx = -(f.right - f.left) * nx,
                     dy = (f.top - f.bottom) * ny;
@@ -135,7 +163,51 @@ export class SimpleTouchNavigation extends Control {
                     p2 = Vec3.add(p0, Vec3.UP);
                 }
                 let px = new Vec3();
-                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+
+                let direction = cam.unproject(t0.x, t0.y);
+
+                if (new Ray(cam.eye, direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+                    cam.eye = cam.eye.add(p0.sub(px));
+                }
+            }
+            cam.update();
+        } else if (e.sys!.pointers.length === 2) {
+
+            const handler = this.renderer.handler;
+
+            let t0 = new Vec2();
+            t0.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t0.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+
+            let t1 = new Vec2();
+            t1.x = (e.sys!.pointers[1].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t1.y = (e.sys!.pointers[1].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+
+            const middle = t0.add(t1).scale(0.5);
+            let nx = middle.x / handler.getWidth() - this._grabbedScreenPoint.x;
+            let ny = middle.y / handler.getHeight() - this._grabbedScreenPoint.y;
+
+            if (cam.isOrthographic) {
+                let f = cam.frustum;
+                let dx = -(f.right - f.left) * nx,
+                    dy = (f.top - f.bottom) * ny;
+                let cam_sy = cam.getUp().scale(dy),
+                    cam_sx = cam.getRight().scale(dx);
+                cam.eye = this._eye0.add(cam_sx.add(cam_sy));
+            } else {
+                let camSlope = Math.abs(cam.getForward().dot(Vec3.UP));
+                let p0 = this._grabbedPoint, p1, p2;
+                if (camSlope > 0.7) {
+                    p1 = Vec3.add(p0, Vec3.LEFT);
+                    p2 = Vec3.add(p0, cam.getRight());
+                } else {
+                    p1 = Vec3.add(p0, cam.getRight());
+                    p2 = Vec3.add(p0, Vec3.UP);
+                }
+                let px = new Vec3();
+
+                let direction = cam.unproject(middle.x, middle.y);
+                if (new Ray(cam.eye, direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                     cam.eye = cam.eye.add(p0.sub(px));
                 }
             }

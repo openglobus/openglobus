@@ -137,3 +137,5 @@ renderer.addNodes([
     new scene.Axes(),
     new MyScene()
 ]);
+
+window.renderer = renderer;
