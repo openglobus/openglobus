@@ -1,4 +1,4 @@
-import {type AtmosphereParameters, transmittance, scattering} from "../../shaders/atmos/atmos";
+import {DEFAULT_PARAMS, type AtmosphereParameters, transmittance, scattering} from "../../shaders/atmos/atmos";
 import {Framebuffer} from "../../webgl/Framebuffer";
 import {Program} from '../../webgl/Program';
 import {Control, type IControlParams} from "../Control";
@@ -9,11 +9,12 @@ import atmosphere_frag from './atmosphere.frag.glsl';
 import {stringTemplate2} from "../../utils/shared";
 
 export interface IAtmosphereParams extends IControlParams {
-    height?: number,
-    rayleighScale?: number,
-    mieScale?: number,
-    groundAlbedo?: number,
-    bottomRadius?: number,
+    ATMOS_HEIGHT?: number,
+    RAYLEIGH_SCALE?: number,
+    MIE_SCALE?: number,
+    GROUND_ALBEDO?: number,
+    BOTTOM_RADIUS?: number,
+    EQUATORIAL_RADIUS?: number,
     rayleighScatteringCoefficient_0?: number,
     rayleighScatteringCoefficient_1?: number,
     rayleighScatteringCoefficient_2?: number,
@@ -22,8 +23,8 @@ export interface IAtmosphereParams extends IControlParams {
     ozoneAbsorptionCoefficient_0?: number,
     ozoneAbsorptionCoefficient_1?: number,
     ozoneAbsorptionCoefficient_2?: number,
-    sunAngularRadius?: number,
-    sunIntensity?: number,
+    SUN_ANGULAR_RADIUS?: number,
+    SUN_INTENSITY?: number,
     ozoneDensityHeight?: number,
     ozoneDensityWide?: number,
     disableSunDisk?: boolean
@@ -47,26 +48,11 @@ export class Atmosphere extends Control {
 
         this.opacity = 1.0;
 
-        this._parameters = {
-            ATMOS_HEIGHT: options.height || 100000.0,
-            RAYLEIGH_SCALE: options.rayleighScale || 0.08,
-            MIE_SCALE: options.mieScale || 0.012,
-            GROUND_ALBEDO: options.groundAlbedo || 0.05,
-            BOTTOM_RADIUS: options.bottomRadius || 6356752.3142451793,
-            rayleighScatteringCoefficient_0: options.rayleighScatteringCoefficient_0 || 5.802,
-            rayleighScatteringCoefficient_1: options.rayleighScatteringCoefficient_1 || 13.558,
-            rayleighScatteringCoefficient_2: options.rayleighScatteringCoefficient_2 || 33.100,
-            mieScatteringCoefficient: options.mieScatteringCoefficient || 3.996,
-            mieExtinctionCoefficient: options.mieExtinctionCoefficient || 4.440,
-            ozoneAbsorptionCoefficient_0: options.ozoneAbsorptionCoefficient_0 || 0.650,
-            ozoneAbsorptionCoefficient_1: options.ozoneAbsorptionCoefficient_1 || 1.881,
-            ozoneAbsorptionCoefficient_2: options.ozoneAbsorptionCoefficient_2 || 0.085,
-            SUN_ANGULAR_RADIUS: options.sunAngularRadius || 0.004685,
-            SUN_INTENSITY: options.sunIntensity || 1.0,
-            ozoneDensityHeight: options.ozoneDensityHeight || 25e3,
-            ozoneDensityWide: options.ozoneDensityWide || 15e3,
-            disableSunDisk: options.disableSunDisk
-        }
+        const o = options as unknown as Partial<AtmosphereParameters>;
+        this._parameters = JSON.parse(JSON.stringify({
+            ...DEFAULT_PARAMS,
+            ...o
+        }));
     }
 
     public setParameters(parameters: AtmosphereParameters) {
@@ -279,6 +265,10 @@ export class Atmosphere extends Control {
         gl.uniform1f(shu.fov, cam.getViewAngle());
         gl.uniform1f(shu.opacity, this.opacity);
 
+        let f = cam.frustum;
+        gl.uniform1f(shu.isOrthographic, cam.isOrthographic ? 1.0 : 0.0);
+        gl.uniform4fv(shu.frustumParams, [f.right - f.left, f.top - f.bottom, f.right, f.top]);
+
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.enable(gl.DEPTH_TEST);
@@ -297,7 +287,9 @@ function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): Program
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             sunPos: "vec3",
-            opacity: "float"
+            opacity: "float",
+            isOrthographic: "float",
+            frustumParams: "vec4"
         },
         attributes: {
             corners: "vec3"

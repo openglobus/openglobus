@@ -5,6 +5,7 @@ import type {NumberArray3} from "../math/Vec3";
 import type {NumberArray4} from "../math/Vec4";
 import {Entity} from "./Entity";
 import {RayHandler} from "./RayHandler";
+import type {HTMLImageElementExt} from "../utils/ImagesCacheManager";
 
 export interface IRayParams {
     thickness?: number;
@@ -13,7 +14,10 @@ export interface IRayParams {
     startColor?: string | NumberArray4;
     endColor?: string | NumberArray4;
     visibility?: boolean;
-
+    src?: string;
+    image?: HTMLImageElement;
+    texOffset?: number;
+    strokeSize?: number;
 }
 
 /**
@@ -79,6 +83,24 @@ class Ray {
      */
     public _handlerIndex: number;
 
+    /**
+     * Stroke image src.
+     * @protected
+     * @type {string}
+     */
+    protected _src: string | null;
+
+    /**
+     * Stroke image object.
+     * @protected
+     * @type {Object}
+     */
+    protected _image: HTMLImageElement & { __nodeIndex?: number } | null;
+
+    protected _texOffset: number;
+
+    protected _strokeSize: number;
+
     constructor(options: IRayParams = {}) {
 
         this.__id = Ray.__counter__++;
@@ -109,6 +131,14 @@ class Ray {
         this._handler = null;
 
         this._handlerIndex = -1;
+
+        this._image = options.image || null;
+
+        this._src = options.src || null;
+
+        this._texOffset = options.texOffset || 0;
+
+        this._strokeSize = options.strokeSize != undefined ? options.strokeSize : 32;
     }
 
     /**
@@ -137,6 +167,59 @@ class Ray {
 
     public getLength(): number {
         return this._startPosition.distance(this._endPosition);
+    }
+
+    /**
+     * Sets image template url source.
+     * @public
+     * @param {string} src - Image url.
+     */
+    public setSrc(src: string | null) {
+        this._src = src;
+        let bh = this._handler;
+        if (bh) {
+            let rn = bh._entityCollection.renderNode;
+            if (rn && rn.renderer) {
+                let ta = rn.renderer.strokeTextureAtlas;
+                if (src && src.length) {
+                    ta.loadImage(src, (img: HTMLImageElementExt) => {
+                        if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
+                            this._image = img;
+                            let taData = ta.get(img!.__nodeIndex!)!;
+                            bh!.setTexCoordArr(
+                                this._handlerIndex,
+                                taData.texCoords
+                            );
+                        } else {
+                            ta.addImage(img);
+                            ta.createTexture();
+                            this._image = img;
+                            rn!.updateStrokeTexCoords();
+                        }
+                    });
+                } else {
+                    bh!.setTextureDisabled(this._handlerIndex);
+                    rn!.updateStrokeTexCoords();
+                }
+            }
+        }
+    }
+
+    public getSrc(): string | null {
+        return this._src;
+    }
+
+    /**
+     * Sets image template object.
+     * @public
+     * @param {Object} image - JavaScript image object.
+     */
+    public setImage(image: HTMLImageElement) {
+        this.setSrc(image.src);
+    }
+
+    public getImage(): HTMLImageElementExt | null {
+        return this._image;
     }
 
     /**
@@ -233,6 +316,24 @@ class Ray {
         }
 
         this._handler && this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
+    }
+
+    public get texOffset(): number {
+        return this._texOffset;
+    }
+
+    public set texOffset(value: number) {
+        this._texOffset = value;
+        this._handler && this._handler.setTexOffsetArr(this._handlerIndex, value);
+    }
+
+    public get strokeSize(): number {
+        return this._strokeSize;
+    }
+
+    public set strokeSize(value: number) {
+        this._strokeSize = value;
+        this._handler && this._handler.setStrokeSizeArr(this._handlerIndex, value);
     }
 
     /**

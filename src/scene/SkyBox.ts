@@ -1,6 +1,8 @@
 import * as shaders from '../shaders/skybox';
 import {RenderNode} from './RenderNode';
 import type {WebGLBufferExt, WebGLTextureExt, Texture3DParams} from "../webgl/Handler";
+import {Mat4} from "../math/Mat4";
+import {RADIANS_HALF} from "../math";
 
 class SkyBox extends RenderNode {
 
@@ -33,7 +35,7 @@ class SkyBox extends RenderNode {
         this.drawMode = this.renderer!.handler.gl!.TRIANGLES;
     }
 
-    public override frame() {
+    public override preFrame() {
         let h = this.renderer!.handler;
         let gl = h.gl!;
         let cam = this.renderer!.activeCamera!;
@@ -42,7 +44,18 @@ class SkyBox extends RenderNode {
         h.programs.skybox.activate();
         let sh = h.programs.skybox._program;
         let shu = sh.uniforms;
-        gl.uniformMatrix4fv(shu.projectionViewMatrix, false, cam.getProjectionViewMatrix());
+        if (cam.isOrthographic) {
+            const near = cam.frustum.near;
+            const far = cam.frustum.far;
+            const aspect = cam.getAspectRatio();
+            const top = near * Math.tan(cam.viewAngle * RADIANS_HALF);
+            const right = top * aspect;
+            const proj = new Mat4().setPerspective(-right, right, -top, top, near, far);
+            const view = new Mat4().set(cam.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionViewMatrix, false, proj.mul(view)._m);
+        } else {
+            gl.uniformMatrix4fv(shu.projectionViewMatrix, false, cam.getProjectionViewMatrix());
+        }
         gl.uniform3fv(shu.pos, cam.eye.toArray());
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture!);

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Title</title>
+    <style>
+        html, body {
+            touch-action: none;
+            -ms-touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        * {
+            touch-action: none;
+            -ms-touch-action: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+<div id="panel" style="position:absolute; width: 100%; height:100%; top:0; left:0; background: green"></div>
+<div id="info" style="position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.7); color:white; padding:10px; font-family:monospace; border-radius:5px;"></div>
+</body>
+
+<script>
+    const activePointers = new Map();
+    const el = document.getElementById("panel");
+    const info = document.getElementById("info");
+
+    function updateDisplay() {
+        const count = activePointers.size;
+        let text = `Pointers: ${count}\n`;
+        
+        activePointers.forEach((pointer, id) => {
+            text += `ID ${id}: (${Math.round(pointer.clientX)}, ${Math.round(pointer.clientY)})\n`;
+        });
+        
+        info.textContent = text;
+    }
+
+    el.addEventListener("contextmenu", e => {
+        e.preventDefault();
+    });
+
+    document.addEventListener("pointerdown", e => {
+        e.preventDefault();
+        if (e.pointerType === "touch") {
+            activePointers.set(e.pointerId, e);
+            updateDisplay();
+        }
+    });
+
+    document.addEventListener("pointerup", e => {
+        e.preventDefault();
+        activePointers.delete(e.pointerId);
+        updateDisplay();
+    });
+
+    document.addEventListener("pointercancel", e => {
+        e.preventDefault();
+        activePointers.delete(e.pointerId);
+        updateDisplay();
+    });
+
+
+    document.addEventListener("pointermove", e => {
+        e.preventDefault();
+        if (e.pointerType === "touch" && activePointers.has(e.pointerId)) {
+            activePointers.set(e.pointerId, e);
+            updateDisplay();
+        }
+    });
+
+    document.addEventListener("gesturestart", e => {
+        e.preventDefault();
+    });
+
+    document.addEventListener("gesturechange", e => {
+        e.preventDefault();
+    });
+
+    document.addEventListener("gestureend", e => {
+        e.preventDefault();
+    });
+
+    document.addEventListener("wheel", e => {
+        if (e.ctrlKey) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener("touchstart", e => {
+        if (e.touches.length > 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener("touchmove", e => {
+        if (e.touches.length > 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener("touchend", e => {
+        if (e.touches.length > 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+</script>
+</html>

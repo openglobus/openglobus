@@ -1,5 +1,5 @@
 import * as shaders from "../shaders/ray/ray";
-import {concatArrays, makeArrayTyped, spliceArray} from "../utils/shared";
+import {concatArrays, concatTypedArrays, makeArrayTyped, spliceArray, spliceTypedArray} from "../utils/shared";
 import type {TypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";
 import {Ray} from "./Ray";
@@ -14,6 +14,9 @@ const END_POSITION_BUFFER = 2;
 const RGBA_BUFFER = 3;
 const THICKNESS_BUFFER = 4;
 const VERTEX_BUFFER = 5;
+const TEXCOORD_BUFFER = 6;
+const TEXOFFSET_BUFFER = 7;
+const STROKESIZE_BUFFER = 8;
 
 /*
  * og.RayHandler
@@ -33,7 +36,7 @@ class RayHandler {
      */
     public pickingEnabled: boolean;
 
-    protected _entityCollection: EntityCollection;
+    public _entityCollection: EntityCollection;
 
     protected _renderer: Renderer | null;
 
@@ -47,6 +50,9 @@ class RayHandler {
     protected _thicknessBuffer: WebGLBufferExt | null;
     protected _rgbaBuffer: WebGLBufferExt | null;
     protected _pickingColorBuffer: WebGLBufferExt | null;
+    protected _texCoordBuffer: WebGLBufferExt | null;
+    protected _texOffsetBuffer: WebGLBufferExt | null;
+    protected _strokeSizeBuffer: WebGLBufferExt | null;
 
     protected _vertexArr: TypedArray | number[];
     protected _startPositionHighArr: TypedArray | number[];
@@ -56,6 +62,9 @@ class RayHandler {
     protected _thicknessArr: TypedArray | number[];
     protected _rgbaArr: TypedArray | number[];
     protected _pickingColorArr: TypedArray | number[];
+    protected _texCoordArr: TypedArray;
+    protected _texOffsetArr: TypedArray;
+    protected _strokeSizeArr: TypedArray;
 
     protected _buffersUpdateCallbacks: Function[];
     protected _changedBuffers: boolean[];
@@ -85,6 +94,9 @@ class RayHandler {
         this._thicknessBuffer = null;
         this._rgbaBuffer = null;
         this._pickingColorBuffer = null;
+        this._texCoordBuffer = null;
+        this._texOffsetBuffer = null;
+        this._strokeSizeBuffer = null;
 
         this._vertexArr = [];
         this._startPositionHighArr = [];
@@ -94,6 +106,9 @@ class RayHandler {
         this._thicknessArr = [];
         this._rgbaArr = [];
         this._pickingColorArr = [];
+        this._texCoordArr = new Float32Array([]);
+        this._texOffsetArr = new Float32Array([]);
+        this._strokeSizeArr = new Float32Array([]);
 
         this._buffersUpdateCallbacks = [];
         this._buffersUpdateCallbacks[VERTEX_BUFFER] = this.createVertexBuffer;
@@ -102,6 +117,10 @@ class RayHandler {
         this._buffersUpdateCallbacks[THICKNESS_BUFFER] = this.createThicknessBuffer;
         this._buffersUpdateCallbacks[RGBA_BUFFER] = this.createRgbaBuffer;
         this._buffersUpdateCallbacks[PICKINGCOLOR_BUFFER] = this.createPickingColorBuffer;
+        this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this.createTexCoordBuffer;
+        this._buffersUpdateCallbacks[TEXOFFSET_BUFFER] = this.createTexOffsetBuffer;
+        this._buffersUpdateCallbacks[STROKESIZE_BUFFER] = this.createStrokeSizeBuffer;
+
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
@@ -110,6 +129,17 @@ class RayHandler {
         for (let i = 0; i < curr.length; i++) {
             dest.push(curr[i]);
         }
+    }
+
+    public reloadTextures() {
+        for (let i = 0; i < this._rays.length; i++) {
+            let ri = this._rays[i];
+            ri.setSrc(ri.getSrc());
+        }
+    }
+
+    public get rays(): Ray[] {
+        return [...this._rays];
     }
 
     public initProgram() {
@@ -163,14 +193,23 @@ class RayHandler {
         this._thicknessArr = null;
         //@ts-ignore
         this._rgbaArr = null;
+        //@ts-ignore
+        this._texCoordArr = null;
+        //@ts-ignore
+        this._texOffsetArr = null;
+        //@ts-ignore
+        this._strokeSizeArr = null;
 
         this._vertexArr = new Float32Array([]);
+        this._texCoordArr = new Float32Array([]);
         this._startPositionHighArr = new Float32Array([]);
         this._startPositionLowArr = new Float32Array([]);
         this._endPositionHighArr = new Float32Array([]);
         this._endPositionLowArr = new Float32Array([]);
         this._thicknessArr = new Float32Array([]);
         this._rgbaArr = new Float32Array([]);
+        this._texOffsetArr = new Float32Array([]);
+        this._strokeSizeArr = new Float32Array([]);
 
         this._removeRays();
         this._deleteBuffers();
@@ -182,13 +221,16 @@ class RayHandler {
             let gl = this._renderer.handler.gl;
 
             if (gl) {
-                gl.deleteBuffer(this._startPositionHighBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._startPositionLowBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._endPositionHighBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._endPositionLowBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._thicknessBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._rgbaBuffer as WebGLBuffer);
-                gl.deleteBuffer(this._vertexBuffer as WebGLBuffer);
+                gl.deleteBuffer(this._startPositionHighBuffer!);
+                gl.deleteBuffer(this._startPositionLowBuffer!);
+                gl.deleteBuffer(this._endPositionHighBuffer!);
+                gl.deleteBuffer(this._endPositionLowBuffer!);
+                gl.deleteBuffer(this._thicknessBuffer!);
+                gl.deleteBuffer(this._rgbaBuffer!);
+                gl.deleteBuffer(this._vertexBuffer!);
+                gl.deleteBuffer(this._texCoordBuffer!);
+                gl.deleteBuffer(this._texOffsetBuffer!);
+                gl.deleteBuffer(this._strokeSizeBuffer!);
             }
 
             this._startPositionHighBuffer = null;
@@ -198,6 +240,9 @@ class RayHandler {
             this._thicknessBuffer = null;
             this._rgbaBuffer = null;
             this._vertexBuffer = null;
+            this._texCoordBuffer = null;
+            this._texOffsetBuffer = null;
+            this._strokeSizeBuffer = null;
         }
     }
 
@@ -236,8 +281,16 @@ class RayHandler {
             );
         }
 
-        let x = ray._startPositionHigh.x,
-            y = ray._startPositionHigh.y,
+        let x = ray.texOffset;
+        this._texOffsetArr = concatTypedArrays(this._texOffsetArr, [x, x, x, x, x, x]);
+
+        x = ray.strokeSize;
+        this._strokeSizeArr = concatTypedArrays(this._strokeSizeArr, [x, x, x, x, x, x]);
+
+        this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+
+        x = ray._startPositionHigh.x;
+        let y = ray._startPositionHigh.y,
             z = ray._startPositionHigh.z;
         this._startPositionHighArr = concatArrays(this._startPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
@@ -299,6 +352,8 @@ class RayHandler {
 
         gl.uniform1f(shu.uOpacity, ec._fadingOpacity);
 
+        gl.uniform1i(shu.u_texAtlas, 0);
+
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
 
@@ -306,6 +361,7 @@ class RayHandler {
         gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
 
         gl.uniform1f(shu.resolution, r.activeCamera!._tanViewAngle_hradOneByHeight);
+        gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._startPositionHighBuffer!);
         gl.vertexAttribPointer(sha.a_startPosHigh, this._startPositionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -327,6 +383,15 @@ class RayHandler {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer!);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
+        gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._texOffsetBuffer!);
+        gl.vertexAttribPointer(sha.a_texOffset, this._texOffsetBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._strokeSizeBuffer!);
+        gl.vertexAttribPointer(sha.a_strokeSize, this._strokeSizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
 
@@ -365,6 +430,7 @@ class RayHandler {
 
         let i = ri * 24;
         this._rgbaArr = spliceArray(this._rgbaArr, i, 24);
+        this._texCoordArr = spliceTypedArray(this._texCoordArr, i, 24);
 
         i = ri * 18;
         this._startPositionHighArr = spliceArray(this._startPositionHighArr, i, 18);
@@ -378,6 +444,8 @@ class RayHandler {
 
         i = ri * 6;
         this._thicknessArr = spliceArray(this._thicknessArr, i, 6);
+        this._texOffsetArr = spliceTypedArray(this._texOffsetArr, i, 6);
+        this._strokeSizeArr = spliceTypedArray(this._strokeSizeArr, i, 6);
 
         this.reindexRaysArray(ri);
         this.refresh();
@@ -722,6 +790,24 @@ class RayHandler {
         );
     }
 
+    public createTexCoordBuffer() {
+        let h = this._renderer!.handler;
+        h.gl!.deleteBuffer(this._texCoordBuffer!);
+        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 4, this._texCoordArr.length / 4);
+    }
+
+    public createTexOffsetBuffer() {
+        let h = this._renderer!.handler;
+        h.gl!.deleteBuffer(this._texOffsetBuffer!);
+        this._texOffsetBuffer = h.createArrayBuffer(this._texOffsetArr, 1, this._texOffsetArr.length);
+    }
+
+    public createStrokeSizeBuffer() {
+        let h = this._renderer!.handler;
+        h.gl!.deleteBuffer(this._strokeSizeBuffer!);
+        this._strokeSizeBuffer = h.createArrayBuffer(this._strokeSizeArr, 1, this._strokeSizeArr.length);
+    }
+
     public createPickingColorBuffer() {
         let h = this._renderer!.handler;
         h.gl!.deleteBuffer(this._pickingColorBuffer as WebGLBuffer);
@@ -731,6 +817,107 @@ class RayHandler {
             3,
             this._pickingColorArr.length / 3
         );
+    }
+
+    public setTexCoordArr(index: number, tcoordArr: number[] | TypedArray) {
+
+        let minY = tcoordArr[1],
+            imgHeight = tcoordArr[3] - minY;
+
+        let i = index * 24;
+        let a = this._texCoordArr;
+
+        a[i] = tcoordArr[0];
+        a[i + 1] = tcoordArr[1];
+        a[i + 2] = minY;
+        a[i + 3] = imgHeight;
+
+        a[i + 4] = tcoordArr[2];
+        a[i + 5] = tcoordArr[3];
+        a[i + 6] = minY;
+        a[i + 7] = imgHeight;
+
+        a[i + 8] = tcoordArr[4];
+        a[i + 9] = tcoordArr[5];
+        a[i + 10] = minY;
+        a[i + 11] = imgHeight;
+
+        a[i + 12] = tcoordArr[6];
+        a[i + 13] = tcoordArr[7];
+        a[i + 14] = minY;
+        a[i + 15] = imgHeight;
+
+        a[i + 16] = tcoordArr[8];
+        a[i + 17] = tcoordArr[9];
+        a[i + 18] = minY;
+        a[i + 19] = imgHeight;
+
+        a[i + 20] = tcoordArr[10];
+        a[i + 21] = tcoordArr[11];
+        a[i + 22] = minY;
+        a[i + 23] = imgHeight;
+
+        this._changedBuffers[TEXCOORD_BUFFER] = true;
+    }
+
+    public setTextureDisabled(index: number) {
+        let i = index * 24;
+        let a = this._texCoordArr;
+
+        a[i + 3] = 0;
+        a[i + 7] = 0;
+        a[i + 11] = 0;
+        a[i + 15] = 0;
+        a[i + 19] = 0;
+        a[i + 23] = 0;
+
+        this._changedBuffers[TEXCOORD_BUFFER] = true;
+    }
+
+    public setTexOffsetArr(index: number, value: number) {
+        let i = index * 6;
+        let a = this._texOffsetArr;
+
+        a[i] = value;
+        a[i + 1] = value;
+        a[i + 2] = value;
+        a[i + 3] = value;
+        a[i + 4] = value;
+        a[i + 5] = value;
+
+        this._changedBuffers[TEXOFFSET_BUFFER] = true;
+    }
+
+    public setStrokeSizeArr(index: number, value: number) {
+        let i = index * 6;
+        let a = this._strokeSizeArr;
+
+        a[i] = value;
+        a[i + 1] = value;
+        a[i + 2] = value;
+        a[i + 3] = value;
+        a[i + 4] = value;
+        a[i + 5] = value;
+
+        this._changedBuffers[STROKESIZE_BUFFER] = true;
+    }
+
+
+    public refreshTexCoordsArr() {
+        let bc = this._entityCollection;
+        if (bc && this._renderer) {
+            let ta = this._renderer.strokeTextureAtlas;
+            for (let i = 0; i < this._rays.length; i++) {
+                let ri = this._rays[i];
+                let img = ri.getImage();
+                if (img) {
+                    let taData = ta.get(img.__nodeIndex!);
+                    if (taData) {
+                        this.setTexCoordArr(ri._handlerIndex, taData.texCoords);
+                    }
+                }
+            }
+        }
     }
 }
 

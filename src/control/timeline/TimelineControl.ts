@@ -90,20 +90,20 @@ class TimelineControl extends Control {
 
         this._timelineView.events.on("startdrag", () => {
             this.planet?.sun!.stop();
-            this.renderer && this.renderer.controls.mouseNavigation.deactivate();
+            this.renderer && this.renderer.controls.navigation.deactivate();
         });
 
         this._timelineView.events.on("stopdrag", () => {
-            this.renderer && this.renderer.controls.mouseNavigation.activate();
+            this.renderer && this.renderer.controls.navigation.activate();
         });
 
         this._timelineView.events.on("startdragcurrent", () => {
             this.planet?.sun!.stop();
-            this.renderer && this.renderer.controls.mouseNavigation.deactivate();
+            this.renderer && this.renderer.controls.navigation.deactivate();
         });
 
         this._timelineView.events.on("stopdragcurrent", () => {
-            this.renderer && this.renderer.controls.mouseNavigation.activate();
+            this.renderer && this.renderer.controls.navigation.activate();
         });
     }
 }

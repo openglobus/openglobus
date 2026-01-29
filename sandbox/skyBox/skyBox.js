@@ -3,7 +3,8 @@ import {
     LonLat,
     OpenStreetMap,
     scene,
-    control
+    control,
+    GlobusRgbTerrain
 } from "../../lib/og.es.js";
 
 const skybox = new scene.SkyBox({
@@ -18,11 +19,24 @@ const skybox = new scene.SkyBox({
 const globus = new Globe({
     target: "earth",
     name: "Earth",
+    terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap()],
     atmosphereEnabled: true,
     skybox: skybox,
+    navigation: {
+        mode: "free",//lockNorth, adaptive
+        // disableRotation: true,
+        // disableTilt: true
+    },
     controls: [
-        new control.MouseNavigation({ minSlope: 0.35 }),
-        new control.KeyboardNavigation({ autoActivate: true })
+        new control.Navigation({
+            mode: "lockNorth",
+            disableRotation: false,
+            disableTilt: false
+        }),
+        new control.KeyboardNavigation({ autoActivate: true }),
+        new control.ToggleWireframe(),
+        new control.TimelineControl(),
+        new control.CompassButton()
     ]
 })

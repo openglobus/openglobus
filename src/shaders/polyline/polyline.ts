@@ -18,6 +18,9 @@ export function polyline_screen(): Program {
             opacity: "float",
             depthOffset: "float",
             visibleSphere: "vec4",
+            texAtlas: "sampler2d",
+            strokeSize: "float",
+            texOffset: "float"
         },
         attributes: {
             prevHigh: "vec3",
@@ -27,7 +30,8 @@ export function polyline_screen(): Program {
             currentLow: "vec3",
             nextLow: "vec3",
             order: "float",
-            color: "vec4"
+            color: "vec4",
+            texCoord: "vec4"
         },
         vertexShader: polyline_screen_vert,
         fragmentShader: polyline_screen_frag
