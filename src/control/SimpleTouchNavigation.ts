@@ -77,6 +77,8 @@ export class SimpleTouchNavigation extends Control {
             let px = new Vec3();
             if (new Ray(cam.eye, direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                 grabbedPoint = px;
+            } else {
+                grabbedPoint = cam.eye.add(direction.scale(10));
             }
         }
         return {
@@ -87,6 +89,7 @@ export class SimpleTouchNavigation extends Control {
     }
 
     protected onTouchStart = (e: ITouchState) => {
+
         if (!this._active || !this.renderer) return;
 
         const handler = this.renderer.handler;
@@ -114,6 +117,11 @@ export class SimpleTouchNavigation extends Control {
                 (pointers[1].clientX - sys.offsetLeft) * handler.pixelRatio,
                 (pointers[1].clientY - sys.offsetTop) * handler.pixelRatio
             );
+
+            console.log(gp1.grabbedPoint, gp2.grabbedPoint);
+
+            this._grabbedPoint = gp1.grabbedPoint.add(gp2.grabbedPoint).scale(0.5);
+            this._grabbedScreenPoint = gp1.screenPoint.add(gp2.screenPoint).scale(0.5);
 
         } else {
             this._grabbedPoint = undefined;
