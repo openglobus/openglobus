@@ -10,14 +10,6 @@ import {Plane} from "../math/Plane";
 interface ISimpleTouchNavigationParams extends IControlParams {
 }
 
-function activePointersString(activePointers: any) {
-    let text = "";
-    activePointers.forEach((pointer, id) => {
-        text += `ID ${id}: (${Math.round(pointer.clientX)}, ${Math.round(pointer.clientY)})\n`;
-    });
-    return text;
-}
-
 /**
  * Simple keyboard camera navigation with W,S,A,D and shift keys to fly around the scene.
  */
@@ -79,23 +71,25 @@ export class SimpleTouchNavigation extends Control {
 
         let direction;
         let cam = this.renderer.activeCamera;
+        let sys = e.sys!;
+        let pointers = sys.pointers;
 
         if (e.sys!.pointers.length === 1) {
             let t0 = new Vec2();
-            t0.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-            t0.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            t0.x = (pointers[0].clientX - sys.offsetLeft) * handler.pixelRatio;
+            t0.y = (pointers[0].clientY - sys.offsetTop) * handler.pixelRatio;
             this._grabbedPoint = this.renderer.getCartesianFromPixel(t0);
             this._grabbedScreenPoint.set(t0.x / handler.getWidth(), t0.y / handler.getHeight());
             direction = cam.unproject(t0.x, t0.y);
-        } else if (e.sys!.pointers.length === 2) {
+        } else if (pointers.length === 2) {
 
             let t0 = new Vec2();
-            t0.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-            t0.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            t0.x = (pointers[0].clientX - sys.offsetLeft) * handler.pixelRatio;
+            t0.y = (pointers[0].clientY - sys.offsetTop) * handler.pixelRatio;
 
             let t1 = new Vec2();
-            t1.x = (e.sys!.pointers[1].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-            t1.y = (e.sys!.pointers[1].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            t1.x = (pointers[1].clientX - sys.offsetLeft) * handler.pixelRatio;
+            t1.y = (pointers[1].clientY - sys.offsetTop) * handler.pixelRatio;
 
             const middle = t0.add(t1).scale(0.5);
             this._grabbedPoint = this.renderer.getCartesianFromPixel(middle);
@@ -127,7 +121,7 @@ export class SimpleTouchNavigation extends Control {
     }
 
     protected onTouchCancel = (e: ITouchState) => {
-        console.log("onTouchCancel", activePointersString(e.sys!.activePointers));
+        //noop
     }
 
     protected onTouchMove = (e: ITouchState) => {
@@ -136,12 +130,14 @@ export class SimpleTouchNavigation extends Control {
 
         let cam = this.renderer.activeCamera;
         const handler = this.renderer.handler;
+        let sys = e.sys!;
+        let pointers = sys.pointers;
 
-        if (e.sys!.pointers.length === 1) {
+        if (pointers.length === 1) {
 
             let t0 = new Vec2();
-            t0.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-            t0.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            t0.x = (pointers[0].clientX - sys.offsetLeft) * handler.pixelRatio;
+            t0.y = (pointers[0].clientY - sys.offsetTop) * handler.pixelRatio;
 
             if (cam.isOrthographic) {
                 let nx = t0.x / handler.getWidth() - this._grabbedScreenPoint.x;
@@ -171,17 +167,17 @@ export class SimpleTouchNavigation extends Control {
                 }
             }
             cam.update();
-        } else if (e.sys!.pointers.length === 2) {
+        } else if (pointers.length === 2) {
 
             const handler = this.renderer.handler;
 
             let t0 = new Vec2();
-            t0.x = (e.sys!.pointers[0].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-            t0.y = (e.sys!.pointers[0].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            t0.x = (pointers[0].clientX - sys.offsetLeft) * handler.pixelRatio;
+            t0.y = (pointers[0].clientY - sys.offsetTop) * handler.pixelRatio;
 
             let t1 = new Vec2();
-            t1.x = (e.sys!.pointers[1].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
-            t1.y = (e.sys!.pointers[1].clientY - e.sys!.offsetTop) * handler.pixelRatio;
+            t1.x = (pointers[1].clientX - sys.offsetLeft) * handler.pixelRatio;
+            t1.y = (pointers[1].clientY - sys.offsetTop) * handler.pixelRatio;
 
             const middle = t0.add(t1).scale(0.5);
             let nx = middle.x / handler.getWidth() - this._grabbedScreenPoint.x;
