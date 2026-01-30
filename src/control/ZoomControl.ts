@@ -65,7 +65,7 @@ class ZoomControl extends Control {
      * @public
      */
     public zoomIn() {
-        (this.renderer!.controls.mouseNavigation as Navigation).stop();
+        (this.renderer!.controls.navigation as Navigation).stop();
         this.planet!.layerLock.lock(this._keyLock);
         this.planet!.terrainLock.lock(this._keyLock);
         this.planet!._normalMapCreator.lock(this._keyLock);
@@ -80,7 +80,7 @@ class ZoomControl extends Control {
      * @public
      */
     zoomOut() {
-        (this.renderer!.controls.mouseNavigation as Navigation).stop();
+        (this.renderer!.controls.navigation as Navigation).stop();
         this.planet!.layerLock.lock(this._keyLock);
         this.planet!.terrainLock.lock(this._keyLock);
         this.planet!._normalMapCreator.lock(this._keyLock);
