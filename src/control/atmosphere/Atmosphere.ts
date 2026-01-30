@@ -261,7 +261,7 @@ export class Atmosphere extends Control {
         let sunPos = this.planet!.sunPos;
         gl.uniform3fv(shu.sunPos, [sunPos.x, sunPos.y, sunPos.z]);
         gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
-        gl.uniform2fv(shu.iResolution, [r.sceneFramebuffer!.width, r.sceneFramebuffer!.height]);
+        gl.uniform2fv(shu.iResolution, [r.viewportWidth, r.viewportHeight]);
         gl.uniform1f(shu.fov, cam.getViewAngle());
         gl.uniform1f(shu.opacity, this.opacity);
 

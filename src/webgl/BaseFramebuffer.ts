@@ -39,6 +39,28 @@ export class BaseFramebuffer {
         this._filter = options.filter || "NEAREST";
     }
 
+    static blitTo(destFramebuffer: BaseFramebuffer, sourceFramebuffer: BaseFramebuffer, glAttachmentIndex: number | null, glMask: number, glFilter: number) {
+        let gl = sourceFramebuffer.handler.gl!;
+
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, sourceFramebuffer._fbo);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, destFramebuffer._fbo);
+
+        if (glAttachmentIndex !== null) {
+            gl.readBuffer(gl.COLOR_ATTACHMENT0 + glAttachmentIndex);
+            gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
+        }
+
+        gl.blitFramebuffer(
+            0, 0, sourceFramebuffer._width, sourceFramebuffer._height,
+            0, 0, destFramebuffer._width, destFramebuffer._height,
+            glMask, glFilter
+        );
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null!);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null!);
+    }
+
     public get width(): number {
         return this._width;
     }

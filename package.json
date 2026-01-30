@@ -22,7 +22,7 @@
   "scripts": {
     "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
     "serve_docs": "cd docs; ws -p 8088",
-    "serve": "ws -p 3000",
+    "serve": "ws -p 8080",
     "build": "vite build --mode production && npm run dts",
     "clean": "rm -rf ./lib ./docs",
     "dev": "vite build --watch --mode development",

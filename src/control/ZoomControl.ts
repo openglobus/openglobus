@@ -70,7 +70,7 @@ class ZoomControl extends Control {
         this.planet!.terrainLock.lock(this._keyLock);
         this.planet!._normalMapCreator.lock(this._keyLock);
 
-        this._targetPoint = this.renderer!.getCenter();
+        this._targetPoint = this.renderer!.getViewportCenter();
 
         this._move = 1;
     }
@@ -85,7 +85,7 @@ class ZoomControl extends Control {
         this.planet!.terrainLock.lock(this._keyLock);
         this.planet!._normalMapCreator.lock(this._keyLock);
 
-        this._targetPoint = this.renderer!.getCenter();
+        this._targetPoint = this.renderer!.getViewportCenter();
         this._move = -1;
     }
 
@@ -101,7 +101,7 @@ class ZoomControl extends Control {
         const cam = this.planet!.camera;
 
         if (this._move !== 0) {
-            const pos = this.planet!.getCartesianFromPixelTerrain(e.getCenter());
+            const pos = this.planet!.getCartesianFromPixelTerrain(e.getViewportCenter());
             if (pos) {
                 let d = cam.eye.distance(pos) * 0.035;
                 cam.eye.addA(cam.getForward().scale(this._move * d));
