@@ -225,6 +225,8 @@ export class SimpleTouchNavigation extends Control {
                     cam.eye = cam.eye.add(p0.sub(px));
                 }
             }
+
+            cam.rotateHorizontal(rotAngle * Math.PI / 180, false, this._grabbedPoint, Vec3.UP);
         }
 
         cam.update();
