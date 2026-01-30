@@ -5,8 +5,7 @@ import {KeyboardHandler} from "../input/KeyboardHandler";
 import {MouseHandler} from "../input/MouseHandler";
 import type {MouseHandlerEvent, MouseEventExt} from "../input/MouseHandler";
 import {Renderer} from "./Renderer";
-import {TouchHandler} from "../input/TouchHandler";
-import type {TouchEventExt} from "../input/TouchHandler";
+import {PointerHandler, type PointerEventExt} from "../input/PointerHandler";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
@@ -144,7 +143,7 @@ export interface ITouchState extends IBaseInputState {
     /** Currently touching.*/
     touching: boolean;
     /** JavaScript mouse system event message. */
-    sys: TouchEventExt | null;
+    sys: PointerEventExt | null;
 }
 
 const LB_M = 0b0001;
@@ -183,9 +182,9 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     /**
      * Low level touch events handler.
      * @protected
-     * @type {TouchHandler}
+     * @type {PointerHandler}
      */
-    protected _touchHandler: TouchHandler;
+    protected _pointerHandler: PointerHandler;
 
     /**
      * Low level mouse events handler.
@@ -245,9 +244,9 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
         this.renderer = renderer;
 
-        this._touchHandler = new TouchHandler(renderer.handler.canvas!);
-
         this._mouseHandler = new MouseHandler(renderer.handler.canvas!);
+
+        this._pointerHandler = new PointerHandler(renderer.handler.canvas!);
 
         this._keyboardHandler = new KeyboardHandler();
 
@@ -422,10 +421,10 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         this._mouseHandler.setEvent("mouseleave", this, this.onMouseLeave);
         this._mouseHandler.setEvent("mouseenter", this, this.onMouseEnter);
 
-        this._touchHandler.setEvent("touchstart", this, this.onTouchStart);
-        this._touchHandler.setEvent("touchend", this, this.onTouchEnd);
-        this._touchHandler.setEvent("touchcancel", this, this.onTouchCancel);
-        this._touchHandler.setEvent("touchmove", this, this.onTouchMove);
+        this._pointerHandler.setEvent("pointerdown", this, this.onPointerDown);
+        this._pointerHandler.setEvent("pointerup", this, this.onPointerUp);
+        this._pointerHandler.setEvent("pointercancel", this, this.onPointerCancel);
+        this._pointerHandler.setEvent("pointermove", this, this.onPointerMove);
     }
 
     /**
@@ -618,12 +617,12 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    protected onTouchStart(event: TouchEventExt) {
+    protected onPointerDown(event: PointerEventExt) {
         let ts = this.touchState;
         ts.sys = event;
 
-        ts.clientX = event.touches.item(0)!.clientX - event.offsetLeft;
-        ts.clientY = event.touches.item(0)!.clientY - event.offsetTop;
+        ts.clientX = event.pointers[0].clientX - event.offsetLeft;
+        ts.clientY = event.pointers[0].clientY - event.offsetTop;
 
         let h = this.renderer.handler;
 
@@ -637,7 +636,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         ts.touchStart = true;
         ts.touching = true;
 
-        if (event.touches.length === 1) {
+        if (event.pointers.length === 1) {
             this._dblTchCoords.x = ts.x;
             this._dblTchCoords.y = ts.y;
             this._oneTouchStart = true;
@@ -649,12 +648,12 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     /**
      * @protected
      */
-    protected onTouchEnd(event: TouchEventExt) {
+    protected onPointerUp(event: PointerEventExt) {
         let ts = this.touchState;
         ts.sys = event;
         ts.touchEnd = true;
 
-        if (event.touches.length === 0) {
+        if (event.pointers.length === 0) {
             ts.prev_x = ts.x;
             ts.prev_y = ts.y;
 
@@ -672,17 +671,17 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    protected onTouchCancel(event: TouchEventExt) {
+    protected onPointerCancel(event: PointerEventExt) {
         let ts = this.touchState;
         ts.sys = event;
         ts.touchCancel = true;
     }
 
-    protected onTouchMove(event: TouchEventExt) {
+    protected onPointerMove(event: PointerEventExt) {
         let ts = this.touchState;
 
-        ts.clientX = event.touches.item(0)!.clientX - event.offsetLeft;
-        ts.clientY = event.touches.item(0)!.clientY - event.offsetTop;
+        ts.clientX = event.pointers[0].clientX - event.offsetLeft;
+        ts.clientY = event.pointers[0].clientY - event.offsetTop;
 
         let h = this.renderer.handler;
 
