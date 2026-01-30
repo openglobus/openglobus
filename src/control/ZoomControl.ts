@@ -4,6 +4,7 @@ import {Control} from "./Control";
 import type {IControlParams} from "./Control";
 import {Renderer} from "../renderer/Renderer";
 import {Vec2} from "../math/Vec2";
+import {Navigation} from "./Navigation";
 
 const ICON_PLUS_SVG = '<?xml version="1.0"?>' +
     '<svg width=24 height=24 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
@@ -64,6 +65,7 @@ class ZoomControl extends Control {
      * @public
      */
     public zoomIn() {
+        (this.renderer!.controls.navigation as Navigation).stop();
         this.planet!.layerLock.lock(this._keyLock);
         this.planet!.terrainLock.lock(this._keyLock);
         this.planet!._normalMapCreator.lock(this._keyLock);
@@ -78,6 +80,7 @@ class ZoomControl extends Control {
      * @public
      */
     zoomOut() {
+        (this.renderer!.controls.navigation as Navigation).stop();
         this.planet!.layerLock.lock(this._keyLock);
         this.planet!.terrainLock.lock(this._keyLock);
         this.planet!._normalMapCreator.lock(this._keyLock);
