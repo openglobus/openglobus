@@ -236,9 +236,8 @@ export class SimpleTouchNavigation extends Control {
             }
             cam.update();
 
-            const deltaAngle = pinchAngle - this._pinchAnglePrev;
-            const axis = cam.getForward().normalize();
-            cam.rotateAround(deltaAngle, false, pivot, axis);
+            const deltaAngle = this._pinchAnglePrev - pinchAngle;
+            cam.rotateAround(deltaAngle, false, pivot, Vec3.UP);
             cam.update();
             this._pinchAnglePrev = pinchAngle;
 
