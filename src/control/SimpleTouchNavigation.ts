@@ -23,6 +23,8 @@ export class SimpleTouchNavigation extends Control {
     protected _prev_t0: Vec2 = new Vec2();
     protected _prev_t1: Vec2 = new Vec2();
 
+    protected _lookPos: Vec3 = new Vec3();
+
     constructor(options: ISimpleTouchNavigationParams = {}) {
         super({
             name: "SimpleTouchNavigation",
@@ -127,6 +129,7 @@ export class SimpleTouchNavigation extends Control {
 
             this._grabbedPoint = gp1.grabbedPoint.add(gp2.grabbedPoint).scale(0.5);
             this._grabbedScreenPoint = gp1.screenPoint.add(gp2.screenPoint).scale(0.5);
+            this._lookPos.copy(this._grabbedPoint);
 
         } else {
             this._grabbedPoint = undefined;
@@ -275,23 +278,15 @@ export class SimpleTouchNavigation extends Control {
             let rotAngle = 0;
 
             if (lenPrev > dead && lenCurr > dead) {
+
                 // signed angle via atan2(cross, dot)
                 const dot = vPrev.x * vCurr.x + vPrev.y * vCurr.y;
                 const cross = vPrev.x * vCurr.y - vPrev.y * vCurr.x;
 
                 rotAngle = Math.atan2(cross, dot);
 
-                cam.rotateHorizontal(-rotAngle, false, this._grabbedPoint, Vec3.UP);
+                cam.rotateHorizontal(-rotAngle, false, this._lookPos, Vec3.UP);
             }
-
-            // let isSameDir = false;
-            // if (len0 > dead && len1 > dead) {
-            //     if (dot >= 0) {
-            //         isSameDir = true
-            //     }
-            // }
-
-            //cam.rotateHorizontal(rotAngle * Math.PI / 180, false, this._grabbedPoint, Vec3.UP);
 
             this._prev_t0.copy(t0);
             this._prev_t1.copy(t1);

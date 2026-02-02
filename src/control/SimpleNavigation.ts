@@ -123,9 +123,6 @@ export class SimpleNavigation extends Control {
             this._grabbedPoint = this.renderer.getCartesianFromPixel(e);
             this._grabbedScreenPoint.set(e.nx, e.ny);
 
-            // let depth = this.renderer.getDepthMinDistance();
-            // console.log(depth);
-
             if (!this._grabbedPoint) {
                 let cam = this.renderer.activeCamera;
                 let p0 = new Vec3(),
