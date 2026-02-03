@@ -23,7 +23,7 @@ export class SimpleTouchNavigation extends Control {
     protected _prev_t0: Vec2 = new Vec2();
     protected _prev_t1: Vec2 = new Vec2();
 
-    protected _lookPos: Vec3 = new Vec3();
+    protected _dead: number = 0.5;
 
     constructor(options: ISimpleTouchNavigationParams = {}) {
         super({
@@ -95,7 +95,15 @@ export class SimpleTouchNavigation extends Control {
         }
     }
 
-    protected onTouchStart = (e: ITouchState) => {
+    protected onTouchEnd = (e: ITouchState) => {
+        this.onTouchStart(e);
+    }
+
+    protected onTouchCancel = (e: ITouchState) => {
+        //noop
+    }
+
+    protected onTouchStart = (e: ITouchState, skipPointGrabbing?: boolean) => {
 
         if (!this._active || !this.renderer) return;
 
@@ -131,22 +139,24 @@ export class SimpleTouchNavigation extends Control {
             let middle_t = t0.add(t1).scale(0.5);
             this._grabbedScreenPoint = new Vec2(middle_t.x / handler.getWidth(), middle_t.y / handler.getHeight());
 
-            this._grabbedPoint = this.renderer.getCartesianFromPixel(middle_t);
+            if (!skipPointGrabbing) {
+                this._grabbedPoint = this.renderer.getCartesianFromPixel(middle_t);
 
-            if (!this._grabbedPoint) {
-                let cam = this.renderer.activeCamera;
-                let p0 = new Vec3(0, 0, 0),
-                    p1 = new Vec3(1, 0, 0),
-                    p2 = new Vec3(0, 0, 1);
-                let plane = Plane.fromPoints(p0, p1, p2);
+                if (!this._grabbedPoint) {
+                    let cam = this.renderer.activeCamera;
+                    let p0 = new Vec3(0, 0, 0),
+                        p1 = new Vec3(1, 0, 0),
+                        p2 = new Vec3(0, 0, 1);
+                    let plane = Plane.fromPoints(p0, p1, p2);
 
-                let direction = cam.unproject(middle_t.x, middle_t.y, cam.eye.y);
-                let px = new Vec3();
+                    let direction = cam.unproject(middle_t.x, middle_t.y, cam.eye.y);
+                    let px = new Vec3();
 
-                if (new Ray(cam.eye, direction).hitPlaneRes(plane, px) === Ray.INSIDE) {
-                    this._grabbedPoint = px;
-                } else {
-                    this._grabbedPoint = cam.eye.add(direction.scale(10));
+                    if (new Ray(cam.eye, direction).hitPlaneRes(plane, px) === Ray.INSIDE) {
+                        this._grabbedPoint = px;
+                    } else {
+                        this._grabbedPoint = cam.eye.add(direction.scale(10));
+                    }
                 }
             }
         } else {
@@ -157,14 +167,6 @@ export class SimpleTouchNavigation extends Control {
         if (this._grabbedPoint) {
             this._eye0.copy(this.renderer.activeCamera.eye);
         }
-    }
-
-    protected onTouchEnd = (e: ITouchState) => {
-        this.onTouchStart(e);
-    }
-
-    protected onTouchCancel = (e: ITouchState) => {
-        //noop
     }
 
     protected onTouchMove = (e: ITouchState) => {
@@ -262,18 +264,17 @@ export class SimpleTouchNavigation extends Control {
             const vPrev = this._prev_t1.sub(this._prev_t0);
             const vCurr = t1.sub(t0);
 
-            const dead = 0.5;
             const lenPrev = Math.hypot(vPrev.x, vPrev.y);
             const lenCurr = Math.hypot(vCurr.x, vCurr.y);
 
             let rotAngle = 0;
-            if (lenPrev > dead && lenCurr > dead) {
+            if (lenPrev > this._dead && lenCurr > this._dead) {
                 const dot = vPrev.x * vCurr.x + vPrev.y * vCurr.y;
                 const cross = vPrev.x * vCurr.y - vPrev.y * vCurr.x;
                 rotAngle = Math.atan2(cross, dot);
                 cam.rotateHorizontal(-rotAngle, false, this._grabbedPoint, Vec3.UP);
                 if (cam.isOrthographic) {
-                    this.onTouchStart(e);
+                    this.onTouchStart(e, true);
                 }
             }
 
