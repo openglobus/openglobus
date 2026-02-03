@@ -223,9 +223,57 @@ export class SimpleTouchNavigation extends Control {
             let nx = middle.x / handler.getWidth() - this._grabbedScreenPoint.x;
             let ny = middle.y / handler.getHeight() - this._grabbedScreenPoint.y;
 
-            // const d0 = new Vec2(t0.x - this._prev_t0.x, t0.y - this._prev_t0.y);
-            // const d1 = new Vec2(t1.x - this._prev_t1.x, t1.y - this._prev_t1.y);
-            // const dot = d0.x * d1.x + d0.y * d1.y;
+            const d0 = new Vec2(t0.x - this._prev_t0.x, t0.y - this._prev_t0.y);
+            const d1 = new Vec2(t1.x - this._prev_t1.x, t1.y - this._prev_t1.y);
+            const dot = d0.x * d1.x + d0.y * d1.y;
+
+            // Pinch fingers move in opposite directions
+            if (dot < 0) {
+                const vPrev = this._prev_t1.sub(this._prev_t0);
+                const vCurr = t1.sub(t0);
+
+                const lenPrev = Math.hypot(vPrev.x, vPrev.y);
+                const lenCurr = Math.hypot(vCurr.x, vCurr.y);
+
+                if (lenPrev > this._dead && lenCurr > this._dead) {
+                    let scale = lenPrev / lenCurr;
+
+                    if (scale < 0.25) scale = 0.25;
+                    if (scale > 4.0) scale = 4.0;
+
+                    const anchor = this._grabbedPoint;
+
+                    if (cam.isOrthographic) {
+                        // const f = cam.frustum;
+                        // const cx = (f.left + f.right) * 0.5;
+                        // const cy = (f.bottom + f.top) * 0.5;
+                        // const hw = (f.right - f.left) * 0.5 * scale;
+                        // const hh = (f.top - f.bottom) * 0.5 * scale;
+                        // f.left = cx - hw;
+                        // f.right = cx + hw;
+                        // f.bottom = cy - hh;
+                        // f.top = cy + hh;
+                    } else {
+                        cam.eye = anchor.add(cam.eye.sub(anchor).scale(scale));
+
+                        const camSlope = Math.abs(cam.getForward().dot(Vec3.UP));
+                        let p1: Vec3, p2: Vec3;
+                        if (camSlope > 0.7) {
+                            p1 = Vec3.add(anchor, Vec3.LEFT);
+                            p2 = Vec3.add(anchor, cam.getRight());
+                        } else {
+                            p1 = Vec3.add(anchor, cam.getRight());
+                            p2 = Vec3.add(anchor, Vec3.UP);
+                        }
+
+                        const px = new Vec3();
+                        const dir = cam.unproject(middle.x, middle.y);
+                        if (new Ray(cam.eye, dir).hitPlaneRes(Plane.fromPoints(anchor, p1, p2), px) === Ray.INSIDE) {
+                            cam.eye = cam.eye.add(anchor.sub(px));
+                        }
+                    }
+                }
+            }
 
             if (cam.isOrthographic) {
                 let f = cam.frustum;
