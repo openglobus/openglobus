@@ -1,12 +1,16 @@
 import {Control} from "./Control";
 import type {IControlParams} from "./Control";
-import type {IMouseState, ITouchState} from "../renderer/RendererEvents";
+import type {ITouchState} from "../renderer/RendererEvents";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
-import * as math from "../math";
 import {Ray} from "../math/Ray";
 import {Plane} from "../math/Plane";
-import {getLinesIntersection2v} from "../utils/shared";
+
+const PLANE_Y = Plane.fromPoints(
+    new Vec3(0, 0, 0),
+    new Vec3(1, 0, 0),
+    new Vec3(0, 0, 1)
+);
 
 interface ISimpleTouchNavigationParams extends IControlParams {
 }
@@ -70,31 +74,6 @@ export class SimpleTouchNavigation extends Control {
         r.events.off("draw", this.onDraw);
     }
 
-    protected _getPoi(x: number, y: number) {
-        let r = this.renderer!;
-        let cam = r.activeCamera;
-        const handler = r.handler;
-        let grabbedPoint = r.getCartesianFromPixel(new Vec2(x, y));
-        let direction = cam.unproject(x, y, cam.eye.y);
-
-        if (!grabbedPoint) {
-            let p0 = new Vec3(0, 0, 0),
-                p1 = new Vec3(1, 0, 0),
-                p2 = new Vec3(0, 0, 1);
-            let px = new Vec3();
-
-            if (new Ray(cam.eye, direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
-                grabbedPoint = px;
-            } else {
-                grabbedPoint = cam.eye.add(direction.scale(10));
-            }
-        }
-        return {
-            grabbedPoint,
-            screenPoint: new Vec2(x / handler.getWidth(), y / handler.getHeight()),
-        }
-    }
-
     protected onTouchEnd = (e: ITouchState) => {
         this.onTouchStart(e);
     }
@@ -107,19 +86,35 @@ export class SimpleTouchNavigation extends Control {
 
         if (!this._active || !this.renderer) return;
 
-        const handler = this.renderer.handler;
+        let renderer = this.renderer;
+        let cam = renderer.activeCamera;
+        const handler = renderer.handler;
 
         let sys = e.sys!;
         let pointers = sys.pointers;
 
         if (pointers.length === 1) {
-            let t0 = this._getPoi(
+
+            let t0 = new Vec2(
                 (pointers[0].clientX - sys.offsetLeft) * handler.pixelRatio,
                 (pointers[0].clientY - sys.offsetTop) * handler.pixelRatio
             );
 
-            this._grabbedPoint = t0.grabbedPoint;
-            this._grabbedScreenPoint = t0.screenPoint;
+            let grabbedPoint = renderer.getCartesianFromPixel(t0);
+
+            if (!grabbedPoint) {
+                let dist = cam.eye.y;
+                let direction = cam.unproject(t0.x, t0.y, dist);
+                let px = new Vec3();
+                if (new Ray(cam.eye, direction).hitPlaneRes(PLANE_Y, px) === Ray.INSIDE) {
+                    grabbedPoint = px;
+                } else {
+                    grabbedPoint = cam.eye.add(direction.scale(10));
+                }
+            }
+
+            this._grabbedPoint = grabbedPoint;
+            this._grabbedScreenPoint.set(t0.x / handler.getWidth(), t0.y / handler.getHeight());
 
         } else if (pointers.length === 2) {
 
@@ -144,15 +139,11 @@ export class SimpleTouchNavigation extends Control {
 
                 if (!this._grabbedPoint) {
                     let cam = this.renderer.activeCamera;
-                    let p0 = new Vec3(0, 0, 0),
-                        p1 = new Vec3(1, 0, 0),
-                        p2 = new Vec3(0, 0, 1);
-                    let plane = Plane.fromPoints(p0, p1, p2);
 
                     let direction = cam.unproject(middle_t.x, middle_t.y, cam.eye.y);
                     let px = new Vec3();
 
-                    if (new Ray(cam.eye, direction).hitPlaneRes(plane, px) === Ray.INSIDE) {
+                    if (new Ray(cam.eye, direction).hitPlaneRes(PLANE_Y, px) === Ray.INSIDE) {
                         this._grabbedPoint = px;
                     } else {
                         this._grabbedPoint = cam.eye.add(direction.scale(10));
