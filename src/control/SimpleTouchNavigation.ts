@@ -29,6 +29,9 @@ export class SimpleTouchNavigation extends Control {
 
     protected _dead: number = 0.5;
 
+    /** Prevents orthographic zoom from hitting zero/negative focus distance. */
+    protected _orthoMinFocusDistance: number = 1e-6;
+
     constructor(options: ISimpleTouchNavigationParams = {}) {
         super({
             name: "SimpleTouchNavigation",
@@ -228,7 +231,7 @@ export class SimpleTouchNavigation extends Control {
             const dot = d0.x * d1.x + d0.y * d1.y;
 
             // Pinch fingers move in opposite directions - ZOOM
-            if (dot < 0) {
+            if (/*dot < 0*/true) {
                 const vPrev = this._prev_t1.sub(this._prev_t0);
                 const vCurr = t1.sub(t0);
 
@@ -243,34 +246,29 @@ export class SimpleTouchNavigation extends Control {
                     const anchor = this._grabbedPoint;
 
                     if (cam.isOrthographic) {
-                        // const fBefore = cam.frustum;
-                        //
-                        // const widthBefore = (fBefore.right - fBefore.left);
-                        // const heightBefore = (fBefore.top - fBefore.bottom);
-                        // const dxBefore = -(widthBefore) * (0.5 - this._grabbedScreenPoint.x);
-                        // const dyBefore = (heightBefore) * (0.5 - this._grabbedScreenPoint.y);
-                        // const worldBefore = cam.eye
-                        //     .add(cam.getRight().scale(dxBefore))
-                        //     .add(cam.getUp().scale(dyBefore));
-                        //
-                        // const eps = 1e-6;
-                        // cam.focusDistance = Math.max(eps, cam.focusDistance / scale);
-                        //
-                        // cam.update();
-                        //
-                        // const fAfter = cam.frustum;
-                        // const widthAfter = (fAfter.right - fAfter.left);
-                        // const heightAfter = (fAfter.top - fAfter.bottom);
-                        // const dxAfter = -(widthAfter) * (0.5 - this._grabbedScreenPoint.x);
-                        // const dyAfter = (heightAfter) * (0.5 - this._grabbedScreenPoint.y);
-                        // const worldAfter = cam.eye
-                        //     .add(cam.getRight().scale(dxAfter))
-                        //     .add(cam.getUp().scale(dyAfter));
-                        //
-                        // cam.eye = cam.eye.add(worldBefore.sub(worldAfter));
-                        //
-                        // this._eye0.copy(cam.eye);
+                        const fBefore = cam.frustum;
+                        const widthBefore = (fBefore.right - fBefore.left);
+                        const heightBefore = (fBefore.top - fBefore.bottom);
+                        const dxBefore = -(widthBefore) * (0.5 - this._grabbedScreenPoint.x);
+                        const dyBefore = (heightBefore) * (0.5 - this._grabbedScreenPoint.y);
+                        const worldBefore = cam.eye
+                            .add(cam.getRight().scale(dxBefore))
+                            .add(cam.getUp().scale(dyBefore));
 
+                        cam.focusDistance = Math.max(this._orthoMinFocusDistance, cam.focusDistance * scale);
+                        cam.update();
+
+                        const fAfter = cam.frustum;
+                        const widthAfter = (fAfter.right - fAfter.left);
+                        const heightAfter = (fAfter.top - fAfter.bottom);
+                        const dxAfter = -(widthAfter) * (0.5 - this._grabbedScreenPoint.x);
+                        const dyAfter = (heightAfter) * (0.5 - this._grabbedScreenPoint.y);
+                        const worldAfter = cam.eye
+                            .add(cam.getRight().scale(dxAfter))
+                            .add(cam.getUp().scale(dyAfter));
+
+                        cam.eye = cam.eye.add(worldBefore.sub(worldAfter));
+                        this._eye0.copy(cam.eye);
                     } else {
                         cam.eye = anchor.add(cam.eye.sub(anchor).scale(scale));
 
@@ -293,7 +291,7 @@ export class SimpleTouchNavigation extends Control {
                 }
             }
 
-            // Panning shift (move middle point) after zoom
+            // After zoom
             if (cam.isOrthographic) {
                 let f = cam.frustum;
                 let dx = -(f.right - f.left) * nx,
