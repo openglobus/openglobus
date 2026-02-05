@@ -132,7 +132,7 @@ export class SimpleTouchNavigation extends Control {
             this._prev_t1.copy(t1);
 
             let middle_t = t0.add(t1).scale(0.5);
-            this._grabbedScreenPoint = new Vec2(middle_t.x / handler.getWidth(), middle_t.y / handler.getHeight());
+            this._grabbedScreenPoint.set(middle_t.x / handler.getWidth(), middle_t.y / handler.getHeight());
 
             if (!skipPointGrabbing) {
                 this._grabbedPoint = this.renderer.getCartesianFromPixel(middle_t);
@@ -227,7 +227,7 @@ export class SimpleTouchNavigation extends Control {
             const d1 = new Vec2(t1.x - this._prev_t1.x, t1.y - this._prev_t1.y);
             const dot = d0.x * d1.x + d0.y * d1.y;
 
-            // Pinch fingers move in opposite directions
+            // Pinch fingers move in opposite directions - ZOOM
             if (dot < 0) {
                 const vPrev = this._prev_t1.sub(this._prev_t0);
                 const vCurr = t1.sub(t0);
@@ -237,22 +237,40 @@ export class SimpleTouchNavigation extends Control {
 
                 if (lenPrev > this._dead && lenCurr > this._dead) {
                     let scale = lenPrev / lenCurr;
-
                     if (scale < 0.25) scale = 0.25;
                     if (scale > 4.0) scale = 4.0;
 
                     const anchor = this._grabbedPoint;
 
                     if (cam.isOrthographic) {
-                        // const f = cam.frustum;
-                        // const cx = (f.left + f.right) * 0.5;
-                        // const cy = (f.bottom + f.top) * 0.5;
-                        // const hw = (f.right - f.left) * 0.5 * scale;
-                        // const hh = (f.top - f.bottom) * 0.5 * scale;
-                        // f.left = cx - hw;
-                        // f.right = cx + hw;
-                        // f.bottom = cy - hh;
-                        // f.top = cy + hh;
+                        // const fBefore = cam.frustum;
+                        //
+                        // const widthBefore = (fBefore.right - fBefore.left);
+                        // const heightBefore = (fBefore.top - fBefore.bottom);
+                        // const dxBefore = -(widthBefore) * (0.5 - this._grabbedScreenPoint.x);
+                        // const dyBefore = (heightBefore) * (0.5 - this._grabbedScreenPoint.y);
+                        // const worldBefore = cam.eye
+                        //     .add(cam.getRight().scale(dxBefore))
+                        //     .add(cam.getUp().scale(dyBefore));
+                        //
+                        // const eps = 1e-6;
+                        // cam.focusDistance = Math.max(eps, cam.focusDistance / scale);
+                        //
+                        // cam.update();
+                        //
+                        // const fAfter = cam.frustum;
+                        // const widthAfter = (fAfter.right - fAfter.left);
+                        // const heightAfter = (fAfter.top - fAfter.bottom);
+                        // const dxAfter = -(widthAfter) * (0.5 - this._grabbedScreenPoint.x);
+                        // const dyAfter = (heightAfter) * (0.5 - this._grabbedScreenPoint.y);
+                        // const worldAfter = cam.eye
+                        //     .add(cam.getRight().scale(dxAfter))
+                        //     .add(cam.getUp().scale(dyAfter));
+                        //
+                        // cam.eye = cam.eye.add(worldBefore.sub(worldAfter));
+                        //
+                        // this._eye0.copy(cam.eye);
+
                     } else {
                         cam.eye = anchor.add(cam.eye.sub(anchor).scale(scale));
 
@@ -275,6 +293,7 @@ export class SimpleTouchNavigation extends Control {
                 }
             }
 
+            // Panning shift (move middle point) after zoom
             if (cam.isOrthographic) {
                 let f = cam.frustum;
                 let dx = -(f.right - f.left) * nx,
