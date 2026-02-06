@@ -11,7 +11,7 @@ export const LOCAL_FORWARD = new Vec3(0.0, 0.0, -1.0);
 
 /**
  * Interface for GeoObject parameters.
- * @typedef {Object} IGeoObjectParams
+ * @interface IGeoObjectParams
  * @property {Object3d} [object3d] - 3D object associated with the geo object.
  * @property {string} [objSrc] - Source url of the 3D object.
  * @property {string} [tag] - Unique instancing drawing identifier tag.

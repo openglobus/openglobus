@@ -1096,15 +1096,12 @@ class Renderer {
         let pointerEvent = e.pointerEvent();
         let pointerFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown;
         let touchTrigger = e.touchState.touchStart || e.touchState.touchEnd;
-        const refreshPicking = (pointerEvent && pointerFree)
-            || touchTrigger
-            || this._depthRefreshRequired;
+        const refreshPicking = (pointerEvent && pointerFree) || touchTrigger || this._depthRefreshRequired;
+        let h = this.handler, gl = h.gl!;
+
         this._depthRefreshRequired = false;
+
         e.handleEvents();
-
-
-        let h = this.handler,
-            gl = h.gl!;
 
         this.forwardFramebuffer!.activate();
 
