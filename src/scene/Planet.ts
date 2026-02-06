@@ -757,11 +757,7 @@ export class Planet extends RenderNode {
 
             this._atmosphere.activate();
 
-            if (h.isWebGl2()) {
-                h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(this._atmosphere.parameters));
-            } else {
-                h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos());
-            }
+            h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(this._atmosphere.parameters));
 
             if (!this._transparentBackground) {
                 if (this.renderer.controls.SimpleSkyBackground) {
@@ -784,11 +780,7 @@ export class Planet extends RenderNode {
                 }
             }
 
-            if (h.isWebGl2()) {
-                h.addProgram(shaders.drawnode_screen_wl_webgl2NoAtmos());
-            } else {
-                h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos());
-            }
+            h.addProgram(shaders.drawnode_screen_wl_webgl2NoAtmos());
         }
     }
 
