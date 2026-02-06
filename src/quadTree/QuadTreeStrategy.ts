@@ -131,7 +131,6 @@ export class QuadTreeStrategy {
         this._transparentSegments = [];
 
         this.minCurrZoom = math.MAX;
-
         this.maxCurrZoom = math.MIN;
 
         this._viewExtent = new Extent(new LonLat(180, 180), new LonLat(-180, -180));

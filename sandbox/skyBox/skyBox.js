@@ -40,7 +40,7 @@ var collection = new Vector("Collection", {
         [{
             'polyline': {
                 'pathLonLat': grid,
-                'thickness': 1,
+                'thickness': 2.5,
                 'color': "rgba(68, 157, 205, 0.92)"
             }
         }]
@@ -64,8 +64,8 @@ globe.planet.addControls([
     new control.ToggleWireframe()
 ]);
 
-globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "black";
-globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "blue";
+globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "#555555";
+globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "#555555";
 
 
 const baseObj = Object3d.createCube(0.4, 2, 0.4)
