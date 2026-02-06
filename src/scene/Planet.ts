@@ -323,8 +323,9 @@ export class Planet extends RenderNode {
      */
     public nightTextureCoefficient: number;
 
-    protected _renderScreenNodesPASS: () => void;
-    protected _renderScreenNodesWithHeightPASS: () => void;
+    protected _renderOpaqueScreenNodesPASS: () => void;
+    protected _renderTransparentScreenNodesPASS: () => void;
+    //protected _renderScreenNodesWithHeightPASS: () => void;
 
     protected _atmosphereEnabled: boolean;
     protected _atmosphereMaxMinOpacity: Float32Array;
@@ -467,8 +468,9 @@ export class Planet extends RenderNode {
 
         this.nightTextureCoefficient = 2.0;
 
-        this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
-        this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
+        this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSNoAtmos;
+        this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSNoAtmos;
+        //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
         this._atmosphereMaxMinOpacity = new Float32Array([0.95, 0.28]);
@@ -748,8 +750,9 @@ export class Planet extends RenderNode {
 
         if (this._atmosphereEnabled) {
 
-            this._renderScreenNodesPASS = this._renderScreenNodesPASSAtmos;
-            this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSAtmos;
+            this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSAtmos;
+            this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSAtmos;
+            //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSAtmos;
 
             if (!this.renderer.controls.Atmosphere) {
                 this.addControl(this._atmosphere);
@@ -769,8 +772,7 @@ export class Planet extends RenderNode {
 
             this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSNoAtmos;
             this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSNoAtmos;
-
-            this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
+            //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
             this._atmosphere.deactivate();
 
@@ -852,7 +854,7 @@ export class Planet extends RenderNode {
         });
 
         this.renderer!.events.on("forwardpass", () => {
-            this._renderingTransparentScreenNodesPASS()
+            this._renderTransparentScreenNodesPASS()
             //this._renderScreenNodesWithHeightPASS();
         });
 
@@ -1123,30 +1125,38 @@ export class Planet extends RenderNode {
         this._renderingTransparentScreenNodes(this.quadTreeStrategy, sh);
     }
 
-    protected _renderScreenNodesPASSAtmos() {
+    // protected _renderScreenNodesWithHeightPASSNoAtmos() {
+    //     let cam = this.camera;
+    //     let sh = this._setUniformsNoAtmos(cam);
+    //     //
+    //     // PASS 1: rendering slices, and layers with heights, without transition opacity effect
+    //     this._renderingScreenNodesWithHeight(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+    // }
+
+    protected _renderOpaqueScreenNodesPASSAtmos() {
         let cam = this.camera;
         let sh = this._setUniformsAtmos(cam);
         //
         // PASS 0: rendering base slice of layers, which is often zero height
         //@todo
-        this._renderingScreenNodes(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+        //this._renderingScreenNodes(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
-    protected _renderScreenNodesWithHeightPASSNoAtmos() {
-        let cam = this.camera;
-        let sh = this._setUniformsNoAtmos(cam);
-        //
-        // PASS 1: rendering slices, and layers with heights, without transition opacity effect
-        this._renderingScreenNodesWithHeight(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
-    }
-
-    protected _renderScreenNodesWithHeightPASSAtmos() {
+    protected _renderTransparentScreenNodesPASSAtmos() {
         let cam = this.camera;
         let sh = this._setUniformsAtmos(cam);
-        //
-        // PASS 1: rendering slices, and layers with heights, without transition opacity effect
-        this._renderingScreenNodesWithHeight(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+
+        // forward PASS
+        //this._renderingTransparentScreenNodes(this.quadTreeStrategy, sh);
     }
+
+    // protected _renderScreenNodesWithHeightPASSAtmos() {
+    //     let cam = this.camera;
+    //     let sh = this._setUniformsAtmos(cam);
+    //     //
+    //     // PASS 1: rendering slices, and layers with heights, without transition opacity effect
+    //     this._renderingScreenNodesWithHeight(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+    // }
 
     protected _globalPreDraw() {
         let cam = this.camera;
