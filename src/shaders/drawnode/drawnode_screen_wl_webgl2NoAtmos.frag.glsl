@@ -67,7 +67,6 @@ void main(void) {
     vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb * nightCoef;
     night *= overGround * step(0.0, night);
     vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + night, 1.0);
-    //lightWeighting = vec4(1.0);
 
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
     normalColor = vec4(normal * 0.5 + 0.5, 1.0);

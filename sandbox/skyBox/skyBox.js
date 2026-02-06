@@ -60,8 +60,13 @@ let globe = new Globe({
 
 globe.planet.addControls([
     new control.GeoObjectEditor(),
-    new control.LayerSwitcher()
+    new control.LayerSwitcher(),
+    new control.ToggleWireframe()
 ]);
+
+globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "black";
+globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "blue";
+
 
 const baseObj = Object3d.createCube(0.4, 2, 0.4)
     .translate(new Vec3(0, 1, 0))

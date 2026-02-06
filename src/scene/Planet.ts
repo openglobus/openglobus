@@ -767,7 +767,9 @@ export class Planet extends RenderNode {
 
         } else {
 
-            this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
+            this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSNoAtmos;
+            this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSNoAtmos;
+
             this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
             this._atmosphere.deactivate();
@@ -846,11 +848,12 @@ export class Planet extends RenderNode {
         }
 
         this.renderer!.events.on("gbufferpass", () => {
-            this._renderScreenNodesPASS();
+            this._renderOpaqueScreenNodesPASS();
         });
 
         this.renderer!.events.on("forwardpass", () => {
-            this._renderScreenNodesWithHeightPASS();
+            this._renderingTransparentScreenNodesPASS()
+            //this._renderScreenNodesWithHeightPASS();
         });
 
         // Initialize texture coordinates buffer pool
@@ -1104,12 +1107,20 @@ export class Planet extends RenderNode {
         }
     }
 
-    protected _renderScreenNodesPASSNoAtmos() {
+    protected _renderOpaqueScreenNodesPASSNoAtmos() {
         let cam = this.camera;
         let sh = this._setUniformsNoAtmos(cam);
-        //
-        // PASS 0: rendering base slice of layers, which is often zero height
-        this._renderingScreenNodes(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+
+        // deferred PASS
+        this._renderingOpaqueScreenNodes(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+    }
+
+    protected _renderTransparentScreenNodesPASSNoAtmos() {
+        let cam = this.camera;
+        let sh = this._setUniformsNoAtmos(cam);
+
+        // forward PASS
+        this._renderingTransparentScreenNodes(this.quadTreeStrategy, sh);
     }
 
     protected _renderScreenNodesPASSAtmos() {
@@ -1117,6 +1128,7 @@ export class Planet extends RenderNode {
         let sh = this._setUniformsAtmos(cam);
         //
         // PASS 0: rendering base slice of layers, which is often zero height
+        //@todo
         this._renderingScreenNodes(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
@@ -1197,16 +1209,6 @@ export class Planet extends RenderNode {
             this.drawEntityCollections(this._visibleEntityCollections[i], i);
         }
     }
-
-    /**
-     * Render node callback.
-     * Frame function is called for each renderer activrCamera frustum.
-     * @public
-     * @override
-     */
-    // public override frame() {
-    //     this._renderScreenNodesPASS();
-    // }
 
     public lockQuadTree() {
         this._collectRenderNodesIsActive = false;
@@ -1384,39 +1386,39 @@ export class Planet extends RenderNode {
         }
     }
 
-    protected _renderingFadingNodesNoDepth = (
-        quadTreeStrategy: QuadTreeStrategy,
-        nodes: Map<number, boolean>,
-        sh: Program,
-        currentNode: Node,
-        sl: Layer[],
-        sliceIndex: number,
-        outOpaqueSegments?: Segment[]
-    ) => {
-
-        let isFirstPass = sliceIndex === 0;
-        let isEq = this.terrain!.equalizeVertices;
-        let gl = sh.gl!;
-
-        gl.disable(gl.DEPTH_TEST);
-
-        for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
-            let f = currentNode._fadingNodes[j].segment;
-            if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
-                nodes.set(f.node.__id, true);
-                if (isFirstPass) {
-                    isEq && f.equalize();
-                    f.readyToEngage && f.engage();
-                    f.screenRendering(sh, sl, sliceIndex);
-                    outOpaqueSegments!.push(f);
-                } else {
-                    f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
-                }
-            }
-        }
-
-        gl.enable(gl.DEPTH_TEST);
-    }
+    // protected _renderingFadingNodesNoDepth = (
+    //     quadTreeStrategy: QuadTreeStrategy,
+    //     nodes: Map<number, boolean>,
+    //     sh: Program,
+    //     currentNode: Node,
+    //     sl: Layer[],
+    //     sliceIndex: number,
+    //     outOpaqueSegments?: Segment[]
+    // ) => {
+    //
+    //     let isFirstPass = sliceIndex === 0;
+    //     let isEq = this.terrain!.equalizeVertices;
+    //     let gl = sh.gl!;
+    //
+    //     gl.disable(gl.DEPTH_TEST);
+    //
+    //     for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
+    //         let f = currentNode._fadingNodes[j].segment;
+    //         if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
+    //             nodes.set(f.node.__id, true);
+    //             if (isFirstPass) {
+    //                 isEq && f.equalize();
+    //                 f.readyToEngage && f.engage();
+    //                 f.screenRendering(sh, sl, sliceIndex);
+    //                 outOpaqueSegments!.push(f);
+    //             } else {
+    //                 f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
+    //             }
+    //         }
+    //     }
+    //
+    //     gl.enable(gl.DEPTH_TEST);
+    // }
 
     protected static __refreshLayersFadingOpacity__(layersRef: Layer[], minCurrZoom: number, maxCurrZoom: number) {
         for (let i = layersRef.length - 1; i >= 0; --i) {
@@ -1430,7 +1432,77 @@ export class Planet extends RenderNode {
     /**
      * Drawing nodes
      */
-    protected _renderingScreenNodes(
+    // protected _renderingScreenNodes(
+    //     quadTreeStrategy: QuadTreeStrategy,
+    //     sh: Program,
+    //     cam: PlanetCamera,
+    //     renderedNodes: Node[]
+    // ) {
+    //
+    //     let sl = this._visibleTileLayerSlices;
+    //
+    //     if (sl.length && cam.isFirstPass) {
+    //         Planet.__refreshLayersFadingOpacity__(sl[0], quadTreeStrategy.minCurrZoom, quadTreeStrategy.maxCurrZoom);
+    //     }
+    //
+    //     let nodes = new Map<number, boolean>;
+    //     let transparentSegments: Segment[] = [];
+    //
+    //     let isEq = this.terrain!.equalizeVertices;
+    //     let i = renderedNodes.length;
+    //
+    //     //
+    //     // Collect fading opaque segments, because we need them in the framebuffer passes,
+    //     // as the segments with equalized sides, which means that there are no gaps
+    //     // between currently rendered neighbours
+    //     //
+    //     quadTreeStrategy._fadingOpaqueSegments = [];
+    //
+    //     if (cam.slope > 0.8 || !this.terrain || this.terrain.isEmpty) {
+    //         while (i--) {
+    //             let ri = renderedNodes[i];
+    //             let s = ri.segment;
+    //
+    //             this._renderingFadingNodesNoDepth(quadTreeStrategy, nodes, sh, ri, sl[0], 0, quadTreeStrategy._fadingOpaqueSegments);
+    //
+    //             isEq && s.equalize();
+    //             s.readyToEngage && s.engage();
+    //             s.screenRendering(sh, sl[0], 0);
+    //         }
+    //     } else {
+    //
+    //         //
+    //         // Render opaque segments on the first pass, remove transparent ones into second pass
+    //         //
+    //         while (i--) {
+    //             let ri = renderedNodes[i];
+    //             let s = ri.segment;
+    //
+    //             this._renderingFadingNodes(quadTreeStrategy, nodes, sh, ri, sl[0], 0, transparentSegments, quadTreeStrategy._fadingOpaqueSegments);
+    //
+    //             if (s._transitionOpacity < 1) {
+    //                 transparentSegments.push(s);
+    //             } else {
+    //                 isEq && s.equalize();
+    //                 s.readyToEngage && s.engage();
+    //                 s.screenRendering(sh, sl[0], 0);
+    //             }
+    //         }
+    //
+    //         //
+    //         // Render transparent segments
+    //         //
+    //         for (let j = 0; j < transparentSegments.length; j++) {
+    //             let tj = transparentSegments[j];
+    //
+    //             isEq && tj.equalize();
+    //             tj.readyToEngage && tj.engage();
+    //             tj.screenRendering(sh, sl[0], 0);
+    //         }
+    //     }
+    // }
+
+    protected _renderingOpaqueScreenNodes(
         quadTreeStrategy: QuadTreeStrategy,
         sh: Program,
         cam: PlanetCamera,
@@ -1444,7 +1516,6 @@ export class Planet extends RenderNode {
         }
 
         let nodes = new Map<number, boolean>;
-        let transparentSegments: Segment[] = [];
 
         let isEq = this.terrain!.equalizeVertices;
         let i = renderedNodes.length;
@@ -1455,48 +1526,41 @@ export class Planet extends RenderNode {
         // between currently rendered neighbours
         //
         quadTreeStrategy._fadingOpaqueSegments = [];
+        quadTreeStrategy._transparentSegments = [];
 
-        if (cam.slope > 0.8 || !this.terrain || this.terrain.isEmpty /*|| cam.getAltitude() > 10000*/) {
-            while (i--) {
-                let ri = renderedNodes[i];
-                let s = ri.segment;
+        //
+        // Render opaque segments on the first pass, remove transparent ones into second pass
+        //
+        while (i--) {
+            let ri = renderedNodes[i];
+            let s = ri.segment;
 
-                this._renderingFadingNodesNoDepth(quadTreeStrategy, nodes, sh, ri, sl[0], 0, quadTreeStrategy._fadingOpaqueSegments);
+            this._renderingFadingNodes(quadTreeStrategy, nodes, sh, ri, sl[0], 0, quadTreeStrategy._transparentSegments, quadTreeStrategy._fadingOpaqueSegments);
 
+            if (s._transitionOpacity < 1) {
+                quadTreeStrategy._transparentSegments.push(s);
+            } else {
                 isEq && s.equalize();
                 s.readyToEngage && s.engage();
                 s.screenRendering(sh, sl[0], 0);
             }
-        } else {
+        }
+    }
 
-            //
-            // Render opaque segments on the first pass, remove transparent ones into second pass
-            //
-            while (i--) {
-                let ri = renderedNodes[i];
-                let s = ri.segment;
+    protected _renderingTransparentScreenNodes(
+        quadTreeStrategy: QuadTreeStrategy,
+        sh: Program
+    ) {
 
-                this._renderingFadingNodes(quadTreeStrategy, nodes, sh, ri, sl[0], 0, transparentSegments, quadTreeStrategy._fadingOpaqueSegments);
+        let isEq = this.terrain!.equalizeVertices;
+        let sl = this._visibleTileLayerSlices;
 
-                if (s._transitionOpacity < 1) {
-                    transparentSegments.push(s);
-                } else {
-                    isEq && s.equalize();
-                    s.readyToEngage && s.engage();
-                    s.screenRendering(sh, sl[0], 0);
-                }
-            }
+        for (let j = 0; j < quadTreeStrategy._transparentSegments.length; j++) {
+            let tj = quadTreeStrategy._transparentSegments[j];
 
-            //
-            // Render transparent segments
-            //
-            for (let j = 0; j < transparentSegments.length; j++) {
-                let tj = transparentSegments[j];
-
-                isEq && tj.equalize();
-                tj.readyToEngage && tj.engage();
-                tj.screenRendering(sh, sl[0], 0);
-            }
+            isEq && tj.equalize();
+            tj.readyToEngage && tj.engage();
+            tj.screenRendering(sh, sl[0], 0);
         }
     }
 

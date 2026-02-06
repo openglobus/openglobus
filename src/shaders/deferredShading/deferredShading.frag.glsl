@@ -19,8 +19,8 @@ void main(void) {
     vec4 depthColor = texture(depthTexture, tc);
 
     fragColor = vec4(depthColor.r, depthColor.r, depthColor.r, 1.0);
-    fragColor = vec4(diffuseColor.rgb, 1.0);
-
     fragColor = vec4(mix(diffuseColor.rgb, normalColor.rgb, 0.5), 1.0);
+    fragColor = vec4(diffuseColor.rgb, 1.0);
+    //fragColor = vec4(depthColor.r, depthColor.r, depthColor.r, 1.0);
 
 }
