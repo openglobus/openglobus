@@ -130,3 +130,63 @@ globe.planet.camera.setLonLat(
     new LonLat(-105.61717175714179, 39.61567256262465, 4064.033358156039),
     pos, // look point
 );
+
+
+let ell = globe.planet.ellipsoid;
+
+let a0 = ell.lonLatToCartesian(new LonLat(-105.6164781, 39.6094186, 3714));
+let a1 = ell.lonLatToCartesian(new LonLat(-105.6164781, 39.6094186, 3714 + 500));
+
+let b0 = ell.lonLatToCartesian(new LonLat(-105.6444247, 39.6166427, 3924 - 500));
+let b1 = ell.lonLatToCartesian(new LonLat(-105.6444247, 39.6166427, 3924 + 500));
+
+let s0 = new Entity({
+    strip: {
+        gridSize: 10,
+        path: [
+            [a0, a1],
+            [b0, b1]
+        ],
+        color: "rgba(8,216,0,0.5)",
+    }
+});
+
+a0 = ell.lonLatToCartesian(new LonLat(-105.6164781, 39.6077287, 3714));
+a1 = ell.lonLatToCartesian(new LonLat(-105.6164781, 39.6077287, 3714 + 500));
+
+b0 = ell.lonLatToCartesian(new LonLat(-105.6444247, 39.6150294, 3924 - 500));
+b1 = ell.lonLatToCartesian(new LonLat(-105.6444247, 39.6150294, 3924 + 500));
+
+let s1 = new Entity({
+    strip: {
+        gridSize: 10,
+        path: [
+            [a0, a1],
+            [b0, b1]
+        ],
+        color: "rgba(220,0,0,0.5)",
+    }
+});
+
+a0 = ell.lonLatToCartesian(new LonLat(-105.6164781, 39.6060457, 3714));
+a1 = ell.lonLatToCartesian(new LonLat(-105.6164781, 39.6060457, 3714 + 500));
+
+b0 = ell.lonLatToCartesian(new LonLat(-105.6444247, 39.6132437, 3924 - 500));
+b1 = ell.lonLatToCartesian(new LonLat(-105.6444247, 39.6132437, 3924 + 500));
+
+let s2 = new Entity({
+    strip: {
+        gridSize: 10,
+        path: [
+            [a0, a1],
+            [b0, b1]
+        ],
+        color: "rgba(0,75,255,0.5)",
+    }
+});
+
+var strips = new Vector("Strips", {
+    entities: [s0, s1, s2]
+});
+
+globe.planet.addLayer(strips);
