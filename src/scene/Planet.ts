@@ -1111,52 +1111,67 @@ export class Planet extends RenderNode {
 
     protected _renderOpaqueScreenNodesPASSNoAtmos() {
         let cam = this.camera;
-        let sh = this._setUniformsNoAtmos(cam);
 
         // deferred PASS
-        this._renderingOpaqueScreenNodes(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+        this._renderingOpaqueScreenNodes(
+            this.quadTreeStrategy,
+            this._setUniformsNoAtmos(cam),
+            cam,
+            this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
+        );
     }
 
     protected _renderTransparentScreenNodesPASSNoAtmos() {
-        let cam = this.camera;
-        let sh = this._setUniformsNoAtmos(cam);
-
         // forward PASS
-        this._renderingTransparentScreenNodes(this.quadTreeStrategy, sh);
+        this._renderingTransparentScreenNodes(
+            this.quadTreeStrategy,
+            this._setUniformsNoAtmos(this.camera)
+        );
     }
 
-    // protected _renderScreenNodesWithHeightPASSNoAtmos() {
-    //     let cam = this.camera;
-    //     let sh = this._setUniformsNoAtmos(cam);
-    //     //
-    //     // PASS 1: rendering slices, and layers with heights, without transition opacity effect
-    //     this._renderingScreenNodesWithHeight(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
-    // }
+    protected _renderScreenNodesWithHeightPASSNoAtmos() {
+        let cam = this.camera;
+
+        // PASS 1: rendering slices, and layers with heights, without transition opacity effect
+        this._renderingScreenNodesWithHeight(
+            this.quadTreeStrategy,
+            this._setUniformsNoAtmos(cam),
+            cam,
+            this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
+        );
+    }
 
     protected _renderOpaqueScreenNodesPASSAtmos() {
         let cam = this.camera;
-        let sh = this._setUniformsAtmos(cam);
-        //
-        // PASS 0: rendering base slice of layers, which is often zero height
-        //@todo
-        //this._renderingScreenNodes(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+
+        // deferred PASS
+        this._renderingOpaqueScreenNodes(
+            this.quadTreeStrategy,
+            this._setUniformsAtmos(cam),
+            cam,
+            this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
+        );
     }
 
     protected _renderTransparentScreenNodesPASSAtmos() {
-        let cam = this.camera;
-        let sh = this._setUniformsAtmos(cam);
-
         // forward PASS
-        //this._renderingTransparentScreenNodes(this.quadTreeStrategy, sh);
+        this._renderingTransparentScreenNodes(
+            this.quadTreeStrategy,
+            this._setUniformsAtmos(this.camera)
+        );
     }
 
-    // protected _renderScreenNodesWithHeightPASSAtmos() {
-    //     let cam = this.camera;
-    //     let sh = this._setUniformsAtmos(cam);
-    //     //
-    //     // PASS 1: rendering slices, and layers with heights, without transition opacity effect
-    //     this._renderingScreenNodesWithHeight(this.quadTreeStrategy, sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
-    // }
+    protected _renderScreenNodesWithHeightPASSAtmos() {
+        let cam = this.camera;
+
+        // PASS 1: rendering slices, and layers with heights, without transition opacity effect
+        this._renderingScreenNodesWithHeight(
+            this.quadTreeStrategy,
+            this._setUniformsAtmos(cam),
+            cam,
+            this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
+        );
+    }
 
     protected _globalPreDraw() {
         let cam = this.camera;
