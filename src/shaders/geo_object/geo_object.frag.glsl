@@ -1,3 +1,4 @@
+#version 300 es
 precision highp float;
 
 uniform vec3 sunPosition;
@@ -7,11 +8,14 @@ uniform sampler2D uTexture;
 uniform float uUseTexture;
 uniform float useLighting;
 
-varying vec3 cameraPosition;
-varying vec3 v_vertex;
-varying vec4 vColor;
-varying vec3 vNormal;
-varying vec2 vTexCoords;
+in vec3 cameraPosition;
+in vec3 v_vertex;
+in vec4 vColor;
+in vec3 vNormal;
+in vec2 vTexCoords;
+
+layout (location = 0) out vec4 diffuseColor;
+layout (location = 1) out vec4 normalColor;
 
 void main(void) {
 
@@ -28,17 +32,17 @@ void main(void) {
         float refl = max(dot(refl_dir, look_dir), 0.0);
         float specular = pow(refl, materialShininess) * step(1e-4, diffuse);
 
-        lightWeighting = vColor.rgb * materialParams[0]
-        + materialParams[1] * diffuse
-        + materialParams[2] * specular;
+        lightWeighting = vColor.rgb * materialParams[0] + materialParams[1] * diffuse + materialParams[2] * specular;
     } else {
         lightWeighting = vColor.rgb;
     }
 
+    normalColor = vec4(normalize(vNormal) * 0.5 + 0.5, 1.0);
+
     if (uUseTexture > 0.0) {
-        vec4 texColor = texture2D(uTexture, vTexCoords);
-        gl_FragColor = vec4(texColor.rgb * lightWeighting, texColor.a);
+        vec4 texColor = texture(uTexture, vTexCoords);
+        diffuseColor = vec4(texColor.rgb * lightWeighting, texColor.a);
     } else {
-        gl_FragColor = vec4(lightWeighting, vColor.a);
+        diffuseColor = vec4(lightWeighting, vColor.a);
     }
 }

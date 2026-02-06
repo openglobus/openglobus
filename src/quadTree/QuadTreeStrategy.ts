@@ -70,6 +70,8 @@ export class QuadTreeStrategy {
 
     public _fadingOpaqueSegments: Segment[];
 
+    public _transparentSegments: Segment[];
+
     /**
      * Current visible minimal zoom index planet segment.
      * @public
@@ -126,9 +128,9 @@ export class QuadTreeStrategy {
         this._fadingNodes = new Map<number, Node>;
         this._fadingNodesInFrustum = [];
         this._fadingOpaqueSegments = [];
+        this._transparentSegments = [];
 
         this.minCurrZoom = math.MAX;
-
         this.maxCurrZoom = math.MIN;
 
         this._viewExtent = new Extent(new LonLat(180, 180), new LonLat(-180, -180));
@@ -176,8 +178,8 @@ export class QuadTreeStrategy {
     }
 
     /**
-     * clears layer material from the quad tree list. 
-     * @param layer 
+     * clears layer material from the quad tree list.
+     * @param layer
      * @param keepRendered if true, keeps materials that are currently rendered.
      */
     public clearLayerMaterial(layer: Layer, keepRendered: boolean = false) {
@@ -258,7 +260,8 @@ export class QuadTreeStrategy {
         this._renderedNodes = [];
     }
 
-    protected _clearRenderNodesInFrustum() {1
+    protected _clearRenderNodesInFrustum() {
+        1
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i].length = 0;
             this._renderedNodesInFrustum[i] = [];

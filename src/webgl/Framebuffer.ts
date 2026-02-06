@@ -135,22 +135,6 @@ export class Framebuffer extends BaseFramebuffer {
         }];
     }
 
-    // static blit(sourceFramebuffer: Framebuffer, destFramebuffer: Framebuffer, glAttachment: number, glMask: number, glFilter: number) {
-    //     let gl = sourceFramebuffer.handler.gl!;
-    //
-    //     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, sourceFramebuffer._fbo);
-    //     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, destFramebuffer._fbo);
-    //     gl.readBuffer(glAttachment);
-    //
-    //     gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
-    //
-    //     gl.blitFramebuffer(0, 0, sourceFramebuffer._width, sourceFramebuffer._height, 0, 0, destFramebuffer._width, destFramebuffer._height, glMask, glFilter);
-    //
-    //     gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
-    //     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null!);
-    //     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null!);
-    // }
-
     public override destroy() {
         let gl = this.handler.gl;
 

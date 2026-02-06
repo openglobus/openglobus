@@ -126,29 +126,6 @@ export class Multisample extends BaseFramebuffer {
     }
 
     public blitTo(framebuffer: BaseFramebuffer, attachmentIndex: number = 0) {
-        let gl = this.handler.gl!;
-
-        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._fbo);
-        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer._fbo);
-        gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
-
-        gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
-
-        gl.blitFramebuffer(
-            0,
-            0,
-            this._width,
-            this._height,
-            0,
-            0,
-            framebuffer._width,
-            framebuffer._height,
-            gl.COLOR_BUFFER_BIT,
-            this._glFilter
-        );
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
-        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        BaseFramebuffer.blitTo(framebuffer, this, attachmentIndex, this.handler.gl!.COLOR_BUFFER_BIT, this._glFilter);
     }
 }
