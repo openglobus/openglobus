@@ -1,4 +1,5 @@
-import {Planet, Renderer} from "../index";
+import {Planet} from "../scene/Planet";
+import {Renderer} from "../renderer/Renderer";
 
 export interface IControlParams {
     name?: string;
