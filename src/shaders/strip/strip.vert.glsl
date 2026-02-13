@@ -1,5 +1,8 @@
-attribute vec3 aVertexPositionHigh;
-attribute vec3 aVertexPositionLow;
+#version 300 es
+precision highp float;
+
+in vec3 aVertexPositionHigh;
+in vec3 aVertexPositionLow;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
