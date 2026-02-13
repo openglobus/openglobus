@@ -11,7 +11,13 @@ import * as terrain from './terrain/index';
 import * as layer from './layer/index';
 import * as webgl from './webgl/index';
 
+export * from './control/Control';
+export * from './entity/index';
+export * from './layer/index';
 export * from './Globe';
+
+export type { IControlParams } from './control/Control';
+export type { ITouchState } from './renderer/RendererEvents';
 
 declare const __OG_VERSION__: string;
 export const version = __OG_VERSION__;
@@ -75,14 +81,6 @@ import {
 } from './webgl/index';
 
 import {
-    Control
-} from './control/Control';
-
-export * from './entity/index';
-
-export * from './layer/index';
-
-import {
     EmptyTerrain,
     GlobusTerrain,
     RgbTerrain,
@@ -119,7 +117,6 @@ export {
     RgbTerrain,
     GlobusRgbTerrain,
     BilTerrain,
-    Control,
     Camera,
     Ellipsoid,
     Planet,
