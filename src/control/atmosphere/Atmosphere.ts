@@ -146,7 +146,6 @@ export class Atmosphere extends Control {
             useDepth: false,
             targets: [{
                 filter: "LINEAR",
-                type: "FLOAT",
                 internalFormat: "RGBA16F"
             }]
         });
@@ -159,7 +158,6 @@ export class Atmosphere extends Control {
             useDepth: false,
             targets: [{
                 filter: "LINEAR",
-                type: "FLOAT",
                 internalFormat: "RGBA16F"
             }]
         });

@@ -186,12 +186,13 @@ class Renderer {
     protected _msaa: number;
 
     protected _internalFormat: string;
-    protected _format: string;
-    protected _type: string;
+    //protected _format: string;
+    //protected _type: string;
 
     protected _depthRefreshRequired: boolean;
 
     protected forwardFramebuffer: Multisample | null;
+    protected woitFramebuffer: Framebuffer | null;
     protected deferredFramebuffer: Framebuffer | null;
     protected hdrFramebuffer: Framebuffer | null;
 
@@ -304,10 +305,11 @@ class Renderer {
         }
 
         this._internalFormat = "RGBA16F";
-        this._format = "RGBA";
-        this._type = "FLOAT";
+        // this._format = "RGBA";
+        // this._type = "FLOAT";
 
         this.forwardFramebuffer = null;
+        this.woitFramebuffer = null;
         this.deferredFramebuffer = null;
         this.hdrFramebuffer = null;
 
@@ -600,13 +602,11 @@ class Renderer {
             width: 640,
             height: 480,
             targets: [{
-                internalFormat: "RGBA",
-                type: "UNSIGNED_BYTE",
+                internalFormat: "RGBA8",
                 attachment: "COLOR_ATTACHMENT",
                 readAsync: true
             }, {
                 internalFormat: "RGBA16F",
-                type: "FLOAT",
                 attachment: "COLOR_ATTACHMENT",
                 readAsync: true
             }],
@@ -646,27 +646,38 @@ class Renderer {
 
         this.forwardFramebuffer.init();
 
+        //accumTarget
+        //accumAlphaTarget
+        this.woitFramebuffer = new Framebuffer(this.handler, {
+            targets: [{
+                internalFormat: "RGBA16F",
+                attachment: "COLOR_ATTACHMENT",
+                filter: "NEAREST"
+            }, {
+                internalFormat: "R16F",
+                attachment: "COLOR_ATTACHMENT",
+                filter: "NEAREST"
+            }],
+            useDepth: true
+        });
+
+        this.woitFramebuffer.init();
+
+
         this.deferredFramebuffer = new Framebuffer(this.handler, {
             useDepth: false,
             targets: [{
                 internalFormat: this._internalFormat,
-                format: this._format,
-                type: this._type,
                 filter: "NEAREST"
             }, {
                 internalFormat: this._internalFormat,
-                format: this._format,
-                type: this._type,
                 filter: "NEAREST"
             }, {
                 attachment: "DEPTH_ATTACHMENT",
-                internalFormat: depthComponent,
-                format: "DEPTH_COMPONENT",
-                type: depthType,
+                internalFormat: "DEPTH_COMPONENT24",
                 filter: "NEAREST"
             }]
         });
-
 
         this.deferredFramebuffer.init();
 
@@ -674,8 +685,6 @@ class Renderer {
             useDepth: false,
             targets: [{
                 internalFormat: this._internalFormat,
-                format: this._format,
-                type: this._type,
                 filter: "NEAREST"
             }]
         });
@@ -737,6 +746,7 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(w, h);
         this.forwardFramebuffer!.setSize(w * 0.5, h * 0.5);
+        this.woitFramebuffer!.setSize(h * 0.5, h * 0.5);
         this.deferredFramebuffer!.setSize(w * 0.5, h * 0.5, true);
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w * 0.5, h * 0.5, true);
     }
@@ -748,6 +758,7 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(w, h);
         this.forwardFramebuffer!.setSize(w, h);
+        this.woitFramebuffer!.setSize(w, h, true);
         this.deferredFramebuffer!.setSize(w, h, true);
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w, h, true);
 
@@ -870,6 +881,25 @@ class Renderer {
         }
     }
 
+    protected _drawWoitEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+
+        if (ec.length) {
+            let gl = this.handler.gl!;
+
+            this.enableBlendDefault();
+
+            let i = ec.length;
+
+            // Strip pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].stripHandler.draw();
+            }
+        }
+    }
+
+
     protected _drawForwardEntityCollections(depthOrder: number) {
         let ec = this._entityCollections[depthOrder];
 
@@ -925,10 +955,10 @@ class Renderer {
             }
 
             // Strip pass
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].stripHandler.draw();
-            }
+            // i = ec.length;
+            // while (i--) {
+            //     ec[i]._fadingOpacity && ec[i].stripHandler.draw();
+            // }
         }
     }
 
@@ -1173,6 +1203,16 @@ class Renderer {
             e.dispatch(e.forwardpass, this);
 
             this.forwardFramebuffer!.deactivate();
+
+            //
+            // Draw transparent objects
+            //
+            // this.woitFramebuffer!.activate();
+            // gl.clearColor(0, 0, 0, 0);
+            // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            // this._copyDeferredDepthToForwardMultisample();
+            // this._drawWoitEntityCollections(0);
+            // this.woitFramebuffer!.deactivate();
 
             //
             // Picking passes
@@ -1643,6 +1683,7 @@ class Renderer {
 
         this.depthFramebuffer = null;
         this.forwardFramebuffer = null;
+        this.woitFramebuffer = null;
         this.deferredFramebuffer = null;
         this.hdrFramebuffer = null;
         this.toneMappingFramebuffer = null;

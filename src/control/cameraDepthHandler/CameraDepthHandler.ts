@@ -118,7 +118,6 @@ export class CameraDepthHandler extends Control {
             height: CAM_HEIGHT,
             targets: [{
                 internalFormat: "RGBA16F",
-                type: "FLOAT",
                 attachment: "COLOR_ATTACHMENT",
                 readAsync: true
             }],
