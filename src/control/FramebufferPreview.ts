@@ -70,7 +70,7 @@ export class FramebufferPreview extends Control {
                 height: this._framebuffer?.height,
                 useDepth: false,
                 targets: [{
-                    internalFormat: "RGBA",
+                    internalFormat: "RGBA8",
                     attachment: "COLOR_ATTACHMENT",
                     readAsync: true
                 }],
@@ -148,15 +148,15 @@ function framebuffer_dialog_screen(id: number = 0, common?: string | null, mainI
         },
         vertexShader:
             `#version 300 es
-            
+
             in vec2 corners;
-            
+
             out vec2 tc;
 
             void main(void) {
                 gl_Position = vec4(corners, 0.0, 1.0);
                 tc = corners * 0.5 + 0.5;
-                ${flippedUV ? `tc.y = 1.0 - tc.y;` : ``}               
+                ${flippedUV ? `tc.y = 1.0 - tc.y;` : ``}
             }`,
         fragmentShader:
             `#version 300 es
@@ -164,19 +164,19 @@ function framebuffer_dialog_screen(id: number = 0, common?: string | null, mainI
             precision highp float;
 
             uniform sampler2D inputTexture;
-           
+
             in vec2 tc;
 
             layout(location = 0) out vec4 fragColor;
 
             ${common || ""}
-            
+
             ${mainImage ||
-            `void mainImage(out vec4 fragColor, in vec2 fragCoord) { 
+            `void mainImage(out vec4 fragColor, in vec2 fragCoord) {
                 fragColor = texture(inputTexture, fragCoord);
             }`}
-            
-            void main(void) {                              
+
+            void main(void) {
                mainImage(fragColor, tc);
             }`
     });

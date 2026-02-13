@@ -305,8 +305,6 @@ class Renderer {
         }
 
         this._internalFormat = "RGBA16F";
-        // this._format = "RGBA";
-        // this._type = "FLOAT";
 
         this.forwardFramebuffer = null;
         this.woitFramebuffer = null;
