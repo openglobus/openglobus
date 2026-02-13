@@ -41,6 +41,7 @@ in float v_height;
 vec3 sunPos;
 
 layout (location = 0) out vec4 diffuseColor;
+layout (location = 1) out vec4 normalColor;
 
 vec3 transmittanceFromTexture(float height, float angle)
 {
@@ -213,6 +214,8 @@ void main(void) {
     spec *= sunIlluminance;
 
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
+    normalColor = vec4(normal * 0.5 + 0.5, 1.0);
+
     if (samplerCount == 0) {
         diffuseColor = mix(diffuseColor * lightWeighting, atmosColor, fadingOpacity) + vec4(spec, 0.0);
         diffuseColor *= transitionOpacity;

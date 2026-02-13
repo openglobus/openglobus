@@ -4,10 +4,8 @@ import {Program} from "../../webgl/Program";
 import drawnode_screen_nl_vert from './drawnode_screen_nl.vert.glsl';
 import drawnode_screen_nl_frag from './drawnode_screen_nl.frag.glsl';
 
-import drawnode_screen_wl_webgl2Atmos_vert from './drawnode_screen_wl_webgl2Atmos.vert.glsl';
+import drawnode_screen_wl from './drawnode_screen_wl.vert.glsl';
 import drawnode_screen_wl_webgl2Atmos_frag from './drawnode_screen_wl_webgl2Atmos.frag.glsl';
-
-import drawnode_screen_wl_webgl2NoAtmos_vert from './drawnode_screen_wl_webgl2NoAtmos.vert.glsl';
 import drawnode_screen_wl_webgl2NoAtmos_frag from './drawnode_screen_wl_webgl2NoAtmos.frag.glsl';
 
 import drawnode_colorPicking_vert from './drawnode_colorPicking.vert.glsl';
@@ -84,7 +82,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
             aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
         },
-        vertexShader: drawnode_screen_wl_webgl2NoAtmos_vert,
+        vertexShader: drawnode_screen_wl,
         fragmentShader: drawnode_screen_wl_webgl2NoAtmos_frag
     });
 }
@@ -122,7 +120,7 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
             aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
         },
-        vertexShader: drawnode_screen_wl_webgl2Atmos_vert,
+        vertexShader: drawnode_screen_wl,
         fragmentShader: stringTemplate2(drawnode_screen_wl_webgl2Atmos_frag, atmosParams)
     });
 }
