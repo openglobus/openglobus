@@ -1,8 +1,8 @@
 import {EntityCollection} from "./EntityCollection";
-import {Program} from "../webgl/Program";
 import {Renderer} from "../renderer/Renderer";
 import {RenderNode} from "../scene/RenderNode";
 import {Strip} from "./Strip";
+import {stripScreen} from "../shaders/strip/strip";
 
 class StripHandler {
 
@@ -53,44 +53,7 @@ class StripHandler {
     protected _initProgram() {
         if (this._renderer && this._renderer.handler) {
             !this._renderer.handler.programs.strip &&
-            this._renderer.handler.addProgram(
-                new Program("strip", {
-                    uniforms: {
-                        projectionMatrix: {type: "mat4"},
-                        viewMatrix: {type: "mat4"},
-                        eyePositionHigh: "vec3",
-                        eyePositionLow: "vec3",
-                        uColor: {type: "vec4"},
-                        uOpacity: {type: "float"}
-                    },
-                    attributes: {
-                        aVertexPositionHigh: {type: "vec3"},
-                        aVertexPositionLow: {type: "vec3"}
-                    },
-                    vertexShader: `attribute vec3 aVertexPositionHigh;
-                        attribute vec3 aVertexPositionLow;
-                        uniform mat4 projectionMatrix;
-                        uniform mat4 viewMatrix;
-                        uniform vec3 eyePositionHigh;
-                        uniform vec3 eyePositionLow;
-                        void main(void) {
-
-                            vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                            vec3 lowDiff = aVertexPositionLow - eyePositionLow;
-
-                            mat4 viewMatrixRTE = viewMatrix;
-                            viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
-
-                            gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
-                        }`,
-                    fragmentShader: `precision highp float;
-                        uniform vec4 uColor;
-                        uniform float uOpacity;
-                        void main(void) {
-                            gl_FragColor = vec4(uColor.rgb, uColor.a * uOpacity);
-                        }`
-                })
-            );
+            this._renderer.handler.addProgram(stripScreen());
         }
     }
 
