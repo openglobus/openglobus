@@ -14,7 +14,6 @@ export function weightedOITResolve() {
 
             void main() {
                 gl_Position = vec4(corners, 0.0, 1.0);
-
             }`,
         fragmentShader: `#version 300 es
             precision highp float;
@@ -53,7 +52,7 @@ export function weightedOITResolve() {
                 }
 
                 // prevent floating point precision bug
-                vec3 averageColor = accum.rgb / clamp(accumAlpha, 0.00001, 50000.0);//accum.rgb / max(accumAlpha, EPS);
+                vec3 averageColor = accum.rgb / max(accumAlpha, EPS);
 
                 float a = 1.0 - revealage;
                 fragColor = vec4(averageColor * a, a);
