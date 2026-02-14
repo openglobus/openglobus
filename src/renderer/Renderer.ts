@@ -370,6 +370,13 @@ class Renderer {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
     }
 
+    public enableBlendWoit() {
+        let gl = this.handler.gl!;
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
+    }
+
     public setRelativeCenter(c?: Vec3) {
         this.events.dispatch(this.events.changerelativecenter, c || this.activeCamera.eye);
     }
@@ -887,7 +894,9 @@ class Renderer {
         if (ec.length) {
             let gl = this.handler.gl!;
 
-            this.enableBlendDefault();
+            this.enableBlendWoit();
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthMask(false);
 
             let i = ec.length;
 
@@ -896,6 +905,8 @@ class Renderer {
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].stripHandler.draw();
             }
+
+            gl.depthMask(true);
         }
     }
 
@@ -1208,11 +1219,16 @@ class Renderer {
             // Draw transparent objects
             //
             this.woitFramebuffer!.activate();
-            gl.clearColor(0, 0, 0, 0);
+            gl.clearColor(0, 0, 0, 1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             this._applyDeferredDepth();
             this._drawWoitEntityCollections(0);
             this.woitFramebuffer!.deactivate();
+
+            //
+            // Weighted OIT resolve (composite into forwardFramebuffer)
+            //
+            this._weightedOITResolvePASS();
 
             //
             // Picking passes
@@ -1330,6 +1346,38 @@ class Renderer {
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
+        gl.depthMask(true);
+        gl.enable(gl.DEPTH_TEST);
+    }
+
+    protected _weightedOITResolvePASS() {
+        let h = this.handler,
+            gl = h.gl!,
+            sh = h.programs.weightedOITResolve,
+            p = sh._program;
+
+        gl.disable(gl.DEPTH_TEST);
+        gl.depthMask(false);
+
+        // Output is premultiplied alpha
+        this.enableBlendOneSrcAlpha();
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
+        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+        sh.activate();
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.woitFramebuffer!.textures[0]);
+        gl.uniform1i(p.uniforms.uAccumulate, 0);
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this.woitFramebuffer!.textures[1]);
+        gl.uniform1i(p.uniforms.uAccumulateAlpha, 1);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        this.enableBlendDefault();
         gl.depthMask(true);
         gl.enable(gl.DEPTH_TEST);
     }
