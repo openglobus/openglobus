@@ -373,8 +373,22 @@ class Renderer {
     public enableBlendWoit() {
         let gl = this.handler.gl!;
         gl.enable(gl.BLEND);
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
+
+        // Weighted blended OIT needs different blending per MRT target:
+        //  - target0 (RGBA16F): rgb += src.rgb, revealage *= (1 - src.a)
+        //  - target1 (R16F):   accumAlpha += src
+        const glAny = gl as any;
+        if (glAny.blendFuncSeparatei && glAny.blendEquationi) {
+            glAny.blendEquationi(0, gl.FUNC_ADD);
+            glAny.blendFuncSeparatei(0, gl.ONE, gl.ONE, gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
+
+            glAny.blendEquationi(1, gl.FUNC_ADD);
+            glAny.blendFuncSeparatei(1, gl.ONE, gl.ONE, gl.ONE, gl.ONE);
+        } else {
+            // Fallback (less correct): single blend state for all attachments
+            gl.blendEquation(gl.FUNC_ADD);
+            gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
+        }
     }
 
     public setRelativeCenter(c?: Vec3) {

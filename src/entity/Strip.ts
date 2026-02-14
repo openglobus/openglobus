@@ -273,6 +273,9 @@ class Strip {
             gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
             gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
 
+            gl.uniform1f(shu.uNear, r.activeCamera!.frustum.near || 1.0);
+            gl.uniform1f(shu.uFar, r.activeCamera!.frustum.far || 1.0);
+
             gl.uniform4fv(shu.uColor, this.color);
 
             gl.uniform1f(shu.uOpacity, this._entity!._entityCollection!._fadingOpacity);

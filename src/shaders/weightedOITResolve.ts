@@ -24,7 +24,8 @@ export function weightedOITResolve() {
 
             out vec4 fragColor;
 
-            const float EPS = 0.00001;
+            // Keep this very small: accumAlpha is stored in R16F and may get tiny at huge distances.
+            const float EPS = 1e-8;
 
             bool isApproximatelyEqual(float a, float b)
             {
@@ -52,8 +53,8 @@ export function weightedOITResolve() {
                     accum.rgb = vec3(accumAlpha);
                 }
 
-                // prevent floating point precision bug
-                vec3 averageColor = accum.rgb / clamp(accumAlpha, 0.00001, 50000.0);//accum.rgb / max(accumAlpha, EPS);
+                // prevent floating point precision bug (avoid biasing color at distance)
+                vec3 averageColor = accum.rgb / max(accumAlpha, EPS);
 
                 float a = 1.0 - revealage;
                 fragColor = vec4(averageColor * a, a);

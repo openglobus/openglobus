@@ -10,6 +10,8 @@ export function stripScreen(): Program {
             viewMatrix: "mat4",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
+            uNear: "float",
+            uFar: "float",
             uColor: "vec4",
             uOpacity: "float"
         },
