@@ -53,7 +53,7 @@ let objLayer = new Vector("Obj.Layer", {
 let globe = new Globe({
     target: "earth",
     name: "Earth",
-    frustums: [[10, 10000], [10000,10000000]],
+    //frustums: [[10, 10000], [10000,10000000]],
     terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection],
     msaa: 8
@@ -148,7 +148,7 @@ let s0 = new Entity({
             [a0, a1],
             [b0, b1]
         ],
-        color: "rgba(8,216,0,0.5)",
+        color: "rgba(8,216,0,0.1)",
     }
 });
 
@@ -165,7 +165,7 @@ let s1 = new Entity({
             [a0, a1],
             [b0, b1]
         ],
-        color: "rgba(220,0,0,0.5)",
+        color: "rgba(220,0,0,0.2)",
     }
 });
 
@@ -182,7 +182,7 @@ let s2 = new Entity({
             [a0, a1],
             [b0, b1]
         ],
-        color: "rgba(0,75,255,0.5)",
+        color: "rgba(0,75,255,1)",
     }
 });
 
