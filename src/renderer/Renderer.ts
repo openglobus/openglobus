@@ -17,12 +17,13 @@ import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame";
 import {toneMapping} from "../shaders/tone_mapping/toneMapping";
 import {deferredShading} from "../shaders/deferredShading/deferredShading";
-import {deferredDepthToForwardMultisample} from "../shaders/deferredDepthToForwardMultisample";
+import {applyDeferredDepth} from "../shaders/applyDeferredDepth";
 import {TextureAtlas} from "../utils/TextureAtlas";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
+import {weightedOITResolve} from "../shaders/weightedOITResolve";
 
 export interface IRendererParams {
     controls?: Control[];
@@ -628,7 +629,8 @@ class Renderer {
             deferredShading(),
             toneMapping(),
             depth(),
-            deferredDepthToForwardMultisample()
+            applyDeferredDepth(),
+            weightedOITResolve()
         ]);
 
         const depthComponent = "DEPTH_COMPONENT24";
@@ -1184,7 +1186,7 @@ class Renderer {
             //
             // Transfer opaque geometry depth data to the next rendering stage
             //
-            this._copyDeferredDepthToForwardMultisample();
+            this._applyDeferredDepth();
 
             //
             // Deferred shading pass
@@ -1205,12 +1207,12 @@ class Renderer {
             //
             // Draw transparent objects
             //
-            // this.woitFramebuffer!.activate();
-            // gl.clearColor(0, 0, 0, 0);
-            // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            // this._copyDeferredDepthToForwardMultisample();
-            // this._drawWoitEntityCollections(0);
-            // this.woitFramebuffer!.deactivate();
+            this.woitFramebuffer!.activate();
+            gl.clearColor(0, 0, 0, 0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            this._applyDeferredDepth();
+            this._drawWoitEntityCollections(0);
+            this.woitFramebuffer!.deactivate();
 
             //
             // Picking passes
@@ -1268,10 +1270,10 @@ class Renderer {
     //     return this.handler.canvas ? this.handler.canvas.toDataURL(type, quality) : "";
     // }
 
-    protected _copyDeferredDepthToForwardMultisample() {
+    protected _applyDeferredDepth() {
         let h = this.handler,
             gl = h.gl!,
-            sh = h.programs.deferredDepthToForwardMultisample,
+            sh = h.programs.applyDeferredDepth,
             p = sh._program;
 
         gl.disable(gl.BLEND);
