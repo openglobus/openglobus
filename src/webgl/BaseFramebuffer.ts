@@ -61,6 +61,20 @@ export class BaseFramebuffer {
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null!);
     }
 
+    public blitDepthFrom(sourceFramebuffer: BaseFramebuffer, glFilter?: number) {
+        const gl = this.handler.gl!;
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, sourceFramebuffer._fbo);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._fbo);
+        gl.blitFramebuffer(
+            0, 0, sourceFramebuffer._width, sourceFramebuffer._height,
+            0, 0, this._width, this._height,
+            gl.DEPTH_BUFFER_BIT, glFilter ?? gl.NEAREST
+        );
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null!);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null!);
+    }
+
     public get width(): number {
         return this._width;
     }

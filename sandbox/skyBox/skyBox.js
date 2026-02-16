@@ -148,7 +148,7 @@ let s0 = new Entity({
             [a0, a1],
             [b0, b1]
         ],
-        color: "rgba(8,216,0,0.5)",
+        color: "rgba(8,216,0,1)",
     }
 });
 
@@ -182,7 +182,7 @@ let s2 = new Entity({
             [a0, a1],
             [b0, b1]
         ],
-        color: "rgba(0,75,255,0.7)",
+        color: "rgba(0,75,255,0.5)",
     }
 });
 

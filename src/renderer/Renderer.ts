@@ -1140,8 +1140,6 @@ class Renderer {
             //
             // Deferred shading pass
             //
-            this.forwardFramebuffer!.activate();
-
             this._deferredShadingPASS();
 
             //
@@ -1150,15 +1148,14 @@ class Renderer {
             e.dispatch(e.forwardpass, this);
             this._drawForwardEntityCollections(0);
 
-            this.forwardFramebuffer!.deactivate();
-
             //
             // Draw transparent objects
             //
+            // Copy depth from forwardFramebuffer
+            this.woitFramebuffer!.blitDepthFrom(this.forwardFramebuffer!);
             this.woitFramebuffer!.activate();
             gl.clearColor(0, 0, 0, 1);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            this._applyDeferredDepth();
+            gl.clear(gl.COLOR_BUFFER_BIT);
             this._drawTransparentEntityCollections(0);
             this.woitFramebuffer!.deactivate();
 
