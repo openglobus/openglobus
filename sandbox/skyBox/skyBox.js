@@ -56,7 +56,7 @@ let globe = new Globe({
     //frustums: [[10, 10000], [10000,10000000]],
     terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection],
-    msaa: 0
+    msaa: 8
 });
 
 globe.planet.addControls([
@@ -175,11 +175,17 @@ a1 = ell.lonLatToCartesian(new LonLat(-105.6164781, 39.6060457, 3714 + 500));
 b0 = ell.lonLatToCartesian(new LonLat(-105.6444247, 39.6132437, 3924 - 500));
 b1 = ell.lonLatToCartesian(new LonLat(-105.6444247, 39.6132437, 3924 + 500));
 
+let d = Vec3.sub(b0, a0).cross(a0).getNormal().scaleTo(1200);
+let z = (t, s) => [Vec3.lerp(a0, b0, t).add(d.scaleTo(s)), Vec3.lerp(a1, b1, t).add(d.scaleTo(s))];
+
 let s2 = new Entity({
     strip: {
         gridSize: 10,
         path: [
             [a0, a1],
+            z(0.25, 1),
+            z(0.5, -1),
+            z(0.75, 1),
             [b0, b1]
         ],
         color: "rgba(0,75,255,0.5)",
