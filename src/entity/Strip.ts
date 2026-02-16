@@ -8,6 +8,7 @@ import type {NumberArray3} from "../math/Vec3";
 import type {NumberArray4} from "../math/Vec4";
 import {StripHandler} from "./StripHandler";
 import type {WebGLBufferExt} from "../webgl/Handler";
+import type {ProgramController} from "../webgl/ProgramController";
 
 type TPoiExt = Vec3 | NumberArray3;
 type TStripExt = [TPoiExt, TPoiExt];
@@ -201,11 +202,13 @@ class Strip {
     }
 
     public setColor(r: number, g: number, b: number, a?: number) {
-        a = a || this.color[3];
         this.color[0] = r;
         this.color[1] = g;
         this.color[2] = b;
-        this.color[3] = a;
+        if (a !== undefined) {
+            this.color[3] = a;
+            this._handler && this._handler.updateStripOpacity(this);
+        }
     }
 
     /**
@@ -215,6 +218,7 @@ class Strip {
      */
     public setOpacity(opacity: number) {
         this.color[3] = opacity || 0;
+        this._handler && this._handler.updateStripOpacity(this);
     }
 
     /**
@@ -252,14 +256,13 @@ class Strip {
         this._handler && this._handler.remove(this);
     }
 
-    public draw() {
+    protected _drawImpl(sh: ProgramController, color: Float32Array, opacity: number) {
         if (this.visibility && this._verticesHigh.length) {
             let r = this._renderNode!.renderer!;
 
             let gl = r.handler.gl!;
 
-            let sh = r.handler.programs.strip,
-                p = sh._program,
+            let p = sh._program,
                 sha = p.attributes,
                 shu = p.uniforms;
 
@@ -273,13 +276,10 @@ class Strip {
             gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
             gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
 
-            gl.uniform1f(shu.uNear, r.activeCamera!.frustum.near || 1.0);
-            gl.uniform1f(shu.uFar, r.activeCamera!.frustum.far || 1.0);
+            gl.uniform4fv(shu.uColor, color);
+            gl.uniform1f(shu.uOpacity, opacity);
 
-            gl.uniform4fv(shu.uColor, this.color);
-
-            gl.uniform1f(shu.uOpacity, this._entity!._entityCollection!._fadingOpacity);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer!);
             gl.vertexAttribPointer(
                 sha.aVertexPositionHigh,
                 this._verticesHighBuffer!.itemSize,
@@ -288,7 +288,7 @@ class Strip {
                 0,
                 0
             );
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesLowBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesLowBuffer!);
             gl.vertexAttribPointer(
                 sha.aVertexPositionLow,
                 this._verticesLowBuffer!.itemSize,
@@ -297,7 +297,7 @@ class Strip {
                 0,
                 0
             );
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer!);
             gl.drawElements(
                 r.handler.gl!.TRIANGLE_STRIP,
                 this._indexBuffer!.numItems,
@@ -309,13 +309,21 @@ class Strip {
         }
     }
 
+    public drawTransparent() {
+        this._drawImpl(this._renderNode!.renderer!.handler.programs.stripTransparent, this.color, this._entity!._entityCollection!._fadingOpacity);
+    }
+
+    public drawOpaque() {
+        this._drawImpl(this._renderNode!.renderer!.handler.programs.stripForward, this.color, this._entity!._entityCollection!._fadingOpacity);
+    }
+
     drawPicking() {
         if (this.visibility && this._verticesHigh.length) {
             let r = this._renderNode!.renderer!;
 
             let gl = r.handler.gl!;
 
-            let sh = r.handler.programs.strip,
+            let sh = r.handler.programs.stripForward,
                 p = sh._program,
                 sha = p.attributes,
                 shu = p.uniforms;
