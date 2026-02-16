@@ -1361,24 +1361,6 @@ class Renderer {
         gl.enable(gl.DEPTH_TEST);
     }
 
-    // protected _screenFrameNoMSAA() {
-    //
-    //     let h = this.handler;
-    //     let sh = h.programs.screenFrame,
-    //         p = sh._program,
-    //         gl = h.gl!;
-    //
-    //     gl.disable(gl.DEPTH_TEST);
-    //     sh.activate();
-    //     gl.activeTexture(gl.TEXTURE0);
-    //     gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
-    //     gl.uniform1i(p.uniforms.texture, 0);
-    //     gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
-    //     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-    //     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    //     gl.enable(gl.DEPTH_TEST);
-    // }
-
     /**
      * Draw picking objects framebuffer.
      * @private
