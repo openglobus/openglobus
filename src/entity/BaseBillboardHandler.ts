@@ -353,6 +353,10 @@ class BaseBillboardHandler {
         gl.enable(gl.CULL_FACE);
     }
 
+    public drawForward() {
+        this.drawOpaque();
+    }
+
     public drawOpaque() {
         if (this._billboards.length) {
             this.update();

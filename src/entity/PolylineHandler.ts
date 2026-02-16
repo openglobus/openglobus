@@ -85,6 +85,10 @@ class PolylineHandler {
         }
     }
 
+    public drawForward() {
+        this.drawOpaque();
+    }
+
     public drawOpaque() {
         this._updateRTCEyePosition();
         let i = this._polylines.length;

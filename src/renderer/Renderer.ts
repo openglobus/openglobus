@@ -864,7 +864,7 @@ class Renderer {
         this._depthRefreshRequired = true;
     }
 
-    protected _drawOpaqueEntityCollections(depthOrder: number) {
+    protected _drawGBufferEntityCollections(depthOrder: number) {
         let ec = this._entityCollections[depthOrder];
 
         if (ec.length) {
@@ -879,6 +879,79 @@ class Renderer {
                     eci.events.dispatch(eci.events.draw, eci);
                     ec[i].geoObjectHandler.drawOpaque();
                 }
+            }
+        }
+    }
+
+    protected _drawForwardEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+
+        if (ec.length) {
+            let gl = this.handler.gl!;
+
+            this.enableBlendDefault();
+
+            let i = ec.length;
+
+            if (depthOrder !== 0) {
+                // GeoObjects
+                while (i--) {
+                    let eci = ec[i];
+                    if (ec[i]._fadingOpacity) {
+                        eci.events.dispatch(eci.events.draw, eci);
+                        ec[i].geoObjectHandler.drawForward();
+                    }
+                }
+            }
+
+            //
+            // billboards pass
+            //
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
+
+            i = ec.length;
+            while (i--) {
+                let eci = ec[i];
+                eci._fadingOpacity && eci.billboardHandler.drawForward();
+            }
+
+            //
+            // labels pass
+            //
+            let fa = this.fontAtlas.atlasesArr;
+            for (i = 0; i < fa.length; i++) {
+                gl.activeTexture(gl.TEXTURE0 + i);
+                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture!);
+            }
+
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].labelHandler.drawForward();
+            }
+
+            //
+            // Lines, Rays and Strips
+            //
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
+
+            // rays
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].rayHandler.drawForward();
+            }
+
+            // polyline pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].polylineHandler.drawForward();
+            }
+
+            // Strip pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].stripHandler.drawForward();
             }
         }
     }
@@ -917,158 +990,6 @@ class Renderer {
             gl.depthMask(true);
         }
     }
-
-    protected _drawForwardEntityCollections(depthOrder: number) {
-        let ec = this._entityCollections[depthOrder];
-
-        if (ec.length) {
-            let gl = this.handler.gl!;
-
-            this.enableBlendDefault();
-
-            let i = ec.length;
-
-            if (depthOrder !== 0) {
-                // GeoObjects
-                while (i--) {
-                    let eci = ec[i];
-                    if (ec[i]._fadingOpacity) {
-                        eci.events.dispatch(eci.events.draw, eci);
-                        ec[i].geoObjectHandler.drawOpaque();
-                    }
-                }
-            }
-
-            //
-            // billboards pass
-            //
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
-
-            i = ec.length;
-            while (i--) {
-                let eci = ec[i];
-                eci._fadingOpacity && eci.billboardHandler.drawOpaque();
-            }
-
-            //
-            // labels pass
-            //
-            let fa = this.fontAtlas.atlasesArr;
-            for (i = 0; i < fa.length; i++) {
-                gl.activeTexture(gl.TEXTURE0 + i);
-                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture!);
-            }
-
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].labelHandler.drawOpaque();
-            }
-
-            //
-            // Lines, Rays and Strips
-            //
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
-
-            // rays
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].rayHandler.drawOpaque();
-            }
-
-            // polyline pass
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].polylineHandler.drawOpaque();
-            }
-
-            // Strip pass
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].stripHandler.drawOpaque();
-            }
-        }
-    }
-
-    // /**
-    //  * @protected
-    //  */
-    // protected _drawEntityCollections(depthOrder: number) {
-    //     let ec = this._entityCollections[depthOrder];
-    //
-    //     if (ec.length) {
-    //         let gl = this.handler.gl!;
-    //
-    //         this.enableBlendDefault();
-    //
-    //         // Point Clouds
-    //         let i = ec.length;
-    //         while (i--) {
-    //             ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
-    //         }
-    //
-    //         // GeoObjects
-    //         i = ec.length;
-    //         while (i--) {
-    //             let eci = ec[i];
-    //             if (ec[i]._fadingOpacity) {
-    //                 eci.events.dispatch(eci.events.draw, eci);
-    //                 ec[i].geoObjectHandler.draw();
-    //             }
-    //         }
-    //
-    //         //
-    //         // billboards pass
-    //         //
-    //         gl.activeTexture(gl.TEXTURE0);
-    //         gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
-    //
-    //         i = ec.length;
-    //         while (i--) {
-    //             let eci = ec[i];
-    //             eci._fadingOpacity && eci.billboardHandler.draw();
-    //         }
-    //
-    //         //
-    //         // labels pass
-    //         //
-    //         let fa = this.fontAtlas.atlasesArr;
-    //         for (i = 0; i < fa.length; i++) {
-    //             gl.activeTexture(gl.TEXTURE0 + i);
-    //             gl.bindTexture(gl.TEXTURE_2D, fa[i].texture!);
-    //         }
-    //
-    //         i = ec.length;
-    //         while (i--) {
-    //             ec[i]._fadingOpacity && ec[i].labelHandler.draw();
-    //         }
-    //
-    //         //
-    //         // Lines, Rays and Strips
-    //         //
-    //         gl.activeTexture(gl.TEXTURE0);
-    //         gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
-    //
-    //         // rays
-    //         i = ec.length;
-    //         while (i--) {
-    //             ec[i]._fadingOpacity && ec[i].rayHandler.draw();
-    //         }
-    //
-    //         // polyline pass
-    //         i = ec.length;
-    //         while (i--) {
-    //             ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
-    //         }
-    //
-    //         // Strip pass
-    //         i = ec.length;
-    //         while (i--) {
-    //             ec[i]._fadingOpacity && ec[i].stripHandler.draw();
-    //         }
-    //     }
-    // }
 
     protected _drawPickingEntityCollections(depthOrder: number) {
         let ec = this._entityCollections[depthOrder];
@@ -1207,8 +1128,7 @@ class Renderer {
             }
 
             e.dispatch(e.gbufferpass, this);
-
-            this._drawOpaqueEntityCollections(0);
+            this._drawGBufferEntityCollections(0);
 
             this.deferredFramebuffer!.deactivate();
 
@@ -1227,8 +1147,8 @@ class Renderer {
             //
             // Forward rendering and transparent object pass
             //
-            this._drawForwardEntityCollections(0);
             e.dispatch(e.forwardpass, this);
+            this._drawForwardEntityCollections(0);
 
             this.forwardFramebuffer!.deactivate();
 

@@ -94,7 +94,7 @@ class StripHandler {
         }
     }
 
-    public drawOpaque() {
+    public drawForward() {
         //...
     }
 

@@ -402,6 +402,10 @@ class RayHandler {
         // ...
     }
 
+    public drawForward() {
+        this.drawOpaque();
+    }
+
     public drawOpaque() {
         if (this._rays.length) {
             this.update();
