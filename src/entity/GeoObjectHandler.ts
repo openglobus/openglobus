@@ -635,7 +635,7 @@ export class GeoObjectHandler {
         }
     }
 
-    public draw() {
+    public drawOpaque() {
         if (this._geoObjects.length) {
             this._updateRTCEyePosition();
             this.update();

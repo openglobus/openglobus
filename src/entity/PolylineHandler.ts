@@ -85,12 +85,16 @@ class PolylineHandler {
         }
     }
 
-    public draw() {
+    public drawOpaque() {
         this._updateRTCEyePosition();
         let i = this._polylines.length;
         while (i--) {
             this._polylines[i].draw();
         }
+    }
+
+    public drawTransparent() {
+        //...
     }
 
     public drawPicking() {

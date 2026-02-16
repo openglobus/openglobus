@@ -894,7 +894,7 @@ class Renderer {
         }
     }
 
-    protected _drawWoitEntityCollections(depthOrder: number) {
+    protected _drawTransparentEntityCollections(depthOrder: number) {
         let ec = this._entityCollections[depthOrder];
 
         if (ec.length) {
@@ -945,7 +945,7 @@ class Renderer {
             i = ec.length;
             while (i--) {
                 let eci = ec[i];
-                eci._fadingOpacity && eci.billboardHandler.drawForward();
+                eci._fadingOpacity && eci.billboardHandler.drawOpaque();
             }
 
             //
@@ -959,7 +959,7 @@ class Renderer {
 
             i = ec.length;
             while (i--) {
-                ec[i]._fadingOpacity && ec[i].labelHandler.drawForward();
+                ec[i]._fadingOpacity && ec[i].labelHandler.drawOpaque();
             }
 
             //
@@ -971,13 +971,13 @@ class Renderer {
             // rays
             i = ec.length;
             while (i--) {
-                ec[i]._fadingOpacity && ec[i].rayHandler.drawForward();
+                ec[i]._fadingOpacity && ec[i].rayHandler.drawOpaque();
             }
 
             // polyline pass
             i = ec.length;
             while (i--) {
-                ec[i]._fadingOpacity && ec[i].polylineHandler.drawForward();
+                ec[i]._fadingOpacity && ec[i].polylineHandler.drawOpaque();
             }
         }
     }
@@ -1230,7 +1230,7 @@ class Renderer {
             gl.clearColor(0, 0, 0, 1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             this._applyDeferredDepth();
-            this._drawWoitEntityCollections(0);
+            this._drawTransparentEntityCollections(0);
             this.woitFramebuffer!.deactivate();
 
             //

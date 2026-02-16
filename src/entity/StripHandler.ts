@@ -94,7 +94,11 @@ class StripHandler {
         }
     }
 
-    public draw() {
+    public drawOpaque() {
+        //...
+    }
+
+    public drawTransparent() {
         let i = this._strips.length;
         while (i--) {
             this._strips[i].draw();
