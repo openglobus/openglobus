@@ -748,7 +748,7 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(w, h);
         this.forwardFramebuffer!.setSize(w * 0.5, h * 0.5);
-        this.woitFramebuffer!.setSize(h * 0.5, h * 0.5);
+        this.woitFramebuffer!.setSize(w * 0.5, h * 0.5);
         this.deferredFramebuffer!.setSize(w * 0.5, h * 0.5, true);
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w * 0.5, h * 0.5, true);
     }
