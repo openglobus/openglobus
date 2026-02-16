@@ -187,8 +187,6 @@ class Renderer {
     protected _msaa: number;
 
     protected _internalFormat: string;
-    //protected _format: string;
-    //protected _type: string;
 
     protected _depthRefreshRequired: boolean;
 
@@ -640,15 +638,12 @@ class Renderer {
             weightedOITResolve()
         ]);
 
-        const depthComponent = "DEPTH_COMPONENT24";
-        const depthType = "UNSIGNED_INT";
-
         this.forwardFramebuffer = new Multisample(this.handler, {
             size: 1,
             msaa: this._msaa,
             internalFormat: this._internalFormat,
             filter: "NEAREST",
-            depthComponent: depthComponent
+            depthComponent: "DEPTH_COMPONENT24"
         });
 
         this.forwardFramebuffer.init();
@@ -885,12 +880,6 @@ class Renderer {
                     ec[i].geoObjectHandler.drawOpaque();
                 }
             }
-
-            // Strip pass
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].stripHandler.drawOpaque();
-            }
         }
     }
 
@@ -921,10 +910,13 @@ class Renderer {
                 ec[i]._fadingOpacity && ec[i].stripHandler.drawTransparent();
             }
 
+            //
+            //...
+            //
+
             gl.depthMask(true);
         }
     }
-
 
     protected _drawForwardEntityCollections(depthOrder: number) {
         let ec = this._entityCollections[depthOrder];
@@ -935,6 +927,17 @@ class Renderer {
             this.enableBlendDefault();
 
             let i = ec.length;
+
+            if (depthOrder !== 0) {
+                // GeoObjects
+                while (i--) {
+                    let eci = ec[i];
+                    if (ec[i]._fadingOpacity) {
+                        eci.events.dispatch(eci.events.draw, eci);
+                        ec[i].geoObjectHandler.drawOpaque();
+                    }
+                }
+            }
 
             //
             // billboards pass
@@ -978,6 +981,12 @@ class Renderer {
             i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].polylineHandler.drawOpaque();
+            }
+
+            // Strip pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].stripHandler.drawOpaque();
             }
         }
     }
@@ -1259,7 +1268,6 @@ class Renderer {
             while (k--) {
                 this.activeCamera!.setCurrentFrustum(k);
 
-                //this._drawEntityCollections(i);
                 this._drawForwardEntityCollections(i);
 
                 if (refreshPicking) {
