@@ -1,10 +1,10 @@
 import {Program} from '../../webgl/Program';
 
 import strip_vert from './strip.vert.glsl';
-import strip_frag from './strip.frag.glsl';
-import strip_opaque_frag from './stripOpaque.frag.glsl';
+import strip_woit_frag from './strip_woit.frag.glsl';
+import strip_forward_frag from './strip_forward.frag.glsl';
 
-export function stripTransparentScreen(): Program {
+export function stripTransparent(): Program {
     return new Program("stripTransparent", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -19,11 +19,11 @@ export function stripTransparentScreen(): Program {
             aVertexPositionLow: "vec3"
         },
         vertexShader: strip_vert,
-        fragmentShader: strip_frag
+        fragmentShader: strip_woit_frag
     });
 }
 
-export function stripForwardScreen(): Program {
+export function stripForward(): Program {
     return new Program("stripForward", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -38,6 +38,6 @@ export function stripForwardScreen(): Program {
             aVertexPositionLow: "vec3"
         },
         vertexShader: strip_vert,
-        fragmentShader: strip_opaque_frag
+        fragmentShader: strip_forward_frag
     });
 }

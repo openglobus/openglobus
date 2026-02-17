@@ -2,7 +2,7 @@ import {EntityCollection} from "./EntityCollection";
 import {Renderer} from "../renderer/Renderer";
 import {RenderNode} from "../scene/RenderNode";
 import {Strip} from "./Strip";
-import {stripForwardScreen, stripTransparentScreen} from "../shaders/strip/strip";
+import {stripForward, stripTransparent} from "../shaders/strip/strip";
 
 class StripHandler {
 
@@ -60,9 +60,9 @@ class StripHandler {
     protected _initProgram() {
         if (this._renderer && this._renderer.handler) {
             !this._renderer.handler.programs.stripTransparent &&
-            this._renderer.handler.addProgram(stripTransparentScreen());
+            this._renderer.handler.addProgram(stripTransparent());
             !this._renderer.handler.programs.stripForward &&
-            this._renderer.handler.addProgram(stripForwardScreen());
+            this._renderer.handler.addProgram(stripForward());
         }
     }
 
