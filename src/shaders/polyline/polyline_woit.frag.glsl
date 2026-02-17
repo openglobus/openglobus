@@ -13,8 +13,6 @@ in vec4 vTexCoord;
 flat in float repeat;
 flat in float v_texOffset;
 
-out vec4 fragColor;
-
 //${UTILS}
 
 layout(location=0) out vec4 accumColor;
