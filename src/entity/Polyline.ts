@@ -2269,7 +2269,7 @@ class Polyline {
 
             let rn = this._renderNode!;
             let r = rn.renderer!;
-            let sh = r.handler.programs.polyline_screen;
+            let sh = r.handler.programs.polylineForward;
             let p = sh._program;
             let gl = r.handler.gl!,
                 sha = p.attributes,

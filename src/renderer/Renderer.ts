@@ -5,7 +5,7 @@ import {createRendererEvents} from "./RendererEvents";
 import type {IBaseInputState, RendererEventsHandler} from "./RendererEvents";
 import {depth} from "../shaders/depth";
 import {EntityCollection} from "../entity/EntityCollection";
-import {Framebuffer, Multisample} from "../webgl/index";
+import {Framebuffer, Multisample, Program} from "../webgl/index";
 import {FontAtlas} from "../utils/FontAtlas";
 import {Handler} from "../webgl/Handler";
 import type {WebGLBufferExt} from "../webgl/Handler";
@@ -24,6 +24,7 @@ import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {weightedOITResolve} from "../shaders/weightedOITResolve";
+import * as shaders from "../shaders/polyline/polyline";
 
 export interface IRendererParams {
     controls?: Control[];
@@ -1668,6 +1669,20 @@ class Renderer {
         this._initialized = false;
     }
 
+    public addProgram(program: Program) {
+        if (this.handler.programs[program.name]) return;
+        this.handler.addProgram(program);
+    }
+
+    public addPrograms(...programs: (Program | Program[])[]) {
+        for (const p of programs) {
+            if (Array.isArray(p)) {
+                for (const program of p) this.addProgram(program);
+            } else {
+                this.addProgram(p);
+            }
+        }
+    }
 }
 
 export {Renderer};

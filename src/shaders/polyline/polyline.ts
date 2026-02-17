@@ -1,7 +1,8 @@
 import {Program} from '../../webgl/Program';
 
-import polyline_screen_vert from './polyline_screen.vert.glsl';
-import polyline_screen_frag from './polyline_screen.frag.glsl';
+import polyline_vert from './polyline.vert.glsl';
+import polyline_woit_frag from './polyline_woit.frag.glsl';
+import polyline_forward_frag from './polyline_forward.frag.glsl';
 
 import polyline_picking_vert from './polyline_picking.vert.glsl';
 import polyline_picking_frag from './polyline_picking.frag.glsl';
@@ -33,8 +34,8 @@ export function polylineTransparent(): Program {
             color: "vec4",
             texCoord: "vec4"
         },
-        vertexShader: polyline_screen_vert,
-        fragmentShader: polyline_screen_frag
+        vertexShader: polyline_vert,
+        fragmentShader: polyline_woit_frag
     });
 }
 
@@ -65,8 +66,8 @@ export function polylineForward(): Program {
             color: "vec4",
             texCoord: "vec4"
         },
-        vertexShader: polyline_screen_vert,
-        fragmentShader: polyline_screen_frag
+        vertexShader: polyline_vert,
+        fragmentShader: polyline_forward_frag
     });
 }
 

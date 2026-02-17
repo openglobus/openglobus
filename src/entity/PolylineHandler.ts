@@ -36,14 +36,13 @@ class PolylineHandler {
     }
 
     protected _initProgram() {
-        if (this._renderer && this._renderer.handler) {
-            if (!this._renderer.handler.programs.polyline_screen) {
-                this._renderer.handler.addProgram(shaders.polyline_screen());
-            }
-            if (!this._renderer.handler.programs.polyline_picking) {
-                this._renderer.handler.addProgram(shaders.polyline_picking());
-            }
-        }
+        if (!this._renderer) return;
+
+        this._renderer.addPrograms(
+            shaders.polylineForward(),
+            shaders.polylineTransparent(),
+            shaders.polyline_picking()
+        );
     }
 
     public setRenderNode(renderNode: RenderNode) {
