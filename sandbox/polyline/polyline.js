@@ -12,7 +12,7 @@ import {
 
 let renderer = new Renderer("frame", {
     msaa: 8,
-    controls: [new control.SimpleNavigation({ speed: 0.01 })],
+    controls: [new control.SimpleNavigation({speed: 0.01})],
     autoActivate: true
 });
 
@@ -25,8 +25,8 @@ class MyScene extends RenderNode {
 
         let e1 = new Entity({
             polyline: {
-                path3v: [[[1, 0, 1], [3, 5, 3], [0, 10, 0]]],
-                thickness: 5.5,
+                path3v: [[[1, 0, 1], [3, 5, 3], [0, 10, 0]], [[0, 0, 0], [10, 10, 10]], [[15, 10, 15], [15, 15, 15], [10, 15, 10], [15, 150, 15]]],
+                thickness: 1.5,
                 src: "./template3.png",
                 isClosed: false
             }
