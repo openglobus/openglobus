@@ -26,6 +26,7 @@ const VERTICES_BUFFER = 0;
 const INDEX_BUFFER = 1;
 const COLORS_BUFFER = 2;
 const TEXCOORD_BUFFER = 3;
+const THICKNESS_BUFFER = 4;
 
 const DEFAULT_COLOR = "#0000FF";
 
@@ -92,10 +93,9 @@ class Polyline {
 
     /**
      * Polyline thickness in screen pixels.
-     * @public
      * @type {number}
      */
-    public thickness: number;
+    protected _thickness: number;
 
     protected _opacity: number;
 
@@ -144,6 +144,7 @@ class Polyline {
     public _pathLonLatMerc: LonLat[][];
 
     protected _pathColors: SegmentPathColor[];
+    protected _segmentThickness: number[];
 
     /**
      * Polyline geodetic extent.
@@ -156,6 +157,7 @@ class Polyline {
     protected _orders: TypedArray | number[];
     protected _indexes: TypedArray | number[];
     protected _colors: TypedArray | number[];
+    protected _thicknessArr: TypedArray | number[];
     protected _texCoordArr: TypedArray | number[];
 
     protected _atlasTexCoords: number[];
@@ -166,6 +168,7 @@ class Polyline {
     protected _indexesBuffer: WebGLBufferExt | null;
     protected _colorsBuffer: WebGLBufferExt | null;
     protected _texCoordBuffer: WebGLBufferExt | null;
+    protected _thicknessBuffer: WebGLBufferExt | null;
 
     protected _pickingColor: NumberArray3;
 
@@ -218,7 +221,7 @@ class Polyline {
 
         this.altitude = options.altitude || 0.0;
 
-        this.thickness = options.thickness || 1.5;
+        this._thickness = options.thickness || 1.5;
 
         this._opacity = options.opacity != undefined ? options.opacity : 1.0;
 
@@ -240,6 +243,7 @@ class Polyline {
         this._pathLonLatMerc = [];
 
         this._pathColors = options.pathColors ? cloneArray(options.pathColors) : [];
+        this._segmentThickness = [];
 
         this._extent = new Extent();
 
@@ -248,6 +252,7 @@ class Polyline {
         this._orders = [];
         this._indexes = [];
         this._colors = [];
+        this._thicknessArr = [];
         this._texCoordArr = [];
 
         this._atlasTexCoords = [];
@@ -258,6 +263,7 @@ class Polyline {
         this._indexesBuffer = null;
         this._colorsBuffer = null;
         this._texCoordBuffer = null;
+        this._thicknessBuffer = null;
 
         this._pickingColor = [0, 0, 0];
 
@@ -282,6 +288,7 @@ class Polyline {
         this._buffersUpdateCallbacks[INDEX_BUFFER] = this._createIndexBuffer;
         this._buffersUpdateCallbacks[COLORS_BUFFER] = this._createColorsBuffer;
         this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this._createTexCoordBuffer;
+        this._buffersUpdateCallbacks[THICKNESS_BUFFER] = this._createThicknessBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
@@ -401,7 +408,8 @@ class Polyline {
         outPath3v: SegmentPath3vExt[],
         outTransformedPathMerc: LonLat[][],
         outExtent: Extent,
-        outColors: number[]
+        outColors: number[],
+        outThickness: number[]
     ) {
         var index = 0;
 
@@ -482,8 +490,15 @@ class Polyline {
                 b = color[B],
                 a = color[A] != undefined ? color[A] : 1.0;
 
+            let thickness = this._segmentThickness[j];
+            if (thickness == undefined) {
+                thickness = this._thickness;
+                this._segmentThickness[j] = thickness;
+            }
+
             if (j > 0) {
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+                outThickness.push(thickness, thickness, thickness, thickness);
             }
 
             outOrders.push(1, -1, 2, -2);
@@ -540,6 +555,7 @@ class Polyline {
                 );
 
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+                outThickness.push(thickness, thickness, thickness, thickness);
 
                 outOrders.push(1, -1, 2, -2);
                 outIndexes.push(index++, index++, index++, index++);
@@ -596,6 +612,7 @@ class Polyline {
             );
 
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+            outThickness.push(thickness, thickness, thickness, thickness);
 
             outOrders.push(1, -1, 2, -2);
 
@@ -618,6 +635,7 @@ class Polyline {
         outVerticesHigh: number[],
         outVerticesLow: number[],
         outColors: number[],
+        outThickness: number[],
         outOrders: number[],
         outIndexes: number[],
         ellipsoid: Ellipsoid | null,
@@ -780,6 +798,13 @@ class Polyline {
         outVerticesLow[vi + 11] = v_low.z;
 
         let ci = outColors.length - 16;
+        let ti = outThickness.length - 4;
+
+        let thickness = this._segmentThickness[path3v.length - 1];
+        if (thickness == undefined) {
+            thickness = this._thickness;
+            this._segmentThickness[path3v.length - 1] = thickness;
+        }
 
         outColors[ci] = r;
         outColors[ci + 1] = g;
@@ -797,6 +822,11 @@ class Polyline {
         outColors[ci + 13] = g;
         outColors[ci + 14] = b;
         outColors[ci + 15] = a;
+
+        outThickness[ti] = thickness;
+        outThickness[ti + 1] = thickness;
+        outThickness[ti + 2] = thickness;
+        outThickness[ti + 3] = thickness;
 
         outIndexes[ii] = index++;
         outIndexes[ii + 1] = index++;
@@ -833,6 +863,7 @@ class Polyline {
         );
 
         outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+        outThickness.push(thickness, thickness, thickness, thickness);
 
         outOrders.push(1, -1, 2, -2);
     }
@@ -956,7 +987,8 @@ class Polyline {
         outPathLonLat: SegmentPathLonLatExt[],
         outTransformedPathMerc: LonLat[][],
         outExtent: Extent,
-        outColors: number[]
+        outColors: number[],
+        outThickness: number[]
     ) {
         var index = 0;
 
@@ -1047,8 +1079,15 @@ class Polyline {
                 b = color[B],
                 a = color[A] != undefined ? color[A] : 1.0;
 
+            let thickness = this._segmentThickness[j];
+            if (thickness == undefined) {
+                thickness = this._thickness;
+                this._segmentThickness[j] = thickness;
+            }
+
             if (j > 0) {
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+                outThickness.push(thickness, thickness, thickness, thickness);
             }
 
             outOrders.push(1, -1, 2, -2);
@@ -1090,6 +1129,7 @@ class Polyline {
                 );
 
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+                outThickness.push(thickness, thickness, thickness, thickness);
 
                 outOrders.push(1, -1, 2, -2);
                 outIndexes.push(index++, index++, index++, index++);
@@ -1166,6 +1206,7 @@ class Polyline {
             );
 
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+            outThickness.push(thickness, thickness, thickness, thickness);
 
             outOrders.push(1, -1, 2, -2);
             outTexCoords.push(0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0);
@@ -1801,6 +1842,7 @@ class Polyline {
             this._verticesHigh = makeArray(this._verticesHigh);
             this._verticesLow = makeArray(this._verticesLow);
             this._colors = makeArray(this._colors);
+            this._thicknessArr = makeArray(this._thicknessArr);
             this._orders = makeArray(this._orders);
             this._indexes = makeArray(this._indexes);
 
@@ -1813,6 +1855,7 @@ class Polyline {
                 this._verticesHigh,
                 this._verticesLow,
                 this._colors,
+                this._thicknessArr as number[],
                 this._orders,
                 this._indexes,
                 !skipEllipsoid ? (this._renderNode as Planet).ellipsoid : null,
@@ -1826,6 +1869,7 @@ class Polyline {
             this._changedBuffers[VERTICES_BUFFER] = true;
             this._changedBuffers[COLORS_BUFFER] = true;
             this._changedBuffers[INDEX_BUFFER] = true;
+            this._changedBuffers[THICKNESS_BUFFER] = true;
         }
     }
 
@@ -1950,8 +1994,39 @@ class Polyline {
      * @public
      * @param {number} thickness - Thickness.
      */
-    public setThickness(thickness: number) {
-        this.thickness = thickness;
+    public setThickness(thickness: number): void;
+    public setThickness(segmentIndex: number, thickness: number): void;
+    public setThickness(a: number, b?: number): void {
+        if (b === undefined) {
+            this._thickness = a;
+            for (let i = 0; i < this._path3v.length; i++) {
+                if (this._segmentThickness[i] == undefined) this._segmentThickness[i] = a;
+                this._segmentThickness[i] = a;
+            }
+
+            if (this._renderNode) {
+                const ta = this._thicknessArr as TypedArray;
+                for (let i = 0; i < ta.length; i++) ta[i] = a;
+                this._changedBuffers[THICKNESS_BUFFER] = true;
+            }
+            return;
+        } else {
+            if (a < 0 || a >= this._path3v.length) {
+                return;
+            }
+            this._segmentThickness[a] = b;
+
+            if (this._renderNode) {
+                const groupsBefore = a === 0 ? 0 : (this._pathLengths[a] + 2 * a - 1);
+                const groupsCount = this._path3v[a].length + 1 + (a > 0 ? 1 : 0);
+                const start = groupsBefore * 4;
+                const end = (groupsBefore + groupsCount) * 4;
+                const ta = this._thicknessArr as TypedArray;
+                for (let i = start; i < end; i++) ta[i] = b;
+                this._changedBuffers[THICKNESS_BUFFER] = true;
+            }
+            return;
+        }
     }
 
     /**
@@ -1960,7 +2035,7 @@ class Polyline {
      * @return {number} Thickness in screen pixels.
      */
     public getThickness(): number {
-        return this.thickness;
+        return this._thickness;
     }
 
     /**
@@ -2013,6 +2088,8 @@ class Polyline {
         //@ts-ignore
         this._colors = null;
         //@ts-ignore
+        this._thicknessArr = null;
+        //@ts-ignore
         this._texCoordArr = null;
 
         this._verticesHigh = [];
@@ -2020,6 +2097,7 @@ class Polyline {
         this._orders = [];
         this._indexes = [];
         this._colors = [];
+        this._thicknessArr = [];
         this._texCoordArr = [];
 
         this._path3v.length = 0;
@@ -2047,7 +2125,8 @@ class Polyline {
             this._path3v,
             this._pathLonLatMerc,
             this._extent,
-            this._colors as number[]
+            this._colors as number[],
+            this._thicknessArr as number[]
         );
         this._resizePathLengths(0);
     }
@@ -2069,7 +2148,8 @@ class Polyline {
             this._pathLonLat,
             this._pathLonLatMerc,
             this._extent,
-            this._colors as number[]
+            this._colors as number[],
+            this._thicknessArr as number[]
         );
         this._resizePathLengths(0);
     }
@@ -2084,6 +2164,9 @@ class Polyline {
         this._pathColors.length = 0;
         this._pathColors = [];
 
+        this._segmentThickness.length = 0;
+        this._segmentThickness = [];
+
         //@ts-ignore
         this._verticesHigh = null;
         //@ts-ignore
@@ -2095,6 +2178,8 @@ class Polyline {
         //@ts-ignore
         this._colors = null;
         //@ts-ignore
+        this._thicknessArr = null;
+        //@ts-ignore
         this._texCoordArr = null;
 
         this._verticesHigh = [];
@@ -2102,6 +2187,7 @@ class Polyline {
         this._orders = [];
         this._indexes = [];
         this._colors = [];
+        this._thicknessArr = [];
         this._texCoordArr = [];
 
         this._deleteBuffers();
@@ -2225,6 +2311,7 @@ class Polyline {
                 this._changedBuffers[VERTICES_BUFFER] = true;
                 this._changedBuffers[INDEX_BUFFER] = true;
                 this._changedBuffers[COLORS_BUFFER] = true;
+                this._changedBuffers[THICKNESS_BUFFER] = true;
             }
         } else {
             this._pathLonLat = ([] as SegmentPathLonLatExt[]).concat(pathLonLat);
@@ -2257,6 +2344,7 @@ class Polyline {
                 this._changedBuffers[VERTICES_BUFFER] = true;
                 this._changedBuffers[INDEX_BUFFER] = true;
                 this._changedBuffers[COLORS_BUFFER] = true;
+                this._changedBuffers[THICKNESS_BUFFER] = true;
             }
         } else {
             this._path3v = ([] as SegmentPath3vExt[]).concat(path3v);
@@ -2294,7 +2382,7 @@ class Polyline {
 
             //gl.uniform2fv(shu.uFloatParams, [(rn as Planet)._planetRadius2 || 0.0, r.activeCamera!._tanViewAngle_hradOneByHeight]);
             gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
-            gl.uniform1f(shu.thickness, this.thickness * 0.5);
+            gl.uniform1f(shu.thicknessScale, 0.5);
             gl.uniform1f(shu.opacity, this._opacity * ec._fadingOpacity);
 
             gl.uniform1f(shu.texOffset, this._texOffset);
@@ -2305,6 +2393,9 @@ class Polyline {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
             gl.vertexAttribPointer(sha.texCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer!);
+            gl.vertexAttribPointer(sha.thickness, this._thicknessBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             let v = this._verticesHighBuffer!;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);
@@ -2330,6 +2421,7 @@ class Polyline {
 
     public drawPicking() {
         if (this.visibility && this._path3v.length) {
+            this._update();
             let rn = this._renderNode!;
             let r = rn.renderer!;
             let sh = r.handler.programs.polyline_picking;
@@ -2362,7 +2454,7 @@ class Polyline {
             gl.uniform4fv(shu.visibleSphere, this._visibleSphere);
 
             gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
-            gl.uniform1f(shu.thickness, this.thickness * 0.5 * ec.pickingScale[0]);
+            gl.uniform1f(shu.thicknessScale, 0.5 * ec.pickingScale[0]);
 
             let v = this._verticesHighBuffer!;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);
@@ -2378,6 +2470,9 @@ class Polyline {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer as WebGLBuffer);
             gl.vertexAttribPointer(sha.order, this._ordersBuffer!.itemSize, gl.FLOAT, false, 4, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer!);
+            gl.vertexAttribPointer(sha.thickness, this._thicknessBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer as WebGLBuffer);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
@@ -2428,6 +2523,7 @@ class Polyline {
             gl.deleteBuffer(this._indexesBuffer!);
             gl.deleteBuffer(this._colorsBuffer!);
             gl.deleteBuffer(this._texCoordBuffer!);
+            gl.deleteBuffer(this._thicknessBuffer!);
 
             this._verticesHighBuffer = null;
             this._verticesLowBuffer = null;
@@ -2435,6 +2531,7 @@ class Polyline {
             this._indexesBuffer = null;
             this._colorsBuffer = null;
             this._texCoordBuffer = null;
+            this._thicknessBuffer = null;
         }
     }
 
@@ -2479,11 +2576,28 @@ class Polyline {
 
     protected _createColorsBuffer() {
         let h = this._renderNode!.renderer!.handler;
-        h.gl!.deleteBuffer(this._colorsBuffer!);
-
-        //@todo: change to STREAM teh same as _createVerticesBuffer
         this._colors = makeArrayTyped(this._colors);
-        this._colorsBuffer = h.createArrayBuffer(this._colors as TypedArray, 4, this._colors.length / 4);
+
+        const ta = this._colors as TypedArray;
+        const numItems = ta.length / 4;
+        if (!this._colorsBuffer || this._colorsBuffer.numItems !== numItems) {
+            h.gl!.deleteBuffer(this._colorsBuffer!);
+            this._colorsBuffer = h.createStreamArrayBuffer(4, numItems);
+        }
+        h.setStreamArrayBuffer(this._colorsBuffer!, ta);
+    }
+
+    protected _createThicknessBuffer() {
+        let h = this._renderNode!.renderer!.handler;
+        this._thicknessArr = makeArrayTyped(this._thicknessArr);
+        const ta = this._thicknessArr as TypedArray;
+
+        if (!this._thicknessBuffer || this._thicknessBuffer.numItems !== ta.length) {
+            h.gl!.deleteBuffer(this._thicknessBuffer!);
+            this._thicknessBuffer = h.createStreamArrayBuffer(1, ta.length);
+        }
+
+        h.setStreamArrayBuffer(this._thicknessBuffer!, ta);
     }
 
     public _createTexCoordBuffer() {

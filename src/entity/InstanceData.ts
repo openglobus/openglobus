@@ -221,7 +221,6 @@ export class InstanceData {
         gl.uniform3fv(u.materialParams, this._materialParams);
         gl.uniform1f(u.materialShininess, this._materialShininess);
 
-
         this._drawElementsInstanced(p);
     }
 

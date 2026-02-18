@@ -12,8 +12,9 @@ in vec3 nextLow;
 in vec4 texCoord;
 in float order;
 in vec4 color;
+in float thickness;
 
-uniform float thickness;
+uniform float thicknessScale;
 uniform mat4 proj;
 uniform mat4 view;
 uniform vec2 viewport;
@@ -115,7 +116,7 @@ void main() {
     vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));
     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));
 
-    float d = thickness * sign(order);
+    float d = thickness * thicknessScale * sign(order);
 
     vTexCoord = texCoord;
 

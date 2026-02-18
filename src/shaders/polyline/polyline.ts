@@ -15,7 +15,7 @@ export function polylineTransparent(): Program {
             view: "mat4",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
-            thickness: "float",
+            thicknessScale: "float",
             opacity: "float",
             depthOffset: "float",
             visibleSphere: "vec4",
@@ -32,7 +32,8 @@ export function polylineTransparent(): Program {
             nextLow: "vec3",
             order: "float",
             color: "vec4",
-            texCoord: "vec4"
+            texCoord: "vec4",
+            thickness: "float"
         },
         vertexShader: polyline_vert,
         fragmentShader: polyline_woit_frag
@@ -47,7 +48,7 @@ export function polylineForward(): Program {
             view: "mat4",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
-            thickness: "float",
+            thicknessScale: "float",
             opacity: "float",
             depthOffset: "float",
             visibleSphere: "vec4",
@@ -64,7 +65,8 @@ export function polylineForward(): Program {
             nextLow: "vec3",
             order: "float",
             color: "vec4",
-            texCoord: "vec4"
+            texCoord: "vec4",
+            thickness: "float"
         },
         vertexShader: polyline_vert,
         fragmentShader: polyline_forward_frag
@@ -80,7 +82,7 @@ export function polyline_picking(): Program {
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             color: "vec4",
-            thickness: "float",
+            thicknessScale: "float",
             depthOffset: "float",
             visibleSphere: "vec4",
         },
@@ -91,7 +93,8 @@ export function polyline_picking(): Program {
             prevLow: "vec3",
             currentLow: "vec3",
             nextLow: "vec3",
-            order: "float"
+            order: "float",
+            thickness: "float"
         },
         vertexShader: polyline_picking_vert,
         fragmentShader: polyline_picking_frag
