@@ -25,7 +25,7 @@ class MyScene extends RenderNode {
 
         let e1 = new Entity({
             polyline: {
-                path3v: [[[1, 0, 1], [3, 5, 3], [0, 10, 0]], [[0, 0, 0], [10, 10, 10]], [[15, 10, 15], [15, 15, 15], [10, 15, 10], [15, 150, 15]]],
+                path3v: [[[1, 0, 1], [3, 5, 3], [0, 10, 0]], [[0, 0, 0], [10, 10, 10]]],
                 thickness: 1.5,
                 src: "./template3.png",
                 isClosed: false
@@ -58,3 +58,9 @@ renderer.addNodes([
     new scene.Axes(),
     new MyScene()
 ]);
+
+function test(i = 0) {
+    collection.getEntities()[i].polyline.appendPath3v([[15, 10, 15], [15, 15, 15], [10, 15, 10], [15, 150, 15]]);
+}
+
+window.test = test;
