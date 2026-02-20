@@ -416,21 +416,38 @@ class Polyline {
         rn!.updateStrokeTexCoords();
     }
 
+    /**
+     * Set stroke image source for a segment index.
+     * @public
+     */
+    public setPathSrc(src: string | null | undefined, segmentIndex: number = 0) {
+        const segIdx = Math.max(0, Math.trunc(segmentIndex));
+
+        if (segIdx === 0 && !Array.isArray(this._src)) {
+            this.setSrc(src ?? null);
+            return;
+        }
+
+        const baseSrc = this._src;
+        const segCount = Math.max(this._path3v?.length || 0, 1, segIdx + 1);
+        const perSegmentSrc: (string | null | undefined)[] = new Array(segCount);
+
+        if (Array.isArray(baseSrc)) {
+            for (let i = 0; i < segCount; i++) {
+                perSegmentSrc[i] = baseSrc[i];
+            }
+        } else {
+            for (let i = 0; i < segCount; i++) {
+                perSegmentSrc[i] = baseSrc ?? null;
+            }
+        }
+
+        perSegmentSrc[segIdx] = src ?? null;
+        this.setSrc(perSegmentSrc);
+    }
+
     public getSrc(): string | (string | null | undefined)[] | null {
         return this._src;
-    }
-
-    /**
-     * Sets image template object.
-     * @public
-     * @param {Object} image - JavaScript image object.
-     */
-    public setImage(image: HTMLImageElement) {
-        this.setSrc(image.src);
-    }
-
-    public getImage(): HTMLImageElementExt | (HTMLImageElementExt | null)[] | null {
-        return this._image;
     }
 
     public _setTexCoordArr(tcoordArrOrArrs: number[] | (number[] | null)[]) {
