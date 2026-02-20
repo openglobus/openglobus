@@ -81,7 +81,6 @@ export function polyline_picking(): Program {
             view: "mat4",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
-            color: "vec4",
             thicknessScale: "float",
             depthOffset: "float",
             visibleSphere: "vec4",
@@ -93,6 +92,7 @@ export function polyline_picking(): Program {
             prevLow: "vec3",
             currentLow: "vec3",
             nextLow: "vec3",
+            pickingColor: "vec3",
             order: "float",
             thickness: "float"
         },

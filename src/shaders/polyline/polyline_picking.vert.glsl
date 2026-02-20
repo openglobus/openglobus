@@ -8,11 +8,11 @@ attribute vec3 prevLow;
 attribute vec3 currentLow;
 attribute vec3 nextLow;
 
+attribute vec3 pickingColor;
 attribute float order;
 attribute float thickness;
 
 uniform float thicknessScale;
-uniform vec4 color;
 uniform mat4 proj;
 uniform mat4 view;
 uniform vec2 viewport;
@@ -48,7 +48,7 @@ void main() {
 
     uCamPos = rtcEyePositionHigh + rtcEyePositionLow;
     vPos = currentHigh + currentLow;
-    vColor = color;
+    vColor = vec4(pickingColor, 1.0);
 
     vec3 highDiff, lowDiff;
 

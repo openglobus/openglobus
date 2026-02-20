@@ -1,7 +1,6 @@
 import {Entity} from "./Entity";
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";
-import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import type {NumberArray2} from "../math/Vec2";
@@ -29,6 +28,7 @@ const INDEX_BUFFER = 1;
 const COLORS_BUFFER = 2;
 const TEXCOORD_BUFFER = 3;
 const THICKNESS_BUFFER = 4;
+const PICKINGCOLORS_BUFFER = 5;
 
 const DEFAULT_COLOR = "#0000FF";
 
@@ -109,6 +109,8 @@ class Polyline {
      */
     protected _defaultColor: Float32Array | NumberArray4;
 
+    protected _pickingColor: Float32Array | NumberArray4;
+
     /**
      * Polyline visibility.
      * @public
@@ -149,6 +151,8 @@ class Polyline {
     protected _pathColors: SegmentPathColor[];
     protected _segmentThickness: number[];
 
+    protected _pathPickingColors: NumberArray3[][];
+
     /**
      * Polyline geodetic extent.
      * @protected
@@ -162,6 +166,7 @@ class Polyline {
     protected _colors: TypedArray | number[];
     protected _thicknessArr: TypedArray | number[];
     protected _texCoordArr: TypedArray | number[];
+    protected _pickingColors: TypedArray | number[];
 
     protected _atlasTexCoords: number[];
 
@@ -172,8 +177,7 @@ class Polyline {
     protected _colorsBuffer: WebGLBufferExt | null;
     protected _texCoordBuffer: WebGLBufferExt | null;
     protected _thicknessBuffer: WebGLBufferExt | null;
-
-    protected _pickingColor: NumberArray3;
+    protected _pickingColorsBuffer: WebGLBufferExt | null;
 
     protected _renderNode: RenderNode | null;
 
@@ -231,6 +235,8 @@ class Polyline {
             options.opacity
         );
 
+        this._pickingColor = new Float32Array([0, 0, 0]);
+
         this.visibility = options.visibility != undefined ? options.visibility : true;
 
         this._closedLine = options.isClosed || false;
@@ -246,6 +252,8 @@ class Polyline {
         this._pathColors = options.pathColors ? cloneArray(options.pathColors) : [];
         this._segmentThickness = [];
 
+        this._pathPickingColors = [];
+
         this._extent = new Extent();
 
         this._verticesHigh = [];
@@ -255,6 +263,7 @@ class Polyline {
         this._colors = [];
         this._thicknessArr = [];
         this._texCoordArr = [];
+        this._pickingColors = [];
 
         this._atlasTexCoords = [];
 
@@ -265,8 +274,7 @@ class Polyline {
         this._colorsBuffer = null;
         this._texCoordBuffer = null;
         this._thicknessBuffer = null;
-
-        this._pickingColor = [0, 0, 0];
+        this._pickingColorsBuffer = null;
 
         this._renderNode = null;
 
@@ -290,6 +298,7 @@ class Polyline {
         this._buffersUpdateCallbacks[COLORS_BUFFER] = this._createColorsBuffer;
         this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this._createTexCoordBuffer;
         this._buffersUpdateCallbacks[THICKNESS_BUFFER] = this._createThicknessBuffer;
+        this._buffersUpdateCallbacks[PICKINGCOLORS_BUFFER] = this._createPickingColorsBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
@@ -455,6 +464,7 @@ class Polyline {
     protected __appendLineData3v(
         path3v: SegmentPath3vExt[],
         pathColors: SegmentPathColor[],
+        pathPickingColors: NumberArray3[][],
         defaultColor: NumberArray4,
         isClosed: boolean,
         outVerticesHigh: number[],
@@ -468,7 +478,8 @@ class Polyline {
         outExtent: Extent,
         outColors: number[],
         outThickness: number[],
-        outTexCoords: number[]
+        outTexCoords: number[],
+        outPickingColors: number[]
     ) {
         var index = 0;
 
@@ -710,6 +721,7 @@ class Polyline {
         path3v: SegmentPath3vExt[],
         point3v: Vec3,
         pathColors: SegmentPathColor[],
+        pickingPathColors: NumberArray3[][],
         color: NumberArray4,
         isClosed: boolean,
         outVerticesHigh: number[],
@@ -722,7 +734,8 @@ class Polyline {
         outTransformedPathLonLat: SegmentPathLonLatExt[],
         outTransformedPathMerc: LonLat[][],
         outExtent: Extent,
-        outTexCoords: number[]
+        outTexCoords: number[],
+        outPickingColors: number[],
     ) {
         var v_high = new Vec3(),
             v_low = new Vec3();
@@ -1073,6 +1086,7 @@ class Polyline {
     protected __appendLineDataLonLat(
         pathLonLat: SegmentPathLonLatExt[],
         pathColors: SegmentPathColor[],
+        pathPickingColors: NumberArray3[][],
         defaultColor: NumberArray4,
         isClosed: boolean,
         outVerticesHigh: number[],
@@ -1086,7 +1100,8 @@ class Polyline {
         outTransformedPathMerc: LonLat[][],
         outExtent: Extent,
         outColors: number[],
-        outThickness: number[]
+        outThickness: number[],
+        outPickingColors: number[]
     ) {
         var index = 0;
 
@@ -1927,6 +1942,10 @@ class Polyline {
             this._pathColors.splice(index, 1);
         }
 
+        if (this._pathPickingColors && index < this._pathPickingColors.length) {
+            this._pathPickingColors.splice(index, 1);
+        }
+
         if (this._segmentThickness && index < this._segmentThickness.length) {
             this._segmentThickness.splice(index, 1);
         }
@@ -1956,6 +1975,7 @@ class Polyline {
         this._thicknessArr = makeArrayTyped(this._thicknessArr);
         this._texCoordArr = makeArrayTyped(this._texCoordArr);
         this._orders = makeArrayTyped(this._orders);
+        this._pickingColors = makeArrayTyped(this._pickingColors);
 
         const pointsBefore = this._pathLengths[index];
 
@@ -1977,11 +1997,13 @@ class Polyline {
         this._colors = spliceTypedArray(this._colors as TypedArray, attrGroupStart * 16, attrGroupCount * 16);
         this._thicknessArr = spliceTypedArray(this._thicknessArr as TypedArray, attrGroupStart * 4, attrGroupCount * 4);
         this._texCoordArr = spliceTypedArray(this._texCoordArr as TypedArray, attrGroupStart * 16, attrGroupCount * 16);
+        this._pickingColors = spliceTypedArray(this._pickingColors as TypedArray, attrGroupStart * 12, attrGroupCount * 12);
 
         if (index === 0 && this._path3v.length > 0) {
             this._colors = spliceTypedArray(this._colors as TypedArray, 0, 16);
             this._thicknessArr = spliceTypedArray(this._thicknessArr as TypedArray, 0, 4);
             this._texCoordArr = spliceTypedArray(this._texCoordArr as TypedArray, 0, 16);
+            this._pickingColors = spliceTypedArray(this._pickingColors as TypedArray, 0, 12);
         }
 
         this._rebuildIndexes();
@@ -1991,6 +2013,7 @@ class Polyline {
         this._changedBuffers[COLORS_BUFFER] = true;
         this._changedBuffers[THICKNESS_BUFFER] = true;
         this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
     }
 
     public appendPath3v(path3v: SegmentPath3vExt, pathColors?: NumberArray4[]) {
@@ -1999,6 +2022,14 @@ class Polyline {
         const segIndex = this._path3v.length;
         this._path3v.push(path3v);
         this._pathColors[segIndex] = pathColors && pathColors.length ? pathColors : (this._pathColors[segIndex] || []);
+        const segPickingColors = this._pathPickingColors[segIndex] || (this._pathPickingColors[segIndex] = []);
+        if (!segPickingColors.length) {
+            segPickingColors.push([
+                this._pickingColor[R],
+                this._pickingColor[G],
+                this._pickingColor[B]
+            ]);
+        }
         this._segmentThickness[segIndex] = this._segmentThickness[segIndex] ?? this._thickness;
 
         this._pathLengths.length = this._path3v.length + 1;
@@ -2015,6 +2046,7 @@ class Polyline {
         this._orders = makeArray(this._orders);
         this._indexes = makeArray(this._indexes);
         this._texCoordArr = makeArray(this._texCoordArr);
+        this._pickingColors = makeArray(this._pickingColors);
 
         this._pathLonLat[segIndex] = [];
         this._pathLonLatMerc[segIndex] = [];
@@ -2026,11 +2058,15 @@ class Polyline {
             outT = this._thicknessArr as number[],
             outO = this._orders as number[],
             outI = this._indexes as number[],
-            outTC = this._texCoordArr as number[];
+            outTC = this._texCoordArr as number[],
+            outPC = this._pickingColors as number[];
 
         const segColors = this._pathColors[segIndex];
         let color: any = (segColors && segColors[0]) ? segColors[0] : (this._defaultColor as any);
         let r = color[R], g = color[G], b = color[B], a = color[A] != undefined ? color[A] : 1.0;
+
+        let pickingColor: any = segPickingColors[0] || (this._pickingColor as any);
+        let pr = pickingColor[R], pg = pickingColor[G], pb = pickingColor[B];
 
         let thickness = this._segmentThickness[segIndex];
         if (thickness == undefined) thickness = this._thickness;
@@ -2065,6 +2101,7 @@ class Polyline {
         if (segIndex > 0) {
             outC.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
             outT.push(thickness, thickness, thickness, thickness);
+            outPC.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
         }
 
         const atlas = this._getAtlasTexCoordsForSegment(segIndex);
@@ -2105,11 +2142,20 @@ class Polyline {
                 if (lonLat.lat > this._extent.northEast.lat) this._extent.northEast.lat = lonLat.lat;
             }
 
-            if (segColors && segColors[i]) color = segColors[i];
+            if (segColors && segColors[i]) {
+                color = segColors[i];
+            }
             r = color[R];
             g = color[G];
             b = color[B];
             a = color[A] != undefined ? color[A] : 1.0;
+
+            if (segPickingColors && segPickingColors[i]) {
+                pickingColor = segPickingColors[i];
+            }
+            pr = pickingColor[R];
+            pg = pickingColor[G];
+            pb = pickingColor[B];
 
             this.__doubleToTwoFloats(cur, v_high, v_low);
             outVH.push(v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z);
@@ -2117,6 +2163,7 @@ class Polyline {
 
             outC.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
             outT.push(thickness, thickness, thickness, thickness);
+            outPC.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
 
             if (hasAtlas) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
             else outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -2139,11 +2186,20 @@ class Polyline {
             outI.push(index - 1, index - 1, index - 1, index - 1);
         }
 
-        if (segColors && segColors[path3v.length - 1]) color = segColors[path3v.length - 1];
+        if (segColors && segColors[path3v.length - 1]) {
+            color = segColors[path3v.length - 1];
+        }
         r = color[R];
         g = color[G];
         b = color[B];
         a = color[A] != undefined ? color[A] : 1.0;
+
+        if (segPickingColors && segPickingColors[path3v.length - 1]) {
+            pickingColor = segPickingColors[path3v.length - 1];
+        }
+        pr = pickingColor[R];
+        pg = pickingColor[G];
+        pb = pickingColor[B];
 
         this.__doubleToTwoFloats(first, v_high, v_low);
         outVH.push(v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z);
@@ -2151,9 +2207,13 @@ class Polyline {
 
         outC.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
         outT.push(thickness, thickness, thickness, thickness);
+        outPC.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
 
-        if (hasAtlas) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
-        else outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        if (hasAtlas) {
+            outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
+        } else {
+            outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        }
 
         outO.push(1, -1, 2, -2);
 
@@ -2162,6 +2222,7 @@ class Polyline {
         this._changedBuffers[COLORS_BUFFER] = true;
         this._changedBuffers[THICKNESS_BUFFER] = true;
         this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
     }
 
     public appendPathLonLat(pathLonLat: SegmentPathLonLatExt) {
@@ -2171,6 +2232,7 @@ class Polyline {
         this._pathLonLat.push(pathLonLat);
         this._pathColors[segIndex] = this._pathColors[segIndex] || [];
         this._segmentThickness[segIndex] = this._segmentThickness[segIndex] ?? this._thickness;
+        this._pathPickingColors[segIndex] = this._pathPickingColors[segIndex] || [];
 
         this._pathLengths.length = segIndex + 2;
         this._pathLengths[segIndex + 1] = (this._pathLengths[segIndex] || 0) + pathLonLat.length;
@@ -2187,6 +2249,7 @@ class Polyline {
         this._orders = makeArray(this._orders);
         this._indexes = makeArray(this._indexes);
         this._texCoordArr = makeArray(this._texCoordArr);
+        this._pickingColors = makeArray(this._pickingColors);
 
         this._path3v[segIndex] = [];
         this._pathLonLatMerc[segIndex] = [];
@@ -2197,11 +2260,16 @@ class Polyline {
             outT = this._thicknessArr as number[],
             outO = this._orders as number[],
             outI = this._indexes as number[],
-            outTC = this._texCoordArr as number[];
+            outTC = this._texCoordArr as number[],
+            outPC = this._pickingColors as number[];
 
         const segColors = this._pathColors[segIndex];
         let color: any = (segColors && segColors[0]) ? segColors[0] : (this._defaultColor as any);
         let r = color[R], g = color[G], b = color[B], a = color[A] != undefined ? color[A] : 1.0;
+
+        const segPickingColors = this._pathPickingColors[segIndex];
+        let pickingColor: any = (segPickingColors && segPickingColors[0]) ? segPickingColors[0] : (this._pickingColor as any);
+        let pr = pickingColor[R], pg = pickingColor[G], pb = pickingColor[B];
 
         let thickness = this._segmentThickness[segIndex];
         if (thickness == undefined) thickness = this._thickness;
@@ -2244,6 +2312,7 @@ class Polyline {
         if (segIndex > 0) {
             outC.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
             outT.push(thickness, thickness, thickness, thickness);
+            outPC.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
         }
 
         const atlas = this._getAtlasTexCoordsForSegment(segIndex);
@@ -2280,11 +2349,20 @@ class Polyline {
             if (ll.lon > this._extent.northEast.lon) this._extent.northEast.lon = ll.lon;
             if (ll.lat > this._extent.northEast.lat) this._extent.northEast.lat = ll.lat;
 
-            if (segColors && segColors[i]) color = segColors[i];
+            if (segColors && segColors[i]) {
+                color = segColors[i];
+            }
             r = color[R];
             g = color[G];
             b = color[B];
             a = color[A] != undefined ? color[A] : 1.0;
+
+            if (segPickingColors && segPickingColors[i]) {
+                pickingColor = segPickingColors[i];
+            }
+            pr = pickingColor[R];
+            pg = pickingColor[G];
+            pb = pickingColor[B];
 
             this.__doubleToTwoFloats(cart, v_high, v_low);
             outVH.push(v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z);
@@ -2292,9 +2370,13 @@ class Polyline {
 
             outC.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
             outT.push(thickness, thickness, thickness, thickness);
+            outPC.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
 
-            if (hasAtlas) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
-            else outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            if (hasAtlas) {
+                outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
+            } else {
+                outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            }
 
             outO.push(1, -1, 2, -2);
             outI.push(index++, index++, index++, index++);
@@ -2317,11 +2399,20 @@ class Polyline {
             outI.push(index - 1, index - 1, index - 1, index - 1);
         }
 
-        if (segColors && segColors[pathLonLat.length - 1]) color = segColors[pathLonLat.length - 1];
+        if (segColors && segColors[pathLonLat.length - 1]) {
+            color = segColors[pathLonLat.length - 1];
+        }
         r = color[R];
         g = color[G];
         b = color[B];
         a = color[A] != undefined ? color[A] : 1.0;
+
+        if (segPickingColors && segPickingColors[pathLonLat.length - 1]) {
+            pickingColor = segPickingColors[pathLonLat.length - 1];
+        }
+        pr = pickingColor[R];
+        pg = pickingColor[G];
+        pb = pickingColor[B];
 
         this.__doubleToTwoFloats(first, v_high, v_low);
         outVH.push(v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z);
@@ -2329,9 +2420,13 @@ class Polyline {
 
         outC.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
         outT.push(thickness, thickness, thickness, thickness);
+        outPC.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
 
-        if (hasAtlas) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
-        else outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        if (hasAtlas) {
+            outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
+        } else {
+            outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        }
 
         outO.push(1, -1, 2, -2);
 
@@ -2340,6 +2435,7 @@ class Polyline {
         this._changedBuffers[COLORS_BUFFER] = true;
         this._changedBuffers[THICKNESS_BUFFER] = true;
         this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
     }
 
     /**
@@ -2351,6 +2447,9 @@ class Polyline {
         this._path3v[multiLineIndex].splice(index, 1);
         if (this._path3v[multiLineIndex].length === 0) {
             this._path3v.splice(multiLineIndex, 1);
+            if (multiLineIndex < this._pathPickingColors.length) {
+                this._pathPickingColors.splice(multiLineIndex, 1);
+            }
         }
         this.setPath3v(([] as SegmentPath3vExt[]).concat(this._path3v));
     }
@@ -2406,25 +2505,31 @@ class Polyline {
             this._orders = makeArray(this._orders);
             this._indexes = makeArray(this._indexes);
             this._texCoordArr = makeArray(this._texCoordArr);
+            this._pickingColors = makeArray(this._pickingColors);
 
             this.__appendPoint3v(
                 this._path3v,
                 point3v,
                 this._pathColors,
+                this._pathPickingColors,
                 color || this._defaultColor as NumberArray4,
                 this._closedLine,
                 this._verticesHigh,
                 this._verticesLow,
                 this._colors,
-                this._thicknessArr as number[],
+                this._thicknessArr,
                 this._orders,
                 this._indexes,
                 !skipEllipsoid ? (this._renderNode as Planet).ellipsoid : null,
                 this._pathLonLat,
                 this._pathLonLatMerc,
                 this._extent,
-                this._texCoordArr as number[]
+                this._texCoordArr,
+                this._pickingColors
             );
+
+            // Keep picking attribute buffer strictly aligned with vertex groups.
+            this._rebuildPickingColorsFromPath();
 
             this._pathLengths[this._path3v.length] += 1;
 
@@ -2433,6 +2538,7 @@ class Polyline {
             this._changedBuffers[INDEX_BUFFER] = true;
             this._changedBuffers[THICKNESS_BUFFER] = true;
             this._changedBuffers[TEXCOORD_BUFFER] = true;
+            this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
         }
     }
 
@@ -2481,6 +2587,13 @@ class Polyline {
         const segColors = this._pathColors[segIndex] || (this._pathColors[segIndex] = []);
         segColors.push(color || this._defaultColor as NumberArray4);
 
+        const segPickingColors = this._pathPickingColors[segIndex] || (this._pathPickingColors[segIndex] = []);
+        segPickingColors.push([
+            this._pickingColor[R],
+            this._pickingColor[G],
+            this._pickingColor[B]
+        ]);
+
         const ellipsoid = (this._renderNode as Planet).ellipsoid;
         if (ellipsoid) {
             const lonLat = ellipsoid.cartesianToLonLat(point3v);
@@ -2504,6 +2617,7 @@ class Polyline {
         this._colors = makeArrayTyped(this._colors);
         this._thicknessArr = makeArrayTyped(this._thicknessArr);
         this._texCoordArr = makeArrayTyped(this._texCoordArr);
+        this._pickingColors = makeArrayTyped(this._pickingColors);
 
         const vertexGroupStart = pointsBefore + 2 * segIndex;
         const oldCapGroup = vertexGroupStart + oldLen + 1;
@@ -2582,6 +2696,22 @@ class Polyline {
         this._colors = insertTypedArray(this._colors as Float32Array, insertAttrGroup * 16, cBlock);
 
         //
+        // picking colors block
+        const pcArr = this._pickingColors as Float32Array;
+        const pcBase = oldAttrCapGroup * 12;
+        const pcc: any = segPickingColors[segPickingColors.length - 1] || (this._pickingColor as any);
+        const pcr = pcc[R], pcg = pcc[G], pcb = pcc[B];
+
+        for (let k = 0; k < 12; k += 3) {
+            pcArr[pcBase + k] = pcr;
+            pcArr[pcBase + k + 1] = pcg;
+            pcArr[pcBase + k + 2] = pcb;
+        }
+
+        const pcBlock = new Float32Array([pcr, pcg, pcb, pcr, pcg, pcb, pcr, pcg, pcb, pcr, pcg, pcb]);
+        this._pickingColors = insertTypedArray(this._pickingColors as Float32Array, insertAttrGroup * 12, pcBlock);
+
+        //
         // textures block
         const atlas = this._getAtlasTexCoordsForSegment(multiLineIndex);
         const tcArr = this._texCoordArr as Float32Array;
@@ -2603,6 +2733,7 @@ class Polyline {
         this._changedBuffers[COLORS_BUFFER] = true;
         this._changedBuffers[THICKNESS_BUFFER] = true;
         this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
     }
 
     /**
@@ -2803,6 +2934,8 @@ class Polyline {
         this._thicknessArr = null;
         //@ts-ignore
         this._texCoordArr = null;
+        //@ts-ignore
+        this._pickingColors = null;
 
         this._verticesHigh = [];
         this._verticesLow = [];
@@ -2811,6 +2944,7 @@ class Polyline {
         this._colors = [];
         this._thicknessArr = [];
         this._texCoordArr = [];
+        this._pickingColors = [];
 
         this._path3v.length = 0;
         this._pathLonLat.length = 0;
@@ -2826,6 +2960,7 @@ class Polyline {
         this.__appendLineData3v(
             path3v,
             this._pathColors,
+            this._pathPickingColors,
             this._defaultColor as NumberArray4,
             this._closedLine,
             this._verticesHigh as number[],
@@ -2839,7 +2974,8 @@ class Polyline {
             this._extent,
             this._colors as number[],
             this._thicknessArr as number[],
-            this._texCoordArr as number[]
+            this._texCoordArr as number[],
+            this._pickingColors as number[]
         );
         this._resizePathLengths(0);
     }
@@ -2849,6 +2985,7 @@ class Polyline {
         this.__appendLineDataLonLat(
             pathLonlat,
             this._pathColors,
+            this._pathPickingColors,
             this._defaultColor as NumberArray4,
             this._closedLine,
             this._verticesHigh as number[],
@@ -2862,7 +2999,8 @@ class Polyline {
             this._pathLonLatMerc,
             this._extent,
             this._colors as number[],
-            this._thicknessArr as number[]
+            this._thicknessArr as number[],
+            this._pickingColors as number[]
         );
         this._resizePathLengths(0);
     }
@@ -2894,6 +3032,8 @@ class Polyline {
         this._thicknessArr = null;
         //@ts-ignore
         this._texCoordArr = null;
+        //@ts-ignore
+        this._pickingColors = null;
 
         this._verticesHigh = [];
         this._verticesLow = [];
@@ -2902,16 +3042,71 @@ class Polyline {
         this._colors = [];
         this._thicknessArr = [];
         this._texCoordArr = [];
+        this._pickingColors = [];
 
         this._deleteBuffers();
 
         this._handler && this._handler.remove(this);
     }
 
+    protected _rebuildPickingColorsFromPath() {
+        this._pickingColors = [];
+        const outPickingColors = this._pickingColors as number[];
+        for (let i = 0, len = this._path3v.length; i < len; i++) {
+            const segment = this._path3v[i];
+            if (!segment || segment.length === 0) continue;
+
+            const segmentPickingColors = this._pathPickingColors[i];
+            const p = (segmentPickingColors && segmentPickingColors[0]) ? segmentPickingColors[0] : [
+                this._pickingColor[R],
+                this._pickingColor[G],
+                this._pickingColor[B]
+            ] as NumberArray3;
+            const pr = p[R], pg = p[G], pb = p[B];
+
+            if (i > 0) {
+                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
+            }
+
+            for (let j = 0, segmentLen = segment.length; j < segmentLen; j++) {
+                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
+            }
+
+            outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
+        }
+    }
+
     public setPickingColor3v(color: Vec3) {
-        this._pickingColor[0] = color.x / 255.0;
-        this._pickingColor[1] = color.y / 255.0;
-        this._pickingColor[2] = color.z / 255.0;
+        const r = color.x / 255.0;
+        const g = color.y / 255.0;
+        const b = color.z / 255.0;
+
+        this._pickingColor[0] = r;
+        this._pickingColor[1] = g;
+        this._pickingColor[2] = b;
+
+        const segmentsCount = Math.max(this._path3v.length, this._pathLonLat.length);
+        for (let i = 0; i < segmentsCount; i++) {
+            const segmentPickingColors = this._pathPickingColors[i] || (this._pathPickingColors[i] = []);
+            const hasPoints = (this._path3v[i]?.length || this._pathLonLat[i]?.length || 0) > 0;
+            if (!hasPoints) continue;
+
+            if (segmentPickingColors.length === 0) {
+                segmentPickingColors.push([r, g, b]);
+                continue;
+            }
+
+            for (let j = 0; j < segmentPickingColors.length; j++) {
+                const p = segmentPickingColors[j];
+                if (!p) continue;
+                p[R] = r;
+                p[G] = g;
+                p[B] = b;
+            }
+        }
+
+        this._rebuildPickingColorsFromPath();
+        this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
     }
 
     /**
@@ -3006,6 +3201,7 @@ class Polyline {
      * Sets polyline geodetic coordinates.
      * @public
      * @param {SegmentPathLonLat[]} pathLonLat - Polyline path cartesian coordinates.
+     * @param {SegmentPathColor[]} pathColors - Polyline path points colors.
      * @param {Boolean} [forceEqual=false] - OPTIMIZATION FLAG: Makes assigning faster for size equal coordinates array.
      */
     public setPathLonLat(pathLonLat: SegmentPathLonLatExt[], pathColors?: SegmentPathColor[], forceEqual: boolean = false) {
@@ -3025,6 +3221,7 @@ class Polyline {
                 this._changedBuffers[INDEX_BUFFER] = true;
                 this._changedBuffers[COLORS_BUFFER] = true;
                 this._changedBuffers[THICKNESS_BUFFER] = true;
+                this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
             }
         } else {
             this._pathLonLat = ([] as SegmentPathLonLatExt[]).concat(pathLonLat);
@@ -3059,6 +3256,7 @@ class Polyline {
                 this._changedBuffers[COLORS_BUFFER] = true;
                 this._changedBuffers[THICKNESS_BUFFER] = true;
                 this._changedBuffers[TEXCOORD_BUFFER] = true;
+                this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
             }
         } else {
             this._path3v = ([] as SegmentPath3vExt[]).concat(path3v);
@@ -3155,12 +3353,8 @@ class Polyline {
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera!.getViewMatrix());
 
-            gl.uniform4fv(shu.color, [
-                this._pickingColor[0],
-                this._pickingColor[1],
-                this._pickingColor[2],
-                1.0
-            ]);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorsBuffer!);
+            gl.vertexAttribPointer(sha.pickingColor, this._pickingColorsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.uniform3fv(shu.rtcEyePositionHigh, this._handler!._rtcEyePositionHigh);
             gl.uniform3fv(shu.rtcEyePositionLow, this._handler!._rtcEyePositionLow);
@@ -3238,6 +3432,7 @@ class Polyline {
             gl.deleteBuffer(this._colorsBuffer!);
             gl.deleteBuffer(this._texCoordBuffer!);
             gl.deleteBuffer(this._thicknessBuffer!);
+            gl.deleteBuffer(this._pickingColorsBuffer!);
 
             this._verticesHighBuffer = null;
             this._verticesLowBuffer = null;
@@ -3246,6 +3441,7 @@ class Polyline {
             this._colorsBuffer = null;
             this._texCoordBuffer = null;
             this._thicknessBuffer = null;
+            this._pickingColorsBuffer = null;
         }
     }
 
@@ -3299,6 +3495,19 @@ class Polyline {
             this._colorsBuffer = h.createStreamArrayBuffer(4, numItems);
         }
         h.setStreamArrayBuffer(this._colorsBuffer!, ta);
+    }
+
+    protected _createPickingColorsBuffer() {
+        let h = this._renderNode!.renderer!.handler;
+        this._pickingColors = makeArrayTyped(this._pickingColors);
+
+        const ta = this._pickingColors as TypedArray;
+        const numItems = ta.length / 3;
+        if (!this._pickingColorsBuffer || this._pickingColorsBuffer.numItems !== numItems) {
+            h.gl!.deleteBuffer(this._pickingColorsBuffer!);
+            this._pickingColorsBuffer = h.createStreamArrayBuffer(3, numItems);
+        }
+        h.setStreamArrayBuffer(this._pickingColorsBuffer!, ta);
     }
 
     protected _createThicknessBuffer() {
