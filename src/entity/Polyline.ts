@@ -501,6 +501,7 @@ class Polyline {
         for (let j = 0, len = path3v.length; j < len; j++) {
             var path = path3v[j],
                 pathColors_j = pathColors[j];
+            const pathPickingColors_j = pathPickingColors[j];
 
             outTransformedPathLonLat[j] = [];
             outTransformedPathMerc[j] = [];
@@ -559,6 +560,8 @@ class Polyline {
                 g = color[G],
                 b = color[B],
                 a = color[A] != undefined ? color[A] : 1.0;
+            let pickingColor: any = (pathPickingColors_j && pathPickingColors_j[0]) ? pathPickingColors_j[0] : (this._pickingColor as any);
+            let pr = pickingColor[R], pg = pickingColor[G], pb = pickingColor[B];
 
             let thickness = this._segmentThickness[j];
             if (thickness == undefined) {
@@ -569,6 +572,7 @@ class Polyline {
             if (j > 0) {
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
                 outThickness.push(thickness, thickness, thickness, thickness);
+                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
                 const segAtlas = this._getAtlasTexCoordsForSegment(j);
                 if (segAtlas && segAtlas.length >= 10) {
                     const my = segAtlas[1], ih = segAtlas[3] - my;
@@ -611,11 +615,17 @@ class Polyline {
                 if (pathColors_j && pathColors_j[i]) {
                     color = pathColors_j[i];
                 }
+                if (pathPickingColors_j && pathPickingColors_j[i]) {
+                    pickingColor = pathPickingColors_j[i];
+                }
 
                 r = color[R];
                 g = color[G];
                 b = color[B];
                 a = color[A] != undefined ? color[A] : 1.0;
+                pr = pickingColor[R];
+                pg = pickingColor[G];
+                pb = pickingColor[B];
 
                 this.__doubleToTwoFloats(cur as Vec3, v_high, v_low);
                 outVerticesHigh.push(
@@ -633,6 +643,7 @@ class Polyline {
 
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
                 outThickness.push(thickness, thickness, thickness, thickness);
+                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
                 const segAtlas = this._getAtlasTexCoordsForSegment(j);
                 if (segAtlas && segAtlas.length >= 10) {
                     const my = segAtlas[1], ih = segAtlas[3] - my;
@@ -680,6 +691,12 @@ class Polyline {
             g = color[G];
             b = color[B];
             a = color[A] != undefined ? color[A] : 1.0;
+            if (pathPickingColors_j && pathPickingColors_j[path.length - 1]) {
+                pickingColor = pathPickingColors_j[path.length - 1];
+            }
+            pr = pickingColor[R];
+            pg = pickingColor[G];
+            pb = pickingColor[B];
 
             this.__doubleToTwoFloats(first as Vec3, v_high, v_low);
             outVerticesHigh.push(
@@ -697,6 +714,7 @@ class Polyline {
 
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
             outThickness.push(thickness, thickness, thickness, thickness);
+            outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
             const lastAtlas = this._getAtlasTexCoordsForSegment(j);
             if (lastAtlas && lastAtlas.length >= 10) {
                 const my = lastAtlas[1], ih = lastAtlas[3] - my;
@@ -978,6 +996,39 @@ class Polyline {
         }
 
         outOrders.push(1, -1, 2, -2);
+
+        // Keep picking colors synchronized with path vertices using pathPickingColors.
+        outPickingColors.length = 0;
+        for (let si = 0, slen = path3v.length; si < slen; si++) {
+            const seg = path3v[si];
+            if (!seg || seg.length === 0) continue;
+
+            const segPickingColors = pickingPathColors[si];
+            let p: any = (segPickingColors && segPickingColors[0]) ? segPickingColors[0] : (this._pickingColor as any);
+            let pr = p[R], pg = p[G], pb = p[B];
+
+            if (si > 0) {
+                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
+            }
+
+            for (let pi = 0, plen = seg.length; pi < plen; pi++) {
+                if (segPickingColors && segPickingColors[pi]) {
+                    p = segPickingColors[pi];
+                    pr = p[R];
+                    pg = p[G];
+                    pb = p[B];
+                }
+                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
+            }
+
+            if (segPickingColors && segPickingColors[seg.length - 1]) {
+                p = segPickingColors[seg.length - 1];
+                pr = p[R];
+                pg = p[G];
+                pb = p[B];
+            }
+            outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
+        }
     }
 
     /**
