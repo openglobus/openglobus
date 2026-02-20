@@ -152,18 +152,23 @@ class PolylineHandler {
     }
 
     public refreshTexCoordsArr() {
-        let bc = this._entityCollection;
-        if (bc && this._renderer) {
-            let ta = this._renderer.strokeTextureAtlas;
-            for (let i = 0; i < this._polylines.length; i++) {
-                let ri = this._polylines[i];
-                let img = ri.getImage();
-                if (img) {
-                    let taData = ta.get(img.__nodeIndex!);
-                    if (taData) {
-                        ri._setTexCoordArr(taData.texCoords);
-                    }
+        const bc = this._entityCollection;
+        if (!bc || !this._renderer) return;
+        const ta = this._renderer.strokeTextureAtlas;
+        for (let i = 0; i < this._polylines.length; i++) {
+            const ri = this._polylines[i];
+            const img = ri.getImage();
+            if (Array.isArray(img)) {
+                const tc: (number[] | null)[] = [];
+                for (let j = 0; j < img.length; j++) {
+                    const m = img[j];
+                    const d = m?.__nodeIndex != null ? ta.get(m.__nodeIndex) : null;
+                    tc[j] = d?.texCoords ?? null;
                 }
+                if (tc.length) ri._setTexCoordArr(tc);
+            } else if (img) {
+                const taData = ta.get(img.__nodeIndex!);
+                if (taData) ri._setTexCoordArr(taData.texCoords);
             }
         }
     }

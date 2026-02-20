@@ -61,7 +61,8 @@ export interface IPolylineParams {
     pathLonLat?: SegmentPathLonLatExt[];
     visibleSpherePosition?: Cartesian;
     visibleSphereRadius?: number;
-    src?: string;
+    /** Single texture for all segments, or per-segment: ["src1","src2"], null/undefined = color-only */
+    src?: string | (string | null | undefined)[];
     image?: HTMLImageElement;
     texOffset?: number;
     strokeSize?: number;
@@ -198,18 +199,16 @@ class Polyline {
     public __doubleToTwoFloats: (pos: Vec3, highPos: Vec3, lowPos: Vec3) => void;
 
     /**
-     * Stroke image src.
+     * Stroke image src: string (all segments) or per-segment array.
      * @protected
-     * @type {string}
      */
-    protected _src: string | null;
+    protected _src: string | (string | null | undefined)[] | null;
 
     /**
-     * Stroke image object.
+     * Stroke image(s): single or per-segment. null = color-only.
      * @protected
-     * @type {Object}
      */
-    protected _image: HTMLImageElement & { __nodeIndex?: number } | null;
+    protected _image: (HTMLImageElement & { __nodeIndex?: number }) | (HTMLImageElement & { __nodeIndex?: number } | null)[] | null;
 
     protected _texOffset: number;
 
@@ -279,7 +278,7 @@ class Polyline {
 
         this._image = options.image || null;
 
-        this._src = options.src || null;
+        this._src = options.src ?? null;
 
         this._texOffset = options.texOffset || 0;
 
@@ -325,39 +324,90 @@ class Polyline {
     }
 
     /**
-     * Sets image template url source.
+     * Sets image template url source. string = all segments, array = per-segment (null/undefined = color-only).
      * @public
-     * @param {string} src - Image url.
      */
-    public setSrc(src: string | null) {
-        this._src = src;
-        let bh = this._handler;
-        if (bh) {
-            let rn = bh._entityCollection.renderNode;
-            if (rn && rn.renderer) {
-                let ta = rn.renderer.strokeTextureAtlas;
-                if (src && src.length) {
-                    ta.loadImage(src, (img: HTMLImageElementExt) => {
-                        if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
-                            this._image = img;
-                            let taData = ta.get(img!.__nodeIndex!)!;
-                            this._setTexCoordArr(taData.texCoords);
-                        } else {
-                            ta.addImage(img);
-                            ta.createTexture();
-                            this._image = img;
-                            rn!.updateStrokeTexCoords();
-                        }
-                    });
+    public setSrc(src: string | (string | null | undefined)[] | null) {
+        this._src = src ?? null;
+        const bh = this._handler;
+        if (!bh) return;
+        const rn = bh._entityCollection.renderNode;
+        if (!rn?.renderer) return;
+        const ta = rn.renderer.strokeTextureAtlas;
+
+        const isArray = Array.isArray(src);
+        const getSegSrc = (j: number): string | null => {
+            if (!src) return null;
+            if (!isArray) return (src as string)?.length ? (src as string) : null;
+            const arr = src as (string | null | undefined)[];
+            const s = arr[j];
+            if (s !== undefined) return (s && String(s).length) ? String(s) : null;
+            const last = arr[arr.length - 1];
+            return (last && String(last).length) ? String(last) : null;
+        };
+        const segCount = Math.max(this._path3v?.length || 0, 1);
+
+        if (!isArray && typeof src === "string" && src.length) {
+            ta.loadImage(src, (img: HTMLImageElementExt) => {
+                if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
+                    this._image = img;
+                    this._setTexCoordArr(ta.get(img.__nodeIndex!)!.texCoords);
                 } else {
-                    this.setTextureDisabled();
+                    ta.addImage(img);
+                    ta.createTexture();
+                    this._image = img;
                     rn!.updateStrokeTexCoords();
                 }
-            }
+            });
+            return;
         }
+        if (isArray && (src as any[]).some((s) => s && String(s).length)) {
+            const pending = new Map<string, number[]>();
+            for (let j = 0; j < segCount; j++) {
+                const s = getSegSrc(j);
+                if (s) {
+                    if (!pending.has(s)) pending.set(s, []);
+                    pending.get(s)!.push(j);
+                }
+            }
+            const segTexCoords: (number[] | null)[] = new Array(segCount).fill(null);
+            const segImages: (HTMLImageElement & { __nodeIndex?: number } | null)[] = new Array(segCount).fill(null);
+            let loaded = 0;
+            const needed = pending.size;
+            const onLoaded = () => {
+                loaded++;
+                if (loaded === needed) {
+                    this._image = segImages;
+                    this._setTexCoordArr(segTexCoords);
+                    rn!.updateStrokeTexCoords();
+                }
+            };
+            pending.forEach((segIndices, url) => {
+                ta.loadImage(url, (img: HTMLImageElementExt) => {
+                    let taData = img.__nodeIndex != undefined ? ta.get(img.__nodeIndex) : undefined;
+                    if (!taData) {
+                        ta.addImage(img);
+                        ta.createTexture();
+                        taData = ta.get(img.__nodeIndex!)!;
+                    }
+                    for (const j of segIndices) {
+                        segTexCoords[j] = taData!.texCoords;
+                        segImages[j] = img;
+                    }
+                    onLoaded();
+                });
+            });
+            return;
+        }
+        this.setTextureDisabled();
+        this._image = null;
+        const empty: (number[] | null)[] = new Array(segCount);
+        for (let j = 0; j < segCount; j++) empty[j] = null;
+        this._setTexCoordArr(empty);
+        rn!.updateStrokeTexCoords();
     }
 
-    public getSrc(): string | null {
+    public getSrc(): string | (string | null | undefined)[] | null {
         return this._src;
     }
 
@@ -370,27 +420,33 @@ class Polyline {
         this.setSrc(image.src);
     }
 
-    public getImage(): HTMLImageElementExt | null {
+    public getImage(): HTMLImageElementExt | (HTMLImageElementExt | null)[] | null {
         return this._image;
     }
 
-    public _setTexCoordArr(tcoordArr: number[]) {
+    public _setTexCoordArr(tcoordArrOrArrs: number[] | (number[] | null)[]) {
         this._texCoordArr = [];
-
-        // unsafe, but we are not suppose to change it
-        this._atlasTexCoords = tcoordArr;
-
-        Polyline.setPathTexCoords(
-            this._path3v,
-            tcoordArr,
-            this._texCoordArr
-        );
-
+        const perSegment = tcoordArrOrArrs.length > 0 && typeof tcoordArrOrArrs[0] !== "number";
+        if (!perSegment) this._atlasTexCoords = tcoordArrOrArrs as number[];
+        Polyline.setPathTexCoords(this._path3v, tcoordArrOrArrs, this._texCoordArr);
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
     public setTextureDisabled() {
         this._strokeSize = 0;
+    }
+
+    /** Get atlas tex coords for segment (null = color-only) */
+    protected _getAtlasTexCoordsForSegment(segIndex: number): number[] | null {
+        const img = this._image;
+        if (Array.isArray(img) && segIndex < img.length) {
+            const m = img[segIndex];
+            if (m == null) return null;
+            const rn = this._handler?._entityCollection?.renderNode;
+            const d = rn?.renderer && m.__nodeIndex != null ? rn.renderer.strokeTextureAtlas.get(m.__nodeIndex) : null;
+            return d?.texCoords ?? null;
+        }
+        return (this._atlasTexCoords?.length) ? this._atlasTexCoords : null;
     }
 
     /**
@@ -502,7 +558,13 @@ class Polyline {
             if (j > 0) {
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
                 outThickness.push(thickness, thickness, thickness, thickness);
-                outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+                const segAtlas = this._getAtlasTexCoordsForSegment(j);
+                if (segAtlas && segAtlas.length >= 10) {
+                    const my = segAtlas[1], ih = segAtlas[3] - my;
+                    outTexCoords.push(segAtlas[4], segAtlas[5], my, ih, segAtlas[2], segAtlas[3], my, ih, segAtlas[8], segAtlas[9], my, ih, segAtlas[0], segAtlas[1], my, ih);
+                } else {
+                    outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+                }
             }
 
             outOrders.push(1, -1, 2, -2);
@@ -560,7 +622,13 @@ class Polyline {
 
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
                 outThickness.push(thickness, thickness, thickness, thickness);
-                outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+                const segAtlas = this._getAtlasTexCoordsForSegment(j);
+                if (segAtlas && segAtlas.length >= 10) {
+                    const my = segAtlas[1], ih = segAtlas[3] - my;
+                    outTexCoords.push(segAtlas[4], segAtlas[5], my, ih, segAtlas[2], segAtlas[3], my, ih, segAtlas[8], segAtlas[9], my, ih, segAtlas[0], segAtlas[1], my, ih);
+                } else {
+                    outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+                }
 
                 outOrders.push(1, -1, 2, -2);
                 outIndexes.push(index++, index++, index++, index++);
@@ -618,7 +686,13 @@ class Polyline {
 
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
             outThickness.push(thickness, thickness, thickness, thickness);
-            outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            const lastAtlas = this._getAtlasTexCoordsForSegment(j);
+            if (lastAtlas && lastAtlas.length >= 10) {
+                const my = lastAtlas[1], ih = lastAtlas[3] - my;
+                outTexCoords.push(lastAtlas[4], lastAtlas[5], my, ih, lastAtlas[2], lastAtlas[3], my, ih, lastAtlas[8], lastAtlas[9], my, ih, lastAtlas[0], lastAtlas[1], my, ih);
+            } else {
+                outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            }
 
             outOrders.push(1, -1, 2, -2);
 
@@ -836,15 +910,10 @@ class Polyline {
         outThickness[ti + 3] = thickness;
 
         const tcBase = outTexCoords.length - 16;
-        const hasAtlas = this._atlasTexCoords && this._atlasTexCoords.length > 0;
-        if (hasAtlas) {
-            const minY = this._atlasTexCoords![1];
-            const imgHeight = this._atlasTexCoords![3] - minY;
-            const t0x = this._atlasTexCoords![4], t0y = this._atlasTexCoords![5];
-            const t1x = this._atlasTexCoords![2], t1y = this._atlasTexCoords![3];
-            const t2x = this._atlasTexCoords![8], t2y = this._atlasTexCoords![9];
-            const t3x = this._atlasTexCoords![0], t3y = this._atlasTexCoords![1];
-            const tc = [t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight];
+        const atlas = this._getAtlasTexCoordsForSegment(path3v.length - 1);
+        if (atlas && atlas.length >= 10) {
+            const minY = atlas[1], imgHeight = atlas[3] - minY;
+            const tc = [atlas[4], atlas[5], minY, imgHeight, atlas[2], atlas[3], minY, imgHeight, atlas[8], atlas[9], minY, imgHeight, atlas[0], atlas[1], minY, imgHeight];
             for (let k = 0; k < 16; k++) outTexCoords[tcBase + k] = tc[k];
         } else {
             for (let k = 0; k < 16; k++) outTexCoords[tcBase + k] = 0;
@@ -887,14 +956,10 @@ class Polyline {
         outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
         outThickness.push(thickness, thickness, thickness, thickness);
 
-        if (hasAtlas) {
-            const minY = this._atlasTexCoords![1];
-            const imgHeight = this._atlasTexCoords![3] - minY;
-            const t0x = this._atlasTexCoords![4], t0y = this._atlasTexCoords![5];
-            const t1x = this._atlasTexCoords![2], t1y = this._atlasTexCoords![3];
-            const t2x = this._atlasTexCoords![8], t2y = this._atlasTexCoords![9];
-            const t3x = this._atlasTexCoords![0], t3y = this._atlasTexCoords![1];
-            outTexCoords.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
+        const lastAtlas = this._getAtlasTexCoordsForSegment(path3v.length - 1);
+        if (lastAtlas && lastAtlas.length >= 10) {
+            const minY = lastAtlas[1], imgHeight = lastAtlas[3] - minY;
+            outTexCoords.push(lastAtlas[4], lastAtlas[5], minY, imgHeight, lastAtlas[2], lastAtlas[3], minY, imgHeight, lastAtlas[8], lastAtlas[9], minY, imgHeight, lastAtlas[0], lastAtlas[1], minY, imgHeight);
         } else {
             outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         }
@@ -916,34 +981,33 @@ class Polyline {
      */
     static setPathTexCoords(
         path3v: SegmentPath3vExt[],
-        tCoordArr: number[],
+        tCoordArrOrArrs: number[] | (number[] | null)[],
         outTexCoords: number[]
     ) {
+        const isPerSegment = tCoordArrOrArrs.length > 0 && typeof tCoordArrOrArrs[0] !== "number";
+        const tArr = tCoordArrOrArrs as (number[] | null)[];
 
-        let minY = tCoordArr[1],
-            imgHeight = tCoordArr[3] - minY;
-
-        let t0 = new Vec2(tCoordArr[4], tCoordArr[5]),
-            t1 = new Vec2(tCoordArr[2], tCoordArr[3]),
-            t2 = new Vec2(tCoordArr[8], tCoordArr[9]),
-            t3 = new Vec2(tCoordArr[0], tCoordArr[1]);
+        const ZEROS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        const pushTc = (tc: number[] | null) => {
+            if (tc && tc.length >= 10) {
+                const minY = tc[1], imgHeight = tc[3] - minY;
+                const t0x = tc[4], t0y = tc[5], t1x = tc[2], t1y = tc[3];
+                const t2x = tc[8], t2y = tc[9], t3x = tc[0], t3y = tc[1];
+                outTexCoords.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
+            } else {
+                outTexCoords.push(...ZEROS);
+            }
+        };
 
         for (let j = 0, len = path3v.length; j < len; j++) {
-            var path = path3v[j];
+            const path = path3v[j];
+            if (path.length === 0) continue;
 
-            if (path.length === 0) {
-                continue;
-            }
+            const tc = isPerSegment ? (tArr[j] !== undefined ? tArr[j] : (tArr[0] ?? null)) : (tCoordArrOrArrs as number[]);
+            if (j > 0) pushTc(tc);
 
-            if (j > 0) {
-                outTexCoords.push(t0.x, t0.y, minY, imgHeight, t1.x, t1.y, minY, imgHeight, t2.x, t2.y, minY, imgHeight, t3.x, t3.y, minY, imgHeight,);
-            }
-
-            for (let i = 0, len = path.length; i < len; i++) {
-                outTexCoords.push(t0.x, t0.y, minY, imgHeight, t1.x, t1.y, minY, imgHeight, t2.x, t2.y, minY, imgHeight, t3.x, t3.y, minY, imgHeight,);
-            }
-
-            outTexCoords.push(t0.x, t0.y, minY, imgHeight, t1.x, t1.y, minY, imgHeight, t2.x, t2.y, minY, imgHeight, t3.x, t3.y, minY, imgHeight,);
+            for (let i = 0; i < path.length; i++) pushTc(tc);
+            pushTc(tc);
         }
     }
 
@@ -1867,6 +1931,10 @@ class Polyline {
             this._segmentThickness.splice(index, 1);
         }
 
+        if (Array.isArray(this._image) && index < this._image.length) {
+            this._image.splice(index, 1);
+        }
+
         if (this._pathLonLat && index < this._pathLonLat.length) {
             this._pathLonLat.splice(index, 1);
         }
@@ -1999,19 +2067,20 @@ class Polyline {
             outT.push(thickness, thickness, thickness, thickness);
         }
 
-        const hasAtlas = this._atlasTexCoords && this._atlasTexCoords.length > 0;
+        const atlas = this._getAtlasTexCoordsForSegment(segIndex);
+        const hasAtlas = atlas && atlas.length >= 10;
         let t0x = 0, t0y = 0, t1x = 0, t1y = 0, t2x = 0, t2y = 0, t3x = 0, t3y = 0, minY = 0, imgHeight = 0;
         if (hasAtlas) {
-            minY = this._atlasTexCoords[1];
-            imgHeight = this._atlasTexCoords[3] - minY;
-            t0x = this._atlasTexCoords[4];
-            t0y = this._atlasTexCoords[5];
-            t1x = this._atlasTexCoords[2];
-            t1y = this._atlasTexCoords[3];
-            t2x = this._atlasTexCoords[8];
-            t2y = this._atlasTexCoords[9];
-            t3x = this._atlasTexCoords[0];
-            t3y = this._atlasTexCoords[1];
+            minY = atlas[1];
+            imgHeight = atlas[3] - minY;
+            t0x = atlas[4];
+            t0y = atlas[5];
+            t1x = atlas[2];
+            t1y = atlas[3];
+            t2x = atlas[8];
+            t2y = atlas[9];
+            t3x = atlas[0];
+            t3y = atlas[1];
             if (segIndex > 0) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
         } else if (segIndex > 0) {
             outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -2177,19 +2246,20 @@ class Polyline {
             outT.push(thickness, thickness, thickness, thickness);
         }
 
-        const hasAtlas = this._atlasTexCoords && this._atlasTexCoords.length > 0;
+        const atlas = this._getAtlasTexCoordsForSegment(segIndex);
+        const hasAtlas = atlas && atlas.length >= 10;
         let t0x = 0, t0y = 0, t1x = 0, t1y = 0, t2x = 0, t2y = 0, t3x = 0, t3y = 0, minY = 0, imgHeight = 0;
         if (hasAtlas) {
-            minY = this._atlasTexCoords[1];
-            imgHeight = this._atlasTexCoords[3] - minY;
-            t0x = this._atlasTexCoords[4];
-            t0y = this._atlasTexCoords[5];
-            t1x = this._atlasTexCoords[2];
-            t1y = this._atlasTexCoords[3];
-            t2x = this._atlasTexCoords[8];
-            t2y = this._atlasTexCoords[9];
-            t3x = this._atlasTexCoords[0];
-            t3y = this._atlasTexCoords[1];
+            minY = atlas[1];
+            imgHeight = atlas[3] - minY;
+            t0x = atlas[4];
+            t0y = atlas[5];
+            t1x = atlas[2];
+            t1y = atlas[3];
+            t2x = atlas[8];
+            t2y = atlas[9];
+            t3x = atlas[0];
+            t3y = atlas[1];
             if (segIndex > 0) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
         } else if (segIndex > 0) {
             outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -2513,18 +2583,13 @@ class Polyline {
 
         //
         // textures block
-        const hasAtlas = this._atlasTexCoords && this._atlasTexCoords.length > 0;
+        const atlas = this._getAtlasTexCoordsForSegment(multiLineIndex);
         const tcArr = this._texCoordArr as Float32Array;
         const tcBase = oldAttrCapGroup * 16;
         let tcBlock: Float32Array;
-        if (hasAtlas) {
-            const minY = this._atlasTexCoords[1];
-            const imgHeight = this._atlasTexCoords[3] - minY;
-            const t0x = this._atlasTexCoords[4], t0y = this._atlasTexCoords[5];
-            const t1x = this._atlasTexCoords[2], t1y = this._atlasTexCoords[3];
-            const t2x = this._atlasTexCoords[8], t2y = this._atlasTexCoords[9];
-            const t3x = this._atlasTexCoords[0], t3y = this._atlasTexCoords[1];
-            tcBlock = new Float32Array([t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight]);
+        if (atlas) {
+            const minY = atlas[1], imgHeight = atlas[3] - minY;
+            tcBlock = new Float32Array([atlas[4], atlas[5], minY, imgHeight, atlas[2], atlas[3], minY, imgHeight, atlas[8], atlas[9], minY, imgHeight, atlas[0], atlas[1], minY, imgHeight]);
         } else {
             tcBlock = new Float32Array(16);
         }
