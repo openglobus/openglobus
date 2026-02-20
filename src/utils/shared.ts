@@ -816,6 +816,18 @@ export function concatTypedArrays(a: TypedArray, b: TypedArray | number[]): Type
     return c;
 }
 
+export function insertTypedArray<T extends TypedArray>(arr: T, starting: number, insert: T | number[]): T {
+    if (insert.length === 0) return arr;
+    if (starting < 0) starting = 0;
+    if (starting > arr.length) starting = arr.length;
+
+    const out = new (arr as any).constructor(arr.length + insert.length) as T; //hacky
+    if (starting > 0) out.set(arr.subarray(0, starting), 0);
+    out.set(insert as any, starting);
+    if (starting < arr.length) out.set(arr.subarray(starting), starting + insert.length);
+    return out;
+}
+
 /**
  * Concatenates two the same  arrays
  * @param {TypedArray | number[]} [a=[]] - First array

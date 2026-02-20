@@ -25,8 +25,8 @@ class MyScene extends RenderNode {
 
         let e1 = new Entity({
             polyline: {
-                path3v: [[[1, 0, 1], [3, 5, 3], [0, 10, 0]], [[0, 0, 0], [10, 10, 10]]],
-                thickness: 1.5,
+                path3v: [[[5, 0, 5], [5, 5, 5]], [[-5, 0, -5], [-5, 5, -5]]],
+                thickness: 2.5,
                 src: "./template3.png",
                 isClosed: false
             }
@@ -34,9 +34,10 @@ class MyScene extends RenderNode {
 
         let e2 = new Entity({
             polyline: {
-                path3v: [[[5, 0, 5], [5, 15, 5], [0, 15, 0], [5, 150, 5]]],
-                thickness: 3.5,
-                src: "./template2.png",
+                path3v: [[[10, 0, 10], [10, 15, 10], [0, 15, 0], [10, 25, 10]]],
+                thickness: 5.5,
+                //src: "./template2.png",
+                color: "white",
                 isClosed: false
             }
         });
@@ -60,7 +61,12 @@ renderer.addNodes([
 ]);
 
 function test(i = 0) {
-    collection.getEntities()[i].polyline.appendPath3v([[15, 10, 15], [15, 15, 15], [10, 15, 10], [15, 150, 15]]);
+    collection.getEntities()[i].polyline.appendPath3v([[15, 10, 15], [15, 15, 15], [10, 15, 10], [15, 50, 15]]);
+}
+
+function test2(i = 0, poi, segIndex) {
+    collection.getEntities()[i].polyline.addPoint3v(new Vec3(poi[0], poi[1], poi[2]), segIndex);
 }
 
 window.test = test;
+window.test2 = test2;

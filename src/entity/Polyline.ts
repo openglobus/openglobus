@@ -17,6 +17,7 @@ import {
     htmlColorToRgba,
     makeArray,
     makeArrayTyped,
+    insertTypedArray,
     spliceTypedArray
 } from "../utils/shared";
 import type {TypedArray} from "../utils/shared";
@@ -410,7 +411,8 @@ class Polyline {
         outTransformedPathMerc: LonLat[][],
         outExtent: Extent,
         outColors: number[],
-        outThickness: number[]
+        outThickness: number[],
+        outTexCoords: number[]
     ) {
         var index = 0;
 
@@ -500,6 +502,7 @@ class Polyline {
             if (j > 0) {
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
                 outThickness.push(thickness, thickness, thickness, thickness);
+                outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
             }
 
             outOrders.push(1, -1, 2, -2);
@@ -557,6 +560,7 @@ class Polyline {
 
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
                 outThickness.push(thickness, thickness, thickness, thickness);
+                outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
                 outOrders.push(1, -1, 2, -2);
                 outIndexes.push(index++, index++, index++, index++);
@@ -614,6 +618,7 @@ class Polyline {
 
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
             outThickness.push(thickness, thickness, thickness, thickness);
+            outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
             outOrders.push(1, -1, 2, -2);
 
@@ -642,7 +647,8 @@ class Polyline {
         ellipsoid: Ellipsoid | null,
         outTransformedPathLonLat: SegmentPathLonLatExt[],
         outTransformedPathMerc: LonLat[][],
-        outExtent: Extent
+        outExtent: Extent,
+        outTexCoords: number[]
     ) {
         var v_high = new Vec3(),
             v_low = new Vec3();
@@ -829,6 +835,21 @@ class Polyline {
         outThickness[ti + 2] = thickness;
         outThickness[ti + 3] = thickness;
 
+        const tcBase = outTexCoords.length - 16;
+        const hasAtlas = this._atlasTexCoords && this._atlasTexCoords.length > 0;
+        if (hasAtlas) {
+            const minY = this._atlasTexCoords![1];
+            const imgHeight = this._atlasTexCoords![3] - minY;
+            const t0x = this._atlasTexCoords![4], t0y = this._atlasTexCoords![5];
+            const t1x = this._atlasTexCoords![2], t1y = this._atlasTexCoords![3];
+            const t2x = this._atlasTexCoords![8], t2y = this._atlasTexCoords![9];
+            const t3x = this._atlasTexCoords![0], t3y = this._atlasTexCoords![1];
+            const tc = [t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight];
+            for (let k = 0; k < 16; k++) outTexCoords[tcBase + k] = tc[k];
+        } else {
+            for (let k = 0; k < 16; k++) outTexCoords[tcBase + k] = 0;
+        }
+
         outIndexes[ii] = index++;
         outIndexes[ii + 1] = index++;
         outIndexes[ii + 2] = index++;
@@ -865,6 +886,18 @@ class Polyline {
 
         outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
         outThickness.push(thickness, thickness, thickness, thickness);
+
+        if (hasAtlas) {
+            const minY = this._atlasTexCoords![1];
+            const imgHeight = this._atlasTexCoords![3] - minY;
+            const t0x = this._atlasTexCoords![4], t0y = this._atlasTexCoords![5];
+            const t1x = this._atlasTexCoords![2], t1y = this._atlasTexCoords![3];
+            const t2x = this._atlasTexCoords![8], t2y = this._atlasTexCoords![9];
+            const t3x = this._atlasTexCoords![0], t3y = this._atlasTexCoords![1];
+            outTexCoords.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
+        } else {
+            outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        }
 
         outOrders.push(1, -1, 2, -2);
     }
@@ -1774,6 +1807,45 @@ class Polyline {
         }
     }
 
+    protected _rebuildIndexes() {
+        const oldIdx = this._indexes as number[];
+        const is3vIndexFormat = oldIdx.length > 1 && oldIdx[0] === 0 && oldIdx[1] === 0;
+
+        const newIndexes: number[] = [];
+        let index = 0;
+
+        if (is3vIndexFormat) newIndexes.push(0, 0);
+        else newIndexes.push(0);
+
+        for (let j = 0; j < this._path3v.length; j++) {
+            const seg = this._path3v[j];
+            if (!seg || seg.length === 0) continue;
+
+            if (j > 0) {
+                if (is3vIndexFormat) newIndexes.push(index, index);
+                else newIndexes.push(index);
+            }
+
+            const startIndex = index;
+            for (let i = 0; i < seg.length; i++) {
+                newIndexes.push(index++, index++, index++, index++);
+            }
+
+            if (this._closedLine) {
+                newIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+            } else {
+                newIndexes.push(index - 1, index - 1, index - 1, index - 1);
+            }
+
+            if (j < this._path3v.length - 1 && this._path3v[j + 1].length !== 0) {
+                index += 8;
+                newIndexes.push(index, index);
+            }
+        }
+
+        this._indexes = newIndexes;
+    }
+
     /**
      * Remove multiline path segment
      * @param {number} index - Segment index in multiline
@@ -1844,40 +1916,7 @@ class Polyline {
             this._texCoordArr = spliceTypedArray(this._texCoordArr as TypedArray, 0, 16);
         }
 
-        const oldIdx = this._indexes as number[];
-        const is3vIndexFormat = oldIdx.length > 1 && oldIdx[0] === 0 && oldIdx[1] === 0;
-
-        const newIndexes: number[] = [];
-        let vi = 0;
-
-        if (is3vIndexFormat) {
-            newIndexes.push(0, 0);
-        } else {
-            newIndexes.push(0);
-        }
-
-        for (let j = 0; j < this._path3v.length; j++) {
-            const seg = this._path3v[j];
-            if (!seg || seg.length === 0) continue;
-
-            const startIndex = vi;
-            for (let i = 0; i < seg.length; i++) {
-                newIndexes.push(vi++, vi++, vi++, vi++);
-            }
-
-            if (this._closedLine) {
-                newIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
-            } else {
-                newIndexes.push(vi - 1, vi - 1, vi - 1, vi - 1);
-            }
-
-            if (j < this._path3v.length - 1 && this._path3v[j + 1].length !== 0) {
-                vi += 8;
-                newIndexes.push(vi, vi);
-            }
-        }
-
-        this._indexes = newIndexes;
+        this._rebuildIndexes();
 
         this._changedBuffers[VERTICES_BUFFER] = true;
         this._changedBuffers[INDEX_BUFFER] = true;
@@ -1886,12 +1925,12 @@ class Polyline {
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
-    public appendPath3v(path3v: SegmentPath3vExt) {
+    public appendPath3v(path3v: SegmentPath3vExt, pathColors?: NumberArray4[]) {
         if (!path3v || path3v.length === 0) return;
 
         const segIndex = this._path3v.length;
         this._path3v.push(path3v);
-        this._pathColors[segIndex] = this._pathColors[segIndex] || [];
+        this._pathColors[segIndex] = pathColors && pathColors.length ? pathColors : (this._pathColors[segIndex] || []);
         this._segmentThickness[segIndex] = this._segmentThickness[segIndex] ?? this._thickness;
 
         this._pathLengths.length = this._path3v.length + 1;
@@ -1965,12 +2004,16 @@ class Polyline {
         if (hasAtlas) {
             minY = this._atlasTexCoords[1];
             imgHeight = this._atlasTexCoords[3] - minY;
-            t0x = this._atlasTexCoords[4]; t0y = this._atlasTexCoords[5];
-            t1x = this._atlasTexCoords[2]; t1y = this._atlasTexCoords[3];
-            t2x = this._atlasTexCoords[8]; t2y = this._atlasTexCoords[9];
-            t3x = this._atlasTexCoords[0]; t3y = this._atlasTexCoords[1];
+            t0x = this._atlasTexCoords[4];
+            t0y = this._atlasTexCoords[5];
+            t1x = this._atlasTexCoords[2];
+            t1y = this._atlasTexCoords[3];
+            t2x = this._atlasTexCoords[8];
+            t2y = this._atlasTexCoords[9];
+            t3x = this._atlasTexCoords[0];
+            t3y = this._atlasTexCoords[1];
             if (segIndex > 0) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
-        } else if (segIndex > 0 && outTC.length) {
+        } else if (segIndex > 0) {
             outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         }
 
@@ -1994,7 +2037,10 @@ class Polyline {
             }
 
             if (segColors && segColors[i]) color = segColors[i];
-            r = color[R]; g = color[G]; b = color[B]; a = color[A] != undefined ? color[A] : 1.0;
+            r = color[R];
+            g = color[G];
+            b = color[B];
+            a = color[A] != undefined ? color[A] : 1.0;
 
             this.__doubleToTwoFloats(cur, v_high, v_low);
             outVH.push(v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z);
@@ -2004,7 +2050,7 @@ class Polyline {
             outT.push(thickness, thickness, thickness, thickness);
 
             if (hasAtlas) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
-            else if (outTC.length) outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            else outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
             outO.push(1, -1, 2, -2);
             outI.push(index++, index++, index++, index++);
@@ -2025,7 +2071,10 @@ class Polyline {
         }
 
         if (segColors && segColors[path3v.length - 1]) color = segColors[path3v.length - 1];
-        r = color[R]; g = color[G]; b = color[B]; a = color[A] != undefined ? color[A] : 1.0;
+        r = color[R];
+        g = color[G];
+        b = color[B];
+        a = color[A] != undefined ? color[A] : 1.0;
 
         this.__doubleToTwoFloats(first, v_high, v_low);
         outVH.push(v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z);
@@ -2035,7 +2084,7 @@ class Polyline {
         outT.push(thickness, thickness, thickness, thickness);
 
         if (hasAtlas) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
-        else if (outTC.length) outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        else outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
         outO.push(1, -1, 2, -2);
 
@@ -2133,12 +2182,16 @@ class Polyline {
         if (hasAtlas) {
             minY = this._atlasTexCoords[1];
             imgHeight = this._atlasTexCoords[3] - minY;
-            t0x = this._atlasTexCoords[4]; t0y = this._atlasTexCoords[5];
-            t1x = this._atlasTexCoords[2]; t1y = this._atlasTexCoords[3];
-            t2x = this._atlasTexCoords[8]; t2y = this._atlasTexCoords[9];
-            t3x = this._atlasTexCoords[0]; t3y = this._atlasTexCoords[1];
+            t0x = this._atlasTexCoords[4];
+            t0y = this._atlasTexCoords[5];
+            t1x = this._atlasTexCoords[2];
+            t1y = this._atlasTexCoords[3];
+            t2x = this._atlasTexCoords[8];
+            t2y = this._atlasTexCoords[9];
+            t3x = this._atlasTexCoords[0];
+            t3y = this._atlasTexCoords[1];
             if (segIndex > 0) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
-        } else if (segIndex > 0 && outTC.length) {
+        } else if (segIndex > 0) {
             outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         }
 
@@ -2158,7 +2211,10 @@ class Polyline {
             if (ll.lat > this._extent.northEast.lat) this._extent.northEast.lat = ll.lat;
 
             if (segColors && segColors[i]) color = segColors[i];
-            r = color[R]; g = color[G]; b = color[B]; a = color[A] != undefined ? color[A] : 1.0;
+            r = color[R];
+            g = color[G];
+            b = color[B];
+            a = color[A] != undefined ? color[A] : 1.0;
 
             this.__doubleToTwoFloats(cart, v_high, v_low);
             outVH.push(v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z);
@@ -2168,7 +2224,7 @@ class Polyline {
             outT.push(thickness, thickness, thickness, thickness);
 
             if (hasAtlas) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
-            else if (outTC.length) outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            else outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
             outO.push(1, -1, 2, -2);
             outI.push(index++, index++, index++, index++);
@@ -2192,7 +2248,10 @@ class Polyline {
         }
 
         if (segColors && segColors[pathLonLat.length - 1]) color = segColors[pathLonLat.length - 1];
-        r = color[R]; g = color[G]; b = color[B]; a = color[A] != undefined ? color[A] : 1.0;
+        r = color[R];
+        g = color[G];
+        b = color[B];
+        a = color[A] != undefined ? color[A] : 1.0;
 
         this.__doubleToTwoFloats(first, v_high, v_low);
         outVH.push(v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z);
@@ -2202,7 +2261,7 @@ class Polyline {
         outT.push(thickness, thickness, thickness, thickness);
 
         if (hasAtlas) outTC.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
-        else if (outTC.length) outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        else outTC.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
         outO.push(1, -1, 2, -2);
 
@@ -2276,6 +2335,7 @@ class Polyline {
             this._thicknessArr = makeArray(this._thicknessArr);
             this._orders = makeArray(this._orders);
             this._indexes = makeArray(this._indexes);
+            this._texCoordArr = makeArray(this._texCoordArr);
 
             this.__appendPoint3v(
                 this._path3v,
@@ -2292,7 +2352,8 @@ class Polyline {
                 !skipEllipsoid ? (this._renderNode as Planet).ellipsoid : null,
                 this._pathLonLat,
                 this._pathLonLatMerc,
-                this._extent
+                this._extent,
+                this._texCoordArr as number[]
             );
 
             this._pathLengths[this._path3v.length] += 1;
@@ -2301,6 +2362,7 @@ class Polyline {
             this._changedBuffers[COLORS_BUFFER] = true;
             this._changedBuffers[INDEX_BUFFER] = true;
             this._changedBuffers[THICKNESS_BUFFER] = true;
+            this._changedBuffers[TEXCOORD_BUFFER] = true;
         }
     }
 
@@ -2309,16 +2371,173 @@ class Polyline {
      * @public
      * @param {Vec3} point3v - New point coordinates.
      * @param {number} [multiLineIndex=0] - Path segment index, first by default.
+     * @param {NumberArray4} [color] - Point color
      */
-    public addPoint3v(point3v: Vec3, multiLineIndex: number = 0) {
-        //
-        // TODO: could be optimized
-        //
-        if (multiLineIndex >= this._path3v.length) {
-            this._path3v.push([]);
+    public addPoint3v(point3v: Vec3, multiLineIndex: number = 0, color?: NumberArray4) {
+        if (multiLineIndex < 0) return;
+
+        if (!this._renderNode) {
+            while (multiLineIndex >= this._path3v.length) {
+                this._path3v.push([]);
+            }
+            this._path3v[multiLineIndex].push(point3v);
+            if (!this._pathColors[multiLineIndex]) {
+                this._pathColors[multiLineIndex] = [];
+            }
+            this._pathColors[multiLineIndex].push(color || this._defaultColor as NumberArray4);
+            this._segmentThickness[multiLineIndex] = this._segmentThickness[multiLineIndex] || this._thickness;
+            this._pathLengths.length = this._path3v.length + 1;
+            this._resizePathLengths(0);
+            return;
         }
-        this._path3v[multiLineIndex].push(point3v);
-        this.setPath3v(([] as SegmentPath3vExt[]).concat(this._path3v));
+
+        if (multiLineIndex >= this._path3v.length) {
+            this.appendPath3v([point3v], color ? [color] : undefined);
+            return;
+        }
+
+        if (multiLineIndex === this._path3v.length - 1) {
+            this.appendPoint3v(point3v, color);
+            return;
+        }
+
+        const segIndex = multiLineIndex;
+        const seg = this._path3v[segIndex] as Vec3[];
+        const oldLen = seg.length;
+        const pointsBefore = this._pathLengths[segIndex];
+
+        seg.push(point3v);
+
+        const segColors = this._pathColors[segIndex] || (this._pathColors[segIndex] = []);
+        segColors.push(color || this._defaultColor as NumberArray4);
+
+        const ellipsoid = (this._renderNode as Planet).ellipsoid;
+        if (ellipsoid) {
+            const lonLat = ellipsoid.cartesianToLonLat(point3v);
+            this._pathLonLat[segIndex] && this._pathLonLat[segIndex].push(lonLat);
+            this._pathLonLatMerc[segIndex] && this._pathLonLatMerc[segIndex].push(lonLat.forwardMercator());
+
+            if (lonLat.lon < this._extent.southWest.lon) this._extent.southWest.lon = lonLat.lon;
+            if (lonLat.lat < this._extent.southWest.lat) this._extent.southWest.lat = lonLat.lat;
+            if (lonLat.lon > this._extent.northEast.lon) this._extent.northEast.lon = lonLat.lon;
+            if (lonLat.lat > this._extent.northEast.lat) this._extent.northEast.lat = lonLat.lat;
+        }
+
+        // update pathLengths tail (+1 from segIndex+1)
+        for (let i = segIndex + 1; i < this._pathLengths.length; i++) {
+            this._pathLengths[i] += 1;
+        }
+
+        this._verticesHigh = makeArrayTyped(this._verticesHigh);
+        this._verticesLow = makeArrayTyped(this._verticesLow);
+        this._orders = makeArrayTyped(this._orders);
+        this._colors = makeArrayTyped(this._colors);
+        this._thicknessArr = makeArrayTyped(this._thicknessArr);
+        this._texCoordArr = makeArrayTyped(this._texCoordArr);
+
+        const vertexGroupStart = pointsBefore + 2 * segIndex;
+        const oldCapGroup = vertexGroupStart + oldLen + 1;
+        const insertGroup = oldCapGroup + 1;
+
+        const v_high = new Vec3(), v_low = new Vec3();
+
+        // overwrite old cap with new point
+        this.__doubleToTwoFloats(point3v, v_high, v_low);
+        const vh = this._verticesHigh as Float32Array;
+        const vl = this._verticesLow as Float32Array;
+        const vBase = oldCapGroup * 12;
+
+        for (let k = 0; k < 12; k += 3) {
+            vh[vBase + k] = v_high.x;
+            vh[vBase + k + 1] = v_high.y;
+            vh[vBase + k + 2] = v_high.z;
+            vl[vBase + k] = v_low.x;
+            vl[vBase + k + 1] = v_low.y;
+            vl[vBase + k + 2] = v_low.z;
+        }
+
+        // compute new cap
+        let cap: Vec3;
+        if (this._closedLine) {
+            cap = seg[0];
+        } else {
+            const p0 = seg[seg.length - 1];
+            const p1 = seg[seg.length - 2] || p0;
+            cap = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+        }
+
+        this.__doubleToTwoFloats(cap, v_high, v_low);
+        const capBlock = new Float32Array([
+            v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z
+        ]);
+        const capBlockL = new Float32Array([
+            v_low.x, v_low.y, v_low.z, v_low.x, v_low.y, v_low.z, v_low.x, v_low.y, v_low.z, v_low.x, v_low.y, v_low.z
+        ]);
+
+        this._verticesHigh = insertTypedArray(this._verticesHigh as Float32Array, insertGroup * 12, capBlock);
+        this._verticesLow = insertTypedArray(this._verticesLow as Float32Array, insertGroup * 12, capBlockL);
+
+        const orderBlock = new Float32Array([1, -1, 2, -2]);
+        this._orders = insertTypedArray(this._orders as Float32Array, insertGroup * 4, orderBlock);
+
+        // overwrite cap group then insert new cap group
+        const attrGroupStart = pointsBefore + (segIndex === 0 ? 0 : 2 * segIndex - 1);
+        const oldAttrGroups = oldLen + (segIndex === 0 ? 1 : 2);
+        const oldAttrCapGroup = attrGroupStart + oldAttrGroups - 1;
+        const insertAttrGroup = oldAttrCapGroup + 1;
+
+        //
+        // thickness block
+        const thickness = this._segmentThickness[segIndex] ?? this._thickness;
+        const tArr = this._thicknessArr as Float32Array;
+        const tBase = oldAttrCapGroup * 4;
+        tArr[tBase] = tArr[tBase + 1] = tArr[tBase + 2] = tArr[tBase + 3] = thickness;
+        this._thicknessArr = insertTypedArray(this._thicknessArr as Float32Array, insertAttrGroup * 4, new Float32Array([thickness, thickness, thickness, thickness]));
+
+        //
+        // colors block
+        const cArr = this._colors as Float32Array;
+        const cBase = oldAttrCapGroup * 16;
+        const cc: any = segColors[segColors.length - 1] || (this._defaultColor as any);
+        const cr = cc[R], cg = cc[G], cb = cc[B], ca = cc[A] != undefined ? cc[A] : 1.0;
+
+        for (let k = 0; k < 16; k += 4) {
+            cArr[cBase + k] = cr;
+            cArr[cBase + k + 1] = cg;
+            cArr[cBase + k + 2] = cb;
+            cArr[cBase + k + 3] = ca;
+        }
+
+        const cBlock = new Float32Array([cr, cg, cb, ca, cr, cg, cb, ca, cr, cg, cb, ca, cr, cg, cb, ca]);
+        this._colors = insertTypedArray(this._colors as Float32Array, insertAttrGroup * 16, cBlock);
+
+        //
+        // textures block
+        const hasAtlas = this._atlasTexCoords && this._atlasTexCoords.length > 0;
+        const tcArr = this._texCoordArr as Float32Array;
+        const tcBase = oldAttrCapGroup * 16;
+        let tcBlock: Float32Array;
+        if (hasAtlas) {
+            const minY = this._atlasTexCoords[1];
+            const imgHeight = this._atlasTexCoords[3] - minY;
+            const t0x = this._atlasTexCoords[4], t0y = this._atlasTexCoords[5];
+            const t1x = this._atlasTexCoords[2], t1y = this._atlasTexCoords[3];
+            const t2x = this._atlasTexCoords[8], t2y = this._atlasTexCoords[9];
+            const t3x = this._atlasTexCoords[0], t3y = this._atlasTexCoords[1];
+            tcBlock = new Float32Array([t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight]);
+        } else {
+            tcBlock = new Float32Array(16);
+        }
+        tcArr.set(tcBlock, tcBase);
+        this._texCoordArr = insertTypedArray(this._texCoordArr as Float32Array, insertAttrGroup * 16, tcBlock);
+
+        this._rebuildIndexes();
+
+        this._changedBuffers[VERTICES_BUFFER] = true;
+        this._changedBuffers[INDEX_BUFFER] = true;
+        this._changedBuffers[COLORS_BUFFER] = true;
+        this._changedBuffers[THICKNESS_BUFFER] = true;
+        this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
     /**
@@ -2424,39 +2643,36 @@ class Polyline {
      * Sets Polyline thickness in screen pixels.
      * @public
      * @param {number} thickness - Thickness.
+     * @param {number} [segmentIndex] - Segment index. If not set, applies to the last segment.
      */
     public setThickness(thickness: number): void;
-    public setThickness(segmentIndex: number, thickness: number): void;
-    public setThickness(a: number, b?: number): void {
-        if (b === undefined) {
-            this._thickness = a;
-            for (let i = 0; i < this._path3v.length; i++) {
-                if (this._segmentThickness[i] == undefined) this._segmentThickness[i] = a;
-                this._segmentThickness[i] = a;
+    public setThickness(thickness: number, segmentIndex: number): void;
+    public setThickness(thickness: number, segmentIndex?: number): void {
+
+        const segIndex = segmentIndex !== undefined ? segmentIndex : Math.max(0, this._path3v.length - 1);
+
+        if (this._path3v.length === 0) {
+            this._thickness = thickness;
+            return;
+        }
+
+        if (segIndex < 0 || segIndex >= this._path3v.length) return;
+
+        this._segmentThickness[segIndex] = thickness;
+
+        if (this._renderNode) {
+
+            const groupsBefore = segIndex === 0 ? 0 : (this._pathLengths[segIndex] + 2 * segIndex - 1);
+            const groupsCount = this._path3v[segIndex].length + 1 + (segIndex > 0 ? 1 : 0);
+            const start = groupsBefore * 4;
+            const end = (groupsBefore + groupsCount) * 4;
+            const ta = this._thicknessArr as TypedArray;
+
+            for (let i = start; i < end; i++) {
+                ta[i] = thickness;
             }
 
-            if (this._renderNode) {
-                const ta = this._thicknessArr as TypedArray;
-                for (let i = 0; i < ta.length; i++) ta[i] = a;
-                this._changedBuffers[THICKNESS_BUFFER] = true;
-            }
-            return;
-        } else {
-            if (a < 0 || a >= this._path3v.length) {
-                return;
-            }
-            this._segmentThickness[a] = b;
-
-            if (this._renderNode) {
-                const groupsBefore = a === 0 ? 0 : (this._pathLengths[a] + 2 * a - 1);
-                const groupsCount = this._path3v[a].length + 1 + (a > 0 ? 1 : 0);
-                const start = groupsBefore * 4;
-                const end = (groupsBefore + groupsCount) * 4;
-                const ta = this._thicknessArr as TypedArray;
-                for (let i = start; i < end; i++) ta[i] = b;
-                this._changedBuffers[THICKNESS_BUFFER] = true;
-            }
-            return;
+            this._changedBuffers[THICKNESS_BUFFER] = true;
         }
     }
 
@@ -2557,7 +2773,8 @@ class Polyline {
             this._pathLonLatMerc,
             this._extent,
             this._colors as number[],
-            this._thicknessArr as number[]
+            this._thicknessArr as number[],
+            this._texCoordArr as number[]
         );
         this._resizePathLengths(0);
     }
@@ -2776,6 +2993,7 @@ class Polyline {
                 this._changedBuffers[INDEX_BUFFER] = true;
                 this._changedBuffers[COLORS_BUFFER] = true;
                 this._changedBuffers[THICKNESS_BUFFER] = true;
+                this._changedBuffers[TEXCOORD_BUFFER] = true;
             }
         } else {
             this._path3v = ([] as SegmentPath3vExt[]).concat(path3v);
