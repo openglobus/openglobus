@@ -36,11 +36,12 @@ for (let i = -90; i < 90; i += 10) {
 }
 
 var collection = new Vector("Collection", {
+    pickingEnabled: true,
     'entities':
         [{
             'polyline': {
                 'pathLonLat': grid,
-                'thickness': 2.5,
+                'thickness': 12.5,
                 'color': "rgba(68, 157, 205, 0.92)"
             }
         }]

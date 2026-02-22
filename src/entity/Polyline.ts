@@ -1199,6 +1199,7 @@ class Polyline {
         for (let j = 0, len = pathLonLat.length; j < len; j++) {
             var path = pathLonLat[j],
                 pathColors_j = pathColors[j];
+            const pathPickingColors_j = pathPickingColors[j];
 
             outTransformedPathCartesian[j] = [];
             outTransformedPathMerc[j] = [];
@@ -1267,6 +1268,8 @@ class Polyline {
                 g = color[G],
                 b = color[B],
                 a = color[A] != undefined ? color[A] : 1.0;
+            let pickingColor: any = (pathPickingColors_j && pathPickingColors_j[0]) ? pathPickingColors_j[0] : (this._pickingColor as any);
+            let pr = pickingColor[R], pg = pickingColor[G], pb = pickingColor[B];
 
             let thickness = this._segmentThickness[j];
             if (thickness == undefined) {
@@ -1277,6 +1280,7 @@ class Polyline {
             if (j > 0) {
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
                 outThickness.push(thickness, thickness, thickness, thickness);
+                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
             }
 
             outOrders.push(1, -1, 2, -2);
@@ -1292,11 +1296,17 @@ class Polyline {
                 if (pathColors_j && pathColors_j[i]) {
                     color = pathColors_j[i];
                 }
+                if (pathPickingColors_j && pathPickingColors_j[i]) {
+                    pickingColor = pathPickingColors_j[i];
+                }
 
                 r = color[R];
                 g = color[G];
                 b = color[B];
                 a = color[A] != undefined ? color[A] : 1.0;
+                pr = pickingColor[R];
+                pg = pickingColor[G];
+                pb = pickingColor[B];
 
                 var cartesian = ellipsoid.lonLatToCartesian(cur as LonLat);
                 outTransformedPathCartesian[j].push(cartesian);
@@ -1319,6 +1329,7 @@ class Polyline {
 
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
                 outThickness.push(thickness, thickness, thickness, thickness);
+                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
 
                 outOrders.push(1, -1, 2, -2);
                 outIndexes.push(index++, index++, index++, index++);
@@ -1374,11 +1385,17 @@ class Polyline {
             if (pathColors_j && pathColors_j[path.length - 1]) {
                 color = pathColors_j[path.length - 1];
             }
+            if (pathPickingColors_j && pathPickingColors_j[path.length - 1]) {
+                pickingColor = pathPickingColors_j[path.length - 1];
+            }
 
             r = color[R];
             g = color[G];
             b = color[B];
             a = color[A] != undefined ? color[A] : 1.0;
+            pr = pickingColor[R];
+            pg = pickingColor[G];
+            pb = pickingColor[B];
 
             this.__doubleToTwoFloats(first, v_high, v_low);
             outVerticesHigh.push(
@@ -1396,6 +1413,7 @@ class Polyline {
 
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
             outThickness.push(thickness, thickness, thickness, thickness);
+            outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
 
             outOrders.push(1, -1, 2, -2);
             outTexCoords.push(0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0);
