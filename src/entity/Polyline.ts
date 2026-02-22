@@ -1846,6 +1846,129 @@ class Polyline {
         }
     }
 
+    /**
+     * Sets one polyline segment with geodetic coordinates.
+     * @protected
+     * @param {SegmentPathLonLatExt} pathLonLat - Geodetic coordinates for one segment.
+     * @param {number} segmentIndex - Segment index to update.
+     */
+    protected _setSegmentEqualLonLat(pathLonLat: SegmentPathLonLatExt, segmentIndex: number) {
+        const path = pathLonLat as SegmentPathLonLat;
+        const targetPathLonLat = this._pathLonLat[segmentIndex] as SegmentPathLonLat;
+        const targetPath3v = this._path3v[segmentIndex] as SegmentPath3v;
+        if (!path || !targetPathLonLat || !targetPath3v || !path.length || path.length !== targetPathLonLat.length || path.length !== targetPath3v.length) return;
+
+        const ellipsoid = (this._renderNode as Planet).ellipsoid;
+        const v_high = new Vec3();
+        const v_low = new Vec3();
+        const vh = this._verticesHigh;
+        const vl = this._verticesLow;
+        const l = this._pathLonLat;
+        const m = this._pathLonLatMerc;
+        const c = this._path3v;
+        const k0 = this._pathLengths[segmentIndex] * 12 + 24 * segmentIndex;
+        let k = k0;
+
+        const p0 = ellipsoid.lonLatToCartesian(path[0]);
+        const p1 = ellipsoid.lonLatToCartesian(path[1] || path[0]);
+        const last = this._closedLine
+            ? ellipsoid.lonLatToCartesian(path[path.length - 1])
+            : new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+
+        this.__doubleToTwoFloats(last, v_high, v_low);
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+
+        for (let i = 0; i < path.length; i++) {
+            const cur = path[i] as LonLat;
+            const cartesian = ellipsoid.lonLatToCartesian(cur);
+
+            l[segmentIndex][i] = cur;
+            m[segmentIndex][i] = cur.forwardMercator();
+            c[segmentIndex][i] = cartesian;
+
+            this.__doubleToTwoFloats(cartesian, v_high, v_low);
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+        }
+
+        const lp0 = ellipsoid.lonLatToCartesian(path[path.length - 1]);
+        const lp1 = ellipsoid.lonLatToCartesian(path[path.length - 2] || path[path.length - 1]);
+        const first = this._closedLine
+            ? ellipsoid.lonLatToCartesian(path[0])
+            : new Vec3(lp0.x + lp0.x - lp1.x, lp0.y + lp0.y - lp1.y, lp0.z + lp0.z - lp1.z);
+
+        this.__doubleToTwoFloats(first, v_high, v_low);
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+    }
+
     public setPointLonLat(lonlat: LonLat, index: number, segmentIndex: number) {
         if (this._renderNode && (this._renderNode as Planet).ellipsoid) {
             let l = this._pathLonLat,
@@ -2788,11 +2911,6 @@ class Polyline {
             return;
         }
 
-        // if (segmentIndex === this._path3v.length - 1) {
-        //     this.appendPoint3v(point3v, color);
-        //     return;
-        // }
-
         const segIndex = segmentIndex;
         const seg = this._path3v[segIndex] as Vec3[];
         const oldLen = seg.length;
@@ -3006,11 +3124,6 @@ class Polyline {
 
             let c = this._colors;
 
-            //optimized with this._pathLengths
-            //for (let i = 0; i < segmentIndex; i++) {
-            //    kk += this._path3v[i].length * 16 + 32;
-            //}
-
             let k = index * 16 + this._pathLengths[segmentIndex] * 16 + 32 * segmentIndex;
 
             c[k] = c[k + 4] = c[k + 8] = c[k + 12] = color[R];
@@ -3087,15 +3200,6 @@ class Polyline {
             this._changedBuffers[THICKNESS_BUFFER] = true;
         }
     }
-
-    // /**
-    //  * Returns thickness.
-    //  * @public
-    //  * @return {number} Thickness in screen pixels.
-    //  */
-    // public getThickness(): number {
-    //     return this._thickness;
-    // }
 
     /**
      * Sets visibility.
@@ -3375,7 +3479,6 @@ class Polyline {
                 this._defaultColor as NumberArray4,
                 this._colors
             );
-            // Mark the colors buffer as changed
             this._changedBuffers[COLORS_BUFFER] = true;
         }
     }
@@ -3411,12 +3514,12 @@ class Polyline {
         this._changedBuffers[COLORS_BUFFER] = true;
     }
 
-    public setPathLonLatFast(pathLonLat: SegmentPathLonLatExt[], pathColors?: SegmentPathColor[]) {
-        this.setPathLonLat(pathLonLat, pathColors, true);
+    public setPathLonLatFast(pathLonLat: SegmentPathLonLatExt[]) {
+        this.setPathLonLat(pathLonLat, undefined, true);
     }
 
-    public setPath3vFast(path3v: SegmentPath3vExt[], pathColors?: SegmentPathColor[]) {
-        this.setPath3v(path3v, pathColors, true);
+    public setPath3vFast(path3v: SegmentPath3vExt[]) {
+        this.setPath3v(path3v, undefined, true);
     }
 
     /**
@@ -3426,7 +3529,9 @@ class Polyline {
      * @param {SegmentPathColor[]} pathColors - Polyline path points colors.
      * @param {Boolean} [forceEqual=false] - OPTIMIZATION FLAG: Makes assigning faster for size equal coordinates array.
      */
-    public setPathLonLat(pathLonLat: SegmentPathLonLatExt[], pathColors?: SegmentPathColor[], forceEqual: boolean = false) {
+    public setPathLonLat(pathLonLat: SegmentPathLonLatExt[], pathColors?: SegmentPathColor[], forceEqual?: boolean): void;
+    public setPathLonLat(pathLonLat: SegmentPathLonLatExt, pathColors?: SegmentPathColor[], forceEqual?: boolean, segmentIndex?: number): void;
+    public setPathLonLat(pathLonLat: SegmentPathLonLatExt[] | SegmentPathLonLatExt, pathColors?: SegmentPathColor[], forceEqual: boolean = false, segmentIndex?: number) {
 
         if (pathColors) {
             this._pathColors = ([] as SegmentPathColor[]).concat(pathColors);
@@ -3434,11 +3539,15 @@ class Polyline {
 
         if (this._renderNode && (this._renderNode as Planet).ellipsoid) {
             if (forceEqual) {
-                this._setEqualPathLonLat(pathLonLat as SegmentPathLonLat[]);
+                if (segmentIndex !== undefined) {
+                    this._setSegmentEqualLonLat(pathLonLat as SegmentPathLonLatExt, segmentIndex);
+                } else {
+                    this._setEqualPathLonLat(pathLonLat as SegmentPathLonLat[]);
+                }
                 this._changedBuffers[VERTICES_BUFFER] = true;
                 this._changedBuffers[COLORS_BUFFER] = true;
             } else {
-                this._createDataLonLat(pathLonLat);
+                this._createDataLonLat(pathLonLat as SegmentPathLonLatExt[]);
                 this._changedBuffers[VERTICES_BUFFER] = true;
                 this._changedBuffers[INDEX_BUFFER] = true;
                 this._changedBuffers[COLORS_BUFFER] = true;

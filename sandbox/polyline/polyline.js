@@ -94,7 +94,7 @@ function test_removePoint(i, index, segmentIndex) {
 }
 
 function test_setPoint3v(i, coords, index, segmentIndex) {
-    collection.getEntities()[i].polyline.setPoint3v(coords, index, segmentIndex);
+    collection.getEntities()[i].polyline.setPoint3v(new Vec3(coords[0], coords[1], coords[2]), index, segmentIndex);
 }
 
 // function test_start() {
