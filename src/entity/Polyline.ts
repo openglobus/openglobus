@@ -332,6 +332,14 @@ class Polyline {
         this._strokeSize = value;
     }
 
+    public setImage(image: HTMLImageElement) {
+        this.setSrc(image.src);
+    }
+
+    public getImage(): HTMLImageElementExt | (HTMLImageElementExt | null)[] | null {
+        return this._image;
+    }
+
     /**
      * Sets image template url source. string = all segments, array = per-segment (null/undefined = color-only).
      * @public
@@ -749,304 +757,304 @@ class Polyline {
         }
     }
 
-    /**
-     * Appends to the line new cartesian coordinates point data.
-     */
-    protected __appendPoint3v(
-        path3v: SegmentPath3vExt[],
-        point3v: Vec3,
-        pathColors: SegmentPathColor[],
-        pickingPathColors: NumberArray3[][],
-        color: NumberArray4,
-        isClosed: boolean,
-        outVerticesHigh: number[],
-        outVerticesLow: number[],
-        outColors: number[],
-        outThickness: number[],
-        outOrders: number[],
-        outIndexes: number[],
-        ellipsoid: Ellipsoid | null,
-        outTransformedPathLonLat: SegmentPathLonLatExt[],
-        outTransformedPathMerc: LonLat[][],
-        outExtent: Extent,
-        outTexCoords: number[],
-        outPickingColors: number[],
-    ) {
-        var v_high = new Vec3(),
-            v_low = new Vec3();
-
-        var ii = outIndexes.length - 4,
-            index = outIndexes[ii - 1] + 1;
-
-        if (path3v.length === 0) {
-            path3v.push([]);
-            if (!pathColors[0]) {
-                pathColors[0] = [];
-            }
-        } else if (!pathColors[path3v.length - 1]) {
-            pathColors[path3v.length - 1] = [];
-        }
-
-        var path = path3v[path3v.length - 1],
-            len = path.length;
-
-        path.push(point3v);
-
-        let r = color[R],
-            g = color[G],
-            b = color[B],
-            a = color[A] != undefined ? color[A] : 1.0,
-            pathColors_last = pathColors[path3v.length - 1];
-
-        if (pathColors_last[len]) {
-            pathColors_last[len][R] = r;
-            pathColors_last[len][G] = g;
-            pathColors_last[len][B] = b;
-            pathColors_last[len][A] = a;
-        } else {
-            pathColors_last.push(color);
-        }
-
-        if (len === 1) {
-            var last;
-            if (isClosed) {
-                last = path[len - 1];
-                if (last instanceof Array) {
-                    last = new Vec3(last[0], last[1], last[2]);
-                }
-            } else {
-                let p0 = path[0],
-                    p1 = path[1] || p0;
-
-                if (p0 instanceof Array) {
-                    p0 = new Vec3(p0[0], p0[1], p0[2]);
-                } else {
-                    p0 = p0 as Vec3;
-                }
-
-                if (p1 instanceof Array) {
-                    p1 = new Vec3(p1[0], p1[1], p1[2]);
-                } else {
-                    p1 = p1 as Vec3;
-                }
-
-                last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
-            }
-
-            this.__doubleToTwoFloats(last as Vec3, v_high, v_low);
-
-            let vi = outVerticesHigh.length - 3 * 12;
-
-            outVerticesHigh[vi] = v_high.x;
-            outVerticesHigh[vi + 1] = v_high.y;
-            outVerticesHigh[vi + 2] = v_high.z;
-            outVerticesHigh[vi + 3] = v_high.x;
-            outVerticesHigh[vi + 4] = v_high.y;
-            outVerticesHigh[vi + 5] = v_high.z;
-            outVerticesHigh[vi + 6] = v_high.x;
-            outVerticesHigh[vi + 7] = v_high.y;
-            outVerticesHigh[vi + 8] = v_high.z;
-            outVerticesHigh[vi + 9] = v_high.x;
-            outVerticesHigh[vi + 10] = v_high.y;
-            outVerticesHigh[vi + 11] = v_high.z;
-
-            outVerticesLow[vi] = v_low.x;
-            outVerticesLow[vi + 1] = v_low.y;
-            outVerticesLow[vi + 2] = v_low.z;
-            outVerticesLow[vi + 3] = v_low.x;
-            outVerticesLow[vi + 4] = v_low.y;
-            outVerticesLow[vi + 5] = v_low.z;
-            outVerticesLow[vi + 6] = v_low.x;
-            outVerticesLow[vi + 7] = v_low.y;
-            outVerticesLow[vi + 8] = v_low.z;
-            outVerticesLow[vi + 9] = v_low.x;
-            outVerticesLow[vi + 10] = v_low.y;
-            outVerticesLow[vi + 11] = v_low.z;
-        }
-
-        var startIndex = index;
-
-        if (ellipsoid) {
-            if (outTransformedPathLonLat.length === 0) {
-                outTransformedPathLonLat.push([]);
-            }
-
-            if (outTransformedPathMerc.length === 0) {
-                outTransformedPathMerc.push([]);
-            }
-
-            var transformedPathLonLat = outTransformedPathLonLat[outTransformedPathLonLat.length - 1],
-                transformedPathMerc = outTransformedPathMerc[outTransformedPathMerc.length - 1];
-
-            let lonLat = ellipsoid.cartesianToLonLat(point3v);
-            transformedPathLonLat.push(lonLat);
-            transformedPathMerc.push(lonLat.forwardMercator());
-
-            if (lonLat.lon < outExtent.southWest.lon) {
-                outExtent.southWest.lon = lonLat.lon;
-            }
-            if (lonLat.lat < outExtent.southWest.lat) {
-                outExtent.southWest.lat = lonLat.lat;
-            }
-            if (lonLat.lon > outExtent.northEast.lon) {
-                outExtent.northEast.lon = lonLat.lon;
-            }
-            if (lonLat.lat > outExtent.northEast.lat) {
-                outExtent.northEast.lat = lonLat.lat;
-            }
-        }
-
-        this.__doubleToTwoFloats(point3v, v_high, v_low);
-
-        let vi = outVerticesHigh.length - 12;
-
-        outVerticesHigh[vi] = v_high.x;
-        outVerticesHigh[vi + 1] = v_high.y;
-        outVerticesHigh[vi + 2] = v_high.z;
-        outVerticesHigh[vi + 3] = v_high.x;
-        outVerticesHigh[vi + 4] = v_high.y;
-        outVerticesHigh[vi + 5] = v_high.z;
-        outVerticesHigh[vi + 6] = v_high.x;
-        outVerticesHigh[vi + 7] = v_high.y;
-        outVerticesHigh[vi + 8] = v_high.z;
-        outVerticesHigh[vi + 9] = v_high.x;
-        outVerticesHigh[vi + 10] = v_high.y;
-        outVerticesHigh[vi + 11] = v_high.z;
-
-        outVerticesLow[vi] = v_low.x;
-        outVerticesLow[vi + 1] = v_low.y;
-        outVerticesLow[vi + 2] = v_low.z;
-        outVerticesLow[vi + 3] = v_low.x;
-        outVerticesLow[vi + 4] = v_low.y;
-        outVerticesLow[vi + 5] = v_low.z;
-        outVerticesLow[vi + 6] = v_low.x;
-        outVerticesLow[vi + 7] = v_low.y;
-        outVerticesLow[vi + 8] = v_low.z;
-        outVerticesLow[vi + 9] = v_low.x;
-        outVerticesLow[vi + 10] = v_low.y;
-        outVerticesLow[vi + 11] = v_low.z;
-
-        let ci = outColors.length - 16;
-        let ti = outThickness.length - 4;
-
-        let thickness = this._segmentThickness[path3v.length - 1];
-        if (thickness == undefined) {
-            thickness = this._thickness;
-            this._segmentThickness[path3v.length - 1] = thickness;
-        }
-
-        outColors[ci] = r;
-        outColors[ci + 1] = g;
-        outColors[ci + 2] = b;
-        outColors[ci + 3] = a;
-        outColors[ci + 4] = r;
-        outColors[ci + 5] = g;
-        outColors[ci + 6] = b;
-        outColors[ci + 7] = a;
-        outColors[ci + 8] = r;
-        outColors[ci + 9] = g;
-        outColors[ci + 10] = b;
-        outColors[ci + 11] = a;
-        outColors[ci + 12] = r;
-        outColors[ci + 13] = g;
-        outColors[ci + 14] = b;
-        outColors[ci + 15] = a;
-
-        outThickness[ti] = thickness;
-        outThickness[ti + 1] = thickness;
-        outThickness[ti + 2] = thickness;
-        outThickness[ti + 3] = thickness;
-
-        const tcBase = outTexCoords.length - 16;
-        const atlas = this._getAtlasTexCoordsForSegment(path3v.length - 1);
-        if (atlas && atlas.length >= 10) {
-            const minY = atlas[1], imgHeight = atlas[3] - minY;
-            const tc = [atlas[4], atlas[5], minY, imgHeight, atlas[2], atlas[3], minY, imgHeight, atlas[8], atlas[9], minY, imgHeight, atlas[0], atlas[1], minY, imgHeight];
-            for (let k = 0; k < 16; k++) outTexCoords[tcBase + k] = tc[k];
-        } else {
-            for (let k = 0; k < 16; k++) outTexCoords[tcBase + k] = 0;
-        }
-
-        outIndexes[ii] = index++;
-        outIndexes[ii + 1] = index++;
-        outIndexes[ii + 2] = index++;
-        outIndexes[ii + 3] = index++;
-
-        //
-        // Close path
-        //
-        var first;
-        if (isClosed) {
-            first = path[0] as Vec3;
-            outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
-        } else {
-            let p0 = path[path.length - 1] as Vec3,
-                p1 = path[path.length - 2] as Vec3 || p0;
-
-            first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
-            outIndexes.push(index - 1, index - 1, index - 1, index - 1);
-        }
-
-        this.__doubleToTwoFloats(first, v_high, v_low);
-        outVerticesHigh.push(
-            v_high.x, v_high.y, v_high.z,
-            v_high.x, v_high.y, v_high.z,
-            v_high.x, v_high.y, v_high.z,
-            v_high.x, v_high.y, v_high.z
-        );
-        outVerticesLow.push(
-            v_low.x, v_low.y, v_low.z,
-            v_low.x, v_low.y, v_low.z,
-            v_low.x, v_low.y, v_low.z,
-            v_low.x, v_low.y, v_low.z
-        );
-
-        outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
-        outThickness.push(thickness, thickness, thickness, thickness);
-
-        const lastAtlas = this._getAtlasTexCoordsForSegment(path3v.length - 1);
-        if (lastAtlas && lastAtlas.length >= 10) {
-            const minY = lastAtlas[1], imgHeight = lastAtlas[3] - minY;
-            outTexCoords.push(lastAtlas[4], lastAtlas[5], minY, imgHeight, lastAtlas[2], lastAtlas[3], minY, imgHeight, lastAtlas[8], lastAtlas[9], minY, imgHeight, lastAtlas[0], lastAtlas[1], minY, imgHeight);
-        } else {
-            outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-        }
-
-        outOrders.push(1, -1, 2, -2);
-
-        // Keep picking colors synchronized with path vertices using pathPickingColors.
-        outPickingColors.length = 0;
-        for (let si = 0, slen = path3v.length; si < slen; si++) {
-            const seg = path3v[si];
-            if (!seg || seg.length === 0) continue;
-
-            const segPickingColors = pickingPathColors[si];
-            let p: any = (segPickingColors && segPickingColors[0]) ? segPickingColors[0] : (this._pickingColor as any);
-            let pr = p[R], pg = p[G], pb = p[B];
-
-            if (si > 0) {
-                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
-            }
-
-            for (let pi = 0, plen = seg.length; pi < plen; pi++) {
-                if (segPickingColors && segPickingColors[pi]) {
-                    p = segPickingColors[pi];
-                    pr = p[R];
-                    pg = p[G];
-                    pb = p[B];
-                }
-                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
-            }
-
-            if (segPickingColors && segPickingColors[seg.length - 1]) {
-                p = segPickingColors[seg.length - 1];
-                pr = p[R];
-                pg = p[G];
-                pb = p[B];
-            }
-            outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
-        }
-    }
+    // /**
+    //  * Appends to the line new cartesian coordinates point data.
+    //  */
+    // protected __appendPoint3v(
+    //     path3v: SegmentPath3vExt[],
+    //     point3v: Vec3,
+    //     pathColors: SegmentPathColor[],
+    //     pickingPathColors: NumberArray3[][],
+    //     color: NumberArray4,
+    //     isClosed: boolean,
+    //     outVerticesHigh: number[],
+    //     outVerticesLow: number[],
+    //     outColors: number[],
+    //     outThickness: number[],
+    //     outOrders: number[],
+    //     outIndexes: number[],
+    //     ellipsoid: Ellipsoid | null,
+    //     outTransformedPathLonLat: SegmentPathLonLatExt[],
+    //     outTransformedPathMerc: LonLat[][],
+    //     outExtent: Extent,
+    //     outTexCoords: number[],
+    //     outPickingColors: number[],
+    // ) {
+    //     var v_high = new Vec3(),
+    //         v_low = new Vec3();
+    //
+    //     var ii = outIndexes.length - 4,
+    //         index = outIndexes[ii - 1] + 1;
+    //
+    //     if (path3v.length === 0) {
+    //         path3v.push([]);
+    //         if (!pathColors[0]) {
+    //             pathColors[0] = [];
+    //         }
+    //     } else if (!pathColors[path3v.length - 1]) {
+    //         pathColors[path3v.length - 1] = [];
+    //     }
+    //
+    //     var path = path3v[path3v.length - 1],
+    //         len = path.length;
+    //
+    //     path.push(point3v);
+    //
+    //     let r = color[R],
+    //         g = color[G],
+    //         b = color[B],
+    //         a = color[A] != undefined ? color[A] : 1.0,
+    //         pathColors_last = pathColors[path3v.length - 1];
+    //
+    //     if (pathColors_last[len]) {
+    //         pathColors_last[len][R] = r;
+    //         pathColors_last[len][G] = g;
+    //         pathColors_last[len][B] = b;
+    //         pathColors_last[len][A] = a;
+    //     } else {
+    //         pathColors_last.push(color);
+    //     }
+    //
+    //     if (len === 1) {
+    //         var last;
+    //         if (isClosed) {
+    //             last = path[len - 1];
+    //             if (last instanceof Array) {
+    //                 last = new Vec3(last[0], last[1], last[2]);
+    //             }
+    //         } else {
+    //             let p0 = path[0],
+    //                 p1 = path[1] || p0;
+    //
+    //             if (p0 instanceof Array) {
+    //                 p0 = new Vec3(p0[0], p0[1], p0[2]);
+    //             } else {
+    //                 p0 = p0 as Vec3;
+    //             }
+    //
+    //             if (p1 instanceof Array) {
+    //                 p1 = new Vec3(p1[0], p1[1], p1[2]);
+    //             } else {
+    //                 p1 = p1 as Vec3;
+    //             }
+    //
+    //             last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+    //         }
+    //
+    //         this.__doubleToTwoFloats(last as Vec3, v_high, v_low);
+    //
+    //         let vi = outVerticesHigh.length - 3 * 12;
+    //
+    //         outVerticesHigh[vi] = v_high.x;
+    //         outVerticesHigh[vi + 1] = v_high.y;
+    //         outVerticesHigh[vi + 2] = v_high.z;
+    //         outVerticesHigh[vi + 3] = v_high.x;
+    //         outVerticesHigh[vi + 4] = v_high.y;
+    //         outVerticesHigh[vi + 5] = v_high.z;
+    //         outVerticesHigh[vi + 6] = v_high.x;
+    //         outVerticesHigh[vi + 7] = v_high.y;
+    //         outVerticesHigh[vi + 8] = v_high.z;
+    //         outVerticesHigh[vi + 9] = v_high.x;
+    //         outVerticesHigh[vi + 10] = v_high.y;
+    //         outVerticesHigh[vi + 11] = v_high.z;
+    //
+    //         outVerticesLow[vi] = v_low.x;
+    //         outVerticesLow[vi + 1] = v_low.y;
+    //         outVerticesLow[vi + 2] = v_low.z;
+    //         outVerticesLow[vi + 3] = v_low.x;
+    //         outVerticesLow[vi + 4] = v_low.y;
+    //         outVerticesLow[vi + 5] = v_low.z;
+    //         outVerticesLow[vi + 6] = v_low.x;
+    //         outVerticesLow[vi + 7] = v_low.y;
+    //         outVerticesLow[vi + 8] = v_low.z;
+    //         outVerticesLow[vi + 9] = v_low.x;
+    //         outVerticesLow[vi + 10] = v_low.y;
+    //         outVerticesLow[vi + 11] = v_low.z;
+    //     }
+    //
+    //     var startIndex = index;
+    //
+    //     if (ellipsoid) {
+    //         if (outTransformedPathLonLat.length === 0) {
+    //             outTransformedPathLonLat.push([]);
+    //         }
+    //
+    //         if (outTransformedPathMerc.length === 0) {
+    //             outTransformedPathMerc.push([]);
+    //         }
+    //
+    //         var transformedPathLonLat = outTransformedPathLonLat[outTransformedPathLonLat.length - 1],
+    //             transformedPathMerc = outTransformedPathMerc[outTransformedPathMerc.length - 1];
+    //
+    //         let lonLat = ellipsoid.cartesianToLonLat(point3v);
+    //         transformedPathLonLat.push(lonLat);
+    //         transformedPathMerc.push(lonLat.forwardMercator());
+    //
+    //         if (lonLat.lon < outExtent.southWest.lon) {
+    //             outExtent.southWest.lon = lonLat.lon;
+    //         }
+    //         if (lonLat.lat < outExtent.southWest.lat) {
+    //             outExtent.southWest.lat = lonLat.lat;
+    //         }
+    //         if (lonLat.lon > outExtent.northEast.lon) {
+    //             outExtent.northEast.lon = lonLat.lon;
+    //         }
+    //         if (lonLat.lat > outExtent.northEast.lat) {
+    //             outExtent.northEast.lat = lonLat.lat;
+    //         }
+    //     }
+    //
+    //     this.__doubleToTwoFloats(point3v, v_high, v_low);
+    //
+    //     let vi = outVerticesHigh.length - 12;
+    //
+    //     outVerticesHigh[vi] = v_high.x;
+    //     outVerticesHigh[vi + 1] = v_high.y;
+    //     outVerticesHigh[vi + 2] = v_high.z;
+    //     outVerticesHigh[vi + 3] = v_high.x;
+    //     outVerticesHigh[vi + 4] = v_high.y;
+    //     outVerticesHigh[vi + 5] = v_high.z;
+    //     outVerticesHigh[vi + 6] = v_high.x;
+    //     outVerticesHigh[vi + 7] = v_high.y;
+    //     outVerticesHigh[vi + 8] = v_high.z;
+    //     outVerticesHigh[vi + 9] = v_high.x;
+    //     outVerticesHigh[vi + 10] = v_high.y;
+    //     outVerticesHigh[vi + 11] = v_high.z;
+    //
+    //     outVerticesLow[vi] = v_low.x;
+    //     outVerticesLow[vi + 1] = v_low.y;
+    //     outVerticesLow[vi + 2] = v_low.z;
+    //     outVerticesLow[vi + 3] = v_low.x;
+    //     outVerticesLow[vi + 4] = v_low.y;
+    //     outVerticesLow[vi + 5] = v_low.z;
+    //     outVerticesLow[vi + 6] = v_low.x;
+    //     outVerticesLow[vi + 7] = v_low.y;
+    //     outVerticesLow[vi + 8] = v_low.z;
+    //     outVerticesLow[vi + 9] = v_low.x;
+    //     outVerticesLow[vi + 10] = v_low.y;
+    //     outVerticesLow[vi + 11] = v_low.z;
+    //
+    //     let ci = outColors.length - 16;
+    //     let ti = outThickness.length - 4;
+    //
+    //     let thickness = this._segmentThickness[path3v.length - 1];
+    //     if (thickness == undefined) {
+    //         thickness = this._thickness;
+    //         this._segmentThickness[path3v.length - 1] = thickness;
+    //     }
+    //
+    //     outColors[ci] = r;
+    //     outColors[ci + 1] = g;
+    //     outColors[ci + 2] = b;
+    //     outColors[ci + 3] = a;
+    //     outColors[ci + 4] = r;
+    //     outColors[ci + 5] = g;
+    //     outColors[ci + 6] = b;
+    //     outColors[ci + 7] = a;
+    //     outColors[ci + 8] = r;
+    //     outColors[ci + 9] = g;
+    //     outColors[ci + 10] = b;
+    //     outColors[ci + 11] = a;
+    //     outColors[ci + 12] = r;
+    //     outColors[ci + 13] = g;
+    //     outColors[ci + 14] = b;
+    //     outColors[ci + 15] = a;
+    //
+    //     outThickness[ti] = thickness;
+    //     outThickness[ti + 1] = thickness;
+    //     outThickness[ti + 2] = thickness;
+    //     outThickness[ti + 3] = thickness;
+    //
+    //     const tcBase = outTexCoords.length - 16;
+    //     const atlas = this._getAtlasTexCoordsForSegment(path3v.length - 1);
+    //     if (atlas && atlas.length >= 10) {
+    //         const minY = atlas[1], imgHeight = atlas[3] - minY;
+    //         const tc = [atlas[4], atlas[5], minY, imgHeight, atlas[2], atlas[3], minY, imgHeight, atlas[8], atlas[9], minY, imgHeight, atlas[0], atlas[1], minY, imgHeight];
+    //         for (let k = 0; k < 16; k++) outTexCoords[tcBase + k] = tc[k];
+    //     } else {
+    //         for (let k = 0; k < 16; k++) outTexCoords[tcBase + k] = 0;
+    //     }
+    //
+    //     outIndexes[ii] = index++;
+    //     outIndexes[ii + 1] = index++;
+    //     outIndexes[ii + 2] = index++;
+    //     outIndexes[ii + 3] = index++;
+    //
+    //     //
+    //     // Close path
+    //     //
+    //     var first;
+    //     if (isClosed) {
+    //         first = path[0] as Vec3;
+    //         outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+    //     } else {
+    //         let p0 = path[path.length - 1] as Vec3,
+    //             p1 = path[path.length - 2] as Vec3 || p0;
+    //
+    //         first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+    //         outIndexes.push(index - 1, index - 1, index - 1, index - 1);
+    //     }
+    //
+    //     this.__doubleToTwoFloats(first, v_high, v_low);
+    //     outVerticesHigh.push(
+    //         v_high.x, v_high.y, v_high.z,
+    //         v_high.x, v_high.y, v_high.z,
+    //         v_high.x, v_high.y, v_high.z,
+    //         v_high.x, v_high.y, v_high.z
+    //     );
+    //     outVerticesLow.push(
+    //         v_low.x, v_low.y, v_low.z,
+    //         v_low.x, v_low.y, v_low.z,
+    //         v_low.x, v_low.y, v_low.z,
+    //         v_low.x, v_low.y, v_low.z
+    //     );
+    //
+    //     outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+    //     outThickness.push(thickness, thickness, thickness, thickness);
+    //
+    //     const lastAtlas = this._getAtlasTexCoordsForSegment(path3v.length - 1);
+    //     if (lastAtlas && lastAtlas.length >= 10) {
+    //         const minY = lastAtlas[1], imgHeight = lastAtlas[3] - minY;
+    //         outTexCoords.push(lastAtlas[4], lastAtlas[5], minY, imgHeight, lastAtlas[2], lastAtlas[3], minY, imgHeight, lastAtlas[8], lastAtlas[9], minY, imgHeight, lastAtlas[0], lastAtlas[1], minY, imgHeight);
+    //     } else {
+    //         outTexCoords.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    //     }
+    //
+    //     outOrders.push(1, -1, 2, -2);
+    //
+    //     // Keep picking colors synchronized with path vertices using pathPickingColors.
+    //     outPickingColors.length = 0;
+    //     for (let si = 0, slen = path3v.length; si < slen; si++) {
+    //         const seg = path3v[si];
+    //         if (!seg || seg.length === 0) continue;
+    //
+    //         const segPickingColors = pickingPathColors[si];
+    //         let p: any = (segPickingColors && segPickingColors[0]) ? segPickingColors[0] : (this._pickingColor as any);
+    //         let pr = p[R], pg = p[G], pb = p[B];
+    //
+    //         if (si > 0) {
+    //             outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
+    //         }
+    //
+    //         for (let pi = 0, plen = seg.length; pi < plen; pi++) {
+    //             if (segPickingColors && segPickingColors[pi]) {
+    //                 p = segPickingColors[pi];
+    //                 pr = p[R];
+    //                 pg = p[G];
+    //                 pb = p[B];
+    //             }
+    //             outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
+    //         }
+    //
+    //         if (segPickingColors && segPickingColors[seg.length - 1]) {
+    //             p = segPickingColors[seg.length - 1];
+    //             pr = p[R];
+    //             pg = p[G];
+    //             pb = p[B];
+    //         }
+    //         outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
+    //     }
+    // }
 
     /**
 
@@ -1559,6 +1567,136 @@ class Polyline {
             vh[k] = v_high.z;
             vl[k++] = v_low.z;
         }
+    }
+
+    /**
+     * Sets one polyline segment with cartesian coordinates.
+     * @protected
+     * @param {SegmentPath3vExt} path3v - Cartesian coordinates for one segment.
+     * @param {number} segmentIndex - Segment index to update.
+     */
+    protected _setSegmentEqualPath3v(path3v: SegmentPath3vExt, segmentIndex: number) {
+        const path = path3v as Vec3[];
+        const targetPath = this._path3v[segmentIndex] as Vec3[];
+        if (!path || !targetPath || !path.length || path.length !== targetPath.length) return;
+
+        const v_high = new Vec3();
+        const v_low = new Vec3();
+        const vh = this._verticesHigh;
+        const vl = this._verticesLow;
+        const l = this._pathLonLat;
+        const m = this._pathLonLatMerc;
+        const ellipsoid = (this._renderNode as Planet).ellipsoid;
+        const k0 = this._pathLengths[segmentIndex] * 12 + 24 * segmentIndex;
+        let k = k0;
+
+        const last = this._closedLine
+            ? path[path.length - 1]
+            : new Vec3(
+                path[0].x + path[0].x - path[1].x,
+                path[0].y + path[0].y - path[1].y,
+                path[0].z + path[0].z - path[1].z
+            );
+
+        this.__doubleToTwoFloats(last, v_high, v_low);
+
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+
+        for (let i = 0; i < targetPath.length; i++) {
+            const cur = path[i];
+            const p = targetPath[i];
+            p.x = cur.x;
+            p.y = cur.y;
+            p.z = cur.z;
+
+            if (ellipsoid) {
+                const lonLat = ellipsoid.cartesianToLonLat(cur);
+                l[segmentIndex][i] = lonLat;
+                m[segmentIndex][i] = lonLat.forwardMercator();
+            }
+
+            this.__doubleToTwoFloats(cur, v_high, v_low);
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+        }
+
+        const first = this._closedLine
+            ? path[0]
+            : new Vec3(
+                path[path.length - 1].x + path[path.length - 1].x - path[path.length - 2].x,
+                path[path.length - 1].y + path[path.length - 1].y - path[path.length - 2].y,
+                path[path.length - 1].z + path[path.length - 1].z - path[path.length - 2].z
+            );
+        this.__doubleToTwoFloats(first, v_high, v_low);
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
+        vh[k] = v_high.x;
+        vl[k++] = v_low.x;
+        vh[k] = v_high.y;
+        vl[k++] = v_low.y;
+        vh[k] = v_high.z;
+        vl[k++] = v_low.z;
     }
 
     /**
@@ -2509,14 +2647,24 @@ class Polyline {
     /**
      * Remove point from the path
      * @param {number} index - Point index in a path segment
-     * @param {number} [multiLineIndex=0] - Segment path index
+     * @param {number} [segmentIndex=0] - Segment path index
      */
-    public removePoint(index: number, multiLineIndex: number = 0) {
-        this._path3v[multiLineIndex].splice(index, 1);
-        if (this._path3v[multiLineIndex].length === 0) {
-            this._path3v.splice(multiLineIndex, 1);
-            if (multiLineIndex < this._pathPickingColors.length) {
-                this._pathPickingColors.splice(multiLineIndex, 1);
+    public removePoint(index: number, segmentIndex: number = 0) {
+        if (!Number.isInteger(segmentIndex) || segmentIndex < 0) {
+            return;
+        }
+
+        const segment = this._path3v[segmentIndex];
+        if (!segment || !Number.isInteger(index) || index < 0 || index >= segment.length) {
+            return;
+        }
+
+        segment.splice(index, 1);
+
+        if (segment.length === 0) {
+            this._path3v.splice(segmentIndex, 1);
+            if (segmentIndex < this._pathPickingColors.length) {
+                this._pathPickingColors.splice(segmentIndex, 1);
             }
         }
         this.setPath3v(([] as SegmentPath3vExt[]).concat(this._path3v));
@@ -2527,18 +2675,18 @@ class Polyline {
      * @param {Vec3} point3v - Point coordinates
      * @param {number} [index=0] - Index in the path
      * @param {NumberArray4} [color] - Point color
-     * @param {number} [multilineIndex=0] - Path segment index
+     * @param {number} [segmentIndex=0] - Path segment index
      */
-    public insertPoint3v(point3v: Vec3, index: number = 0, color?: NumberArray4, multilineIndex: number = 0) {
+    public insertPoint3v(point3v: Vec3, index: number = 0, color?: NumberArray4, segmentIndex: number = 0) {
         let p = ([] as SegmentPath3vExt[]).concat(this._path3v),
-            pp = p[multilineIndex];
+            pp = p[segmentIndex];
         if (pp) {
             let c = ([] as SegmentPathColor[]).concat(this._pathColors);
 
             pp.splice(index, 0, point3v);
 
             if (color) {
-                let cc = c[multilineIndex];
+                let cc = c[segmentIndex];
                 if (!cc) {
                     cc = new Array(pp.length);
                 }
@@ -2547,105 +2695,105 @@ class Polyline {
 
             this.setPath3v(p, c);
         } else {
-            this.addPoint3v(point3v, multilineIndex);
+            this.addPoint3v(point3v, segmentIndex);
         }
     }
 
-    /**
-     * Adds a new cartesian point in the end of the path in a last line segment.
-     * @public
-     * @param {Vec3} point3v - New coordinates.
-     * @param {NumberArray4} [color] -
-     * @param {boolean} [skipEllipsoid] -
-     */
-    public appendPoint3v(point3v: Vec3, color?: NumberArray4, skipEllipsoid?: boolean) {
-        if (this._path3v.length === 0 || !this._renderNode) {
-            this._pathColors.push([color || this._defaultColor as NumberArray4]);
-            this.addPoint3v(point3v);
-        } else {
-            //
-            // Making typedArrays suitable for appendPoint function
-            //
-            this._verticesHigh = makeArray(this._verticesHigh);
-            this._verticesLow = makeArray(this._verticesLow);
-            this._colors = makeArray(this._colors);
-            this._thicknessArr = makeArray(this._thicknessArr);
-            this._orders = makeArray(this._orders);
-            this._indexes = makeArray(this._indexes);
-            this._texCoordArr = makeArray(this._texCoordArr);
-            this._pickingColors = makeArray(this._pickingColors);
-
-            this.__appendPoint3v(
-                this._path3v,
-                point3v,
-                this._pathColors,
-                this._pathPickingColors,
-                color || this._defaultColor as NumberArray4,
-                this._closedLine,
-                this._verticesHigh,
-                this._verticesLow,
-                this._colors,
-                this._thicknessArr,
-                this._orders,
-                this._indexes,
-                !skipEllipsoid ? (this._renderNode as Planet).ellipsoid : null,
-                this._pathLonLat,
-                this._pathLonLatMerc,
-                this._extent,
-                this._texCoordArr,
-                this._pickingColors
-            );
-
-            // Keep picking attribute buffer strictly aligned with vertex groups.
-            this._rebuildPickingColorsFromPath();
-
-            this._pathLengths[this._path3v.length] += 1;
-
-            this._changedBuffers[VERTICES_BUFFER] = true;
-            this._changedBuffers[COLORS_BUFFER] = true;
-            this._changedBuffers[INDEX_BUFFER] = true;
-            this._changedBuffers[THICKNESS_BUFFER] = true;
-            this._changedBuffers[TEXCOORD_BUFFER] = true;
-            this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
-        }
-    }
+    // /**
+    //  * Adds a new cartesian point in the end of the path in a last line segment.
+    //  * @public
+    //  * @param {Vec3} point3v - New coordinates.
+    //  * @param {NumberArray4} [color] -
+    //  * @param {boolean} [skipEllipsoid] -
+    //  */
+    // public appendPoint3v(point3v: Vec3, color?: NumberArray4, skipEllipsoid?: boolean) {
+    //     if (this._path3v.length === 0 || !this._renderNode) {
+    //         this._pathColors.push([color || this._defaultColor as NumberArray4]);
+    //         this.addPoint3v(point3v);
+    //     } else {
+    //         //
+    //         // Making typedArrays suitable for appendPoint function
+    //         //
+    //         this._verticesHigh = makeArray(this._verticesHigh);
+    //         this._verticesLow = makeArray(this._verticesLow);
+    //         this._colors = makeArray(this._colors);
+    //         this._thicknessArr = makeArray(this._thicknessArr);
+    //         this._orders = makeArray(this._orders);
+    //         this._indexes = makeArray(this._indexes);
+    //         this._texCoordArr = makeArray(this._texCoordArr);
+    //         this._pickingColors = makeArray(this._pickingColors);
+    //
+    //         this.__appendPoint3v(
+    //             this._path3v,
+    //             point3v,
+    //             this._pathColors,
+    //             this._pathPickingColors,
+    //             color || this._defaultColor as NumberArray4,
+    //             this._closedLine,
+    //             this._verticesHigh,
+    //             this._verticesLow,
+    //             this._colors,
+    //             this._thicknessArr,
+    //             this._orders,
+    //             this._indexes,
+    //             !skipEllipsoid ? (this._renderNode as Planet).ellipsoid : null,
+    //             this._pathLonLat,
+    //             this._pathLonLatMerc,
+    //             this._extent,
+    //             this._texCoordArr,
+    //             this._pickingColors
+    //         );
+    //
+    //         // Keep picking attribute buffer strictly aligned with vertex groups.
+    //         this._rebuildPickingColorsFromPath();
+    //
+    //         this._pathLengths[this._path3v.length] += 1;
+    //
+    //         this._changedBuffers[VERTICES_BUFFER] = true;
+    //         this._changedBuffers[COLORS_BUFFER] = true;
+    //         this._changedBuffers[INDEX_BUFFER] = true;
+    //         this._changedBuffers[THICKNESS_BUFFER] = true;
+    //         this._changedBuffers[TEXCOORD_BUFFER] = true;
+    //         this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
+    //     }
+    // }
 
     /**
      * Append new point in the end of the path.
      * @public
      * @param {Vec3} point3v - New point coordinates.
-     * @param {number} [multiLineIndex=0] - Path segment index, first by default.
+     * @param {number} [segmentIndex=0] - Path segment index, first by default.
      * @param {NumberArray4} [color] - Point color
      */
-    public addPoint3v(point3v: Vec3, multiLineIndex: number = 0, color?: NumberArray4) {
-        if (multiLineIndex < 0) return;
+    public addPoint3v(point3v: Vec3, segmentIndex: number = 0, color?: NumberArray4) {
+        if (segmentIndex < 0) return;
 
         if (!this._renderNode) {
-            while (multiLineIndex >= this._path3v.length) {
+            while (segmentIndex >= this._path3v.length) {
                 this._path3v.push([]);
             }
-            this._path3v[multiLineIndex].push(point3v);
-            if (!this._pathColors[multiLineIndex]) {
-                this._pathColors[multiLineIndex] = [];
+            this._path3v[segmentIndex].push(point3v);
+            if (!this._pathColors[segmentIndex]) {
+                this._pathColors[segmentIndex] = [];
             }
-            this._pathColors[multiLineIndex].push(color || this._defaultColor as NumberArray4);
-            this._segmentThickness[multiLineIndex] = this._segmentThickness[multiLineIndex] || this._thickness;
+            this._pathColors[segmentIndex].push(color || this._defaultColor as NumberArray4);
+            this._segmentThickness[segmentIndex] = this._segmentThickness[segmentIndex] || this._thickness;
             this._pathLengths.length = this._path3v.length + 1;
             this._resizePathLengths(0);
             return;
         }
 
-        if (multiLineIndex >= this._path3v.length) {
+        if (segmentIndex >= this._path3v.length) {
             this.appendPath3v([point3v], color ? [color] : undefined);
             return;
         }
 
-        if (multiLineIndex === this._path3v.length - 1) {
-            this.appendPoint3v(point3v, color);
-            return;
-        }
+        // if (segmentIndex === this._path3v.length - 1) {
+        //     this.appendPoint3v(point3v, color);
+        //     return;
+        // }
 
-        const segIndex = multiLineIndex;
+        const segIndex = segmentIndex;
         const seg = this._path3v[segIndex] as Vec3[];
         const oldLen = seg.length;
         const pointsBefore = this._pathLengths[segIndex];
@@ -2744,13 +2892,13 @@ class Polyline {
         const tArr = this._thicknessArr as Float32Array;
         const tBase = oldAttrCapGroup * 4;
         tArr[tBase] = tArr[tBase + 1] = tArr[tBase + 2] = tArr[tBase + 3] = thickness;
-        this._thicknessArr = insertTypedArray(this._thicknessArr as Float32Array, insertAttrGroup * 4, new Float32Array([thickness, thickness, thickness, thickness]));
+        this._thicknessArr = insertTypedArray(tArr, insertAttrGroup * 4, new Float32Array([thickness, thickness, thickness, thickness]));
 
         //
         // colors block
         const cArr = this._colors as Float32Array;
         const cBase = oldAttrCapGroup * 16;
-        const cc: any = segColors[segColors.length - 1] || (this._defaultColor as any);
+        const cc: NumberArray4 = segColors[segColors.length - 1] || this._defaultColor;
         const cr = cc[R], cg = cc[G], cb = cc[B], ca = cc[A] != undefined ? cc[A] : 1.0;
 
         for (let k = 0; k < 16; k += 4) {
@@ -2761,13 +2909,13 @@ class Polyline {
         }
 
         const cBlock = new Float32Array([cr, cg, cb, ca, cr, cg, cb, ca, cr, cg, cb, ca, cr, cg, cb, ca]);
-        this._colors = insertTypedArray(this._colors as Float32Array, insertAttrGroup * 16, cBlock);
+        this._colors = insertTypedArray(cArr, insertAttrGroup * 16, cBlock);
 
         //
         // picking colors block
         const pcArr = this._pickingColors as Float32Array;
         const pcBase = oldAttrCapGroup * 12;
-        const pcc: any = segPickingColors[segPickingColors.length - 1] || (this._pickingColor as any);
+        const pcc: NumberArray3 = segPickingColors[segPickingColors.length - 1] || this._pickingColor;
         const pcr = pcc[R], pcg = pcc[G], pcb = pcc[B];
 
         for (let k = 0; k < 12; k += 3) {
@@ -2777,11 +2925,11 @@ class Polyline {
         }
 
         const pcBlock = new Float32Array([pcr, pcg, pcb, pcr, pcg, pcb, pcr, pcg, pcb, pcr, pcg, pcb]);
-        this._pickingColors = insertTypedArray(this._pickingColors as Float32Array, insertAttrGroup * 12, pcBlock);
+        this._pickingColors = insertTypedArray(pcArr, insertAttrGroup * 12, pcBlock);
 
         //
         // textures block
-        const atlas = this._getAtlasTexCoordsForSegment(multiLineIndex);
+        const atlas = this._getAtlasTexCoordsForSegment(segmentIndex);
         const tcArr = this._texCoordArr as Float32Array;
         const tcBase = oldAttrCapGroup * 16;
         let tcBlock: Float32Array;
@@ -2792,7 +2940,7 @@ class Polyline {
             tcBlock = new Float32Array(16);
         }
         tcArr.set(tcBlock, tcBase);
-        this._texCoordArr = insertTypedArray(this._texCoordArr as Float32Array, insertAttrGroup * 16, tcBlock);
+        this._texCoordArr = insertTypedArray(tcArr, insertAttrGroup * 16, tcBlock);
 
         this._rebuildIndexes();
 
@@ -2808,16 +2956,16 @@ class Polyline {
      * Append new geodetic point in the end of the path.
      * @public
      * @param {LonLat} lonLat - New coordinate.
-     * @param {number} [multiLineIndex=0] - Path segment index, first by default.
+     * @param {number} [segmentIndex=0] - Path segment index, first by default.
      */
-    public addPointLonLat(lonLat: LonLat, multiLineIndex: number = 0) {
+    public addPointLonLat(lonLat: LonLat, segmentIndex: number = 0) {
         //
         // TODO: could be optimized
         //
-        if (multiLineIndex >= this._pathLonLat.length) {
+        if (segmentIndex >= this._pathLonLat.length) {
             this._pathLonLat.push([]);
         }
-        this._pathLonLat[multiLineIndex].push(lonLat);
+        this._pathLonLat[segmentIndex].push(lonLat);
         this.setPathLonLat(([] as SegmentPathLonLatExt[]).concat(this._pathLonLat));
     }
 
@@ -2940,14 +3088,14 @@ class Polyline {
         }
     }
 
-    /**
-     * Returns thickness.
-     * @public
-     * @return {number} Thickness in screen pixels.
-     */
-    public getThickness(): number {
-        return this._thickness;
-    }
+    // /**
+    //  * Returns thickness.
+    //  * @public
+    //  * @return {number} Thickness in screen pixels.
+    //  */
+    // public getThickness(): number {
+    //     return this._thickness;
+    // }
 
     /**
      * Sets visibility.
@@ -3122,14 +3270,17 @@ class Polyline {
         const outPickingColors = this._pickingColors as number[];
         for (let i = 0, len = this._path3v.length; i < len; i++) {
             const segment = this._path3v[i];
+
             if (!segment || segment.length === 0) continue;
 
             const segmentPickingColors = this._pathPickingColors[i];
+
             const p = (segmentPickingColors && segmentPickingColors[0]) ? segmentPickingColors[0] : [
                 this._pickingColor[R],
                 this._pickingColor[G],
                 this._pickingColor[B]
-            ] as NumberArray3;
+            ];
+
             const pr = p[R], pg = p[G], pb = p[B];
 
             if (i > 0) {
@@ -3154,9 +3305,11 @@ class Polyline {
         this._pickingColor[2] = b;
 
         const segmentsCount = Math.max(this._path3v.length, this._pathLonLat.length);
+
         for (let i = 0; i < segmentsCount; i++) {
             const segmentPickingColors = this._pathPickingColors[i] || (this._pathPickingColors[i] = []);
             const hasPoints = (this._path3v[i]?.length || this._pathLonLat[i]?.length || 0) > 0;
+
             if (!hasPoints) continue;
 
             if (segmentPickingColors.length === 0) {
@@ -3174,6 +3327,7 @@ class Polyline {
         }
 
         this._rebuildPickingColorsFromPath();
+
         this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
     }
 
@@ -3307,18 +3461,23 @@ class Polyline {
      * @param {SegmentPathColor[]} [pathColors] - Polyline path cartesian coordinates. (exactly 3 entries)
      * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
      */
-    public setPath3v(path3v: SegmentPath3vExt[], pathColors?: SegmentPathColor[], forceEqual: boolean = false) {
+    public setPath3v(path3v: SegmentPath3vExt[], pathColors?: SegmentPathColor[], forceEqual?: boolean): void;
+    public setPath3v(path3v: SegmentPath3vExt, pathColors?: SegmentPathColor[], forceEqual?: boolean, segmentIndex?: number): void;
+    public setPath3v(path3v: SegmentPath3vExt[] | SegmentPath3vExt, pathColors?: SegmentPathColor[], forceEqual: boolean = false, segmentIndex?: number) {
         if (pathColors) {
             this._pathColors = ([] as SegmentPathColor[]).concat(pathColors);
         }
 
         if (this._renderNode) {
             if (forceEqual) {
-                this._setEqualPath3v(path3v);
+                if (segmentIndex !== undefined) {
+                    this._setSegmentEqualPath3v(path3v as SegmentPath3vExt, segmentIndex);
+                } else {
+                    this._setEqualPath3v(path3v as SegmentPath3vExt[]);
+                }
                 this._changedBuffers[VERTICES_BUFFER] = true;
-                this._changedBuffers[COLORS_BUFFER] = true;
             } else {
-                this._createData3v(path3v);
+                this._createData3v(path3v as SegmentPath3vExt[]);
                 this._changedBuffers[VERTICES_BUFFER] = true;
                 this._changedBuffers[INDEX_BUFFER] = true;
                 this._changedBuffers[COLORS_BUFFER] = true;
@@ -3327,7 +3486,7 @@ class Polyline {
                 this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
             }
         } else {
-            this._path3v = ([] as SegmentPath3vExt[]).concat(path3v);
+            this._path3v = ([] as SegmentPath3vExt[]).concat(path3v as SegmentPath3vExt[]);
         }
     }
 

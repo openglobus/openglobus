@@ -61,13 +61,62 @@ renderer.addNodes([
     new MyScene()
 ]);
 
-function test(i = 0) {
+function test_appendPath3v(i = 0) {
     collection.getEntities()[i].polyline.appendPath3v([[15, 10, 15], [15, 15, 15], [10, 15, 10], [15, 50, 15]]);
 }
 
-function test2(i = 0, poi, segIndex) {
+function test_setPath3v(i, path3v, pathColors, forceEqual, segmentIndex) {
+    collection.getEntities()[i].polyline.setPath3v(path3v, pathColors, forceEqual, segmentIndex);
+}
+
+function test_removePath(i, segmentIndex) {
+    collection.getEntities()[i].polyline.removePath(segmentIndex);
+}
+
+function test_setPath3vEXT() {
+    collection.getEntities()[0].polyline.setPath3v([new Vec3(2, 0, 2), new Vec3(2, 2, 2)], [[0, 1, 0], [1, 0, 0]], true, 0);
+    collection.getEntities()[0].polyline.setPath3v([new Vec3(-2, 0, -2), new Vec3(-2, 2, -2)], [[0, 1, 0], [1, 0, 0]], true, 1);
+}
+
+function test_setPath3vEXT2() {
+    collection.getEntities()[0].polyline.setPath3v(
+        [[new Vec3(7, 0, 7), new Vec3(7, 7, 7)], [new Vec3(-7, 0, -7), new Vec3(-7, 7, -7)]],
+        null, true
+    );
+}
+
+function test_addPoint3v(i = 0, poi, segIndex) {
     collection.getEntities()[i].polyline.addPoint3v(new Vec3(poi[0], poi[1], poi[2]), segIndex);
 }
 
-window.test = test;
-window.test2 = test2;
+function test_removePoint(i, index, segmentIndex) {
+    collection.getEntities()[i].polyline.removePoint(index, segmentIndex);
+}
+
+function test_setPoint3v(i, coords, index, segmentIndex) {
+    collection.getEntities()[i].polyline.setPoint3v(coords, index, segmentIndex);
+}
+
+// function test_start() {
+//     let counter = 0
+//     renderer.events.on("draw", () => {
+//         if (counter % 2) {
+//             test_appendPath3v(1);
+//         } else {
+//             test_removePath(1, 1);
+//         }
+//         counter++;
+//     });
+// }
+
+Object.assign(window, {
+    //test_start,
+    test_appendPath3v,
+    test_addPoint3v,
+    test_setPath3v,
+    test_setPath3vEXT,
+    test_removePoint,
+    test_removePath,
+    test_setPoint3v,
+    test_setPath3vEXT2
+});
