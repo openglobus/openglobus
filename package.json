@@ -29,6 +29,8 @@
     "test:watch": "vitest",
     "test": "vitest run --reporter=verbose",
     "lint": "eslint src/",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "dts": "tsc --build tsconfig.json",
     "dev_serve": "npm-run-all --parallel --continue-on-error --race dev serve"
   },
@@ -61,6 +63,7 @@
     "jsdom": "^26.1.0",
     "local-web-server": "^5.4.0",
     "npm-run-all": "^4.1.5",
+    "prettier": "^3.6.2",
     "terser": "^5.39.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.6",

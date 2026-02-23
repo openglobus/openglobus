@@ -45,7 +45,7 @@ void main() {
         float localY = fract((uv.y + v_texOffset - min) / height * repeat);
         uv.y = clamp(min + localY * height, min + EPS, min + height - EPS);
 
-        vec4 color = texture(texAtlas, uv);
+        color = texture(texAtlas, uv);
         color.a *= v_rgba.a;
     }
 

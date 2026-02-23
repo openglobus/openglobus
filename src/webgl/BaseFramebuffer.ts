@@ -31,7 +31,7 @@ export class BaseFramebuffer {
         this._fbo = null;
         this._width = options.width || handler.canvas!.width;
         this._height = options.height || handler.canvas!.height;
-        this._depthComponent = options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT24";
+        this._depthComponent = options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
         this._useDepth = options.useDepth != undefined ? options.useDepth : true;
         this._active = false;
         this._size = options.size || 1;

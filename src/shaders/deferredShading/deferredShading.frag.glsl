@@ -17,9 +17,7 @@ void main(void) {
     vec4 normalColor = texelFetch(normalTexture, fragCoord, 0);
     vec4 depthColor = texelFetch(depthTexture, fragCoord, 0);
 
-    fragColor = vec4(depthColor.r, depthColor.r, depthColor.r, 1.0);
-    fragColor = vec4(mix(diffuseColor.rgb, normalColor.rgb, 0.5), 1.0);
-    fragColor = vec4(diffuseColor.rgb, 1.0);
-    //fragColor = vec4(depthColor.r, depthColor.r, depthColor.r, 1.0);
-
+    // Keep these textures referenced to avoid uniform elimination in some drivers.
+    float keepAlive = (normalColor.r + depthColor.r) * 1e-7;
+    fragColor = vec4(diffuseColor.rgb + vec3(keepAlive), diffuseColor.a);
 }
