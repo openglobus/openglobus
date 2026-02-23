@@ -304,13 +304,8 @@ class Renderer {
             this._msaa = params.msaa != undefined ? params.msaa : MSAA_DEFAULT;
         }
 
-        const internalFormatParam = urlParams.get('og_internalFormat');
-        if (internalFormatParam) {
-            this._internalFormat = internalFormatParam.toUpperCase();
-        } else {
-            const isLinux = /Linux/i.test(navigator.userAgent || "");
-            this._internalFormat = isLinux ? "RGBA8" : "RGBA16F";
-        }
+        const isLinux = /Linux/i.test(navigator.userAgent || "");
+        this._internalFormat = isLinux ? "RGBA8" : "RGBA16F";
 
         this.forwardFramebuffer = null;
         this.woitFramebuffer = null;
