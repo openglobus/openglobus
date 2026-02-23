@@ -25,9 +25,9 @@ class MyScene extends RenderNode {
 
         let e1 = new Entity({
             polyline: {
-                path3v: [[[5, 0, 5], [5, 5, 5], [0,5,0]], [[-5, 0, -5], [-5, 5, -5]]],
+                path3v: [[[5, 0, 5], [5, 5, 5], [0, 5, 0]], [[-5, 0, -5], [-5, 5, -5]]],
                 thickness: 12.5,
-                src: ["./template3.png", null],
+                src: [null, null],
                 color: "white",
                 isClosed: false
             }
@@ -75,13 +75,13 @@ function test_removePath(i, segmentIndex) {
 
 function test_setPath3vEXT() {
     collection.getEntities()[0].polyline.setPath3v([new Vec3(2, 0, 2), new Vec3(2, 2, 2)], [[0, 1, 0], [1, 0, 0]], true, 0);
-    collection.getEntities()[0].polyline.setPath3v([new Vec3(-2, 0, -2), new Vec3(-2, 2, -2)], [[0, 1, 0], [1, 0, 0]], true, 1);
+    collection.getEntities()[0].polyline.setPath3v([new Vec3(-2, 0, -2), new Vec3(-2, 2, -2), new Vec3(10, 10, 10)], [[0, 1, 0], [1, 0, 0], [1,1,1]], true, 1);
 }
 
 function test_setPath3vEXT2() {
     collection.getEntities()[0].polyline.setPath3v(
         [[new Vec3(7, 0, 7), new Vec3(7, 7, 7)], [new Vec3(-7, 0, -7), new Vec3(-7, 7, -7)]],
-        null, true
+        null, false
     );
 }
 
