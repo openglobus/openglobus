@@ -304,7 +304,13 @@ class Renderer {
             this._msaa = params.msaa != undefined ? params.msaa : MSAA_DEFAULT;
         }
 
-        this._internalFormat = "RGBA16F";
+        const internalFormatParam = urlParams.get('og_internalFormat');
+        if (internalFormatParam) {
+            this._internalFormat = internalFormatParam.toUpperCase();
+        } else {
+            const isLinux = /Linux/i.test(navigator.userAgent || "");
+            this._internalFormat = isLinux ? "RGBA8" : "RGBA16F";
+        }
 
         this.forwardFramebuffer = null;
         this.woitFramebuffer = null;
@@ -644,7 +650,7 @@ class Renderer {
             msaa: this._msaa,
             internalFormat: this._internalFormat,
             filter: "NEAREST",
-            depthComponent: "DEPTH_COMPONENT24"
+            depthComponent: "DEPTH_COMPONENT16"
         });
 
         this.forwardFramebuffer.init();
@@ -677,7 +683,7 @@ class Renderer {
                 filter: "NEAREST"
             }, {
                 attachment: "DEPTH_ATTACHMENT",
-                internalFormat: "DEPTH_COMPONENT24",
+                internalFormat: "DEPTH_COMPONENT16",
                 filter: "NEAREST"
             }]
         });
@@ -839,8 +845,32 @@ class Renderer {
 
     public getMaxMSAA(internalFormat: string) {
         let gl = this.handler.gl!;
-        let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, (gl as any)[internalFormat], gl.SAMPLES);
-        return samples[0];
+
+        if (!this.handler.isWebGl2() || !gl.getInternalformatParameter) {
+            return 0;
+        }
+
+        try {
+            const glInternalFormat = (gl as any)[internalFormat];
+            if (glInternalFormat == undefined) {
+                return 0;
+            }
+
+            const samples = gl.getInternalformatParameter(gl.RENDERBUFFER, glInternalFormat, gl.SAMPLES) as number[] | Int32Array;
+
+            if (!samples || samples.length === 0) {
+                return 0;
+            }
+
+            let maxSamples = 0;
+            for (let i = 0; i < samples.length; i++) {
+                maxSamples = Math.max(maxSamples, Number(samples[i]) || 0);
+            }
+
+            return maxSamples;
+        } catch {
+            return 0;
+        }
     }
 
     public getMSAA(): number {
