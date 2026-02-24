@@ -188,6 +188,7 @@ class Renderer {
     protected _msaa: number;
 
     protected _internalFormat: string;
+    protected _depthComponent: string;
 
     protected _depthRefreshRequired: boolean;
 
@@ -304,8 +305,8 @@ class Renderer {
             this._msaa = params.msaa != undefined ? params.msaa : MSAA_DEFAULT;
         }
 
-        const isLinux = /Linux/i.test(navigator.userAgent || "");
-        this._internalFormat = isLinux ? "RGBA8" : "RGBA16F";
+        this._internalFormat = "RGBA16F";
+        this._depthComponent = "DEPTH_COMPONENT24";
 
         this.forwardFramebuffer = null;
         this.woitFramebuffer = null;
@@ -645,7 +646,7 @@ class Renderer {
             msaa: this._msaa,
             internalFormat: this._internalFormat,
             filter: "NEAREST",
-            depthComponent: "DEPTH_COMPONENT16"
+            depthComponent: this._depthComponent
         });
 
         this.forwardFramebuffer.init();
@@ -662,6 +663,7 @@ class Renderer {
                 attachment: "COLOR_ATTACHMENT",
                 filter: "NEAREST"
             }],
+            depthComponent: this._depthComponent,
             useDepth: true
         });
 
@@ -678,7 +680,7 @@ class Renderer {
                 filter: "NEAREST"
             }, {
                 attachment: "DEPTH_ATTACHMENT",
-                internalFormat: "DEPTH_COMPONENT16",
+                internalFormat: this._depthComponent,
                 filter: "NEAREST"
             }]
         });
@@ -894,9 +896,6 @@ class Renderer {
         let ec = this._entityCollections[depthOrder];
 
         if (ec.length) {
-
-            this.enableBlendDefault();
-
             // GeoObjects
             let i = ec.length;
             while (i--) {
@@ -1145,7 +1144,8 @@ class Renderer {
             gl.clearColor(0, 0, 0, 0.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-            this.enableBlendDefault();
+            //this.enableBlendDefault();
+            gl.disable(gl.BLEND);
 
             //@todo need to remove it
             i = rn.length;
@@ -1171,6 +1171,8 @@ class Renderer {
             //
             // Forward rendering and transparent object pass
             //
+            this.enableBlendDefault();
+
             e.dispatch(e.forwardpass, this);
             this._drawForwardEntityCollections(0);
 

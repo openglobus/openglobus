@@ -57,7 +57,7 @@ let globe = new Globe({
     //frustums: [[10, 10000], [10000,10000000]],
     terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection],
-    msaa: 0
+    msaa: 8
 });
 
 globe.planet.addControls([
