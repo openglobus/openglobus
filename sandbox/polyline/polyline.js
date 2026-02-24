@@ -77,6 +77,10 @@ function test_setPathTexParams(i, segmentIndex, texOffset, strokeSize) {
     collection.getEntities()[i].polyline.setPathTexParams(texOffset, strokeSize, segmentIndex);
 }
 
+function test_setPathSrc(i, src, segmentIndex){
+    collection.getEntities()[i].polyline.setPathSrc(src, segmentIndex);
+}
+
 function test_setPath3vEXT() {
     collection.getEntities()[0].polyline.setPath3v([new Vec3(2, 0, 2), new Vec3(2, 2, 2)], [[0, 1, 0], [1, 0, 0]], true, 0);
     collection.getEntities()[0].polyline.setPath3v([new Vec3(-2, 0, -2), new Vec3(-2, 2, -2), new Vec3(10, 10, 10)], [[0, 1, 0], [1, 0, 0], [1,1,1]], true, 1);
@@ -114,6 +118,8 @@ function test_setPoint3v(i, coords, index, segmentIndex) {
 // }
 
 Object.assign(window, {
+    test_setPathSrc,
+    test_setPathTexParams,
     //test_start,
     test_appendPath3v,
     test_addPoint3v,
