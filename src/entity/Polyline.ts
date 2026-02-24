@@ -578,15 +578,14 @@ class Polyline {
      * @public
      */
     public setPathSrc(src: string | null | undefined, segmentIndex: number = 0) {
-        const segIdx = Math.max(0, Math.trunc(segmentIndex));
 
-        if (segIdx === 0 && !Array.isArray(this._src)) {
+        if (segmentIndex === 0 && !Array.isArray(this._src)) {
             this.setSrc(src ?? null);
             return;
         }
 
         const baseSrc = this._src;
-        const segCount = Math.max(this._path3v?.length || 0, 1, segIdx + 1);
+        const segCount = Math.max(this._path3v?.length || 0, 1, segmentIndex + 1);
         const perSegmentSrc: (string | null | undefined)[] = new Array(segCount);
 
         if (Array.isArray(baseSrc)) {
@@ -599,7 +598,7 @@ class Polyline {
             }
         }
 
-        perSegmentSrc[segIdx] = src ?? null;
+        perSegmentSrc[segmentIndex] = src ?? null;
         this.setSrc(perSegmentSrc);
     }
 
@@ -2790,21 +2789,16 @@ class Polyline {
     }
 
     public setPathTexParams(texOffset: number, strokeSize: number, segmentIndex: number): void {
-        if (!Number.isFinite(segmentIndex)) {
-            return;
-        }
-
-        const segIndex = Math.max(0, Math.trunc(segmentIndex));
-        const texParams = this._resolveSegmentTexParams(segIndex);
+        const texParams = this._resolveSegmentTexParams(segmentIndex);
         texParams.texOffset = texOffset;
         texParams.strokeSize = strokeSize;
 
-        if (!this._renderNode || segIndex < 0 || segIndex >= this._path3v.length) {
+        if (!this._renderNode || segmentIndex < 0 || segmentIndex >= this._path3v.length) {
             return;
         }
 
-        const groupsBefore = segIndex === 0 ? 0 : (this._pathLengths[segIndex] + 2 * segIndex - 1);
-        const groupsCount = this._path3v[segIndex].length + 1 + (segIndex > 0 ? 1 : 0);
+        const groupsBefore = segmentIndex === 0 ? 0 : (this._pathLengths[segmentIndex] + 2 * segmentIndex - 1);
+        const groupsCount = this._path3v[segmentIndex].length + 1 + (segmentIndex > 0 ? 1 : 0);
         const start = groupsBefore * 8;
         const end = (groupsBefore + groupsCount) * 8;
         const ta = this._pathTexParamArr;
@@ -2818,21 +2812,13 @@ class Polyline {
     }
 
     public setTexOffset(texOffset: number, segmentIndex: number): void {
-        if (!Number.isFinite(segmentIndex)) {
-            return;
-        }
-        const segIndex = Math.max(0, Math.trunc(segmentIndex));
-        const strokeSize = this._resolveSegmentTexParams(segIndex).strokeSize;
-        this.setPathTexParams(texOffset, strokeSize, segIndex);
+        const strokeSize = this._resolveSegmentTexParams(segmentIndex).strokeSize;
+        this.setPathTexParams(texOffset, strokeSize, segmentIndex);
     }
 
     public setPathStrokeSize(strokeSize: number, segmentIndex: number): void {
-        if (!Number.isFinite(segmentIndex)) {
-            return;
-        }
-        const segIndex = Math.max(0, Math.trunc(segmentIndex));
-        const texOffset = this._resolveSegmentTexParams(segIndex).texOffset;
-        this.setPathTexParams(texOffset, strokeSize, segIndex);
+        const texOffset = this._resolveSegmentTexParams(segmentIndex).texOffset;
+        this.setPathTexParams(texOffset, strokeSize, segmentIndex);
     }
 
     /**
