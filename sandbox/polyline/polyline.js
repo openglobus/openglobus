@@ -35,11 +35,12 @@ class MyScene extends RenderNode {
 
         let e2 = new Entity({
             polyline: {
-                path3v: [[[10, 0, 10], [10, 15, 10], [0, 15, 0], [10, 25, 10]]],
-                thickness: 25.5,
+                path3v: [[[18, 15, 10], [17.956, 15, 10.836], [17.825, 15, 11.663], [17.608, 15, 12.472], [17.308, 15, 13.254], [16.928, 15, 14], [16.472, 15, 14.702], [15.945, 15, 15.353], [15.353, 15, 15.945], [14.702, 15, 16.472], [14, 15, 16.928], [13.254, 15, 17.308], [12.472, 15, 17.608], [11.663, 15, 17.825], [10.836, 15, 17.956], [10, 15, 18], [9.164, 15, 17.956], [8.337, 15, 17.825], [7.528, 15, 17.608], [6.746, 15, 17.308], [6, 15, 16.928], [5.298, 15, 16.472], [4.647, 15, 15.945], [4.055, 15, 15.353], [3.528, 15, 14.702], [3.072, 15, 14], [2.692, 15, 13.254], [2.392, 15, 12.472], [2.175, 15, 11.663], [2.044, 15, 10.836], [2, 15, 10], [2.044, 15, 9.164], [2.175, 15, 8.337], [2.392, 15, 7.528], [2.692, 15, 6.746], [3.072, 15, 6], [3.528, 15, 5.298], [4.055, 15, 4.647], [4.647, 15, 4.055], [5.298, 15, 3.528], [6, 15, 3.072], [6.746, 15, 2.692], [7.528, 15, 2.392], [8.337, 15, 2.175], [9.164, 15, 2.044], [10, 15, 2], [10.836, 15, 2.044], [11.663, 15, 2.175], [12.472, 15, 2.392], [13.254, 15, 2.692], [14, 15, 3.072], [14.702, 15, 3.528], [15.353, 15, 4.055], [15.945, 15, 4.647], [16.472, 15, 5.298], [16.928, 15, 6], [17.308, 15, 6.746], [17.608, 15, 7.528], [17.825, 15, 8.337], [17.956, 15, 9.164]]],
+                thickness: 5.5,
                 src: "./template2.png",
                 color: "white",
-                isClosed: false
+                isClosed: true,
+                texParams:[{texOffsetSpeed: 0.008}]
             }
         });
 
@@ -73,8 +74,8 @@ function test_removePath(i, segmentIndex) {
     collection.getEntities()[i].polyline.removePath(segmentIndex);
 }
 
-function test_setPathTexParams(i, segmentIndex, texOffset, strokeSize) {
-    collection.getEntities()[i].polyline.setPathTexParams(texOffset, strokeSize, segmentIndex);
+function test_setPathTexParams(i, segmentIndex, texOffset, strokeSize, texOffsetSpeed) {
+    collection.getEntities()[i].polyline.setPathTexParams(texOffset, strokeSize, texOffsetSpeed, segmentIndex);
 }
 
 function test_setPathSrc(i, src, segmentIndex){
