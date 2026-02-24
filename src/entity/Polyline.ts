@@ -58,18 +58,28 @@ export interface TexParam {
 }
 type IndexFormatMode = typeof F3V | typeof FLONLAT | typeof FDETECT;
 type LineSourceMode = typeof F3V | typeof FLONLAT;
+type StrokeSource = string | HTMLImageElement;
+type StrokeSourceArray = (StrokeSource | null | undefined)[];
+type StrokeSourceInput = StrokeSource | StrokeSourceArray | null;
 
-const resolveSegmentSrc = (src: string | (string | null | undefined)[] | null, segIndex: number): string | null => {
+const isStrokeSource = (value: unknown): value is StrokeSource => {
+    if (typeof value === "string") {
+        return value.length > 0;
+    }
+    return typeof HTMLImageElement !== "undefined" && value instanceof HTMLImageElement;
+};
+
+const resolveSegmentSrc = (src: StrokeSourceInput, segIndex: number): StrokeSource | null => {
     if (!src) return null;
     if (!Array.isArray(src)) {
-        return src.length ? src : null;
+        return isStrokeSource(src) ? src : null;
     }
     const value = src[segIndex];
     if (value !== undefined) {
-        return value && String(value).length ? String(value) : null;
+        return isStrokeSource(value) ? value : null;
     }
     const fallback = src[src.length - 1];
-    return fallback && String(fallback).length ? String(fallback) : null;
+    return isStrokeSource(fallback) ? fallback : null;
 };
 
 const toVec3 = (point: Cartesian): Vec3 => {
@@ -201,7 +211,7 @@ export interface IPolylineParams {
     visibleSpherePosition?: Cartesian;
     visibleSphereRadius?: number;
     /** Single texture for all segments, or per-segment: ["src1","src2"], null/undefined = color-only */
-    src?: string | (string | null | undefined)[];
+    src?: StrokeSource | StrokeSourceArray;
     texParams?: TexParam[];
 }
 
@@ -347,7 +357,7 @@ class Polyline {
      * Stroke image src: string (all segments) or per-segment array.
      * @protected
      */
-    protected _src: string | (string | null | undefined)[] | null;
+    protected _src: StrokeSourceInput;
 
     /**
      * Stroke image(s): single or per-segment. null = color-only.
@@ -466,7 +476,7 @@ class Polyline {
     }
 
     public setImage(image: HTMLImageElement) {
-        this.setSrc(image.src);
+        this.setSrc(image);
     }
 
     public getImage(): HTMLImageElementExt | (HTMLImageElementExt | null)[] | null {
@@ -474,11 +484,11 @@ class Polyline {
     }
 
     protected _setSrcSingle(
-        src: string,
+        src: StrokeSource,
         renderNode: RenderNode,
         textureAtlas: any
     ) {
-        textureAtlas.loadImage(src, (img: HTMLImageElementExt) => {
+        const onImageReady = (img: HTMLImageElementExt) => {
             if (img.__nodeIndex != undefined && textureAtlas.get(img.__nodeIndex)) {
                 this._image = img;
                 this._setTexCoordArr(textureAtlas.get(img.__nodeIndex!)!.texCoords);
@@ -489,16 +499,29 @@ class Polyline {
             textureAtlas.createTexture();
             this._image = img;
             renderNode.updateStrokeTexCoords();
-        });
+        };
+
+        if (typeof src === "string") {
+            textureAtlas.loadImage(src, onImageReady);
+            return;
+        }
+
+        const img = src as HTMLImageElementExt;
+        if (img.width && img.height) {
+            onImageReady(img);
+            return;
+        }
+
+        img.addEventListener("load", () => onImageReady(img), {once: true});
     }
 
     protected _setSrcPerSegment(
-        src: (string | null | undefined)[],
+        src: StrokeSourceArray,
         segCount: number,
         renderNode: RenderNode,
         textureAtlas: any
     ) {
-        const pending = new Map<string, number[]>();
+        const pending = new Map<StrokeSource, number[]>();
         for (let j = 0; j < segCount; j++) {
             const segmentSrc = resolveSegmentSrc(src, j);
             if (!segmentSrc) continue;
@@ -522,36 +545,59 @@ class Polyline {
             }
         };
 
-        pending.forEach((segIndices, url) => {
-            textureAtlas.loadImage(url, (img: HTMLImageElementExt) => {
+        pending.forEach((segIndices, source) => {
+            const onImageReady = (img: HTMLImageElementExt) => {
                 let atlasData = img.__nodeIndex != undefined ? textureAtlas.get(img.__nodeIndex) : undefined;
                 if (!atlasData) {
                     textureAtlas.addImage(img);
                     textureAtlas.createTexture();
-                    atlasData = textureAtlas.get(img.__nodeIndex!)!;
+                    atlasData = img.__nodeIndex != undefined ? textureAtlas.get(img.__nodeIndex) : undefined;
                 }
                 for (const j of segIndices) {
-                    segTexCoords[j] = atlasData!.texCoords;
+                    segTexCoords[j] = atlasData?.texCoords ?? null;
                     segImages[j] = img;
                 }
                 onLoaded();
-            });
+            };
+
+            if (typeof source === "string") {
+                textureAtlas.loadImage(source, onImageReady);
+                return;
+            }
+
+            const img = source as HTMLImageElementExt;
+            if (img.width && img.height) {
+                onImageReady(img);
+            } else {
+                img.addEventListener("load", () => onImageReady(img), {once: true});
+            }
         });
     }
 
     protected _setSrcDisabled(segCount: number, renderNode: RenderNode) {
-        this.setTextureDisabled();
         this._image = null;
         const empty: (number[] | null)[] = new Array(segCount).fill(null);
         this._setTexCoordArr(empty);
         renderNode.updateStrokeTexCoords();
     }
 
+    protected _setTextureEnabled(segCount: number) {
+        if (this._defaultTexParam.strokeSize <= 0) {
+            this._defaultTexParam.strokeSize = 32;
+        }
+        for (let i = 0; i < segCount; i++) {
+            const texParams = this._resolveSegmentTexParams(i);
+            if (texParams.strokeSize <= 0) {
+                this.setPathTexParams(undefined, this._defaultTexParam.strokeSize, i);
+            }
+        }
+    }
+
     /**
-     * Sets image template url source. string = all segments, array = per-segment (null/undefined = color-only).
+     * Sets stroke source. string/Image = all segments, array = per-segment (null/undefined = color-only).
      * @public
      */
-    public setSrc(src: string | (string | null | undefined)[] | null) {
+    public setSrc(src: StrokeSourceInput) {
         this._src = src ?? null;
         const bh = this._handler;
         if (!bh) return;
@@ -560,12 +606,14 @@ class Polyline {
         const ta = rn.renderer.strokeTextureAtlas;
         const segCount = Math.max(this._path3v?.length || 0, 1);
 
-        if (typeof src === "string" && src.length) {
+        if (src && !Array.isArray(src) && isStrokeSource(src)) {
+            this._setTextureEnabled(segCount);
             this._setSrcSingle(src, rn, ta);
             return;
         }
 
-        if (Array.isArray(src) && src.some((s) => s && String(s).length)) {
+        if (Array.isArray(src) && src.some((s) => isStrokeSource(s))) {
+            this._setTextureEnabled(segCount);
             this._setSrcPerSegment(src, segCount, rn, ta);
             return;
         }
@@ -574,10 +622,10 @@ class Polyline {
     }
 
     /**
-     * Set stroke image source for a segment index.
+     * Set stroke source (string or Image) for a segment index.
      * @public
      */
-    public setPathSrc(src: string | null | undefined, segmentIndex: number = 0) {
+    public setPathSrc(src: StrokeSource | null | undefined, segmentIndex: number = 0) {
 
         if (segmentIndex === 0 && !Array.isArray(this._src)) {
             this.setSrc(src ?? null);
@@ -586,7 +634,7 @@ class Polyline {
 
         const baseSrc = this._src;
         const segCount = Math.max(this._path3v?.length || 0, 1, segmentIndex + 1);
-        const perSegmentSrc: (string | null | undefined)[] = new Array(segCount);
+        const perSegmentSrc: StrokeSourceArray = new Array(segCount);
 
         if (Array.isArray(baseSrc)) {
             for (let i = 0; i < segCount; i++) {
@@ -602,7 +650,7 @@ class Polyline {
         this.setSrc(perSegmentSrc);
     }
 
-    public getSrc(): string | (string | null | undefined)[] | null {
+    public getSrc(): StrokeSourceInput {
         return this._src;
     }
 
