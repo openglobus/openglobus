@@ -2788,10 +2788,18 @@ class Polyline {
         }
     }
 
-    public setPathTexParams(texOffset: number, strokeSize: number, segmentIndex: number): void {
+    public setPathTexParams(texOffset: number | undefined, strokeSize: number | undefined, segmentIndex: number): void {
         const texParams = this._resolveSegmentTexParams(segmentIndex);
-        texParams.texOffset = texOffset;
-        texParams.strokeSize = strokeSize;
+
+        if (texOffset !== undefined) {
+            texParams.texOffset = texOffset;
+        }
+        if (strokeSize !== undefined) {
+            texParams.strokeSize = strokeSize;
+        }
+
+        const resolvedTexOffset = texParams.texOffset;
+        const resolvedStrokeSize = texParams.strokeSize;
 
         if (!this._renderNode || segmentIndex < 0 || segmentIndex >= this._path3v.length) {
             return;
@@ -2804,8 +2812,8 @@ class Polyline {
         const ta = this._pathTexParamArr;
 
         for (let i = start; i < end; i += 2) {
-            ta[i] = texOffset;
-            ta[i + 1] = strokeSize;
+            ta[i] = resolvedTexOffset;
+            ta[i + 1] = resolvedStrokeSize;
         }
 
         this._changedBuffers[TEXPARAM_BUFFER] = true;
