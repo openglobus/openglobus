@@ -4,7 +4,6 @@ import {Polyline} from "./Polyline";
 import {Renderer} from "../renderer/Renderer";
 import {RenderNode} from "../scene/RenderNode";
 import {Vec3} from "../math/Vec3";
-import {PolylineBatchRenderer} from "./PolylineBatchRenderer";
 
 class PolylineHandler {
     static __counter__: number = 0;
@@ -16,8 +15,8 @@ class PolylineHandler {
     public _rtcEyePositionHigh: Float32Array;
     public _rtcEyePositionLow: Float32Array;
 
-    protected _opaqueRenderer: PolylineBatchRenderer;
-    protected _transparentRenderer: PolylineBatchRenderer;
+    // protected _opaqueRenderer: PolylineBatchRenderer;
+    // protected _transparentRenderer: PolylineBatchRenderer;
 
     protected _polylines: Polyline[] = [];
 
@@ -31,13 +30,13 @@ class PolylineHandler {
 
         this._polylines = [];
 
-        this._opaqueRenderer = new PolylineBatchRenderer({
-            path3v: [],
-        });
-
-        this._transparentRenderer = new PolylineBatchRenderer({
-            path3v: [],
-        });
+        // this._opaqueRenderer = new PolylineBatchRenderer({
+        //     path3v: [],
+        // });
+        //
+        // this._transparentRenderer = new PolylineBatchRenderer({
+        //     path3v: [],
+        // });
 
         this.pickingEnabled = true;
 
