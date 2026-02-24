@@ -19,9 +19,7 @@ export function polylineTransparent(): Program {
             opacity: "float",
             depthOffset: "float",
             visibleSphere: "vec4",
-            texAtlas: "sampler2d",
-            strokeSize: "float",
-            texOffset: "float"
+            texAtlas: "sampler2d"
         },
         attributes: {
             prevHigh: "vec3",
@@ -33,7 +31,8 @@ export function polylineTransparent(): Program {
             order: "float",
             color: "vec4",
             texCoord: "vec4",
-            thickness: "float"
+            thickness: "float",
+            textureParams: "vec2"
         },
         vertexShader: polyline_vert,
         fragmentShader: polyline_woit_frag
@@ -52,9 +51,7 @@ export function polylineForward(): Program {
             opacity: "float",
             depthOffset: "float",
             visibleSphere: "vec4",
-            texAtlas: "sampler2d",
-            strokeSize: "float",
-            texOffset: "float"
+            texAtlas: "sampler2d"
         },
         attributes: {
             prevHigh: "vec3",
@@ -66,7 +63,8 @@ export function polylineForward(): Program {
             order: "float",
             color: "vec4",
             texCoord: "vec4",
-            thickness: "float"
+            thickness: "float",
+            textureParams: "vec2"
         },
         vertexShader: polyline_vert,
         fragmentShader: polyline_forward_frag

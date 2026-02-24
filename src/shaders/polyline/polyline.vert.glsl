@@ -13,6 +13,7 @@ in vec4 texCoord;
 in float order;
 in vec4 color;
 in float thickness;
+in vec2 textureParams;
 
 uniform float thicknessScale;
 uniform mat4 proj;
@@ -22,8 +23,6 @@ uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
 uniform float opacity;
 uniform float depthOffset;
-uniform float strokeSize;
-uniform float texOffset;
 
 out vec4 v_rgba;
 out vec3 vPos;
@@ -143,10 +142,11 @@ void main() {
         }
     }
 
+    float strokeSize = textureParams.y;
     repeat = min(distance(sCurrent, sPrev), viewport.y) / strokeSize;
 
     //float repeatNext = min(distance(sCurrent, sNext), viewport.y) / strokeSize;
-    v_texOffset = texOffset;
+    v_texOffset = textureParams.x;
 
     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
 }
