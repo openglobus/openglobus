@@ -10,6 +10,7 @@ in vec3 vPos;
 in vec4 vTexCoord;
 flat in float repeat;
 flat in float v_texOffset;
+flat in float v_pathPhase;
 
 out vec4 fragColor;
 
@@ -37,7 +38,10 @@ void main() {
 
         float EPS = 0.5 / 1024.0; //Atlas height
 
-        float localY = fract((uv.y + v_texOffset - min) / height * repeat);
+        float t = (uv.y - min) / height;
+        float phaseStart = v_pathPhase - repeat;
+        float animatedOffset = v_texOffset * repeat / max(height, 1e-6);
+        float localY = fract(t * repeat + phaseStart + animatedOffset);
         uv.y = clamp(min + localY * height, min + EPS, min + height - EPS);
 
         vec4 color = texture(texAtlas, uv);

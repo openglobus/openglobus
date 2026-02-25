@@ -15,6 +15,9 @@ export function polylineTransparent(): Program {
             view: "mat4",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
+            textureScaleSphereHigh: "vec3",
+            textureScaleSphereLow: "vec3",
+            textureScaleSphereRadius: "float",
             thicknessScale: "float",
             opacity: "float",
             depthOffset: "float",
@@ -33,7 +36,8 @@ export function polylineTransparent(): Program {
             color: "vec4",
             texCoord: "vec4",
             thickness: "float",
-            textureParams: "vec3"
+            textureParams: "vec3",
+            pathPhase: "float"
         },
         vertexShader: polyline_vert,
         fragmentShader: polyline_woit_frag
@@ -48,6 +52,9 @@ export function polylineForward(): Program {
             view: "mat4",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
+            textureScaleSphereHigh: "vec3",
+            textureScaleSphereLow: "vec3",
+            textureScaleSphereRadius: "float",
             thicknessScale: "float",
             opacity: "float",
             depthOffset: "float",
@@ -66,7 +73,8 @@ export function polylineForward(): Program {
             color: "vec4",
             texCoord: "vec4",
             thickness: "float",
-            textureParams: "vec3"
+            textureParams: "vec3",
+            pathPhase: "float"
         },
         vertexShader: polyline_vert,
         fragmentShader: polyline_forward_frag

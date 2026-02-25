@@ -14,6 +14,7 @@ in float order;
 in vec4 color;
 in float thickness;
 in vec3 textureParams;
+in float pathPhase;
 
 uniform float thicknessScale;
 uniform mat4 proj;
@@ -21,6 +22,9 @@ uniform mat4 view;
 uniform vec2 viewport;
 uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
+uniform vec3 textureScaleSphereHigh;
+uniform vec3 textureScaleSphereLow;
+uniform float textureScaleSphereRadius;
 uniform float opacity;
 uniform float depthOffset;
 uniform float time;
@@ -31,6 +35,7 @@ out vec3 uCamPos;
 out vec4 vTexCoord;
 flat out float repeat;
 flat out float v_texOffset;
+flat out float v_pathPhase;
 
 const float NEAR = -1.0;
 
@@ -144,9 +149,29 @@ void main() {
     }
 
     float strokeSize = textureParams.y;
-    repeat = min(distance(sCurrent, sPrev), viewport.y) / strokeSize;
+    float safeStrokeSize = max(strokeSize, 1e-6);
+    float segmentWorldLength = distance(currentHigh + currentLow, prevHigh + prevLow);
 
-    //float repeatNext = min(distance(sCurrent, sNext), viewport.y) / strokeSize;
+    float segmentPixels = min(distance(sCurrent, sPrev), viewport.y);
+    float pixelsPerMeter = segmentPixels / max(segmentWorldLength, 1e-6);
+
+    if (textureScaleSphereRadius > 0.0) {
+        highDiff = textureScaleSphereHigh - rtcEyePositionHigh;
+        highDiff = highDiff * step(1.0, length(highDiff));
+        lowDiff = textureScaleSphereLow - rtcEyePositionLow;
+
+        vec4 sphereCenterView = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+        vec4 sphereEdgeView = sphereCenterView + vec4(textureScaleSphereRadius, 0.0, 0.0, 0.0);
+
+        vec2 sphereCenterPx = project(proj * sphereCenterView);
+        vec2 sphereEdgePx = project(proj * sphereEdgeView);
+        float sphereRadiusPx = distance(sphereCenterPx, sphereEdgePx);
+        pixelsPerMeter = sphereRadiusPx / max(textureScaleSphereRadius, 1e-6);
+    }
+
+    repeat = min(segmentWorldLength * pixelsPerMeter, viewport.y) / safeStrokeSize;
+    v_pathPhase = pathPhase * pixelsPerMeter / safeStrokeSize;
+
     v_texOffset = textureParams.x + textureParams.z * time;
 
     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
