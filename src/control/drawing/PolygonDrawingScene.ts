@@ -127,7 +127,7 @@ class PolygonDrawingScene extends RenderNode {
             entities: [new Entity({
                 polyline: {
                     path3v: [],
-                    isClosed: false,
+                    isClosed: [false],
                     ...this._outlineStyle
                 }
             })],
@@ -524,7 +524,7 @@ class PolygonDrawingScene extends RenderNode {
             let entity = new Entity({
                 polyline: {
                     path3v: [prevPath],
-                    isClosed: false,
+                    isClosed: [false],
                     ...this._outlineStyle
                 }
             });
@@ -723,13 +723,13 @@ class PolygonDrawingScene extends RenderNode {
             new Entity({
                 polyline: {
                     path3v: [],
-                    isClosed: false,
+                    isClosed: [false],
                     ...this._outlineStyle
                 }
             }), new Entity({
                 polyline: {
                     path3v: [],
-                    isClosed: false,
+                    isClosed: [false],
                     ...this._outlineStyle
                 }
             }),

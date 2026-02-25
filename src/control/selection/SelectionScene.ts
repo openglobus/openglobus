@@ -77,7 +77,7 @@ class SelectionScene extends RenderNode {
                 path3v: [],
                 thickness: 3.8,
                 color: "rgb(455,455,455)",
-                isClosed: false
+                isClosed: [false]
             }
         } as any);
 

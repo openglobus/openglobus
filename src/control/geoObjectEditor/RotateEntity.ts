@@ -31,7 +31,7 @@ export class RotateEntity extends Entity {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 3.1,
                 color: X_COLOR,
-                isClosed: true
+                isClosed: [true]
             },
             properties: {
                 opName: "rotate_pitch",
@@ -49,7 +49,7 @@ export class RotateEntity extends Entity {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
                 color: Y_COLOR,
-                isClosed: true
+                isClosed: [true]
             },
             properties: {
                 opName: "rotate_yaw",
@@ -67,7 +67,7 @@ export class RotateEntity extends Entity {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
                 color: Z_COLOR,
-                isClosed: true
+                isClosed: [true]
             },
             properties: {
                 opName: "rotate_roll",

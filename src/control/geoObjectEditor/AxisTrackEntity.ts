@@ -50,7 +50,7 @@ export class AxisTrackEntity extends Entity {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
                 pathColors: [lonColors],
-                isClosed: false
+                isClosed: [false]
             }
         });
 
@@ -59,7 +59,7 @@ export class AxisTrackEntity extends Entity {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
                 pathColors: [yColors],
-                isClosed: false
+                isClosed: [false]
             }
         });
 
@@ -68,7 +68,7 @@ export class AxisTrackEntity extends Entity {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
                 pathColors: [latCoords],
-                isClosed: false
+                isClosed: [false]
             }
         });
 

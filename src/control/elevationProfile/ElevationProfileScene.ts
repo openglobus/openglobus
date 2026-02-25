@@ -147,7 +147,7 @@ class ElevationProfileScene extends RenderNode {
                 path3v: [],
                 thickness: 3.8,
                 color: "rgba(0,305,0,0.8)",
-                isClosed: false
+                isClosed: [false]
             }
         });
 
@@ -398,7 +398,7 @@ class ElevationProfileScene extends RenderNode {
         this._columnPointersLayer.add(columnEntity);
         this._headPointersLayer.add(headEntity);
         this._heightsLayer.add(heightLabelEntity);
-        this._trackEntity.polyline!.appendPoint3v(headEntity.getCartesian());
+        this._trackEntity.polyline!.addPoint3v(headEntity.getCartesian());
 
         groundEntity.properties.lonLatEll.lon = ellLonLat.lon;
         groundEntity.properties.lonLatEll.lat = ellLonLat.lat;
@@ -462,7 +462,7 @@ class ElevationProfileScene extends RenderNode {
             this._columnPointersLayer.add(columnEntity);
             this._headPointersLayer.add(headEntity);
             this._heightsLayer.add(heightLabelEntity);
-            this._trackEntity.polyline!.appendPoint3v(headEntity.getCartesian());
+            this._trackEntity.polyline!.addPoint3v(headEntity.getCartesian());
 
             groundEntity.properties.lonLatEll.lon = lonLat.lon;
             groundEntity.properties.lonLatEll.lat = lonLat.lat;

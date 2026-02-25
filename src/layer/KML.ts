@@ -128,7 +128,7 @@ export class KML extends Vector {
                     pathLonLat: [lonLats],
                     thickness: lineWidth,
                     color: lineColor,
-                    isClosed: false
+                    isClosed: [false]
                 },
                 properties: {
                     name: name
@@ -244,7 +244,7 @@ export class KML extends Vector {
                     return new LonLat(item[0], item[1], item[2]);
                 });
                 const _entity = new Entity({
-                    polyline: {pathLonLat: [pathLonLat], thickness: 3, color, isClosed: false}
+                    polyline: {pathLonLat: [pathLonLat], thickness: 3, color, isClosed: [false]}
                 });
                 return _entity;
             }
