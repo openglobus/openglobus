@@ -32,6 +32,8 @@ const TEXPARAM_BUFFER = 5;
 const PICKINGCOLORS_BUFFER = 6;
 const PATHPHASE_BUFFER = 7;
 
+const ANIMATION_TIME_WRAP_SEC = 59.0;
+
 const DEFAULT_COLOR = "#0000FF";
 
 const F3V = 0;
@@ -3663,7 +3665,8 @@ class Polyline {
             gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
             gl.uniform1f(shu.thicknessScale, 0.5);
             gl.uniform1f(shu.opacity, this._opacity * ec._fadingOpacity);
-            gl.uniform1f(shu.time, globalThis.performance.now() * 0.001);
+            const timeSec = globalThis.performance.now() * 0.001;
+            gl.uniform1f(shu.time, timeSec % ANIMATION_TIME_WRAP_SEC);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._colorsBuffer!);
             gl.vertexAttribPointer(sha.color, this._colorsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
