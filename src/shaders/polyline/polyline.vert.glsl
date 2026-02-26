@@ -118,8 +118,10 @@ void main() {
 
     vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));
     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));
+    vec2 sideNormal = abs(order) == 1.0 ? normalPrev : normalNext;
 
-    float d = thickness * thicknessScale * sign(order);
+    float side = sign(order);
+    float d = thickness * thicknessScale * side;
 
     vTexCoord = texCoord;
 
@@ -142,8 +144,12 @@ void main() {
                 m = sCurrent + normalPrev * d;
             }
         } else if (distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))) {
-            m = sCurrent + normalNext * d;
+            m = sCurrent + sideNormal * d;
         }
+    }
+
+    if (dot(m - sCurrent, sideNormal) * side < 0.0) {
+        m = sCurrent + sideNormal * d;
     }
 
     repeat = 1.0;

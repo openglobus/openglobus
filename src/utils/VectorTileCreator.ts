@@ -113,7 +113,9 @@ export class VectorTileCreator {
                     
                     vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));
                     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));
-                    vec2 d = (thickness + thicknessOutline) * 0.5 * sign(order) / viewport;
+                    vec2 sideNormal = abs(order) == 1.0 ? normalPrev : normalNext;
+                    float side = sign(order);
+                    vec2 d = (thickness + thicknessOutline) * 0.5 * side / viewport;
                     
                     vec2 m;
                     if(dotNP >= 0.99991){
@@ -134,8 +136,11 @@ export class VectorTileCreator {
                                 m = sCurrent + normalPrev * d;
                             }
                         }else if(distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){
-                            m = sCurrent + normalNext * d;
+                            m = sCurrent + sideNormal * d;
                         }
+                    }
+                    if(dot(m - sCurrent, sideNormal) * side < 0.0){
+                        m = sCurrent + sideNormal * d;
                     }
                     gl_Position = vec4(m.x, m.y, 0.0, 1.0);
                 }`,
