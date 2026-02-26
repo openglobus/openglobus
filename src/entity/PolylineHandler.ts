@@ -51,8 +51,8 @@ class PolylineHandler {
         if (!this._renderer) return;
 
         this._renderer.addPrograms(
-            shaders.polylineForward(),
-            shaders.polylineTransparent(),
+            shaders.polylineTex(),
+            shaders.polylinePlain(),
             shaders.polyline_picking()
         );
     }

@@ -11,7 +11,7 @@ import {
 } from "../../lib/og.es.js";
 
 let renderer = new Renderer("frame", {
-    msaa: 8,
+    msaa: 0,
     controls: [new control.SimpleNavigation({speed: 0.01})],
     autoActivate: true
 });

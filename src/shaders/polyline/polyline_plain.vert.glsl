@@ -9,13 +9,9 @@ in vec3 prevLow;
 in vec3 currentLow;
 in vec3 nextLow;
 
-in vec4 texCoord;
 in float order;
 in vec4 color;
 in float thickness;
-in vec3 textureParams;
-in float pathPhase;
-in vec4 boundingSphere;
 
 uniform float thicknessScale;
 uniform mat4 proj;
@@ -25,15 +21,10 @@ uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
 uniform float opacity;
 uniform float depthOffset;
-uniform float time;
 
 out vec4 v_rgba;
 out vec3 vPos;
 out vec3 uCamPos;
-out vec4 vTexCoord;
-flat out float repeat;
-flat out float v_texOffset;
-flat out float v_pathPhase;
 
 const float NEAR = -1.0;
 
@@ -58,7 +49,6 @@ void main() {
 
     uCamPos = rtcEyePositionHigh + rtcEyePositionLow;
     vPos = currentHigh + currentLow;
-
     v_rgba = vec4(color.rgb, color.a * opacity);
 
     mat4 viewMatrixRTE = view;
@@ -81,7 +71,6 @@ void main() {
     lowDiff = nextLow - rtcEyePositionLow;
     vec4 vNext = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-/*Clip near plane, the point behind view plane*/
     if (vCurrent.z > NEAR) {
         if (vPrev.z < NEAR && abs(order) == 1.0) {
             vCurrent = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
@@ -121,8 +110,6 @@ void main() {
 
     float d = thickness * thicknessScale * sign(order);
 
-    vTexCoord = texCoord;
-
     vec2 m;
     if (dotNP >= 0.99991) {
         m = sCurrent - normalPrev * d;
@@ -145,36 +132,6 @@ void main() {
             m = sCurrent + normalNext * d;
         }
     }
-
-    repeat = 1.0;
-    v_pathPhase = 0.0;
-
-    float texHeight = texCoord.w;
-    if (texHeight > 0.0) {
-        float strokeSize = textureParams.y;
-        float safeStrokeSize = max(strokeSize, 1e-6);
-        float segmentWorldLength = distance(currentHigh + currentLow, prevHigh + prevLow);
-
-        float segmentPixels = min(distance(sCurrent, sPrev), viewport.y);
-        float pixelsPerMeter = segmentPixels / max(segmentWorldLength, 1e-6);
-
-        if (boundingSphere.w > 0.0) {
-            vec3 rtcEyePosition = rtcEyePositionHigh + rtcEyePositionLow;
-            vec3 sphereCenterRtc = boundingSphere.xyz - rtcEyePosition;
-            vec4 sphereCenterView = viewMatrixRTE * vec4(sphereCenterRtc, 1.0);
-            vec4 sphereEdgeView = sphereCenterView + vec4(boundingSphere.w, 0.0, 0.0, 0.0);
-
-            vec2 sphereCenterPx = project(proj * sphereCenterView);
-            vec2 sphereEdgePx = project(proj * sphereEdgeView);
-            float sphereRadiusPx = distance(sphereCenterPx, sphereEdgePx);
-            pixelsPerMeter = sphereRadiusPx / max(boundingSphere.w, 1e-6);
-        }
-
-        repeat = min(segmentWorldLength * pixelsPerMeter, viewport.y) / safeStrokeSize;
-        v_pathPhase = pathPhase * pixelsPerMeter / safeStrokeSize;
-    }
-
-    v_texOffset = textureParams.x + textureParams.z * time;
 
     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
 }
