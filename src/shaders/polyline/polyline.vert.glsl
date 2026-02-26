@@ -15,6 +15,7 @@ in vec4 color;
 in float thickness;
 in vec3 textureParams;
 in float pathPhase;
+in vec4 boundingSphere;
 
 uniform float thicknessScale;
 uniform mat4 proj;
@@ -22,9 +23,6 @@ uniform mat4 view;
 uniform vec2 viewport;
 uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
-uniform vec3 textureScaleSphereHigh;
-uniform vec3 textureScaleSphereLow;
-uniform float textureScaleSphereRadius;
 uniform float opacity;
 uniform float depthOffset;
 uniform float time;
@@ -155,18 +153,16 @@ void main() {
     float segmentPixels = min(distance(sCurrent, sPrev), viewport.y);
     float pixelsPerMeter = segmentPixels / max(segmentWorldLength, 1e-6);
 
-    if (textureScaleSphereRadius > 0.0) {
-        highDiff = textureScaleSphereHigh - rtcEyePositionHigh;
-        highDiff = highDiff * step(1.0, length(highDiff));
-        lowDiff = textureScaleSphereLow - rtcEyePositionLow;
-
-        vec4 sphereCenterView = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-        vec4 sphereEdgeView = sphereCenterView + vec4(textureScaleSphereRadius, 0.0, 0.0, 0.0);
+    if (boundingSphere.w > 0.0) {
+        vec3 rtcEyePosition = rtcEyePositionHigh + rtcEyePositionLow;
+        vec3 sphereCenterRtc = boundingSphere.xyz - rtcEyePosition;
+        vec4 sphereCenterView = viewMatrixRTE * vec4(sphereCenterRtc, 1.0);
+        vec4 sphereEdgeView = sphereCenterView + vec4(boundingSphere.w, 0.0, 0.0, 0.0);
 
         vec2 sphereCenterPx = project(proj * sphereCenterView);
         vec2 sphereEdgePx = project(proj * sphereEdgeView);
         float sphereRadiusPx = distance(sphereCenterPx, sphereEdgePx);
-        pixelsPerMeter = sphereRadiusPx / max(textureScaleSphereRadius, 1e-6);
+        pixelsPerMeter = sphereRadiusPx / max(boundingSphere.w, 1e-6);
     }
 
     repeat = min(segmentWorldLength * pixelsPerMeter, viewport.y) / safeStrokeSize;

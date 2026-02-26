@@ -31,6 +31,7 @@ const THICKNESS_BUFFER = 4;
 const TEXPARAM_BUFFER = 5;
 const PICKINGCOLORS_BUFFER = 6;
 const PATHPHASE_BUFFER = 7;
+const BOUNDING_SPHERE_BUFFER = 8;
 
 const ANIMATION_TIME_WRAP_SEC = 59.0;
 
@@ -112,8 +113,13 @@ const pushQuadTexParams = (outTexParams: number[], texParam: TexParam) => {
     );
 };
 
-const pushQuadPhase = (outPhase: number[], phase: number) => {
-    outPhase.push(phase, phase, phase, phase);
+const pushQuadBoundingSphere = (outBoundingSphere: number[], x: number, y: number, z: number, r: number) => {
+    outBoundingSphere.push(
+        x, y, z, r,
+        x, y, z, r,
+        x, y, z, r,
+        x, y, z, r
+    );
 };
 
 const pushQuadOrders = (outOrders: number[]) => {
@@ -303,6 +309,7 @@ class Polyline {
     protected _thicknessArr: TypedArray | number[];
     protected _pathTexParamArr: TypedArray | number[];
     protected _pathPhaseArr: TypedArray | number[];
+    protected _boundingSphereArr: TypedArray | number[];
     protected _texCoordArr: TypedArray | number[];
     protected _pickingColors: TypedArray | number[];
 
@@ -315,6 +322,7 @@ class Polyline {
     protected _thicknessBuffer: WebGLBufferExt | null;
     protected _pathTexParamBuffer: WebGLBufferExt | null;
     protected _pathPhaseBuffer: WebGLBufferExt | null;
+    protected _boundingSphereBuffer: WebGLBufferExt | null;
     protected _pickingColorsBuffer: WebGLBufferExt | null;
 
     protected _renderNode: RenderNode | null;
@@ -337,9 +345,6 @@ class Polyline {
     protected _changedBuffers: boolean[];
 
     protected _visibleSphere: Float32Array;
-    protected _textureScaleSphereHigh: Float32Array;
-    protected _textureScaleSphereLow: Float32Array;
-    protected _textureScaleSphereRadius: number;
 
     public __doubleToTwoFloats: (pos: Vec3, highPos: Vec3, lowPos: Vec3) => void;
 
@@ -401,6 +406,7 @@ class Polyline {
         this._thicknessArr = [];
         this._pathTexParamArr = [];
         this._pathPhaseArr = [];
+        this._boundingSphereArr = [];
         this._texCoordArr = [];
         this._pickingColors = [];
 
@@ -413,6 +419,7 @@ class Polyline {
         this._thicknessBuffer = null;
         this._pathTexParamBuffer = null;
         this._pathPhaseBuffer = null;
+        this._boundingSphereBuffer = null;
         this._pickingColorsBuffer = null;
 
         this._renderNode = null;
@@ -442,15 +449,13 @@ class Polyline {
         this._buffersUpdateCallbacks[TEXPARAM_BUFFER] = this._createTexParamsBuffer;
         this._buffersUpdateCallbacks[PICKINGCOLORS_BUFFER] = this._createPickingColorsBuffer;
         this._buffersUpdateCallbacks[PATHPHASE_BUFFER] = this._createPathPhaseBuffer;
+        this._buffersUpdateCallbacks[BOUNDING_SPHERE_BUFFER] = this._createBoundingSphereBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
         let c = createVector3(options.visibleSpherePosition).toArray();
         let r = options.visibleSphereRadius || 0;
         this._visibleSphere = new Float32Array([...c, r]);
-        this._textureScaleSphereHigh = new Float32Array([0, 0, 0]);
-        this._textureScaleSphereLow = new Float32Array([0, 0, 0]);
-        this._textureScaleSphereRadius = 0;
 
         // create path
         if (options.pathLonLat) {
@@ -539,7 +544,7 @@ class Polyline {
             if (loaded === needed) {
                 this._image = segImages;
                 this._setTexCoordArr(segTexCoords);
-                this._updateTextureMappingData();
+                this._updateAllTextureMetrics();
                 renderNode.updateStrokeTexCoords();
             }
         };
@@ -577,7 +582,7 @@ class Polyline {
         this._image = new Array(segCount).fill(null);
         const empty: (number[] | null)[] = new Array(segCount).fill(null);
         this._setTexCoordArr(empty);
-        this._updateTextureMappingData();
+        this._updateAllTextureMetrics();
         renderNode.updateStrokeTexCoords();
     }
 
@@ -682,7 +687,11 @@ class Polyline {
         }
 
         this._rebuildIndexes();
-        this._updateTextureMappingData();
+        if (this._hasTexture(segmentIndex)) {
+            this._updateTextureMetrics(segmentIndex);
+            this._changedBuffers[PATHPHASE_BUFFER] = true;
+            this._changedBuffers[BOUNDING_SPHERE_BUFFER] = true;
+        }
         this._changedBuffers[INDEX_BUFFER] = true;
     }
 
@@ -789,24 +798,80 @@ class Polyline {
         return outSegmentColors;
     }
 
+    protected _getSegmentAttrGroupStart(segmentIndex: number): number {
+        return segmentIndex === 0 ? 0 : (this._pathLengths[segmentIndex] + 2 * segmentIndex - 1);
+    }
+
+    protected _getSegmentAttrGroupCount(segmentIndex: number): number {
+        const path = this._path3v[segmentIndex] as Vec3[] | undefined;
+        if (!path || path.length === 0) return 0;
+        return path.length + 1 + (segmentIndex > 0 ? 1 : 0);
+    }
+
+    protected _setPhaseQuad(groupIndex: number, phase: number, arr?: TypedArray | number[]) {
+        const target = (arr ?? this._pathPhaseArr) as TypedArray | number[];
+        const base = groupIndex * 4;
+        target[base] = phase;
+        target[base + 1] = phase;
+        target[base + 2] = phase;
+        target[base + 3] = phase;
+    }
+
+    protected _setBoundingSphereQuad(groupIndex: number, sphere: NumberArray4, arr?: TypedArray | number[]) {
+        const target = (arr ?? this._boundingSphereArr) as TypedArray | number[];
+        const base = groupIndex * 16;
+        for (let i = 0; i < 4; i++) {
+            const k = base + i * 4;
+            target[k] = sphere[0];
+            target[k + 1] = sphere[1];
+            target[k + 2] = sphere[2];
+            target[k + 3] = sphere[3];
+        }
+    }
+
+    protected _getTotalAttrGroupCount(): number {
+        let groups = 0;
+        for (let segIndex = 0; segIndex < this._path3v.length; segIndex++) {
+            const path = this._path3v[segIndex] as Vec3[] | undefined;
+            if (!path || path.length === 0) continue;
+            groups += path.length + 1 + (segIndex > 0 ? 1 : 0);
+        }
+        return groups;
+    }
+
+    protected _cloneMetricArray(source: TypedArray | number[] | undefined, requiredLength: number): number[] {
+        const out = new Array(requiredLength).fill(0);
+        if (!source) return out;
+
+        const src = source as TypedArray | number[];
+        const copyLen = Math.min(requiredLength, src.length);
+        for (let i = 0; i < copyLen; i++) {
+            out[i] = src[i];
+        }
+        return out;
+    }
+
     protected _rebuildPathPhaseArr() {
-        const outPhase: number[] = [];
+        const outPhase = this._cloneMetricArray(this._pathPhaseArr as TypedArray | number[], this._getTotalAttrGroupCount() * 4);
         let cumulativeLength = 0.0;
 
         for (let segIndex = 0; segIndex < this._path3v.length; segIndex++) {
             const path = this._path3v[segIndex] as Vec3[];
             if (!path || path.length === 0) continue;
+            if (!this._hasTexture(segIndex)) continue;
+
+            let groupIndex = this._getSegmentAttrGroupStart(segIndex);
 
             if (segIndex > 0) {
-                pushQuadPhase(outPhase, cumulativeLength);
+                this._setPhaseQuad(groupIndex++, cumulativeLength, outPhase);
             }
 
             let segLength = 0.0;
-            pushQuadPhase(outPhase, cumulativeLength);
+            this._setPhaseQuad(groupIndex++, cumulativeLength, outPhase);
 
             for (let i = 1; i < path.length; i++) {
                 segLength += path[i].distance(path[i - 1]);
-                pushQuadPhase(outPhase, cumulativeLength + segLength);
+                this._setPhaseQuad(groupIndex++, cumulativeLength + segLength, outPhase);
             }
 
             let capPhase = cumulativeLength + segLength;
@@ -814,106 +879,202 @@ class Polyline {
                 capPhase += path[path.length - 1].distance(path[0]);
             }
 
-            pushQuadPhase(outPhase, capPhase);
+            this._setPhaseQuad(groupIndex, capPhase, outPhase);
             cumulativeLength = capPhase;
         }
 
         this._pathPhaseArr = outPhase;
     }
 
-    protected _rebuildTextureScaleSphere() {
-        let hasPoint = false;
+    protected _calculateSegmentTextureScaleSphere(path: Vec3[], segmentIndex: number): NumberArray4 {
+        if (!this._hasTexture(segmentIndex) || !path || path.length === 0) {
+            return [0, 0, 0, 0];
+        }
+
         let minX = Infinity, minY = Infinity, minZ = Infinity;
         let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
 
-        for (let i = 0; i < this._path3v.length; i++) {
-            const path = this._path3v[i] as Vec3[];
-            if (!path) continue;
+        for (let i = 0; i < path.length; i++) {
+            const p = path[i];
+            if (p.x < minX) minX = p.x;
+            if (p.y < minY) minY = p.y;
+            if (p.z < minZ) minZ = p.z;
+            if (p.x > maxX) maxX = p.x;
+            if (p.y > maxY) maxY = p.y;
+            if (p.z > maxZ) maxZ = p.z;
+        }
 
-            for (let j = 0; j < path.length; j++) {
-                const p = path[j];
-                hasPoint = true;
-                if (p.x < minX) minX = p.x;
-                if (p.y < minY) minY = p.y;
-                if (p.z < minZ) minZ = p.z;
-                if (p.x > maxX) maxX = p.x;
-                if (p.y > maxY) maxY = p.y;
-                if (p.z > maxZ) maxZ = p.z;
+        const centerX = (minX + maxX) * 0.5;
+        const centerY = (minY + maxY) * 0.5;
+        const centerZ = (minZ + maxZ) * 0.5;
+
+        let radius2 = 0.0;
+        for (let i = 0; i < path.length; i++) {
+            const p = path[i];
+            const dx = p.x - centerX;
+            const dy = p.y - centerY;
+            const dz = p.z - centerZ;
+            const d2 = dx * dx + dy * dy + dz * dz;
+            if (d2 > radius2) radius2 = d2;
+        }
+
+        let rtcCenterX = centerX;
+        let rtcCenterY = centerY;
+        let rtcCenterZ = centerZ;
+
+        if (this._handler) {
+            rtcCenterX -= this._handler._relativeCenter.x;
+            rtcCenterY -= this._handler._relativeCenter.y;
+            rtcCenterZ -= this._handler._relativeCenter.z;
+        }
+
+        return [rtcCenterX, rtcCenterY, rtcCenterZ, Math.sqrt(radius2)];
+    }
+
+    protected _rebuildBoundingSphereArr() {
+        const outBoundingSphere = this._cloneMetricArray(this._boundingSphereArr as TypedArray | number[], this._getTotalAttrGroupCount() * 16);
+
+        for (let segIndex = 0; segIndex < this._path3v.length; segIndex++) {
+            const path = this._path3v[segIndex] as Vec3[];
+            if (!path || path.length === 0) continue;
+            if (!this._hasTexture(segIndex)) continue;
+
+            const sphere = this._calculateSegmentTextureScaleSphere(path, segIndex);
+            const startGroup = this._getSegmentAttrGroupStart(segIndex);
+            const groupsCount = this._getSegmentAttrGroupCount(segIndex);
+            for (let i = 0; i < groupsCount; i++) {
+                this._setBoundingSphereQuad(startGroup + i, sphere, outBoundingSphere);
             }
         }
 
-        if (!hasPoint) {
-            this._textureScaleSphereHigh[0] = 0;
-            this._textureScaleSphereHigh[1] = 0;
-            this._textureScaleSphereHigh[2] = 0;
-            this._textureScaleSphereLow[0] = 0;
-            this._textureScaleSphereLow[1] = 0;
-            this._textureScaleSphereLow[2] = 0;
-            this._textureScaleSphereRadius = 0;
+        this._boundingSphereArr = outBoundingSphere;
+    }
+
+    protected _updatePathPhaseSegment(segmentIndex: number): number {
+        const path = this._path3v[segmentIndex] as Vec3[] | undefined;
+        if (!path || path.length === 0) {
+            return 0;
+        }
+        if (!this._hasTexture(segmentIndex)) {
+            return 0;
+        }
+
+        const startGroup = this._getSegmentAttrGroupStart(segmentIndex);
+        const groupsCount = this._getSegmentAttrGroupCount(segmentIndex);
+        const capGroup = startGroup + groupsCount - 1;
+        const arr = this._pathPhaseArr as TypedArray | number[];
+
+        const segmentStartPhase = segmentIndex > 0 ? arr[startGroup * 4] : 0.0;
+        const oldCapPhase = arr[capGroup * 4];
+
+        let groupIndex = startGroup;
+        if (segmentIndex > 0) {
+            this._setPhaseQuad(groupIndex++, segmentStartPhase);
+        }
+
+        let segLength = 0.0;
+        this._setPhaseQuad(groupIndex++, segmentStartPhase);
+
+        for (let i = 1; i < path.length; i++) {
+            segLength += path[i].distance(path[i - 1]);
+            this._setPhaseQuad(groupIndex++, segmentStartPhase + segLength);
+        }
+
+        let capPhase = segmentStartPhase + segLength;
+        if (this._isSegmentClosed(segmentIndex) && path.length > 1) {
+            capPhase += path[path.length - 1].distance(path[0]);
+        }
+
+        this._setPhaseQuad(capGroup, capPhase);
+        return capPhase - oldCapPhase;
+    }
+
+    protected _shiftPathPhaseTailAfterSegment(segmentIndex: number, phaseDelta: number) {
+        if (phaseDelta === 0) {
             return;
         }
 
-        const center = new Vec3(
-            (minX + maxX) * 0.5,
-            (minY + maxY) * 0.5,
-            (minZ + maxZ) * 0.5
-        );
+        const arr = this._pathPhaseArr as TypedArray | number[];
+        for (let segIndex = segmentIndex + 1; segIndex < this._path3v.length; segIndex++) {
+            const path = this._path3v[segIndex] as Vec3[] | undefined;
+            if (!path || path.length === 0 || !this._hasTexture(segIndex)) {
+                continue;
+            }
 
-        let radius2 = 0.0;
-        for (let i = 0; i < this._path3v.length; i++) {
-            const path = this._path3v[i] as Vec3[];
-            if (!path) continue;
-            for (let j = 0; j < path.length; j++) {
-                const d2 = center.distance2(path[j]);
-                if (d2 > radius2) radius2 = d2;
+            const groupStart = this._getSegmentAttrGroupStart(segIndex);
+            const groupCount = this._getSegmentAttrGroupCount(segIndex);
+
+            for (let localGroup = 0; localGroup < groupCount; localGroup++) {
+                const base = (groupStart + localGroup) * 4;
+                const shifted = arr[base] + phaseDelta;
+                arr[base] = shifted;
+                arr[base + 1] = shifted;
+                arr[base + 2] = shifted;
+                arr[base + 3] = shifted;
             }
         }
-
-        const centerHigh = new Vec3();
-        const centerLow = new Vec3();
-        this.__doubleToTwoFloats(center, centerHigh, centerLow);
-
-        this._textureScaleSphereHigh[0] = centerHigh.x;
-        this._textureScaleSphereHigh[1] = centerHigh.y;
-        this._textureScaleSphereHigh[2] = centerHigh.z;
-        this._textureScaleSphereLow[0] = centerLow.x;
-        this._textureScaleSphereLow[1] = centerLow.y;
-        this._textureScaleSphereLow[2] = centerLow.z;
-        this._textureScaleSphereRadius = Math.sqrt(radius2);
     }
 
-    protected _updateTextureMappingData() {
+    protected _updateBoundingSphereSegment(segmentIndex: number) {
+        const path = this._path3v[segmentIndex] as Vec3[] | undefined;
+        if (!path || path.length === 0) {
+            return;
+        }
+        if (!this._hasTexture(segmentIndex)) {
+            return;
+        }
+
+        const startGroup = this._getSegmentAttrGroupStart(segmentIndex);
+        const groupsCount = this._getSegmentAttrGroupCount(segmentIndex);
+        const sphere = this._calculateSegmentTextureScaleSphere(path, segmentIndex);
+
+        for (let i = 0; i < groupsCount; i++) {
+            this._setBoundingSphereQuad(startGroup + i, sphere);
+        }
+    }
+
+    protected _updateTextureMetrics(segmentIndex: number) {
+        if (!this._hasTexture(segmentIndex)) {
+            return;
+        }
+        const phaseDelta = this._updatePathPhaseSegment(segmentIndex);
+        this._shiftPathPhaseTailAfterSegment(segmentIndex, phaseDelta);
+        this._updateBoundingSphereSegment(segmentIndex);
+    }
+
+    protected _updateAllTextureMetrics() {
         let hasTexture = false;
-        const segCount = Math.max(this._src.length, this._image.length);
-        for (let i = 0; i < segCount; i++) {
-            if (this._hasTexture(i)) {
+        for (let segIndex = 0; segIndex < this._path3v.length; segIndex++) {
+            if (this._hasTexture(segIndex)) {
                 hasTexture = true;
                 break;
             }
         }
-
         if (!hasTexture) {
             return;
         }
 
         this._rebuildPathPhaseArr();
-        this._rebuildTextureScaleSphere();
+        this._rebuildBoundingSphereArr();
 
         this._changedBuffers[PATHPHASE_BUFFER] = true;
+        this._changedBuffers[BOUNDING_SPHERE_BUFFER] = true;
     }
 
     protected _updateTextureMetricsAfterPointChange(segmentIndex: number) {
         if (!this._hasTexture(segmentIndex)) {
             return;
         }
-        this._rebuildPathPhaseArr();
-        this._rebuildTextureScaleSphere();
+
+        this._updateTextureMetrics(segmentIndex);
+
         this._changedBuffers[PATHPHASE_BUFFER] = true;
+        this._changedBuffers[BOUNDING_SPHERE_BUFFER] = true;
     }
 
     protected _markGeometryBuffersChanged(includeTexCoords: boolean) {
 
-        this._updateTextureMappingData();
+        this._updateAllTextureMetrics();
 
         this._changedBuffers[VERTICES_BUFFER] = true;
         this._changedBuffers[INDEX_BUFFER] = true;
@@ -941,7 +1102,11 @@ class Polyline {
         if (canUseEqualUpdate) {
             equalUpdate(segmentPath, segmentIndex, pathColors);
 
-            this._updateTextureMappingData();
+            if (this._hasTexture(segmentIndex)) {
+                this._updateTextureMetrics(segmentIndex);
+                this._changedBuffers[PATHPHASE_BUFFER] = true;
+                this._changedBuffers[BOUNDING_SPHERE_BUFFER] = true;
+            }
 
             this._changedBuffers[VERTICES_BUFFER] = true;
             if (pathColors) {
@@ -984,6 +1149,7 @@ class Polyline {
         outColors: number[],
         outThickness: number[],
         outTexParams: number[],
+        outBoundingSpheres: number[],
         outPickingColors: number[],
         sourceType: LineSourceMode,
         segmentOffset: number = 0,
@@ -1034,6 +1200,7 @@ class Polyline {
             const segAtlas = useLonLatDefaultTexCoords ? null : this._getAtlasTexCoordsForSegment(segIndex);
             const thickness = this._resolveSegmentThickness(segIndex);
             const texParams = this._resolveSegmentTexParams(segIndex);
+            const sphere = this._calculateSegmentTextureScaleSphere(path3v, segIndex);
 
             const p0 = path3v[0];
             const p1 = path3v[1] || p0;
@@ -1055,6 +1222,7 @@ class Polyline {
                 pushQuadColor(outColors, color);
                 pushQuadThickness(outThickness, thickness);
                 pushQuadTexParams(outTexParams, texParams);
+                pushQuadBoundingSphere(outBoundingSpheres, sphere[0], sphere[1], sphere[2], sphere[3]);
                 pushQuadPicking(outPickingColors, pickingColor);
                 pushQuadTexCoords(outTexCoords, segAtlas, useLonLatDefaultTexCoords);
             }
@@ -1084,6 +1252,7 @@ class Polyline {
                 pushQuadColor(outColors, color);
                 pushQuadThickness(outThickness, thickness);
                 pushQuadTexParams(outTexParams, texParams);
+                pushQuadBoundingSphere(outBoundingSpheres, sphere[0], sphere[1], sphere[2], sphere[3]);
                 pushQuadPicking(outPickingColors, pickingColor);
                 pushQuadTexCoords(outTexCoords, segAtlas, useLonLatDefaultTexCoords);
                 pushQuadOrders(outOrders);
@@ -1112,6 +1281,7 @@ class Polyline {
             pushQuadColor(outColors, color);
             pushQuadThickness(outThickness, thickness);
             pushQuadTexParams(outTexParams, texParams);
+            pushQuadBoundingSphere(outBoundingSpheres, sphere[0], sphere[1], sphere[2], sphere[3]);
             pushQuadPicking(outPickingColors, pickingColor);
             pushQuadTexCoords(outTexCoords, segAtlas, useLonLatDefaultTexCoords);
             pushQuadOrders(outOrders);
@@ -1145,6 +1315,7 @@ class Polyline {
         outThickness: number[],
         outTexParams: number[],
         outTexCoords: number[],
+        outBoundingSpheres: number[],
         outPickingColors: number[]
     ) {
         this.__appendLineDataCore(
@@ -1166,6 +1337,7 @@ class Polyline {
             outColors,
             outThickness,
             outTexParams,
+            outBoundingSpheres,
             outPickingColors,
             F3V,
             0,
@@ -1191,27 +1363,60 @@ class Polyline {
         tCoordArrs: (number[] | null)[],
         outTexCoords: number[]
     ) {
-        const ZEROS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        const pushTc = (tc: number[] | null) => {
+        for (let j = 0, len = path3v.length; j < len; j++) {
+            const path = path3v[j];
+            const plen = path.length;
+            if (!plen) continue;
+
+            const tc = tCoordArrs[j] ?? null;
+
+            const times = plen + 2 + (j > 0 ? 1 : 0);
+
+            let a0 = 0, a1 = 0, a2 = 0, a3 = 0, a4 = 0, a5 = 0, a6 = 0, a7 = 0, a8 = 0, a9 = 0, a10 = 0, a11 = 0, a12 = 0, a13 = 0, a14 = 0, a15 = 0;
+
             if (tc && tc.length >= 10) {
                 const minY = tc[1], imgHeight = tc[3] - minY;
                 const t0x = tc[4], t0y = tc[5], t1x = tc[2], t1y = tc[3];
                 const t2x = tc[8], t2y = tc[9], t3x = tc[0], t3y = tc[1];
-                outTexCoords.push(t0x, t0y, minY, imgHeight, t1x, t1y, minY, imgHeight, t2x, t2y, minY, imgHeight, t3x, t3y, minY, imgHeight);
-            } else {
-                outTexCoords.push(...ZEROS);
+                a0 = t0x;
+                a1 = t0y;
+                a2 = minY;
+                a3 = imgHeight;
+                a4 = t1x;
+                a5 = t1y;
+                a6 = minY;
+                a7 = imgHeight;
+                a8 = t2x;
+                a9 = t2y;
+                a10 = minY;
+                a11 = imgHeight;
+                a12 = t3x;
+                a13 = t3y;
+                a14 = minY;
+                a15 = imgHeight;
             }
-        };
 
-        for (let j = 0, len = path3v.length; j < len; j++) {
-            const path = path3v[j];
-            if (path.length === 0) continue;
+            let p = outTexCoords.length;
+            outTexCoords.length = p + times * 16;
 
-            const tc = tCoordArrs[j] ?? null;
-            if (j > 0) pushTc(tc);
-
-            for (let i = 0; i < path.length; i++) pushTc(tc);
-            pushTc(tc);
+            for (let k = 0; k < times; k++) {
+                outTexCoords[p++] = a0;
+                outTexCoords[p++] = a1;
+                outTexCoords[p++] = a2;
+                outTexCoords[p++] = a3;
+                outTexCoords[p++] = a4;
+                outTexCoords[p++] = a5;
+                outTexCoords[p++] = a6;
+                outTexCoords[p++] = a7;
+                outTexCoords[p++] = a8;
+                outTexCoords[p++] = a9;
+                outTexCoords[p++] = a10;
+                outTexCoords[p++] = a11;
+                outTexCoords[p++] = a12;
+                outTexCoords[p++] = a13;
+                outTexCoords[p++] = a14;
+                outTexCoords[p++] = a15;
+            }
         }
     }
 
@@ -1293,6 +1498,7 @@ class Polyline {
         outColors: number[],
         outThickness: number[],
         outTexParams: number[],
+        outBoundingSpheres: number[],
         outPickingColors: number[]
     ) {
         this.__appendLineDataCore(
@@ -1314,6 +1520,7 @@ class Polyline {
             outColors,
             outThickness,
             outTexParams,
+            outBoundingSpheres,
             outPickingColors,
             FLONLAT,
             0,
@@ -2515,6 +2722,7 @@ class Polyline {
         this._orders = makeArray(this._orders);
         this._indexes = makeArray(this._indexes);
         this._texCoordArr = makeArray(this._texCoordArr);
+        this._boundingSphereArr = makeArray(this._boundingSphereArr);
         this._pickingColors = makeArray(this._pickingColors);
 
         this._pathLonLat[segIndex] = [];
@@ -2540,6 +2748,7 @@ class Polyline {
             this._colors as number[],
             this._thicknessArr as number[],
             this._pathTexParamArr as number[],
+            this._boundingSphereArr as number[],
             this._pickingColors as number[],
             F3V,
             segIndex,
@@ -2583,6 +2792,7 @@ class Polyline {
         this._orders = makeArray(this._orders);
         this._indexes = makeArray(this._indexes);
         this._texCoordArr = makeArray(this._texCoordArr);
+        this._boundingSphereArr = makeArray(this._boundingSphereArr);
         this._pickingColors = makeArray(this._pickingColors);
 
         this._path3v[segIndex] = [];
@@ -2607,6 +2817,7 @@ class Polyline {
             this._colors as number[],
             this._thicknessArr as number[],
             this._pathTexParamArr as number[],
+            this._boundingSphereArr as number[],
             this._pickingColors as number[],
             FLONLAT,
             segIndex,
@@ -3138,6 +3349,8 @@ class Polyline {
         //@ts-ignore
         this._pathPhaseArr = null;
         //@ts-ignore
+        this._boundingSphereArr = null;
+        //@ts-ignore
         this._texCoordArr = null;
         //@ts-ignore
         this._pickingColors = null;
@@ -3150,6 +3363,7 @@ class Polyline {
         this._thicknessArr = [];
         this._pathTexParamArr = [];
         this._pathPhaseArr = [];
+        this._boundingSphereArr = [];
         this._texCoordArr = [];
         this._pickingColors = [];
 
@@ -3185,10 +3399,11 @@ class Polyline {
             this._thicknessArr as number[],
             this._pathTexParamArr as number[],
             this._texCoordArr as number[],
+            this._boundingSphereArr as number[],
             this._pickingColors as number[]
         );
         this._resizePathLengths(0);
-        this._updateTextureMappingData();
+        this._updateAllTextureMetrics();
     }
 
     protected _createDataLonLat(pathLonlat: SegmentPathLonLatExt[]) {
@@ -3214,10 +3429,11 @@ class Polyline {
             this._colors as number[],
             this._thicknessArr as number[],
             this._pathTexParamArr as number[],
+            this._boundingSphereArr as number[],
             this._pickingColors as number[]
         );
         this._resizePathLengths(0);
-        this._updateTextureMappingData();
+        this._updateAllTextureMetrics();
     }
 
     /**
@@ -3262,6 +3478,8 @@ class Polyline {
         //@ts-ignore
         this._pathPhaseArr = null;
         //@ts-ignore
+        this._boundingSphereArr = null;
+        //@ts-ignore
         this._texCoordArr = null;
         //@ts-ignore
         this._pickingColors = null;
@@ -3274,6 +3492,7 @@ class Polyline {
         this._thicknessArr = [];
         this._pathTexParamArr = [];
         this._pathPhaseArr = [];
+        this._boundingSphereArr = [];
         this._texCoordArr = [];
         this._pickingColors = [];
 
@@ -3616,7 +3835,7 @@ class Polyline {
                     this._setEqualPath3v(path3v as SegmentPath3vExt[], pathColors as (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4);
                 }
 
-                this._updateTextureMappingData();
+                this._updateAllTextureMetrics();
 
                 this._changedBuffers[VERTICES_BUFFER] = true;
                 if (pathColors) {
@@ -3675,7 +3894,7 @@ class Polyline {
                     this._setEqualPathLonLat(pathLonLat as SegmentPathLonLat[], pathColors as (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4);
                 }
 
-                this._updateTextureMappingData();
+                this._updateAllTextureMetrics();
 
                 this._changedBuffers[VERTICES_BUFFER] = true;
                 if (pathColors) {
@@ -3729,9 +3948,6 @@ class Polyline {
 
             gl.uniform3fv(shu.rtcEyePositionHigh, this._handler!._rtcEyePositionHigh);
             gl.uniform3fv(shu.rtcEyePositionLow, this._handler!._rtcEyePositionLow);
-            gl.uniform3fv(shu.textureScaleSphereHigh, this._textureScaleSphereHigh);
-            gl.uniform3fv(shu.textureScaleSphereLow, this._textureScaleSphereLow);
-            gl.uniform1f(shu.textureScaleSphereRadius, this._textureScaleSphereRadius);
 
             gl.uniform4fv(shu.visibleSphere, this._visibleSphere);
 
@@ -3753,6 +3969,9 @@ class Polyline {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._pathPhaseBuffer!);
             gl.vertexAttribPointer(sha.pathPhase, this._pathPhaseBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._boundingSphereBuffer!);
+            gl.vertexAttribPointer(sha.boundingSphere, this._boundingSphereBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer!);
             gl.vertexAttribPointer(sha.thickness, this._thicknessBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -3882,6 +4101,7 @@ class Polyline {
             gl.deleteBuffer(this._thicknessBuffer!);
             gl.deleteBuffer(this._pathTexParamBuffer!);
             gl.deleteBuffer(this._pathPhaseBuffer!);
+            gl.deleteBuffer(this._boundingSphereBuffer!);
             gl.deleteBuffer(this._pickingColorsBuffer!);
 
             this._verticesHighBuffer = null;
@@ -3893,6 +4113,7 @@ class Polyline {
             this._thicknessBuffer = null;
             this._pathTexParamBuffer = null;
             this._pathPhaseBuffer = null;
+            this._boundingSphereBuffer = null;
             this._pickingColorsBuffer = null;
         }
     }
@@ -4002,6 +4223,20 @@ class Polyline {
         h.setStreamArrayBuffer(this._pathPhaseBuffer!, ta);
     }
 
+    protected _createBoundingSphereBuffer() {
+        let h = this._renderNode!.renderer!.handler;
+        this._boundingSphereArr = makeArrayTyped(this._boundingSphereArr);
+        const ta = this._boundingSphereArr as TypedArray;
+        const numItems = ta.length / 4;
+
+        if (!this._boundingSphereBuffer || this._boundingSphereBuffer.numItems !== numItems) {
+            h.gl!.deleteBuffer(this._boundingSphereBuffer!);
+            this._boundingSphereBuffer = h.createStreamArrayBuffer(4, numItems);
+        }
+
+        h.setStreamArrayBuffer(this._boundingSphereBuffer!, ta);
+    }
+
     public _createTexCoordBuffer() {
         let h = this._renderNode!.renderer!.handler;
         h.gl!.deleteBuffer(this._texCoordBuffer!);
@@ -4024,9 +4259,10 @@ class Polyline {
             this._visibleSphere[1] = this._visibleSphere[1] - this._handler._relativeCenter.y;
             this._visibleSphere[2] = this._visibleSphere[2] - this._handler._relativeCenter.z;
             this._setEqualPath3v(this._path3v);
-            this._rebuildTextureScaleSphere();
+            this._rebuildBoundingSphereArr();
         }
         this._changedBuffers[VERTICES_BUFFER] = true;
+        this._changedBuffers[BOUNDING_SPHERE_BUFFER] = true;
     }
 }
 
