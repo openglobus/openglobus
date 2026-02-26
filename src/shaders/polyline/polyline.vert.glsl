@@ -148,9 +148,9 @@ void main() {
         }
     }
 
-    if (dot(m - sCurrent, sideNormal) * side < 0.0) {
-        m = sCurrent + sideNormal * d;
-    }
+    float sameSide = dot(m - sCurrent, sideNormal) * side;
+    float wrongSide = 1.0 - step(0.0, sameSide);
+    m = mix(m, sCurrent + sideNormal * d, wrongSide);
 
     repeat = 1.0;
     v_pathPhase = 0.0;
