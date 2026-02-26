@@ -36,6 +36,7 @@ const BOUNDING_SPHERE_BUFFER = 8;
 const ANIMATION_TIME_WRAP_SEC = 59.0;
 
 const DEFAULT_COLOR = "#0000FF";
+const DEFAULT_STROKE_TEXTURE_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+W7Y4AAAAASUVORK5CYII=";
 
 const F3V = 0;
 const FLONLAT = 1;
@@ -226,6 +227,7 @@ export interface IPolylineParams {
  */
 class Polyline {
     static __counter__: number = 0;
+    protected static _defaultStrokeImage: HTMLImageElementExt | null = null;
 
     /**
      * Object uniq identifier.
@@ -476,6 +478,38 @@ class Polyline {
         return (isClosed ?? []).map((v) => !!v);
     }
 
+    protected _getDefaultStrokeSource(): StrokeSource {
+        if (Polyline._defaultStrokeImage) {
+            return Polyline._defaultStrokeImage;
+        }
+
+        if (typeof Image === "undefined") {
+            return DEFAULT_STROKE_TEXTURE_DATA_URL;
+        }
+
+        const img = new Image() as HTMLImageElementExt;
+
+        if (typeof document !== "undefined" && typeof document.createElement === "function") {
+            const canvas = document.createElement("canvas");
+            canvas.width = 2;
+            canvas.height = 2;
+            const ctx = canvas.getContext("2d");
+
+            if (ctx) {
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, 2, 2);
+                img.src = canvas.toDataURL("image/png");
+            } else {
+                img.src = DEFAULT_STROKE_TEXTURE_DATA_URL;
+            }
+        } else {
+            img.src = DEFAULT_STROKE_TEXTURE_DATA_URL;
+        }
+
+        Polyline._defaultStrokeImage = img;
+        return img;
+    }
+
     protected _syncPathClosedLength(segCount: number) {
         if (segCount < 0) {
             segCount = 0;
@@ -504,8 +538,14 @@ class Polyline {
         if (this._image.length > segCount) {
             this._image.length = segCount;
         }
+        const defaultSrc = this._getDefaultStrokeSource();
         while (this._src.length < segCount) {
-            this._src.push(null);
+            this._src.push(defaultSrc);
+        }
+        for (let i = 0; i < segCount; i++) {
+            if (this._src[i] == null) {
+                this._src[i] = defaultSrc;
+            }
         }
         while (this._image.length < segCount) {
             this._image.push(null);
@@ -632,9 +672,10 @@ class Polyline {
         }
 
         const segCount = Math.max(this._path3v.length, this._pathLonLat.length, src.length);
+        const defaultSrc = this._getDefaultStrokeSource();
         const normalizedSrc: StrokeSource[] = new Array(segCount).fill(null);
         for (let i = 0; i < segCount; i++) {
-            normalizedSrc[i] = src[i] ?? null;
+            normalizedSrc[i] = src[i] ?? defaultSrc;
         }
         this._src = normalizedSrc;
         this._syncSrcLength(segCount);
@@ -1231,14 +1272,19 @@ class Polyline {
 
             const thickness = this._resolveSegmentThickness(segIndex);
             const useTextureData = this.isTextured;
+            const hasSegmentTexture = this._hasTexture(segIndex);
             let segAtlas: number[] | null = null;
             let texParams = this._defaultTexParam;
             let sphere: NumberArray4 = [0, 0, 0, 0];
 
             if (useTextureData) {
-                segAtlas = skipTexCoords ? null : this._getAtlasTexCoordsForSegment(segIndex);
-                texParams = this._resolveSegmentTexParams(segIndex);
-                sphere = this._calculateSegmentTextureScaleSphere(path3v, segIndex);
+                segAtlas = hasSegmentTexture && !skipTexCoords ? this._getAtlasTexCoordsForSegment(segIndex) : null;
+                texParams = hasSegmentTexture
+                    ? this._resolveSegmentTexParams(segIndex)
+                    : {texOffset: 0, strokeSize: 0, texOffsetSpeed: 0};
+                sphere = hasSegmentTexture
+                    ? this._calculateSegmentTextureScaleSphere(path3v, segIndex)
+                    : [0, 0, 0, 0];
             }
 
             const p0 = path3v[0];
@@ -2813,6 +2859,9 @@ class Polyline {
         );
 
         this._markGeometryBuffersChanged(true);
+        if (this.isTextured && this._handler) {
+            this.setSrc(this._src);
+        }
     }
 
     public appendPathLonLat(pathLonLat: SegmentPathLonLatExt) {
@@ -2886,6 +2935,9 @@ class Polyline {
         );
 
         this._markGeometryBuffersChanged(true);
+        if (this.isTextured && this._handler) {
+            this.setSrc(this._src);
+        }
     }
 
     /**
@@ -3137,7 +3189,9 @@ class Polyline {
         if (this.isTextured) {
             //
             // texture params block
-            const texParams = this._resolveSegmentTexParams(segIndex);
+            const texParams = this._hasTexture(segIndex)
+                ? this._resolveSegmentTexParams(segIndex)
+                : {texOffset: 0, strokeSize: 0, texOffsetSpeed: 0};
             const tpArr = this._pathTexParamArr as Float32Array;
             const tpBase = oldAttrCapGroup * 12;
             const tpBlock = new Float32Array([
@@ -3151,7 +3205,7 @@ class Polyline {
 
             //
             // textures block
-            const atlas = this._getAtlasTexCoordsForSegment(segmentIndex);
+            const atlas = this._hasTexture(segIndex) ? this._getAtlasTexCoordsForSegment(segIndex) : null;
             const tcArr = this._texCoordArr as Float32Array;
             const tcBase = oldAttrCapGroup * 16;
             let tcBlock: Float32Array;
@@ -3488,6 +3542,9 @@ class Polyline {
         );
         this._resizePathLengths(0);
         this._updateAllTextureMetrics();
+        if (this.isTextured && this._handler) {
+            this.setSrc(this._src);
+        }
     }
 
     protected _createDataLonLat(pathLonlat: SegmentPathLonLatExt[]) {
@@ -3518,6 +3575,9 @@ class Polyline {
         );
         this._resizePathLengths(0);
         this._updateAllTextureMetrics();
+        if (this.isTextured && this._handler) {
+            this.setSrc(this._src);
+        }
     }
 
     /**

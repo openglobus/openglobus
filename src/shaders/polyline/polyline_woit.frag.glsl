@@ -13,6 +13,7 @@ in vec4 vTexCoord;
 flat in float repeat;
 flat in float v_texOffset;
 flat in float v_pathPhase;
+flat in float v_texEnabled;
 
 //${UTILS}
 
@@ -29,29 +30,25 @@ void main() {
         }
     }
 
-    float height = vTexCoord.w;
+    float texEnabled = step(0.5, v_texEnabled);
 
-    vec4 color;
+    vec2 uv = vTexCoord.xy;
 
-    if(height == 0.0){
-        color = vec4(v_rgba.rgb, v_rgba.a);
-    }else {
+    float min = vTexCoord.z;
 
-        vec2 uv = vTexCoord.xy;
+    float EPS = 0.5 / 1024.0; //Atlas height
 
-        float min = vTexCoord.z;
+    float texHeight = max(vTexCoord.w, 1e-6);
+    float t = (uv.y - min) / texHeight;
+    float phaseStart = v_pathPhase - repeat;
+    float animatedOffset = v_texOffset * repeat / texHeight;
+    float localY = fract(t * repeat + phaseStart + animatedOffset);
+    uv.y = clamp(min + localY * texHeight, min + EPS, min + texHeight - EPS);
 
-        float EPS = 0.5 / 1024.0; //Atlas height
+    vec4 texColor = texture(texAtlas, uv) * v_rgba;
 
-        float t = (uv.y - min) / height;
-        float phaseStart = v_pathPhase - repeat;
-        float animatedOffset = v_texOffset * repeat / max(height, 1e-6);
-        float localY = fract(t * repeat + phaseStart + animatedOffset);
-        uv.y = clamp(min + localY * height, min + EPS, min + height - EPS);
-
-        color = texture(texAtlas, uv);
-        color.a *= v_rgba.a;
-    }
+    vec4 baseColor = vec4(v_rgba.rgb, v_rgba.a);
+    vec4 color = mix(baseColor, texColor, texEnabled);
 
     weightedOITAccumulate(color, accumColor, accumAlpha);
 }

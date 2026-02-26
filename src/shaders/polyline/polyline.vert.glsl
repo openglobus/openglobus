@@ -34,6 +34,7 @@ out vec4 vTexCoord;
 flat out float repeat;
 flat out float v_texOffset;
 flat out float v_pathPhase;
+flat out float v_texEnabled;
 
 const float NEAR = -1.0;
 
@@ -152,33 +153,30 @@ void main() {
     float wrongSide = 1.0 - step(0.0, sameSide);
     m = mix(m, sCurrent + sideNormal * d, wrongSide);
 
-    repeat = 1.0;
+    repeat = 0.0;
     v_pathPhase = 0.0;
+    float strokeSize = textureParams.y;
+    float safeStrokeSize = max(strokeSize, 1e-6);
+    float segmentWorldLength = distance(currentHigh + currentLow, prevHigh + prevLow);
 
-    float texHeight = texCoord.w;
-    if (texHeight > 0.0) {
-        float strokeSize = textureParams.y;
-        float safeStrokeSize = max(strokeSize, 1e-6);
-        float segmentWorldLength = distance(currentHigh + currentLow, prevHigh + prevLow);
+    float segmentPixels = min(distance(sCurrent, sPrev), viewport.y);
+    float pixelsPerMeter = segmentPixels / max(segmentWorldLength, 1e-6);
 
-        float segmentPixels = min(distance(sCurrent, sPrev), viewport.y);
-        float pixelsPerMeter = segmentPixels / max(segmentWorldLength, 1e-6);
+    if (boundingSphere.w > 0.0) {
+        vec3 rtcEyePosition = rtcEyePositionHigh + rtcEyePositionLow;
+        vec3 sphereCenterRtc = boundingSphere.xyz - rtcEyePosition;
+        vec4 sphereCenterView = viewMatrixRTE * vec4(sphereCenterRtc, 1.0);
+        vec4 sphereEdgeView = sphereCenterView + vec4(boundingSphere.w, 0.0, 0.0, 0.0);
 
-        if (boundingSphere.w > 0.0) {
-            vec3 rtcEyePosition = rtcEyePositionHigh + rtcEyePositionLow;
-            vec3 sphereCenterRtc = boundingSphere.xyz - rtcEyePosition;
-            vec4 sphereCenterView = viewMatrixRTE * vec4(sphereCenterRtc, 1.0);
-            vec4 sphereEdgeView = sphereCenterView + vec4(boundingSphere.w, 0.0, 0.0, 0.0);
-
-            vec2 sphereCenterPx = project(proj * sphereCenterView);
-            vec2 sphereEdgePx = project(proj * sphereEdgeView);
-            float sphereRadiusPx = distance(sphereCenterPx, sphereEdgePx);
-            pixelsPerMeter = sphereRadiusPx / max(boundingSphere.w, 1e-6);
-        }
-
-        repeat = min(segmentWorldLength * pixelsPerMeter, viewport.y) / safeStrokeSize;
-        v_pathPhase = pathPhase * pixelsPerMeter / safeStrokeSize;
+        vec2 sphereCenterPx = project(proj * sphereCenterView);
+        vec2 sphereEdgePx = project(proj * sphereEdgeView);
+        float sphereRadiusPx = distance(sphereCenterPx, sphereEdgePx);
+        pixelsPerMeter = sphereRadiusPx / max(boundingSphere.w, 1e-6);
     }
+
+    repeat = min(segmentWorldLength * pixelsPerMeter, viewport.y) / safeStrokeSize;
+    v_pathPhase = pathPhase * pixelsPerMeter / safeStrokeSize;
+    v_texEnabled = step(1e-6, texCoord.w);
 
     v_texOffset = textureParams.x + textureParams.z * time;
 
