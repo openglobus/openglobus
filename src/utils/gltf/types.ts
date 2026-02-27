@@ -85,7 +85,7 @@ export interface GltfPrimitive {
 
 export type PrimitiveAttributes = {
     POSITION: number;
-    NORMAL: number;
+    NORMAL?: number;
 } & Record<string, number>;
 
 export interface GltfNode {
@@ -157,7 +157,7 @@ export interface Primitive {
     name: string;
     indices?: ArrayBufferLike;
     vertices: ArrayBufferLike;
-    normals: ArrayBufferLike;
+    normals?: ArrayBufferLike;
     texCoords?: ArrayBufferLike;
     material?: Material;
     mode: PrimitiveMode;
