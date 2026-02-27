@@ -35,7 +35,7 @@ const BOUNDING_SPHERE_BUFFER = 8;
 
 const ANIMATION_TIME_WRAP_SEC = 59.0;
 
-const DEFAULT_COLOR = "#00ddff";
+const DEFAULT_COLOR = "#ffffff";
 const DEFAULT_STROKE_TEXTURE_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+W7Y4AAAAASUVORK5CYII=";
 
 const F3V = 0;
@@ -3281,16 +3281,65 @@ class Polyline {
      * @public
      * @param {LonLat} lonLat - New coordinate.
      * @param {number} [segmentIndex=0] - Path segment index, first by default.
+     * @param {NumberArray4} [color] - Point color.
      */
-    public addPointLonLat(lonLat: LonLat, segmentIndex: number = 0) {
-        //
-        // TODO: could be optimized
-        //
-        if (segmentIndex >= this._pathLonLat.length) {
-            this._pathLonLat.push([]);
+    public addPointLonLat(lonLat: LonLat, segmentIndex: number = 0, color?: NumberArray4) {
+
+        if (segmentIndex < 0) return;
+
+        const ellipsoid = this._renderNode ? (this._renderNode as Planet).ellipsoid : null;
+        if (!ellipsoid) {
+
+            while (segmentIndex >= this._pathLonLat.length) {
+                this._pathLonLat.push([]);
+            }
+
+            this._pathLonLat[segmentIndex].push(lonLat);
+
+            if (!this._pathColors[segmentIndex]) {
+                this._pathColors[segmentIndex] = [];
+            }
+            this._pathColors[segmentIndex].push(color || this._defaultColor as NumberArray4);
+            this._segmentThickness[segmentIndex] = this._segmentThickness[segmentIndex] || this._thickness;
+            if (this.isTextured) {
+                this._resolveSegmentTexParams(segmentIndex);
+            }
+
+            this._pathLengths.length = this._pathLonLat.length + 1;
+            this._resizePathLengths(0);
+            this._syncPathClosedLength(this._pathLonLat.length);
+            this._syncSrcLength(this._pathLonLat.length);
+            return;
         }
-        this._pathLonLat[segmentIndex].push(lonLat);
-        this.setPathLonLat(([] as SegmentPathLonLatExt[]).concat(this._pathLonLat));
+
+        const point3v = ellipsoid.lonLatToCartesian(lonLat);
+
+        if (segmentIndex >= this._path3v.length) {
+            this.appendPath3v([point3v], color ? [color] : undefined);
+            segmentIndex = this._path3v.length - 1;
+        } else {
+            this.addPoint3v(point3v, segmentIndex, color);
+        }
+
+        const segLonLat = this._pathLonLat[segmentIndex] || (this._pathLonLat[segmentIndex] = []);
+        if (segLonLat.length === 0) {
+            segLonLat.push(lonLat);
+        } else {
+            segLonLat[segLonLat.length - 1] = lonLat;
+        }
+
+        const merc = lonLat.forwardMercator();
+        const segMerc = this._pathLonLatMerc[segmentIndex] || (this._pathLonLatMerc[segmentIndex] = []);
+        if (segMerc.length === 0) {
+            segMerc.push(merc);
+        } else {
+            segMerc[segMerc.length - 1] = merc;
+        }
+
+        if (lonLat.lon < this._extent.southWest.lon) this._extent.southWest.lon = lonLat.lon;
+        if (lonLat.lat < this._extent.southWest.lat) this._extent.southWest.lat = lonLat.lat;
+        if (lonLat.lon > this._extent.northEast.lon) this._extent.northEast.lon = lonLat.lon;
+        if (lonLat.lat > this._extent.northEast.lat) this._extent.northEast.lat = lonLat.lat;
     }
 
     /**
