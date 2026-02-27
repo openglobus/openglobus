@@ -153,10 +153,13 @@ const pushQuadTexCoords = (outTexCoords: number[], atlas: number[] | null, skipT
 };
 
 const initLineIndexes = (outIndexes: number[], indexFormat: IndexFormatMode): number => {
+
     const is3vMode = indexFormat === FDETECT
         ? outIndexes.length > 1 && outIndexes[0] === 0 && outIndexes[1] === 0
         : indexFormat === F3V;
+
     let index = 0;
+
     if (outIndexes.length > 0) {
         index = outIndexes[outIndexes.length - 5] + 9;
         outIndexes.push(index);
@@ -547,15 +550,19 @@ class Polyline {
         if (this._image.length > segCount) {
             this._image.length = segCount;
         }
+
         const defaultSrc = this._getDefaultStrokeSource();
+
         while (this._src.length < segCount) {
             this._src.push(defaultSrc);
         }
+
         for (let i = 0; i < segCount; i++) {
             if (this._src[i] == null) {
                 this._src[i] = defaultSrc;
             }
         }
+
         while (this._image.length < segCount) {
             this._image.push(null);
         }
@@ -570,10 +577,13 @@ class Polyline {
     }
 
     protected _hasAnyTextureSegments(): boolean {
+
         if (!this.isTextured) {
             return false;
         }
+
         const segCount = Math.max(this._path3v.length, this._src.length);
+
         for (let i = 0; i < segCount; i++) {
             const path = this._path3v[i] as Vec3[] | undefined;
             if (path && path.length > 0 && this._hasTexture(i)) {
@@ -597,13 +607,18 @@ class Polyline {
         renderNode: RenderNode,
         textureAtlas: any
     ) {
+
         const pending = new Map<Exclude<StrokeSource, null>, number[]>();
+
         for (let j = 0; j < segCount; j++) {
             const segmentSrc = src[j];
+
             if (segmentSrc == null) continue;
+
             if (!pending.has(segmentSrc)) {
                 pending.set(segmentSrc, []);
             }
+
             pending.get(segmentSrc)!.push(j);
         }
 
@@ -643,6 +658,7 @@ class Polyline {
             }
 
             const img = source as HTMLImageElementExt;
+
             if (img.width && img.height) {
                 onImageReady(img);
             } else {
@@ -654,8 +670,10 @@ class Polyline {
     protected _setSrcDisabled(segCount: number, renderNode: RenderNode) {
         this._image = new Array(segCount).fill(null);
         const empty: (number[] | null)[] = new Array(segCount).fill(null);
+
         this._setTexCoordArr(empty);
         this._updateAllTextureMetrics();
+
         renderNode.updateStrokeTexCoords();
     }
 
@@ -683,9 +701,11 @@ class Polyline {
         const segCount = Math.max(this._path3v.length, this._pathLonLat.length, src.length);
         const defaultSrc = this._getDefaultStrokeSource();
         const normalizedSrc: StrokeSource[] = new Array(segCount).fill(null);
+
         for (let i = 0; i < segCount; i++) {
             normalizedSrc[i] = src[i] ?? defaultSrc;
         }
+
         this._src = normalizedSrc;
         this._syncSrcLength(segCount);
 
@@ -696,9 +716,11 @@ class Polyline {
         }
 
         const rn = bh._entityCollection.renderNode;
+
         if (!rn || !rn.renderer) {
             return;
         }
+
         const ta = rn.renderer.strokeTextureAtlas;
 
         const hasTexture = normalizedSrc.some((s) => s !== null);
@@ -716,12 +738,14 @@ class Polyline {
      * @public
      */
     public setPathSrc(src: StrokeSource, segmentIndex: number = 0) {
+
         if (!this.isTextured) {
             return;
         }
 
         const segCount = Math.max(this._path3v.length, this._pathLonLat.length, segmentIndex + 1);
         const perSegmentSrc: StrokeSource[] = new Array(segCount).fill(null);
+
         for (let i = 0; i < segCount; i++) {
             perSegmentSrc[i] = this._src[i] ?? null;
         }
@@ -760,11 +784,13 @@ class Polyline {
         if (path3v.length >= 2) {
             const ellipsoid = (this._renderNode as Planet).ellipsoid;
             const pathLonLat = this._pathLonLat[segmentIndex];
+
             if (ellipsoid && pathLonLat && pathLonLat.length === path3v.length) {
                 this._setSegmentEqualLonLat(pathLonLat, segmentIndex);
             } else {
                 this._setSegmentEqualPath3v(path3v, segmentIndex);
             }
+
             this._changedBuffers[VERTICES_BUFFER] = true;
         }
 
@@ -791,11 +817,14 @@ class Polyline {
     }
 
     public setTextureDisabled() {
+
         if (!this.isTextured) {
             return;
         }
+
         this._defaultTexParam.strokeSize = 0;
         const segCount = Math.max(this._path3v.length, this._pathLonLat.length, this._segmentTexParams.length);
+
         for (let i = 0; i < segCount; i++) {
             this.setPathStrokeSize(0, i);
         }
@@ -803,10 +832,14 @@ class Polyline {
 
     /** Get atlas tex coords for segment (null = color-only) */
     protected _getAtlasTexCoordsForSegment(segIndex: number): number[] | null {
+
         const m = this._image[segIndex];
+
         if (m == null) return null;
+
         const rn = this._handler?._entityCollection?.renderNode;
         const d = rn?.renderer && m.__nodeIndex != null ? rn.renderer.strokeTextureAtlas.get(m.__nodeIndex) : null;
+
         return d?.texCoords ?? null;
     }
 
@@ -886,14 +919,21 @@ class Polyline {
 
 
     protected _recalculateExtentFromLonLatPaths() {
+
         resetExtentBounds(this._extent);
+
         const paths = this._pathLonLat;
+
         for (let i = 0; i < paths.length; i++) {
+
             const segment = paths[i];
+
             if (!segment) continue;
+
             for (let j = 0; j < segment.length; j++) {
                 const p = segment[j];
                 const lonLat = p instanceof Array ? new LonLat(p[0], p[1], p[2]) : (p as LonLat);
+
                 extendExtent(this._extent, lonLat);
             }
         }
@@ -942,6 +982,7 @@ class Polyline {
     protected _setBoundingSphereQuad(groupIndex: number, sphere: NumberArray4, arr?: TypedArray | number[]) {
         const target = (arr ?? this._boundingSphereArr) as TypedArray | number[];
         const base = groupIndex * 16;
+
         for (let i = 0; i < 4; i++) {
             const k = base + i * 4;
             target[k] = sphere[0];
@@ -953,33 +994,50 @@ class Polyline {
 
     protected _getTotalAttrGroupCount(): number {
         let groups = 0;
+
         for (let segIndex = 0; segIndex < this._path3v.length; segIndex++) {
+
             const path = this._path3v[segIndex] as Vec3[] | undefined;
-            if (!path || path.length === 0) continue;
+            if (!path || path.length === 0) {
+                continue;
+            }
+
             groups += path.length + 1 + (segIndex > 0 ? 1 : 0);
         }
+
         return groups;
     }
 
     protected _cloneMetricArray(source: TypedArray | number[] | undefined, requiredLength: number): number[] {
+
         const out = new Array(requiredLength).fill(0);
-        if (!source) return out;
+
+        if (!source) {
+            return out;
+        }
 
         const src = source as TypedArray | number[];
         const copyLen = Math.min(requiredLength, src.length);
+
         for (let i = 0; i < copyLen; i++) {
             out[i] = src[i];
         }
+
         return out;
     }
 
     protected _rebuildPathPhaseArr() {
+
         const outPhase = this._cloneMetricArray(this._pathPhaseArr as TypedArray | number[], this._getTotalAttrGroupCount() * 4);
+
         let cumulativeLength = 0.0;
 
         for (let segIndex = 0; segIndex < this._path3v.length; segIndex++) {
+
             const path = this._path3v[segIndex] as Vec3[];
+
             if (!path || path.length === 0) continue;
+
             if (!this._hasTexture(segIndex)) continue;
 
             let groupIndex = this._getSegmentAttrGroupStart(segIndex);
@@ -989,6 +1047,7 @@ class Polyline {
             }
 
             let segLength = 0.0;
+
             this._setPhaseQuad(groupIndex++, cumulativeLength, outPhase);
 
             for (let i = 1; i < path.length; i++) {
@@ -1058,12 +1117,14 @@ class Polyline {
 
         for (let segIndex = 0; segIndex < this._path3v.length; segIndex++) {
             const path = this._path3v[segIndex] as Vec3[];
+
             if (!path || path.length === 0) continue;
             if (!this._hasTexture(segIndex)) continue;
 
             const sphere = this._calculateSegmentTextureScaleSphere(path, segIndex);
             const startGroup = this._getSegmentAttrGroupStart(segIndex);
             const groupsCount = this._getSegmentAttrGroupCount(segIndex);
+
             for (let i = 0; i < groupsCount; i++) {
                 this._setBoundingSphereQuad(startGroup + i, sphere, outBoundingSphere);
             }
@@ -1074,9 +1135,11 @@ class Polyline {
 
     protected _updatePathPhaseSegment(segmentIndex: number): number {
         const path = this._path3v[segmentIndex] as Vec3[] | undefined;
+
         if (!path || path.length === 0) {
             return 0;
         }
+
         if (!this._hasTexture(segmentIndex)) {
             return 0;
         }
@@ -1117,6 +1180,7 @@ class Polyline {
         }
 
         const arr = this._pathPhaseArr as TypedArray | number[];
+
         for (let segIndex = segmentIndex + 1; segIndex < this._path3v.length; segIndex++) {
             const path = this._path3v[segIndex] as Vec3[] | undefined;
             if (!path || path.length === 0 || !this._hasTexture(segIndex)) {
@@ -1139,9 +1203,11 @@ class Polyline {
 
     protected _updateBoundingSphereSegment(segmentIndex: number) {
         const path = this._path3v[segmentIndex] as Vec3[] | undefined;
+
         if (!path || path.length === 0) {
             return;
         }
+
         if (!this._hasTexture(segmentIndex)) {
             return;
         }
@@ -1227,9 +1293,11 @@ class Polyline {
             }
 
             this._changedBuffers[VERTICES_BUFFER] = true;
+
             if (pathColors) {
                 this._changedBuffers[COLORS_BUFFER] = true;
             }
+
             return true;
         }
 
@@ -1376,6 +1444,7 @@ class Polyline {
                 if (pathColors_j && pathColors_j[i]) {
                     color = pathColors_j[i];
                 }
+
                 if (pathPickingColors_j && pathPickingColors_j[i]) {
                     pickingColor = pathPickingColors_j[i];
                 }
@@ -1384,11 +1453,13 @@ class Polyline {
                 pushQuadColor(outColors, color);
                 pushQuadThickness(outThickness, thickness);
                 pushQuadPicking(outPickingColors, pickingColor);
+
                 if (useTextureData) {
                     pushQuadTexParams(outTexParams, texParams);
                     pushQuadBoundingSphere(outBoundingSpheres, sphere[0], sphere[1], sphere[2], sphere[3]);
                     pushQuadTexCoords(outTexCoords, segAtlas, skipTexCoords);
                 }
+
                 pushQuadOrders(outOrders);
 
                 outIndexes.push(index++, index++, index++, index++);
@@ -1407,6 +1478,7 @@ class Polyline {
             if (pathColors_j && pathColors_j[path3v.length - 1]) {
                 color = pathColors_j[path3v.length - 1];
             }
+
             if (pathPickingColors_j && pathPickingColors_j[path3v.length - 1]) {
                 pickingColor = pathPickingColors_j[path3v.length - 1];
             }
@@ -1415,11 +1487,13 @@ class Polyline {
             pushQuadColor(outColors, color);
             pushQuadThickness(outThickness, thickness);
             pushQuadPicking(outPickingColors, pickingColor);
+
             if (useTextureData) {
                 pushQuadTexParams(outTexParams, texParams);
                 pushQuadBoundingSphere(outBoundingSpheres, sphere[0], sphere[1], sphere[2], sphere[3]);
                 pushQuadTexCoords(outTexCoords, segAtlas, skipTexCoords);
             }
+
             pushQuadOrders(outOrders);
 
             if (j < pathInput.length - 1 && pathInput[j + 1].length !== 0) {
@@ -1500,9 +1574,13 @@ class Polyline {
         outTexCoords: number[]
     ) {
         for (let j = 0, len = path3v.length; j < len; j++) {
+
             const path = path3v[j];
             const plen = path.length;
-            if (!plen) continue;
+
+            if (!plen) {
+                continue;
+            }
 
             const tc = tCoordArrs[j] ?? null;
 
@@ -1679,10 +1757,12 @@ class Polyline {
             k = 0;
 
         var ellipsoid = (this._renderNode as Planet).ellipsoid;
+
         if (ellipsoid) {
             extent.southWest.set(180, 90);
             extent.northEast.set(-180, -90);
         }
+
         const colors = this._colors;
         let ck = 0;
 
@@ -1902,7 +1982,10 @@ class Polyline {
     protected _setSegmentEqualPath3v(path3v: SegmentPath3vExt, segmentIndex: number, pathColors?: SegmentPathColor | NumberArray4) {
         const path = path3v as Vec3[];
         const targetPath = this._path3v[segmentIndex] as Vec3[];
-        if (!path || !targetPath || !path.length || path.length !== targetPath.length) return;
+
+        if (!path || !targetPath || !path.length || path.length !== targetPath.length) {
+            return;
+        }
 
         const v_high = new Vec3();
         const v_low = new Vec3();
@@ -1959,6 +2042,7 @@ class Polyline {
         vl[k++] = v_low.z;
 
         let color = this._defaultColor as NumberArray4;
+
         if (pathColors) {
             if (hasUniformSegmentColor) {
                 color = pathColors as NumberArray4;
@@ -1968,6 +2052,7 @@ class Polyline {
                 color = lastSegmentColor;
             }
         }
+
         if (pathColors && segmentIndex > 0) {
             const a = color[A] != undefined ? color[A] : 1.0;
             c[ck - 16] = c[ck - 12] = c[ck - 8] = c[ck - 4] = color[R];
@@ -2040,6 +2125,7 @@ class Polyline {
                 path[path.length - 1].y + path[path.length - 1].y - path[path.length - 2].y,
                 path[path.length - 1].z + path[path.length - 1].z - path[path.length - 2].z
             );
+
         this.__doubleToTwoFloats(first, v_high, v_low);
         vh[k] = v_high.x;
         vl[k++] = v_low.x;
@@ -2790,6 +2876,7 @@ class Polyline {
         this._thicknessArr = makeArrayTyped(this._thicknessArr);
         this._orders = makeArrayTyped(this._orders);
         this._pickingColors = makeArrayTyped(this._pickingColors);
+
         if (this.isTextured) {
             this._pathTexParamArr = makeArrayTyped(this._pathTexParamArr);
             this._texCoordArr = makeArrayTyped(this._texCoordArr);
@@ -2815,6 +2902,7 @@ class Polyline {
         this._colors = spliceTypedArray(this._colors as TypedArray, attrGroupStart * 16, attrGroupCount * 16);
         this._thicknessArr = spliceTypedArray(this._thicknessArr as TypedArray, attrGroupStart * 4, attrGroupCount * 4);
         this._pickingColors = spliceTypedArray(this._pickingColors as TypedArray, attrGroupStart * 12, attrGroupCount * 12);
+
         if (this.isTextured) {
             this._pathTexParamArr = spliceTypedArray(this._pathTexParamArr as TypedArray, attrGroupStart * 12, attrGroupCount * 12);
             this._texCoordArr = spliceTypedArray(this._texCoordArr as TypedArray, attrGroupStart * 16, attrGroupCount * 16);
@@ -2836,12 +2924,17 @@ class Polyline {
     }
 
     public appendPath3v(path3v: SegmentPath3vExt, pathColors?: NumberArray4[]) {
-        if (!path3v || path3v.length === 0) return;
+        if (!path3v || path3v.length === 0) {
+            return;
+        }
 
         const segIndex = this._path3v.length;
+
         this._path3v.push(path3v);
+
         this._syncPathClosedLength(this._path3v.length);
         this._syncSrcLength(this._path3v.length);
+
         this._pathColors[segIndex] = pathColors && pathColors.length ? pathColors : (this._pathColors[segIndex] || []);
         const segPickingColors = this._pathPickingColors[segIndex] || (this._pathPickingColors[segIndex] = []);
 
@@ -2850,6 +2943,7 @@ class Polyline {
         }
 
         this._segmentThickness[segIndex] = this._segmentThickness[segIndex] ?? this._thickness;
+
         if (this.isTextured) {
             this._resolveSegmentTexParams(segIndex);
         }
@@ -2860,6 +2954,7 @@ class Polyline {
         if (!this._renderNode) {
             return;
         }
+
         const ellipsoid = (this._renderNode as Planet).ellipsoid;
 
         this._verticesHigh = makeArray(this._verticesHigh);
@@ -2908,6 +3003,7 @@ class Polyline {
         );
 
         this._markGeometryBuffersChanged(true);
+
         if (this.isTextured && this._handler) {
             this.setSrc(this._src);
         }
@@ -2920,11 +3016,14 @@ class Polyline {
         const segIndex = this._pathLonLat.length;
 
         this._pathLonLat.push(pathLonLat);
+
         this._syncPathClosedLength(this._pathLonLat.length);
         this._syncSrcLength(this._pathLonLat.length);
+
         this._pathColors[segIndex] = this._pathColors[segIndex] || [];
         this._segmentThickness[segIndex] = this._segmentThickness[segIndex] ?? this._thickness;
         this._pathPickingColors[segIndex] = this._pathPickingColors[segIndex] || [];
+
         if (this.isTextured) {
             this._resolveSegmentTexParams(segIndex);
         }
@@ -2984,6 +3083,7 @@ class Polyline {
         );
 
         this._markGeometryBuffersChanged(true);
+
         if (this.isTextured && this._handler) {
             this.setSrc(this._src);
         }
@@ -3285,9 +3385,12 @@ class Polyline {
      */
     public addPointLonLat(lonLat: LonLat, segmentIndex: number = 0, color?: NumberArray4) {
 
-        if (segmentIndex < 0) return;
+        if (segmentIndex < 0) {
+            return;
+        }
 
         const ellipsoid = this._renderNode ? (this._renderNode as Planet).ellipsoid : null;
+
         if (!ellipsoid) {
 
             while (segmentIndex >= this._pathLonLat.length) {
@@ -3299,16 +3402,20 @@ class Polyline {
             if (!this._pathColors[segmentIndex]) {
                 this._pathColors[segmentIndex] = [];
             }
+
             this._pathColors[segmentIndex].push(color || this._defaultColor as NumberArray4);
             this._segmentThickness[segmentIndex] = this._segmentThickness[segmentIndex] || this._thickness;
+
             if (this.isTextured) {
                 this._resolveSegmentTexParams(segmentIndex);
             }
 
             this._pathLengths.length = this._pathLonLat.length + 1;
+
             this._resizePathLengths(0);
             this._syncPathClosedLength(this._pathLonLat.length);
             this._syncSrcLength(this._pathLonLat.length);
+
             return;
         }
 

@@ -41,8 +41,8 @@ var collection = new Vector("Collection", {
         [{
             'polyline': {
                 'pathLonLat': grid,
-                'thickness': 12.5,
-                'color': "rgba(68, 157, 205, 0.92)"
+                'thickness': [12.5],
+                'color': ["rgba(68, 157, 205, 0.92)"]
             }
         }]
 });
