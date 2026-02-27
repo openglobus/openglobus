@@ -76,7 +76,7 @@ class SelectionScene extends RenderNode {
             polyline: {
                 path3v: [],
                 thickness: 3.8,
-                color: "rgb(455,455,455)",
+                color: ["rgb(455,455,455)"],
                 isClosed: [false]
             }
         } as any);

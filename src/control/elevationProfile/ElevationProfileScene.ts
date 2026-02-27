@@ -146,7 +146,7 @@ class ElevationProfileScene extends RenderNode {
             polyline: {
                 path3v: [],
                 thickness: 3.8,
-                color: "rgba(0,305,0,0.8)",
+                color: ["rgba(0,305,0,0.8)"],
                 isClosed: [false]
             }
         });

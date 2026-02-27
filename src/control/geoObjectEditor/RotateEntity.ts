@@ -30,7 +30,7 @@ export class RotateEntity extends Entity {
             polyline: {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 3.1,
-                color: X_COLOR,
+                color: [X_COLOR],
                 isClosed: [true]
             },
             properties: {
@@ -48,7 +48,7 @@ export class RotateEntity extends Entity {
             polyline: {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
-                color: Y_COLOR,
+                color: [Y_COLOR],
                 isClosed: [true]
             },
             properties: {
@@ -66,7 +66,7 @@ export class RotateEntity extends Entity {
             polyline: {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
-                color: Z_COLOR,
+                color: [Z_COLOR],
                 isClosed: [true]
             },
             properties: {

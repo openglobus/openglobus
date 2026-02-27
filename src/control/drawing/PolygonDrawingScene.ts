@@ -95,7 +95,7 @@ class PolygonDrawingScene extends RenderNode {
 
         this._outlineStyle = {
             thickness: 3.5,
-            color: "rgb(0, 350, 50)",
+            color: ["rgb(0, 350, 50)"],
             ...(options.outlineStyle || {})
         };
 

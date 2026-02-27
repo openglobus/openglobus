@@ -153,7 +153,7 @@ class RulerScene extends RenderNode {
             polyline: {
                 path3v: [],
                 thickness: 4.8,
-                color: "rgb(255,131,0)",
+                color: ["rgb(255,131,0)"],
                 isClosed: [false]
             }
         });

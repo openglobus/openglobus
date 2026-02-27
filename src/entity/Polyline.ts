@@ -35,7 +35,7 @@ const BOUNDING_SPHERE_BUFFER = 8;
 
 const ANIMATION_TIME_WRAP_SEC = 59.0;
 
-const DEFAULT_COLOR = "#0000FF";
+const DEFAULT_COLOR = "#00ddff";
 const DEFAULT_STROKE_TEXTURE_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+W7Y4AAAAASUVORK5CYII=";
 
 const F3V = 0;
@@ -197,7 +197,7 @@ export interface IPolylineParams {
     altitude?: number;
     thickness?: number;
     opacity?: number;
-    color?: string;
+    color?: string[];
     visibility?: boolean;
     isTextured?: boolean;
     isClosed?: boolean[];
@@ -216,7 +216,7 @@ export interface IPolylineParams {
  * @param {Object} [options] - Polyline options:
  * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
  * @param {Number} [options.altitude] - Relative to ground layers altitude value.
- * @param {Vec4} [options.color] - RGBA color.
+ * @param {string[]} [options.color] - Per-segment HTML colors.
  * @param {Boolean} [options.opacity] - Line opacity.
  * @param {Boolean} [options.visibility] - Polyline visibility. True default.
  * @param {Boolean[]} [options.isClosed] - Closed geometry type identification, per-segment.
@@ -294,6 +294,7 @@ class Polyline {
     public _pathLonLatMerc: LonLat[][];
 
     protected _pathColors: SegmentPathColor[];
+    protected _segmentColor: (NumberArray4 | undefined)[];
     protected _segmentThickness: number[];
     protected _segmentTexParams: (TexParam | undefined)[];
 
@@ -370,7 +371,7 @@ class Polyline {
         this._opacity = options.opacity != undefined ? options.opacity : 1.0;
 
         this._defaultColor = htmlColorToFloat32Array(
-            options.color || DEFAULT_COLOR,
+            options.color?.[0] || DEFAULT_COLOR,
             options.opacity
         );
 
@@ -391,7 +392,8 @@ class Polyline {
 
         this._pathLonLatMerc = [];
 
-        this._pathColors = options.pathColors ? cloneArray(options.pathColors) : [];
+        this._pathColors = options.pathColors ? cloneArray(options.pathColors) : this._normalizePathColorInput(options.color);
+        this._segmentColor = [];
         this._segmentThickness = [];
         this._segmentTexParams = this.isTextured && options.texParams
             ? options.texParams.map((p) => ({
@@ -476,6 +478,13 @@ class Polyline {
 
     protected _normalizePathClosedInput(isClosed?: boolean[]): boolean[] {
         return (isClosed ?? []).map((v) => !!v);
+    }
+
+    protected _normalizePathColorInput(color?: string[]): SegmentPathColor[] {
+        return (color ?? []).map((htmlColor) => {
+            const rgba = htmlColorToRgba(htmlColor, this._opacity);
+            return [[rgba.x, rgba.y, rgba.z, rgba.w]];
+        });
     }
 
     protected _getDefaultStrokeSource(): StrokeSource {
@@ -828,6 +837,40 @@ class Polyline {
         return thickness;
     }
 
+    protected _setSegmentColorBuffer(segmentIndex: number, color: NumberArray4) {
+        if (segmentIndex < 0 || segmentIndex >= this._path3v.length) {
+            return;
+        }
+
+        const groupsBefore = segmentIndex === 0 ? 0 : (this._pathLengths[segmentIndex] + 2 * segmentIndex - 1);
+        const groupsCount = this._path3v[segmentIndex].length + 1 + (segmentIndex > 0 ? 1 : 0);
+        const start = groupsBefore * 16;
+        const end = (groupsBefore + groupsCount) * 16;
+        const a = color[A] != undefined ? color[A] : 1.0;
+        const c = this._colors;
+
+        for (let i = start; i < end; i += 4) {
+            c[i] = color[R];
+            c[i + 1] = color[G];
+            c[i + 2] = color[B];
+            c[i + 3] = a;
+        }
+    }
+
+    protected _applySegmentColorOverrides() {
+        if (!this._renderNode || this._segmentColor.length === 0 || this._path3v.length === 0 || this._colors.length === 0) {
+            return;
+        }
+
+        for (let i = 0, len = this._path3v.length; i < len; i++) {
+            const color = this._segmentColor[i];
+            if (!color) {
+                continue;
+            }
+            this._setSegmentColorBuffer(i, color);
+        }
+    }
+
     protected _resolveSegmentTexParams(segIndex: number): TexParam {
         let texParam = this._segmentTexParams[segIndex];
         if (!texParam) {
@@ -1145,6 +1188,8 @@ class Polyline {
     }
 
     protected _markGeometryBuffersChanged(includeTexCoords: boolean) {
+        this._applySegmentColorOverrides();
+
         this._changedBuffers[VERTICES_BUFFER] = true;
         this._changedBuffers[INDEX_BUFFER] = true;
         this._changedBuffers[COLORS_BUFFER] = true;
@@ -2712,6 +2757,10 @@ class Polyline {
             this._segmentThickness.splice(index, 1);
         }
 
+        if (this._segmentColor && index < this._segmentColor.length) {
+            this._segmentColor.splice(index, 1);
+        }
+
         if (this._segmentTexParams && index < this._segmentTexParams.length) {
             this._segmentTexParams.splice(index, 1);
         }
@@ -2971,6 +3020,9 @@ class Polyline {
             }
             if (segmentIndex < this._segmentThickness.length) {
                 this._segmentThickness.splice(segmentIndex, 1);
+            }
+            if (segmentIndex < this._segmentColor.length) {
+                this._segmentColor.splice(segmentIndex, 1);
             }
             if (segmentIndex < this._segmentTexParams.length) {
                 this._segmentTexParams.splice(segmentIndex, 1);
@@ -3358,6 +3410,35 @@ class Polyline {
         }
     }
 
+    /**
+     * Sets polyline segment color.
+     * @public
+     * @param {string} htmlColor - HTML color.
+     * @param {number} [segmentIndex]
+     */
+    public setColor(htmlColor: string): void;
+    public setColor(htmlColor: string, segmentIndex: number): void;
+    public setColor(htmlColor: string, segmentIndex?: number): void {
+
+        const segIndex = segmentIndex !== undefined ? segmentIndex : Math.max(0, this._path3v.length - 1);
+        const rgba = htmlColorToRgba(htmlColor);
+        const color: NumberArray4 = [rgba.x, rgba.y, rgba.z, rgba.w];
+
+        if (this._path3v.length === 0) {
+            this._defaultColor = new Float32Array(color);
+            return;
+        }
+
+        if (segIndex < 0 || segIndex >= this._path3v.length) return;
+
+        this._segmentColor[segIndex] = color;
+
+        if (this._renderNode) {
+            this._setSegmentColorBuffer(segIndex, color);
+            this._changedBuffers[COLORS_BUFFER] = true;
+        }
+    }
+
     public setPathTexParams(texOffset: number | undefined, strokeSize: number | undefined, segmentIndex: number): void;
     public setPathTexParams(texOffset: number | undefined, strokeSize: number | undefined, texOffsetSpeed: number | undefined, segmentIndex: number): void;
     public setPathTexParams(
@@ -3541,6 +3622,7 @@ class Polyline {
             this._pickingColors as number[]
         );
         this._resizePathLengths(0);
+        this._applySegmentColorOverrides();
         this._updateAllTextureMetrics();
         if (this.isTextured && this._handler) {
             this.setSrc(this._src);
@@ -3574,6 +3656,7 @@ class Polyline {
             this._pickingColors as number[]
         );
         this._resizePathLengths(0);
+        this._applySegmentColorOverrides();
         this._updateAllTextureMetrics();
         if (this.isTextured && this._handler) {
             this.setSrc(this._src);
@@ -3592,6 +3675,9 @@ class Polyline {
 
         this._segmentThickness.length = 0;
         this._segmentThickness = [];
+
+        this._segmentColor.length = 0;
+        this._segmentColor = [];
 
         this._segmentTexParams.length = 0;
         this._segmentTexParams = [];
@@ -3762,6 +3848,7 @@ class Polyline {
                 this._defaultColor as NumberArray4,
                 this._colors
             );
+            this._applySegmentColorOverrides();
             this._changedBuffers[COLORS_BUFFER] = true;
             return;
         }
@@ -3841,6 +3928,7 @@ class Polyline {
         c[ck + 2] = c[ck + 6] = c[ck + 10] = c[ck + 14] = currentColor[B];
         c[ck + 3] = c[ck + 7] = c[ck + 11] = c[ck + 15] = a;
 
+        this._applySegmentColorOverrides();
         this._changedBuffers[COLORS_BUFFER] = true;
     }
 
