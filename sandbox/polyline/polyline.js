@@ -26,11 +26,11 @@ class MyScene extends RenderNode {
         let e1 = new Entity({
             polyline: {
                 path3v: [[[5, 0, 5], [5, 5, 5], [0, 5, 0]], [[-5, 0, -5], [-5, 5, -5]]],
-                thickness: 12.5,
+                thickness: 22.5,
                 src: ["template3.png", "./template2.png"],
-                //color: ["red", "rgba(250, 250, 250, 1.5)"],
-                //isTextured: false
-               // isClosed: [false]
+                //color: ["white", "white", "white"],
+                isTextured: true,
+                //isClosed: [true, true, true],
             }
         });
 

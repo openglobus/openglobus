@@ -1506,7 +1506,7 @@ class Polyline {
 
             const tc = tCoordArrs[j] ?? null;
 
-            const times = plen + 2 + (j > 0 ? 1 : 0);
+            const times = plen + 1 + (j > 0 ? 1 : 0);
 
             let a0 = 0, a1 = 0, a2 = 0, a3 = 0, a4 = 0, a5 = 0, a6 = 0, a7 = 0, a8 = 0, a9 = 0, a10 = 0, a11 = 0, a12 = 0, a13 = 0, a14 = 0, a15 = 0;
 
