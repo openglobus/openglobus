@@ -4,7 +4,7 @@ import type {IEntityParams} from "../entity/Entity";
 import {EntityCollection} from "../entity/EntityCollection";
 import {EntityCollectionsTreeStrategy} from "../quadTree/EntityCollectionsTreeStrategy";
 import type {EventsHandler} from "../Events";
-import {GeometryHandler} from "../entity/GeometryHandler";
+import {GeometryHandler} from "../entity/geometry/GeometryHandler";
 import type {IMouseState, ITouchState} from "../renderer/RendererEvents";
 import {Layer} from "./Layer";
 import type {ILayerParams, LayerEventsList} from "./Layer";

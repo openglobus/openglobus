@@ -1,8 +1,8 @@
-import * as shaders from "../shaders/pointCloud";
-import {EntityCollection} from "./EntityCollection";
+import * as shaders from "../../shaders/pointCloud";
+import {EntityCollection} from "../EntityCollection";
 import {PointCloud} from "./PointCloud";
-import {Renderer} from "../renderer/Renderer";
-import {RenderNode} from "../scene/RenderNode";
+import {Renderer} from "../../renderer/Renderer";
+import {RenderNode} from "../../scene/RenderNode";
 
 class PointCloudHandler {
     static __counter__: number = 0;

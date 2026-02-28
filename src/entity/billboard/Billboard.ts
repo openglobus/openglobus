@@ -1,7 +1,7 @@
 import {BaseBillboard} from "./BaseBillboard";
 import type {IBaseBillboardParams} from "./BaseBillboard";
 import {BillboardHandler} from "./BillboardHandler";
-import type {HTMLImageElementExt} from "../utils/ImagesCacheManager";
+import type {HTMLImageElementExt} from "../../utils/ImagesCacheManager";
 
 export interface IBillboardParams extends IBaseBillboardParams {
     src?: string;

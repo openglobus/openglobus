@@ -1,10 +1,10 @@
-import * as utils from "../utils/shared";
-import {BaseBillboard} from "./BaseBillboard";
-import type {IBaseBillboardParams} from "./BaseBillboard";
+import * as utils from "../../utils/shared";
+import {BaseBillboard} from "../billboard/BaseBillboard";
+import type {IBaseBillboardParams} from "../billboard/BaseBillboard";
 import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker";
-import {Vec4} from "../math/Vec4";
-import type {NumberArray4} from "../math/Vec4";
-import {FontAtlas} from "../utils/FontAtlas";
+import {Vec4} from "../../math/Vec4";
+import type {NumberArray4} from "../../math/Vec4";
+import {FontAtlas} from "../../utils/FontAtlas";
 import {LabelHandler} from "./LabelHandler";
 
 export interface ILabelParams extends IBaseBillboardParams {

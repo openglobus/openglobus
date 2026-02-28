@@ -1,9 +1,10 @@
-import * as shaders from '../shaders/polyline/polyline';
-import {EntityCollection} from "./EntityCollection";
+import * as shaders from '../../shaders/polyline/polyline';
+import {EntityCollection} from "../EntityCollection";
 import {Polyline} from "./Polyline";
-import {Renderer} from "../renderer/Renderer";
-import {RenderNode} from "../scene/RenderNode";
-import {Vec3} from "../math/Vec3";
+import {Renderer} from "../../renderer/Renderer";
+import {RenderNode} from "../../scene/RenderNode";
+import {Vec3} from "../../math/Vec3";
+import {PolylineBatchRenderer} from "./PolylineBatchRenderer";
 
 class PolylineHandler {
     static __counter__: number = 0;
@@ -15,8 +16,8 @@ class PolylineHandler {
     public _rtcEyePositionHigh: Float32Array;
     public _rtcEyePositionLow: Float32Array;
 
-    // protected _opaqueRenderer: PolylineBatchRenderer;
-    // protected _transparentRenderer: PolylineBatchRenderer;
+    protected _opaqueRenderer: PolylineBatchRenderer;
+    protected _transparentRenderer: PolylineBatchRenderer;
 
     protected _polylines: Polyline[] = [];
 
@@ -30,13 +31,13 @@ class PolylineHandler {
 
         this._polylines = [];
 
-        // this._opaqueRenderer = new PolylineBatchRenderer({
-        //     path3v: [],
-        // });
-        //
-        // this._transparentRenderer = new PolylineBatchRenderer({
-        //     path3v: [],
-        // });
+        this._opaqueRenderer = new PolylineBatchRenderer({
+            path3v: [],
+        });
+
+        this._transparentRenderer = new PolylineBatchRenderer({
+            path3v: [],
+        });
 
         this.pickingEnabled = true;
 
@@ -60,9 +61,9 @@ class PolylineHandler {
     public setRenderNode(renderNode: RenderNode) {
         this._renderer = renderNode.renderer;
         this._initProgram();
-        for (let i = 0; i < this._polylines.length; i++) {
-            this._polylines[i].setRenderNode(renderNode);
-        }
+
+        this._opaqueRenderer.setRenderNode(renderNode);
+        this._transparentRenderer.setRenderNode(renderNode);
     }
 
     public add(polyline: Polyline) {
@@ -89,6 +90,10 @@ class PolylineHandler {
         }
     }
 
+    public removeBatchRenderer(polylineBatchRenderer: PolylineBatchRenderer) {
+        //???
+    }
+
     public reindexPolylineArray(startIndex: number) {
         let ls = this._polylines;
         for (let i = startIndex; i < ls.length; i++) {
@@ -102,34 +107,34 @@ class PolylineHandler {
 
     public drawOpaque() {
         this._updateRTCEyePosition();
-        let i = this._polylines.length;
-        while (i--) {
-            this._polylines[i].draw();
-        }
+        this._opaqueRenderer.draw();
     }
 
     public drawTransparent() {
-        //...
+        this._transparentRenderer.draw();
     }
 
     public drawPicking() {
         if (this.pickingEnabled) {
-            let i = this._polylines.length;
-            while (i--) {
-                this._polylines[i].drawPicking();
-            }
+            this._opaqueRenderer.drawPicking();
+            this._transparentRenderer.drawPicking();
         }
     }
 
     public clear() {
+        //
+        // remove lines
         let i = this._polylines.length;
         while (i--) {
-            this._polylines[i]._deleteBuffers();
             this._polylines[i]._handler = null;
             this._polylines[i]._handlerIndex = -1;
         }
         this._polylines.length = 0;
         this._polylines = [];
+
+        // clear renderers
+        this._opaqueRenderer.clear();
+        this._transparentRenderer.clear();
     }
 
     public getRTCPosition(pos: Vec3, rtcPositionHigh: Vec3, rtcPositionLow: Vec3) {
@@ -139,9 +144,8 @@ class PolylineHandler {
 
     public setRelativeCenter(c: Vec3) {
         this._relativeCenter.copy(c);
-        for (let i = 0; i < this._polylines.length; i++) {
-            this._polylines[i].updateRTCPosition();
-        }
+        this._opaqueRenderer.updateRTCPosition();
+        this._transparentRenderer.updateRTCPosition();
     }
 
     protected _updateRTCEyePosition() {

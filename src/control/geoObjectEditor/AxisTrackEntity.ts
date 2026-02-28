@@ -3,7 +3,7 @@ import {Vec3} from "../../math/Vec3";
 import {SEL_X_COLOR, SEL_Y_COLOR, SEL_Z_COLOR} from "./colors";
 import {LonLat} from "../../LonLat";
 import {htmlColorToFloat32Array} from "../../utils/shared";
-import type {SegmentPathColor} from "../../entity/Polyline";
+import type {SegmentPathColor} from "../../entity/polyline/Polyline";
 import {GeoObjectEditorScene} from "./GeoObjectEditorScene";
 
 const SEG_SIZE = 20;

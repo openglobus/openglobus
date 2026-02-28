@@ -1,8 +1,8 @@
 import {GeoObject} from "./GeoObject";
-import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
-import {loadImage, makeArrayTyped} from "../utils/shared";
-import type {TypedArray} from "../utils/shared";
-import {Program} from "../webgl/Program";
+import type {WebGLBufferExt, WebGLTextureExt} from "../../webgl/Handler";
+import {loadImage, makeArrayTyped} from "../../utils/shared";
+import type {TypedArray} from "../../utils/shared";
+import {Program} from "../../webgl/Program";
 import {GeoObjectHandler} from "./GeoObjectHandler";
 import {
     VERTEX_BUFFER,

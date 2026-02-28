@@ -1,7 +1,7 @@
 import {BaseBillboardHandler} from "./BaseBillboardHandler";
 import {Billboard} from "./Billboard";
-import {concatTypedArrays} from "../utils/shared";
-import {EntityCollection} from "./EntityCollection";
+import {concatTypedArrays} from "../../utils/shared";
+import {EntityCollection} from "../EntityCollection";
 
 /**
  * @class BillboardHandler

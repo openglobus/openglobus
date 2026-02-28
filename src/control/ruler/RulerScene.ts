@@ -10,7 +10,7 @@ import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
 import type {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
-import type {ILabelParams} from "../../entity/Label";
+import type {ILabelParams} from "../../entity/label/Label";
 
 const OUTLINE_COUNT = 120;
 

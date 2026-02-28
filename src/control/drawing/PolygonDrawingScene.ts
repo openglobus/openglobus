@@ -1,8 +1,8 @@
 import * as math from "../../math";
 import {createEvents, type EventsHandler} from '../../Events';
-import type {CoordinatesType, IGeometryStyle} from "../../entity/Geometry";
-import type {IGeoObjectParams} from "../../entity/GeoObject";
-import type {IPolylineParams} from "../../entity/Polyline";
+import type {CoordinatesType, IGeometryStyle} from "../../entity/geometry/Geometry";
+import type {IGeoObjectParams} from "../../entity/geoObject/GeoObject";
+import type {IPolylineParams} from "../../entity/polyline/Polyline";
 import {Entity} from '../../entity/Entity';
 import type {IMouseState} from "../../renderer/RendererEvents";
 import {OldMouseNavigation} from "../OldMouseNavigation";

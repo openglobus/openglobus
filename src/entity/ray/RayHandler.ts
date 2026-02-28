@@ -1,12 +1,12 @@
-import * as shaders from "../shaders/ray/ray";
-import {concatArrays, concatTypedArrays, makeArrayTyped, spliceArray, spliceTypedArray} from "../utils/shared";
-import type {TypedArray} from "../utils/shared";
-import {EntityCollection} from "./EntityCollection";
+import * as shaders from "../../shaders/ray/ray";
+import {concatArrays, concatTypedArrays, makeArrayTyped, spliceArray, spliceTypedArray} from "../../utils/shared";
+import type {TypedArray} from "../../utils/shared";
+import {EntityCollection} from "../EntityCollection";
 import {Ray} from "./Ray";
-import {Renderer} from "../renderer/Renderer";
-import {Vec3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
-import type {WebGLBufferExt} from "../webgl/Handler";
+import {Renderer} from "../../renderer/Renderer";
+import {Vec3} from "../../math/Vec3";
+import {Vec4} from "../../math/Vec4";
+import type {WebGLBufferExt} from "../../webgl/Handler";
 
 const PICKINGCOLOR_BUFFER = 0;
 const START_POSITION_BUFFER = 1;

@@ -4,8 +4,8 @@ import {Object3d} from "../../Object3d";
 import {RulerScene, type IRulerSceneParams} from "../ruler/RulerScene";
 import {Vector} from "../../layer/Vector";
 import {Vec3} from "../../math/Vec3";
-import type {ILabelParams} from "../../entity/Label";
-import type {IRayParams} from "../../entity/Ray";
+import type {ILabelParams} from "../../entity/label/Label";
+import type {IRayParams} from "../../entity/ray/Ray";
 
 let obj3d = Object3d.createCylinder(0.33, 0, 1.0, 20, 1, true, false, 0, 0, 0);
 

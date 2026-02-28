@@ -10,9 +10,9 @@ import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
 import type {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
-import type {ILabelParams} from "../../entity/Label";
-import type {IRayParams} from "../../entity/Ray";
-import type {IBillboardParams} from "../../entity/Billboard";
+import type {ILabelParams} from "../../entity/label/Label";
+import type {IRayParams} from "../../entity/ray/Ray";
+import type {IBillboardParams} from "../../entity/billboard/Billboard";
 import {Ray} from "../../math/Ray";
 import {Plane} from "../../math/Plane";
 

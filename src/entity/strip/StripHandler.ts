@@ -1,8 +1,8 @@
-import {EntityCollection} from "./EntityCollection";
-import {Renderer} from "../renderer/Renderer";
-import {RenderNode} from "../scene/RenderNode";
+import {EntityCollection} from "../EntityCollection";
+import {Renderer} from "../../renderer/Renderer";
+import {RenderNode} from "../../scene/RenderNode";
 import {Strip} from "./Strip";
-import {stripForward, stripTransparent} from "../shaders/strip/strip";
+import {stripForward, stripTransparent} from "../../shaders/strip/strip";
 
 class StripHandler {
 

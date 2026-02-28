@@ -11,7 +11,7 @@ import {Handler} from "../webgl/Handler";
 import type {WebGLBufferExt} from "../webgl/Handler";
 import {input} from "../input/input";
 import {isEmpty} from "../utils/shared";
-import {LabelWorker} from "../entity/LabelWorker";
+import {LabelWorker} from "../entity/label/LabelWorker";
 import {MAX_FLOAT, randomi} from "../math";
 import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame";

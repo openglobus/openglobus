@@ -1,12 +1,12 @@
-import * as utils from "../utils/shared";
-import {Entity} from "./Entity";
-import {Extent} from "../Extent";
+import * as utils from "../../utils/shared";
+import {Entity} from "../Entity";
+import {Extent} from "../../Extent";
 import {GeometryHandler} from "./GeometryHandler";
-import {LonLat} from "../LonLat";
-import {Vec4} from "../math/Vec4";
-import type {NumberArray4} from "../math/Vec4";
-import type {NumberArray2} from "../math/Vec2";
-import type {NumberArray3} from "../math/Vec3";
+import {LonLat} from "../../LonLat";
+import {Vec4} from "../../math/Vec4";
+import type {NumberArray4} from "../../math/Vec4";
+import type {NumberArray2} from "../../math/Vec2";
+import type {NumberArray3} from "../../math/Vec3";
 
 export enum GeometryTypeEnum {
     POINT = 1,

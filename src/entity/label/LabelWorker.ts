@@ -1,6 +1,6 @@
-import {BaseWorker} from "../utils/BaseWorker";
-import {Label} from "../entity/Label";
-import {LabelHandler} from "../entity/LabelHandler";
+import {BaseWorker} from "../../utils/BaseWorker";
+import {Label} from "./Label";
+import {LabelHandler} from "./LabelHandler";
 
 //@ts-ignore
 import LabelWorkerImpl from './LabelWorker.worker.js?worker&inline';

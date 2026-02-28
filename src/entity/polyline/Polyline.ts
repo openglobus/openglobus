@@ -1,14 +1,14 @@
-import {Entity} from "./Entity";
-import {Extent} from "../Extent";
-import {LonLat} from "../LonLat";
-import {Vec3} from "../math/Vec3";
-import type {NumberArray3} from "../math/Vec3";
-import type {NumberArray2} from "../math/Vec2";
-import type {NumberArray4} from "../math/Vec4";
-import {Planet} from "../scene/Planet";
+import {Entity} from "../Entity";
+import {Extent} from "../../Extent";
+import {LonLat} from "../../LonLat";
+import {Vec3} from "../../math/Vec3";
+import type {NumberArray3} from "../../math/Vec3";
+import type {NumberArray2} from "../../math/Vec2";
+import type {NumberArray4} from "../../math/Vec4";
+import {Planet} from "../../scene/Planet";
 import {PolylineHandler} from "./PolylineHandler";
-import {RenderNode} from "../scene/RenderNode";
-import type {WebGLBufferExt} from "../webgl/Handler";
+import {RenderNode} from "../../scene/RenderNode";
+import type {WebGLBufferExt} from "../../webgl/Handler";
 import {
     cloneArray,
     createVector3,
@@ -18,10 +18,10 @@ import {
     makeArrayTyped,
     insertTypedArray,
     spliceTypedArray
-} from "../utils/shared";
-import type {TypedArray} from "../utils/shared";
-import {Ellipsoid} from "../ellipsoid/Ellipsoid";
-import type {HTMLImageElementExt} from "../utils/ImagesCacheManager";
+} from "../../utils/shared";
+import type {TypedArray} from "../../utils/shared";
+import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
+import type {HTMLImageElementExt} from "../../utils/ImagesCacheManager";
 
 const VERTICES_BUFFER = 0;
 const INDEX_BUFFER = 1;

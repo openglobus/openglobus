@@ -1,11 +1,11 @@
-import * as utils from "../utils/shared";
-import {Vec3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
-import type {NumberArray3} from "../math/Vec3";
-import type {NumberArray4} from "../math/Vec4";
-import {Entity} from "./Entity";
+import * as utils from "../../utils/shared";
+import {Vec3} from "../../math/Vec3";
+import {Vec4} from "../../math/Vec4";
+import type {NumberArray3} from "../../math/Vec3";
+import type {NumberArray4} from "../../math/Vec4";
+import {Entity} from "../Entity";
 import {RayHandler} from "./RayHandler";
-import type {HTMLImageElementExt} from "../utils/ImagesCacheManager";
+import type {HTMLImageElementExt} from "../../utils/ImagesCacheManager";
 
 export interface IRayParams {
     thickness?: number;

@@ -1,29 +1,13 @@
-import {Line2} from './Line2';
-import {Line3} from './Line3';
-import {Mat3} from './Mat3';
-import {Mat4} from './Mat4';
-import {Plane} from './Plane';
-import {Quat} from './Quat';
-import {Ray} from './Ray';
-import {Vec2} from './Vec2';
-import {Vec3} from './Vec3';
-import {Vec4} from './Vec4';
-import type {NumberArray2} from './Vec2';
-import type {NumberArray3} from './Vec3';
-import type {NumberArray4} from './Vec4';
-
-export {
-    Line2,
-    Line3,
-    Mat3,
-    Mat4,
-    Plane,
-    Quat,
-    Ray,
-    Vec2,
-    Vec3,
-    Vec4,
-    type NumberArray2,
-    type NumberArray3,
-    type NumberArray4
-};
+export {Line2} from './Line2';
+export {Line3} from './Line3';
+export {Mat3} from './Mat3';
+export {Mat4} from './Mat4';
+export {Plane} from './Plane';
+export {Quat} from './Quat';
+export {Ray} from './Ray';
+export {Vec2} from './Vec2';
+export {Vec3} from './Vec3';
+export {Vec4} from './Vec4';
+export type {NumberArray2} from './Vec2';
+export type {NumberArray3} from './Vec3';
+export type {NumberArray4} from './Vec4';

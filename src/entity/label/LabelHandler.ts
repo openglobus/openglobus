@@ -1,13 +1,13 @@
-import * as shaders from "../shaders/label/label";
+import * as shaders from "../../shaders/label/label";
 import {ALIGN, Label} from "./Label";
-import {BaseBillboardHandler} from "./BaseBillboardHandler";
-import {concatTypedArrays, spliceTypedArray} from "../utils/shared";
-import {EntityCollection} from "./EntityCollection";
+import {BaseBillboardHandler} from "../billboard/BaseBillboardHandler";
+import {concatTypedArrays, spliceTypedArray} from "../../utils/shared";
+import {EntityCollection} from "../EntityCollection";
 import {LOCK_FREE} from "./LabelWorker";
-import {Planet} from "../scene/Planet";
-import type {WebGLBufferExt} from "../webgl/Handler";
-import {Vec3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
+import {Planet} from "../../scene/Planet";
+import type {WebGLBufferExt} from "../../webgl/Handler";
+import {Vec3} from "../../math/Vec3";
+import {Vec4} from "../../math/Vec4";
 
 type LabelWorkerCallbackData = {
     vertexArr: Float32Array,

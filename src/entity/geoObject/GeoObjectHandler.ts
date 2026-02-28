@@ -1,15 +1,15 @@
-import * as shaders from "../shaders/geo_object/geo_object";
-import {concatArrays, loadImage, spliceArray} from "../utils/shared";
-import type {TypedArray} from "../utils/shared";
-import {EntityCollection} from "./EntityCollection";
+import * as shaders from "../../shaders/geo_object/geo_object";
+import {concatArrays, loadImage, spliceArray} from "../../utils/shared";
+import type {TypedArray} from "../../utils/shared";
+import {EntityCollection} from "../EntityCollection";
 import {GeoObject} from "./GeoObject";
-import {Vec3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
-import {Quat} from "../math/Quat";
-import {Object3d} from "../Object3d";
+import {Vec3} from "../../math/Vec3";
+import {Vec4} from "../../math/Vec4";
+import {Quat} from "../../math/Quat";
+import {Object3d} from "../../Object3d";
 import {InstanceData} from "./InstanceData";
-import {Renderer} from "../renderer/Renderer";
-import {RenderNode} from "../scene/RenderNode";
+import {Renderer} from "../../renderer/Renderer";
+import {RenderNode} from "../../scene/RenderNode";
 
 //@todo: enums, i know...nah...
 export const VERTEX_BUFFER = 0;

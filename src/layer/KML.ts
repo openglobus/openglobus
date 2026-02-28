@@ -1,5 +1,5 @@
-import {Billboard} from "../entity/Billboard";
-import type {IBillboardParams} from "../entity/Billboard";
+import {Billboard} from "../entity/billboard/Billboard";
+import type {IBillboardParams} from "../entity/billboard/Billboard";
 import {Entity} from "../entity/Entity";
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";

@@ -1,20 +1,20 @@
 import * as math from "../math";
-import {BillboardHandler} from "./BillboardHandler";
+import {BillboardHandler} from "./billboard/BillboardHandler";
 import {createEvents} from "../Events";
 import type {EventsHandler} from "../Events";
 import {Entity} from "./Entity";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
-import {GeoObjectHandler} from "./GeoObjectHandler";
-import {LabelHandler} from "./LabelHandler";
+import {GeoObjectHandler} from "./geoObject/GeoObjectHandler";
+import {LabelHandler} from "./label/LabelHandler";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import {Planet} from "../scene/Planet";
-import {PointCloudHandler} from "./PointCloudHandler";
-import {PolylineHandler} from "./PolylineHandler";
-import {RayHandler} from "./RayHandler";
+import {PointCloudHandler} from "./pointCloud/PointCloudHandler";
+import {PolylineHandler} from "./polyline/PolylineHandler";
+import {RayHandler} from "./ray/RayHandler";
 import {RenderNode} from "../scene/RenderNode";
-import {StripHandler} from "./StripHandler";
+import {StripHandler} from "./strip/StripHandler";
 import {Vector} from "../layer/Vector";
 
 export type EntityCollectionEvents = EventsHandler<EntityCollectionEventList>;

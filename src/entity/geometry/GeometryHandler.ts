@@ -1,15 +1,15 @@
-import * as mercator from "../mercator";
-import * as quadTree from "../quadTree/quadTree";
-import {Extent} from "../Extent";
-import {Handler} from "../webgl/Handler";
-import type {WebGLBufferExt} from "../webgl/Handler";
-import {doubleToTwoFloatsV2} from "../math/coder";
-import {Vector} from "../layer/Vector";
-import {Vec2} from "../math/Vec2";
-import type {NumberArray2} from "../math/Vec2";
-import {Node} from "../quadTree/Node";
-import {Vec3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
+import * as mercator from "../../mercator";
+import * as quadTree from "../../quadTree/quadTree";
+import {Extent} from "../../Extent";
+import {Handler} from "../../webgl/Handler";
+import type {WebGLBufferExt} from "../../webgl/Handler";
+import {doubleToTwoFloatsV2} from "../../math/coder";
+import {Vector} from "../../layer/Vector";
+import {Vec2} from "../../math/Vec2";
+import type {NumberArray2} from "../../math/Vec2";
+import {Node} from "../../quadTree/Node";
+import {Vec3} from "../../math/Vec3";
+import {Vec4} from "../../math/Vec4";
 import type {
     CoordinatesType,
     Geometry,
@@ -21,7 +21,7 @@ import type {
 
 import {GeometryTypeEnum} from "./Geometry";
 
-import {earcut, flatten} from "../utils/earcut";
+import {earcut, flatten} from "../../utils/earcut";
 
 const POLYVERTICES_BUFFER = 0;
 const POLYINDEXES_BUFFER = 1;
