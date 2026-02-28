@@ -198,3 +198,5 @@ var strips = new Vector("Strips", {
 });
 
 globe.planet.addLayer(strips);
+
+globe.planet.addControl(new control.ElevationProfileControl());
