@@ -30,7 +30,7 @@ export const distanceFormat = (v: number): string => {
     }
 }
 
-let obj3d = Object3d.createCylinder(1.1, 0, 2.7, 20, 1, true, false, 0, 0, 0);
+let obj3d = Object3d.createCylinder(0.33, 0, 1.0, 20, 1, true, false, 0, 0, 0);
 
 const LABEL_OPTIONS: ILabelParams = {
     text: "",
@@ -41,6 +41,7 @@ const LABEL_OPTIONS: ILabelParams = {
     align: "center",
     offset: [0, 20, 0]
 };
+
 const RULER_CORNER_OPTIONS = {
     scale: 1,
     instanced: true,
@@ -140,8 +141,9 @@ class RulerScene extends RenderNode {
             entities: [],
             pickingEnabled: true,
             hideInLayerSwitcher: true,
-            scaleByDistance: [100, 4000000, 1.0],
-            pickingScale: 2
+            scaleByDistance: [1, 5000, 0.023],
+            pickingScale: 2,
+            useLighting: false
         });
 
         this._propsLabel = new Entity({

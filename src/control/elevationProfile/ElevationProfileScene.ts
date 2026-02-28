@@ -125,7 +125,8 @@ class ElevationProfileScene extends RenderNode {
             pickingEnabled: true,
             hideInLayerSwitcher: true,
             scaleByDistance: [1, 5000, 0.02],
-            pickingScale: 1.5
+            pickingScale: 1.5,
+            useLighting: false
         });
 
         this._headPointersLayer = new Vector("head-pointers", {
@@ -133,7 +134,8 @@ class ElevationProfileScene extends RenderNode {
             pickingEnabled: true,
             hideInLayerSwitcher: true,
             scaleByDistance: [1, 10000, 0.02],
-            pickingScale: 1
+            pickingScale: 1,
+            useLighting: false
         });
 
         this._columnPointersLayer = new Vector("column-pointers", {

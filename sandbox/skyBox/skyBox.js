@@ -200,3 +200,9 @@ var strips = new Vector("Strips", {
 globe.planet.addLayer(strips);
 
 globe.planet.addControl(new control.ElevationProfileControl());
+
+let ruler = new control.RulerSwitcher({
+    ignoreTerrain: false
+});
+
+globe.planet.addControl(ruler);

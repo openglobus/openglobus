@@ -7,7 +7,7 @@ import {Vec3} from "../../math/Vec3";
 import type {ILabelParams} from "../../entity/Label";
 import type {IRayParams} from "../../entity/Ray";
 
-let obj3d = Object3d.createCylinder(1.1, 0, 2, 6, 1, true, true, 0, 0, 0);
+let obj3d = Object3d.createCylinder(0.33, 0, 1.0, 20, 1, true, false, 0, 0, 0);
 
 const RAYS_OPTIONS: IRayParams = {
     startColor: "rgb(255,131,0)",
@@ -28,7 +28,7 @@ const RULER_CORNER_OPTIONS = {
     scale: 1,
     instanced: true,
     tag: "height-ruler",
-    color: "rgb(255,131,0)",
+    color: "rgb(0,305,0)",
     object3d: obj3d
 };
 
