@@ -78,7 +78,6 @@ class Polyline {
 
     }
 
-
     /**
      * Set closed/open state for one path segment.
      * @public
@@ -106,7 +105,6 @@ class Polyline {
     ) {
 
     }
-
 
     public setPointLonLat(lonlat: LonLat, index: number, segmentIndex: number) {
 
