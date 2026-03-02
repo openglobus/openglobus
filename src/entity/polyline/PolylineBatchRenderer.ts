@@ -213,21 +213,6 @@ export interface IPolylineBatchRendererParams {
     texParams?: Partial<TexParam>[];
 }
 
-/**
- * Polyline object.
- * @class
- * @param {Object} [options] - Polyline options:
- * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
- * @param {Number} [options.altitude] - Relative to ground layers altitude value.
- * @param {string[]} [options.color] - Per-segment HTML colors.
- * @param {Boolean} [options.opacity] - Line opacity.
- * @param {Boolean} [options.visibility] - Polyline visibility. True default.
- * @param {Boolean[]} [options.isClosed] - Closed geometry type identification, per-segment.
- * @param {SegmentPathLonLatExt[]} [options.pathLonLat] - Polyline geodetic coordinates array. [[[0,0,0], [1,1,1],...]]
- * @param {SegmentPath3vExt[]} [options.path3v] - LinesString cartesian coordinates array. [[[0,0,0], [1,1,1],...]]
- * @param {SegmentPathColor[]} [options.pathColors] - Coordinates color. [[[1,0,0,1], [0,1,0,1],...]] for right and green colors.
- * @param {TexParam[]} [options.texParams] - Per-segment texture params: texOffset, strokeSize and texOffsetSpeed.
- */
 class PolylineBatchRenderer {
     static __counter__: number = 0;
     protected static _defaultStrokeImage: HTMLImageElementExt | null = null;
