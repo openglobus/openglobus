@@ -188,6 +188,11 @@ class Polyline {
         if (this._isClosed) {
             br.setPathClosed(this._isClosed, batchIndex);
         }
+        if (this._image) {
+            br.setPathSrc(this._image, batchIndex);
+        } else if (this._src) {
+            br.setPathSrc(this._src, batchIndex);
+        }
     }
 
     protected _updateExtent() {

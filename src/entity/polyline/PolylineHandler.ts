@@ -33,10 +33,12 @@ class PolylineHandler {
 
         this._opaqueRenderer = new PolylineBatchRenderer(this, {
             path3v: [],
+            //isTextured: true,
         });
 
         this._transparentRenderer = new PolylineBatchRenderer(this, {
             path3v: [],
+            //isTextured: true,
         });
 
         this.pickingEnabled = true;
