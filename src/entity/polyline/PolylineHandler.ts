@@ -70,11 +70,13 @@ class PolylineHandler {
         if (polyline._handlerIndex === -1) {
             polyline._handler = this;
             polyline._handlerIndex = this._polylines.length;
-            polyline.__doubleToTwoFloats = this.getRTCPosition.bind(this);
+            this._opaqueRenderer.__doubleToTwoFloats = this.getRTCPosition.bind(this);
             this._polylines.push(polyline);
+
+            this._opaqueRenderer.appendPath3v(polyline.getPath3v());
+
             if (this._entityCollection && this._entityCollection.renderNode) {
-                polyline.setRenderNode(this._entityCollection.renderNode);
-                polyline.updateRTCPosition();
+                this._opaqueRenderer.updateRTCPosition();
             }
         }
     }
@@ -82,7 +84,6 @@ class PolylineHandler {
     public remove(polyline: Polyline) {
         let index = polyline._handlerIndex;
         if (index !== -1) {
-            polyline._deleteBuffers();
             polyline._handlerIndex = -1;
             polyline._handler = null;
             this._polylines.splice(index, 1);
@@ -90,9 +91,6 @@ class PolylineHandler {
         }
     }
 
-    public removeBatchRenderer(polylineBatchRenderer: PolylineBatchRenderer) {
-        //???
-    }
 
     public reindexPolylineArray(startIndex: number) {
         let ls = this._polylines;
@@ -172,7 +170,7 @@ class PolylineHandler {
         if (!bc || !this._renderer) return;
         const ta = this._renderer.strokeTextureAtlas;
         for (let i = 0; i < this._polylines.length; i++) {
-            const ri = this._polylines[i];
+            const ri = this._opaqueRenderer;
             const img = ri.getImage();
             const tc: (number[] | null)[] = [];
             for (let j = 0; j < img.length; j++) {

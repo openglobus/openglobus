@@ -1,9 +1,11 @@
+import {Entity} from "../Entity";
 import {LonLat} from "../../LonLat";
 import {Vec3} from "../../math/Vec3";
 import type {NumberArray3} from "../../math/Vec3";
 import type {NumberArray2} from "../../math/Vec2";
 import type {NumberArray4} from "../../math/Vec4";
 import type {HTMLImageElementExt} from "../../utils/ImagesCacheManager";
+import {PolylineHandler} from "./PolylineHandler";
 
 export type Geodetic = LonLat | NumberArray2 | NumberArray3
 export type Cartesian = Vec3 | NumberArray3;
@@ -58,24 +60,82 @@ class Polyline {
     static __counter__: number = 0;
     protected __id: number;
 
+    protected _entity: Entity | null;
+
+    public _handler: PolylineHandler | null;
+    public _handlerIndex: number;
+
+    public _batchRenderer: PolylineHandler | null;
+    public _batchRendererIndexes: number[];
+
+    protected _path3v: SegmentPath3vExt[];
+    protected _pathLonLat: SegmentPathLonLatExt[];
+    protected _pathColors: SegmentPathColor[];
+
+    protected _src: StrokeSource;
+
+    protected _isClosed: boolean;
+
+    protected _visibility: boolean;
+
+    protected _image: HTMLImageElement | null;
+
     constructor(options: IPolylineParams = {}) {
         this.__id = Polyline.__counter__++;
+
+        this._path3v = options.path3v || [];
+
+        this._pathLonLat = options.pathLonLat || [];
+
+        this._pathColors = options.pathColors || [];
+
+        this._entity = null;
+
+        this._handler = null;
+        this._handlerIndex = -1;
+
+        this._batchRenderer = null;
+        this._batchRendererIndexes = [];
+
+        this._src = options.src || null;
+
+        this._isClosed = options.isClosed || false;
+
+        this._visibility = options.visibility !== undefined ? options.visibility : true;
+
+        this._image = null;
+    }
+
+    public getPath3v(): SegmentPath3vExt[] {
+        return this._path3v;
+    }
+
+    public getPathLonLat(): SegmentPathLonLatExt[] {
+        return this._pathLonLat;
+    }
+
+    public getPathColors(): NumberArray4[][] {
+        return this._pathColors;
     }
 
     public setImage(image: HTMLImageElement) {
-
+        this._image = image;
     }
 
     public getImage(): (HTMLImageElementExt | null) {
-
+        return this._image;
     }
 
     /**
      * Sets stroke source per segment (null = color-only).
      * @public
      */
-    public setSrc(src: StrokeSource[]) {
+    public setSrc(src: StrokeSource) {
+        this._src = src;
+    }
 
+    public getSrc(): StrokeSource {
+        return this._src;
     }
 
     /**
@@ -83,15 +143,11 @@ class Polyline {
      * @public
      */
     public set isClosed(isClosed: boolean) {
-
+        this._isClosed = isClosed;
     }
 
     public get isClosed(): boolean[] {
-
-    }
-
-    public getSrc(): StrokeSource[] {
-
+        return this._isClosed;
     }
 
     public setTextureDisabled() {
@@ -259,7 +315,7 @@ class Polyline {
      * @param {boolean} visibility - Polyline visibility.
      */
     public setVisibility(visibility: boolean) {
-
+        this._visibility = visibility;
     }
 
     /**
@@ -268,7 +324,7 @@ class Polyline {
      * @return {boolean} Polyline visibility.
      */
     public getVisibility(): boolean {
-
+        return this._visibility;
     }
 
     /**
@@ -280,26 +336,6 @@ class Polyline {
     }
 
     public setPickingColor3v(color: Vec3) {
-
-    }
-
-    /**
-     * Returns path cartesian coordinates.
-     * @return {SegmentPath3vExt[]} Polyline path.
-     */
-    public getPath3v(): SegmentPath3vExt[] {
-
-    }
-
-    /**
-     * Returns geodetic path coordinates.
-     * @return {SegmentPathLonLatExt[]} Polyline path.
-     */
-    public getPathLonLat(): SegmentPathLonLatExt[] {
-
-    }
-
-    public getPathColors(): NumberArray4[][] {
 
     }
 
