@@ -55,7 +55,6 @@ class LineStringDrawingScene extends PolygonDrawingScene {
             let entity = new Entity({
                 polyline: {
                     path3v: [prevPath],
-                    isClosed: [false],
                     ...this._outlineStyle
                 }
             });
@@ -179,7 +178,6 @@ class LineStringDrawingScene extends PolygonDrawingScene {
             new Entity({
                 polyline: {
                     path3v: [],
-                    isClosed: [false],
                     ...this._outlineStyle
                 }
             }),

@@ -16,8 +16,8 @@ class PolylineHandler {
     public _rtcEyePositionHigh: Float32Array;
     public _rtcEyePositionLow: Float32Array;
 
-    protected _opaqueRenderer: PolylineBatchRenderer;
-    protected _transparentRenderer: PolylineBatchRenderer;
+    public _opaqueRenderer: PolylineBatchRenderer;
+    public _transparentRenderer: PolylineBatchRenderer;
 
     protected _polylines: Polyline[] = [];
 
@@ -31,11 +31,11 @@ class PolylineHandler {
 
         this._polylines = [];
 
-        this._opaqueRenderer = new PolylineBatchRenderer({
+        this._opaqueRenderer = new PolylineBatchRenderer(this, {
             path3v: [],
         });
 
-        this._transparentRenderer = new PolylineBatchRenderer({
+        this._transparentRenderer = new PolylineBatchRenderer(this, {
             path3v: [],
         });
 
@@ -46,6 +46,11 @@ class PolylineHandler {
         this._rtcEyePositionHigh = new Float32Array([0, 0, 0]);
 
         this._rtcEyePositionLow = new Float32Array([0, 0, 0]);
+    }
+
+    public setVisibleSphere(p: Vec3, r: number) {
+        this._opaqueRenderer.setVisibleSphere(p,r);
+        this._transparentRenderer.setVisibleSphere(p,r);
     }
 
     protected _initProgram() {
@@ -70,10 +75,11 @@ class PolylineHandler {
         if (polyline._handlerIndex === -1) {
             polyline._handler = this;
             polyline._handlerIndex = this._polylines.length;
+            polyline._batchRenderer = this._opaqueRenderer;
             this._opaqueRenderer.__doubleToTwoFloats = this.getRTCPosition.bind(this);
             this._polylines.push(polyline);
 
-            this._opaqueRenderer.appendPath3v(polyline.getPath3v());
+            polyline._addToBatchRenderer();
 
             if (this._entityCollection && this._entityCollection.renderNode) {
                 this._opaqueRenderer.updateRTCPosition();
@@ -84,13 +90,25 @@ class PolylineHandler {
     public remove(polyline: Polyline) {
         let index = polyline._handlerIndex;
         if (index !== -1) {
+            polyline._removeFromBatchRenderer();
             polyline._handlerIndex = -1;
             polyline._handler = null;
+            polyline._batchRenderer = null;
             this._polylines.splice(index, 1);
             this.reindexPolylineArray(index);
         }
     }
 
+    public reindexAfterRemoval(removedBatchIndex: number) {
+        for (let p = 0; p < this._polylines.length; p++) {
+            const indices = this._polylines[p]._batchRendererIndexes;
+            for (let i = 0; i < indices.length; i++) {
+                if (indices[i] > removedBatchIndex) {
+                    indices[i]--;
+                }
+            }
+        }
+    }
 
     public reindexPolylineArray(startIndex: number) {
         let ls = this._polylines;
@@ -126,6 +144,8 @@ class PolylineHandler {
         while (i--) {
             this._polylines[i]._handler = null;
             this._polylines[i]._handlerIndex = -1;
+            this._polylines[i]._batchRenderer = null;
+            this._polylines[i]._batchRendererIndexes.length = 0;
         }
         this._polylines.length = 0;
         this._polylines = [];

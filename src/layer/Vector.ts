@@ -747,6 +747,8 @@ class Vector extends Layer {
             let e_i = e.length;
             let res = new Vec3();
 
+            //this._polylineEntityCollection.polylineHandler._opaqueRenderer._pathLonLatMerc
+
             while (e_i--) {
                 let altModifier = e[e_i]._altitude || 0.0;
                 let p = e[e_i].polyline!;

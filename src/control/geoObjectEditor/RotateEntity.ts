@@ -31,7 +31,7 @@ export class RotateEntity extends Entity {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 3.1,
                 color: [X_COLOR],
-                isClosed: [true]
+                isClosed: true
             },
             properties: {
                 opName: "rotate_pitch",
@@ -49,7 +49,7 @@ export class RotateEntity extends Entity {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
                 color: [Y_COLOR],
-                isClosed: [true]
+                isClosed: true
             },
             properties: {
                 opName: "rotate_yaw",
@@ -67,7 +67,7 @@ export class RotateEntity extends Entity {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
                 color: [Z_COLOR],
-                isClosed: [true]
+                isClosed: true
             },
             properties: {
                 opName: "rotate_roll",
@@ -125,9 +125,11 @@ export class RotateEntity extends Entity {
             let dir_yaw = qNorthFrame.mulVec3(new Vec3(0, 1, 0)).normalize();
             let dir_roll = qRot.mulVec3(new Vec3(0, 0, 1)).normalize();
 
-            this.childEntities[0].polyline!.setVisibleSphere(cart, Math.abs(dir_pitch.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
-            this.childEntities[1].polyline!.setVisibleSphere(cart, Math.abs(dir_yaw.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
-            this.childEntities[2].polyline!.setVisibleSphere(cart, Math.abs(dir_roll.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
+            this._entityCollection.polylineHandler._opaqueRenderer.setVisibleSphere(cart, Math.abs(dir_pitch.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
+
+            // this.childEntities[0].polyline!.setVisibleSphere(cart, Math.abs(dir_pitch.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
+            // this.childEntities[1].polyline!.setVisibleSphere(cart, Math.abs(dir_yaw.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
+            // this.childEntities[2].polyline!.setVisibleSphere(cart, Math.abs(dir_roll.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
         }
     }
 }

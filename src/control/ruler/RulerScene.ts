@@ -156,7 +156,7 @@ class RulerScene extends RenderNode {
                 path3v: [],
                 thickness: 4.8,
                 color: ["rgb(255,131,0)"],
-                isClosed: [false]
+                isClosed: false
             }
         });
 

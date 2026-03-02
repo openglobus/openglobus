@@ -3,7 +3,6 @@ import {Extent} from "../../Extent";
 import {LonLat} from "../../LonLat";
 import {Vec3} from "../../math/Vec3";
 import type {NumberArray3} from "../../math/Vec3";
-import type {NumberArray2} from "../../math/Vec2";
 import type {NumberArray4} from "../../math/Vec4";
 import {Planet} from "../../scene/Planet";
 import {PolylineHandler} from "./PolylineHandler";
@@ -22,6 +21,7 @@ import {
 import type {TypedArray} from "../../utils/shared";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
 import type {HTMLImageElementExt} from "../../utils/ImagesCacheManager";
+import type {Geodetic, Cartesian, SegmentPath3vExt, SegmentPathLonLatExt, SegmentPathColor, SegmentPath3v, SegmentPathLonLat} from "./Polyline";
 
 const VERTICES_BUFFER = 0;
 const INDEX_BUFFER = 1;
@@ -47,16 +47,6 @@ const G = 1;
 const B = 2;
 const A = 3;
 
-export type Geodetic = LonLat | NumberArray2 | NumberArray3
-export type Cartesian = Vec3 | NumberArray3;
-
-export type SegmentPath3vExt = Cartesian[];
-export type SegmentPathLonLatExt = Geodetic[];
-
-export type SegmentPathColor = NumberArray4[];
-
-export type SegmentPath3v = Vec3[];
-export type SegmentPathLonLat = LonLat[];
 
 export interface TexParam {
     texOffset: number;
@@ -333,7 +323,7 @@ class PolylineBatchRenderer {
      * @type {PolylineHandler | null}
      */
     public _handler: PolylineHandler | null;
-    public _handlerIndex: number;
+    //public _handlerIndex: number;
     protected _buffersUpdateCallbacks: Function[];
     protected _changedBuffers: boolean[];
 
@@ -346,7 +336,7 @@ class PolylineBatchRenderer {
 
     protected _defaultTexParam: TexParam;
 
-    constructor(options: IPolylineBatchRendererParams = {}) {
+    constructor(handler: PolylineHandler, options: IPolylineBatchRendererParams = {}) {
 
         this.__id = PolylineBatchRenderer.__counter__++;
 
@@ -424,8 +414,8 @@ class PolylineBatchRenderer {
         this._entity = null;
 
 
-        this._handler = null;
-        this._handlerIndex = -1;
+        this._handler = handler;
+        //this._handlerIndex = -1;
 
         this._image = [];
 
@@ -3868,75 +3858,48 @@ class PolylineBatchRenderer {
         this._pickingColors = [];
 
         this._deleteBuffers();
-
-        this._handler && this._handler.removeBatchRenderer(this);
     }
 
-    protected _rebuildPickingColorsFromPath() {
 
-        this._pickingColors = [];
 
-        const outPickingColors = this._pickingColors as number[];
-
-        for (let i = 0, len = this._path3v.length; i < len; i++) {
-            const segment = this._path3v[i];
-
-            if (!segment || segment.length === 0) continue;
-
-            const segmentPickingColors = this._pathPickingColors[i];
-
-            const p = (segmentPickingColors && segmentPickingColors[0]) ? segmentPickingColors[0] : [
-                this._pickingColor[R],
-                this._pickingColor[G],
-                this._pickingColor[B]
-            ];
-
-            const pr = p[R], pg = p[G], pb = p[B];
-
-            if (i > 0) {
-                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
-            }
-
-            for (let j = 0, segmentLen = segment.length; j < segmentLen; j++) {
-                outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
-            }
-
-            outPickingColors.push(pr, pg, pb, pr, pg, pb, pr, pg, pb, pr, pg, pb);
-        }
-    }
-
-    public setPickingColor3v(color: Vec3) {
+    public setPathPickingColor3v(color: Vec3, segmentIndex: number) {
         const r = color.x / 255.0;
         const g = color.y / 255.0;
         const b = color.z / 255.0;
 
-        this._pickingColor[0] = r;
-        this._pickingColor[1] = g;
-        this._pickingColor[2] = b;
+        const segmentPickingColors = this._pathPickingColors[segmentIndex] || (this._pathPickingColors[segmentIndex] = []);
 
-        const segmentsCount = Math.max(this._path3v.length, this._pathLonLat.length);
-
-        for (let i = 0; i < segmentsCount; i++) {
-            const segmentPickingColors = this._pathPickingColors[i] || (this._pathPickingColors[i] = []);
-            const hasPoints = (this._path3v[i]?.length || this._pathLonLat[i]?.length || 0) > 0;
-
-            if (!hasPoints) continue;
-
-            if (segmentPickingColors.length === 0) {
-                segmentPickingColors.push([r, g, b]);
-                continue;
-            }
-
-            for (let j = 0, len = segmentPickingColors.length; j < len; j++) {
+        if (segmentPickingColors.length === 0) {
+            segmentPickingColors.push([r, g, b]);
+        } else {
+            for (let j = 0; j < segmentPickingColors.length; j++) {
                 const p = segmentPickingColors[j];
-                if (!p) continue;
-                p[R] = r;
-                p[G] = g;
-                p[B] = b;
+                if (p) {
+                    p[R] = r;
+                    p[G] = g;
+                    p[B] = b;
+                }
             }
         }
 
-        this._rebuildPickingColorsFromPath();
+        if (!this._renderNode) return;
+
+        const path = this._path3v[segmentIndex];
+        if (!path || path.length === 0) return;
+
+        const pointsBefore = this._pathLengths[segmentIndex];
+        const attrGroupStart = pointsBefore + (segmentIndex === 0 ? 0 : 2 * segmentIndex - 1);
+        const attrGroupCount = path.length + (segmentIndex === 0 ? 1 : 2);
+
+        const start = attrGroupStart * 12;
+        const end = (attrGroupStart + attrGroupCount) * 12;
+        const pc = this._pickingColors;
+
+        for (let i = start; i < end; i += 3) {
+            pc[i] = r;
+            pc[i + 1] = g;
+            pc[i + 2] = b;
+        }
 
         this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
     }
