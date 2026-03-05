@@ -30,8 +30,7 @@
     "test": "vitest run --reporter=verbose",
     "lint": "eslint src/",
     "dts": "tsc --build tsconfig.json",
-    "dev_serve": "npm-run-all --parallel --continue-on-error --race dev serve",
-    "prepare": "npm run build"
+    "dev_serve": "npm-run-all --parallel --continue-on-error --race dev serve"
   },
   "repository": {
     "type": "git",
