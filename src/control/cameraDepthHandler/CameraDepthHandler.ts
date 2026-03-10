@@ -184,39 +184,46 @@ export class CameraDepthHandler extends Control {
 
             this._skipPreRender = true;
 
-            console.log(this._quadTreeStrategy._renderedNodes);
-            //this.planet.renderDepthFramebuffer(cam, this._quadTreeStrategy);
-        }
-        /*
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.disable(gl.BLEND);
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.disable(gl.BLEND);
 
-        let h = framebuffer.handler;
-        h.programs.camera_depth.activate();
-        let sh = h.programs.camera_depth._program;
-        let shu = sh.uniforms;
+            let h = framebuffer.handler;
+            h.programs.camera_depth.activate();
+            let sh = h.programs.camera_depth._program;
+            let shu = sh.uniforms;
 
-        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
-        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+            gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
-        // drawing planet nodes
-        let rn = this.planet.quadTreeStrategy._renderedNodes;
+            let isEq = this.planet.terrain!.equalizeVertices;
 
-        let i = rn.length;
-        while (i--) {
-            if (rn[i].segment._transitionOpacity >= 1) {
-                rn[i].segment.depthRendering(sh);
+            let rn = this._quadTreeStrategy._renderedNodesInFrustum[cam.getCurrentFrustum()];
+
+            let i = rn.length;
+            while (i--) {
+                let s = rn[i].segment;
+                if (s._transitionOpacity >= 1) {
+                    isEq && s.equalize();
+                    s.readyToEngage && s.engage();
+                    s.ensureIndexBuffer();
+                    s.depthRendering(sh);
+                }
             }
-        }
 
-        for (let i = 0; i < this.planet.quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
-            this.planet.quadTreeStrategy._fadingOpaqueSegments[i].depthRendering(sh);
+            for (let i = 0; i < this._quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
+                let s = this._quadTreeStrategy._fadingOpaqueSegments[i];
+                isEq && s.equalize();
+                s.readyToEngage && s.engage();
+                s.ensureIndexBuffer();
+                s.depthRendering(sh);
+            }
+
+            gl.enable(gl.BLEND);
         }
-        */
 
         framebuffer.deactivate();
 
