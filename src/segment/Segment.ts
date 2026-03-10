@@ -1648,7 +1648,7 @@ class Segment {
 
         let slice = this.initSlice(sliceIndex);
 
-        this._indexBuffer = this._getIndexBuffer();
+        this.ensureIndexBuffer();
 
         while (li) {
             if (
@@ -1717,7 +1717,7 @@ class Segment {
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
+            gl.drawElements(p.drawMode, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
         }
     }
 
@@ -1872,6 +1872,10 @@ class Segment {
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer!);
         gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+    }
+
+    public ensureIndexBuffer() {
+        this._indexBuffer = this._getIndexBuffer();
     }
 
     protected _getIndexBuffer(): WebGLBufferExt {

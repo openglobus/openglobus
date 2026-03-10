@@ -9,6 +9,7 @@ import * as control from './control/index';
 import * as scene from './scene/index';
 import * as terrain from './terrain/index';
 import * as layer from './layer/index';
+import * as ui from './ui/index';
 import * as webgl from './webgl/index';
 
 export * from './control/Control';
@@ -108,6 +109,7 @@ export {
     mars,
     terrain,
     layer,
+    ui,
     webgl,
     Easing,
     EasingFunction,
