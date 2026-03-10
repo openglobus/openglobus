@@ -1,8 +1,8 @@
 import {EntityCollection} from "./EntityCollection";
-import {Program} from "../webgl/Program";
 import {Renderer} from "../renderer/Renderer";
 import {RenderNode} from "../scene/RenderNode";
 import {Strip} from "./Strip";
+import {stripForward, stripTransparent} from "../shaders/strip/strip";
 
 class StripHandler {
 
@@ -37,6 +37,12 @@ class StripHandler {
      */
     protected _strips: Strip[];
 
+    protected _opaqueCount: number;
+
+    protected _isOpaque(strip: Strip): boolean {
+        return strip.color[3] >= 0.999999;
+    }
+
     constructor(entityCollection: EntityCollection) {
 
         this.__id = StripHandler.__counter__++;
@@ -48,49 +54,15 @@ class StripHandler {
         this._renderer = null;
 
         this._strips = [];
+        this._opaqueCount = 0;
     }
 
     protected _initProgram() {
         if (this._renderer && this._renderer.handler) {
-            !this._renderer.handler.programs.strip &&
-            this._renderer.handler.addProgram(
-                new Program("strip", {
-                    uniforms: {
-                        projectionMatrix: {type: "mat4"},
-                        viewMatrix: {type: "mat4"},
-                        eyePositionHigh: "vec3",
-                        eyePositionLow: "vec3",
-                        uColor: {type: "vec4"},
-                        uOpacity: {type: "float"}
-                    },
-                    attributes: {
-                        aVertexPositionHigh: {type: "vec3"},
-                        aVertexPositionLow: {type: "vec3"}
-                    },
-                    vertexShader: `attribute vec3 aVertexPositionHigh;
-                        attribute vec3 aVertexPositionLow;
-                        uniform mat4 projectionMatrix;
-                        uniform mat4 viewMatrix;
-                        uniform vec3 eyePositionHigh;
-                        uniform vec3 eyePositionLow;
-                        void main(void) {
-
-                            vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                            vec3 lowDiff = aVertexPositionLow - eyePositionLow;
-
-                            mat4 viewMatrixRTE = viewMatrix;
-                            viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
-
-                            gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
-                        }`,
-                    fragmentShader: `precision highp float;
-                        uniform vec4 uColor;
-                        uniform float uOpacity;
-                        void main(void) {
-                            gl_FragColor = vec4(uColor.rgb, uColor.a * uOpacity);
-                        }`
-                })
-            );
+            !this._renderer.handler.programs.stripTransparent &&
+            this._renderer.handler.addProgram(stripTransparent());
+            !this._renderer.handler.programs.stripForward &&
+            this._renderer.handler.addProgram(stripForward());
         }
     }
 
@@ -102,11 +74,30 @@ class StripHandler {
         }
     }
 
+    protected _swap(i: number, j: number) {
+        if (i === j) return;
+        const a = this._strips;
+        const ti = a[i];
+        const tj = a[j];
+        a[i] = tj;
+        a[j] = ti;
+        tj._handlerIndex = i;
+        ti._handlerIndex = j;
+    }
+
+
     public add(strip: Strip) {
         if (strip._handlerIndex === -1) {
             strip._handler = this;
-            strip._handlerIndex = this._strips.length;
+            const index = this._strips.length;
+            strip._handlerIndex = index;
             this._strips.push(strip);
+
+            // keep opaque first, transparent last
+            if (this._isOpaque(strip)) {
+                this._swap(index, this._opaqueCount);
+                this._opaqueCount++;
+            }
             this._entityCollection &&
             this._entityCollection.renderNode &&
             strip.setRenderNode(this._entityCollection.renderNode);
@@ -114,27 +105,65 @@ class StripHandler {
     }
 
     public remove(strip: Strip) {
-        let index = strip._handlerIndex;
-        if (index !== -1) {
-            strip._deleteBuffers();
+        const index = strip._handlerIndex;
+        if (index === -1) return;
+
+        strip._deleteBuffers();
+
+        const a = this._strips;
+        const lastIndex = a.length - 1;
+        if (index < 0 || index > lastIndex) {
             strip._handlerIndex = -1;
             strip._handler = null;
-            this._strips.splice(index, 1);
-            this.reindexStripArray(index);
+            return;
+        }
+
+        if (index < this._opaqueCount) {
+            const lastOpaqueIndex = this._opaqueCount - 1;
+            this._swap(index, lastOpaqueIndex);
+            this._opaqueCount--;
+            this._swap(lastOpaqueIndex, lastIndex);
+        } else {
+            this._swap(index, lastIndex);
+        }
+
+        a.pop();
+
+        strip._handlerIndex = -1;
+        strip._handler = null;
+    }
+
+    public drawForward() {
+        this.drawOpaque();
+    }
+
+    public drawOpaque(): void {
+        for (let i = 0; i < this._opaqueCount; i++) {
+            this._strips[i].drawOpaque();
         }
     }
 
-    public reindexStripArray(startIndex: number) {
-        let pc = this._strips;
-        for (let i = startIndex; i < pc.length; i++) {
-            pc[i]._handlerIndex = i;
+    public drawTransparent(): void {
+        for (let i = this._opaqueCount; i < this._strips.length; i++) {
+            this._strips[i].drawTransparent();
         }
     }
 
-    public draw() {
-        let i = this._strips.length;
-        while (i--) {
-            this._strips[i].draw();
+    public updateStripOpacity(strip: Strip) {
+        const index = strip._handlerIndex;
+        if (index === -1) return;
+
+        const toOpaque = this._isOpaque(strip);
+        const isOpaque = index < this._opaqueCount;
+        if (toOpaque === isOpaque) return;
+
+        if (toOpaque) {
+            this._swap(index, this._opaqueCount);
+            this._opaqueCount++;
+        } else {
+            const lastOpaqueIndex = this._opaqueCount - 1;
+            this._swap(index, lastOpaqueIndex);
+            this._opaqueCount--;
         }
     }
 
@@ -156,6 +185,7 @@ class StripHandler {
         }
         this._strips.length = 0;
         this._strips = [];
+        this._opaqueCount = 0;
     }
 }
 

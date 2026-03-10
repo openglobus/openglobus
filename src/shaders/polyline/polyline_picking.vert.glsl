@@ -9,8 +9,9 @@ attribute vec3 currentLow;
 attribute vec3 nextLow;
 
 attribute float order;
+attribute float thickness;
 
-uniform float thickness;
+uniform float thicknessScale;
 uniform vec4 color;
 uniform mat4 proj;
 uniform mat4 view;
@@ -105,7 +106,7 @@ void main() {
     vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));
     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));
 
-    float d = thickness * sign(order);
+    float d = thickness * thicknessScale * sign(order);
 
     vec2 m;
     if (dotNP >= 0.99991) {

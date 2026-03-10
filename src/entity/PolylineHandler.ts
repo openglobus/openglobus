@@ -36,14 +36,13 @@ class PolylineHandler {
     }
 
     protected _initProgram() {
-        if (this._renderer && this._renderer.handler) {
-            if (!this._renderer.handler.programs.polyline_screen) {
-                this._renderer.handler.addProgram(shaders.polyline_screen());
-            }
-            if (!this._renderer.handler.programs.polyline_picking) {
-                this._renderer.handler.addProgram(shaders.polyline_picking());
-            }
-        }
+        if (!this._renderer) return;
+
+        this._renderer.addPrograms(
+            shaders.polylineForward(),
+            shaders.polylineTransparent(),
+            shaders.polyline_picking()
+        );
     }
 
     public setRenderNode(renderNode: RenderNode) {
@@ -85,12 +84,20 @@ class PolylineHandler {
         }
     }
 
-    public draw() {
+    public drawForward() {
+        this.drawOpaque();
+    }
+
+    public drawOpaque() {
         this._updateRTCEyePosition();
         let i = this._polylines.length;
         while (i--) {
             this._polylines[i].draw();
         }
+    }
+
+    public drawTransparent() {
+        //...
     }
 
     public drawPicking() {
@@ -145,18 +152,23 @@ class PolylineHandler {
     }
 
     public refreshTexCoordsArr() {
-        let bc = this._entityCollection;
-        if (bc && this._renderer) {
-            let ta = this._renderer.strokeTextureAtlas;
-            for (let i = 0; i < this._polylines.length; i++) {
-                let ri = this._polylines[i];
-                let img = ri.getImage();
-                if (img) {
-                    let taData = ta.get(img.__nodeIndex!);
-                    if (taData) {
-                        ri._setTexCoordArr(taData.texCoords);
-                    }
+        const bc = this._entityCollection;
+        if (!bc || !this._renderer) return;
+        const ta = this._renderer.strokeTextureAtlas;
+        for (let i = 0; i < this._polylines.length; i++) {
+            const ri = this._polylines[i];
+            const img = ri.getImage();
+            if (Array.isArray(img)) {
+                const tc: (number[] | null)[] = [];
+                for (let j = 0; j < img.length; j++) {
+                    const m = img[j];
+                    const d = m?.__nodeIndex != null ? ta.get(m.__nodeIndex) : null;
+                    tc[j] = d?.texCoords ?? null;
                 }
+                if (tc.length) ri._setTexCoordArr(tc);
+            } else if (img) {
+                const taData = ta.get(img.__nodeIndex!);
+                if (taData) ri._setTexCoordArr(taData.texCoords);
             }
         }
     }

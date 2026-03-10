@@ -402,11 +402,18 @@ class RayHandler {
         // ...
     }
 
-    public draw() {
+    public drawForward() {
+        this.drawOpaque();
+    }
+
+    public drawOpaque() {
         if (this._rays.length) {
             this.update();
             this._displayPASS();
         }
+    }
+
+    public drawTransparent() {
     }
 
     public drawPicking() {

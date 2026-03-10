@@ -106,13 +106,22 @@ export class Multisample extends BaseFramebuffer {
         if (this._useDepth) {
             this._depthRenderbuffer = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
-            gl.renderbufferStorageMultisample(
-                gl.RENDERBUFFER,
-                this._msaa,
-                (gl as any)[this._depthComponent],
-                this._width,
-                this._height
-            );
+            if (this._msaa > 0) {
+                gl.renderbufferStorageMultisample(
+                    gl.RENDERBUFFER,
+                    this._msaa,
+                    (gl as any)[this._depthComponent],
+                    this._width,
+                    this._height
+                );
+            } else {
+                gl.renderbufferStorage(
+                    gl.RENDERBUFFER,
+                    (gl as any)[this._depthComponent],
+                    this._width,
+                    this._height
+                );
+            }
             gl.framebufferRenderbuffer(
                 gl.FRAMEBUFFER,
                 gl.DEPTH_ATTACHMENT,
@@ -126,29 +135,6 @@ export class Multisample extends BaseFramebuffer {
     }
 
     public blitTo(framebuffer: BaseFramebuffer, attachmentIndex: number = 0) {
-        let gl = this.handler.gl!;
-
-        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._fbo);
-        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer._fbo);
-        gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
-
-        gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
-
-        gl.blitFramebuffer(
-            0,
-            0,
-            this._width,
-            this._height,
-            0,
-            0,
-            framebuffer._width,
-            framebuffer._height,
-            gl.COLOR_BUFFER_BIT,
-            this._glFilter
-        );
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
-        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        BaseFramebuffer.blitTo(framebuffer, this, attachmentIndex, this.handler.gl!.COLOR_BUFFER_BIT, this._glFilter);
     }
 }

@@ -35,6 +35,7 @@ in float v_height;
 vec3 sunPos;
 
 layout (location = 0) out vec4 diffuseColor;
+layout (location = 1) out vec4 normalColor;
 
 void main(void) {
 
@@ -68,6 +69,7 @@ void main(void) {
     vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + night, 1.0);
 
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
+    normalColor = vec4(normal * 0.5 + 0.5, 1.0);
 
     if (samplerCount == 0) {
         diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);

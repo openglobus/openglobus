@@ -1,41 +1,72 @@
-Contributing to OpenGlobus
-==========================
+# Contributing to OpenGlobus
 
-1. [Contributing Code](#contributing-code)
-2. [Making Pull Requests](#making-pr)
-3. [Reporting Bugs](#reporting-bugs)
-4. [Improving Documentation](#improving-documentation)
+Thank you for contributing to OpenGlobus.
 
-## Contributing Code
+## Development Setup
 
-Everyone is welcome to contribute to OpenGlobus.
+1. Fork and clone the repository.
+2. Install dependencies:
 
-Please use an editor config from here:
-https://github.com/openglobus/openglobus/blob/master/.editorconfig
+```sh
+npm install
+```
 
-## Making pull requests
+3. Run checks locally before opening a PR:
 
-1) Branch must looks like this:
-`feature/<issue_id>_<custom_name>` or `bugfix/<issue_id>_<custom_name>`
+```sh
+npm run lint
+npm run test
+npm run build
+```
 
-2) Each commit must start with an issue ID like this `#<issue_id>`, so be sure that the issue exists.
+Useful commands:
 
-3) Finally, all checks in PR must be approved and PR link must be added in the issue comments.
+- `npm run dev` - watch and build development bundle into `lib/`
+- `npm run serve` - run local web server
+- `npm run dev_serve` - run watcher and server in parallel
+- `npm run docs` - generate API docs in `docs/`
+- `npm run format` - apply formatting via Prettier
 
-4) Please, make all checks are fine:
+Style references:
 
-    - [x] `npm test` passes
-    - [x] `npm run api` passes
-    - [x] `npm run lint` passes
-    - [x] `npm run build` still works
+- `STYLEGUIDE.md`
+- `.editorconfig`
+- `.prettierrc.js`
+- `eslint.config.mjs`
 
+## Branch and Commit Naming
+
+- Branch names should follow:
+  - `feature/<issue_id>_<short_name>`
+  - `bugfix/<issue_id>_<short_name>`
+- Include issue reference in commits and PR description (for example, `#123`).
+
+## Pull Requests
+
+- Keep PRs focused and minimal.
+- Link the related issue in the PR.
+- Ensure all CI checks are green.
+- Fill out the PR template checklist.
+
+Local validation checklist:
+
+- [ ] `npm run lint`
+- [ ] `npm run test`
+- [ ] `npm run build`
 
 ## Reporting Bugs
 
-Feel free to report bug in the issues, please be more specific in the description. No need to put a point in the end of an issue sentence, it is a header!
+Use GitHub Issues and include:
+
+- OpenGlobus version
+- environment details (browser/OS/tooling)
+- minimal reproduction steps
+- expected vs actual behavior
 
 ## Improving Documentation
 
-+
-+ TODO how to contribute to api docs
-+
+Documentation contributions are welcome:
+
+- update README or examples when behavior changes
+- improve API docs comments in source code
+- run `npm run docs` to verify generated documentation

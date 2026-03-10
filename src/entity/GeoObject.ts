@@ -11,7 +11,7 @@ export const LOCAL_FORWARD = new Vec3(0.0, 0.0, -1.0);
 
 /**
  * Interface for GeoObject parameters.
- * @typedef {Object} IGeoObjectParams
+ * @interface IGeoObjectParams
  * @property {Object3d} [object3d] - 3D object associated with the geo object.
  * @property {string} [objSrc] - Source url of the 3D object.
  * @property {string} [tag] - Unique instancing drawing identifier tag.
@@ -105,7 +105,8 @@ class GeoObject {
 
         this._position = utils.createVector3(options.position);
 
-        this._rtcPositionHigh = new Vec3();``
+        this._rtcPositionHigh = new Vec3();
+        ``
         this._rtcPositionLow = new Vec3();
 
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
@@ -113,10 +114,10 @@ class GeoObject {
 
         this._localPosition = new Vec3();
 
-        const [r = 0.15, g = 0.15, b = 0.15, a = 1.0] = options.object3d?.color 
-            ? Array.from(options.object3d.color) 
+        const [r = 0.15, g = 0.15, b = 0.15, a = 1.0] = options.object3d?.color
+            ? Array.from(options.object3d.color)
             : [];
-        
+
         this._color = utils.createColorRGBA(options.color, new Vec4(r, g, b, a));
 
         this._handler = null;

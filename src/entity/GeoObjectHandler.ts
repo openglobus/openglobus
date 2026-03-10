@@ -579,7 +579,6 @@ export class GeoObjectHandler {
     }
 
     public update() {
-
         for (let i = 0, len = this._dataTagUpdateQueue.length; i < len; i++) {
             this._dataTagUpdateQueue[i].update();
         }
@@ -636,7 +635,11 @@ export class GeoObjectHandler {
         }
     }
 
-    public draw() {
+    public drawForward() {
+        this.drawOpaque();
+    }
+
+    public drawOpaque() {
         if (this._geoObjects.length) {
             this._updateRTCEyePosition();
             this.update();

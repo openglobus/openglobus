@@ -368,53 +368,46 @@ class Handler {
     }
 
     /**
-     * Creates empty texture.
+     * Creates an empty immutable 2D texture (WebGL2).
      * @public
-     * @param {number} [width=1] - Specifies the width of the texture image.
-     * @param {number} [height=1] - Specifies the width of the texture image.
-     * @param {string} [filter="NEAREST"] - Specifies GL_TEXTURE_MIN(MAX)_FILTER texture value.
-     * @param {string} [internalFormat="RGBA"] - Specifies the color components in the texture.
-     * @param {string} [format="RGBA"] - Specifies the format of the texel data.
-     * @param {string} [type="UNSIGNED_BYTE"] - Specifies the data type of the texel data.
-     * @param {number} [level=0] - Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
-     * @returns {WebGLTexture | null} - WebGL texture object.
+     * @param {number} [width=1] - Texture width in pixels.
+     * @param {number} [height=1] - Texture height in pixels.
+     * @param {string} [filter="NEAREST"] - GL_TEXTURE_MIN_FILTER and GL_TEXTURE_MAG_FILTER value.
+     * @param {string} [internalFormat="RGBA8"] - Sized internal format (e.g. "RGBA8", "RGBA16F", "R16F").
+     * @param {string} [param="CLAMP_TO_EDGE"] - GL_TEXTURE_WRAP_S/T value.
+     * @param {number} [levels=1] - Number of mipmap levels (immutable storage).
+     * @returns {WebGLTexture | null} - Created WebGL texture object.
      */
     public createEmptyTexture2DExt(
         width: number = 1,
         height: number = 1,
         filter: string = "NEAREST",
-        internalFormat: string = "RGBA",
-        format: string = "RGBA",
-        type: string = "UNSIGNED_BYTE",
+        internalFormat: string = "RGBA8",
         param: string = "CLAMP_TO_EDGE",
-        level: number = 0
+        levels: number = 1
     ): WebGLTexture | null {
 
-        let gl = this.gl!;
+        const gl = this.gl as WebGL2RenderingContext;
 
-        let texture = gl.createTexture();
+        const texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(
+
+        gl.texStorage2D(
             gl.TEXTURE_2D,
-            level,
+            levels,
             (gl as any)[internalFormat.toUpperCase()],
             width,
-            height,
-            0,
-            (gl as any)[format.toUpperCase()],
-            (gl as any)[type.toUpperCase()],
-            null!
+            height
         );
+
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, (gl as any)[filter.toUpperCase()]);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, (gl as any)[filter.toUpperCase()]);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, (gl as any)[param.toUpperCase()]);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, (gl as any)[param.toUpperCase()]);
-        gl.bindTexture(gl.TEXTURE_2D, null!);
 
+        gl.bindTexture(gl.TEXTURE_2D, null);
         return texture;
     }
-
     /**
      * Creates Empty NEAREST filtered texture.
      * @public
