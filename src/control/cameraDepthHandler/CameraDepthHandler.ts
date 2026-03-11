@@ -45,9 +45,11 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
     return dist;
 }
 
-const CAM_WIDTH = 800;
-const CAM_HEIGHT = 600;
-const PERIMETER_STEP_PX = 10;
+const CAM_WIDTH = 512;
+const CAM_HEIGHT = 512;
+const PERIMETER_STEP_PX = 1;
+const DEPTH_NEAR = 100;
+const DEPTH_FAR = 1000000;
 
 export interface ICameraDepthHandlerParams extends IControlParams {
     showFrustum?: boolean;
@@ -85,8 +87,8 @@ export class CameraDepthHandler extends Control {
 
         this._cameraFootprintEntity = new Entity({
             polyline: {
-                color: "rgba(255,0,0,0.95)",
-                thickness: 7.0,
+                color: "rgba(255,37,37,0.82)",
+                thickness: 5.0,
                 isClosed: true
             }
         });
@@ -94,7 +96,7 @@ export class CameraDepthHandler extends Control {
         this.cameraFootprintLayer = new Vector(`cameraFootprintLayer:${this.__id}`, {
             entities: [this._cameraFootprintEntity],
             pickingEnabled: false,
-            //polygonOffsetUnits: -0.001,
+            polygonOffsetUnits: -14,
             hideInLayerSwitcher: true,
             relativeToGround: true
         });
@@ -109,14 +111,14 @@ export class CameraDepthHandler extends Control {
     protected _createCamera(): Camera {
         if (this.planet) {
             return new PlanetCamera(this.planet, {
-                frustums: [[100, 1000000000]],
+                frustums: [[DEPTH_NEAR, DEPTH_FAR]],
                 width: CAM_WIDTH,
                 height: CAM_HEIGHT,
                 viewAngle: 45
             })
         } else {
             return new Camera({
-                frustums: [[100, 1000000000]],
+                frustums: [[DEPTH_NEAR, DEPTH_FAR]],
                 width: CAM_WIDTH,
                 height: CAM_HEIGHT,
                 viewAngle: 45
@@ -145,8 +147,10 @@ export class CameraDepthHandler extends Control {
         let depthFramebuffer = new Framebuffer(this.renderer.handler, {
             width: CAM_WIDTH,
             height: CAM_HEIGHT,
+            depthComponent: "DEPTH_COMPONENT32F",
             targets: [{
-                internalFormat: "RGBA16F",
+                internalFormat: "RGBA32F",
+                format: "RGBA",
                 type: "FLOAT",
                 attachment: "COLOR_ATTACHMENT",
                 readAsync: true

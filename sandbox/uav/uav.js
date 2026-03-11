@@ -194,5 +194,5 @@ globus.planet.renderer.events.on("charkeypress", input.KEY_V, () => {
 // });
 // globus.planet.addControl(pickingFramebufferPreview);
 
-globus.planet.renderer.controls.SimpleSkyBackground.colorOne = "black";
-globus.planet.renderer.controls.SimpleSkyBackground.colorTwo = "black";
+// globus.planet.renderer.controls.SimpleSkyBackground.colorOne = "black";
+// globus.planet.renderer.controls.SimpleSkyBackground.colorTwo = "black";
