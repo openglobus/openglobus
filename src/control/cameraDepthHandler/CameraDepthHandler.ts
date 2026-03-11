@@ -47,6 +47,7 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
 
 const CAM_WIDTH = 800;
 const CAM_HEIGHT = 600;
+const PERIMETER_STEP_PX = 10;
 
 export interface ICameraDepthHandlerParams extends IControlParams {
     showFrustum?: boolean;
@@ -283,40 +284,51 @@ export class CameraDepthHandler extends Control {
     }
 
     protected _collectPerimeterLonLats(width: number, height: number): LonLat[] | null {
-        const points: LonLat[] = [];
-        const topPoints: LonLat[] = [];
-        const rightPoints: LonLat[] = [];
-        const bottomPoints: LonLat[] = [];
-        const leftPoints: LonLat[] = [];
+        const topCount = Math.max(0, Math.ceil((width - 1) / PERIMETER_STEP_PX));
+        const rightCount = Math.max(0, Math.ceil((height - 2) / PERIMETER_STEP_PX));
+        const bottomCount = Math.max(0, Math.ceil((width - 2) / PERIMETER_STEP_PX));
+        const leftCount = Math.max(0, Math.ceil((height - 3) / PERIMETER_STEP_PX));
+        const totalCount = topCount + rightCount + bottomCount + leftCount;
 
-        const addPoint = (x: number, y: number, target: LonLat[]): boolean => {
+        const points: LonLat[] = new Array(totalCount);
+        let pointIndex = 0;
+
+        const addPoint = (x: number, y: number): boolean => {
             const lonLat = this.getLonLatFromPixelTerrain(x, y);
             if (lonLat) {
-                target.push(new LonLat(lonLat.lon, lonLat.lat, lonLat.height));
+                points[pointIndex++] = new LonLat(lonLat.lon, lonLat.lat, lonLat.height);
                 return true;
             }
             return false;
         };
 
-        for (let x = 1; x < width; x++) {
-            if (!addPoint(x, 1, topPoints)) {
-                return null;
-            }
-            if (x < width - 1 && !addPoint(width - 1 - x, height - 1, bottomPoints)) {
+        for (let x = 1; x < width; x += PERIMETER_STEP_PX) {
+            if (!addPoint(x, 1)) {
                 return null;
             }
         }
 
-        for (let y = 2; y < height; y++) {
-            if (!addPoint(width - 1, y, rightPoints)) {
-                return null;
-            }
-            if (y < height - 1 && !addPoint(1, height - y, leftPoints)) {
+        for (let y = 2; y < height; y += PERIMETER_STEP_PX) {
+            if (!addPoint(width - 1, y)) {
                 return null;
             }
         }
 
-        points.push(...topPoints, ...rightPoints, ...bottomPoints, ...leftPoints);
+        for (let x = width - 2; x >= 1; x -= PERIMETER_STEP_PX) {
+            if (!addPoint(x, height - 1)) {
+                return null;
+            }
+        }
+
+        for (let y = height - 2; y >= 2; y -= PERIMETER_STEP_PX) {
+            if (!addPoint(1, y)) {
+                return null;
+            }
+        }
+
+        if (pointIndex !== totalCount) {
+            return null;
+        }
 
         return points;
     }
