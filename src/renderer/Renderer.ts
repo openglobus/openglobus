@@ -871,6 +871,26 @@ class Renderer {
 
             // Point Clouds
             let i = ec.length;
+
+            //
+            // Lines, Rays and Strips
+            //
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
+
+            // rays
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].rayHandler.draw();
+            }
+
+            // polyline pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
+            }
+
+            i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
             }
@@ -909,24 +929,6 @@ class Renderer {
             i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].labelHandler.draw();
-            }
-
-            //
-            // Lines, Rays and Strips
-            //
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
-
-            // rays
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].rayHandler.draw();
-            }
-
-            // polyline pass
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
             }
 
             // Strip pass

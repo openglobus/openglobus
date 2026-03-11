@@ -10,6 +10,8 @@ import {Vec4} from "../../math/Vec4";
 import {Vec3} from "../../math/Vec3";
 import {LonLat} from "../../LonLat";
 import {GeoImage} from "../../layer/GeoImage";
+import {Vector} from "../../layer/Vector";
+import {Entity} from "../../entity/Entity";
 import {QuadTreeStrategy} from "../../quadTree";
 
 
@@ -43,11 +45,11 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
     return dist;
 }
 
-const CAM_WIDTH = 640;
-const CAM_HEIGHT = 480;
+const CAM_WIDTH = 800;
+const CAM_HEIGHT = 600;
 
 export interface ICameraDepthHandlerParams extends IControlParams {
-
+    showFrustum?: boolean;
 }
 
 export class CameraDepthHandler extends Control {
@@ -56,24 +58,49 @@ export class CameraDepthHandler extends Control {
     protected _frameComposer: CameraFrameComposer;
 
     public readonly cameraGeoImage: GeoImage;
+    public readonly cameraFootprintLayer: Vector;
+    protected readonly _cameraFootprintEntity: Entity;
+    protected _cameraFootprintPointCount: number | null;
 
     protected _quadTreeStrategy: QuadTreeStrategy | null;
 
     protected _skipPreRender = false;
+    protected _showFrustum: boolean;
 
     constructor(params: ICameraDepthHandlerParams) {
         super(params);
 
         this._frameComposer = new CameraFrameComposer();
         this._frameHandler = null;
+        this._showFrustum = params.showFrustum ?? true;
 
         this.cameraGeoImage = new GeoImage(`cameraGeoImage:${this.__id}`, {
             src: "test4.jpg",
             corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
-            visibility: true,
+            visibility: false,
             isBaseLayer: false,
             opacity: 0.7
         });
+
+        this._cameraFootprintEntity = new Entity({
+            polyline: {
+                color: "rgba(255,0,0,0.95)",
+                thickness: 7.0,
+                isClosed: true
+            }
+        });
+
+        this.cameraFootprintLayer = new Vector(`cameraFootprintLayer:${this.__id}`, {
+            entities: [this._cameraFootprintEntity],
+            pickingEnabled: false,
+            //polygonOffsetUnits: -0.001,
+            hideInLayerSwitcher: true,
+            //relativeToGround: true
+        });
+
+        //this._cameraFootprintEntity.polyline!.altitude = 10;
+
+        this._cameraFootprintPointCount = null;
 
         this._quadTreeStrategy = null;
     }
@@ -111,6 +138,7 @@ export class CameraDepthHandler extends Control {
 
         if (this.planet) {
             this.planet.addLayer(this.cameraGeoImage);
+            this.planet.addLayer(this.cameraFootprintLayer);
         }
 
         let depthFramebuffer = new Framebuffer(this.renderer.handler, {
@@ -128,7 +156,8 @@ export class CameraDepthHandler extends Control {
         this._frameHandler = new CameraFrameHandler({
             camera: this._createCamera(),
             frameBuffer: depthFramebuffer,
-            frameHandler: this._depthHandlerCallback
+            frameHandler: this._depthHandlerCallback,
+            showFrustum: this._showFrustum
         });
 
         if (this.renderer.controls.CameraFrameComposer) {
@@ -239,6 +268,57 @@ export class CameraDepthHandler extends Control {
         if (lt && rt && rb && lb) {
             this.cameraGeoImage.setCorners([[lt.lon, lt.lat], [rt.lon, rt.lat], [rb.lon, rb.lat], [lb.lon, lb.lat]]);
         }
+
+        const perimeterPath = this._collectPerimeterLonLats(framebuffer.width, framebuffer.height);
+        const footprintPolyline = this._cameraFootprintEntity.polyline;
+
+        if (perimeterPath && footprintPolyline) {
+            if (this._cameraFootprintPointCount === null) {
+                this._cameraFootprintPointCount = perimeterPath.length;
+                footprintPolyline.setPathLonLat([perimeterPath]);
+            } else if (perimeterPath.length === this._cameraFootprintPointCount) {
+                footprintPolyline.setPathLonLatFast([perimeterPath]);
+            }
+        }
+    }
+
+    protected _collectPerimeterLonLats(width: number, height: number): LonLat[] | null {
+        const points: LonLat[] = [];
+
+        const addPoint = (x: number, y: number): boolean => {
+            const lonLat = this.getLonLatFromPixelTerrain(x, y);
+            if (lonLat) {
+                points.push(new LonLat(lonLat.lon, lonLat.lat, lonLat.height + 5.0));
+                return true;
+            }
+            return false;
+        };
+
+        for (let x = 1; x < width; x++) {
+            if (!addPoint(x, 1)) {
+                return null;
+            }
+        }
+
+        for (let y = 2; y < height; y++) {
+            if (!addPoint(width - 1, y)) {
+                return null;
+            }
+        }
+
+        for (let x = width - 2; x >= 1; x--) {
+            if (!addPoint(x, height - 1)) {
+                return null;
+            }
+        }
+
+        for (let y = height - 2; y >= 2; y--) {
+            if (!addPoint(1, y)) {
+                return null;
+            }
+        }
+
+        return points;
     }
 
     public getCartesianFromPixelTerrain(x: number, y: number): Vec3 | undefined {
