@@ -95,10 +95,10 @@ export class CameraDepthHandler extends Control {
             pickingEnabled: false,
             //polygonOffsetUnits: -0.001,
             hideInLayerSwitcher: true,
-            //relativeToGround: true
+            relativeToGround: true
         });
 
-        //this._cameraFootprintEntity.polyline!.altitude = 10;
+        this._cameraFootprintEntity.polyline!.altitude = 5;
 
         this._cameraFootprintPointCount = null;
 
@@ -284,39 +284,39 @@ export class CameraDepthHandler extends Control {
 
     protected _collectPerimeterLonLats(width: number, height: number): LonLat[] | null {
         const points: LonLat[] = [];
+        const topPoints: LonLat[] = [];
+        const rightPoints: LonLat[] = [];
+        const bottomPoints: LonLat[] = [];
+        const leftPoints: LonLat[] = [];
 
-        const addPoint = (x: number, y: number): boolean => {
+        const addPoint = (x: number, y: number, target: LonLat[]): boolean => {
             const lonLat = this.getLonLatFromPixelTerrain(x, y);
             if (lonLat) {
-                points.push(new LonLat(lonLat.lon, lonLat.lat, lonLat.height + 5.0));
+                target.push(new LonLat(lonLat.lon, lonLat.lat, lonLat.height));
                 return true;
             }
             return false;
         };
 
         for (let x = 1; x < width; x++) {
-            if (!addPoint(x, 1)) {
+            if (!addPoint(x, 1, topPoints)) {
+                return null;
+            }
+            if (x < width - 1 && !addPoint(width - 1 - x, height - 1, bottomPoints)) {
                 return null;
             }
         }
 
         for (let y = 2; y < height; y++) {
-            if (!addPoint(width - 1, y)) {
+            if (!addPoint(width - 1, y, rightPoints)) {
+                return null;
+            }
+            if (y < height - 1 && !addPoint(1, height - y, leftPoints)) {
                 return null;
             }
         }
 
-        for (let x = width - 2; x >= 1; x--) {
-            if (!addPoint(x, height - 1)) {
-                return null;
-            }
-        }
-
-        for (let y = height - 2; y >= 2; y--) {
-            if (!addPoint(1, y)) {
-                return null;
-            }
-        }
+        points.push(...topPoints, ...rightPoints, ...bottomPoints, ...leftPoints);
 
         return points;
     }

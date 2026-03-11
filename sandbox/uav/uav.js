@@ -20,8 +20,8 @@ const globus = new Globe({
     target: "earth",
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
-    layers: [new OpenStreetMap(), new Bing(), uavLayer],
-    atmosphereEnabled: false,
+    layers: [new Bing(), new OpenStreetMap(), uavLayer],
+    atmosphereEnabled: true,
     fontsSrc: "../../res/fonts",
 });
 
@@ -106,7 +106,8 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     const depthPreview = new control.FramebufferPreview({
         title: `depthHandler:${objectId}`,
         framebuffer,
-        image: depthPreviewShader
+        image: depthPreviewShader,
+        flippedY: true
     });
     globus.planet.addControl(depthPreview);
 
