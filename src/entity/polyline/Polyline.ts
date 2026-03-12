@@ -5,6 +5,7 @@ import type {NumberArray3} from "../../math/Vec3";
 import type {NumberArray2} from "../../math/Vec2";
 import type {NumberArray4} from "../../math/Vec4";
 import type {HTMLImageElementExt} from "../../utils/ImagesCacheManager";
+import {htmlColorToRgba} from "../../utils/shared";
 import {PolylineHandler} from "./PolylineHandler";
 import {PolylineBatchRenderer} from "./PolylineBatchRenderer";
 import {Extent} from "../../Extent";
@@ -32,7 +33,7 @@ export interface IPolylineParams {
     altitude?: number;
     thickness?: number;
     opacity?: number;
-    color?: string[];
+    color?: string | string[];
     visibility?: boolean;
     isTextured?: boolean;
     isClosed?: boolean;
@@ -49,7 +50,7 @@ export interface IPolylineParams {
  * @param {Object} [options] - Polyline options:
  * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
  * @param {Number} [options.altitude] - Relative to ground layers altitude value.
- * @param {string[]} [options.color] - Per-segment HTML colors.
+ * @param {string|string[]} [options.color] - Default line color or per-segment HTML colors.
  * @param {Boolean} [options.opacity] - Line opacity.
  * @param {Boolean} [options.visibility] - Polyline visibility. True default.
  * @param {Boolean[]} [options.isClosed] - Closed geometry type identification, per-segment.
@@ -75,6 +76,7 @@ class Polyline {
     public _path3v: SegmentPath3vExt[];
     protected _pathLonLat: SegmentPathLonLatExt[];
     protected _pathColors: SegmentPathColor[];
+    protected _color: string[];
 
     protected _src: StrokeSource;
 
@@ -98,6 +100,7 @@ class Polyline {
         this._pathLonLat = options.pathLonLat || [];
 
         this._pathColors = options.pathColors || [];
+        this._color = Array.isArray(options.color) ? options.color.slice() : (options.color ? [options.color] : []);
 
         this._entity = null;
 
@@ -148,7 +151,7 @@ class Polyline {
                 const batchIndex = br._path3v.length;
                 br.appendPath3v(this._path3v[i], this._pathColors[i]);
                 this._batchRendererIndexes.push(batchIndex);
-                this._applySegmentProps(batchIndex);
+                this._applySegmentProps(batchIndex, i);
                 this._path3v[i] = br._path3v[batchIndex];
             }
         } else if (this._pathLonLat.length > 0) {
@@ -157,7 +160,7 @@ class Polyline {
                 const batchIndex = br._path3v.length;
                 br.appendPathLonLat(this._pathLonLat[i]);
                 this._batchRendererIndexes.push(batchIndex);
-                this._applySegmentProps(batchIndex);
+                this._applySegmentProps(batchIndex, i);
                 this._path3v[i] = br._path3v[batchIndex];
             }
         }
@@ -179,8 +182,23 @@ class Polyline {
         }
     }
 
-    protected _applySegmentProps(batchIndex: number) {
+    protected _getDefaultHtmlColor(segmentIndex: number = 0): string | undefined {
+        return this._color[segmentIndex] || this._color[0];
+    }
+
+    protected _getDefaultPathColor(segmentIndex: number = 0): NumberArray4 | undefined {
+        const htmlColor = this._getDefaultHtmlColor(segmentIndex);
+        if (!htmlColor) return;
+        const c = htmlColorToRgba(htmlColor);
+        return [c.x, c.y, c.z, c.w];
+    }
+
+    protected _applySegmentProps(batchIndex: number, segmentIndex: number = 0) {
         const br = this._batchRenderer!;
+        const htmlColor = this._getDefaultHtmlColor(segmentIndex);
+        if (htmlColor) {
+            br.setColor(htmlColor, batchIndex);
+        }
         if (this._pickingColor) {
             br.setPathPickingColor3v(this._pickingColor, batchIndex);
         }
@@ -457,7 +475,7 @@ class Polyline {
             const batchIndex = this._batchRenderer._path3v.length;
             this._batchRenderer.appendPath3v(path3v, pathColors);
             this._batchRendererIndexes.push(batchIndex);
-            this._applySegmentProps(batchIndex);
+            this._applySegmentProps(batchIndex, this._batchRendererIndexes.length - 1);
             this._path3v[this._path3v.length - 1] = this._batchRenderer._path3v[batchIndex];
         }
     }
@@ -469,7 +487,7 @@ class Polyline {
             const batchIndex = this._batchRenderer._path3v.length;
             this._batchRenderer.appendPathLonLat(pathLonLat);
             this._batchRendererIndexes.push(batchIndex);
-            this._applySegmentProps(batchIndex);
+            this._applySegmentProps(batchIndex, this._batchRendererIndexes.length - 1);
             this._path3v[this._pathLonLat.length - 1] = this._batchRenderer._path3v[batchIndex];
         }
 
@@ -508,10 +526,11 @@ class Polyline {
     public setPath3v(path3v: SegmentPath3vExt[] | SegmentPath3vExt, pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4, forceEqual: boolean = false, segmentIndex?: number) {
         if (segmentIndex !== undefined) {
             this._path3v[segmentIndex] = path3v as SegmentPath3vExt;
+            const resolvedPathColors = pathColors ?? this._getDefaultPathColor(segmentIndex);
             if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
                 this._batchRenderer.setPath3v(
                     path3v as SegmentPath3vExt,
-                    pathColors as SegmentPathColor | NumberArray4,
+                    resolvedPathColors as SegmentPathColor | NumberArray4,
                     forceEqual,
                     this._batchRendererIndexes[segmentIndex]
                 );
@@ -531,7 +550,12 @@ class Polyline {
                 if (forceEqual && this._batchRendererIndexes.length === paths.length) {
                     const pc = pathColors as (SegmentPathColor | NumberArray4)[] | undefined;
                     for (let i = 0; i < paths.length; i++) {
-                        this._batchRenderer.setPath3v(paths[i], pc?.[i], true, this._batchRendererIndexes[i]);
+                        this._batchRenderer.setPath3v(
+                            paths[i],
+                            pc?.[i] ?? this._getDefaultPathColor(i),
+                            true,
+                            this._batchRendererIndexes[i]
+                        );
                     }
                 } else {
                     this._removeFromBatchRenderer();
@@ -553,10 +577,11 @@ class Polyline {
     public setPathLonLat(pathLonLat: SegmentPathLonLatExt[] | SegmentPathLonLatExt, pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4, forceEqual: boolean = false, segmentIndex?: number) {
         if (segmentIndex !== undefined) {
             this._pathLonLat[segmentIndex] = pathLonLat as SegmentPathLonLatExt;
+            const resolvedPathColors = pathColors ?? this._getDefaultPathColor(segmentIndex);
             if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
                 this._batchRenderer.setPathLonLat(
                     pathLonLat as SegmentPathLonLatExt,
-                    pathColors as SegmentPathColor | NumberArray4,
+                    resolvedPathColors as SegmentPathColor | NumberArray4,
                     forceEqual,
                     this._batchRendererIndexes[segmentIndex]
                 );
@@ -576,7 +601,12 @@ class Polyline {
                 if (forceEqual && this._batchRendererIndexes.length === paths.length) {
                     const pc = pathColors as (SegmentPathColor | NumberArray4)[] | undefined;
                     for (let i = 0; i < paths.length; i++) {
-                        this._batchRenderer.setPathLonLat(paths[i], pc?.[i], true, this._batchRendererIndexes[i]);
+                        this._batchRenderer.setPathLonLat(
+                            paths[i],
+                            pc?.[i] ?? this._getDefaultPathColor(i),
+                            true,
+                            this._batchRendererIndexes[i]
+                        );
                     }
                 } else {
                     this._removeFromBatchRenderer();
@@ -640,6 +670,7 @@ class Polyline {
      * @param {string} htmlColor - HTML color.
      */
     public setColor(htmlColor: string): void {
+        this._color[0] = htmlColor;
         if (this._batchRenderer) {
             for (let i = 0; i < this._batchRendererIndexes.length; i++) {
                 this._batchRenderer.setColor(htmlColor, this._batchRendererIndexes[i]);
@@ -715,6 +746,7 @@ class Polyline {
      * @param {string} htmlColor - HTML color.
      */
     public setColorHTML(htmlColor: string) {
+        this._color[0] = htmlColor;
         if (this._batchRenderer) {
             for (let i = 0; i < this._batchRendererIndexes.length; i++) {
                 this._batchRenderer.setColor(htmlColor, this._batchRendererIndexes[i]);
