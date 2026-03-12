@@ -9,7 +9,6 @@ import {Vec2} from "../../math/Vec2";
 import {Vec4} from "../../math/Vec4";
 import {Vec3} from "../../math/Vec3";
 import {LonLat} from "../../LonLat";
-//import {GeoImage} from "../../layer/GeoImage";
 import {Vector} from "../../layer/Vector";
 import {Entity} from "../../entity/Entity";
 import {QuadTreeStrategy} from "../../quadTree";
@@ -51,6 +50,8 @@ const PERIMETER_STEP_PX = 1;
 const DEPTH_NEAR = 100;
 const DEPTH_FAR = 1000000;
 
+const POLYLINE_DEPTH_OFFSET = -14;
+
 export interface ICameraDepthHandlerParams extends IControlParams {
     showFrustum?: boolean;
     showFootprint?: boolean;
@@ -61,7 +62,6 @@ export class CameraDepthHandler extends Control {
     protected _frameHandler: CameraFrameHandler | null;
     protected _frameComposer: CameraFrameComposer;
 
-    //public readonly cameraGeoImage: GeoImage;
     public readonly cameraFootprintLayer: Vector;
 
     protected readonly _cameraFootprintEntity: Entity;
@@ -69,7 +69,6 @@ export class CameraDepthHandler extends Control {
 
     protected _quadTreeStrategy: QuadTreeStrategy | null;
 
-    protected _skipPreRender = false;
     protected _showFrustum: boolean;
     protected _showFootprint: boolean;
 
@@ -78,16 +77,9 @@ export class CameraDepthHandler extends Control {
 
         this._frameComposer = new CameraFrameComposer();
         this._frameHandler = null;
+
         this._showFrustum = params.showFrustum ?? true;
         this._showFootprint = params.showFootprint ?? true;
-
-        // this.cameraGeoImage = new GeoImage(`cameraGeoImage:${this.__id}`, {
-        //     src: "test4.jpg",
-        //     corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
-        //     visibility: false,
-        //     isBaseLayer: false,
-        //     opacity: 0.7
-        // });
 
         this._cameraFootprintEntity = new Entity({
             polyline: {
@@ -100,13 +92,11 @@ export class CameraDepthHandler extends Control {
         this.cameraFootprintLayer = new Vector(`cameraFootprintLayer:${this.__id}`, {
             entities: [this._cameraFootprintEntity],
             pickingEnabled: false,
-            polygonOffsetUnits: -14,
+            polygonOffsetUnits: POLYLINE_DEPTH_OFFSET,
             hideInLayerSwitcher: true,
-            relativeToGround: true,
+            clampToGround: true,
             visibility: this._showFootprint,
         });
-
-        this._cameraFootprintEntity.polyline!.altitude = 5;
 
         this._cameraFootprintPointCount = null;
 
@@ -145,7 +135,6 @@ export class CameraDepthHandler extends Control {
         this.renderer.handler.addProgram(camera_depth());
 
         if (this.planet) {
-            //this.planet.addLayer(this.cameraGeoImage);
             this.planet.addLayer(this.cameraFootprintLayer);
         }
 
@@ -194,7 +183,6 @@ export class CameraDepthHandler extends Control {
 
             this._quadTreeStrategy.preRender();
             this._quadTreeStrategy.clearRenderedNodes();
-            this._skipPreRender = false;
             this._quadTreeStrategy.preLoad();
         }
     }
@@ -217,11 +205,7 @@ export class CameraDepthHandler extends Control {
 
         let cam = frameHandler.camera as PlanetCamera;
 
-        if (this._skipPreRender) {
-            this._quadTreeStrategy.collectRenderNodes(cam);
-        }
-
-        this._skipPreRender = true;
+        this._quadTreeStrategy.collectRenderNodes(cam);
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
