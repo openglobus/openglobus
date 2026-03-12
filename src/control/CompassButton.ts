@@ -107,7 +107,7 @@ export class CompassButton extends Control {
 
         this._svg = btn.select("svg");
 
-        this.renderer!.events!.on("draw", this._draw, this);
+        this.renderer!.events!.on("draw", this._draw);
     }
 
     protected _onClick() {
@@ -128,7 +128,7 @@ export class CompassButton extends Control {
         }
     }
 
-    protected _draw() {
+    protected _draw = ()=> {
         this.setHeading(this.planet!.camera.getHeading());
     }
 
