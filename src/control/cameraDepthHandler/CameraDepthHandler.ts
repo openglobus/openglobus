@@ -9,7 +9,8 @@ import {Vec2} from "../../math/Vec2";
 import {Vec4} from "../../math/Vec4";
 import {Vec3} from "../../math/Vec3";
 import {LonLat} from "../../LonLat";
-import {GeoImage} from "../../layer/GeoImage";
+import {Vector} from "../../layer/Vector";
+import {Entity} from "../../entity/Entity";
 import {QuadTreeStrategy} from "../../quadTree";
 
 
@@ -43,11 +44,17 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
     return dist;
 }
 
-const CAM_WIDTH = 640;
-const CAM_HEIGHT = 480;
+const CAM_WIDTH = 512;
+const CAM_HEIGHT = 512;
+const PERIMETER_STEP_PX = 1;
+const DEPTH_NEAR = 100;
+const DEPTH_FAR = 1000000;
+
+const POLYLINE_DEPTH_OFFSET = -14;
 
 export interface ICameraDepthHandlerParams extends IControlParams {
-
+    showFrustum?: boolean;
+    showFootprint?: boolean;
 }
 
 export class CameraDepthHandler extends Control {
@@ -55,11 +62,15 @@ export class CameraDepthHandler extends Control {
     protected _frameHandler: CameraFrameHandler | null;
     protected _frameComposer: CameraFrameComposer;
 
-    public readonly cameraGeoImage: GeoImage;
+    public readonly cameraFootprintLayer: Vector;
+
+    protected readonly _cameraFootprintEntity: Entity;
+    protected _cameraFootprintPointCount: number | null;
 
     protected _quadTreeStrategy: QuadTreeStrategy | null;
 
-    protected _skipPreRender = false;
+    protected _showFrustum: boolean;
+    protected _showFootprint: boolean;
 
     constructor(params: ICameraDepthHandlerParams) {
         super(params);
@@ -67,13 +78,27 @@ export class CameraDepthHandler extends Control {
         this._frameComposer = new CameraFrameComposer();
         this._frameHandler = null;
 
-        this.cameraGeoImage = new GeoImage(`cameraGeoImage:${this.__id}`, {
-            src: "test4.jpg",
-            corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
-            visibility: true,
-            isBaseLayer: false,
-            opacity: 0.7
+        this._showFrustum = params.showFrustum ?? true;
+        this._showFootprint = params.showFootprint ?? true;
+
+        this._cameraFootprintEntity = new Entity({
+            polyline: {
+                color: "rgba(255,0,0,0.82)",
+                thickness: 5.0,
+                isClosed: true
+            }
         });
+
+        this.cameraFootprintLayer = new Vector(`cameraFootprintLayer:${this.__id}`, {
+            entities: [this._cameraFootprintEntity],
+            pickingEnabled: false,
+            polygonOffsetUnits: POLYLINE_DEPTH_OFFSET,
+            hideInLayerSwitcher: true,
+            clampToGround: true,
+            visibility: this._showFootprint,
+        });
+
+        this._cameraFootprintPointCount = null;
 
         this._quadTreeStrategy = null;
     }
@@ -81,14 +106,14 @@ export class CameraDepthHandler extends Control {
     protected _createCamera(): Camera {
         if (this.planet) {
             return new PlanetCamera(this.planet, {
-                frustums: [[100, 1000000000]],
+                frustums: [[DEPTH_NEAR, DEPTH_FAR]],
                 width: CAM_WIDTH,
                 height: CAM_HEIGHT,
                 viewAngle: 45
             })
         } else {
             return new Camera({
-                frustums: [[100, 1000000000]],
+                frustums: [[DEPTH_NEAR, DEPTH_FAR]],
                 width: CAM_WIDTH,
                 height: CAM_HEIGHT,
                 viewAngle: 45
@@ -110,14 +135,17 @@ export class CameraDepthHandler extends Control {
         this.renderer.handler.addProgram(camera_depth());
 
         if (this.planet) {
-            this.planet.addLayer(this.cameraGeoImage);
+            this.planet.addLayer(this.cameraFootprintLayer);
         }
 
         let depthFramebuffer = new Framebuffer(this.renderer.handler, {
             width: CAM_WIDTH,
             height: CAM_HEIGHT,
+            depthComponent: "DEPTH_COMPONENT32F",
             targets: [{
-                internalFormat: "RGBA16F",
+                internalFormat: "RGBA32F",
+                format: "RGBA",
+                type: "FLOAT",
                 attachment: "COLOR_ATTACHMENT",
                 readAsync: true
             }],
@@ -127,7 +155,8 @@ export class CameraDepthHandler extends Control {
         this._frameHandler = new CameraFrameHandler({
             camera: this._createCamera(),
             frameBuffer: depthFramebuffer,
-            frameHandler: this._depthHandlerCallback
+            frameHandler: this._depthHandlerCallback,
+            showFrustum: this._showFrustum
         });
 
         if (this.renderer.controls.CameraFrameComposer) {
@@ -154,7 +183,6 @@ export class CameraDepthHandler extends Control {
 
             this._quadTreeStrategy.preRender();
             this._quadTreeStrategy.clearRenderedNodes();
-            this._skipPreRender = false;
             this._quadTreeStrategy.preLoad();
         }
     }
@@ -168,76 +196,133 @@ export class CameraDepthHandler extends Control {
     protected _depthHandlerCallback = (frameHandler: CameraFrameHandler) => {
 
         if (!this.planet) return;
+        if (!this._quadTreeStrategy) return;
 
         let framebuffer = frameHandler.frameBuffer,
             gl = framebuffer.handler.gl!;
 
         framebuffer.activate();
 
-        if (this._quadTreeStrategy) {
-            let cam = frameHandler.camera as PlanetCamera;
+        let cam = frameHandler.camera as PlanetCamera;
 
-            if (this._skipPreRender) {
-                this._quadTreeStrategy.collectRenderNodes(cam);
-            }
+        this._quadTreeStrategy.collectRenderNodes(cam);
 
-            this._skipPreRender = true;
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.disable(gl.BLEND);
 
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.disable(gl.BLEND);
+        let h = framebuffer.handler;
+        h.programs.camera_depth.activate();
+        let sh = h.programs.camera_depth._program;
+        let shu = sh.uniforms;
 
-            let h = framebuffer.handler;
-            h.programs.camera_depth.activate();
-            let sh = h.programs.camera_depth._program;
-            let shu = sh.uniforms;
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
-            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
-            gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+        let isEq = this.planet.terrain!.equalizeVertices;
 
-            let isEq = this.planet.terrain!.equalizeVertices;
+        let rn = this._quadTreeStrategy._renderedNodesInFrustum[cam.getCurrentFrustum()];
 
-            let rn = this._quadTreeStrategy._renderedNodesInFrustum[cam.getCurrentFrustum()];
-
-            let i = rn.length;
-            while (i--) {
-                let s = rn[i].segment;
-                if (s._transitionOpacity >= 1) {
-                    isEq && s.equalize();
-                    s.readyToEngage && s.engage();
-                    s.ensureIndexBuffer();
-                    s.depthRendering(sh);
-                }
-            }
-
-            for (let i = 0; i < this._quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
-                let s = this._quadTreeStrategy._fadingOpaqueSegments[i];
+        let i = rn.length;
+        while (i--) {
+            let s = rn[i].segment;
+            if (s._transitionOpacity >= 1) {
                 isEq && s.equalize();
                 s.readyToEngage && s.engage();
                 s.ensureIndexBuffer();
                 s.depthRendering(sh);
             }
-
-            gl.enable(gl.BLEND);
         }
+
+        for (let i = 0; i < this._quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
+            let s = this._quadTreeStrategy._fadingOpaqueSegments[i];
+            isEq && s.equalize();
+            s.readyToEngage && s.engage();
+            s.ensureIndexBuffer();
+            s.depthRendering(sh);
+        }
+
+        gl.enable(gl.BLEND);
 
         framebuffer.deactivate();
 
-        //gl.enable(gl.BLEND);
+        this._renderFootprint(frameHandler)
+    }
 
-        framebuffer.readPixelBuffersAsync();
+    protected _renderFootprint(frameHandler: CameraFrameHandler) {
+        if(this._showFootprint) {
 
-        let lt = this.getLonLatFromPixelTerrain(1, 1),
-            rt = this.getLonLatFromPixelTerrain(framebuffer.width - 1, 1);
-        let rb = this.getLonLatFromPixelTerrain(framebuffer.width - 1, framebuffer.height - 1),
-            lb = this.getLonLatFromPixelTerrain(1, framebuffer.height - 1);
+            let framebuffer = frameHandler.frameBuffer;
 
-        if (lt && rt && rb && lb) {
-            this.cameraGeoImage.setCorners([[lt.lon, lt.lat], [rt.lon, rt.lat], [rb.lon, rb.lat], [lb.lon, lb.lat]]);
+            framebuffer.readPixelBuffersAsync();
+
+            const perimeterPath = this._collectPerimeterLonLats(framebuffer.width, framebuffer.height);
+
+            if (perimeterPath) {
+                this.cameraFootprintLayer.setVisibility(true);
+                if (this._cameraFootprintPointCount === null) {
+                    this._cameraFootprintPointCount = perimeterPath.length;
+                    this._cameraFootprintEntity.polyline!.setPathLonLat([perimeterPath]);
+                } else if (perimeterPath.length === this._cameraFootprintPointCount) {
+                    this._cameraFootprintEntity.polyline!.setPathLonLatFast([perimeterPath]);
+                }
+            } else {
+                this.cameraFootprintLayer.setVisibility(false);
+            }
         }
+    }
+
+    protected _collectPerimeterLonLats(width: number, height: number): LonLat[] | null {
+        const topCount = Math.max(0, Math.ceil((width - 1) / PERIMETER_STEP_PX));
+        const rightCount = Math.max(0, Math.ceil((height - 2) / PERIMETER_STEP_PX));
+        const bottomCount = Math.max(0, Math.ceil((width - 2) / PERIMETER_STEP_PX));
+        const leftCount = Math.max(0, Math.ceil((height - 3) / PERIMETER_STEP_PX));
+        const totalCount = topCount + rightCount + bottomCount + leftCount;
+
+        const points: LonLat[] = new Array(totalCount);
+        let pointIndex = 0;
+
+        const addPoint = (x: number, y: number): boolean => {
+            const lonLat = this.getLonLatFromPixelTerrain(x, y);
+            if (lonLat) {
+                points[pointIndex++] = new LonLat(lonLat.lon, lonLat.lat, lonLat.height);
+                return true;
+            }
+            return false;
+        };
+
+        for (let x = 1; x < width; x += PERIMETER_STEP_PX) {
+            if (!addPoint(x, 1)) {
+                return null;
+            }
+        }
+
+        for (let y = 2; y < height; y += PERIMETER_STEP_PX) {
+            if (!addPoint(width - 1, y)) {
+                return null;
+            }
+        }
+
+        for (let x = width - 2; x >= 1; x -= PERIMETER_STEP_PX) {
+            if (!addPoint(x, height - 1)) {
+                return null;
+            }
+        }
+
+        for (let y = height - 2; y >= 2; y -= PERIMETER_STEP_PX) {
+            if (!addPoint(1, y)) {
+                return null;
+            }
+        }
+
+        if (pointIndex !== totalCount) {
+            return null;
+        }
+
+        return points;
     }
 
     public getCartesianFromPixelTerrain(x: number, y: number): Vec3 | undefined {
@@ -263,7 +348,6 @@ export class CameraDepthHandler extends Control {
             }
         }
     }
-
 
     public override activate() {
         super.activate();
