@@ -9,7 +9,7 @@ import {Vec2} from "../../math/Vec2";
 import {Vec4} from "../../math/Vec4";
 import {Vec3} from "../../math/Vec3";
 import {LonLat} from "../../LonLat";
-import {GeoImage} from "../../layer/GeoImage";
+//import {GeoImage} from "../../layer/GeoImage";
 import {Vector} from "../../layer/Vector";
 import {Entity} from "../../entity/Entity";
 import {QuadTreeStrategy} from "../../quadTree";
@@ -53,6 +53,7 @@ const DEPTH_FAR = 1000000;
 
 export interface ICameraDepthHandlerParams extends IControlParams {
     showFrustum?: boolean;
+    showFootprint?: boolean;
 }
 
 export class CameraDepthHandler extends Control {
@@ -60,8 +61,9 @@ export class CameraDepthHandler extends Control {
     protected _frameHandler: CameraFrameHandler | null;
     protected _frameComposer: CameraFrameComposer;
 
-    public readonly cameraGeoImage: GeoImage;
+    //public readonly cameraGeoImage: GeoImage;
     public readonly cameraFootprintLayer: Vector;
+
     protected readonly _cameraFootprintEntity: Entity;
     protected _cameraFootprintPointCount: number | null;
 
@@ -69,6 +71,7 @@ export class CameraDepthHandler extends Control {
 
     protected _skipPreRender = false;
     protected _showFrustum: boolean;
+    protected _showFootprint: boolean;
 
     constructor(params: ICameraDepthHandlerParams) {
         super(params);
@@ -76,18 +79,19 @@ export class CameraDepthHandler extends Control {
         this._frameComposer = new CameraFrameComposer();
         this._frameHandler = null;
         this._showFrustum = params.showFrustum ?? true;
+        this._showFootprint = params.showFootprint ?? true;
 
-        this.cameraGeoImage = new GeoImage(`cameraGeoImage:${this.__id}`, {
-            src: "test4.jpg",
-            corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
-            visibility: false,
-            isBaseLayer: false,
-            opacity: 0.7
-        });
+        // this.cameraGeoImage = new GeoImage(`cameraGeoImage:${this.__id}`, {
+        //     src: "test4.jpg",
+        //     corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
+        //     visibility: false,
+        //     isBaseLayer: false,
+        //     opacity: 0.7
+        // });
 
         this._cameraFootprintEntity = new Entity({
             polyline: {
-                color: "rgba(255,37,37,0.82)",
+                color: "rgba(255,0,0,0.82)",
                 thickness: 5.0,
                 isClosed: true
             }
@@ -98,7 +102,8 @@ export class CameraDepthHandler extends Control {
             pickingEnabled: false,
             polygonOffsetUnits: -14,
             hideInLayerSwitcher: true,
-            relativeToGround: true
+            relativeToGround: true,
+            visibility: this._showFootprint,
         });
 
         this._cameraFootprintEntity.polyline!.altitude = 5;
@@ -140,7 +145,7 @@ export class CameraDepthHandler extends Control {
         this.renderer.handler.addProgram(camera_depth());
 
         if (this.planet) {
-            this.planet.addLayer(this.cameraGeoImage);
+            //this.planet.addLayer(this.cameraGeoImage);
             this.planet.addLayer(this.cameraFootprintLayer);
         }
 
@@ -261,28 +266,29 @@ export class CameraDepthHandler extends Control {
 
         framebuffer.deactivate();
 
-        //gl.enable(gl.BLEND);
+        this._renderFootprint(frameHandler)
+    }
 
-        framebuffer.readPixelBuffersAsync();
+    protected _renderFootprint(frameHandler: CameraFrameHandler) {
+        if(this._showFootprint) {
 
-        let lt = this.getLonLatFromPixelTerrain(1, 1),
-            rt = this.getLonLatFromPixelTerrain(framebuffer.width - 1, 1);
-        let rb = this.getLonLatFromPixelTerrain(framebuffer.width - 1, framebuffer.height - 1),
-            lb = this.getLonLatFromPixelTerrain(1, framebuffer.height - 1);
+            let framebuffer = frameHandler.frameBuffer;
 
-        if (lt && rt && rb && lb) {
-            this.cameraGeoImage.setCorners([[lt.lon, lt.lat], [rt.lon, rt.lat], [rb.lon, rb.lat], [lb.lon, lb.lat]]);
-        }
+            framebuffer.readPixelBuffersAsync();
 
-        const perimeterPath = this._collectPerimeterLonLats(framebuffer.width, framebuffer.height);
-        const footprintPolyline = this._cameraFootprintEntity.polyline;
+            const perimeterPath = this._collectPerimeterLonLats(framebuffer.width, framebuffer.height);
+            const footprintPolyline = this._cameraFootprintEntity.polyline;
 
-        if (perimeterPath && footprintPolyline) {
-            if (this._cameraFootprintPointCount === null) {
-                this._cameraFootprintPointCount = perimeterPath.length;
-                footprintPolyline.setPathLonLat([perimeterPath]);
-            } else if (perimeterPath.length === this._cameraFootprintPointCount) {
-                footprintPolyline.setPathLonLatFast([perimeterPath]);
+            if (perimeterPath && footprintPolyline) {
+                this.cameraFootprintLayer.setVisibility(true);
+                if (this._cameraFootprintPointCount === null) {
+                    this._cameraFootprintPointCount = perimeterPath.length;
+                    footprintPolyline.setPathLonLat([perimeterPath]);
+                } else if (perimeterPath.length === this._cameraFootprintPointCount) {
+                    footprintPolyline.setPathLonLatFast([perimeterPath]);
+                }
+            } else {
+                this.cameraFootprintLayer.setVisibility(false);
             }
         }
     }
@@ -360,7 +366,6 @@ export class CameraDepthHandler extends Control {
             }
         }
     }
-
 
     public override activate() {
         super.activate();
