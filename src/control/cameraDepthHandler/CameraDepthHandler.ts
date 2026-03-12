@@ -83,7 +83,7 @@ export class CameraDepthHandler extends Control {
 
         this._cameraFootprintEntity = new Entity({
             polyline: {
-                color: "rgba(255,0,0,0.82)",
+                color: ["rgba(255,0,0,0.82)"],
                 thickness: 5.0,
                 isClosed: true
             }
@@ -144,8 +144,6 @@ export class CameraDepthHandler extends Control {
             depthComponent: "DEPTH_COMPONENT32F",
             targets: [{
                 internalFormat: "RGBA32F",
-                format: "RGBA",
-                type: "FLOAT",
                 attachment: "COLOR_ATTACHMENT",
                 readAsync: true
             }],

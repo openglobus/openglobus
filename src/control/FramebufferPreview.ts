@@ -70,8 +70,7 @@ export class FramebufferPreview extends Control {
                 height: this._framebuffer?.height,
                 useDepth: false,
                 targets: [{
-                    internalFormat: "RGBA",
-                    type: "UNSIGNED_BYTE",
+                    internalFormat: "RGBA8",
                     attachment: "COLOR_ATTACHMENT",
                     readAsync: true
                 }],
