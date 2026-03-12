@@ -80,11 +80,12 @@ globus.planet.renderer.events.on("draw", syncTrackedCameras);
 async function createTrackedCameraEntity(cameraSnapshot) {
     const uavGltf = await uavGltfPromise;
     const uavObjects = uavGltf.getObjects3d();
+
     if (!uavObjects.length) {
         return;
     }
-    const rootName = uavObjects[0].name || "root";
 
+    const rootName = uavObjects[0].name || "root";
     const objectId = cameraObjectCounter++;
 
     const depthHandler = new control.CameraDepthHandler({
@@ -99,9 +100,6 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     depthCamera.copy(cameraSnapshot);
 
     const framebuffer = depthHandler.framebuffer;
-    if (!framebuffer) {
-        return;
-    }
 
     const depthPreview = new control.FramebufferPreview({
         title: `depthHandler:${objectId}`,
@@ -137,6 +135,9 @@ async function createTrackedCameraEntity(cameraSnapshot) {
             object3d: cameraFrustumObject3d
         }
     });
+
+    uavModelRoot.appendChild(frustumEntity);
+
     frustumEntity.setScale3v(
         Object3d.getFrustumScaleByCameraAngles(
             100,
@@ -144,10 +145,11 @@ async function createTrackedCameraEntity(cameraSnapshot) {
             depthCamera.verticalViewAngle
         )
     );
-    uavModelRoot.appendChild(frustumEntity);
+
     frustumEntity.setAbsolutePitch(depthCamera.getPitch());
     frustumEntity.setAbsoluteYaw(depthCamera.getYaw());
     frustumEntity.setAbsoluteRoll(depthCamera.getRoll());
+
     uavModelRoot.properties.frustumEntity = frustumEntity;
 
     uavLayer.add(uavModelRoot);

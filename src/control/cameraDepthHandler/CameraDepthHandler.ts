@@ -208,61 +208,60 @@ export class CameraDepthHandler extends Control {
     protected _depthHandlerCallback = (frameHandler: CameraFrameHandler) => {
 
         if (!this.planet) return;
+        if (!this._quadTreeStrategy) return;
 
         let framebuffer = frameHandler.frameBuffer,
             gl = framebuffer.handler.gl!;
 
         framebuffer.activate();
 
-        if (this._quadTreeStrategy) {
-            let cam = frameHandler.camera as PlanetCamera;
+        let cam = frameHandler.camera as PlanetCamera;
 
-            if (this._skipPreRender) {
-                this._quadTreeStrategy.collectRenderNodes(cam);
-            }
+        if (this._skipPreRender) {
+            this._quadTreeStrategy.collectRenderNodes(cam);
+        }
 
-            this._skipPreRender = true;
+        this._skipPreRender = true;
 
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.disable(gl.BLEND);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.disable(gl.BLEND);
 
-            let h = framebuffer.handler;
-            h.programs.camera_depth.activate();
-            let sh = h.programs.camera_depth._program;
-            let shu = sh.uniforms;
+        let h = framebuffer.handler;
+        h.programs.camera_depth.activate();
+        let sh = h.programs.camera_depth._program;
+        let shu = sh.uniforms;
 
-            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
-            gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
-            let isEq = this.planet.terrain!.equalizeVertices;
+        let isEq = this.planet.terrain!.equalizeVertices;
 
-            let rn = this._quadTreeStrategy._renderedNodesInFrustum[cam.getCurrentFrustum()];
+        let rn = this._quadTreeStrategy._renderedNodesInFrustum[cam.getCurrentFrustum()];
 
-            let i = rn.length;
-            while (i--) {
-                let s = rn[i].segment;
-                if (s._transitionOpacity >= 1) {
-                    isEq && s.equalize();
-                    s.readyToEngage && s.engage();
-                    s.ensureIndexBuffer();
-                    s.depthRendering(sh);
-                }
-            }
-
-            for (let i = 0; i < this._quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
-                let s = this._quadTreeStrategy._fadingOpaqueSegments[i];
+        let i = rn.length;
+        while (i--) {
+            let s = rn[i].segment;
+            if (s._transitionOpacity >= 1) {
                 isEq && s.equalize();
                 s.readyToEngage && s.engage();
                 s.ensureIndexBuffer();
                 s.depthRendering(sh);
             }
-
-            gl.enable(gl.BLEND);
         }
+
+        for (let i = 0; i < this._quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
+            let s = this._quadTreeStrategy._fadingOpaqueSegments[i];
+            isEq && s.equalize();
+            s.readyToEngage && s.engage();
+            s.ensureIndexBuffer();
+            s.depthRendering(sh);
+        }
+
+        gl.enable(gl.BLEND);
 
         framebuffer.deactivate();
 
@@ -277,15 +276,14 @@ export class CameraDepthHandler extends Control {
             framebuffer.readPixelBuffersAsync();
 
             const perimeterPath = this._collectPerimeterLonLats(framebuffer.width, framebuffer.height);
-            const footprintPolyline = this._cameraFootprintEntity.polyline;
 
-            if (perimeterPath && footprintPolyline) {
+            if (perimeterPath) {
                 this.cameraFootprintLayer.setVisibility(true);
                 if (this._cameraFootprintPointCount === null) {
                     this._cameraFootprintPointCount = perimeterPath.length;
-                    footprintPolyline.setPathLonLat([perimeterPath]);
+                    this._cameraFootprintEntity.polyline!.setPathLonLat([perimeterPath]);
                 } else if (perimeterPath.length === this._cameraFootprintPointCount) {
-                    footprintPolyline.setPathLonLatFast([perimeterPath]);
+                    this._cameraFootprintEntity.polyline!.setPathLonLatFast([perimeterPath]);
                 }
             } else {
                 this.cameraFootprintLayer.setVisibility(false);
