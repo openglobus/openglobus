@@ -42,7 +42,7 @@ const depthPreviewShader = `float linearizeDepth(float z, float near, float far)
              
             void mainImage(out vec4 fragColor, in vec2 fragCoord){
                 float near = 100.0;
-                float far = 1000000000.0;
+                float far = 100000.0;
                 float depth = texture(inputTexture, fragCoord).r;
                 float linearDepth = linearizeDepth(depth, near, far);
                 float normalized = pow(near / max(linearDepth, near), 0.35);
