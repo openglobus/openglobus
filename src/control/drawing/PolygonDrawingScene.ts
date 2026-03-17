@@ -93,8 +93,8 @@ class PolygonDrawingScene extends RenderNode {
         };
 
         this._outlineStyle = {
-            thickness: 3.5,
-            color: ["rgb(0, 350, 50)"],
+            thickness: 4.5,
+            color: "rgb(0, 350, 50)",
             ...(options.outlineStyle || {})
         };
 
@@ -107,19 +107,21 @@ class PolygonDrawingScene extends RenderNode {
         // outline vectors
         //
         this._cornerLayer = new Vector("corners", {
-            pickingScale: 3,
+            pickingScale: 1.2,
             pickingEnabled: true,
             polygonOffsetUnits: -5,
             relativeToGround: true,
-            scaleByDistance: [100, 4000000, 1.0]
+            useLighting: false,
+            scaleByDistance: [1, 4000000, 0.01]
         });
 
         this._centerLayer = new Vector("centers", {
-            pickingScale: 3,
+            pickingScale: 1.2,
             pickingEnabled: true,
             polygonOffsetUnits: -5,
             relativeToGround: true,
-            scaleByDistance: [100, 4000000, 1.0]
+            useLighting: false,
+            scaleByDistance: [1, 4000000, 0.01]
         });
 
         this._outlineLayer = new Vector("outline", {
@@ -146,8 +148,9 @@ class PolygonDrawingScene extends RenderNode {
         this._ghostOutlineLayer = new Vector("ghost-pointer", {
             pickingEnabled: false,
             polygonOffsetUnits: -5,
+            useLighting: false,
             relativeToGround: true,
-            scaleByDistance: [100, 4000000, 1.0],
+            scaleByDistance: [1, 4000000, 0.01],
             opacity: 0.5
         });
 

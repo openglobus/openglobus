@@ -151,6 +151,18 @@ const initLineIndexes = (outIndexes: number[], indexFormat: IndexFormatMode): nu
     let index = 0;
 
     if (outIndexes.length > 0) {
+        if (outIndexes.length < 5) {
+            if (is3vMode) {
+                outIndexes.length = 2;
+                outIndexes[0] = 0;
+                outIndexes[1] = 0;
+            } else {
+                outIndexes.length = 1;
+                outIndexes[0] = 0;
+            }
+            return 0;
+        }
+
         index = outIndexes[outIndexes.length - 5] + 9;
         outIndexes.push(index);
         if (is3vMode) {

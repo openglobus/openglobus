@@ -11,6 +11,8 @@ import {
 class LineStringDrawingScene extends PolygonDrawingScene {
     constructor(props: IPolygonDrawingSceneParams) {
         super(props);
+        // LineString has no closing edge, so polygon "base" outline entity is redundant here.
+        this._outlineLayer.setEntities([]);
     }
 
     public override get geometryType(): string {
@@ -128,15 +130,37 @@ class LineStringDrawingScene extends PolygonDrawingScene {
                 let ind = this._pickedCorner!.layerIndex;
 
                 if (ind === 0) {
-                    this._moveCorner(ind + 1, ind + 1, ind);
+                    this._moveCorner(ind + 1, ind, ind);
                 } else if (ind === corners.length - 1) {
-                    this._moveCorner(ind - 1, ind, ind - 1);
+                    this._moveCorner(ind - 1, ind - 1, ind - 1);
                 } else {
-                    this._moveCorner(ind + 1, ind + 1, ind);
-                    this._moveCorner(ind - 1, ind, ind - 1);
+                    this._moveCorner(ind + 1, ind, ind);
+                    this._moveCorner(ind - 1, ind - 1, ind - 1);
                 }
             }
         }
+    }
+
+    public override clear() {
+        this._geometryLayer.clear();
+
+        let corners = this._cornerLayer.getEntities();
+        for (let i = 0; i < corners.length; i++) {
+            corners[i].remove();
+        }
+
+        let centers = this._centerLayer.getEntities();
+        for (let i = 0; i < centers.length; i++) {
+            centers[i].remove();
+        }
+
+        let entities = this._outlineLayer.getEntities();
+        for (let i = 0; i < entities.length; i++) {
+            entities[i].polyline!.clear();
+            entities[i].remove();
+        }
+
+        this._clearGhostPointer();
     }
 
     public override _updateGhostOutlinePointer(groundPos: Vec3) {
