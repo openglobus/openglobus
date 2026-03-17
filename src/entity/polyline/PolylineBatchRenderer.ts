@@ -2984,7 +2984,7 @@ class PolylineBatchRenderer {
         }
     }
 
-    public appendPathLonLat(pathLonLat: SegmentPathLonLatExt) {
+    public appendPathLonLat(pathLonLat: SegmentPathLonLatExt, pathColors?: NumberArray4[]) {
 
         if (!pathLonLat || pathLonLat.length === 0) return;
 
@@ -2995,9 +2995,14 @@ class PolylineBatchRenderer {
         this._syncPathClosedLength(this._pathLonLat.length);
         this._syncSrcLength(this._pathLonLat.length);
 
-        this._pathColors[segIndex] = this._pathColors[segIndex] || [];
+        this._pathColors[segIndex] = pathColors && pathColors.length ? pathColors : (this._pathColors[segIndex] || []);
+        const segPickingColors = this._pathPickingColors[segIndex] || (this._pathPickingColors[segIndex] = []);
+
+        if (!segPickingColors.length) {
+            segPickingColors.push([this._pickingColor[R], this._pickingColor[G], this._pickingColor[B]]);
+        }
+
         this._segmentThickness[segIndex] = this._segmentThickness[segIndex] ?? this._thickness;
-        this._pathPickingColors[segIndex] = this._pathPickingColors[segIndex] || [];
 
         if (this.isTextured) {
             this._resolveSegmentTexParams(segIndex);
@@ -3032,7 +3037,7 @@ class PolylineBatchRenderer {
         this.__appendLineDataCore(
             [pathLonLat],
             [this._pathColors[segIndex] || []],
-            [this._pathPickingColors[segIndex] || []],
+            [segPickingColors],
             this._defaultColor as NumberArray4,
             this._pathClosed,
             this._verticesHigh as number[],

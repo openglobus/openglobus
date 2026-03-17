@@ -158,7 +158,7 @@ class Polyline {
             for (let i = 0; i < this._pathLonLat.length; i++) {
                 if (!this._pathLonLat[i] || this._pathLonLat[i].length === 0) continue;
                 const batchIndex = br._path3v.length;
-                br.appendPathLonLat(this._pathLonLat[i]);
+                br.appendPathLonLat(this._pathLonLat[i], this._pathColors[i]);
                 this._batchRendererIndexes.push(batchIndex);
                 this._applySegmentProps(batchIndex, i);
                 this._path3v[i] = br._path3v[batchIndex];
