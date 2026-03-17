@@ -8,7 +8,6 @@ import {GeometryHandler} from "../entity/geometry/GeometryHandler";
 import type {IMouseState, ITouchState} from "../renderer/RendererEvents";
 import {Layer} from "./Layer";
 import type {ILayerParams, LayerEventsList} from "./Layer";
-import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import {Planet} from "../scene/Planet";
 import {Material} from "./Material";
@@ -739,48 +738,9 @@ class Vector extends Layer {
         outArr.push(ec);
 
         if (this.clampToGround || this.relativeToGround) {
-            let rtg = Number(this.relativeToGround);
-
             const nodes = this._planet!.quadTreeStrategy._renderedNodes;
             const visibleExtent = this._planet!.getViewExtent();
-            let e = ec._entities;
-            let e_i = e.length;
-            let res = new Vec3();
-
-            //this._polylineEntityCollection.polylineHandler._opaqueRenderer._pathLonLatMerc
-
-            while (e_i--) {
-                let altModifier = e[e_i]._altitude || 0.0;
-                let p = e[e_i].polyline!;
-                if (p && visibleExtent.overlaps(p._extent)) {
-                    // TODO:this works only for mercator area.
-                    // needs to be working on poles.
-                    let coords = p._pathLonLatMerc,
-                        c_j = coords.length;
-                    while (c_j--) {
-                        let c_j_h = coords[c_j].length;
-                        while (c_j_h--) {
-                            let ll = coords[c_j][c_j_h],
-                                n_k = nodes.length;
-                            while (n_k--) {
-                                let seg = nodes[n_k].segment;
-                                if (seg._extent.isInside(ll)) {
-                                    let cart = p._path3v[c_j][c_j_h] as Vec3;
-                                    seg.getTerrainPoint(cart, ll, res);
-                                    let alt = (rtg && p.altitude) || altModifier;
-                                    if (alt) {
-                                        let n = this._planet!.ellipsoid.getSurfaceNormal3v(res);
-                                        p.setPoint3v(res.addA(n.scale(alt)), c_j_h, c_j, true);
-                                    } else {
-                                        p.setPoint3v(res, c_j_h, c_j, true);
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            ec.applyTerrainCollision(nodes, visibleExtent);
         }
     }
 

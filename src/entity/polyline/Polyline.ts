@@ -124,11 +124,34 @@ class Polyline {
     }
 
     public get _pathLonLatMerc(): LonLat[][] {
-        let res = [];
-        if (this._batchRenderer) {
-            for(let i=0;i<this._batchRendererIndexes.length;i++) {
-                res.push(this._batchRenderer._pathLonLatMerc[this._batchRendererIndexes[i]]);
+        let res: LonLat[][] = [];
+        if (this._batchRenderer && this._batchRendererIndexes.length > 0) {
+            const paths = this._batchRenderer._pathLonLatMerc;
+            for (let i = 0; i < this._batchRendererIndexes.length; i++) {
+                const seg = paths[this._batchRendererIndexes[i]];
+                res.push(seg || []);
             }
+            return res;
+        }
+        return this._pathLonLatMercFromLocal();
+    }
+
+    protected _pathLonLatMercFromLocal(): LonLat[][] {
+        const res: LonLat[][] = new Array(this._pathLonLat.length);
+        for (let i = 0; i < this._pathLonLat.length; i++) {
+            const seg = this._pathLonLat[i] || [];
+            const mercSeg: LonLat[] = new Array(seg.length);
+            for (let j = 0; j < seg.length; j++) {
+                const p = seg[j];
+                if (p instanceof LonLat) {
+                    mercSeg[j] = p.forwardMercator();
+                } else if (p instanceof Array) {
+                    mercSeg[j] = new LonLat(p[0], p[1], (p as number[])[2]).forwardMercator();
+                } else {
+                    mercSeg[j] = new LonLat();
+                }
+            }
+            res[i] = mercSeg;
         }
         return res;
     }
@@ -218,18 +241,29 @@ class Polyline {
             latmin = Infinity, latmax = -Infinity;
         let hasData = false;
 
-        const paths = this._pathLonLat;
-        for (let i = 0; i < paths.length; i++) {
-            const seg = paths[i];
+        const hasBatchRendererPaths = !!this._batchRenderer && this._batchRendererIndexes.length > 0;
+        const paths = hasBatchRendererPaths
+            ? this._batchRenderer!._pathLonLat
+            : this._pathLonLat;
+
+        const pathsCount = hasBatchRendererPaths ? this._batchRendererIndexes.length : paths.length;
+
+        for (let i = 0; i < pathsCount; i++) {
+            const segIndex = hasBatchRendererPaths ? this._batchRendererIndexes[i] : i;
+            const seg = paths[segIndex];
+            if (!seg) continue;
             for (let j = 0; j < seg.length; j++) {
                 const p = seg[j];
+                if (!p) continue;
                 let lon: number, lat: number;
                 if (p instanceof LonLat) {
                     lon = p.lon;
                     lat = p.lat;
-                } else {
+                } else if (p instanceof Array) {
                     lon = (p as number[])[0];
                     lat = (p as number[])[1];
+                } else {
+                    continue;
                 }
                 if (lon < lonmin) lonmin = lon;
                 if (lon > lonmax) lonmax = lon;
@@ -244,6 +278,11 @@ class Polyline {
             this._extent.southWest.lat = latmin;
             this._extent.northEast.lon = lonmax;
             this._extent.northEast.lat = latmax;
+        } else {
+            this._extent.southWest.lon = 180.0;
+            this._extent.southWest.lat = 90.0;
+            this._extent.northEast.lon = -180.0;
+            this._extent.northEast.lat = -90.0;
         }
     }
 
@@ -252,10 +291,26 @@ class Polyline {
     }
 
     public getPath3v(): SegmentPath3vExt[] {
+        if (this._batchRenderer && this._batchRendererIndexes.length > 0) {
+            const paths = this._batchRenderer._path3v;
+            const res: SegmentPath3vExt[] = new Array(this._batchRendererIndexes.length);
+            for (let i = 0; i < this._batchRendererIndexes.length; i++) {
+                res[i] = (paths[this._batchRendererIndexes[i]] || []) as SegmentPath3vExt;
+            }
+            return res;
+        }
         return this._path3v;
     }
 
     public getPathLonLat(): SegmentPathLonLatExt[] {
+        if (this._batchRenderer && this._batchRendererIndexes.length > 0) {
+            const paths = this._batchRenderer._pathLonLat;
+            const res: SegmentPathLonLatExt[] = new Array(this._batchRendererIndexes.length);
+            for (let i = 0; i < this._batchRendererIndexes.length; i++) {
+                res[i] = (paths[this._batchRendererIndexes[i]] || []) as SegmentPathLonLatExt;
+            }
+            return res;
+        }
         return this._pathLonLat;
     }
 
@@ -329,6 +384,8 @@ class Polyline {
         if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
             this._batchRenderer.setPointLonLat(lonlat, index, this._batchRendererIndexes[segmentIndex]);
         }
+
+        this._updateExtent();
     }
 
     /**
@@ -344,6 +401,10 @@ class Polyline {
 
         if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
             this._batchRenderer.setPoint3v(coordinates, index, this._batchRendererIndexes[segmentIndex], skipLonLat);
+        }
+
+        if (!skipLonLat) {
+            this._updateExtent();
         }
     }
 
@@ -478,6 +539,8 @@ class Polyline {
             this._applySegmentProps(batchIndex, this._batchRendererIndexes.length - 1);
             this._path3v[this._path3v.length - 1] = this._batchRenderer._path3v[batchIndex];
         }
+
+        this._updateExtent();
     }
 
     public appendPathLonLat(pathLonLat: SegmentPathLonLatExt) {
@@ -563,6 +626,8 @@ class Polyline {
                 }
             }
         }
+
+        this._updateExtent();
     }
 
     /**

@@ -4,6 +4,7 @@ import {createEvents} from "../Events";
 import type {EventsHandler} from "../Events";
 import {Entity} from "./Entity";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
+import {Extent} from "../Extent";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 import {GeoObjectHandler} from "./geoObject/GeoObjectHandler";
 import {LabelHandler} from "./label/LabelHandler";
@@ -14,6 +15,7 @@ import {PointCloudHandler} from "./pointCloud/PointCloudHandler";
 import {PolylineHandler} from "./polyline/PolylineHandler";
 import {RayHandler} from "./ray/RayHandler";
 import {RenderNode} from "../scene/RenderNode";
+import type {Node} from "../quadTree/Node";
 import {StripHandler} from "./strip/StripHandler";
 import {Vector} from "../layer/Vector";
 
@@ -372,6 +374,70 @@ class EntityCollection {
         this.scaleByDistance[0] = near;
         this.scaleByDistance[1] = far;
         this.scaleByDistance[2] = farInvisible || math.MAX32;
+    }
+
+    /**
+     * Aligns collection entities to terrain.
+     * Currently applies to polyline entities.
+     */
+    public applyTerrainCollision(nodes: Node[], visibleExtent: Extent) {
+        const layer = this._layer;
+        if (!layer || (!layer.clampToGround && !layer.relativeToGround) || !layer._planet || nodes.length === 0) {
+            return;
+        }
+
+        const rtg = Number(layer.relativeToGround);
+        const res = new Vec3();
+        const entities = this._entities;
+        let i = entities.length;
+
+        while (i--) {
+            const entity = entities[i];
+            const p = entity.polyline;
+            if (!p) continue;
+
+            const ext = p._extent;
+            const hasValidExtent =
+                ext.southWest.lon <= ext.northEast.lon &&
+                ext.southWest.lat <= ext.northEast.lat;
+
+            if (hasValidExtent && !visibleExtent.overlaps(ext)) continue;
+
+            const mercPaths = p._pathLonLatMerc;
+            const cartPaths = p.getPath3v() as Vec3[][];
+            const alt = (rtg && p.altitude) || entity._altitude || 0.0;
+
+            // TODO: this works only for mercator area.
+            // needs to be working on poles.
+            let seg_i = Math.min(mercPaths.length, cartPaths.length);
+            while (seg_i--) {
+                const mercSeg = mercPaths[seg_i];
+                const cartSeg = cartPaths[seg_i];
+                if (!mercSeg || !cartSeg) continue;
+
+                let point_i = Math.min(mercSeg.length, cartSeg.length);
+                while (point_i--) {
+                    const ll = mercSeg[point_i];
+                    const cart = cartSeg[point_i];
+                    if (!ll || !cart) continue;
+
+                    let n_k = nodes.length;
+                    while (n_k--) {
+                        const seg = nodes[n_k].segment;
+                        if (seg._extent.isInside(ll)) {
+                            seg.getTerrainPoint(cart, ll, res);
+                            if (alt) {
+                                const n = layer._planet!.ellipsoid.getSurfaceNormal3v(res);
+                                p.setPoint3v(res.addA(n.scale(alt)), point_i, seg_i, true);
+                            } else {
+                                p.setPoint3v(res, point_i, seg_i, true);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public appendChildEntity(entity: Entity) {
