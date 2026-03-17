@@ -21,7 +21,8 @@ export const geo_object = (): Program =>
             materialShininess: "float",
             uTexture: "sampler2d",
             uUseTexture: "float",
-            useLighting: "float"
+            useLighting: "float",
+            depthOffset: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -49,6 +50,7 @@ export const geo_object_picking = (): Program =>
             pickingScale: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
+            depthOffset: "float",
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -73,7 +75,8 @@ export const geo_object_depth = (): Program =>
             uScaleByDistance: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
-            frustumPickingColor: "float"
+            frustumPickingColor: "float",
+            depthOffset: "float"
         },
         attributes: {
             aVertexPosition: "vec3",

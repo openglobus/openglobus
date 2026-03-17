@@ -27,6 +27,7 @@ uniform vec3 eyePositionLow;
 
 uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
+uniform float depthOffset;
 
 out vec3 cameraPosition;
 out vec3 vNormal;
@@ -64,6 +65,7 @@ void main(void) {
     vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate)) + scd * aLocalPosition;
 
     gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
+    gl_Position.z += depthOffset;
 
     v_vertex = positionInViewSpace.xyz + vert;
 }

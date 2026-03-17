@@ -30,8 +30,8 @@ export interface IPolygonDrawingSceneParams {
 
 const POINTER_OBJ3D = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, -0.5, 0);
 
-export const NUM_SEGMENTS = 200;
-export const OUTLINE_ALT = 0.3;
+export const NUM_SEGMENTS = 300;
+export const OUTLINE_ALT = 0.0;
 
 class PolygonDrawingScene extends RenderNode {
     public events: EventsHandler<PolygonDrawingSceneEventsList>;
@@ -109,7 +109,7 @@ class PolygonDrawingScene extends RenderNode {
         this._cornerLayer = new Vector("corners", {
             pickingScale: 1.2,
             pickingEnabled: true,
-            polygonOffsetUnits: -5,
+            polygonOffsetUnits: -7,
             relativeToGround: true,
             useLighting: false,
             scaleByDistance: [1, 4000000, 0.01]
@@ -132,7 +132,7 @@ class PolygonDrawingScene extends RenderNode {
                 }
             })],
             pickingEnabled: false,
-            polygonOffsetUnits: -5,
+            polygonOffsetUnits: -3,
             relativeToGround: true
         });
 
