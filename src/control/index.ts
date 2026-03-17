@@ -8,7 +8,6 @@ export * from "./KeyboardNavigation";
 export * from "./LayerAnimation";
 export * from "./LayerSwitcher";
 export * from "./Lighting";
-export * from "./OldMouseNavigation";
 export * from "./Navigation";
 export * from "./RulerSwitcher";
 export * from "./ScaleControl";

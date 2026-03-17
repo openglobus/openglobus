@@ -5,7 +5,6 @@ import type {IGeoObjectParams} from "../../entity/geoObject/GeoObject";
 import type {IPolylineParams} from "../../entity/polyline/Polyline";
 import {Entity} from '../../entity/Entity';
 import type {IMouseState} from "../../renderer/RendererEvents";
-import {OldMouseNavigation} from "../OldMouseNavigation";
 import {LonLat} from '../../LonLat';
 import {Line3} from '../../math/Line3';
 import {Object3d} from '../../Object3d';
@@ -315,7 +314,7 @@ class PolygonDrawingScene extends RenderNode {
     }
 
     protected _onLup = (e: IMouseState) => {
-        (this._planet!.renderer!.controls.mouseNavigation as OldMouseNavigation).activate();
+        this._planet!.renderer!.controls.navigation?.activate();
         if (this._pickedCorner || this._pickedCenter) {
             this.events.dispatch(this.events.change, this);
             this.setGhostPointerPosition(this._planet!.getCartesianFromPixelTerrain(e)!);
@@ -326,7 +325,7 @@ class PolygonDrawingScene extends RenderNode {
     }
 
     protected _getLdown(e: IMouseState): Entity | null {
-        (this._planet!.renderer!.controls.mouseNavigation as OldMouseNavigation).deactivate();
+        this._planet!.renderer!.controls.navigation?.deactivate();
         this._startClick.set(e.x, e.y);
         let coords = e.pickingObject.getCartesian();
         this._startPos = this._planet!.getPixelFromCartesian(coords);

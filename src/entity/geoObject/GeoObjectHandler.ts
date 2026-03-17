@@ -444,7 +444,7 @@ export class GeoObjectHandler {
     }
 
     public drawDepth() {
-        if (this._geoObjects.length) {
+        if (this._geoObjects.length && this.pickingEnabled) {
             this._depthPASS();
         }
     }

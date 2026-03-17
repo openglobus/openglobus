@@ -27,6 +27,7 @@ class MyScene extends RenderNode {
             polyline: {
                 path3v: [[[5, 0, 5], [5, 5, 5], [0, 5, 0]], [[-5, 0, -5], [-5, 5, -5]]],
                 thickness: 22.5,
+                color: ["green", "blue"],
                 src: "template3.png",
                 isTextured: true,
             }
@@ -37,11 +38,12 @@ class MyScene extends RenderNode {
                 path3v: [[[18, 15, 10], [17.956, 15, 10.836], [17.825, 15, 11.663], [17.608, 15, 12.472]/*[20,20,20], [17.308, 15, 13.254]*/, [16.928, 15, 14], [16.472, 15, 14.702], [15.945, 15, 15.353], [15.353, 15, 15.945], [14.702, 15, 16.472], [14, 15, 16.928], [13.254, 15, 17.308], [12.472, 15, 17.608], [11.663, 15, 17.825], [10.836, 15, 17.956], [10, 15, 18], [9.164, 15, 17.956], [8.337, 15, 17.825], [7.528, 15, 17.608], [6.746, 15, 17.308], [6, 15, 16.928], [5.298, 15, 16.472], [4.647, 15, 15.945], [4.055, 15, 15.353], [3.528, 15, 14.702], [3.072, 15, 14], [2.692, 15, 13.254], [2.392, 15, 12.472], [2.175, 15, 11.663], [2.044, 15, 10.836], [2, 15, 10], [2.044, 15, 9.164], [2.175, 15, 8.337], [2.392, 15, 7.528], [2.692, 15, 6.746], [3.072, 15, 6], [3.528, 15, 5.298], [4.055, 15, 4.647], [4.647, 15, 4.055], [5.298, 15, 3.528], [6, 15, 3.072], [6.746, 15, 2.692], [7.528, 15, 2.392], [8.337, 15, 2.175], [9.164, 15, 2.044], [10, 15, 2], [10.836, 15, 2.044], [11.663, 15, 2.175], [12.472, 15, 2.392], [13.254, 15, 2.692], [14, 15, 3.072], [14.702, 15, 3.528], [15.353, 15, 4.055], [15.945, 15, 4.647], [16.472, 15, 5.298], [16.928, 15, 6], [17.308, 15, 6.746], [17.608, 15, 7.528], [17.825, 15, 8.337], [17.956, 15, 9.164]]],
                 thickness: 5.5,
                 src: "./template2.png",
-                color: ["white"],
+                color: "red",
                 isClosed: true,
                 //texParams:[{texOffsetSpeed: 0.008}]
             }
         });
+
 
         let collection = new EntityCollection({
             entities: [e1, e2]
@@ -60,6 +62,21 @@ renderer.addNodes([
     new scene.Axes(),
     new MyScene()
 ]);
+
+function addEntity(){
+    let e3 = new Entity({
+        polyline: {
+            path3v: [[[1, 5, 1], [7, 5, 1], [17, 15, 11]]],
+            thickness: 3.5,
+            //src: "./template2.png",
+            color: "yellow",
+            isClosed: true,
+            //texParams:[{texOffsetSpeed: 0.008}]
+        }
+    });
+
+    window.collection.add(e3);
+}
 
 function test_appendPath3v(i = 0) {
     collection.getEntities()[i].polyline.appendPath3v([[15, 10, 15], [15, 15, 15], [10, 15, 10], [15, 50, 15]]);
@@ -118,8 +135,9 @@ function test_setPoint3v(i, coords, index, segmentIndex) {
 // }
 
 Object.assign(window, {
-    test_setPathSrc,
-    test_setPathTexParams,
+    addEntity,
+    //test_setPathSrc,
+    //test_setPathTexParams,
     //test_start,
     test_appendPath3v,
     test_addPoint3v,
