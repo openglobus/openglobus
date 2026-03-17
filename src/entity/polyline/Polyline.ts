@@ -152,16 +152,16 @@ class Polyline {
                 br.appendPath3v(this._path3v[i], this._pathColors[i]);
                 this._batchRendererIndexes.push(batchIndex);
                 this._applySegmentProps(batchIndex, i);
-                this._path3v[i] = br._path3v[batchIndex];
+                //this._path3v[i] = br._path3v[batchIndex];
             }
         } else if (this._pathLonLat.length > 0) {
             for (let i = 0; i < this._pathLonLat.length; i++) {
                 if (!this._pathLonLat[i] || this._pathLonLat[i].length === 0) continue;
-                const batchIndex = br._path3v.length;
+                const batchIndex = br._pathLonLat.length;
                 br.appendPathLonLat(this._pathLonLat[i], this._pathColors[i]);
                 this._batchRendererIndexes.push(batchIndex);
                 this._applySegmentProps(batchIndex, i);
-                this._path3v[i] = br._path3v[batchIndex];
+                //this._path3v[i] = br._path3v[batchIndex];
             }
         }
 

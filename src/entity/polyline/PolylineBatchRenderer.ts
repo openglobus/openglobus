@@ -262,7 +262,7 @@ class PolylineBatchRenderer {
      * @private
      * @type {Array.<LonLat>}
      */
-    protected _pathLonLat: SegmentPathLonLatExt[];
+    public _pathLonLat: SegmentPathLonLatExt[];
 
     /**
      * Polyline geodetic mercator coordinates.
@@ -2906,6 +2906,7 @@ class PolylineBatchRenderer {
         const segIndex = this._path3v.length;
 
         this._path3v.push(path3v);
+        this._pathLonLat.push([]);
 
         this._syncPathClosedLength(this._path3v.length);
         this._syncSrcLength(this._path3v.length);
@@ -2990,6 +2991,7 @@ class PolylineBatchRenderer {
 
         const segIndex = this._pathLonLat.length;
 
+        this._path3v.push([]);
         this._pathLonLat.push(pathLonLat);
 
         this._syncPathClosedLength(this._pathLonLat.length);
