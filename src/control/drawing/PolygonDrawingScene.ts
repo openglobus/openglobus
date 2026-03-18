@@ -112,7 +112,7 @@ class PolygonDrawingScene extends RenderNode {
             polygonOffsetUnits: -7,
             relativeToGround: true,
             useLighting: false,
-            scaleByDistance: [1, 4000000, 0.01]
+            scaleByDistance: [1, 4000000, 0.005]
         });
 
         this._centerLayer = new Vector("centers", {
@@ -121,7 +121,7 @@ class PolygonDrawingScene extends RenderNode {
             polygonOffsetUnits: -5,
             relativeToGround: true,
             useLighting: false,
-            scaleByDistance: [1, 4000000, 0.01]
+            scaleByDistance: [1, 4000000, 0.005]
         });
 
         this._outlineLayer = new Vector("outline", {
@@ -150,7 +150,7 @@ class PolygonDrawingScene extends RenderNode {
             polygonOffsetUnits: -5,
             useLighting: false,
             relativeToGround: true,
-            scaleByDistance: [1, 4000000, 0.01],
+            scaleByDistance: [1, 4000000, 0.005],
             opacity: 0.5
         });
 
