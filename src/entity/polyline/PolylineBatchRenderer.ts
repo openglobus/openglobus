@@ -3688,7 +3688,8 @@ class PolylineBatchRenderer {
     public setRenderNode(renderNode: RenderNode) {
         if (renderNode) {
             this._renderNode = renderNode;
-            if (this._pathLonLat.length) {
+            const hasLonLatData = this._pathLonLat.some((segment) => segment.length > 0);
+            if (hasLonLatData) {
                 this._createDataLonLat(([] as SegmentPathLonLatExt[]).concat(this._pathLonLat));
             } else {
                 this._createData3v(([] as SegmentPath3vExt[]).concat(this._path3v));
