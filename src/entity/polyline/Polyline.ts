@@ -236,6 +236,39 @@ class Polyline {
         }
     }
 
+    protected _tryAddSegmentToBatch(segmentIndex: number): boolean {
+        const br = this._batchRenderer;
+        if (!br || segmentIndex < 0 || segmentIndex < this._batchRendererIndexes.length) {
+            return false;
+        }
+
+        const seg3v = this._path3v[segmentIndex];
+        const segLL = this._pathLonLat[segmentIndex];
+        const pointsCount = Math.max(seg3v ? seg3v.length : 0, segLL ? segLL.length : 0);
+        if (pointsCount <= 1) {
+            return false;
+        }
+
+        const batchIndex = br._path3v.length;
+
+        if (seg3v && seg3v.length > 0) {
+            br.appendPath3v(seg3v, this._pathColors[segmentIndex]);
+        } else if (segLL && segLL.length > 0) {
+            br.appendPathLonLat(segLL, this._pathColors[segmentIndex]);
+        } else {
+            return false;
+        }
+
+        if (segmentIndex <= this._batchRendererIndexes.length) {
+            this._batchRendererIndexes.splice(segmentIndex, 0, batchIndex);
+        } else {
+            this._batchRendererIndexes.push(batchIndex);
+        }
+
+        this._applySegmentProps(batchIndex, segmentIndex);
+        return true;
+    }
+
     protected _updateExtent() {
         let lonmin = Infinity, lonmax = -Infinity,
             latmin = Infinity, latmax = -Infinity;
@@ -424,8 +457,19 @@ class Polyline {
         if (segC) segC.splice(index, 1);
 
         if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
-            this._batchRenderer.removePoint(index, this._batchRendererIndexes[segmentIndex]);
+            const batchIndex = this._batchRendererIndexes[segmentIndex];
+            const pointsCount = Math.max(seg3v ? seg3v.length : 0, segLL ? segLL.length : 0);
+
+            if (pointsCount > 1) {
+                this._batchRenderer.removePoint(index, batchIndex);
+            } else if (this._handler) {
+                this._batchRenderer.removePath(batchIndex);
+                this._handler.reindexAfterRemoval(batchIndex);
+                this._batchRendererIndexes.splice(segmentIndex, 1);
+            }
         }
+
+        this._updateExtent();
     }
 
     /**
@@ -436,17 +480,23 @@ class Polyline {
      * @param {number} [segmentIndex=0] - Path segment index
      */
     public insertPoint3v(point3v: Vec3, index: number = 0, color?: NumberArray4, segmentIndex: number = 0) {
-        const seg = this._path3v[segmentIndex];
-        if (seg) seg.splice(index, 0, point3v);
+        const seg = this._path3v[segmentIndex] || (this._path3v[segmentIndex] = []);
+        seg.splice(index, 0, point3v);
 
         if (color) {
-            const segC = this._pathColors[segmentIndex];
-            if (segC) segC.splice(index, 0, color);
+            const segC = this._pathColors[segmentIndex] || (this._pathColors[segmentIndex] = []);
+            segC.splice(index, 0, color);
         }
 
-        if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
-            this._batchRenderer.insertPoint3v(point3v, index, color, this._batchRendererIndexes[segmentIndex]);
+        if (this._batchRenderer) {
+            if (segmentIndex < this._batchRendererIndexes.length) {
+                this._batchRenderer.insertPoint3v(point3v, index, color, this._batchRendererIndexes[segmentIndex]);
+            } else {
+                this._tryAddSegmentToBatch(segmentIndex);
+            }
         }
+
+        this._updateExtent();
     }
 
     /**
@@ -457,17 +507,23 @@ class Polyline {
      * @param {NumberArray4} [color] - Point color
      */
     public addPoint3v(point3v: Vec3, segmentIndex: number = 0, color?: NumberArray4) {
-        const seg = this._path3v[segmentIndex];
-        if (seg) seg.push(point3v);
+        const seg = this._path3v[segmentIndex] || (this._path3v[segmentIndex] = []);
+        seg.push(point3v);
 
         if (color) {
             const segC = this._pathColors[segmentIndex] || (this._pathColors[segmentIndex] = []);
             segC.push(color);
         }
 
-        if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
-            this._batchRenderer.addPoint3v(point3v, this._batchRendererIndexes[segmentIndex], color);
+        if (this._batchRenderer) {
+            if (segmentIndex < this._batchRendererIndexes.length) {
+                this._batchRenderer.addPoint3v(point3v, this._batchRendererIndexes[segmentIndex], color);
+            } else {
+                this._tryAddSegmentToBatch(segmentIndex);
+            }
         }
+
+        this._updateExtent();
     }
 
     /**
@@ -478,17 +534,23 @@ class Polyline {
      * @param {NumberArray4} [color] - Point color.
      */
     public addPointLonLat(lonLat: LonLat, segmentIndex: number = 0, color?: NumberArray4) {
-        const seg = this._pathLonLat[segmentIndex];
-        if (seg) seg.push(lonLat);
+        const seg = this._pathLonLat[segmentIndex] || (this._pathLonLat[segmentIndex] = []);
+        seg.push(lonLat);
 
         if (color) {
             const segC = this._pathColors[segmentIndex] || (this._pathColors[segmentIndex] = []);
             segC.push(color);
         }
 
-        if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
-            this._batchRenderer.addPointLonLat(lonLat, this._batchRendererIndexes[segmentIndex], color);
+        if (this._batchRenderer) {
+            if (segmentIndex < this._batchRendererIndexes.length) {
+                this._batchRenderer.addPointLonLat(lonLat, this._batchRendererIndexes[segmentIndex], color);
+            } else {
+                this._tryAddSegmentToBatch(segmentIndex);
+            }
         }
+
+        this._updateExtent();
     }
 
     /**
@@ -511,16 +573,19 @@ class Polyline {
      * @param {number} index - Segment index in multiline
      */
     public removePath(index: number) {
-        if (index < 0 || index >= this._batchRendererIndexes.length) return;
+        if (index < 0) return;
 
-        const batchIndex = this._batchRendererIndexes[index];
+        const hasBatchIndex = index < this._batchRendererIndexes.length;
+        const batchIndex = hasBatchIndex ? this._batchRendererIndexes[index] : -1;
 
-        this._batchRendererIndexes.splice(index, 1);
+        if (hasBatchIndex) {
+            this._batchRendererIndexes.splice(index, 1);
+        }
         this._path3v.splice(index, 1);
         if (index < this._pathLonLat.length) this._pathLonLat.splice(index, 1);
         if (index < this._pathColors.length) this._pathColors.splice(index, 1);
 
-        if (this._batchRenderer && this._handler) {
+        if (batchIndex > -1 && this._batchRenderer && this._handler) {
             this._batchRenderer.removePath(batchIndex);
             this._handler.reindexAfterRemoval(batchIndex);
         }
@@ -532,11 +597,11 @@ class Polyline {
         this._path3v.push(path3v);
         if (pathColors) this._pathColors.push(pathColors);
 
-        if (this._batchRenderer) {
+        if (this._batchRenderer && path3v.length > 1) {
             const batchIndex = this._batchRenderer._path3v.length;
             this._batchRenderer.appendPath3v(path3v, pathColors);
             this._batchRendererIndexes.push(batchIndex);
-            this._applySegmentProps(batchIndex, this._batchRendererIndexes.length - 1);
+            this._applySegmentProps(batchIndex, this._path3v.length - 1);
             this._path3v[this._path3v.length - 1] = this._batchRenderer._path3v[batchIndex];
         }
 
@@ -546,11 +611,11 @@ class Polyline {
     public appendPathLonLat(pathLonLat: SegmentPathLonLatExt) {
         this._pathLonLat.push(pathLonLat);
 
-        if (this._batchRenderer) {
+        if (this._batchRenderer && pathLonLat.length > 1) {
             const batchIndex = this._batchRenderer._path3v.length;
             this._batchRenderer.appendPathLonLat(pathLonLat);
             this._batchRendererIndexes.push(batchIndex);
-            this._applySegmentProps(batchIndex, this._batchRendererIndexes.length - 1);
+            this._applySegmentProps(batchIndex, this._pathLonLat.length - 1);
             this._path3v[this._pathLonLat.length - 1] = this._batchRenderer._path3v[batchIndex];
         }
 
