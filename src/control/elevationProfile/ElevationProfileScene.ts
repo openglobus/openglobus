@@ -125,7 +125,7 @@ class ElevationProfileScene extends RenderNode {
             pickingEnabled: true,
             hideInLayerSwitcher: true,
             scaleByDistance: [1, 5000, 0.02],
-            pickingScale: 1.5,
+            pickingScale: 1,
             useLighting: false
         });
 
@@ -148,7 +148,7 @@ class ElevationProfileScene extends RenderNode {
             polyline: {
                 path3v: [],
                 thickness: 3.8,
-                color: ["rgba(0,305,0,0.8)"]
+                color: "rgba(0,305,0,0.8)"
             }
         });
 

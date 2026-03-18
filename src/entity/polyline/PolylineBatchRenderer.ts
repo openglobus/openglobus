@@ -3132,7 +3132,9 @@ class PolylineBatchRenderer {
                 this._pathColors[segmentIndex] = [];
             }
 
-            this._pathColors[segmentIndex].push(color || this._defaultColor as NumberArray4);
+            const segColors = this._pathColors[segmentIndex];
+            const fallbackColor = (segColors.length > 0 ? segColors[segColors.length - 1] : this._defaultColor) as NumberArray4;
+            segColors.push(color || fallbackColor);
             this._segmentThickness[segmentIndex] = this._segmentThickness[segmentIndex] || this._thickness;
             if (this.isTextured) {
                 this._resolveSegmentTexParams(segmentIndex);
@@ -3159,7 +3161,8 @@ class PolylineBatchRenderer {
         seg.push(point3v);
 
         const segColors = this._pathColors[segIndex] || (this._pathColors[segIndex] = []);
-        segColors.push(color || this._defaultColor as NumberArray4);
+        const fallbackColor = (segColors.length > 0 ? segColors[segColors.length - 1] : this._defaultColor) as NumberArray4;
+        segColors.push(color || fallbackColor);
 
         const segPickingColors = this._pathPickingColors[segIndex] || (this._pathPickingColors[segIndex] = []);
         segPickingColors.push([this._pickingColor[R], this._pickingColor[G], this._pickingColor[B]]);
@@ -3352,7 +3355,9 @@ class PolylineBatchRenderer {
                 this._pathColors[segmentIndex] = [];
             }
 
-            this._pathColors[segmentIndex].push(color || this._defaultColor as NumberArray4);
+            const segColors = this._pathColors[segmentIndex];
+            const fallbackColor = (segColors.length > 0 ? segColors[segColors.length - 1] : this._defaultColor) as NumberArray4;
+            segColors.push(color || fallbackColor);
             this._segmentThickness[segmentIndex] = this._segmentThickness[segmentIndex] || this._thickness;
 
             if (this.isTextured) {
