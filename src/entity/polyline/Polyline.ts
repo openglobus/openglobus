@@ -219,7 +219,9 @@ class Polyline {
     protected _applySegmentProps(batchIndex: number, segmentIndex: number = 0) {
         const br = this._batchRenderer!;
         const htmlColor = this._getDefaultHtmlColor(segmentIndex);
-        if (htmlColor) {
+        const segPathColors = this._pathColors[segmentIndex];
+        const hasSegmentPathColors = !!segPathColors && segPathColors.length > 0;
+        if (htmlColor && !hasSegmentPathColors) {
             br.setColor(htmlColor, batchIndex);
         }
         if (this._pickingColor) {

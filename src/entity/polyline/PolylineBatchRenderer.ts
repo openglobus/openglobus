@@ -284,7 +284,6 @@ class PolylineBatchRenderer {
     public _pathLonLatMerc: LonLat[][];
 
     protected _pathColors: SegmentPathColor[];
-    protected _segmentColor: (NumberArray4 | undefined)[];
     protected _segmentThickness: number[];
     protected _segmentTexParams: (TexParam | undefined)[];
 
@@ -383,7 +382,6 @@ class PolylineBatchRenderer {
         this._pathLonLatMerc = [];
 
         this._pathColors = options.pathColors ? cloneArray(options.pathColors) : this._normalizePathColorInput(options.color);
-        this._segmentColor = [];
         this._segmentThickness = [];
         this._segmentTexParams = this.isTextured && options.texParams
             ? options.texParams.map((p) => ({
@@ -857,40 +855,6 @@ class PolylineBatchRenderer {
         return thickness;
     }
 
-    protected _setSegmentColorBuffer(segmentIndex: number, color: NumberArray4) {
-        if (segmentIndex < 0 || segmentIndex >= this._path3v.length) {
-            return;
-        }
-
-        const groupsBefore = segmentIndex === 0 ? 0 : (this._pathLengths[segmentIndex] + 2 * segmentIndex - 1);
-        const groupsCount = this._path3v[segmentIndex].length + 1 + (segmentIndex > 0 ? 1 : 0);
-        const start = groupsBefore * 16;
-        const end = (groupsBefore + groupsCount) * 16;
-        const a = color[A] != undefined ? color[A] : 1.0;
-        const c = this._colors;
-
-        for (let i = start; i < end; i += 4) {
-            c[i] = color[R];
-            c[i + 1] = color[G];
-            c[i + 2] = color[B];
-            c[i + 3] = a;
-        }
-    }
-
-    protected _applySegmentColorOverrides() {
-        if (!this._renderNode || this._segmentColor.length === 0 || this._path3v.length === 0 || this._colors.length === 0) {
-            return;
-        }
-
-        for (let i = 0, len = this._path3v.length; i < len; i++) {
-            const color = this._segmentColor[i];
-            if (!color) {
-                continue;
-            }
-            this._setSegmentColorBuffer(i, color);
-        }
-    }
-
     protected _resolveSegmentTexParams(segIndex: number): TexParam {
         let texParam = this._segmentTexParams[segIndex];
         if (!texParam) {
@@ -1241,8 +1205,6 @@ class PolylineBatchRenderer {
     }
 
     protected _markGeometryBuffersChanged(includeTexCoords: boolean) {
-        this._applySegmentColorOverrides();
-
         this._changedBuffers[VERTICES_BUFFER] = true;
         this._changedBuffers[INDEX_BUFFER] = true;
         this._changedBuffers[COLORS_BUFFER] = true;
@@ -2830,10 +2792,6 @@ class PolylineBatchRenderer {
             this._segmentThickness.splice(index, 1);
         }
 
-        if (this._segmentColor && index < this._segmentColor.length) {
-            this._segmentColor.splice(index, 1);
-        }
-
         if (this._segmentTexParams && index < this._segmentTexParams.length) {
             this._segmentTexParams.splice(index, 1);
         }
@@ -3114,9 +3072,6 @@ class PolylineBatchRenderer {
             }
             if (segmentIndex < this._segmentThickness.length) {
                 this._segmentThickness.splice(segmentIndex, 1);
-            }
-            if (segmentIndex < this._segmentColor.length) {
-                this._segmentColor.splice(segmentIndex, 1);
             }
             if (segmentIndex < this._segmentTexParams.length) {
                 this._segmentTexParams.splice(segmentIndex, 1);
@@ -3581,12 +3536,7 @@ class PolylineBatchRenderer {
 
         if (segIndex < 0 || segIndex >= this._path3v.length) return;
 
-        this._segmentColor[segIndex] = color;
-
-        if (this._renderNode) {
-            this._setSegmentColorBuffer(segIndex, color);
-            this._changedBuffers[COLORS_BUFFER] = true;
-        }
+        this.setPathColors([color], segIndex);
     }
 
     public setPathTexParams(texOffset: number | undefined, strokeSize: number | undefined, segmentIndex: number): void;
@@ -3773,7 +3723,6 @@ class PolylineBatchRenderer {
             this._pickingColors as number[]
         );
         this._resizePathLengths(0);
-        this._applySegmentColorOverrides();
         this._updateAllTextureMetrics();
         if (this.isTextured && this._handler) {
             this.setSrc(this._src);
@@ -3807,7 +3756,6 @@ class PolylineBatchRenderer {
             this._pickingColors as number[]
         );
         this._resizePathLengths(0);
-        this._applySegmentColorOverrides();
         this._updateAllTextureMetrics();
         if (this.isTextured && this._handler) {
             this.setSrc(this._src);
@@ -3826,9 +3774,6 @@ class PolylineBatchRenderer {
 
         this._segmentThickness.length = 0;
         this._segmentThickness = [];
-
-        this._segmentColor.length = 0;
-        this._segmentColor = [];
 
         this._segmentTexParams.length = 0;
         this._segmentTexParams = [];
@@ -3972,7 +3917,6 @@ class PolylineBatchRenderer {
                 this._defaultColor as NumberArray4,
                 this._colors
             );
-            this._applySegmentColorOverrides();
             this._changedBuffers[COLORS_BUFFER] = true;
             return;
         }
@@ -3988,7 +3932,14 @@ class PolylineBatchRenderer {
         }
 
         const segColorsInput = pathColors as SegmentPathColor;
-        const segColors = this._pathColors[segmentIndex] || (this._pathColors[segmentIndex] = new Array(segPath.length));
+        let segColors = this._pathColors[segmentIndex];
+        if (!segColors) {
+            segColors = [];
+            this._pathColors[segmentIndex] = segColors;
+        }
+        if (segColors.length !== segPath.length) {
+            segColors.length = segPath.length;
+        }
         const segInputCount = segColorsInput.length;
         const lastInputColor = segInputCount > 0 ? segColorsInput[segInputCount - 1] : undefined;
         let currentColor = this._defaultColor as NumberArray4;
@@ -4052,7 +4003,6 @@ class PolylineBatchRenderer {
         c[ck + 2] = c[ck + 6] = c[ck + 10] = c[ck + 14] = currentColor[B];
         c[ck + 3] = c[ck + 7] = c[ck + 11] = c[ck + 15] = a;
 
-        this._applySegmentColorOverrides();
         this._changedBuffers[COLORS_BUFFER] = true;
     }
 
