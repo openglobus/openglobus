@@ -38,6 +38,7 @@ export class InstanceData {
     public geoObjects: GeoObject[];
 
     public numInstances: number;
+    public _opaqueInstanceCount: number;
 
     public _colorTexture: WebGLTextureExt | null;
     public _normalTexture: WebGLTextureExt | null;
@@ -99,6 +100,7 @@ export class InstanceData {
         this.geoObjects = [];
 
         this.numInstances = 0;
+        this._opaqueInstanceCount = 0;
 
         this._colorTexture = null;
         this._colorTextureSrc = null;
@@ -193,6 +195,10 @@ export class InstanceData {
     //  Instance individual data
     //
     public drawOpaque(p: Program) {
+        const instanceCount = this._opaqueInstanceCount;
+        if (instanceCount <= 0) {
+            return;
+        }
 
         let gl = p.gl!,
             u = p.uniforms,
@@ -221,32 +227,72 @@ export class InstanceData {
         gl.uniform3fv(u.materialParams, this._materialParams);
         gl.uniform1f(u.materialShininess, this._materialShininess);
 
-        this._drawElementsInstanced(p);
+        this._drawElementsInstanced(p, 0, instanceCount);
     }
 
     //
     //  Instance individual data
     //
     public drawTransparent(p: Program) {
+        const startInstance = this._opaqueInstanceCount;
+        const instanceCount = this.numInstances - startInstance;
+        if (instanceCount <= 0) {
+            return;
+        }
 
         let gl = p.gl!,
             u = p.uniforms,
             a = p.attributes;
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._qRotBuffer!);
-        gl.vertexAttribPointer(a.qRot, this._qRotBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            a.qRot,
+            this._qRotBuffer!.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            startInstance * this._qRotBuffer!.itemSize * Float32Array.BYTES_PER_ELEMENT
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer!);
-        gl.vertexAttribPointer(a.aScale, this._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            a.aScale,
+            this._sizeBuffer!.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            startInstance * this._sizeBuffer!.itemSize * Float32Array.BYTES_PER_ELEMENT
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._translateBuffer!);
-        gl.vertexAttribPointer(a.aTranslate, this._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            a.aTranslate,
+            this._translateBuffer!.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            startInstance * this._translateBuffer!.itemSize * Float32Array.BYTES_PER_ELEMENT
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._localPositionBuffer!);
-        gl.vertexAttribPointer(a.aLocalPosition, this._localPositionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            a.aLocalPosition,
+            this._localPositionBuffer!.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            startInstance * this._localPositionBuffer!.itemSize * Float32Array.BYTES_PER_ELEMENT
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
-        gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            a.aDispose,
+            this._visibleBuffer!.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            startInstance * this._visibleBuffer!.itemSize * Float32Array.BYTES_PER_ELEMENT
+        );
 
         gl.uniform1f(u.uUseTexture, this._colorTexture ? 1 : 0);
 
@@ -254,15 +300,22 @@ export class InstanceData {
         gl.uniform1f(u.materialShininess, this._materialShininess);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
-        gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            a.aColor,
+            this._rgbaBuffer!.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            startInstance * this._rgbaBuffer!.itemSize * Float32Array.BYTES_PER_ELEMENT
+        );
 
-        this._drawElementsInstanced(p);
+        this._drawElementsInstanced(p, startInstance, instanceCount);
     }
 
     //
     // Instance common data(could be in VAO)
     //
-    protected _drawElementsInstanced(p: Program) {
+    protected _drawElementsInstanced(p: Program, startInstance: number, instanceCount: number) {
 
         let gl = p.gl!,
             u = p.uniforms,
@@ -271,10 +324,24 @@ export class InstanceData {
         let r = this._geoObjectHandler!._renderer!;
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rtcPositionHighBuffer!);
-        gl.vertexAttribPointer(a.aRTCPositionHigh, this._rtcPositionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            a.aRTCPositionHigh,
+            this._rtcPositionHighBuffer!.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            startInstance * this._rtcPositionHighBuffer!.itemSize * Float32Array.BYTES_PER_ELEMENT
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rtcPositionLowBuffer!);
-        gl.vertexAttribPointer(a.aRTCPositionLow, this._rtcPositionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            a.aRTCPositionLow,
+            this._rtcPositionLowBuffer!.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            startInstance * this._rtcPositionLowBuffer!.itemSize * Float32Array.BYTES_PER_ELEMENT
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._normalsBuffer!);
         gl.vertexAttribPointer(a.aVertexNormal, this._normalsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -290,7 +357,7 @@ export class InstanceData {
         gl.vertexAttribPointer(a.aTexCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer!);
-        p.drawElementsInstanced!(gl.TRIANGLES, this._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, this.numInstances);
+        p.drawElementsInstanced!(gl.TRIANGLES, this._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, instanceCount);
     }
 
     public async loadColorTexture() {
@@ -344,6 +411,7 @@ export class InstanceData {
     public clear() {
 
         this.numInstances = 0;
+        this._opaqueInstanceCount = 0;
 
         this.geoObjects = [];
 

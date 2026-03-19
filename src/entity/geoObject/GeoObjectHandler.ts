@@ -25,6 +25,7 @@ export const VISIBLE_BUFFER = 8;
 export const TEXCOORD_BUFFER = 9;
 export const TRANSLATE_BUFFER = 10;
 export const LOCALPOSITION_BUFFER = 11;
+const OPAQUE_ALPHA_THRESHOLD = 0.999999;
 
 function setParametersToArray(arr: number[] | TypedArray, index: number = 0, length: number = 0, itemSize: number = 1, ...params: number[]): number[] | TypedArray {
     const currIndex = index * length;
@@ -84,6 +85,88 @@ export class GeoObjectHandler {
 
         this._rtcEyePositionHigh = new Float32Array([0, 0, 0]);
         this._rtcEyePositionLow = new Float32Array([0, 0, 0]);
+    }
+
+    protected _isOpaqueAlpha(alpha: number): boolean {
+        return alpha >= OPAQUE_ALPHA_THRESHOLD;
+    }
+
+    protected _markPerInstanceBuffersChanged(tagData: InstanceData) {
+        tagData._changedBuffers[RTC_POSITION_BUFFER] = true;
+        tagData._changedBuffers[RGBA_BUFFER] = true;
+        tagData._changedBuffers[QROT_BUFFER] = true;
+        tagData._changedBuffers[SIZE_BUFFER] = true;
+        tagData._changedBuffers[PICKINGCOLOR_BUFFER] = true;
+        tagData._changedBuffers[VISIBLE_BUFFER] = true;
+        tagData._changedBuffers[TRANSLATE_BUFFER] = true;
+        tagData._changedBuffers[LOCALPOSITION_BUFFER] = true;
+    }
+
+    protected _swapArrayItems(arr: number[] | TypedArray, itemSize: number, firstIndex: number, secondIndex: number) {
+        if (firstIndex === secondIndex) {
+            return;
+        }
+
+        const firstOffset = firstIndex * itemSize;
+        const secondOffset = secondIndex * itemSize;
+
+        for (let i = 0; i < itemSize; i++) {
+            const tmp = arr[firstOffset + i];
+            arr[firstOffset + i] = arr[secondOffset + i];
+            arr[secondOffset + i] = tmp;
+        }
+    }
+
+    protected _swapInstanceData(tagData: InstanceData, firstIndex: number, secondIndex: number) {
+        if (firstIndex === secondIndex) {
+            return;
+        }
+
+        this._swapArrayItems(tagData._visibleArr, 1, firstIndex, secondIndex);
+        this._swapArrayItems(tagData._rtcPositionHighArr, 3, firstIndex, secondIndex);
+        this._swapArrayItems(tagData._rtcPositionLowArr, 3, firstIndex, secondIndex);
+        this._swapArrayItems(tagData._pickingColorArr, 3, firstIndex, secondIndex);
+        this._swapArrayItems(tagData._qRotArr, 4, firstIndex, secondIndex);
+        this._swapArrayItems(tagData._rgbaArr, 4, firstIndex, secondIndex);
+        this._swapArrayItems(tagData._sizeArr, 3, firstIndex, secondIndex);
+        this._swapArrayItems(tagData._translateArr, 3, firstIndex, secondIndex);
+        this._swapArrayItems(tagData._localPositionArr, 3, firstIndex, secondIndex);
+
+        const firstObject = tagData.geoObjects[firstIndex];
+        const secondObject = tagData.geoObjects[secondIndex];
+        tagData.geoObjects[firstIndex] = secondObject;
+        tagData.geoObjects[secondIndex] = firstObject;
+        firstObject._tagDataIndex = secondIndex;
+        secondObject._tagDataIndex = firstIndex;
+    }
+
+    protected _insertInstanceByOpacity(tagData: InstanceData, instanceIndex: number, isOpaque: boolean) {
+        if (!isOpaque) {
+            return;
+        }
+
+        const targetIndex = tagData._opaqueInstanceCount;
+        this._swapInstanceData(tagData, instanceIndex, targetIndex);
+        tagData._opaqueInstanceCount++;
+    }
+
+    protected _updateInstanceOpacityState(tagData: InstanceData, instanceIndex: number, isOpaque: boolean): boolean {
+        const wasOpaque = instanceIndex < tagData._opaqueInstanceCount;
+        if (wasOpaque === isOpaque) {
+            return false;
+        }
+
+        if (isOpaque) {
+            const targetIndex = tagData._opaqueInstanceCount;
+            this._swapInstanceData(tagData, instanceIndex, targetIndex);
+            tagData._opaqueInstanceCount++;
+        } else {
+            tagData._opaqueInstanceCount--;
+            const targetIndex = tagData._opaqueInstanceCount;
+            this._swapInstanceData(tagData, instanceIndex, targetIndex);
+        }
+
+        return true;
     }
 
     public initProgram() {
@@ -208,7 +291,6 @@ export class GeoObjectHandler {
             tagData._normalTextureImage = object.normalTextureImage;
             tagData._metallicRoughnessTextureImage = object.metallicRoughnessTextureImage;
 
-
             tagData.loadColorTexture();
             tagData.loadNormalTexture();
             tagData.loadMetallicRoughnessTexture();
@@ -316,6 +398,8 @@ export class GeoObjectHandler {
         y = localPosition.y;
         z = localPosition.z;
         tagData._localPositionArr = concatArrays(tagData._localPositionArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
+
+        this._insertInstanceByOpacity(tagData, geoObject._tagDataIndex, this._isOpaqueAlpha(geoObject._color.w));
     }
 
     //
@@ -536,7 +620,12 @@ export class GeoObjectHandler {
 
     public setRgbaArr(tagData: InstanceData, tagDataIndex: number, rgba: Vec4) {
         setParametersToArray(tagData._rgbaArr, tagDataIndex, 4, 4, rgba.x, rgba.y, rgba.z, rgba.w);
-        tagData._changedBuffers[RGBA_BUFFER] = true;
+        const opacityChanged = this._updateInstanceOpacityState(tagData, tagDataIndex, this._isOpaqueAlpha(rgba.w));
+        if (opacityChanged) {
+            this._markPerInstanceBuffersChanged(tagData);
+        } else {
+            tagData._changedBuffers[RGBA_BUFFER] = true;
+        }
         this._updateTag(tagData);
     }
 
@@ -687,7 +776,40 @@ export class GeoObjectHandler {
         let tagData = geoObject._tagData!;
         let tag = geoObject.tag;
 
+        this._geoObjects.splice(geoObject._handlerIndex, 1);
+        for (let i = geoObject._handlerIndex, len = this._geoObjects.length; i < len; i++) {
+            let gi = this._geoObjects[i];
+            gi._handlerIndex = gi._handlerIndex - 1;
+        }
+
+        let removeIndex = geoObject._tagDataIndex;
+
+        if (removeIndex < tagData._opaqueInstanceCount) {
+            tagData._opaqueInstanceCount--;
+            this._swapInstanceData(tagData, removeIndex, tagData._opaqueInstanceCount);
+            removeIndex = tagData._opaqueInstanceCount;
+        }
+
+        const lastIndex = tagData.numInstances - 1;
+        this._swapInstanceData(tagData, removeIndex, lastIndex);
+        tagData.geoObjects.pop();
+
+        tagData._rgbaArr = spliceArray(tagData._rgbaArr, lastIndex * 4, 4);
+        tagData._rtcPositionHighArr = spliceArray(tagData._rtcPositionHighArr, lastIndex * 3, 3);
+        tagData._rtcPositionLowArr = spliceArray(tagData._rtcPositionLowArr, lastIndex * 3, 3);
+        tagData._qRotArr = spliceArray(tagData._qRotArr, lastIndex * 4, 4);
+        tagData._pickingColorArr = spliceArray(tagData._pickingColorArr, lastIndex * 3, 3);
+        tagData._sizeArr = spliceArray(tagData._sizeArr, lastIndex * 3, 3);
+        tagData._translateArr = spliceArray(tagData._translateArr, lastIndex * 3, 3);
+        tagData._localPositionArr = spliceArray(tagData._localPositionArr, lastIndex * 3, 3);
+        tagData._visibleArr = spliceArray(tagData._visibleArr, lastIndex, 1);
         tagData.numInstances--;
+
+        geoObject._handlerIndex = -1;
+        geoObject._handler = null;
+
+        geoObject._tagDataIndex = -1;
+        geoObject._tagData = null;
 
         let isEmpty = false;
         // dataTag becomes empty, remove it from the rendering
@@ -704,16 +826,31 @@ export class GeoObjectHandler {
             isEmpty = true;
         }
 
+        if (!isEmpty) {
+            tagData.refresh();
+            this._updateTag(tagData);
+        }
+    }
+
+    /*
+    public _removeGeoObject(geoObject: GeoObject) {
+
+        let tagData = geoObject._tagData!;
+        let tag = geoObject.tag;
+        let tdi = geoObject._tagDataIndex;
+
         this._geoObjects.splice(geoObject._handlerIndex, 1);
         for (let i = geoObject._handlerIndex, len = this._geoObjects.length; i < len; i++) {
             let gi = this._geoObjects[i];
             gi._handlerIndex = gi._handlerIndex - 1;
         }
 
-        let tdi = geoObject._tagDataIndex;
-        tagData.geoObjects.splice(tdi, 1);
+        if (tdi < tagData._opaqueInstanceCount) {
+            tagData._opaqueInstanceCount--;
+        }
 
-        for (let i = geoObject._tagDataIndex, len = tagData.geoObjects.length; i < len; i++) {
+        tagData.geoObjects.splice(tdi, 1);
+        for (let i = tdi, len = tagData.geoObjects.length; i < len; i++) {
             let gi = tagData.geoObjects[i];
             gi._tagDataIndex = gi._tagDataIndex - 1;
         }
@@ -727,6 +864,7 @@ export class GeoObjectHandler {
         tagData._translateArr = spliceArray(tagData._translateArr, tdi * 3, 3);
         tagData._localPositionArr = spliceArray(tagData._localPositionArr, tdi * 3, 3);
         tagData._visibleArr = spliceArray(tagData._visibleArr, tdi, 1);
+        tagData.numInstances--;
 
         geoObject._handlerIndex = -1;
         geoObject._handler = null;
@@ -734,9 +872,25 @@ export class GeoObjectHandler {
         geoObject._tagDataIndex = -1;
         geoObject._tagData = null;
 
+        let isEmpty = false;
+        // dataTag becomes empty, remove it from the rendering
+        if (tagData.numInstances === 0) {
+            tagData.clear();
+            this._instanceDataMap.delete(tag);
+            for (let i = 0; this._instanceDataMapValues.length; i++) {
+                if (this._instanceDataMapValues[i].numInstances === 0) {
+                    this._instanceDataMapValues.splice(i, 1);
+                    break;
+                }
+            }
+            this._clearDataTagQueue();
+            isEmpty = true;
+        }
+
         if (!isEmpty) {
             tagData.refresh();
             this._updateTag(tagData);
         }
     }
+    */
 }
