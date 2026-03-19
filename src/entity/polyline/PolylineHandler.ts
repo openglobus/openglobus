@@ -48,6 +48,10 @@ class PolylineHandler {
         this._rtcEyePositionHigh = new Float32Array([0, 0, 0]);
 
         this._rtcEyePositionLow = new Float32Array([0, 0, 0]);
+
+        const rtcProject = this.getRTCPosition.bind(this);
+        this._opaqueRenderer.__doubleToTwoFloats = rtcProject;
+        this._transparentRenderer.__doubleToTwoFloats = rtcProject;
     }
 
     public setVisibleSphere(p: Vec3, r: number) {
@@ -75,16 +79,16 @@ class PolylineHandler {
 
     public add(polyline: Polyline) {
         if (polyline._handlerIndex === -1) {
+            const batchRenderer = this.getRendererByOpacity(polyline.getOpacity());
             polyline._handler = this;
             polyline._handlerIndex = this._polylines.length;
-            polyline._batchRenderer = this._opaqueRenderer;
-            this._opaqueRenderer.__doubleToTwoFloats = this.getRTCPosition.bind(this);
+            polyline._batchRenderer = batchRenderer;
             this._polylines.push(polyline);
 
             polyline._addToBatchRenderer();
 
             if (this._entityCollection && this._entityCollection.renderNode) {
-                this._opaqueRenderer.updateRTCPosition();
+                batchRenderer.updateRTCPosition();
             }
         }
     }
@@ -101,8 +105,15 @@ class PolylineHandler {
         }
     }
 
-    public reindexAfterRemoval(removedBatchIndex: number) {
+    public getRendererByOpacity(opacity: number): PolylineBatchRenderer {
+        return opacity < 1.0 ? this._transparentRenderer : this._opaqueRenderer;
+    }
+
+    public reindexAfterRemoval(removedBatchIndex: number, renderer: PolylineBatchRenderer) {
         for (let p = 0; p < this._polylines.length; p++) {
+            if (this._polylines[p]._batchRenderer !== renderer) {
+                continue;
+            }
             const indices = this._polylines[p]._batchRendererIndexes;
             for (let i = 0; i < indices.length; i++) {
                 if (indices[i] > removedBatchIndex) {
@@ -121,6 +132,7 @@ class PolylineHandler {
 
     public drawForward() {
         this.drawOpaque();
+        this.drawTransparent();
     }
 
     public drawOpaque() {

@@ -117,6 +117,7 @@ class Polyline {
         this._visibility = options.visibility !== undefined ? options.visibility : true;
 
         this._image = null;
+        this._opacity = options.opacity !== undefined ? options.opacity : 1.0;
 
         this._thickness = options.thickness || 1.5;
         this._altitude = options.altitude || 0;
@@ -201,7 +202,7 @@ class Polyline {
         this._batchRendererIndexes.length = 0;
         for (let i = 0; i < indices.length; i++) {
             br.removePath(indices[i]);
-            handler.reindexAfterRemoval(indices[i]);
+            handler.reindexAfterRemoval(indices[i], br);
         }
     }
 
@@ -466,7 +467,7 @@ class Polyline {
                 this._batchRenderer.removePoint(index, batchIndex);
             } else if (this._handler) {
                 this._batchRenderer.removePath(batchIndex);
-                this._handler.reindexAfterRemoval(batchIndex);
+                this._handler.reindexAfterRemoval(batchIndex, this._batchRenderer);
                 this._batchRendererIndexes.splice(segmentIndex, 1);
             }
         }
@@ -589,7 +590,7 @@ class Polyline {
 
         if (batchIndex > -1 && this._batchRenderer && this._handler) {
             this._batchRenderer.removePath(batchIndex);
-            this._handler.reindexAfterRemoval(batchIndex);
+            this._handler.reindexAfterRemoval(batchIndex, this._batchRenderer);
         }
 
         this._updateExtent();
@@ -758,7 +759,21 @@ class Polyline {
      * @param {number} opacity - Opacity.
      */
     public setOpacity(opacity: number) {
+        if (this._opacity === opacity) {
+            return;
+        }
         this._opacity = opacity;
+
+        if (!this._handler) {
+            return;
+        }
+
+        const targetRenderer = this._handler.getRendererByOpacity(opacity);
+        if (this._batchRenderer !== targetRenderer) {
+            this._removeFromBatchRenderer();
+            this._batchRenderer = targetRenderer;
+            this._addToBatchRenderer();
+        }
     }
 
     /**
