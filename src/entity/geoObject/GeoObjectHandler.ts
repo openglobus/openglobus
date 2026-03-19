@@ -12,7 +12,6 @@ import {Renderer} from "../../renderer/Renderer";
 import {RenderNode} from "../../scene/RenderNode";
 import type {Program} from "../../webgl/Program";
 
-//@todo: enums, i know...nah...
 export const VERTEX_BUFFER = 0;
 export const RTC_POSITION_BUFFER = 1;
 export const RGBA_BUFFER = 2;
@@ -25,6 +24,7 @@ export const VISIBLE_BUFFER = 8;
 export const TEXCOORD_BUFFER = 9;
 export const TRANSLATE_BUFFER = 10;
 export const LOCALPOSITION_BUFFER = 11;
+
 const OPAQUE_ALPHA_THRESHOLD = 0.999999;
 
 function setParametersToArray(arr: number[] | TypedArray, index: number = 0, length: number = 0, itemSize: number = 1, ...params: number[]): number[] | TypedArray {
