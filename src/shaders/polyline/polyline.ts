@@ -2,9 +2,11 @@ import {Program} from '../../webgl/Program';
 
 import polyline_tex_vert from './polyline.vert.glsl';
 import polyline_tex_frag from './polyline_forward.frag.glsl';
+import polyline_woit_frag from './polyline_woit.frag.glsl';
 
 import polyline_plain_vert from './polyline_plain.vert.glsl';
 import polyline_plain_frag from './polyline_plain.frag.glsl';
+import polyline_plain_woit_frag from './polyline_plain_woit.frag.glsl';
 
 import polyline_picking_vert from './polyline_picking.vert.glsl';
 import polyline_picking_frag from './polyline_picking.frag.glsl';
@@ -62,6 +64,38 @@ export function polylinePlain(): Program {
         },
         vertexShader: polyline_plain_vert,
         fragmentShader: polyline_plain_frag
+    });
+}
+
+export function polylineWoitTex(): Program {
+    return new Program('polylineWoitTex', {
+        uniforms: {
+            ...SHARED_UNIFORMS,
+            time: 'float',
+            texAtlas: 'sampler2d'
+        },
+        attributes: {
+            ...SHARED_ATTRIBUTES,
+            texCoord: 'vec4',
+            textureParams: 'vec3',
+            pathPhase: 'float',
+            boundingSphere: 'vec4'
+        },
+        vertexShader: polyline_tex_vert,
+        fragmentShader: polyline_woit_frag
+    });
+}
+
+export function polylineWoitPlain(): Program {
+    return new Program('polylineWoitPlain', {
+        uniforms: {
+            ...SHARED_UNIFORMS
+        },
+        attributes: {
+            ...SHARED_ATTRIBUTES
+        },
+        vertexShader: polyline_plain_vert,
+        fragmentShader: polyline_plain_woit_frag
     });
 }
 

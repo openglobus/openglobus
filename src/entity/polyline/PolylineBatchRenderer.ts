@@ -4317,12 +4317,84 @@ class PolylineBatchRenderer {
     }
 
 
-    public draw() {
+    public drawOpaque() {
         if (this.visibility && this._path3v.length) {
             this._update();
 
             let r = this._renderNode!.renderer!;
             let sh = this.isTextured ? r.handler.programs.polylineTex : r.handler.programs.polylinePlain;
+            let p = sh._program;
+            let gl = r.handler.gl!,
+                sha = p.attributes,
+                shu = p.uniforms;
+
+            let ec = this._handler!._entityCollection;
+
+            sh.activate();
+
+            gl.disable(gl.CULL_FACE);
+            gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
+
+            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.view, false, r.activeCamera!.getViewMatrix());
+            gl.uniform3fv(shu.rtcEyePositionHigh, this._handler!._rtcEyePositionHigh);
+            gl.uniform3fv(shu.rtcEyePositionLow, this._handler!._rtcEyePositionLow);
+            gl.uniform4fv(shu.visibleSphere, this._visibleSphere);
+            gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
+            gl.uniform1f(shu.thicknessScale, 0.5);
+            gl.uniform1f(shu.opacity, this._opacity * ec._fadingOpacity);
+
+            if (this.isTextured) {
+                const timeSec = globalThis.performance.now() * 0.001;
+                gl.uniform1f(shu.time, timeSec % ANIMATION_TIME_WRAP_SEC);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
+                gl.vertexAttribPointer(sha.texCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, this._pathTexParamBuffer!);
+                gl.vertexAttribPointer(sha.textureParams, this._pathTexParamBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, this._pathPhaseBuffer!);
+                gl.vertexAttribPointer(sha.pathPhase, this._pathPhaseBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, this._boundingSphereBuffer!);
+                gl.vertexAttribPointer(sha.boundingSphere, this._boundingSphereBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+            }
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._colorsBuffer!);
+            gl.vertexAttribPointer(sha.color, this._colorsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer!);
+            gl.vertexAttribPointer(sha.thickness, this._thicknessBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            let v = this._verticesHighBuffer!;
+            gl.bindBuffer(gl.ARRAY_BUFFER, v);
+            gl.vertexAttribPointer(sha.prevHigh, v.itemSize, gl.FLOAT, false, 12, 0);
+            gl.vertexAttribPointer(sha.currentHigh, v.itemSize, gl.FLOAT, false, 12, 48);
+            gl.vertexAttribPointer(sha.nextHigh, v.itemSize, gl.FLOAT, false, 12, 96);
+
+            v = this._verticesLowBuffer!;
+            gl.bindBuffer(gl.ARRAY_BUFFER, v);
+            gl.vertexAttribPointer(sha.prevLow, v.itemSize, gl.FLOAT, false, 12, 0);
+            gl.vertexAttribPointer(sha.currentLow, v.itemSize, gl.FLOAT, false, 12, 48);
+            gl.vertexAttribPointer(sha.nextLow, v.itemSize, gl.FLOAT, false, 12, 96);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer!);
+            gl.vertexAttribPointer(sha.order, this._ordersBuffer!.itemSize, gl.FLOAT, false, 4, 0);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer!);
+            gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
+
+            gl.enable(gl.CULL_FACE);
+        }
+    }
+
+    public drawTransparent() {
+        if (this.visibility && this._path3v.length) {
+            this._update();
+
+            let r = this._renderNode!.renderer!;
+            let sh = this.isTextured ? r.handler.programs.polylineWoitTex : r.handler.programs.polylineWoitPlain;
             let p = sh._program;
             let gl = r.handler.gl!,
                 sha = p.attributes,

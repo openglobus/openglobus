@@ -65,6 +65,8 @@ class PolylineHandler {
         this._renderer.addPrograms(
             shaders.polylineTex(),
             shaders.polylinePlain(),
+            shaders.polylineWoitTex(),
+            shaders.polylineWoitPlain(),
             shaders.polyline_picking()
         );
     }
@@ -132,16 +134,16 @@ class PolylineHandler {
 
     public drawForward() {
         this.drawOpaque();
-        this.drawTransparent();
     }
 
     public drawOpaque() {
         this._updateRTCEyePosition();
-        this._opaqueRenderer.draw();
+        this._opaqueRenderer.drawOpaque();
     }
 
     public drawTransparent() {
-        this._transparentRenderer.draw();
+        this._updateRTCEyePosition();
+        this._transparentRenderer.drawTransparent();
     }
 
     public drawPicking() {

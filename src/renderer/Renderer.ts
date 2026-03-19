@@ -1008,9 +1008,11 @@ class Renderer {
                 ec[i]._fadingOpacity && ec[i].stripHandler.drawTransparent();
             }
 
-            //
-            //...
-            //
+            // polyline pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].polylineHandler.drawTransparent();
+            }
 
             gl.depthMask(true);
         }
