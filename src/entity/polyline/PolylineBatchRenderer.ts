@@ -4394,7 +4394,7 @@ class PolylineBatchRenderer {
             this._update();
 
             let r = this._renderNode!.renderer!;
-            let sh = this.isTextured ? r.handler.programs.polylineWoitTex : r.handler.programs.polylineWoitPlain;
+            let sh = this.isTextured ? r.handler.programs.polylineTexWoit : r.handler.programs.polylineWoitPlain;
             let p = sh._program;
             let gl = r.handler.gl!,
                 sha = p.attributes,

@@ -35,7 +35,6 @@ export interface IPolylineParams {
     opacity?: number;
     color?: string | string[];
     visibility?: boolean;
-    isTextured?: boolean;
     isClosed?: boolean;
     pathColors?: SegmentPathColor[];
     path3v?: SegmentPath3vExt[];
@@ -57,7 +56,7 @@ export interface IPolylineParams {
  * @param {SegmentPathLonLatExt[]} [options.pathLonLat] - Polyline geodetic coordinates array. [[[0,0,0], [1,1,1],...]]
  * @param {SegmentPath3vExt[]} [options.path3v] - LinesString cartesian coordinates array. [[[0,0,0], [1,1,1],...]]
  * @param {SegmentPathColor[]} [options.pathColors] - Coordinates color. [[[1,0,0,1], [0,1,0,1],...]] for right and green colors.
- * @param {TexParam[]} [options.texParams] - Per-segment texture params: texOffset, strokeSize and texOffsetSpeed.
+ * @param {TexParam} [options.texParams] - Texture params for all segments: texOffset, strokeSize and texOffsetSpeed.
  */
 class Polyline {
     static __counter__: number = 0;
@@ -77,6 +76,7 @@ class Polyline {
     protected _pathLonLat: SegmentPathLonLatExt[];
     protected _pathColors: SegmentPathColor[];
     protected _color: string[];
+    protected _segmentTexParams: Partial<TexParam> | null;
 
     protected _src: StrokeSource;
 
@@ -101,6 +101,7 @@ class Polyline {
 
         this._pathColors = options.pathColors || [];
         this._color = Array.isArray(options.color) ? options.color.slice() : (options.color ? [options.color] : []);
+        this._segmentTexParams = options.texParams ? {...options.texParams} : null;
 
         this._entity = null;
 
@@ -233,10 +234,14 @@ class Polyline {
         if (this._isClosed) {
             br.setPathClosed(this._isClosed, batchIndex);
         }
-        if (this._image) {
-            br.setPathSrc(this._image, batchIndex);
-        } else if (this._src) {
+        if (this._src != null) {
             br.setPathSrc(this._src, batchIndex);
+        } else if (this._image) {
+            br.setPathSrc(this._image, batchIndex);
+        }
+        const texParams = this._segmentTexParams;
+        if (texParams) {
+            br.setPathTexParams(texParams.texOffset, texParams.strokeSize, texParams.texOffsetSpeed, batchIndex);
         }
     }
 
@@ -374,10 +379,29 @@ class Polyline {
      */
     public setSrc(src: StrokeSource) {
         this._src = src;
-        if (this._batchRenderer) {
-            for (let i = 0; i < this._batchRendererIndexes.length; i++) {
-                this._batchRenderer.setPathSrc(src, this._batchRendererIndexes[i]);
-            }
+
+        if (src == null) {
+            this._image = null;
+        }
+
+        if (!this._handler || !this._batchRenderer) {
+            return;
+        }
+
+        const targetRenderer = this._handler.getRenderer(this._opacity, src != null);
+        if (this._batchRenderer !== targetRenderer) {
+            this._removeFromBatchRenderer();
+            this._batchRenderer = targetRenderer;
+            this._addToBatchRenderer();
+            return;
+        }
+
+        if (!this._batchRenderer.isTextured) {
+            return;
+        }
+
+        for (let i = 0; i < this._batchRendererIndexes.length; i++) {
+            this._batchRenderer.setPathSrc(src, this._batchRendererIndexes[i]);
         }
     }
 
@@ -769,7 +793,7 @@ class Polyline {
             return;
         }
 
-        const targetRenderer = this._handler.getRendererByOpacity(opacity);
+        const targetRenderer = this._handler.getRenderer(opacity, this._src != null);
         if (this._batchRenderer !== targetRenderer) {
             this._removeFromBatchRenderer();
             this._batchRenderer = targetRenderer;
@@ -836,18 +860,24 @@ class Polyline {
     }
 
     public setPathTexOffset(texOffset: number, segmentIndex: number): void {
+        const texParams = this._segmentTexParams || (this._segmentTexParams = {});
+        texParams.texOffset = texOffset;
         if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
             this._batchRenderer.setPathTexOffset(texOffset, this._batchRendererIndexes[segmentIndex]);
         }
     }
 
     public setPathStrokeSize(strokeSize: number, segmentIndex: number): void {
+        const texParams = this._segmentTexParams || (this._segmentTexParams = {});
+        texParams.strokeSize = strokeSize;
         if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
             this._batchRenderer.setPathStrokeSize(strokeSize, this._batchRendererIndexes[segmentIndex]);
         }
     }
 
     public setPathTexOffsetSpeed(texOffsetSpeed: number, segmentIndex: number): void {
+        const texParams = this._segmentTexParams || (this._segmentTexParams = {});
+        texParams.texOffsetSpeed = texOffsetSpeed;
         if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
             this._batchRenderer.setPathTexOffsetSpeed(texOffsetSpeed, this._batchRendererIndexes[segmentIndex]);
         }
@@ -922,6 +952,7 @@ class Polyline {
         this._path3v = [];
         this._pathLonLat = [];
         this._pathColors = [];
+        this._segmentTexParams = null;
     }
 
     /**

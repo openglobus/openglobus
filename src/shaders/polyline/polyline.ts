@@ -67,8 +67,8 @@ export function polylinePlain(): Program {
     });
 }
 
-export function polylineWoitTex(): Program {
-    return new Program('polylineWoitTex', {
+function createPolylineTexWoitProgram(name: string): Program {
+    return new Program(name, {
         uniforms: {
             ...SHARED_UNIFORMS,
             time: 'float',
@@ -84,6 +84,14 @@ export function polylineWoitTex(): Program {
         vertexShader: polyline_tex_vert,
         fragmentShader: polyline_woit_frag
     });
+}
+
+export function polylineTexWoit(): Program {
+    return createPolylineTexWoitProgram('polylineTexWoit');
+}
+
+export function polylineWoitTex(): Program {
+    return createPolylineTexWoitProgram('polylineWoitTex');
 }
 
 export function polylineWoitPlain(): Program {
