@@ -10,6 +10,7 @@ import {Object3d} from "../../Object3d";
 import {InstanceData} from "./InstanceData";
 import {Renderer} from "../../renderer/Renderer";
 import {RenderNode} from "../../scene/RenderNode";
+import type {Program} from "../../webgl/Program";
 
 //@todo: enums, i know...nah...
 export const VERTEX_BUFFER = 0;
@@ -87,15 +88,12 @@ export class GeoObjectHandler {
 
     public initProgram() {
         if (this._renderer) {
-            if (!this._renderer.handler.programs.geo_object) {
-                this._renderer.handler.addProgram(shaders.geo_object());
-            }
-            if (!this._renderer.handler.programs.geo_object_picking) {
-                this._renderer.handler.addProgram(shaders.geo_object_picking());
-            }
-            if (!this._renderer.handler.programs.geo_object_depth) {
-                this._renderer.handler.addProgram(shaders.geo_object_depth());
-            }
+            this._renderer.addPrograms(
+                shaders.geo_object(),
+                shaders.geo_object_woit(),
+                shaders.geo_object_picking(),
+                shaders.geo_object_depth()
+            );
         }
     }
 
@@ -323,11 +321,9 @@ export class GeoObjectHandler {
     //
     // Could be in VAO
     //
-    protected _bindCommon() {
+    protected _bindCommon(p: Program) {
 
         let r = this._renderer!,
-            sh = r.handler.programs.geo_object,
-            p = sh._program,
             u = p.uniforms,
             gl = r.handler.gl!,
             ec = this._entityCollection;
@@ -359,7 +355,7 @@ export class GeoObjectHandler {
 
         sh.activate();
 
-        this._bindCommon();
+        this._bindCommon(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             let instanceData = this._instanceDataMapValues[i];
@@ -369,14 +365,14 @@ export class GeoObjectHandler {
 
     public _displayTransparentPASS() {
         let r = this._renderer!,
-            sh = r.handler.programs.geo_object,
+            sh = r.handler.programs.geo_object_woit,
             p = sh._program;
 
         sh.activate();
 
         //gl.disable(gl.CULL_FACE);
 
-        this._bindCommon();
+        this._bindCommon(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
