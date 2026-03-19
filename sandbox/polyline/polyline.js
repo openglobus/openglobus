@@ -27,6 +27,7 @@ class MyScene extends RenderNode {
             polyline: {
                 path3v: [[[5, 0, 5], [5, 5, 5], [0, 5, 0]], [[-5, 0, -5], [-5, 5, -5]]],
                 thickness: 22.5,
+                opacity: 0.3,
                 color: ["green", "blue"],
                 src: "template3.png",
                 isTextured: true,

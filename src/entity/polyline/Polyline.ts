@@ -173,19 +173,17 @@ class Polyline {
             for (let i = 0; i < this._path3v.length; i++) {
                 if (!this._path3v[i] || this._path3v[i].length === 0) continue;
                 const batchIndex = br._path3v.length;
-                br.appendPath3v(this._path3v[i], this._pathColors[i]);
+                br.appendPath3v(this._path3v[i], this._pathColors[i], this._opacity);
                 this._batchRendererIndexes.push(batchIndex);
                 this._applySegmentProps(batchIndex, i);
-                //this._path3v[i] = br._path3v[batchIndex];
             }
         } else if (this._pathLonLat.length > 0) {
             for (let i = 0; i < this._pathLonLat.length; i++) {
                 if (!this._pathLonLat[i] || this._pathLonLat[i].length === 0) continue;
                 const batchIndex = br._pathLonLat.length;
-                br.appendPathLonLat(this._pathLonLat[i], this._pathColors[i]);
+                br.appendPathLonLat(this._pathLonLat[i], this._pathColors[i], this._opacity);
                 this._batchRendererIndexes.push(batchIndex);
                 this._applySegmentProps(batchIndex, i);
-                //this._path3v[i] = br._path3v[batchIndex];
             }
         }
 
@@ -223,7 +221,10 @@ class Polyline {
         const segPathColors = this._pathColors[segmentIndex];
         const hasSegmentPathColors = !!segPathColors && segPathColors.length > 0;
         if (htmlColor && !hasSegmentPathColors) {
-            br.setColor(htmlColor, batchIndex);
+            const defaultColor = this._getDefaultPathColor(segmentIndex);
+            if (defaultColor) {
+                br.setPathColors([defaultColor], batchIndex, this._opacity);
+            }
         }
         if (this._pickingColor) {
             br.setPathPickingColor3v(this._pickingColor, batchIndex);
@@ -255,9 +256,9 @@ class Polyline {
         const batchIndex = br._path3v.length;
 
         if (seg3v && seg3v.length > 0) {
-            br.appendPath3v(seg3v, this._pathColors[segmentIndex]);
+            br.appendPath3v(seg3v, this._pathColors[segmentIndex], this._opacity);
         } else if (segLL && segLL.length > 0) {
-            br.appendPathLonLat(segLL, this._pathColors[segmentIndex]);
+            br.appendPathLonLat(segLL, this._pathColors[segmentIndex], this._opacity);
         } else {
             return false;
         }
@@ -520,7 +521,7 @@ class Polyline {
 
         if (this._batchRenderer) {
             if (segmentIndex < this._batchRendererIndexes.length) {
-                this._batchRenderer.addPoint3v(point3v, this._batchRendererIndexes[segmentIndex], color);
+                this._batchRenderer.addPoint3v(point3v, this._batchRendererIndexes[segmentIndex], color, this._opacity);
             } else {
                 this._tryAddSegmentToBatch(segmentIndex);
             }
@@ -547,7 +548,7 @@ class Polyline {
 
         if (this._batchRenderer) {
             if (segmentIndex < this._batchRendererIndexes.length) {
-                this._batchRenderer.addPointLonLat(lonLat, this._batchRendererIndexes[segmentIndex], color);
+                this._batchRenderer.addPointLonLat(lonLat, this._batchRendererIndexes[segmentIndex], color, this._opacity);
             } else {
                 this._tryAddSegmentToBatch(segmentIndex);
             }
@@ -567,7 +568,7 @@ class Polyline {
         segC[index] = color;
 
         if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
-            this._batchRenderer.setPointColor(color, index, this._batchRendererIndexes[segmentIndex]);
+            this._batchRenderer.setPointColor(color, index, this._batchRendererIndexes[segmentIndex], this._opacity);
         }
     }
 
@@ -602,7 +603,7 @@ class Polyline {
 
         if (this._batchRenderer && path3v.length > 1) {
             const batchIndex = this._batchRenderer._path3v.length;
-            this._batchRenderer.appendPath3v(path3v, pathColors);
+            this._batchRenderer.appendPath3v(path3v, pathColors, this._opacity);
             this._batchRendererIndexes.push(batchIndex);
             this._applySegmentProps(batchIndex, this._path3v.length - 1);
             this._path3v[this._path3v.length - 1] = this._batchRenderer._path3v[batchIndex];
@@ -616,7 +617,7 @@ class Polyline {
 
         if (this._batchRenderer && pathLonLat.length > 1) {
             const batchIndex = this._batchRenderer._path3v.length;
-            this._batchRenderer.appendPathLonLat(pathLonLat);
+            this._batchRenderer.appendPathLonLat(pathLonLat, undefined, this._opacity);
             this._batchRendererIndexes.push(batchIndex);
             this._applySegmentProps(batchIndex, this._pathLonLat.length - 1);
             this._path3v[this._pathLonLat.length - 1] = this._batchRenderer._path3v[batchIndex];
@@ -773,6 +774,15 @@ class Polyline {
             this._removeFromBatchRenderer();
             this._batchRenderer = targetRenderer;
             this._addToBatchRenderer();
+            return;
+        }
+
+        if (!this._batchRenderer) {
+            return;
+        }
+
+        for (let i = 0; i < this._batchRendererIndexes.length; i++) {
+            this._batchRenderer.setPathOpacity(this._opacity, this._batchRendererIndexes[i]);
         }
     }
 
@@ -820,7 +830,7 @@ class Polyline {
         this._color[0] = htmlColor;
         if (this._batchRenderer) {
             for (let i = 0; i < this._batchRendererIndexes.length; i++) {
-                this._batchRenderer.setColor(htmlColor, this._batchRendererIndexes[i]);
+                this._batchRenderer.setColor(htmlColor, this._batchRendererIndexes[i], this._opacity);
             }
         }
     }
@@ -876,13 +886,13 @@ class Polyline {
         if (segmentIndex !== undefined) {
             this._pathColors[segmentIndex] = pathColors as SegmentPathColor;
             if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
-                this._batchRenderer.setPathColors(pathColors as SegmentPathColor, this._batchRendererIndexes[segmentIndex]);
+                this._batchRenderer.setPathColors(pathColors as SegmentPathColor, this._batchRendererIndexes[segmentIndex], this._opacity);
             }
         } else {
             this._pathColors = (pathColors as SegmentPathColor[]).slice();
             if (this._batchRenderer) {
                 for (let i = 0; i < this._batchRendererIndexes.length && i < this._pathColors.length; i++) {
-                    this._batchRenderer.setPathColors(this._pathColors[i], this._batchRendererIndexes[i]);
+                    this._batchRenderer.setPathColors(this._pathColors[i], this._batchRendererIndexes[i], this._opacity);
                 }
             }
         }
@@ -896,7 +906,7 @@ class Polyline {
         this._color[0] = htmlColor;
         if (this._batchRenderer) {
             for (let i = 0; i < this._batchRendererIndexes.length; i++) {
-                this._batchRenderer.setColor(htmlColor, this._batchRendererIndexes[i]);
+                this._batchRenderer.setColor(htmlColor, this._batchRendererIndexes[i], this._opacity);
             }
         }
     }

@@ -76,8 +76,9 @@ const createMirroredPoint = (p0: Vec3, p1: Vec3): Vec3 => {
     return new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
 };
 
-const pushQuadColor = (outColors: number[], color: NumberArray4) => {
-    const a = color[A] != undefined ? color[A] : 1.0;
+const pushQuadColor = (outColors: number[], color: NumberArray4, opacity: number) => {
+    let a = color[A] != undefined ? color[A] : 1.0;
+    a *= opacity;
     outColors.push(
         color[R], color[G], color[B], a,
         color[R], color[G], color[B], a,
@@ -284,6 +285,7 @@ class PolylineBatchRenderer {
     public _pathLonLatMerc: LonLat[][];
 
     protected _pathColors: SegmentPathColor[];
+    protected _segmentOpacity: number[];
     protected _segmentThickness: number[];
     protected _segmentTexParams: (TexParam | undefined)[];
 
@@ -382,6 +384,7 @@ class PolylineBatchRenderer {
         this._pathLonLatMerc = [];
 
         this._pathColors = options.pathColors ? cloneArray(options.pathColors) : this._normalizePathColorInput(options.color);
+        this._segmentOpacity = [];
         this._segmentThickness = [];
         this._segmentTexParams = this.isTextured && options.texParams
             ? options.texParams.map((p) => ({
@@ -1270,6 +1273,7 @@ class PolylineBatchRenderer {
         pathColors: SegmentPathColor[],
         pathPickingColors: NumberArray3[][],
         defaultColor: NumberArray4,
+        opacity: number[],
         pathClosed: boolean[],
         outVerticesHigh: number[],
         outVerticesLow: number[],
@@ -1302,6 +1306,7 @@ class PolylineBatchRenderer {
 
         for (let j = 0, len = pathInput.length; j < len; j++) {
             const segIndex = segmentOffset + j;
+            const segOpacity = opacity[segIndex] ?? 1.0;
             const segmentClosed = pathClosed[segIndex] === true;
             const path = pathInput[j] as (Cartesian[] | Geodetic[]);
             const pathColors_j = pathColors[j];
@@ -1366,7 +1371,7 @@ class PolylineBatchRenderer {
             this._pushQuadVertices(last, vHigh, vLow, outVerticesHigh, outVerticesLow);
 
             if (segIndex > 0) {
-                pushQuadColor(outColors, color);
+                pushQuadColor(outColors, color, segOpacity);
                 pushQuadThickness(outThickness, thickness);
                 pushQuadPicking(outPickingColors, pickingColor);
                 if (useTextureData) {
@@ -1399,7 +1404,7 @@ class PolylineBatchRenderer {
                 }
 
                 this._pushQuadVertices(cur, vHigh, vLow, outVerticesHigh, outVerticesLow);
-                pushQuadColor(outColors, color);
+                pushQuadColor(outColors, color, segOpacity);
                 pushQuadThickness(outThickness, thickness);
                 pushQuadPicking(outPickingColors, pickingColor);
 
@@ -1433,7 +1438,7 @@ class PolylineBatchRenderer {
             }
 
             this._pushQuadVertices(first, vHigh, vLow, outVerticesHigh, outVerticesLow);
-            pushQuadColor(outColors, color);
+            pushQuadColor(outColors, color, segOpacity);
             pushQuadThickness(outThickness, thickness);
             pushQuadPicking(outPickingColors, pickingColor);
 
@@ -1460,6 +1465,7 @@ class PolylineBatchRenderer {
         pathColors: SegmentPathColor[],
         pathPickingColors: NumberArray3[][],
         defaultColor: NumberArray4,
+        opacity: number[],
         pathClosed: boolean[],
         outVerticesHigh: number[],
         outVerticesLow: number[],
@@ -1482,6 +1488,7 @@ class PolylineBatchRenderer {
             pathColors,
             pathPickingColors,
             defaultColor,
+            opacity,
             pathClosed,
             outVerticesHigh,
             outVerticesLow,
@@ -1587,7 +1594,8 @@ class PolylineBatchRenderer {
         pathLonLat: SegmentPathLonLatExt[],
         pathColors: SegmentPathColor[],
         defaultColor: NumberArray4,
-        outColors: number[]
+        outColors: number[],
+        opacity: number = 1.0
     ) {
         for (let j = 0, len = pathLonLat.length; j < len; j++) {
             var path = pathLonLat[j],
@@ -1605,7 +1613,7 @@ class PolylineBatchRenderer {
             let r = color[R],
                 g = color[G],
                 b = color[B],
-                a = color[A] != undefined ? color[A] : 1.0;
+                a = (color[A] != undefined ? color[A] : 1.0) * opacity;
 
             if (j > 0) {
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
@@ -1620,7 +1628,7 @@ class PolylineBatchRenderer {
                 r = color[R];
                 g = color[G];
                 b = color[B];
-                a = color[A] != undefined ? color[A] : 1.0;
+                a = (color[A] != undefined ? color[A] : 1.0) * opacity;
 
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
             }
@@ -1632,7 +1640,7 @@ class PolylineBatchRenderer {
             r = color[R];
             g = color[G];
             b = color[B];
-            a = color[A] != undefined ? color[A] : 1.0;
+            a = (color[A] != undefined ? color[A] : 1.0) * opacity;
 
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
         }
@@ -1647,6 +1655,7 @@ class PolylineBatchRenderer {
         pathColors: SegmentPathColor[],
         pathPickingColors: NumberArray3[][],
         defaultColor: NumberArray4,
+        opacity: number[],
         pathClosed: boolean[],
         outVerticesHigh: number[],
         outVerticesLow: number[],
@@ -1669,6 +1678,7 @@ class PolylineBatchRenderer {
             pathColors,
             pathPickingColors,
             defaultColor,
+            opacity,
             pathClosed,
             outVerticesHigh,
             outVerticesLow,
@@ -2780,6 +2790,10 @@ class PolylineBatchRenderer {
             this._pathPickingColors.splice(index, 1);
         }
 
+        if (index < this._segmentOpacity.length) {
+            this._segmentOpacity.splice(index, 1);
+        }
+
         if (index < this._src.length) {
             this._src.splice(index, 1);
         }
@@ -2868,12 +2882,13 @@ class PolylineBatchRenderer {
         this._markGeometryBuffersChanged(true);
     }
 
-    public appendPath3v(path3v: SegmentPath3vExt, pathColors?: NumberArray4[]) {
+    public appendPath3v(path3v: SegmentPath3vExt, pathColors?: NumberArray4[], opacity: number = 1.0) {
         if (!path3v || path3v.length === 0) {
             return;
         }
 
         const segIndex = this._path3v.length;
+        this._segmentOpacity[segIndex] = opacity;
 
         this._path3v.push(path3v);
         this._pathLonLat.push([]);
@@ -2925,6 +2940,7 @@ class PolylineBatchRenderer {
             [this._pathColors[segIndex] || []],
             [segPickingColors],
             this._defaultColor as NumberArray4,
+            this._segmentOpacity,
             this._pathClosed,
             this._verticesHigh as number[],
             this._verticesLow as number[],
@@ -2955,11 +2971,12 @@ class PolylineBatchRenderer {
         }
     }
 
-    public appendPathLonLat(pathLonLat: SegmentPathLonLatExt, pathColors?: NumberArray4[]) {
+    public appendPathLonLat(pathLonLat: SegmentPathLonLatExt, pathColors?: NumberArray4[], opacity: number = 1) {
 
         if (!pathLonLat || pathLonLat.length === 0) return;
 
         const segIndex = this._pathLonLat.length;
+        this._segmentOpacity[segIndex] = opacity;
 
         this._path3v.push([]);
         this._pathLonLat.push(pathLonLat);
@@ -3011,6 +3028,7 @@ class PolylineBatchRenderer {
             [this._pathColors[segIndex] || []],
             [segPickingColors],
             this._defaultColor as NumberArray4,
+            this._segmentOpacity,
             this._pathClosed,
             this._verticesHigh as number[],
             this._verticesLow as number[],
@@ -3116,7 +3134,7 @@ class PolylineBatchRenderer {
      * @param {number} [segmentIndex=0] - Path segment index, first by default.
      * @param {NumberArray4} [color] - Point color
      */
-    public addPoint3v(point3v: Vec3, segmentIndex: number = 0, color?: NumberArray4) {
+    public addPoint3v(point3v: Vec3, segmentIndex: number = 0, color?: NumberArray4, opacity: number = 1) {
 
         if (segmentIndex < 0) return;
 
@@ -3149,7 +3167,7 @@ class PolylineBatchRenderer {
         }
 
         if (segmentIndex >= this._path3v.length) {
-            this.appendPath3v([point3v], color ? [color] : undefined);
+            this.appendPath3v([point3v], color ? [color] : undefined, opacity);
             return;
         }
 
@@ -3262,7 +3280,7 @@ class PolylineBatchRenderer {
         const cArr = this._colors as Float32Array;
         const cBase = oldAttrCapGroup * 16;
         const cc: NumberArray4 = segColors[segColors.length - 1] || this._defaultColor;
-        const cr = cc[R], cg = cc[G], cb = cc[B], ca = cc[A] != undefined ? cc[A] : 1.0;
+        const cr = cc[R], cg = cc[G], cb = cc[B], ca = (cc[A] != undefined ? cc[A] : 1.0) * opacity;
 
         for (let k = 0; k < 16; k += 4) {
             cArr[cBase + k] = cr;
@@ -3334,8 +3352,9 @@ class PolylineBatchRenderer {
      * @param {LonLat} lonLat - New coordinate.
      * @param {number} [segmentIndex=0] - Path segment index, first by default.
      * @param {NumberArray4} [color] - Point color.
+     * @param {number} [opacity=1]
      */
-    public addPointLonLat(lonLat: LonLat, segmentIndex: number = 0, color?: NumberArray4) {
+    public addPointLonLat(lonLat: LonLat, segmentIndex: number = 0, color?: NumberArray4, opacity: number = 1) {
 
         if (segmentIndex < 0) {
             return;
@@ -3376,10 +3395,10 @@ class PolylineBatchRenderer {
         const point3v = ellipsoid.lonLatToCartesian(lonLat);
 
         if (segmentIndex >= this._path3v.length) {
-            this.appendPath3v([point3v], color ? [color] : undefined);
+            this.appendPath3v([point3v], color ? [color] : undefined, opacity);
             segmentIndex = this._path3v.length - 1;
         } else {
-            this.addPoint3v(point3v, segmentIndex, color);
+            this.addPoint3v(point3v, segmentIndex, color, opacity);
         }
 
         const segLonLat = this._pathLonLat[segmentIndex] || (this._pathLonLat[segmentIndex] = []);
@@ -3410,6 +3429,7 @@ class PolylineBatchRenderer {
     public clear() {
         this._clearData();
         this._pathClosed = [];
+        this._segmentOpacity = [];
         this._src = [];
         this._image = [];
     }
@@ -3419,8 +3439,9 @@ class PolylineBatchRenderer {
      * @param {NumberArray4} color - New color
      * @param {number} [index=0] - Point index
      * @param {number} [segmentIndex=0] - Path segment index
+     * @param {number} [opacity=1.0]
      */
-    public setPointColor(color: NumberArray4, index: number = 0, segmentIndex: number = 0) {
+    public setPointColor(color: NumberArray4, index: number = 0, segmentIndex: number = 0, opacity: number = 1.0) {
         if (this._renderNode && index < this._path3v[segmentIndex].length) {
             let colors = this._pathColors[segmentIndex];
 
@@ -3448,7 +3469,7 @@ class PolylineBatchRenderer {
             c[k] = c[k + 4] = c[k + 8] = c[k + 12] = color[R];
             c[k + 1] = c[k + 5] = c[k + 9] = c[k + 13] = color[G];
             c[k + 2] = c[k + 6] = c[k + 10] = c[k + 14] = color[B];
-            c[k + 3] = c[k + 7] = c[k + 11] = c[k + 15] = color[A] || 1.0;
+            c[k + 3] = c[k + 7] = c[k + 11] = c[k + 15] = (color[A] || 1.0) * opacity;
 
             this._changedBuffers[COLORS_BUFFER] = true;
         } else {
@@ -3457,22 +3478,22 @@ class PolylineBatchRenderer {
         }
     }
 
-    /**
-     * Sets polyline opacity.
-     * @public
-     * @param {number} opacity - Opacity.
-     */
-    public setOpacity(opacity: number) {
-        this._opacity = opacity;
-    }
+    // /**
+    //  * Sets polyline opacity.
+    //  * @public
+    //  * @param {number} opacity - Opacity.
+    //  */
+    // public setOpacity(opacity: number) {
+    //     this._opacity = opacity;
+    // }
 
-    /**
-     * Gets polyline opacity.
-     * @public
-     */
-    public getOpacity(): number {
-        return this._opacity;
-    }
+    // /**
+    //  * Gets polyline opacity.
+    //  * @public
+    //  */
+    // public getOpacity(): number {
+    //     return this._opacity;
+    // }
 
     /**
      * Sets Polyline thickness in screen pixels.
@@ -3527,8 +3548,8 @@ class PolylineBatchRenderer {
      * @param {number} [segmentIndex]
      */
     public setColor(htmlColor: string): void;
-    public setColor(htmlColor: string, segmentIndex: number): void;
-    public setColor(htmlColor: string, segmentIndex?: number): void {
+    public setColor(htmlColor: string, segmentIndex: number, opacity?: number): void;
+    public setColor(htmlColor: string, segmentIndex?: number, opacity: number = 1): void {
 
         const segIndex = segmentIndex !== undefined ? segmentIndex : Math.max(0, this._path3v.length - 1);
         const rgba = htmlColorToRgba(htmlColor);
@@ -3541,7 +3562,7 @@ class PolylineBatchRenderer {
 
         if (segIndex < 0 || segIndex >= this._path3v.length) return;
 
-        this.setPathColors([color], segIndex);
+        this.setPathColors([color], segIndex, opacity);
     }
 
     public setPathTexParams(texOffset: number | undefined, strokeSize: number | undefined, segmentIndex: number): void;
@@ -3710,6 +3731,7 @@ class PolylineBatchRenderer {
             this._pathColors,
             this._pathPickingColors,
             this._defaultColor as NumberArray4,
+            this._segmentOpacity,
             this._pathClosed,
             this._verticesHigh as number[],
             this._verticesLow as number[],
@@ -3743,6 +3765,7 @@ class PolylineBatchRenderer {
             this._pathColors,
             this._pathPickingColors,
             this._defaultColor as NumberArray4,
+            this._segmentOpacity,
             this._pathClosed,
             this._verticesHigh as number[],
             this._verticesLow as number[],
@@ -3776,6 +3799,9 @@ class PolylineBatchRenderer {
 
         this._pathColors.length = 0;
         this._pathColors = [];
+
+        this._segmentOpacity.length = 0;
+        this._segmentOpacity = [];
 
         this._segmentThickness.length = 0;
         this._segmentThickness = [];
@@ -3903,14 +3929,69 @@ class PolylineBatchRenderer {
         return this._pathColors;
     }
 
+    public setPathOpacity(opacity: number): void;
+    public setPathOpacity(opacity: number, segmentIndex: number): void;
+    public setPathOpacity(opacity: number, segmentIndex?: number) {
+        if (segmentIndex === undefined) {
+            for (let i = 0; i < this._path3v.length; i++) {
+                this.setPathOpacity(opacity, i);
+            }
+            return;
+        }
+
+        if (segmentIndex < 0 || segmentIndex >= this._path3v.length) {
+            return;
+        }
+
+        this._segmentOpacity[segmentIndex] = opacity;
+
+        const segPath = this._path3v[segmentIndex];
+        if (!segPath || segPath.length === 0 || !this._renderNode) {
+            return;
+        }
+
+        const segColors = this._pathColors[segmentIndex];
+        const segInputCount = segColors ? segColors.length : 0;
+        const lastInputColor = segInputCount > 0 ? segColors![segInputCount - 1] : undefined;
+        let currentColor = (segColors && segColors[0]) ? segColors[0] : (this._defaultColor as NumberArray4);
+
+        const groupsBefore = segmentIndex === 0 ? 0 : (this._pathLengths[segmentIndex] + 2 * segmentIndex - 1);
+        const start = groupsBefore * 16;
+        const c = this._colors as number[];
+        let ck = start;
+
+        if (segmentIndex > 0) {
+            const a = (currentColor[A] != undefined ? currentColor[A] : 1.0) * opacity;
+            c[ck + 3] = c[ck + 7] = c[ck + 11] = c[ck + 15] = a;
+            ck += 16;
+        }
+
+        for (let i = 0, len = segPath.length; i < len; i++) {
+            if (segColors && segColors[i]) {
+                currentColor = segColors[i];
+            } else if (lastInputColor && i >= segInputCount) {
+                currentColor = lastInputColor;
+            }
+
+            const a = (currentColor[A] != undefined ? currentColor[A] : 1.0) * opacity;
+            c[ck + 3] = c[ck + 7] = c[ck + 11] = c[ck + 15] = a;
+            ck += 16;
+        }
+
+        currentColor = (segColors && segColors[segPath.length - 1]) || lastInputColor || currentColor;
+        const a = (currentColor[A] != undefined ? currentColor[A] : 1.0) * opacity;
+        c[ck + 3] = c[ck + 7] = c[ck + 11] = c[ck + 15] = a;
+
+        this._changedBuffers[COLORS_BUFFER] = true;
+    }
+
     public setPathColors(pathColors: SegmentPathColor[]): void;
-    public setPathColors(pathColors: SegmentPathColor, segmentIndex: number): void;
-    public setPathColors(pathColors: SegmentPathColor[] | SegmentPathColor, segmentIndex?: number) {
+    public setPathColors(pathColors: SegmentPathColor, segmentIndex: number, opacity?: number): void;
+    public setPathColors(pathColors: SegmentPathColor[] | SegmentPathColor, segmentIndex?: number, opacity: number = 1.0) {
 
         if (!pathColors) return;
 
         if (segmentIndex === undefined) {
-
             this._colors = [];
             this._pathColors = ([] as SegmentPathColor[]).concat(pathColors as SegmentPathColor[]);
             const hasLonLatTemplate = this._pathLonLat.length > 0 && this._pathLonLat.some((seg) => seg && seg.length > 0);
@@ -3920,7 +4001,8 @@ class PolylineBatchRenderer {
                 colorTemplate,
                 pathColors as SegmentPathColor[],
                 this._defaultColor as NumberArray4,
-                this._colors
+                this._colors,
+                opacity
             );
             this._changedBuffers[COLORS_BUFFER] = true;
             return;
@@ -3929,6 +4011,8 @@ class PolylineBatchRenderer {
         if (segmentIndex < 0 || segmentIndex >= this._path3v.length) {
             return;
         }
+
+        this._segmentOpacity[segmentIndex] = opacity;
 
         const segPath = this._path3v[segmentIndex];
 
@@ -3971,7 +4055,7 @@ class PolylineBatchRenderer {
             currentColor = lastInputColor;
         }
         if (segmentIndex > 0) {
-            const a = currentColor[A] != undefined ? currentColor[A] : 1.0;
+            const a = (currentColor[A] != undefined ? currentColor[A] : 1.0) * opacity;
             c[ck] = c[ck + 4] = c[ck + 8] = c[ck + 12] = currentColor[R];
             c[ck + 1] = c[ck + 5] = c[ck + 9] = c[ck + 13] = currentColor[G];
             c[ck + 2] = c[ck + 6] = c[ck + 10] = c[ck + 14] = currentColor[B];
@@ -3989,7 +4073,7 @@ class PolylineBatchRenderer {
 
             segColors[i] = currentColor;
 
-            const a = currentColor[A] != undefined ? currentColor[A] : 1.0;
+            const a = (currentColor[A] != undefined ? currentColor[A] : 1.0) * opacity;
 
             c[ck] = c[ck + 4] = c[ck + 8] = c[ck + 12] = currentColor[R];
             c[ck + 1] = c[ck + 5] = c[ck + 9] = c[ck + 13] = currentColor[G];
@@ -4001,7 +4085,7 @@ class PolylineBatchRenderer {
 
         currentColor = segColorsInput[segPath.length - 1] || lastInputColor || currentColor;
 
-        const a = currentColor[A] != undefined ? currentColor[A] : 1.0;
+        const a = (currentColor[A] != undefined ? currentColor[A] : 1.0) * opacity;
 
         c[ck] = c[ck + 4] = c[ck + 8] = c[ck + 12] = currentColor[R];
         c[ck + 1] = c[ck + 5] = c[ck + 9] = c[ck + 13] = currentColor[G];
@@ -4011,37 +4095,37 @@ class PolylineBatchRenderer {
         this._changedBuffers[COLORS_BUFFER] = true;
     }
 
-    /**
-     * Sets polyline color
-     * @param {string} htmlColor - HTML color.
-     */
-    public setColorHTML(htmlColor: string) {
-
-        this._defaultColor = htmlColorToFloat32Array(htmlColor);
-
-        let color = htmlColorToRgba(htmlColor),
-            p = this._pathColors;
-
-        for (let i = 0, len = p.length; i < len; i++) {
-            let s = p[i];
-            for (let j = 0, slen = s.length; j < slen; j++) {
-                s[j][0] = color.x;
-                s[j][1] = color.y;
-                s[j][2] = color.z;
-                s[j][3] = color.w;
-            }
-        }
-
-        let c = this._colors;
-        for (let i = 0, len = c.length; i < len; i += 4) {
-            c[i] = color.x;
-            c[i + 1] = color.y;
-            c[i + 2] = color.z;
-            c[i + 3] = color.w;
-        }
-
-        this._changedBuffers[COLORS_BUFFER] = true;
-    }
+    // /**
+    //  * Sets polyline color
+    //  * @param {string} htmlColor - HTML color.
+    //  */
+    // public setColorHTML(htmlColor: string) {
+    //
+    //     this._defaultColor = htmlColorToFloat32Array(htmlColor);
+    //
+    //     let color = htmlColorToRgba(htmlColor),
+    //         p = this._pathColors;
+    //
+    //     for (let i = 0, len = p.length; i < len; i++) {
+    //         let s = p[i];
+    //         for (let j = 0, slen = s.length; j < slen; j++) {
+    //             s[j][0] = color.x;
+    //             s[j][1] = color.y;
+    //             s[j][2] = color.z;
+    //             s[j][3] = color.w;
+    //         }
+    //     }
+    //
+    //     let c = this._colors;
+    //     for (let i = 0, len = c.length; i < len; i += 4) {
+    //         c[i] = color.x;
+    //         c[i + 1] = color.y;
+    //         c[i + 2] = color.z;
+    //         c[i + 3] = color.w;
+    //     }
+    //
+    //     this._changedBuffers[COLORS_BUFFER] = true;
+    // }
 
     public setPathLonLatFast(pathLonLat: SegmentPathLonLatExt[], pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4) {
 
