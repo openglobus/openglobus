@@ -1002,6 +1002,15 @@ class Renderer {
                 }
             }
 
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
+
+            // rays
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].rayHandler.drawTransparent();
+            }
+
             // Strip pass
             i = ec.length;
             while (i--) {
@@ -1711,6 +1720,10 @@ class Renderer {
                 this.addProgram(p);
             }
         }
+    }
+
+    public addShaders(...programs: (Program | Program[])[]) {
+        this.addPrograms(...programs);
     }
 }
 

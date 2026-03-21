@@ -7,6 +7,7 @@ import {Renderer} from "../../renderer/Renderer";
 import {Vec3} from "../../math/Vec3";
 import {Vec4} from "../../math/Vec4";
 import type {WebGLBufferExt} from "../../webgl/Handler";
+import type {ProgramController} from "../../webgl/ProgramController";
 
 const PICKINGCOLOR_BUFFER = 0;
 const START_POSITION_BUFFER = 1;
@@ -17,6 +18,8 @@ const VERTEX_BUFFER = 5;
 const TEXCOORD_BUFFER = 6;
 const TEXOFFSET_BUFFER = 7;
 const STROKESIZE_BUFFER = 8;
+
+const RAY_VERTICES_COUNT = 6;
 
 /*
  * og.RayHandler
@@ -41,6 +44,7 @@ class RayHandler {
     protected _renderer: Renderer | null;
 
     protected _rays: Ray[];
+    protected _opaqueCounterIndex: number;
 
     protected _vertexBuffer: WebGLBufferExt | null;
     protected _startPositionHighBuffer: WebGLBufferExt | null;
@@ -85,6 +89,7 @@ class RayHandler {
         this._renderer = null;
 
         this._rays = [];
+        this._opaqueCounterIndex = 0;
 
         this._vertexBuffer = null;
         this._startPositionHighBuffer = null;
@@ -131,6 +136,79 @@ class RayHandler {
         }
     }
 
+    protected _isRayOpaque(ray: Ray): boolean {
+        return ray._startColor.w >= 1.0 || ray._endColor.w >= 1.0;
+    }
+
+    protected _swapArrayItems(arr: number[] | TypedArray, itemSize: number, firstIndex: number, secondIndex: number) {
+        if (firstIndex === secondIndex) {
+            return;
+        }
+
+        const firstOffset = firstIndex * itemSize;
+        const secondOffset = secondIndex * itemSize;
+
+        for (let i = 0; i < itemSize; i++) {
+            const tmp = arr[firstOffset + i];
+            arr[firstOffset + i] = arr[secondOffset + i];
+            arr[secondOffset + i] = tmp;
+        }
+    }
+
+    protected _swapRayData(firstIndex: number, secondIndex: number) {
+        if (firstIndex === secondIndex) {
+            return;
+        }
+
+        this._swapArrayItems(this._vertexArr, 12, firstIndex, secondIndex);
+        this._swapArrayItems(this._startPositionHighArr, 18, firstIndex, secondIndex);
+        this._swapArrayItems(this._startPositionLowArr, 18, firstIndex, secondIndex);
+        this._swapArrayItems(this._endPositionHighArr, 18, firstIndex, secondIndex);
+        this._swapArrayItems(this._endPositionLowArr, 18, firstIndex, secondIndex);
+        this._swapArrayItems(this._thicknessArr, 6, firstIndex, secondIndex);
+        this._swapArrayItems(this._rgbaArr, 24, firstIndex, secondIndex);
+        this._swapArrayItems(this._pickingColorArr, 18, firstIndex, secondIndex);
+        this._swapArrayItems(this._texCoordArr, 24, firstIndex, secondIndex);
+        this._swapArrayItems(this._texOffsetArr, 6, firstIndex, secondIndex);
+        this._swapArrayItems(this._strokeSizeArr, 6, firstIndex, secondIndex);
+
+        const firstRay = this._rays[firstIndex];
+        const secondRay = this._rays[secondIndex];
+        this._rays[firstIndex] = secondRay;
+        this._rays[secondIndex] = firstRay;
+        firstRay._handlerIndex = secondIndex;
+        secondRay._handlerIndex = firstIndex;
+    }
+
+    protected _insertRayByOpacity(rayIndex: number, isOpaque: boolean) {
+        if (!isOpaque) {
+            return;
+        }
+
+        const targetIndex = this._opaqueCounterIndex;
+        this._swapRayData(rayIndex, targetIndex);
+        this._opaqueCounterIndex++;
+    }
+
+    protected _updateRayOpacityState(rayIndex: number, isOpaque: boolean): boolean {
+        const wasOpaque = rayIndex < this._opaqueCounterIndex;
+        if (wasOpaque === isOpaque) {
+            return false;
+        }
+
+        if (isOpaque) {
+            const targetIndex = this._opaqueCounterIndex;
+            this._swapRayData(rayIndex, targetIndex);
+            this._opaqueCounterIndex++;
+        } else {
+            this._opaqueCounterIndex--;
+            const targetIndex = this._opaqueCounterIndex;
+            this._swapRayData(rayIndex, targetIndex);
+        }
+
+        return true;
+    }
+
     public reloadTextures() {
         for (let i = 0; i < this._rays.length; i++) {
             let ri = this._rays[i];
@@ -143,10 +221,11 @@ class RayHandler {
     }
 
     public initProgram() {
-        if (this._renderer && this._renderer.handler) {
-            if (!this._renderer.handler.programs.rayScreen) {
-                this._renderer.handler.addProgram(shaders.rayScreen());
-            }
+        if (this._renderer) {
+            this._renderer.addShaders(
+                shaders.rayScreen(),
+                shaders.rayScreenWoit()
+            );
 
             // @todo: ray picking
             // if (!this._renderer.handler.programs.billboardPicking) {
@@ -176,6 +255,7 @@ class RayHandler {
         }
         this._rays.length = 0;
         this._rays = [];
+        this._opaqueCounterIndex = 0;
     }
 
     public clear() {
@@ -264,6 +344,7 @@ class RayHandler {
             ray._handlerIndex = this._rays.length;
             this._rays.push(ray);
             this._addRayToArrays(ray);
+            this._insertRayByOpacity(ray._handlerIndex, this._isRayOpaque(ray));
             this.refresh();
         }
     }
@@ -335,11 +416,11 @@ class RayHandler {
         this._pickingColorArr = concatArrays(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
     }
 
-    protected _displayPASS() {
+    protected _displayPASS(startRayIndex: number, endRayIndex: number, rayProgram: ProgramController) {
         let r = this._renderer!;
         let h = r.handler;
-        h.programs.rayScreen.activate();
-        let sh = h.programs.rayScreen._program;
+        rayProgram.activate();
+        let sh = rayProgram._program;
         let sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -393,7 +474,10 @@ class RayHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._strokeSizeBuffer!);
         gl.vertexAttribPointer(sha.a_strokeSize, this._strokeSizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
+        const numRays = endRayIndex - startRayIndex;
+        if (numRays > 0) {
+            gl.drawArrays(gl.TRIANGLES, startRayIndex * RAY_VERTICES_COUNT, numRays * RAY_VERTICES_COUNT);
+        }
 
         gl.enable(gl.CULL_FACE);
     }
@@ -409,11 +493,14 @@ class RayHandler {
     public drawOpaque() {
         if (this._rays.length) {
             this.update();
-            this._displayPASS();
+            this._displayPASS(0, this._opaqueCounterIndex, this._renderer!.handler.programs.rayScreen);
         }
     }
 
     public drawTransparent() {
+        if (this._opaqueCounterIndex < this._rays.length) {
+            this._displayPASS(this._opaqueCounterIndex, this._rays.length, this._renderer!.handler.programs.rayScreenWoit);
+        }
     }
 
     public drawPicking() {
@@ -431,30 +518,37 @@ class RayHandler {
 
     protected _removeRay(ray: Ray) {
 
-        let ri = ray._handlerIndex;
+        let removeIndex = ray._handlerIndex;
 
-        this._rays.splice(ri, 1);
+        if (removeIndex < this._opaqueCounterIndex) {
+            this._opaqueCounterIndex--;
+            this._swapRayData(removeIndex, this._opaqueCounterIndex);
+            removeIndex = this._opaqueCounterIndex;
+        }
 
-        let i = ri * 24;
+        const lastIndex = this._rays.length - 1;
+        this._swapRayData(removeIndex, lastIndex);
+        this._rays.pop();
+
+        let i = lastIndex * 24;
         this._rgbaArr = spliceArray(this._rgbaArr, i, 24);
         this._texCoordArr = spliceTypedArray(this._texCoordArr, i, 24);
 
-        i = ri * 18;
+        i = lastIndex * 18;
         this._startPositionHighArr = spliceArray(this._startPositionHighArr, i, 18);
         this._startPositionLowArr = spliceArray(this._startPositionLowArr, i, 18);
         this._endPositionHighArr = spliceArray(this._endPositionHighArr, i, 18);
         this._endPositionLowArr = spliceArray(this._endPositionLowArr, i, 18);
         this._pickingColorArr = spliceArray(this._pickingColorArr, i, 18);
 
-        i = ri * 12;
+        i = lastIndex * 12;
         this._vertexArr = spliceArray(this._vertexArr, i, 12);
 
-        i = ri * 6;
+        i = lastIndex * 6;
         this._thicknessArr = spliceArray(this._thicknessArr, i, 6);
         this._texOffsetArr = spliceTypedArray(this._texOffsetArr, i, 6);
         this._strokeSizeArr = spliceTypedArray(this._strokeSizeArr, i, 6);
 
-        this.reindexRaysArray(ri);
         this.refresh();
 
         ray._handlerIndex = -1;
@@ -675,7 +769,12 @@ class RayHandler {
         a[i + 22] = b1;
         a[i + 23] = a1;
 
-        this._changedBuffers[RGBA_BUFFER] = true;
+        const opacityChanged = this._updateRayOpacityState(index, a0 >= 1.0 || a1 >= 1.0);
+        if (opacityChanged) {
+            this.refresh();
+        } else {
+            this._changedBuffers[RGBA_BUFFER] = true;
+        }
     }
 
     public setThicknessArr(index: number, thickness: number) {
