@@ -376,6 +376,10 @@ class EntityCollection {
         this.scaleByDistance[2] = farInvisible || math.MAX32;
     }
 
+    public setVisibleSphere(p: Vec3, r: number) {
+        this.polylineHandler.setVisibleSphere(p, r);
+    }
+
     /**
      * Aligns collection entities to terrain.
      * Currently applies to polyline entities.

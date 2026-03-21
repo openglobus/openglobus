@@ -125,7 +125,7 @@ export class RotateEntity extends Entity {
             let dir_yaw = qNorthFrame.mulVec3(new Vec3(0, 1, 0)).normalize();
             let dir_roll = qRot.mulVec3(new Vec3(0, 0, 1)).normalize();
 
-            this._entityCollection.polylineHandler._opaqueRenderer.setVisibleSphere(cart, Math.abs(dir_pitch.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
+            this._entityCollection.setVisibleSphere(cart, Math.abs(dir_pitch.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
 
             // this.childEntities[0].polyline!.setVisibleSphere(cart, Math.abs(dir_pitch.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
             // this.childEntities[1].polyline!.setVisibleSphere(cart, Math.abs(dir_yaw.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
