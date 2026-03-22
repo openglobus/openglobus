@@ -1,7 +1,6 @@
 #version 300 es
 
 uniform int isOutlinePass;
-uniform int opacityPass;
 
 precision highp float;
 
@@ -42,15 +41,6 @@ void main() {
     }
 
     float sourceAlpha = v_rgba.a;
-    if (opacityPass == 0) {
-        if (sourceAlpha < 0.999) {
-            discard;
-        }
-    } else {
-        if (sourceAlpha < 1e-6 || sourceAlpha >= 0.999) {
-            discard;
-        }
-    }
 
     if (isOutlinePass != 0 && v_outline < 1e-6) {
         discard;

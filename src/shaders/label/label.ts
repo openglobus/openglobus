@@ -21,7 +21,6 @@ export function label_webgl2(): Program {
             scaleByDistance: "vec3",
             opacity: "float",
             isOutlinePass: "int",
-            opacityPass: "int",
             depthOffset: "float"
         },
         attributes: {
@@ -56,7 +55,6 @@ export function label_woit(): Program {
             scaleByDistance: "vec3",
             opacity: "float",
             isOutlinePass: "int",
-            opacityPass: "int",
             depthOffset: "float"
         },
         attributes: {

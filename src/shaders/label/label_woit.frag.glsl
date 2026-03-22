@@ -1,7 +1,6 @@
 #version 300 es
 
 uniform int isOutlinePass;
-uniform int opacityPass;
 
 precision highp float;
 
@@ -52,11 +51,6 @@ void main() {
     }
 
     float alpha = opacity * v_rgba.a;
-    float sourceAlpha = v_rgba.a;
-    float opaqueMask = step(0.999, sourceAlpha);
-    float transparentMask = step(1e-6, sourceAlpha) * (1.0 - opaqueMask);
-    float passMask = opacityPass == 0 ? opaqueMask : transparentMask;
-    alpha *= passMask;
 
     if (alpha <= 1e-5) {
         discard;
