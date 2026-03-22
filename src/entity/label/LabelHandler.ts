@@ -418,6 +418,7 @@ class LabelHandler extends BaseBillboardHandler {
 
         const numLabels = endBillboardIndex - startBillboardIndex;
         if (numLabels <= 0) {
+            gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
             gl.depthMask(prevDepthMask);
             if (useDepthTest) {
                 gl.depthFunc(gl.LESS);
@@ -451,6 +452,7 @@ class LabelHandler extends BaseBillboardHandler {
 
         gl.drawArrays(gl.TRIANGLES, startVertexIndex, vertexCount);
 
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
         gl.depthMask(prevDepthMask);
         if (useDepthTest) {
             gl.depthFunc(gl.LESS);

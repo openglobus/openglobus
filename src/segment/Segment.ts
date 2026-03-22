@@ -1650,6 +1650,14 @@ class Segment {
 
         this.ensureIndexBuffer();
 
+        // Reset all overlay sampler units for the current draw call to avoid stale
+        // bindings from previous passes (including framebuffer attachments).
+        for (let ti = 0; ti < p.SLICE_SIZE; ti++) {
+            p._samplerArr[ti] = ti;
+            gl.activeTexture(gl.TEXTURE0 + ti);
+            gl.bindTexture(gl.TEXTURE_2D, p.transparentTexture!);
+        }
+
         while (li) {
             if (
                 this.layerOverlap(li) &&
@@ -1670,8 +1678,6 @@ class Segment {
                 }
 
                 slice.append(li, m);
-
-                p._samplerArr[n] = n;
 
                 gl.activeTexture(gl.TEXTURE0 + n);
                 gl.bindTexture(gl.TEXTURE_2D, (m.texture || p.transparentTexture)!);
@@ -1804,6 +1810,18 @@ class Segment {
 
         let len = slice.layers.length;
 
+        // Reset all samplers to safe textures first to avoid feedback loops when
+        // some units are not overwritten in this draw call.
+        for (let ti = 0; ti < p.SLICE_SIZE; ti++) {
+            p._samplerArr[ti] = ti;
+            gl.activeTexture(gl.TEXTURE0 + ti);
+            gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture!);
+
+            p._pickingMaskArr[ti] = ti + p.SLICE_SIZE;
+            gl.activeTexture(gl.TEXTURE0 + ti + p.SLICE_SIZE);
+            gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture!);
+        }
+
         for (let n = 0; n < len; n++) {
             notEmpty = true;
 
@@ -1815,11 +1833,9 @@ class Segment {
             p._pickingColorArr[n4 + 2] = li._pickingColor.z / 255.0;
             p._pickingColorArr[n4 + 3] = Number(li._pickingEnabled);
 
-            p._samplerArr[n] = n;
             gl.activeTexture(gl.TEXTURE0 + n);
             gl.bindTexture(gl.TEXTURE_2D, (pm[li.__id].texture || this.planet.transparentTexture)!);
 
-            p._pickingMaskArr[n] = n + p.SLICE_SIZE;
             gl.activeTexture(gl.TEXTURE0 + n + p.SLICE_SIZE);
             gl.bindTexture(gl.TEXTURE_2D, (pm[li.__id].pickingMask || this.planet.transparentTexture)!);
         }
