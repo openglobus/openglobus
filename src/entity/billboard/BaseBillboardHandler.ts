@@ -8,6 +8,7 @@ import {LOCK_FREE} from "../label/LabelWorker";
 import {Vec3} from "../../math/Vec3";
 import {Vec4} from "../../math/Vec4";
 import type {WebGLBufferExt} from "../../webgl/Handler";
+import type {ProgramController} from "../../webgl/ProgramController";
 import {BaseBillboard} from "./BaseBillboard";
 
 const PICKINGCOLOR_BUFFER = 0;
@@ -40,6 +41,7 @@ class BaseBillboardHandler {
     protected _renderer: Renderer | null;
 
     protected _billboards: BaseBillboard[];
+    protected _opaqueCounterIndex: number;
 
     protected _positionHighBuffer: WebGLBufferExt | null;
     protected _positionLowBuffer: WebGLBufferExt | null;
@@ -77,6 +79,7 @@ class BaseBillboardHandler {
         this._renderer = null;
 
         this._billboards = [];
+        this._opaqueCounterIndex = 0;
 
         this._positionHighBuffer = null;
         this._positionLowBuffer = null;
@@ -121,15 +124,84 @@ class BaseBillboardHandler {
         }
     }
 
+    protected _isBillboardOpaque(billboard: BaseBillboard): boolean {
+        return billboard._color.w >= 1.0;
+    }
+
+    protected _swapArrayItems(arr: Float32Array, itemSize: number, firstIndex: number, secondIndex: number) {
+        if (firstIndex === secondIndex) {
+            return;
+        }
+
+        const firstOffset = firstIndex * itemSize;
+        const secondOffset = secondIndex * itemSize;
+
+        for (let i = 0; i < itemSize; i++) {
+            const tmp = arr[firstOffset + i];
+            arr[firstOffset + i] = arr[secondOffset + i];
+            arr[secondOffset + i] = tmp;
+        }
+    }
+
+    protected _swapBillboardData(firstIndex: number, secondIndex: number) {
+        if (firstIndex === secondIndex) {
+            return;
+        }
+
+        this._swapArrayItems(this._rgbaArr, 24, firstIndex, secondIndex);
+        this._swapArrayItems(this._positionHighArr, 18, firstIndex, secondIndex);
+        this._swapArrayItems(this._positionLowArr, 18, firstIndex, secondIndex);
+        this._swapArrayItems(this._offsetArr, 18, firstIndex, secondIndex);
+        this._swapArrayItems(this._pickingColorArr, 18, firstIndex, secondIndex);
+        this._swapArrayItems(this._vertexArr, 12, firstIndex, secondIndex);
+        this._swapArrayItems(this._sizeArr, 12, firstIndex, secondIndex);
+        this._swapArrayItems(this._texCoordArr, 12, firstIndex, secondIndex);
+        this._swapArrayItems(this._rotationArr, 6, firstIndex, secondIndex);
+
+        const firstBillboard = this._billboards[firstIndex];
+        const secondBillboard = this._billboards[secondIndex];
+        this._billboards[firstIndex] = secondBillboard;
+        this._billboards[secondIndex] = firstBillboard;
+        firstBillboard._handlerIndex = secondIndex;
+        secondBillboard._handlerIndex = firstIndex;
+    }
+
+    protected _insertBillboardByOpacity(billboardIndex: number, isOpaque: boolean) {
+        if (!isOpaque) {
+            return;
+        }
+
+        const targetIndex = this._opaqueCounterIndex;
+        this._swapBillboardData(billboardIndex, targetIndex);
+        this._opaqueCounterIndex++;
+    }
+
+    protected _updateBillboardOpacityState(billboardIndex: number, isOpaque: boolean): boolean {
+        const wasOpaque = billboardIndex < this._opaqueCounterIndex;
+        if (wasOpaque === isOpaque) {
+            return false;
+        }
+
+        if (isOpaque) {
+            const targetIndex = this._opaqueCounterIndex;
+            this._swapBillboardData(billboardIndex, targetIndex);
+            this._opaqueCounterIndex++;
+        } else {
+            this._opaqueCounterIndex--;
+            const targetIndex = this._opaqueCounterIndex;
+            this._swapBillboardData(billboardIndex, targetIndex);
+        }
+
+        return true;
+    }
+
     public initProgram() {
         if (this._renderer && this._renderer.handler) {
-            if (!this._renderer.handler.programs.billboard) {
-                this._renderer.handler.addProgram(shaders.billboard_screen());
-            }
-
-            if (!this._renderer.handler.programs.billboardPicking) {
-                this._renderer.handler.addProgram(shaders.billboardPicking());
-            }
+            this._renderer.addShaders(
+                shaders.billboard_screen(),
+                shaders.billboard_screen_woit(),
+                shaders.billboardPicking()
+            );
         }
     }
 
@@ -156,6 +228,7 @@ class BaseBillboardHandler {
         }
         this._billboards.length = 0;
         this._billboards = [];
+        this._opaqueCounterIndex = 0;
     }
 
     public clear() {
@@ -239,11 +312,11 @@ class BaseBillboardHandler {
         }
     }
 
-    protected _displayPASS() {
+    protected _displayPASS(startBillboardIndex: number, endBillboardIndex: number, billboardProgram: ProgramController) {
         let r = this._renderer!;
         let h = r.handler;
-        h.programs.billboard.activate();
-        let sh = h.programs.billboard._program;
+        billboardProgram.activate();
+        let sh = billboardProgram._program;
         let sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -294,7 +367,10 @@ class BaseBillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer as WebGLBuffer);
         gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
+        const numBillboards = endBillboardIndex - startBillboardIndex;
+        if (numBillboards > 0) {
+            gl.drawArrays(gl.TRIANGLES, startBillboardIndex * 6, numBillboards * 6);
+        }
 
         gl.enable(gl.CULL_FACE);
     }
@@ -357,15 +433,25 @@ class BaseBillboardHandler {
         this.drawOpaque();
     }
 
+    protected _getOpaqueProgram(): ProgramController {
+        return this._renderer!.handler.programs.billboard;
+    }
+
+    protected _getTransparentProgram(): ProgramController {
+        return this._renderer!.handler.programs.billboardWoit;
+    }
+
     public drawOpaque() {
         if (this._billboards.length) {
             this.update();
-            this._displayPASS();
+            this._displayPASS(0, this._opaqueCounterIndex, this._getOpaqueProgram());
         }
     }
 
     public drawTransparent() {
-        //...
+        if (this._opaqueCounterIndex < this._billboards.length) {
+            this._displayPASS(this._opaqueCounterIndex, this._billboards.length, this._getTransparentProgram());
+        }
     }
 
     public drawPicking() {
@@ -383,29 +469,35 @@ class BaseBillboardHandler {
 
     protected _removeBillboard(billboard: BaseBillboard) {
 
-        let bi = billboard._handlerIndex;
+        let removeIndex = billboard._handlerIndex;
 
-        this._billboards.splice(bi, 1);
+        if (removeIndex < this._opaqueCounterIndex) {
+            this._opaqueCounterIndex--;
+            this._swapBillboardData(removeIndex, this._opaqueCounterIndex);
+            removeIndex = this._opaqueCounterIndex;
+        }
 
-        let i = bi * 24;
+        const lastIndex = this._billboards.length - 1;
+        this._swapBillboardData(removeIndex, lastIndex);
+        this._billboards.pop();
+
+        let i = lastIndex * 24;
         this._rgbaArr = spliceTypedArray(this._rgbaArr, i, 24) as Float32Array;
 
-        i = bi * 18;
+        i = lastIndex * 18;
         this._positionHighArr = spliceTypedArray(this._positionHighArr, i, 18) as Float32Array;
         this._positionLowArr = spliceTypedArray(this._positionLowArr, i, 18) as Float32Array;
         this._offsetArr = spliceTypedArray(this._offsetArr, i, 18) as Float32Array;
-        //this._alignedAxisArr = spliceTypedArray(this._alignedAxisArr, i, 18) as Float32Array;
         this._pickingColorArr = spliceTypedArray(this._pickingColorArr, i, 18) as Float32Array;
 
-        i = bi * 12;
+        i = lastIndex * 12;
         this._vertexArr = spliceTypedArray(this._vertexArr, i, 12) as Float32Array;
         this._sizeArr = spliceTypedArray(this._sizeArr, i, 12) as Float32Array;
         this._texCoordArr = spliceTypedArray(this._texCoordArr, i, 12) as Float32Array;
 
-        i = bi * 6;
+        i = lastIndex * 6;
         this._rotationArr = spliceTypedArray(this._rotationArr, i, 6) as Float32Array;
 
-        this.reindexBillboardsArray(bi);
         this.refresh();
 
         billboard._handlerIndex = -1;
@@ -627,7 +719,12 @@ class BaseBillboardHandler {
         a[i + 22] = z;
         a[i + 23] = w;
 
-        this._changedBuffers[RGBA_BUFFER] = true;
+        const opacityChanged = this._updateBillboardOpacityState(index, w >= 1.0);
+        if (opacityChanged) {
+            this.refresh();
+        } else {
+            this._changedBuffers[RGBA_BUFFER] = true;
+        }
     }
 
     public setRotationArr(index: number, rotation: number) {

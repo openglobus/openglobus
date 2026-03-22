@@ -1,18 +1,19 @@
+#version 300 es
 precision highp float;
 
 #include "./common.glsl"
 
-attribute vec2 a_vertices;
-attribute vec2 a_texCoord;
-attribute vec3 a_positionsHigh;
-attribute vec3 a_positionsLow;
-attribute vec3 a_offset;
-attribute vec2 a_size;
-attribute float a_rotation;
-attribute vec4 a_rgba;
+in vec2 a_vertices;
+in vec2 a_texCoord;
+in vec3 a_positionsHigh;
+in vec3 a_positionsLow;
+in vec3 a_offset;
+in vec2 a_size;
+in float a_rotation;
+in vec4 a_rgba;
 
-varying vec2 v_texCoords;
-varying vec4 v_rgba;
+out vec2 v_texCoords;
+out vec4 v_rgba;
 
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
@@ -37,6 +38,7 @@ void main() {
     v_rgba = a_rgba;
 
     if (opacity * step(lookDist, sqrt(dot(cameraPos, cameraPos) - planetRadius) + sqrt(dot(a_positions, a_positions) - planetRadius)) == 0.0) {
+        gl_Position = vec4(0.0);
         return;
     }
 

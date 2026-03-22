@@ -5,6 +5,7 @@ import billboard_picking_frag from './billboard_picking.frag.glsl';
 
 import billboard_screen_vert from './billboard_screen.vert.glsl';
 import billboard_screen_frag from './billboard_screen.frag.glsl';
+import billboard_screen_woit_frag from './billboard_screen_woit.frag.glsl';
 
 export function billboardPicking(): Program {
     return new Program("billboardPicking", {
@@ -59,5 +60,34 @@ export function billboard_screen(): Program {
         },
         vertexShader: billboard_screen_vert,
         fragmentShader: billboard_screen_frag
+    });
+}
+
+export function billboard_screen_woit(): Program {
+    return new Program("billboardWoit", {
+        uniforms: {
+            viewport: "vec2",
+            u_texture: "sampler2d",
+            projectionMatrix: "mat4",
+            viewMatrix: "mat4",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
+            planetRadius: "float",
+            uScaleByDistance: "vec3",
+            opacity: "float",
+            depthOffset: "float"
+        },
+        attributes: {
+            a_vertices: "vec2",
+            a_texCoord: "vec2",
+            a_positionsHigh: "vec3",
+            a_positionsLow: "vec3",
+            a_offset: "vec3",
+            a_size: "vec2",
+            a_rotation: "float",
+            a_rgba: "vec4",
+        },
+        vertexShader: billboard_screen_vert,
+        fragmentShader: billboard_screen_woit_frag
     });
 }

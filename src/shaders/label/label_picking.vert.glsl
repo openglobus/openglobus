@@ -1,16 +1,18 @@
+#version 300 es
+
 #include "../billboard/common.glsl"
 
-attribute vec4 a_gliphParam;
-attribute vec2 a_vertices;
-attribute vec4 a_texCoord;
-attribute vec3 a_positionsHigh;
-attribute vec3 a_positionsLow;
-attribute vec3 a_offset;
-attribute float a_size;
-attribute float a_rotation;
-attribute vec4 a_rgba;
+in vec4 a_gliphParam;
+in vec2 a_vertices;
+in vec4 a_texCoord;
+in vec3 a_positionsHigh;
+in vec3 a_positionsLow;
+in vec3 a_offset;
+in float a_size;
+in float a_rotation;
+in vec4 a_rgba;
 
-varying vec4 v_rgba;
+out vec4 v_rgba;
 
 uniform vec2 viewport;
 uniform mat4 viewMatrix;
@@ -38,6 +40,8 @@ void main() {
     vec3 look = a_positions - cameraPos;
     float lookDist = length(look);
     if (opacity * step(lookDist, sqrt(dot(cameraPos, cameraPos) - planetRadius) + sqrt(dot(a_positions, a_positions) - planetRadius)) == 0.0) {
+        gl_Position = vec4(0.0);
+        v_rgba.a = 0.0;
         return;
     }
 

@@ -1003,6 +1003,25 @@ class Renderer {
             }
 
             gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
+
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].billboardHandler.drawTransparent();
+            }
+
+            let fa = this.fontAtlas.atlasesArr;
+            for (i = 0; i < fa.length; i++) {
+                gl.activeTexture(gl.TEXTURE0 + i);
+                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture!);
+            }
+
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].labelHandler.drawTransparent();
+            }
+
+            gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
 
             // rays

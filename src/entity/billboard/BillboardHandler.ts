@@ -21,6 +21,7 @@ class BillboardHandler extends BaseBillboardHandler {
             super.add(billboard);
 
             this._addBillboardToArrays(billboard);
+            this._insertBillboardByOpacity(billboard._handlerIndex, this._isBillboardOpaque(billboard));
             this.refresh();
             let src = billboard.getSrc() || (billboard.getImage() && billboard.getImage()!.src);
             if (src) {

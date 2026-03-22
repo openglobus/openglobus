@@ -6,8 +6,10 @@ import {EntityCollection} from "../EntityCollection";
 import {LOCK_FREE} from "./LabelWorker";
 import {Planet} from "../../scene/Planet";
 import type {WebGLBufferExt} from "../../webgl/Handler";
+import type {ProgramController} from "../../webgl/ProgramController";
 import {Vec3} from "../../math/Vec3";
 import {Vec4} from "../../math/Vec4";
+import {BaseBillboard} from "../billboard/BaseBillboard";
 
 type LabelWorkerCallbackData = {
     vertexArr: Float32Array,
@@ -82,17 +84,11 @@ class LabelHandler extends BaseBillboardHandler {
 
     public override initProgram() {
         if (this._renderer && this._renderer.handler && this._renderer.handler.gl) {
-            if (!this._renderer.handler.programs.label) {
-                if (this._renderer.handler.gl.type === "webgl2") {
-                    this._renderer.handler.addProgram(shaders.label_webgl2());
-                } else {
-                    this._renderer.handler.addProgram(shaders.label_screen());
-                }
-            }
-
-            if (!this._renderer.handler.programs.labelPicking) {
-                this._renderer.handler.addProgram(shaders.labelPicking());
-            }
+            this._renderer.addPrograms(
+                shaders.label_webgl2(),
+                shaders.label_woit(),
+                shaders.labelPicking()
+            );
         }
     }
 
@@ -151,10 +147,47 @@ class LabelHandler extends BaseBillboardHandler {
             this._outlineColorArr = concatTypedArrays(this._outlineColorArr, data.outlineColorArr) as Float32Array;
             this._pickingColorArr = concatTypedArrays(this._pickingColorArr, data.pickingColorArr) as Float32Array;
 
+            this._insertBillboardByOpacity(label._handlerIndex, this._isBillboardOpaque(label));
+
             label.update();
 
             this.refresh();
         }
+    }
+
+    protected override _isBillboardOpaque(billboard: BaseBillboard): boolean {
+        const label = billboard as Label;
+        return label._color.w >= 1.0 && label.getOutlineOpacity() >= 1.0;
+    }
+
+    protected override _swapBillboardData(firstIndex: number, secondIndex: number) {
+        if (firstIndex === secondIndex) {
+            return;
+        }
+
+        this._swapArrayItems(this._rgbaArr, 24 * this._maxLetters, firstIndex, secondIndex);
+        this._swapArrayItems(this._outlineColorArr, 24 * this._maxLetters, firstIndex, secondIndex);
+        this._swapArrayItems(this._texCoordArr, 24 * this._maxLetters, firstIndex, secondIndex);
+        this._swapArrayItems(this._gliphParamArr, 24 * this._maxLetters, firstIndex, secondIndex);
+
+        this._swapArrayItems(this._positionHighArr, 18 * this._maxLetters, firstIndex, secondIndex);
+        this._swapArrayItems(this._positionLowArr, 18 * this._maxLetters, firstIndex, secondIndex);
+        this._swapArrayItems(this._offsetArr, 18 * this._maxLetters, firstIndex, secondIndex);
+        this._swapArrayItems(this._pickingColorArr, 18 * this._maxLetters, firstIndex, secondIndex);
+
+        this._swapArrayItems(this._vertexArr, 12 * this._maxLetters, firstIndex, secondIndex);
+
+        this._swapArrayItems(this._sizeArr, 6 * this._maxLetters, firstIndex, secondIndex);
+        this._swapArrayItems(this._rotationArr, 6 * this._maxLetters, firstIndex, secondIndex);
+        this._swapArrayItems(this._fontIndexArr, 6 * this._maxLetters, firstIndex, secondIndex);
+        this._swapArrayItems(this._outlineArr, 6 * this._maxLetters, firstIndex, secondIndex);
+
+        const firstLabel = this._billboards[firstIndex];
+        const secondLabel = this._billboards[secondIndex];
+        this._billboards[firstIndex] = secondLabel;
+        this._billboards[secondIndex] = firstLabel;
+        firstLabel._handlerIndex = secondIndex;
+        secondLabel._handlerIndex = firstIndex;
     }
 
     public override clear() {
@@ -238,11 +271,19 @@ class LabelHandler extends BaseBillboardHandler {
         }
     }
 
-    public override _displayPASS() {
+    protected override _getOpaqueProgram(): ProgramController {
+        return this._renderer!.handler.programs.label;
+    }
+
+    protected override _getTransparentProgram(): ProgramController {
+        return this._renderer!.handler.programs.labelWoit;
+    }
+
+    protected override _displayPASS(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController) {
         let r = this._renderer!;
         let h = r.handler;
-        h.programs.label.activate();
-        let sh = h.programs.label._program;
+        labelProgram.activate();
+        let sh = labelProgram._program;
         let sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -300,7 +341,16 @@ class LabelHandler extends BaseBillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer!);
         gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
+        const numLabels = endBillboardIndex - startBillboardIndex;
+        if (numLabels <= 0) {
+            gl.enable(gl.CULL_FACE);
+            return;
+        }
+
+        const startVertexIndex = startBillboardIndex * 6 * this._maxLetters;
+        const vertexCount = numLabels * 6 * this._maxLetters;
+
+        gl.drawArrays(gl.TRIANGLES, startVertexIndex, vertexCount);
 
         //
         // no outline PASS
@@ -311,7 +361,7 @@ class LabelHandler extends BaseBillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
+        gl.drawArrays(gl.TRIANGLES, startVertexIndex, vertexCount);
 
         gl.depthFunc(gl.LESS);
 
@@ -378,36 +428,43 @@ class LabelHandler extends BaseBillboardHandler {
 
     protected override _removeBillboard(label: Label) {
 
-        let li = label._handlerIndex;
+        let removeIndex = label._handlerIndex;
 
-        this._billboards.splice(li, 1);
+        if (removeIndex < this._opaqueCounterIndex) {
+            this._opaqueCounterIndex--;
+            this._swapBillboardData(removeIndex, this._opaqueCounterIndex);
+            removeIndex = this._opaqueCounterIndex;
+        }
+
+        const lastIndex = this._billboards.length - 1;
+        this._swapBillboardData(removeIndex, lastIndex);
+        this._billboards.pop();
 
         let ml = 24 * this._maxLetters;
-        let i = li * ml;
+        let i = lastIndex * ml;
         this._rgbaArr = spliceTypedArray<Float32Array>(this._rgbaArr, i, ml);
         this._outlineColorArr = spliceTypedArray<Float32Array>(this._outlineColorArr, i, ml);
         this._texCoordArr = spliceTypedArray<Float32Array>(this._texCoordArr, i, ml);
         this._gliphParamArr = spliceTypedArray<Float32Array>(this._gliphParamArr, i, ml);
 
         ml = 18 * this._maxLetters;
-        i = li * ml;
+        i = lastIndex * ml;
         this._positionHighArr = spliceTypedArray<Float32Array>(this._positionHighArr, i, ml);
         this._positionLowArr = spliceTypedArray<Float32Array>(this._positionLowArr, i, ml);
         this._offsetArr = spliceTypedArray<Float32Array>(this._offsetArr, i, ml);
         this._pickingColorArr = spliceTypedArray<Float32Array>(this._pickingColorArr, i, ml);
 
         ml = 12 * this._maxLetters;
-        i = li * ml;
+        i = lastIndex * ml;
         this._vertexArr = spliceTypedArray<Float32Array>(this._vertexArr, i, ml);
 
         ml = 6 * this._maxLetters;
-        i = li * ml;
+        i = lastIndex * ml;
         this._sizeArr = spliceTypedArray<Float32Array>(this._sizeArr, i, ml);
         this._rotationArr = spliceTypedArray<Float32Array>(this._rotationArr, i, ml);
         this._fontIndexArr = spliceTypedArray<Float32Array>(this._fontIndexArr, i, ml);
         this._outlineArr = spliceTypedArray<Float32Array>(this._outlineArr, i, ml);
 
-        this.reindexBillboardsArray(li);
         this.refresh();
 
         label._handlerIndex = -1;
@@ -749,7 +806,14 @@ class LabelHandler extends BaseBillboardHandler {
             a[j + 23] = w;
         }
 
-        this._changedBuffers[RGBA_BUFFER] = true;
+        const opacityOffset = index * 24 * this._maxLetters + 3;
+        const outlineAlpha = this._outlineColorArr[opacityOffset];
+        const opacityChanged = this._updateBillboardOpacityState(index, w >= 1.0 && outlineAlpha >= 1.0);
+        if (opacityChanged) {
+            this.refresh();
+        } else {
+            this._changedBuffers[RGBA_BUFFER] = true;
+        }
     }
 
     public setOutlineColorArr(index: number, rgba: Vec4) {
@@ -794,7 +858,14 @@ class LabelHandler extends BaseBillboardHandler {
             a[j + 23] = w;
         }
 
-        this._changedBuffers[OUTLINECOLOR_BUFFER] = true;
+        const opacityOffset = index * 24 * this._maxLetters + 3;
+        const fillAlpha = this._rgbaArr[opacityOffset];
+        const opacityChanged = this._updateBillboardOpacityState(index, fillAlpha >= 1.0 && w >= 1.0);
+        if (opacityChanged) {
+            this.refresh();
+        } else {
+            this._changedBuffers[OUTLINECOLOR_BUFFER] = true;
+        }
     }
 
     public setOutlineArr(index: number, outline: number) {
