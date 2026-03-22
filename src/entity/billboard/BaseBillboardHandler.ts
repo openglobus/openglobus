@@ -330,7 +330,7 @@ class BaseBillboardHandler {
         }
         const useDepthTest = !disableDepthTest;
         const writeDepth = depthWrite ?? (billboardProgram !== this._getTransparentProgram());
-        const prevDepthMask = gl.getParameter(gl.DEPTH_WRITEMASK) as boolean;
+        //const prevDepthMask = gl.getParameter(gl.DEPTH_WRITEMASK) as boolean;
         if (useDepthTest) {
             gl.depthFunc(gl.LEQUAL);
         }
@@ -383,7 +383,7 @@ class BaseBillboardHandler {
             gl.drawArrays(gl.TRIANGLES, startBillboardIndex * 6, numBillboards * 6);
         }
 
-        gl.depthMask(prevDepthMask);
+        //gl.depthMask(prevDepthMask);
         if (useDepthTest) {
             gl.depthFunc(gl.LESS);
         }
