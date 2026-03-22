@@ -149,6 +149,12 @@ class StripHandler {
         }
     }
 
+    public drawTransparentForward(): void {
+        for (let i = this._opaqueCount; i < this._strips.length; i++) {
+            this._strips[i].drawOpaque();
+        }
+    }
+
     public updateStripOpacity(strip: Strip) {
         const index = strip._handlerIndex;
         if (index === -1) return;

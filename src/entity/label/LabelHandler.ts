@@ -58,6 +58,10 @@ class LabelPassHandler {
     public drawTransparent() {
         this._owner.drawPass(this._isOutlinePass, false);
     }
+
+    public drawTransparentForward() {
+        this._owner.drawPass(this._isOutlinePass, false, true);
+    }
 }
 
 class LabelHandler extends BaseBillboardHandler {
@@ -318,12 +322,21 @@ class LabelHandler extends BaseBillboardHandler {
         }
     }
 
-    public drawPass(isOutlinePass: boolean, opaquePass: boolean) {
+    public override drawTransparentForward() {
+        if (this._billboards.length) {
+            this.outlineLabelHandler.drawTransparentForward();
+            this.fillLabelHandler.drawTransparentForward();
+        }
+    }
+
+    public drawPass(isOutlinePass: boolean, opaquePass: boolean, drawInForward: boolean = false) {
         if (!this._billboards.length) {
             return;
         }
-        const labelProgram = opaquePass ? this._getOpaqueProgram() : this._getTransparentProgram();
-        this._drawLabelPass(0, this._billboards.length, labelProgram, isOutlinePass, opaquePass ? 0 : 1);
+        const labelProgram = opaquePass || drawInForward ? this._getOpaqueProgram() : this._getTransparentProgram();
+        const opacityPass = opaquePass ? 0 : 1;
+        const depthWrite = opaquePass && !drawInForward;
+        this._drawLabelPass(0, this._billboards.length, labelProgram, isOutlinePass, opacityPass, depthWrite);
     }
 
     protected _displayOutlinePASS(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController, opacityPass: number = 0) {
@@ -334,7 +347,7 @@ class LabelHandler extends BaseBillboardHandler {
         this._drawLabelPass(startBillboardIndex, endBillboardIndex, labelProgram, false, opacityPass);
     }
 
-    protected _drawLabelPass(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController, isOutlinePass: boolean, opacityPass: number = 0) {
+    protected _drawLabelPass(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController, isOutlinePass: boolean, opacityPass: number = 0, depthWrite: boolean = true) {
         let r = this._renderer!;
         let h = r.handler;
         labelProgram.activate();
@@ -350,11 +363,12 @@ class LabelHandler extends BaseBillboardHandler {
         if (disableDepthTest) {
             gl.disable(gl.DEPTH_TEST);
         }
-        const isTransparentProgram = labelProgram === this._getTransparentProgram();
         const useDepthTest = !disableDepthTest;
+        const prevDepthMask = gl.getParameter(gl.DEPTH_WRITEMASK) as boolean;
         if (useDepthTest) {
             gl.depthFunc(gl.LEQUAL);
         }
+        gl.depthMask(useDepthTest && depthWrite);
 
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
@@ -397,6 +411,7 @@ class LabelHandler extends BaseBillboardHandler {
 
         const numLabels = endBillboardIndex - startBillboardIndex;
         if (numLabels <= 0) {
+            gl.depthMask(prevDepthMask);
             if (useDepthTest) {
                 gl.depthFunc(gl.LESS);
             }
@@ -427,15 +442,9 @@ class LabelHandler extends BaseBillboardHandler {
             gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer!.itemSize, gl.FLOAT, false, 0, 0);
         }
 
-        if (!isTransparentProgram) {
-            gl.depthMask(useDepthTest);
-        }
-
         gl.drawArrays(gl.TRIANGLES, startVertexIndex, vertexCount);
 
-        if (!isTransparentProgram) {
-            gl.depthMask(true);
-        }
+        gl.depthMask(prevDepthMask);
         if (useDepthTest) {
             gl.depthFunc(gl.LESS);
         }

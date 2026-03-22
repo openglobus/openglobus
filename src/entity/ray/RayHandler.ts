@@ -503,6 +503,12 @@ class RayHandler {
         }
     }
 
+    public drawTransparentForward() {
+        if (this._opaqueCounterIndex < this._rays.length) {
+            this._displayPASS(this._opaqueCounterIndex, this._rays.length, this._renderer!.handler.programs.rayScreen);
+        }
+    }
+
     public drawPicking() {
         if (this._rays.length && this.pickingEnabled) {
             this._pickingPASS();

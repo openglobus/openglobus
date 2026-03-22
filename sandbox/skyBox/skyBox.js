@@ -43,8 +43,8 @@ var collection = new Vector("Collection", {
             'polyline': {
                 'pathLonLat': grid,
                 'thickness': [12.5],
-                'opacity': 0.4,
-                'color': ["rgba(68, 157, 205, 0.92)"]
+                'opacity': 0.8,
+                'color': ["rgba(205,68,203,1)"]
             }
         }]
 });
@@ -142,11 +142,11 @@ globe.renderer.events.on("lclick", function (e) {
             label: {
                 align: "center",
                 text: "Hello world",
-                size: 20,
+                size: 30,
                 offset: [0, 50, 0],
                 color: "rgba(255,255,255,1)",
                 outlineColor: "rgba(255,0,0,1)",
-                outline: 0.1
+                outline: 0.2
             }
         }));
     } else {
@@ -157,7 +157,7 @@ globe.renderer.events.on("lclick", function (e) {
                 src: markerSrc,
                 size: [29, 48],
                 offset: [0, 24],
-                color: "rgba(255,255,255,0.7)"
+                color: "rgba(255,255,255,1)"
             }
         }));
     }

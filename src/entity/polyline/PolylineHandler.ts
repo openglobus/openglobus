@@ -170,6 +170,12 @@ class PolylineHandler {
         this._transparentTexRenderer.drawTransparent();
     }
 
+    public drawTransparentForward() {
+        this._updateRTCEyePosition();
+        this._transparentRenderer.drawOpaque();
+        this._transparentTexRenderer.drawOpaque();
+    }
+
     public drawPicking() {
         if (this.pickingEnabled) {
             this._opaqueRenderer.drawPicking();

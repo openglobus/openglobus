@@ -1046,6 +1046,70 @@ class Renderer {
         }
     }
 
+    protected _drawTransparentEntityCollectionsForward(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+
+        if (ec.length) {
+
+            let gl = this.handler.gl!;
+
+            this.enableBlendDefault();
+            gl.depthMask(false);
+
+            let i: number;
+
+            // GeoObjects
+            i = ec.length;
+            while (i--) {
+                if (ec[i]._fadingOpacity) {
+                    ec[i].geoObjectHandler.drawTransparentForward();
+                }
+            }
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
+
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].billboardHandler.drawTransparentForward();
+            }
+
+            let fa = this.fontAtlas.atlasesArr;
+            for (i = 0; i < fa.length; i++) {
+                gl.activeTexture(gl.TEXTURE0 + i);
+                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture!);
+            }
+
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].labelHandler.drawTransparentForward();
+            }
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
+
+            // rays
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].rayHandler.drawTransparentForward();
+            }
+
+            // Strip pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].stripHandler.drawTransparentForward();
+            }
+
+            // polyline pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].polylineHandler.drawTransparentForward();
+            }
+
+            gl.depthMask(true);
+        }
+    }
+
     protected _drawPickingEntityCollections(depthOrder: number) {
         let ec = this._entityCollections[depthOrder];
         if (ec.length) {
@@ -1244,6 +1308,7 @@ class Renderer {
                 this.activeCamera!.setCurrentFrustum(k);
 
                 this._drawForwardEntityCollections(i);
+                this._drawTransparentEntityCollectionsForward(i);
 
                 if (refreshPicking) {
                     this._drawPickingBuffer(i);

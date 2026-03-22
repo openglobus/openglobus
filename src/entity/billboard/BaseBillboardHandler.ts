@@ -312,7 +312,7 @@ class BaseBillboardHandler {
         }
     }
 
-    protected _displayPASS(startBillboardIndex: number, endBillboardIndex: number, billboardProgram: ProgramController) {
+    protected _displayPASS(startBillboardIndex: number, endBillboardIndex: number, billboardProgram: ProgramController, depthWrite?: boolean) {
         let r = this._renderer!;
         let h = r.handler;
         billboardProgram.activate();
@@ -328,14 +328,13 @@ class BaseBillboardHandler {
         if (disableDepthTest) {
             gl.disable(gl.DEPTH_TEST);
         }
-        const isTransparentPass = billboardProgram === this._getTransparentProgram();
         const useDepthTest = !disableDepthTest;
+        const writeDepth = depthWrite ?? (billboardProgram !== this._getTransparentProgram());
+        const prevDepthMask = gl.getParameter(gl.DEPTH_WRITEMASK) as boolean;
         if (useDepthTest) {
             gl.depthFunc(gl.LEQUAL);
         }
-        if (!isTransparentPass) {
-            gl.depthMask(useDepthTest);
-        }
+        gl.depthMask(useDepthTest && writeDepth);
 
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 
@@ -384,9 +383,7 @@ class BaseBillboardHandler {
             gl.drawArrays(gl.TRIANGLES, startBillboardIndex * 6, numBillboards * 6);
         }
 
-        if (!isTransparentPass) {
-            gl.depthMask(true);
-        }
+        gl.depthMask(prevDepthMask);
         if (useDepthTest) {
             gl.depthFunc(gl.LESS);
         }
@@ -473,13 +470,19 @@ class BaseBillboardHandler {
     public drawOpaque() {
         if (this._billboards.length) {
             this.update();
-            this._displayPASS(0, this._opaqueCounterIndex, this._getOpaqueProgram());
+            this._displayPASS(0, this._opaqueCounterIndex, this._getOpaqueProgram(), true);
         }
     }
 
     public drawTransparent() {
         if (this._opaqueCounterIndex < this._billboards.length) {
-            this._displayPASS(this._opaqueCounterIndex, this._billboards.length, this._getTransparentProgram());
+            this._displayPASS(this._opaqueCounterIndex, this._billboards.length, this._getTransparentProgram(), false);
+        }
+    }
+
+    public drawTransparentForward() {
+        if (this._opaqueCounterIndex < this._billboards.length) {
+            this._displayPASS(this._opaqueCounterIndex, this._billboards.length, this._getOpaqueProgram(), false);
         }
     }
 

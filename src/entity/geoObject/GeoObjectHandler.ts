@@ -463,6 +463,20 @@ export class GeoObjectHandler {
         }
     }
 
+    public _displayTransparentForwardPASS() {
+        let r = this._renderer!,
+            sh = r.handler.programs.geo_object,
+            p = sh._program;
+
+        sh.activate();
+
+        this._bindCommon(p);
+
+        for (let i = 0; i < this._instanceDataMapValues.length; i++) {
+            this._instanceDataMapValues[i].drawTransparent(p);
+        }
+    }
+
     protected _depthPASS() {
         let r = this._renderer!,
             sh = r.handler.programs.geo_object_depth,
@@ -738,6 +752,12 @@ export class GeoObjectHandler {
     public drawTransparent() {
         if (this._geoObjects.length) {
             this._displayTransparentPASS();
+        }
+    }
+
+    public drawTransparentForward() {
+        if (this._geoObjects.length) {
+            this._displayTransparentForwardPASS();
         }
     }
 
