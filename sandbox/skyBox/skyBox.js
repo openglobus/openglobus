@@ -129,6 +129,16 @@ globe.planet.renderer.events.on("mousemove", function (e) {
 }, globe.planet);
 
 globe.renderer.events.on("lclick", function (e) {
+    const pickingObject = e.pickingObject;
+    const isPlanetLayerClick = !!(
+        pickingObject &&
+        pickingObject._planet === globe.planet &&
+        typeof pickingObject.isBaseLayer === "function"
+    );
+    if (!isPlanetLayerClick) {
+        return;
+    }
+
     const ll = globe.planet.getLonLatFromPixelTerrain(e, true);
     if (!ll) {
         return;
