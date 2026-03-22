@@ -43,7 +43,7 @@ void main(void) {
 
     if (uUseTexture > 0.0) {
         vec4 texColor = texture(uTexture, vTexCoords);
-        color = vec4(texColor.rgb * lightWeighting, texColor.a);
+        color = vec4(texColor.rgb * lightWeighting, texColor.a * vColor.a);
     } else {
         color = vec4(lightWeighting, vColor.a);
     }

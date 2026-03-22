@@ -41,7 +41,7 @@ void main(void) {
 
     if (uUseTexture > 0.0) {
         vec4 texColor = texture(uTexture, vTexCoords);
-        diffuseColor = vec4(texColor.rgb * lightWeighting, texColor.a);
+        diffuseColor = vec4(texColor.rgb * lightWeighting, texColor.a * vColor.a);
     } else {
         diffuseColor = vec4(lightWeighting, vColor.a);
     }
