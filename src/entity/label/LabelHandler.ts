@@ -358,6 +358,11 @@ class LabelHandler extends BaseBillboardHandler {
         let gl = h.gl!,
             ec = this._entityCollection;
 
+        let fontTextureArray = r.fontAtlas.textureArray;
+        if (!fontTextureArray) {
+            return;
+        }
+
         gl.disable(gl.CULL_FACE);
         const disableDepthTest = (r.activeCamera as any).slope > 0.5;
         if (disableDepthTest) {
@@ -370,7 +375,9 @@ class LabelHandler extends BaseBillboardHandler {
         }
         gl.depthMask(useDepthTest && depthWrite);
 
-        gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, fontTextureArray);
+        gl.uniform1i(shu.fontTextureArr, 0);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());

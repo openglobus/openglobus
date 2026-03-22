@@ -15,6 +15,7 @@ let _declarations: string[] = [
     "DMAT4X2", "DMAT4X3",
     "SAMPLER1D", "SAMPLER2D", "SAMPLER3D", "SAMPLERCUBE", "SAMPLER2DSHADOW",
     "SAMPLER2DARRAY",
+    "SAMPLER2DARRAYLEGACY",
     "INTXX", "FLOATXX"];
 
 export const types: { [id: string]: number } = {};

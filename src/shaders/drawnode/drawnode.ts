@@ -39,7 +39,7 @@ export function drawnode_screen_nl(): Program {
             samplerCount: "int",
             tileOffsetArr: "vec4",
             layerOpacityArr: "float",
-            samplerArr: "sampler2darray",
+            samplerArr: "sampler2darraylegacy",
             defaultTexture: "sampler2d",
             height: "float"
         }, attributes: {
@@ -65,7 +65,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
             samplerCount: "int",
             tileOffsetArr: "vec4",
             layerOpacityArr: "float",
-            samplerArr: "sampler2darray",
+            samplerArr: "sampler2darraylegacy",
             defaultTexture: "sampler2d",
             uNormalMap: "sampler2d",
             nightTexture: "sampler2d",
@@ -100,7 +100,7 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
             samplerCount: "int",
             tileOffsetArr: "vec4",
             layerOpacityArr: "float",
-            samplerArr: "sampler2darray",
+            samplerArr: "sampler2darraylegacy",
             defaultTexture: "sampler2d",
             uNormalMap: "sampler2d",
             nightTexture: "sampler2d",
@@ -134,8 +134,8 @@ export function drawnode_colorPicking(): Program {
             eyePositionLow: "vec3",
             samplerCount: "int",
             tileOffsetArr: "vec4",
-            samplerArr: "sampler2darray",
-            pickingMaskArr: "sampler2darray",
+            samplerArr: "sampler2darraylegacy",
+            pickingMaskArr: "sampler2darraylegacy",
             pickingColorArr: "vec4",
             height: "float"
         }, attributes: {

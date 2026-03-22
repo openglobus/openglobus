@@ -9,7 +9,7 @@ precision highp float;
 
 const int MAX_SIZE = 11;
 
-uniform sampler2D fontTextureArr[MAX_SIZE];
+uniform highp sampler2DArray fontTextureArr;
 uniform vec4 sdfParamsArr[MAX_SIZE];
 
 flat in int v_fontIndex;
@@ -25,30 +25,7 @@ float median(float r, float g, float b) {
 }
 
 float getDistance() {
-    vec3 msdf;
-    if (v_fontIndex == 0) {
-        msdf = texture(fontTextureArr[0], v_uv).rgb;
-    } else if (v_fontIndex == 1) {
-        msdf = texture(fontTextureArr[1], v_uv).rgb;
-    } else if (v_fontIndex == 2) {
-        msdf = texture(fontTextureArr[2], v_uv).rgb;
-    } else if (v_fontIndex == 3) {
-        msdf = texture(fontTextureArr[3], v_uv).rgb;
-    } else if (v_fontIndex == 4) {
-        msdf = texture(fontTextureArr[4], v_uv).rgb;
-    } else if (v_fontIndex == 5) {
-        msdf = texture(fontTextureArr[5], v_uv).rgb;
-    } else if (v_fontIndex == 6) {
-        msdf = texture(fontTextureArr[6], v_uv).rgb;
-    } else if (v_fontIndex == 7) {
-        msdf = texture(fontTextureArr[7], v_uv).rgb;
-    } else if (v_fontIndex == 8) {
-        msdf = texture(fontTextureArr[8], v_uv).rgb;
-    } else if (v_fontIndex == 9) {
-        msdf = texture(fontTextureArr[9], v_uv).rgb;
-    } else if (v_fontIndex == 10) {
-        msdf = texture(fontTextureArr[10], v_uv).rgb;
-    }
+    vec3 msdf = texture(fontTextureArr, vec3(v_uv, float(v_fontIndex))).rgb;
     return median(msdf.r, msdf.g, msdf.b);
 }
 
