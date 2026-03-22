@@ -1,6 +1,7 @@
 #version 300 es
 
 uniform int isOutlinePass;
+uniform int opacityPass;
 
 precision highp float;
 
@@ -53,23 +54,37 @@ float getDistance() {
 
 void main() {
     if (v_fontIndex == -1) {
-        discard;
+        accumColor = vec4(0.0);
+        accumAlpha = 0.0;
+        return;
     }
 
     vec4 sdfParams = sdfParamsArr[v_fontIndex];
     float sd = getDistance();
     vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
 
-    float dist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
-    if (isOutlinePass == 0) {
-        dist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
+    float fillDist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
+    float fillOpacity = clamp(fillDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+
+    float opacity = fillOpacity;
+    if (isOutlinePass != 0) {
+        float outlineWidth = max(v_outline, 0.0);
+        float outlineDist = sd + min(outlineWidth, 0.5 - 1.0 / sdfParams.w) - 0.5;
+        float outlineOpacity = clamp(outlineDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0) * step(1e-6, v_outline);
+        opacity = max(0.0, outlineOpacity - fillOpacity);
     }
 
-    float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
-//    if (opacity <= 0.1) {
-//        discard;
-//    }
+    float alpha = opacity * v_rgba.a;
+    float sourceAlpha = v_rgba.a;
+    float opaqueMask = step(0.999, sourceAlpha);
+    float transparentMask = step(1e-6, sourceAlpha) * (1.0 - opaqueMask);
+    float passMask = opacityPass == 0 ? opaqueMask : transparentMask;
+    alpha *= passMask;
 
-    vec4 color = vec4(v_rgba.rgb, opacity * v_rgba.a);
+    if (alpha <= 1e-5) {
+        discard;
+    }
+
+    vec4 color = vec4(v_rgba.rgb, alpha);
     weightedOITAccumulate(color, accumColor, accumAlpha);
 }

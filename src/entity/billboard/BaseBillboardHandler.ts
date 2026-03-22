@@ -324,6 +324,18 @@ class BaseBillboardHandler {
             ec = this._entityCollection;
 
         gl.disable(gl.CULL_FACE);
+        const disableDepthTest = (r.activeCamera as any).slope > 0.5;
+        if (disableDepthTest) {
+            gl.disable(gl.DEPTH_TEST);
+        }
+        const isTransparentPass = billboardProgram === this._getTransparentProgram();
+        const useDepthTest = !disableDepthTest;
+        if (useDepthTest) {
+            gl.depthFunc(gl.LEQUAL);
+        }
+        if (!isTransparentPass) {
+            gl.depthMask(useDepthTest);
+        }
 
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 
@@ -372,6 +384,15 @@ class BaseBillboardHandler {
             gl.drawArrays(gl.TRIANGLES, startBillboardIndex * 6, numBillboards * 6);
         }
 
+        if (!isTransparentPass) {
+            gl.depthMask(true);
+        }
+        if (useDepthTest) {
+            gl.depthFunc(gl.LESS);
+        }
+        if (disableDepthTest) {
+            gl.enable(gl.DEPTH_TEST);
+        }
         gl.enable(gl.CULL_FACE);
     }
 
@@ -387,6 +408,11 @@ class BaseBillboardHandler {
             ec = this._entityCollection;
 
         gl.disable(gl.CULL_FACE);
+
+        const disableDepthTest = (r.activeCamera as any).slope > 0.5;
+        if (disableDepthTest) {
+            gl.disable(gl.DEPTH_TEST);
+        }
 
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 
@@ -426,6 +452,9 @@ class BaseBillboardHandler {
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
 
+        if (disableDepthTest) {
+            gl.enable(gl.DEPTH_TEST);
+        }
         gl.enable(gl.CULL_FACE);
     }
 

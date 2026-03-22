@@ -34,11 +34,8 @@ void main() {
     vec3 look = a_positions - cameraPos;
     float lookDist = length(look);
     v_rgb = a_rgba.rgb;
-
-    if (opacity * step(lookDist, sqrt(dot(cameraPos, cameraPos) - planetRadius) + sqrt(dot(a_positions, a_positions) - planetRadius)) == 0.0) {
-        gl_Position = vec4(0.0);
-        return;
-    }
+    float horizonDist = sqrt(dot(cameraPos, cameraPos) - planetRadius) + sqrt(dot(a_positions, a_positions) - planetRadius);
+    float visibilityMask = step(1e-6, opacity) * step(lookDist, horizonDist);
 
     //vec3 up = vec3( viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1] );
     //vec3 right = vec3( viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0] );
@@ -53,19 +50,12 @@ void main() {
     vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
     vec4 projPos = projectionMatrix * posRTE;
 
-    float camSlope = dot(vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]), normalize(cameraPos));
-    if (camSlope > 0.5) {
-        float dist = dot(look, normalize(cameraPos));
-        projPos.z += dist * 0.02;
-    } else {
-        projPos.z += -(abs(projPos.z)) * 0.002;
-    }
-
     projPos.z += depthOffset + a_offset.z;
 
     vec2 screenPos = project(projPos, viewport);
 
     vec2 v = screenPos + rotate2d(a_rotation) * (a_vertices * a_size * scd + a_offset.xy);
 
-    gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
+    vec4 clipPos = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
+    gl_Position = mix(vec4(2.0, 2.0, 2.0, 1.0), clipPos, visibilityMask);
 }

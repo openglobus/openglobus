@@ -1,6 +1,7 @@
 #version 300 es
 
 uniform int isOutlinePass;
+uniform int opacityPass;
 
 precision highp float;
 
@@ -59,6 +60,7 @@ float getDistance() {
 void main() {
 
     if (v_fontIndex == -1) {
+        outScreen = vec4(0.0);
         return;
     }
 
@@ -66,20 +68,29 @@ void main() {
     float sd = getDistance();
     vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
 
+    float fillDist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
+    float fillOpacity = clamp(fillDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+
+    float alpha;
     if (isOutlinePass == 0) {
-        float dist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
-        float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
-        if (opacity <= 0.1) {
-            discard;
-        }
-        outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
+        alpha = fillOpacity * v_rgba.a;
     } else {
-        float dist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
-        float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
-        if (opacity <= 0.1) {
-            discard;
-        }
-        outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
-        //outScreen = v_rgba * strokeAlpha * (0.5 - opacity) * 2.0;
+        float outlineWidth = max(v_outline, 0.0);
+        float outlineDist = sd + min(outlineWidth, 0.5 - 1.0 / sdfParams.w) - 0.5;
+        float outlineOpacity = clamp(outlineDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0) * step(1e-6, v_outline);
+        float strokeOpacity = max(0.0, outlineOpacity - fillOpacity);
+        alpha = strokeOpacity * v_rgba.a;
     }
+
+    float sourceAlpha = v_rgba.a;
+    float opaqueMask = step(0.999, sourceAlpha);
+    float transparentMask = step(1e-6, sourceAlpha) * (1.0 - opaqueMask);
+    float passMask = opacityPass == 0 ? opaqueMask : transparentMask;
+    alpha *= passMask;
+
+    if (alpha <= 1e-5) {
+        discard;
+    }
+
+    outScreen = vec4(v_rgba.rgb, alpha);
 }

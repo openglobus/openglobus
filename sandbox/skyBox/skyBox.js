@@ -8,6 +8,7 @@ import {
     Object3d,
     Vector,
     Bing,
+    Vec2,
     Vec3,
     Entity
 } from "../../lib/og.es.js";
@@ -52,12 +53,29 @@ let objLayer = new Vector("Obj.Layer", {
     scaleByDistance: [50, 50000, 1]
 });
 
+const markerSrc = "../billboardsDragging/marker.png";
+
+let pointLayer = new Vector("points", {
+    clampToGround: true,
+    async: false,
+    entities: [{
+        name: "Blue Marker",
+        lonlat: [-105.6182, 39.6149],
+        billboard: {
+            src: markerSrc,
+            size: [29, 48],
+            offset: [0, 24],
+            color: "rgba(255,255,255,0.7)"
+        }
+    }]
+});
+
 let globe = new Globe({
     target: "earth",
     name: "Earth",
     //frustums: [[10, 10000], [10000,10000000]],
     terrain: new GlobusRgbTerrain(),
-    layers: [new OpenStreetMap(), new Bing(), objLayer, collection],
+    layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer],
     msaa: 8
 });
 
@@ -69,6 +87,85 @@ globe.planet.addControls([
 
 globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "#555555";
 globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "#555555";
+
+let draggableObject = null;
+let dragStartClick = new Vec2();
+let dragStartPos = null;
+
+pointLayer.events.on("mouseenter", function (e) {
+    e.renderer.handler.canvas.style.cursor = "pointer";
+});
+
+pointLayer.events.on("mouseleave", function (e) {
+    e.renderer.handler.canvas.style.cursor = "default";
+});
+
+pointLayer.events.on("ldown", function (e) {
+    if (!e.pickingObject) {
+        return;
+    }
+    e.renderer.controls.navigation?.deactivate();
+    dragStartClick.set(e.x, e.y);
+    draggableObject = e.pickingObject;
+    dragStartPos = globe.planet.getPixelFromCartesian(draggableObject.getCartesian());
+});
+
+pointLayer.events.on("lup", function (e) {
+    e.renderer.controls.navigation?.activate();
+    draggableObject = null;
+    dragStartPos = null;
+});
+
+globe.planet.renderer.events.on("mousemove", function (e) {
+    if (!draggableObject || !dragStartPos) {
+        return;
+    }
+    const d = new Vec2(e.x, e.y).sub(dragStartClick);
+    const endPos = dragStartPos.add(d);
+    const coords = this.getCartesianFromPixelTerrain(endPos);
+    if (coords) {
+        draggableObject.setCartesian3v(coords);
+    }
+}, globe.planet);
+
+globe.renderer.events.on("lclick", function (e) {
+    const ll = globe.planet.getLonLatFromPixelTerrain(e, true);
+    if (!ll) {
+        return;
+    }
+
+    const isCtrlPressed = !!(e.sys && e.sys.ctrlKey);
+    if (isCtrlPressed) {
+        pointLayer.add(new Entity({
+            name: "New Label",
+            lonlat: ll,
+            label: {
+                align: "center",
+                text: "Hello world",
+                size: 20,
+                offset: [0, 50, 0],
+                color: "rgba(255,255,255,1)",
+                outlineColor: "rgba(255,0,0,1)",
+                outline: 0.1
+            }
+        }));
+    } else {
+        pointLayer.add(new Entity({
+            name: "New Marker",
+            lonlat: ll,
+            billboard: {
+                src: markerSrc,
+                size: [29, 48],
+                offset: [0, 24],
+                color: "rgba(255,255,255,0.7)"
+            }
+        }));
+    }
+});
+
+pointLayer.events.on("rclick", function (e) {
+    e.pickingObject && e.pickingObject.remove();
+});
 
 
 const baseObj = Object3d.createCube(0.4, 2, 0.4)

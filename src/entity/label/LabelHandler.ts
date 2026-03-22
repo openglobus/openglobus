@@ -42,6 +42,24 @@ const OUTLINECOLOR_BUFFER = 10;
 const EMPTY = -1.0;
 const RTL = 1.0;
 
+class LabelPassHandler {
+    protected _owner: LabelHandler;
+    protected _isOutlinePass: boolean;
+
+    constructor(owner: LabelHandler, isOutlinePass: boolean) {
+        this._owner = owner;
+        this._isOutlinePass = isOutlinePass;
+    }
+
+    public drawOpaque() {
+        this._owner.drawPass(this._isOutlinePass, true);
+    }
+
+    public drawTransparent() {
+        this._owner.drawPass(this._isOutlinePass, false);
+    }
+}
+
 class LabelHandler extends BaseBillboardHandler {
 
     protected override _billboards: Label[];
@@ -55,6 +73,9 @@ class LabelHandler extends BaseBillboardHandler {
     protected _fontIndexArr: Float32Array;
     protected _outlineArr: Float32Array;
     protected _outlineColorArr: Float32Array;
+
+    public fillLabelHandler: LabelPassHandler;
+    public outlineLabelHandler: LabelPassHandler;
 
     public _maxLetters: number;
 
@@ -78,6 +99,9 @@ class LabelHandler extends BaseBillboardHandler {
         this._buffersUpdateCallbacks[OUTLINECOLOR_BUFFER] = this.createOutlineColorBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
+
+        this.fillLabelHandler = new LabelPassHandler(this, false);
+        this.outlineLabelHandler = new LabelPassHandler(this, true);
 
         this._maxLetters = maxLetters;
     }
@@ -279,7 +303,38 @@ class LabelHandler extends BaseBillboardHandler {
         return this._renderer!.handler.programs.labelWoit;
     }
 
-    protected override _displayPASS(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController) {
+    public override drawOpaque() {
+        if (this._billboards.length) {
+            this.update();
+            this.outlineLabelHandler.drawOpaque();
+            this.fillLabelHandler.drawOpaque();
+        }
+    }
+
+    public override drawTransparent() {
+        if (this._billboards.length) {
+            this.outlineLabelHandler.drawTransparent();
+            this.fillLabelHandler.drawTransparent();
+        }
+    }
+
+    public drawPass(isOutlinePass: boolean, opaquePass: boolean) {
+        if (!this._billboards.length) {
+            return;
+        }
+        const labelProgram = opaquePass ? this._getOpaqueProgram() : this._getTransparentProgram();
+        this._drawLabelPass(0, this._billboards.length, labelProgram, isOutlinePass, opaquePass ? 0 : 1);
+    }
+
+    protected _displayOutlinePASS(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController, opacityPass: number = 0) {
+        this._drawLabelPass(startBillboardIndex, endBillboardIndex, labelProgram, true, opacityPass);
+    }
+
+    protected _displayFillPASS(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController, opacityPass: number = 0) {
+        this._drawLabelPass(startBillboardIndex, endBillboardIndex, labelProgram, false, opacityPass);
+    }
+
+    protected _drawLabelPass(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController, isOutlinePass: boolean, opacityPass: number = 0) {
         let r = this._renderer!;
         let h = r.handler;
         labelProgram.activate();
@@ -291,6 +346,15 @@ class LabelHandler extends BaseBillboardHandler {
             ec = this._entityCollection;
 
         gl.disable(gl.CULL_FACE);
+        const disableDepthTest = (r.activeCamera as any).slope > 0.5;
+        if (disableDepthTest) {
+            gl.disable(gl.DEPTH_TEST);
+        }
+        const isTransparentProgram = labelProgram === this._getTransparentProgram();
+        const useDepthTest = !disableDepthTest;
+        if (useDepthTest) {
+            gl.depthFunc(gl.LEQUAL);
+        }
 
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
@@ -302,6 +366,7 @@ class LabelHandler extends BaseBillboardHandler {
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
         gl.uniform1f(shu.planetRadius, (ec.renderNode as Planet)._planetRadius2 || 0);
         gl.uniform2fv(shu.viewport, [h.canvas!.clientWidth, h.canvas!.clientHeight]);
+        gl.uniform1i(shu.opacityPass, opacityPass);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
         gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -330,19 +395,14 @@ class LabelHandler extends BaseBillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer!);
         gl.vertexAttribPointer(sha.a_fontIndex, this._fontIndexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        //
-        // outline PASS
-        gl.uniform1i(shu.isOutlinePass, 1);
-        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer!);
-        gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer!);
-        gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
         const numLabels = endBillboardIndex - startBillboardIndex;
         if (numLabels <= 0) {
+            if (useDepthTest) {
+                gl.depthFunc(gl.LESS);
+            }
+            if (disableDepthTest) {
+                gl.enable(gl.DEPTH_TEST);
+            }
             gl.enable(gl.CULL_FACE);
             return;
         }
@@ -350,22 +410,46 @@ class LabelHandler extends BaseBillboardHandler {
         const startVertexIndex = startBillboardIndex * 6 * this._maxLetters;
         const vertexCount = numLabels * 6 * this._maxLetters;
 
-        gl.drawArrays(gl.TRIANGLES, startVertexIndex, vertexCount);
-
-        //
-        // no outline PASS
-        gl.depthFunc(gl.EQUAL);
-        gl.uniform1i(shu.isOutlinePass, 0);
+        gl.uniform1i(shu.isOutlinePass, isOutlinePass ? 1 : 0);
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
-        gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        if (isOutlinePass) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer!);
+            gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer!);
+            gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        } else {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
+            gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer!);
+            gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        }
+
+        if (!isTransparentProgram) {
+            gl.depthMask(useDepthTest);
+        }
 
         gl.drawArrays(gl.TRIANGLES, startVertexIndex, vertexCount);
 
-        gl.depthFunc(gl.LESS);
-
+        if (!isTransparentProgram) {
+            gl.depthMask(true);
+        }
+        if (useDepthTest) {
+            gl.depthFunc(gl.LESS);
+        }
+        if (disableDepthTest) {
+            gl.enable(gl.DEPTH_TEST);
+        }
         gl.enable(gl.CULL_FACE);
+    }
+
+    protected override _displayPASS(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController) {
+        const isOpaqueProgram = labelProgram === this._getOpaqueProgram();
+        const opacityPass = isOpaqueProgram ? 0 : 1;
+        this._displayOutlinePASS(startBillboardIndex, endBillboardIndex, labelProgram, opacityPass);
+        this._displayFillPASS(startBillboardIndex, endBillboardIndex, labelProgram, opacityPass);
     }
 
     protected override _pickingPASS() {
@@ -380,6 +464,11 @@ class LabelHandler extends BaseBillboardHandler {
             ec = this._entityCollection;
 
         let rn = ec.renderNode;
+
+        const disableDepthTest = (r.activeCamera as any).slope > 0.5;
+        if (disableDepthTest) {
+            gl.disable(gl.DEPTH_TEST);
+        }
 
         gl.disable(gl.CULL_FACE);
 
@@ -423,6 +512,9 @@ class LabelHandler extends BaseBillboardHandler {
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
 
+        if (disableDepthTest) {
+            gl.enable(gl.DEPTH_TEST);
+        }
         gl.enable(gl.CULL_FACE);
     }
 
