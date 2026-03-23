@@ -68,7 +68,7 @@ class BaseBillboardHandler {
 
     protected _changedBuffers: boolean[];
 
-    protected _configureDepthPass(depthWrite: boolean): { disableDepthTest: boolean, useDepthTest: boolean } {
+    protected _configureDepthPass(depthWrite: boolean) {
         const gl = this._renderer!.handler.gl!;
         const disableDepthTest = this._renderer!.activeCamera.slope > 0.5;
 
@@ -76,26 +76,18 @@ class BaseBillboardHandler {
             gl.disable(gl.DEPTH_TEST);
         }
 
-        const useDepthTest = !disableDepthTest;
-        if (useDepthTest) {
+        if (!disableDepthTest) {
             gl.depthFunc(gl.LEQUAL);
         }
 
-        gl.depthMask(useDepthTest && depthWrite);
-        return {disableDepthTest, useDepthTest};
+        gl.depthMask(!disableDepthTest && depthWrite);
     }
 
-    protected _restoreDepthPass(state: { disableDepthTest: boolean, useDepthTest: boolean }) {
+    protected _restoreDepthPass(depthWrite: boolean) {
         const gl = this._renderer!.handler.gl!;
-
-        if (state.useDepthTest) {
-            gl.depthFunc(gl.LESS);
-        }
-
-        if (state.disableDepthTest) {
-            gl.enable(gl.DEPTH_TEST);
-            gl.depthMask(true);
-        }
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LESS);
+        gl.depthMask(depthWrite);
     }
 
     constructor(entityCollection: EntityCollection) {
@@ -355,7 +347,7 @@ class BaseBillboardHandler {
 
         gl.disable(gl.CULL_FACE);
         const writeDepth = depthWrite ?? (billboardProgram !== this._getTransparentProgram());
-        const depthState = this._configureDepthPass(writeDepth);
+        this._configureDepthPass(writeDepth);
 
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 
@@ -404,7 +396,7 @@ class BaseBillboardHandler {
             gl.drawArrays(gl.TRIANGLES, startBillboardIndex * 6, numBillboards * 6);
         }
 
-        this._restoreDepthPass(depthState);
+        this._restoreDepthPass(writeDepth);
 
         gl.enable(gl.CULL_FACE);
     }

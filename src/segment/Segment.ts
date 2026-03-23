@@ -1806,7 +1806,7 @@ class Segment {
 
         let notEmpty = false;
 
-        let slice = this._slices[sliceIndex];
+        let slice = this._slices[sliceIndex] || this.initSlice(sliceIndex);
 
         let len = slice.layers.length;
 

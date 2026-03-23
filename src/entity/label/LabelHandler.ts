@@ -370,7 +370,7 @@ class LabelHandler extends BaseBillboardHandler {
         }
 
         gl.disable(gl.CULL_FACE);
-        const depthState = this._configureDepthPass(depthWrite);
+        this._configureDepthPass(depthWrite);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, fontTextureArray);
@@ -415,7 +415,7 @@ class LabelHandler extends BaseBillboardHandler {
         const numLabels = endBillboardIndex - startBillboardIndex;
         if (numLabels <= 0) {
             gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
-            this._restoreDepthPass(depthState);
+            this._restoreDepthPass(depthWrite);
             gl.enable(gl.CULL_FACE);
             return;
         }
@@ -443,7 +443,7 @@ class LabelHandler extends BaseBillboardHandler {
         gl.drawArrays(gl.TRIANGLES, startVertexIndex, vertexCount);
 
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
-        this._restoreDepthPass(depthState);
+        this._restoreDepthPass(depthWrite);
         gl.enable(gl.CULL_FACE);
     }
 

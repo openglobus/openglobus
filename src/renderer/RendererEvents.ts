@@ -21,6 +21,7 @@ export type RendererEventsType = [
     "changerelativecenter",
     "draw",
     "forwardpass",
+    "transparentpass",
     "gbufferpass",
     "postdraw",
     "resize",
@@ -1043,10 +1044,16 @@ const RENDERER_EVENTS: RendererEventsType = [
     "draw",
 
     /**
-     * Triggered after all transparent object are drawn
+     * Triggered for forward pass
      * @event og.RendererEvents#forwardpass
      */
     "forwardpass",
+
+    /**
+     *  Triggered for WOIT (transparency) pass
+     *  @event og.RendererEvents#transparentpass
+     */
+    "transparentpass",
 
     /**
      * Triggered for deferred opaque geometry pass

@@ -1260,6 +1260,7 @@ class Renderer {
             this.woitFramebuffer!.activate();
             gl.clearColor(0, 0, 0, 1);
             gl.clear(gl.COLOR_BUFFER_BIT);
+            e.dispatch(e.transparentpass, this);
             this._drawTransparentEntityCollections(0);
             this.woitFramebuffer!.deactivate();
 

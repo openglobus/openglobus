@@ -854,8 +854,12 @@ export class Planet extends RenderNode {
         });
 
         this.renderer!.events.on("forwardpass", () => {
-            this._renderTransparentScreenNodesPASS()
-            //this._renderScreenNodesWithHeightPASS();
+            this._renderTransparentScreenNodesPASS();
+            if (this._atmosphereEnabled) {
+                this._renderScreenNodesWithHeightPASSAtmos();
+            } else {
+                this._renderScreenNodesWithHeightPASSNoAtmos();
+            }
         });
 
         // Initialize texture coordinates buffer pool
