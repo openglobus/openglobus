@@ -1094,7 +1094,12 @@ export class Planet extends RenderNode {
         this._visibleTileLayerSlices.length = 0;
 
         if (this.visibleTileLayers.length) {
-            this.visibleTileLayers.sort((a, b) => (a.getHeight() - b.getHeight()) || (a.getZIndex() - b.getZIndex()));
+            this.visibleTileLayers.sort((a, b) => {
+                if (a.isBaseLayer() !== b.isBaseLayer()) {
+                    return a.isBaseLayer() ? -1 : 1;
+                }
+                return (a.getHeight() - b.getHeight()) || (a.getZIndex() - b.getZIndex());
+            });
 
             let k = -1;
             let currHeight = this.visibleTileLayers[0].getHeight();
