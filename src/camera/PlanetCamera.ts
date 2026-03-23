@@ -105,8 +105,6 @@ class PlanetCamera extends Camera {
 
     public _insideSegment: Segment | null;
 
-    public slope: number;
-
     protected _keyLock: Key;
 
     protected _checkTerrainCollision: boolean;
@@ -135,8 +133,6 @@ class PlanetCamera extends Camera {
         this._terrainPoint = new Vec3();
 
         this._insideSegment = null;
-
-        this.slope = 0;
 
         this._keyLock = new Key();
 

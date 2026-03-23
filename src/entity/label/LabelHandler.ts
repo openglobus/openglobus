@@ -370,16 +370,7 @@ class LabelHandler extends BaseBillboardHandler {
         }
 
         gl.disable(gl.CULL_FACE);
-        const disableDepthTest = (r.activeCamera as any).slope > 0.5;
-        if (disableDepthTest) {
-            gl.disable(gl.DEPTH_TEST);
-        }
-        const useDepthTest = !disableDepthTest;
-        //const prevDepthMask = gl.getParameter(gl.DEPTH_WRITEMASK) as boolean;
-        if (useDepthTest) {
-            gl.depthFunc(gl.LEQUAL);
-        }
-        gl.depthMask(useDepthTest && depthWrite);
+        const depthState = this._configureDepthPass(depthWrite);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, fontTextureArray);
@@ -424,13 +415,7 @@ class LabelHandler extends BaseBillboardHandler {
         const numLabels = endBillboardIndex - startBillboardIndex;
         if (numLabels <= 0) {
             gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
-            //gl.depthMask(prevDepthMask);
-            if (useDepthTest) {
-                gl.depthFunc(gl.LESS);
-            }
-            if (disableDepthTest) {
-                gl.enable(gl.DEPTH_TEST);
-            }
+            this._restoreDepthPass(depthState);
             gl.enable(gl.CULL_FACE);
             return;
         }
@@ -458,13 +443,7 @@ class LabelHandler extends BaseBillboardHandler {
         gl.drawArrays(gl.TRIANGLES, startVertexIndex, vertexCount);
 
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
-        //gl.depthMask(prevDepthMask);
-        if (useDepthTest) {
-            gl.depthFunc(gl.LESS);
-        }
-        if (disableDepthTest) {
-            gl.enable(gl.DEPTH_TEST);
-        }
+        this._restoreDepthPass(depthState);
         gl.enable(gl.CULL_FACE);
     }
 

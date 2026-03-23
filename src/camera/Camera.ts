@@ -232,6 +232,8 @@ class Camera {
 
     protected _flying: boolean;
 
+    public slope: number;
+
     // public dirForwardNED: Vec3;
     // public dirUpNED: Vec3;
     // public dirRightNED: Vec3;
@@ -240,6 +242,8 @@ class Camera {
         this.__id = Camera.__counter__++;
 
         this.events = createEvents<CameraEvents>(EVENT_NAMES, this);
+
+        this.slope = 0;
 
         this._isOrthographic = options.isOrthographic ?? false;
 
