@@ -107,15 +107,15 @@ export function drawnode_screen_wl_noatmos_deferred(): Program {
             samplerArr: "sampler2darraylegacy",
             defaultTexture: "sampler2d",
             uNormalMap: "sampler2d",
-            nightTexture: "sampler2d",
+            //nightTexture: "sampler2d",
             specularTexture: "sampler2d",
             lightPosition: "vec3",
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4",
-            camHeight: "float",
-            nightTextureCoefficient: "float",
-            transitionOpacity: "float"
+            //camHeight: "float",
+            //nightTextureCoefficient: "float",
+            //transitionOpacity: "float"
         }, attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",

@@ -10,7 +10,7 @@ uniform vec3 diffuse;
 uniform vec3 ambient;
 
 uniform sampler2D uNormalMap;
-uniform sampler2D nightTexture;
+//uniform sampler2D nightTexture;
 uniform sampler2D specularTexture;
 uniform sampler2D defaultTexture;
 uniform sampler2D samplerArr[SLICE_SIZE];
@@ -20,11 +20,11 @@ uniform vec3 lightPosition;
 uniform float layerOpacityArr[SLICE_SIZE];
 
 uniform int samplerCount;
-uniform float nightTextureCoefficient;
+//uniform float nightTextureCoefficient;
 
-uniform float transitionOpacity;
+//uniform float transitionOpacity;
 
-uniform float camHeight;
+//uniform float camHeight;
 
 in vec4 vTextureCoord;
 in vec3 v_vertex;
@@ -37,6 +37,30 @@ vec3 sunPos;
 layout (location = 0) out vec4 diffuseColor;
 layout (location = 1) out vec4 normalColor;
 
+void getPhongLighting(
+in vec3 _v_vertex,
+in vec3 _sunPos,
+in vec3 _cameraPosition,
+in vec3 _normal,
+in vec3 _ambient,
+in vec3 _diffuse,
+in vec4 _specular,
+in float _shininess,
+out vec3 _spec,
+out vec4 _lightWeighting
+) {
+
+    vec3 lightDir = normalize(_sunPos);
+    vec3 viewDir = normalize(_cameraPosition - _v_vertex);
+
+    vec3 reflectionDirection = reflect(-lightDir, _normal);
+    float reflection = max(dot(reflectionDirection, viewDir), 0.0);
+    float diffuseLightWeighting = max(dot(_normal, lightDir), 0.0);
+
+    _spec = _specular.rgb * pow(reflection, _specular.w) * _shininess;
+    _lightWeighting = vec4(_ambient + _diffuse * diffuseLightWeighting, 1.0);
+}
+
 void main(void) {
 
     sunPos = lightPosition;
@@ -46,34 +70,55 @@ void main(void) {
 
     float minH = 1200000.0;
     float maxH = minH * 3.0;
-    float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
+    //float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
 
     // if(camHeight > 6000000.0)
     // {
     //     normal = normalize(v_vertex);
     // }
 
-    vec3 lightDir = normalize(sunPos);
-    vec3 viewDir = normalize(cameraPosition - v_vertex);
+    //    vec3 lightDir = normalize(sunPos);
+    //    vec3 viewDir = normalize(cameraPosition - v_vertex);
 
     float overGround = 1.0 - step(0.1, v_height);
-
     float shininess = texture(specularTexture, vGlobalTextureCoord.st).r * 255.0 * overGround;
-    vec3 reflectionDirection = reflect(-lightDir, normal);
-    float reflection = max(dot(reflectionDirection, viewDir), 0.0);
-    vec3 spec = specular.rgb * pow(reflection, specular.w) * shininess;
-    float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
+
+    vec4 lightWeighting;
+    vec3 spec;
+
+    getPhongLighting(
+    v_vertex,
+    sunPos,
+    cameraPosition,
+    normal,
+    ambient,
+    diffuse,
+    specular,
+    shininess,
+    spec,
+    lightWeighting
+    );
+
+    //    float shininess = texture(specularTexture, vGlobalTextureCoord.st).r * 255.0 * overGround;
+    //    vec3 reflectionDirection = reflect(-lightDir, normal);
+    //    float reflection = max(dot(reflectionDirection, viewDir), 0.0);
+    //    vec3 spec = specular.rgb * pow(reflection, specular.w) * shininess;
+    //    float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
+
+    /*
     vec4 nightImageColor = texture(nightTexture, vGlobalTextureCoord.st);
     vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb * nightCoef;
     night *= overGround * step(0.0, night);
-    vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + night, 1.0);
+    */
+
+    //vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + night, 1.0);
 
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
     normalColor = vec4(normal * 0.5 + 0.5, 1.0);
 
     if (samplerCount == 0) {
         diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-        diffuseColor *= transitionOpacity;
+        //diffuseColor *= transitionOpacity;
         return;
     }
 
@@ -82,32 +127,32 @@ void main(void) {
     blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
     if (samplerCount == 1) {
         diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-        diffuseColor *= transitionOpacity;
+        //diffuseColor *= transitionOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
     if (samplerCount == 2) {
         diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-        diffuseColor *= transitionOpacity;
+        //diffuseColor *= transitionOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
     if (samplerCount == 3) {
         diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-        diffuseColor *= transitionOpacity;
+        //diffuseColor *= transitionOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
     if (samplerCount == 4) {
         diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-        diffuseColor *= transitionOpacity;
+        //diffuseColor *= transitionOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
     diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-    diffuseColor *= transitionOpacity;
+    //diffuseColor *= transitionOpacity;
 }
