@@ -6,7 +6,7 @@ import deferred_frag from './deferredShading.frag.glsl';
 export function deferredShading(): Program {
     return new Program("deferredShading", {
         uniforms: {
-            diffuseTexture: "sampler2d",
+            baseTexture: "sampler2d",
             normalTexture: "sampler2d",
             depthTexture: "sampler2d",
         },

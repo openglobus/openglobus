@@ -1374,7 +1374,7 @@ class Renderer {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[0]);
-        gl.uniform1i(p.uniforms.diffuseTexture, 0);
+        gl.uniform1i(p.uniforms.baseTexture, 0);
 
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[1]);

@@ -41,6 +41,7 @@ import type {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../we
 import {Program} from "../webgl/Program";
 import {Segment} from "../segment/Segment";
 import type {AtmosphereParameters} from "../shaders/atmos/atmos";
+import {ProgramController} from "../webgl/ProgramController";
 
 export interface IPlanetParams {
     name?: string;
@@ -728,8 +729,10 @@ export class Planet extends RenderNode {
         if (this.renderer && this.renderer.handler && this._atmosphereEnabled) {
             let h = this.renderer.handler;
             if (h.isWebGl2()) {
-                h.removeProgram("drawnode_screen_wl");
-                h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(atmosParams));
+                h.removeProgram("drawnode_screen_wl_forward");
+                h.removeProgram("drawnode_screen_wl_deferred");
+                h.addProgram(shaders.drawnode_screen_wl_atmos_forward(atmosParams));
+                h.addProgram(shaders.drawnode_screen_wl_atmos_deferred(atmosParams));
             } else {
                 console.warn("Atmosphere WebGL2 only");
             }
@@ -746,7 +749,8 @@ export class Planet extends RenderNode {
 
         let h = this.renderer.handler;
 
-        h.removeProgram("drawnode_screen_wl");
+        h.removeProgram("drawnode_screen_wl_forward");
+        h.removeProgram("drawnode_screen_wl_deferred");
 
         if (this._atmosphereEnabled) {
 
@@ -760,7 +764,8 @@ export class Planet extends RenderNode {
 
             this._atmosphere.activate();
 
-            h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(this._atmosphere.parameters));
+            h.addProgram(shaders.drawnode_screen_wl_atmos_forward(this._atmosphere.parameters));
+            h.addProgram(shaders.drawnode_screen_wl_atmos_deferred(this._atmosphere.parameters));
 
             if (!this._transparentBackground) {
                 if (this.renderer.controls.SimpleSkyBackground) {
@@ -784,7 +789,8 @@ export class Planet extends RenderNode {
                 }
             }
 
-            h.addProgram(shaders.drawnode_screen_wl_webgl2NoAtmos());
+            h.addProgram(shaders.drawnode_screen_wl_noatmos_forward());
+            h.addProgram(shaders.drawnode_screen_wl_noatmos_deferred());
         }
     }
 
@@ -1124,7 +1130,7 @@ export class Planet extends RenderNode {
         // deferred PASS
         this._renderingOpaqueScreenNodes(
             this.quadTreeStrategy,
-            this._setUniformsNoAtmos(cam),
+            this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_deferred),
             cam,
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
@@ -1134,7 +1140,7 @@ export class Planet extends RenderNode {
         // forward PASS
         this._renderingTransparentScreenNodes(
             this.quadTreeStrategy,
-            this._setUniformsNoAtmos(this.camera)
+            this._setUniformsNoAtmos(this.camera, this.renderer!.handler.programs.drawnode_screen_wl_forward)
         );
     }
 
@@ -1144,7 +1150,7 @@ export class Planet extends RenderNode {
         // PASS 1: rendering slices, and layers with heights, without transition opacity effect
         this._renderingScreenNodesWithHeight(
             this.quadTreeStrategy,
-            this._setUniformsNoAtmos(cam),
+            this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_forward),
             cam,
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
@@ -1254,7 +1260,7 @@ export class Planet extends RenderNode {
         this.camera.setTerrainCollisionActivity(true);
     }
 
-    protected _setUniformsNoAtmos(cam: PlanetCamera): Program {
+    protected _setUniformsNoAtmos(cam: PlanetCamera, program: ProgramController): Program {
         let sh, shu;
         let renderer = this.renderer!;
 
@@ -1266,8 +1272,8 @@ export class Planet extends RenderNode {
         renderer.enableBlendOneSrcAlpha();
 
         if (this.lightEnabled) {
-            h.programs.drawnode_screen_wl.activate();
-            sh = h.programs.drawnode_screen_wl._program;
+            program.activate();
+            sh = program._program;
             shu = sh.uniforms;
 
             gl.uniform3fv(shu.lightPosition, this._lightPosition);
