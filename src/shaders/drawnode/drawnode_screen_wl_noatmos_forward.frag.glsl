@@ -34,7 +34,7 @@ in float v_height;
 
 vec3 sunPos;
 
-layout (location = 0) out vec4 diffuseColor;
+layout (location = 0) out vec4 fragColor;
 
 void main(void) {
 
@@ -67,45 +67,45 @@ void main(void) {
     night *= overGround * step(0.0, night);
     vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + night, 1.0);
 
-    diffuseColor = texture(defaultTexture, vTextureCoord.xy);
+    fragColor = texture(defaultTexture, vTextureCoord.xy);
 
     if (samplerCount == 0) {
-        diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-        diffuseColor *= transitionOpacity;
+        fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+        fragColor *= transitionOpacity;
         return;
     }
 
     vec4 src;
 
-    blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
+    blend(fragColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
     if (samplerCount == 1) {
-        diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-        diffuseColor *= transitionOpacity;
+        fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+        fragColor *= transitionOpacity;
         return;
     }
 
-    blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
+    blend(fragColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
     if (samplerCount == 2) {
-        diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-        diffuseColor *= transitionOpacity;
+        fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+        fragColor *= transitionOpacity;
         return;
     }
 
-    blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
+    blend(fragColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
     if (samplerCount == 3) {
-        diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-        diffuseColor *= transitionOpacity;
+        fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+        fragColor *= transitionOpacity;
         return;
     }
 
-    blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
+    blend(fragColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
     if (samplerCount == 4) {
-        diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-        diffuseColor *= transitionOpacity;
+        fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+        fragColor *= transitionOpacity;
         return;
     }
 
-    blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
-    diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
-    diffuseColor *= transitionOpacity;
+    blend(fragColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
+    fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+    fragColor *= transitionOpacity;
 }

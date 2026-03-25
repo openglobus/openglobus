@@ -324,8 +324,8 @@ export class Planet extends RenderNode {
      */
     public nightTextureCoefficient: number;
 
-    protected _renderOpaqueScreenNodesPASS: () => void;
-    protected _renderTransparentScreenNodesPASS: () => void;
+    //protected _renderOpaqueScreenNodesPASS: () => void;
+    //protected _renderTransparentScreenNodesPASS: () => void;
     //protected _renderScreenNodesWithHeightPASS: () => void;
 
     protected _atmosphereEnabled: boolean;
@@ -469,8 +469,8 @@ export class Planet extends RenderNode {
 
         this.nightTextureCoefficient = 2.0;
 
-        this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSNoAtmos;
-        this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSNoAtmos;
+        //this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSNoAtmos;
+        //this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSNoAtmos;
         //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
@@ -754,8 +754,8 @@ export class Planet extends RenderNode {
 
         if (this._atmosphereEnabled) {
 
-            this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSAtmos;
-            this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSAtmos;
+            //this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSAtmos;
+            //this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSAtmos;
             //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSAtmos;
 
             if (!this.renderer.controls.Atmosphere) {
@@ -775,8 +775,8 @@ export class Planet extends RenderNode {
 
         } else {
 
-            this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSNoAtmos;
-            this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSNoAtmos;
+            //this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSNoAtmos;
+            //this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSNoAtmos;
             //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
             this._atmosphere.deactivate();
@@ -856,14 +856,21 @@ export class Planet extends RenderNode {
         }
 
         this.renderer!.events.on("gbufferpass", () => {
-            this._renderOpaqueScreenNodesPASS();
+            //this._renderOpaqueScreenNodesPASS();
+            if (this._atmosphereEnabled) {
+                this._renderOpaqueScreenNodesPASSAtmos()
+            } else {
+                this._renderOpaqueScreenNodesPASSNoAtmos();
+            }
         });
 
         this.renderer!.events.on("forwardpass", () => {
-            this._renderTransparentScreenNodesPASS();
+            //this._renderTransparentScreenNodesPASS();
             if (this._atmosphereEnabled) {
+                this._renderTransparentScreenNodesPASSAtmos();
                 this._renderScreenNodesWithHeightPASSAtmos();
             } else {
+                this._renderTransparentScreenNodesPASSNoAtmos();
                 this._renderScreenNodesWithHeightPASSNoAtmos();
             }
         });
@@ -1162,7 +1169,7 @@ export class Planet extends RenderNode {
         // deferred PASS
         this._renderingOpaqueScreenNodes(
             this.quadTreeStrategy,
-            this._setUniformsAtmos(cam),
+            this._setUniformsAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_deferred),
             cam,
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
@@ -1172,7 +1179,7 @@ export class Planet extends RenderNode {
         // forward PASS
         this._renderingTransparentScreenNodes(
             this.quadTreeStrategy,
-            this._setUniformsAtmos(this.camera)
+            this._setUniformsAtmos(this.camera, this.renderer!.handler.programs.drawnode_screen_wl_forward)
         );
     }
 
@@ -1182,7 +1189,7 @@ export class Planet extends RenderNode {
         // PASS 1: rendering slices, and layers with heights, without transition opacity effect
         this._renderingScreenNodesWithHeight(
             this.quadTreeStrategy,
-            this._setUniformsAtmos(cam),
+            this._setUniformsAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_forward),
             cam,
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
@@ -1319,7 +1326,7 @@ export class Planet extends RenderNode {
         return sh;
     }
 
-    protected _setUniformsAtmos(cam: PlanetCamera): Program {
+    protected _setUniformsAtmos(cam: PlanetCamera, program: ProgramController): Program {
 
         let sh, shu;
         let renderer = this.renderer!;
@@ -1331,8 +1338,8 @@ export class Planet extends RenderNode {
         renderer.enableBlendOneSrcAlpha();
 
         if (this.lightEnabled) {
-            h.programs.drawnode_screen_wl.activate();
-            sh = h.programs.drawnode_screen_wl._program;
+            program.activate();
+            sh = program._program;
             shu = sh.uniforms;
 
             gl.uniform3fv(shu.lightPosition, this._lightPosition);
