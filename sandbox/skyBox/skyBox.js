@@ -82,7 +82,8 @@ let globe = new Globe({
 globe.planet.addControls([
     new control.GeoObjectEditor(),
     new control.LayerSwitcher(),
-    new control.ToggleWireframe()
+    new control.ToggleWireframe(),
+    new control.TimelineControl(),
 ]);
 
 globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "#555555";

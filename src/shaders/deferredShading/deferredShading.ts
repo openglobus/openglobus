@@ -9,6 +9,12 @@ export function deferredShading(): Program {
             baseTexture: "sampler2d",
             normalTexture: "sampler2d",
             depthTexture: "sampler2d",
+            lightPosition: "vec3",
+            lightAmbient: "vec3",
+            lightDiffuse: "vec3",
+            lightSpecular: "vec3",
+            cameraPosition: "vec3",
+            inverseProjectionViewMatrix: "mat4",
         },
         attributes: {
             corners: "vec3"

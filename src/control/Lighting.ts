@@ -45,19 +45,19 @@ const TEMPLATE =
 
          <div class="og-option">
            <div class="og-suncontrol"></div>
-         </div>        
-         
+         </div>
+
          <div class="og-option og-atmosphere-opacity">
          </div>
-         
+
          <div class="og-option og-simpleskybackground">
          </div>
-         
+
         <div class="og-lighting-emptyline"></div>
 
-         <div class="og-option og-gamma"></div>         
+         <div class="og-option og-gamma"></div>
          <div class="og-option og-exposure"></div>
-       
+
         <div class="og-lighting-emptyline"></div>
 
          <div class="og-option">
@@ -69,20 +69,20 @@ const TEMPLATE =
 
          <div class="og-option og-opacity">
          </div>
-         
+
          <div class="og-option og-night">
          </div>
-         
+
          <div class="og-lighting-emptyline"></div>
 
          <div class="og-option og-diffuse">
          </div>
-      
+
          <div class="og-option og-ambient">
          </div>
 
          <div class="og-option og-specular">
-         </div>        
+         </div>
 
     </div>`;
 
@@ -542,26 +542,8 @@ export class Lighting extends Control {
 
     protected _update() {
         let l = this._selectedLayer;
-
         this._opacity.value = l && l.opacity ? l.opacity : 0.0;
-
         this._night.value = l && l.nightTextureCoefficient ? l.nightTextureCoefficient : this.planet!.nightTextureCoefficient;
-
-        let a = l && l._ambient ? l._ambient : this.planet!._ambient;
-        this._ambient_r.value = a[0];
-        this._ambient_g.value = a[1];
-        this._ambient_b.value = a[2];
-
-        let d = l && l._diffuse ? l._diffuse : this.planet!._diffuse;
-        this._diffuse_r.value = d[0];
-        this._diffuse_g.value = d[1];
-        this._diffuse_b.value = d[2];
-
-        let s = l && l._specular ? l._specular : this.planet!._specular;
-        this._specular_r.value = s[0];
-        this._specular_g.value = s[1];
-        this._specular_b.value = s[2];
-        this._shininess.value = s[3];
     }
 
     protected _fetchLayers() {

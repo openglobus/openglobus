@@ -4,6 +4,7 @@ precision highp float;
 
 #include "../common/utils.glsl"
 #include "./common.glsl"
+#include "../common/lighting.glsl"
 
 uniform vec4 specular;
 uniform vec3 diffuse;
@@ -43,29 +44,36 @@ void main(void) {
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
 
+    float overGround = 1.0 - step(0.1, v_height);
+    float shininess = texture(specularTexture, vGlobalTextureCoord.st).r * 255.0 * overGround;
+
+    vec4 lightWeighting;
+    vec3 spec;
+
+    getPhongLighting(
+    v_vertex,
+    sunPos,
+    cameraPosition,
+    normal,
+    ambient,
+    diffuse,
+    specular,
+    shininess,
+    spec,
+    lightWeighting
+    );
+
     float minH = 1200000.0;
     float maxH = minH * 3.0;
     float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
 
-    // if(camHeight > 6000000.0)
-    // {
-    //     normal = normalize(v_vertex);
-    // }
-
-    vec3 lightDir = normalize(sunPos);
-    vec3 viewDir = normalize(cameraPosition - v_vertex);
-
-    float overGround = 1.0 - step(0.1, v_height);
-
-    float shininess = texture(specularTexture, vGlobalTextureCoord.st).r * 255.0 * overGround;
-    vec3 reflectionDirection = reflect(-lightDir, normal);
-    float reflection = max(dot(reflectionDirection, viewDir), 0.0);
-    vec3 spec = specular.rgb * pow(reflection, specular.w) * shininess;
+    vec3 lightDir = normalize(sunPos - v_vertex);
     float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
     vec4 nightImageColor = texture(nightTexture, vGlobalTextureCoord.st);
     vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb * nightCoef;
     night *= overGround * step(0.0, night);
-    vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + night, 1.0);
+
+    lightWeighting += vec4(night, 0.0);
 
     fragColor = texture(defaultTexture, vTextureCoord.xy);
 

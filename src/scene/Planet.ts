@@ -261,11 +261,6 @@ export class Planet extends RenderNode {
      */
     protected _specularTexture: WebGLTextureExt | null;
 
-
-    public _ambient: Float32Array;
-    public _diffuse: Float32Array;
-    public _specular: Float32Array;
-
     protected _maxGridSize: number;
 
     /**
@@ -422,15 +417,6 @@ export class Planet extends RenderNode {
 
         this._specularTexture = null;
 
-        let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.3));
-        let d = utils.createColorRGB(options.diffuse, new Vec3(1.0, 1.0, 1.0));
-        let s = utils.createColorRGB(options.specular, new Vec3(0.00063, 0.00055, 0.00032));
-        let shininess = options.shininess || 18.0;
-
-        this._ambient = new Float32Array([a.x, a.y, a.z]);
-        this._diffuse = new Float32Array([d.x, d.y, d.z]);
-        this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
-
         this._maxGridSize = Math.log2(options.maxGridSize || 256);
 
         this.SLICE_SIZE = 4;
@@ -534,21 +520,33 @@ export class Planet extends RenderNode {
 
     public set diffuse(rgb: string | NumberArray3 | Vec3) {
         let vec = createColorRGB(rgb);
-        this._diffuse = new Float32Array(vec.toArray());
+        if (this.renderer) {
+            let diffuse = new Float32Array(vec.toArray());
+            this.renderer.lightDiffuse.set(diffuse);
+        }
     }
 
     public set ambient(rgb: string | NumberArray3 | Vec3) {
         let vec = createColorRGB(rgb);
-        this._ambient = new Float32Array(vec.toArray());
+        if (this.renderer) {
+            let ambient = new Float32Array(vec.toArray());
+            this.renderer.lightAmbient.set(ambient);
+        }
     }
 
     public set specular(rgb: string | NumberArray3 | Vec3) {
         let vec = createColorRGB(rgb);
-        this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular[3]]);
+        if (this.renderer) {
+            this.renderer.lightSpecular[0] =vec.x;
+            this.renderer.lightSpecular[1] =vec.y;
+            this.renderer.lightSpecular[2] =vec.z;
+        }
     }
 
     public set shininess(v: number) {
-        this._specular[3] = v;
+        if (this.renderer) {
+            this.renderer.lightSpecular[3] = v;
+        }
     }
 
     public get normalMapCreator(): NormalMapCreator {
@@ -1283,19 +1281,19 @@ export class Planet extends RenderNode {
             sh = program._program;
             shu = sh.uniforms;
 
-            gl.uniform3fv(shu.lightPosition, this._lightPosition);
+            gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
             if (this.baseLayer) {
-                gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
-                gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
-                gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
+                gl.uniform3fv(shu.diffuse, renderer.lightDiffuse);
+                gl.uniform3fv(shu.ambient, renderer.lightAmbient);
+                gl.uniform4fv(shu.specular, renderer.lightSpecular);
                 gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer.nightTextureCoefficient || this.nightTextureCoefficient);
             } else {
-                gl.uniform3fv(shu.diffuse, this._diffuse);
-                gl.uniform3fv(shu.ambient, this._ambient);
-                gl.uniform4fv(shu.specular, this._specular);
+                gl.uniform3fv(shu.diffuse, renderer.lightDiffuse);
+                gl.uniform3fv(shu.ambient, renderer.lightAmbient);
+                gl.uniform4fv(shu.specular, renderer.lightSpecular);
                 gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
             }
 
@@ -1342,19 +1340,19 @@ export class Planet extends RenderNode {
             sh = program._program;
             shu = sh.uniforms;
 
-            gl.uniform3fv(shu.lightPosition, this._lightPosition);
+            gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
             if (this.baseLayer) {
-                gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
-                gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
-                gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
+                gl.uniform3fv(shu.diffuse, renderer.lightDiffuse);
+                gl.uniform3fv(shu.ambient, renderer.lightAmbient);
+                gl.uniform4fv(shu.specular, renderer.lightSpecular);
                 gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer.nightTextureCoefficient || this.nightTextureCoefficient);
             } else {
-                gl.uniform3fv(shu.diffuse, this._diffuse);
-                gl.uniform3fv(shu.ambient, this._ambient);
-                gl.uniform4fv(shu.specular, this._specular);
+                gl.uniform3fv(shu.diffuse, renderer.lightDiffuse);
+                gl.uniform3fv(shu.ambient, renderer.lightAmbient);
+                gl.uniform4fv(shu.specular, renderer.lightSpecular);
                 gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
             }
 

@@ -238,6 +238,14 @@ class Renderer {
 
     public clearColor: Float32Array;
 
+    public lightPosition: Float32Array;
+    public lightAmbient: Float32Array;
+    public lightDiffuse: Float32Array;
+    public lightSpecular: Float32Array;
+
+    //public lightColor: Float32Array;
+    //public lightIntensity: number;
+
     constructor(handler: Handler | string | HTMLCanvasElement, params: IRendererParams = {}) {
 
         this.div = null;
@@ -252,6 +260,13 @@ class Renderer {
         }
 
         this.clearColor = new Float32Array(params.clearColor || [0, 0, 0, 1]);
+
+        this.lightPosition = new Float32Array([0, 0, 0]);
+        this.lightAmbient = new Float32Array([0.2, 0.2, 0.3]);
+        this.lightDiffuse = new Float32Array([0.9, 0.9, 0.7]);
+        this.lightSpecular = new Float32Array([0.00063, 0.00055, 0.00032, 18.0]);
+        //this.lightColor = new Float32Array([1.0, 1.0, 1.0]);
+        //this.lightIntensity = 1.0;
 
         this.exposure = params.exposure || 3.01;
 
@@ -1371,6 +1386,13 @@ class Renderer {
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         sh.activate();
+
+        gl.uniform3fv(p.uniforms.lightPosition, this.lightPosition);
+        gl.uniform3fv(p.uniforms.lightAmbient, this.lightAmbient);
+        gl.uniform3fv(p.uniforms.lightDiffuse, this.lightDiffuse);
+        gl.uniform3fv(p.uniforms.lightSpecular, this.lightSpecular);
+        gl.uniform3f(p.uniforms.cameraPosition, this.activeCamera.eye.x, this.activeCamera.eye.y, this.activeCamera.eye.z);
+        gl.uniformMatrix4fv(p.uniforms.inverseProjectionViewMatrix, false, this.activeCamera.getInverseProjectionViewMatrix());
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[0]);
