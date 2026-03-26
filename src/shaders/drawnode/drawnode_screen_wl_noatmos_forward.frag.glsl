@@ -52,9 +52,9 @@ void main(void) {
 
     getPhongLighting(
     v_vertex,
-    sunPos,
-    cameraPosition,
     normal,
+    cameraPosition,
+    sunPos,
     ambient,
     diffuse,
     specular,

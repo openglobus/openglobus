@@ -1,8 +1,8 @@
 void getPhongLighting(
 in vec3 vertex,
-in vec3 lightPos,
-in vec3 cameraPos,
 in vec3 normal,
+in vec3 cameraPos,
+in vec3 lightPos,
 in vec3 ambient,
 in vec3 diffuse,
 in vec4 specular,
@@ -12,9 +12,9 @@ out vec4 outLightWeighting
 ){
 
     vec3 lightDir = normalize(lightPos);
-    vec3 viewDir = normalize(camPos - vertex);
+    vec3 viewDir = normalize(cameraPos - vertex);
 
-    vec3 reflectionDir = reflect(-lightDir, _normal);
+    vec3 reflectionDir = reflect(-lightDir, normal);
     float reflection = max(dot(reflectionDir, viewDir), 0.0);
     float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
 

@@ -48,9 +48,9 @@ void main(void) {
 
     getPhongLighting(
     vertex,
-    lightPosition,
-    cameraPosition,
     normal,
+    cameraPosition,
+    lightPosition,
     lightAmbient,
     lightDiffuse,
     lightSpecular,
