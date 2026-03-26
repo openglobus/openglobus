@@ -31,6 +31,7 @@ vec3 sunPos;
 layout (location = 0) out vec4 diffuseColor;
 layout (location = 1) out vec4 materials;
 layout (location = 2) out vec4 normalColor;
+layout (location = 3) out vec4 positionColor;
 
 void main(void) {
 
@@ -53,7 +54,9 @@ void main(void) {
 
     float overGround = 1.0 - step(0.1, v_height);
     float shininess = texture(specularTexture, vGlobalTextureCoord.st).r * 255.0 * overGround;
+
     materials = vec4(shininess, 0.0, 0.0, 1.0);
+    positionColor = vec4(v_vertex, 1.0);
 
     /*
     vec4 nightImageColor = texture(nightTexture, vGlobalTextureCoord.st);

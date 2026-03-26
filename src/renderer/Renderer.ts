@@ -697,6 +697,9 @@ class Renderer {
                 internalFormat: this._internalFormat,
                 filter: "NEAREST"
             }, {
+                internalFormat: "RGBA32F",
+                filter: "NEAREST"
+            }, {
                 attachment: "DEPTH_ATTACHMENT",
                 internalFormat: this._depthComponent,
                 filter: "NEAREST"
@@ -1265,9 +1268,11 @@ class Renderer {
             //
             // Forward rendering and transparent object pass
             //
-            this.enableBlendDefault();
+            this.enableBlendOneSrcAlpha();
 
             e.dispatch(e.forwardpass, this);
+
+            this.enableBlendDefault();
             this._drawForwardEntityCollections(0);
 
             //
@@ -1363,7 +1368,7 @@ class Renderer {
         sh.activate();
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[3]);
+        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[4]);
         gl.uniform1i(p.uniforms.depthTexture, 0);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -1395,7 +1400,6 @@ class Renderer {
         gl.uniform3fv(p.uniforms.lightDiffuse, this.lightDiffuse);
         gl.uniform4fv(p.uniforms.lightSpecular, this.lightSpecular);
         gl.uniform3f(p.uniforms.cameraPosition, this.activeCamera.eye.x, this.activeCamera.eye.y, this.activeCamera.eye.z);
-        gl.uniformMatrix4fv(p.uniforms.inverseProjectionViewMatrix, false, this.activeCamera.getInverseProjectionViewMatrix());
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[0]);
@@ -1411,7 +1415,7 @@ class Renderer {
 
         gl.activeTexture(gl.TEXTURE3);
         gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[3]);
-        gl.uniform1i(p.uniforms.depthTexture, 3);
+        gl.uniform1i(p.uniforms.positionTexture, 3);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 

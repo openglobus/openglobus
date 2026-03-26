@@ -43,6 +43,7 @@ vec3 sunPos;
 layout (location = 0) out vec4 diffuseColor;
 layout (location = 1) out vec4 materials;
 layout (location = 2) out vec4 normalColor;
+layout (location = 3) out vec4 positionColor;
 
 vec3 transmittanceFromTexture(float height, float angle)
 {
@@ -172,6 +173,7 @@ void getAtmosFadingOpacity(out float opacity)
 void main(void) {
 
     materials = vec4(0.0, 0.0, 0.0, 1.0);
+    positionColor = vec4(v_vertex, 1.0);
 
     sunPos = lightPosition;
 
