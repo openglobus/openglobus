@@ -237,10 +237,10 @@ parentEntity.appendChild(childEntity);
 
 objLayer.add(parentEntity);
 
-globe.planet.camera.setLonLat(
-    new LonLat(-105.61717175714179, 39.61567256262465, 4064.033358156039),
-    pos, // look point
-);
+// globe.planet.camera.setLonLat(
+//     new LonLat(-105.61717175714179, 39.61567256262465, 4064.033358156039),
+//     pos, // look point
+// );
 
 
 let ell = globe.planet.ellipsoid;

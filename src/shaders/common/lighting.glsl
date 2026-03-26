@@ -1,23 +1,23 @@
 void getPhongLighting(
-in vec3 _v_vertex,
-in vec3 _sunPos,
-in vec3 _cameraPosition,
-in vec3 _normal,
-in vec3 _ambient,
-in vec3 _diffuse,
-in vec4 _specular,
-in float _shininess,
-out vec3 _spec,
-out vec4 _lightWeighting
+in vec3 vertex,
+in vec3 lightPos,
+in vec3 cameraPos,
+in vec3 normal,
+in vec3 ambient,
+in vec3 diffuse,
+in vec4 specular,
+in float specularMask,
+out vec3 outSpecularWeighting,
+out vec4 outLightWeighting
 ){
 
-    vec3 lightDir = normalize(_sunPos);
-    vec3 viewDir = normalize(_cameraPosition - _v_vertex);
+    vec3 lightDir = normalize(lightPos);
+    vec3 viewDir = normalize(camPos - vertex);
 
-    vec3 reflectionDirection = reflect(-lightDir, _normal);
-    float reflection = max(dot(reflectionDirection, viewDir), 0.0);
-    float diffuseLightWeighting = max(dot(_normal, lightDir), 0.0);
+    vec3 reflectionDir = reflect(-lightDir, _normal);
+    float reflection = max(dot(reflectionDir, viewDir), 0.0);
+    float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
 
-    _spec = _specular.rgb * pow(reflection, _specular.w) * _shininess;
-    _lightWeighting = vec4(_ambient + _diffuse * diffuseLightWeighting, 1.0);
+    outSpecularWeighting = specular.rgb * pow(reflection, specular.w) * specularMask;
+    outLightWeighting = vec4(ambient + diffuse * diffuseLightWeighting, 1.0);
 }
