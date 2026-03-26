@@ -15,11 +15,13 @@ in vec3 vNormal;
 in vec2 vTexCoords;
 
 layout (location = 0) out vec4 diffuseColor;
-layout (location = 1) out vec4 normalColor;
+layout (location = 1) out vec4 materials;
+layout (location = 2) out vec4 normalColor;
 
 void main(void) {
 
     vec3 lightWeighting = vec3(1.0);
+    materials = vec4(0.0, 0.0, 0.0, 1.0);
 
     if (useLighting != 0.0) {
         vec3 normal = normalize(vNormal);

@@ -8,7 +8,7 @@ precision highp float;
 
 uniform sampler2D uNormalMap;
 //uniform sampler2D nightTexture;
-//uniform sampler2D specularTexture;
+uniform sampler2D specularTexture;
 uniform sampler2D defaultTexture;
 uniform sampler2D samplerArr[SLICE_SIZE];
 
@@ -29,7 +29,8 @@ in float v_height;
 vec3 sunPos;
 
 layout (location = 0) out vec4 diffuseColor;
-layout (location = 1) out vec4 normalColor;
+layout (location = 1) out vec4 materials;
+layout (location = 2) out vec4 normalColor;
 
 void main(void) {
 
@@ -51,8 +52,8 @@ void main(void) {
     //    vec3 viewDir = normalize(cameraPosition - v_vertex);
 
     float overGround = 1.0 - step(0.1, v_height);
-    //float shininess = texture(specularTexture, vGlobalTextureCoord.st).r * 255.0 * overGround;
-
+    float shininess = texture(specularTexture, vGlobalTextureCoord.st).r * 255.0 * overGround;
+    materials = vec4(shininess, 0.0, 0.0, 1.0);
 
     /*
     vec4 nightImageColor = texture(nightTexture, vGlobalTextureCoord.st);

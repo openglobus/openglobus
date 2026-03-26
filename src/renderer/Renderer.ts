@@ -694,6 +694,9 @@ class Renderer {
                 internalFormat: this._internalFormat,
                 filter: "NEAREST"
             }, {
+                internalFormat: this._internalFormat,
+                filter: "NEAREST"
+            }, {
                 attachment: "DEPTH_ATTACHMENT",
                 internalFormat: this._depthComponent,
                 filter: "NEAREST"
@@ -1360,7 +1363,7 @@ class Renderer {
         sh.activate();
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[2]);
+        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[3]);
         gl.uniform1i(p.uniforms.depthTexture, 0);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -1390,7 +1393,7 @@ class Renderer {
         gl.uniform3fv(p.uniforms.lightPosition, this.lightPosition);
         gl.uniform3fv(p.uniforms.lightAmbient, this.lightAmbient);
         gl.uniform3fv(p.uniforms.lightDiffuse, this.lightDiffuse);
-        gl.uniform3fv(p.uniforms.lightSpecular, this.lightSpecular);
+        gl.uniform4fv(p.uniforms.lightSpecular, this.lightSpecular);
         gl.uniform3f(p.uniforms.cameraPosition, this.activeCamera.eye.x, this.activeCamera.eye.y, this.activeCamera.eye.z);
         gl.uniformMatrix4fv(p.uniforms.inverseProjectionViewMatrix, false, this.activeCamera.getInverseProjectionViewMatrix());
 
@@ -1400,11 +1403,15 @@ class Renderer {
 
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[1]);
-        gl.uniform1i(p.uniforms.normalTexture, 1);
+        gl.uniform1i(p.uniforms.materialsTexture, 1);
 
         gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[2]);
-        gl.uniform1i(p.uniforms.depthTexture, 2);
+        gl.uniform1i(p.uniforms.normalTexture, 2);
+
+        gl.activeTexture(gl.TEXTURE3);
+        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[3]);
+        gl.uniform1i(p.uniforms.depthTexture, 3);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 

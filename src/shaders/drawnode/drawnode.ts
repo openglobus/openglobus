@@ -108,7 +108,7 @@ export function drawnode_screen_wl_noatmos_deferred(): Program {
             defaultTexture: "sampler2d",
             uNormalMap: "sampler2d",
             //nightTexture: "sampler2d",
-            //specularTexture: "sampler2d",
+            specularTexture: "sampler2d",
             lightPosition: "vec3",
             // diffuse: "vec3",
             // ambient: "vec3",

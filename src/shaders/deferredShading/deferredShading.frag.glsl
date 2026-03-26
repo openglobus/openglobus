@@ -5,6 +5,7 @@ precision highp float;
 #include "../common/lighting.glsl"
 
 uniform sampler2D baseTexture;
+uniform sampler2D materialsTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D depthTexture;
 
@@ -33,12 +34,14 @@ void main(void) {
 
     if (baseColor.a <= 1e-4) discard;
 
+    vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
     vec4 normalColor = texelFetch(normalTexture, fragCoord, 0);
 
     vec3 vertex = reconstructWorldPosition(fragCoord, depth);
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
 
-    float shininess = 0.0;
+    float shininess = materials.r;
+    float roughness = materials.g;
 
     vec4 lightWeighting;
     vec3 spec;
