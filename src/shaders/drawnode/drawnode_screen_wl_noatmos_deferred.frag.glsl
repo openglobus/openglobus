@@ -53,9 +53,9 @@ void main(void) {
     //    vec3 viewDir = normalize(cameraPosition - v_vertex);
 
     float overGround = 1.0 - step(0.1, v_height);
-    float shininess = texture(specularTexture, vGlobalTextureCoord.st).r * 255.0 * overGround;
+    float specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
 
-    materials = vec4(shininess, 0.0, 0.0, 1.0);
+    materials = vec4(specularMask, 0.0, 0.0, 1.0);
     positionColor = vec4(v_vertex, 1.0);
 
     /*
@@ -69,7 +69,7 @@ void main(void) {
 
     if (samplerCount == 0)return;
 
-    vec4 src; //used in blend function
+    vec4 src;//used in blend function
 
     blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
     if (samplerCount == 1) return;

@@ -434,7 +434,10 @@ export class GeoObjectHandler {
 
         //
         // Global sun position
-        gl.uniform3fv(u.sunPosition, this._renderNode!._lightPosition);
+        gl.uniform3fv(u.lightPosition, r.lightPosition);
+        gl.uniform3fv(u.lightAmbient, r.lightAmbient);
+        gl.uniform3fv(u.lightDiffuse, r.lightDiffuse);
+        gl.uniform4fv(u.lightSpecular, r.lightSpecular);
     }
 
     public _displayOpaquePASS() {

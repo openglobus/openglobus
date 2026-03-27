@@ -2,8 +2,12 @@
 precision highp float;
 
 #include "../common/weightedOIT.glsl"
+#include "../common/lighting.glsl"
 
-uniform vec3 sunPosition;
+uniform vec3 lightPosition;
+uniform vec3 lightAmbient;
+uniform vec3 lightDiffuse;
+uniform vec4 lightSpecular;
 uniform vec3 materialProperties;
 uniform sampler2D uTexture;
 uniform float uUseTexture;
@@ -20,31 +24,43 @@ layout(location=1) out float accumAlpha;
 
 void main(void) {
 
-    vec3 lightWeighting = vec3(1.0);
+    vec4 baseColor;
 
-    if (useLighting != 0.0) {
-        vec3 normal = normalize(vNormal);
-        vec3 light_dir = normalize(sunPosition);
-        vec3 look_dir = normalize(cameraPosition - v_vertex);
-
-        float diffuse = max(dot(normal, light_dir), 0.0);
-
-        vec3 refl_dir = reflect(-light_dir, normal);
-        float refl = max(dot(refl_dir, look_dir), 0.0);
-        float specular = pow(refl, 0.0) * step(1e-4, diffuse);
-
-        lightWeighting = vColor.rgb * diffuse + materialProperties[0] + materialProperties[1] + materialProperties[2];
+    if (uUseTexture > 0.0) {
+        vec4 texColor = texture(uTexture, vTexCoords);
+        baseColor = vec4(texColor.rgb * vColor.rgb, texColor.a * vColor.a);
     } else {
-        lightWeighting = vColor.rgb;
+        baseColor = vColor;
     }
 
     vec4 color;
 
-    if (uUseTexture > 0.0) {
-        vec4 texColor = texture(uTexture, vTexCoords);
-        color = vec4(texColor.rgb * lightWeighting, texColor.a * vColor.a);
+    if (useLighting != 0.0) {
+        float metallic = clamp(materialProperties[0], 0.0, 1.0);
+
+        vec3 vertex = v_vertex;
+        vec3 normal = normalize(vNormal);
+        float specularMask = metallic;
+
+        vec4 lightWeighting;
+        vec3 specularWeighting;
+
+        getPhongLighting(
+        vertex,
+        normal,
+        cameraPosition,
+        lightPosition,
+        lightAmbient,
+        lightDiffuse,
+        lightSpecular,
+        specularMask,
+        specularWeighting,
+        lightWeighting
+        );
+
+        color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
     } else {
-        color = vec4(lightWeighting, vColor.a);
+        color = baseColor;
     }
 
     weightedOITAccumulate(color, accumColor, accumAlpha);

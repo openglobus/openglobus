@@ -45,7 +45,7 @@ void main(void) {
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
 
     float overGround = 1.0 - step(0.1, v_height);
-    float specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * 255.0 * overGround;
+    float specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
 
     vec4 lightWeighting;
     vec3 specularWeighting;
