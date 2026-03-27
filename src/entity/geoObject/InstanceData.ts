@@ -224,6 +224,42 @@ export class InstanceData {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
+        this._drawElementsInstanced(p, 0, instanceCount);
+    }
+
+    //
+    //  All instances in forward pass(opaque + transparent)
+    //
+    public drawForwardAll(p: Program) {
+        const instanceCount = this.numInstances;
+        if (instanceCount <= 0) {
+            return;
+        }
+
+        let gl = p.gl!,
+            u = p.uniforms,
+            a = p.attributes;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._qRotBuffer!);
+        gl.vertexAttribPointer(a.qRot, this._qRotBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer!);
+        gl.vertexAttribPointer(a.aScale, this._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._translateBuffer!);
+        gl.vertexAttribPointer(a.aTranslate, this._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._localPositionBuffer!);
+        gl.vertexAttribPointer(a.aLocalPosition, this._localPositionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
+        gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.uniform1f(u.uUseTexture, this._colorTexture ? 1 : 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
+        gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
         gl.uniform3fv(u.materialParams, this._materialParams);
         gl.uniform1f(u.materialShininess, this._materialShininess);
 

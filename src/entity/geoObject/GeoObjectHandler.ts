@@ -417,19 +417,25 @@ export class GeoObjectHandler {
         gl.uniform1f(u.useLighting, ec._useLighting);
         gl.uniform1f(u.depthOffset, ec.polygonOffsetUnits);
 
-        gl.uniform3fv(u.eyePositionHigh, r.activeCamera.eyeHigh);
-        gl.uniform3fv(u.eyePositionLow, r.activeCamera.eyeLow);
-
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
 
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
+    }
+
+    protected _bindForwardParams(p: Program) {
+
+        let r = this._renderer!,
+            u = p.uniforms,
+            gl = r.handler.gl!;
+
+        gl.uniform3fv(u.eyePositionHigh, r.activeCamera.eyeHigh);
+        gl.uniform3fv(u.eyePositionLow, r.activeCamera.eyeLow);
 
         //
         // Global sun position
         gl.uniform3fv(u.sunPosition, this._renderNode!._lightPosition);
-
     }
 
     public _displayOpaquePASS() {
@@ -443,8 +449,7 @@ export class GeoObjectHandler {
         this._bindCommon(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
-            let instanceData = this._instanceDataMapValues[i];
-            instanceData.drawOpaque(p);
+            this._instanceDataMapValues[i].drawOpaque(p);
         }
     }
 
@@ -458,6 +463,7 @@ export class GeoObjectHandler {
         //gl.disable(gl.CULL_FACE);
 
         this._bindCommon(p);
+        this._bindForwardParams(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -472,9 +478,25 @@ export class GeoObjectHandler {
         sh.activate();
 
         this._bindCommon(p);
+        this._bindForwardParams(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
+        }
+    }
+
+    public _displayForwardPASS() {
+        let r = this._renderer!,
+            sh = r.handler.programs.geo_object_forward,
+            p = sh._program;
+
+        sh.activate();
+
+        this._bindCommon(p);
+        this._bindForwardParams(p);
+
+        for (let i = 0; i < this._instanceDataMapValues.length; i++) {
+            this._instanceDataMapValues[i].drawForwardAll(p);
         }
     }
 
@@ -739,11 +761,10 @@ export class GeoObjectHandler {
     }
 
     public drawForward() {
-        //this.drawOpaque();
         if (this._geoObjects.length) {
             this._updateRTCEyePosition();
             this.update();
-            this._displayOpaquePASS();
+            this._displayForwardPASS();
         }
     }
 
