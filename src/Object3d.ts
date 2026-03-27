@@ -40,10 +40,9 @@ interface IObject3dParams {
     center?: boolean;
     color?: number[] | TypedArray | string;
     scale?: number | Vec3;
-    ambient?: string | NumberArray3;
-    diffuse?: string | NumberArray3;
-    specular?: string | NumberArray3;
-    shininess?: number;
+    metallic?: number;
+    roughness?: number;
+    ambientOcclusion?: number;
     colorTextureSrc?: string;
     normalTextureSrc?: string;
     metallicRoughnessTextureSrc?: string;
@@ -52,7 +51,7 @@ interface IObject3dParams {
     metallicRoughnessTextureImage?: HTMLImageElement;
 }
 
-type MaterialParams = Pick<IObject3dParams, 'ambient' | 'diffuse' | 'specular' | 'shininess'>;
+type MaterialProperties = Pick<IObject3dParams, 'metallic' | 'roughness' | 'ambientOcclusion'>;
 
 
 class Object3d {
@@ -66,16 +65,18 @@ class Object3d {
     protected _normals: number[];
 
     public color: Float32Array;
-    public ambient: Float32Array;
-    public diffuse: Float32Array;
-    public specular: Float32Array;
-    public shininess: number;
+
+    public metallic: number;
+    public roughness: number;
+    public ambientOcclusion: number;
+
     public colorTextureSrc: string | null;
     public colorTextureImage: HTMLImageElement | null;
     public normalTextureSrc: string | null;
     public normalTextureImage: HTMLImageElement | null;
     public metallicRoughnessTextureSrc: string | null;
     public metallicRoughnessTextureImage: HTMLImageElement | null;
+
     public center: Vec3;
 
     constructor(data: IObject3dParams = {}) {
@@ -91,10 +92,11 @@ class Object3d {
 
 
         this.color = getColor(data.color);
-        this.ambient = getColor3v(data.ambient);
-        this.diffuse = getColor3v(data.diffuse);
-        this.specular = getColor3v(data.specular);
-        this.shininess = data.shininess || 100;
+
+        this.metallic = data.metallic || 0;
+        this.roughness = data.roughness || 0;
+        this.ambientOcclusion = data.ambientOcclusion || 0;
+
         this.colorTextureSrc = data.colorTextureSrc || null;
         this.colorTextureImage = data.colorTextureImage || null;
         this.normalTextureSrc = data.normalTextureSrc || null;
@@ -165,25 +167,27 @@ class Object3d {
     /**
      * Sets the material properties for the 3D object.
      *
-     * @param {MaterialParams} data - An object containing material properties.
+     * @param {MaterialProperties} data - An object containing material properties.
      * @param {string | NumberArray3} [data.ambient] - Ambient color of the material, as a hex string (e.g., "#ffffff") or an array of three numbers [r, g, b].
      * @param {string | NumberArray3} [data.diffuse] - Diffuse color of the material.
      * @param {string | NumberArray3} [data.specular] - Specular color of the material.
      * @param {number} [data.shininess=100] - Shininess coefficient of the material, controlling specular highlight size.
      */
-    public setMaterial(data: MaterialParams) {
-        if (data.ambient) {
-            this.ambient = getColor3v(data.ambient);
+    public setMaterialProperties(data: MaterialProperties) {
+        if (data.metallic) {
+            this.metallic = data.metallic;
         }
-        if (data.diffuse) {
-            this.diffuse = getColor3v(data.diffuse);
+        if (data.roughness) {
+            this.roughness = data.roughness;
         }
-        if (data.specular) {
-            this.specular = getColor3v(data.specular);
+        if (data.ambientOcclusion) {
+            this.ambientOcclusion = data.ambientOcclusion;
         }
-        if (data.shininess !== undefined) {
-            this.shininess = data.shininess;
-        }
+        return this;
+    }
+
+    public setColor(color: number[] | TypedArray | string): this {
+        this.color = getColor(color);
         return this;
     }
 
@@ -632,11 +636,7 @@ class Object3d {
                     vertices: obj.data.vertices,
                     normals: obj.data.normals,
                     texCoords: obj.data.texCoords,
-                    ambient: mat.ambient,
-                    diffuse: mat.diffuse,
-                    specular: mat.specular,
-                    shininess: mat.shininess,
-                    color: mat.color,
+                    color: mat.color || mat.diffuse,
                     colorTextureSrc: baseUrl ? `${baseUrl}/${mat.colorTexture}` : mat.colorTexture,
                     normalTextureSrc: baseUrl ? `${baseUrl}/${mat.normalTexture}` : mat.normalTexture,
                     metallicRoughnessTextureSrc: baseUrl ? `${baseUrl}/${mat.metallicRoughnessTexture}` : mat.metallicRoughnessTexture
@@ -661,11 +661,7 @@ class Object3d {
                     vertices: obj.data.vertices,
                     normals: obj.data.normals,
                     texCoords: obj.data.texCoords,
-                    ambient: mat.ambient,
-                    diffuse: mat.diffuse,
-                    specular: mat.specular,
-                    shininess: mat.shininess,
-                    color: mat.color,
+                    color: mat.color || mat.diffuse,
                     colorTextureSrc: mat.colorTexture,
                     normalTextureSrc: mat.normalTexture,
                     metallicRoughnessTextureSrc: mat.metallicRoughnessTexture

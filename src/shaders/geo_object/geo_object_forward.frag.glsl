@@ -2,8 +2,7 @@
 precision highp float;
 
 uniform vec3 sunPosition;
-uniform vec3 materialParams[3];
-uniform float materialShininess;
+uniform vec3 materialProperties;
 uniform sampler2D uTexture;
 uniform float uUseTexture;
 uniform float useLighting;
@@ -29,9 +28,9 @@ void main(void) {
 
         vec3 refl_dir = reflect(-light_dir, normal);
         float refl = max(dot(refl_dir, look_dir), 0.0);
-        float specular = pow(refl, materialShininess) * step(1e-4, diffuse);
+        float specular = pow(refl, 0.0) * step(1e-4, diffuse);
 
-        lightWeighting = vColor.rgb * materialParams[0] + materialParams[1] * diffuse + materialParams[2] * specular;
+        lightWeighting = vColor.rgb * diffuse + materialProperties[0] + materialProperties[1] + materialProperties[2];
     } else {
         lightWeighting = vColor.rgb;
     }

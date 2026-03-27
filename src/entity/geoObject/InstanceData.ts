@@ -19,15 +19,9 @@ import {
     LOCALPOSITION_BUFFER
 } from "./GeoObjectHandler";
 
-const AMBIENT_R = 0;
-const AMBIENT_G = 1;
-const AMBIENT_B = 2;
-const DIFFUSE_R = 3;
-const DIFFUSE_G = 4;
-const DIFFUSE_B = 5;
-const SPECULAR_R = 6;
-const SPECULAR_G = 7;
-const SPECULAR_B = 8;
+const METALLIC = 0;
+const ROUGHNESS = 1;
+const AMBIENT_OCCLUSION = 2;
 
 export class InstanceData {
 
@@ -88,8 +82,7 @@ export class InstanceData {
 
     public _changedBuffers: boolean[];
 
-    public _materialParams: Float32Array;
-    public _materialShininess: number;
+    public _materialProperties: Float32Array;
 
     constructor(geoObjectHandler: GeoObjectHandler) {
 
@@ -142,8 +135,7 @@ export class InstanceData {
         this._texCoordBuffer = null;
         this._localPositionBuffer = null;
 
-        this._materialParams = new Float32Array(9);
-        this._materialShininess = 0;
+        this._materialProperties = new Float32Array(3);
 
         this._buffersUpdateCallbacks = [];
         this._buffersUpdateCallbacks[PICKINGCOLOR_BUFFER] = this.createPickingColorBuffer;
@@ -162,33 +154,22 @@ export class InstanceData {
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
 
-    public setMaterialAmbient(r: number, g: number, b: number) {
-        this._materialParams[AMBIENT_R] = r;
-        this._materialParams[AMBIENT_G] = g;
-        this._materialParams[AMBIENT_B] = b;
+    public setMetallic(metallic: number) {
+        this._materialProperties[METALLIC] = metallic;
     }
 
-    public setMaterialDiffuse(r: number, g: number, b: number) {
-        this._materialParams[DIFFUSE_R] = r;
-        this._materialParams[DIFFUSE_G] = g;
-        this._materialParams[DIFFUSE_B] = b;
+    public setRoughness(roughness: number) {
+        this._materialProperties[ROUGHNESS] = roughness;
     }
 
-    public setMaterialSpecular(r: number, g: number, b: number) {
-        this._materialParams[SPECULAR_R] = r;
-        this._materialParams[SPECULAR_G] = g;
-        this._materialParams[SPECULAR_B] = b;
+    public setAmbientOcclusion(ambientOcclusion: number) {
+        this._materialProperties[AMBIENT_OCCLUSION] = ambientOcclusion;
     }
 
-    public setMaterialShininess(shininess: number) {
-        this._materialShininess = shininess;
-    }
-
-    public setMaterialParams(ambient: Float32Array, diffuse: Float32Array, specular: Float32Array, shininess: number) {
-        this.setMaterialAmbient(ambient[0], ambient[1], ambient[2]);
-        this.setMaterialDiffuse(diffuse[0], diffuse[1], diffuse[2]);
-        this.setMaterialSpecular(specular[0], specular[1], specular[2]);
-        this.setMaterialShininess(shininess);
+    public setMaterialProperties(metallic: number, roughness: number, ambientOcclusion: number) {
+        this.setMetallic(metallic);
+        this.setRoughness(roughness);
+        this.setAmbientOcclusion(ambientOcclusion);
     }
 
     //
@@ -260,8 +241,7 @@ export class InstanceData {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform3fv(u.materialParams, this._materialParams);
-        gl.uniform1f(u.materialShininess, this._materialShininess);
+        gl.uniform3fv(u.materialProperties, this._materialProperties);
 
         this._drawElementsInstanced(p, 0, instanceCount);
     }
@@ -332,8 +312,7 @@ export class InstanceData {
 
         gl.uniform1f(u.uUseTexture, this._colorTexture ? 1 : 0);
 
-        gl.uniform3fv(u.materialParams, this._materialParams);
-        gl.uniform1f(u.materialShininess, this._materialShininess);
+        gl.uniform3fv(u.materialProperties, this._materialProperties);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(

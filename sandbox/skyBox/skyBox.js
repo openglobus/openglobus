@@ -181,22 +181,13 @@ pointLayer.events.on("rclick", function (e) {
 
 const baseObj = Object3d.createCube(0.4, 2, 0.4)
     .translate(new Vec3(0, 1, 0))
-    .setMaterial({
-        ambient: "#802727",
-        diffuse: "#ff5252",
-    });
+    .setColor("#ff5252");
 
 const viewObj = Object3d.createFrustum(3, 2, 1)
-    .setMaterial({
-        ambient: "#28552b",
-        diffuse: "#1cdd23",
-    });
+    .setColor("#1cdd23");
 
 const viewObj2 = Object3d.createFrustum(3, 2, 1)
-    .setMaterial({
-        ambient: "#5f2563",
-        diffuse: "#ef00ff",
-    });
+    .setColor("#ef00ff");
 
 const pos = new LonLat(-105.6173319876, 39.615583413, 4057.9466);
 

@@ -29,28 +29,16 @@ class MyScene extends RenderNode {
         const baseObj = Object3d
             .createCube(0.4, 2, 0.4)
             .translate(new Vec3(0, 1, 0))
-            .setMaterial({
-                ambient: "#882a2a",
-                diffuse: "#fb3434",
-                shininess: 1
-            });
+
 
         const frustumObj = Object3d
             .createFrustum(3, 2, 1)
-            .setMaterial({
-                ambient: "#236028",
-                diffuse: "#1cdd23",
-                shininess: 1
-            });
+
 
         const cylinderObj = Object3d
             .createCylinder(1, 0, 3)
             .applyMat4(new Mat4().setRotation(new Vec3(1, 0, 0), 90 * Math.PI / 180))
-            .setMaterial({
-                ambient: "#773381",
-                diffuse: "#ef00ff",
-                shininess: 1
-            });
+
 
         let parentEntity = new Entity({
             cartesian: new Vec3(1, 1, 1),

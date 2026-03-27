@@ -325,11 +325,10 @@ export class GeoObjectHandler {
             tagData._normalTextureImage = geoObject.object3d.normalTextureImage;
             tagData._metallicRoughnessTextureImage = geoObject.object3d.metallicRoughnessTextureImage;
 
-            tagData.setMaterialParams(
-                geoObject.object3d.ambient,
-                geoObject.object3d.diffuse,
-                geoObject.object3d.specular,
-                geoObject.object3d.shininess
+            tagData.setMaterialProperties(
+                geoObject.object3d.metallic,
+                geoObject.object3d.roughness,
+                geoObject.object3d.ambientOcclusion
             );
 
             tagData.loadColorTexture();
