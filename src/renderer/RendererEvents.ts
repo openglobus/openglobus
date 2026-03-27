@@ -21,6 +21,7 @@ export type RendererEventsType = [
     "changerelativecenter",
     "draw",
     "forwardpass",
+    "postforwardpass",
     "transparentpass",
     "gbufferpass",
     "postdraw",
@@ -1048,6 +1049,7 @@ const RENDERER_EVENTS: RendererEventsType = [
      * @event og.RendererEvents#forwardpass
      */
     "forwardpass",
+    "postforwardpass",
 
     /**
      *  Triggered for WOIT (transparency) pass

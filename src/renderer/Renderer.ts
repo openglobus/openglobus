@@ -1290,6 +1290,8 @@ class Renderer {
             //
             this._weightedOITResolvePASS();
 
+            e.dispatch(e.postforwardpass, this);
+
             //
             // Picking passes
             //
