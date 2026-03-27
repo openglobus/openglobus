@@ -22,14 +22,10 @@ uniform vec3 uScaleByDistance;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 
-uniform vec3 eyePositionHigh;
-uniform vec3 eyePositionLow;
-
 uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
 uniform float depthOffset;
 
-out vec3 cameraPosition;
 out vec3 v_vertex;
 out vec4 vColor;
 out vec3 vNormal;
@@ -49,8 +45,6 @@ void main(void) {
 
     vec3 highDiff = aRTCPositionHigh - rtcEyePositionHigh;
     vec3 lowDiff = aRTCPositionLow - rtcEyePositionLow;
-
-    cameraPosition = eyePositionHigh + eyePositionLow;
 
     highDiff = highDiff * step(1.0, length(highDiff));
 

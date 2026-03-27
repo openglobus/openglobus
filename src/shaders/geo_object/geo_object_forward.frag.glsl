@@ -14,16 +14,11 @@ in vec4 vColor;
 in vec3 vNormal;
 in vec2 vTexCoords;
 
-layout (location = 0) out vec4 diffuseColor;
-layout (location = 1) out vec4 materials;
-layout (location = 2) out vec4 normalColor;
-layout (location = 3) out vec4 positionColor;
+layout (location = 0) out vec4 fragColor;
 
 void main(void) {
 
     vec3 lightWeighting = vec3(1.0);
-    materials = vec4(0.0, 0.0, 0.0, 1.0);
-    positionColor = vec4(v_vertex, 1.0);
 
     if (useLighting != 0.0) {
         vec3 normal = normalize(vNormal);
@@ -41,12 +36,10 @@ void main(void) {
         lightWeighting = vColor.rgb;
     }
 
-    normalColor = vec4(normalize(vNormal) * 0.5 + 0.5, 1.0);
-
     if (uUseTexture > 0.0) {
         vec4 texColor = texture(uTexture, vTexCoords);
-        diffuseColor = vec4(texColor.rgb * lightWeighting, texColor.a * vColor.a);
+        fragColor = vec4(texColor.rgb * lightWeighting, texColor.a * vColor.a);
     } else {
-        diffuseColor = vec4(lightWeighting, vColor.a);
+        fragColor = vec4(lightWeighting, vColor.a);
     }
 }

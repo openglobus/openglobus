@@ -53,10 +53,6 @@ export interface IPlanetParams {
     minEqualZoomAltitude?: number;
     minEqualZoomCameraSlope?: number;
     quadTreeStrategyPrototype?: typeof QuadTreeStrategy;
-    ambient?: string | NumberArray3 | Vec3;
-    diffuse?: string | NumberArray3 | Vec3;
-    specular?: string | NumberArray3 | Vec3;
-    shininess?: number;
     nightTextureSrc?: string | null;
     specularTextureSrc?: string | null;
     maxGridSize?: number;
@@ -518,36 +514,36 @@ export class Planet extends RenderNode {
         return this._atmosphereEnabled;
     }
 
-    public set diffuse(rgb: string | NumberArray3 | Vec3) {
-        let vec = createColorRGB(rgb);
-        if (this.renderer) {
-            let diffuse = new Float32Array(vec.toArray());
-            this.renderer.lightDiffuse.set(diffuse);
-        }
-    }
-
-    public set ambient(rgb: string | NumberArray3 | Vec3) {
-        let vec = createColorRGB(rgb);
-        if (this.renderer) {
-            let ambient = new Float32Array(vec.toArray());
-            this.renderer.lightAmbient.set(ambient);
-        }
-    }
-
-    public set specular(rgb: string | NumberArray3 | Vec3) {
-        let vec = createColorRGB(rgb);
-        if (this.renderer) {
-            this.renderer.lightSpecular[0] =vec.x;
-            this.renderer.lightSpecular[1] =vec.y;
-            this.renderer.lightSpecular[2] =vec.z;
-        }
-    }
-
-    public set shininess(v: number) {
-        if (this.renderer) {
-            this.renderer.lightSpecular[3] = v;
-        }
-    }
+    // public set diffuse(rgb: string | NumberArray3 | Vec3) {
+    //     let vec = createColorRGB(rgb);
+    //     if (this.renderer) {
+    //         let diffuse = new Float32Array(vec.toArray());
+    //         this.renderer.lightDiffuse.set(diffuse);
+    //     }
+    // }
+    //
+    // public set ambient(rgb: string | NumberArray3 | Vec3) {
+    //     let vec = createColorRGB(rgb);
+    //     if (this.renderer) {
+    //         let ambient = new Float32Array(vec.toArray());
+    //         this.renderer.lightAmbient.set(ambient);
+    //     }
+    // }
+    //
+    // public set specular(rgb: string | NumberArray3 | Vec3) {
+    //     let vec = createColorRGB(rgb);
+    //     if (this.renderer) {
+    //         this.renderer.lightSpecular[0] =vec.x;
+    //         this.renderer.lightSpecular[1] =vec.y;
+    //         this.renderer.lightSpecular[2] =vec.z;
+    //     }
+    // }
+    //
+    // public set shininess(v: number) {
+    //     if (this.renderer) {
+    //         this.renderer.lightSpecular[3] = v;
+    //     }
+    // }
 
     public get normalMapCreator(): NormalMapCreator {
         return this._normalMapCreator;

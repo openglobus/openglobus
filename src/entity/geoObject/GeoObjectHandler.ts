@@ -172,7 +172,8 @@ export class GeoObjectHandler {
     public initProgram() {
         if (this._renderer) {
             this._renderer.addPrograms(
-                shaders.geo_object(),
+                shaders.geo_object_forward(),
+                shaders.geo_object_deferred(),
                 shaders.geo_object_woit(),
                 shaders.geo_object_picking(),
                 shaders.geo_object_depth()
@@ -434,7 +435,7 @@ export class GeoObjectHandler {
     public _displayOpaquePASS() {
 
         let r = this._renderer!,
-            sh = r.handler.programs.geo_object,
+            sh = r.handler.programs.geo_object_deferred,
             p = sh._program;
 
         sh.activate();
@@ -465,7 +466,7 @@ export class GeoObjectHandler {
 
     public _displayTransparentForwardPASS() {
         let r = this._renderer!,
-            sh = r.handler.programs.geo_object,
+            sh = r.handler.programs.geo_object_forward,
             p = sh._program;
 
         sh.activate();
@@ -738,7 +739,8 @@ export class GeoObjectHandler {
     }
 
     public drawForward() {
-        this.drawOpaque();
+        // todo
+        //this.drawOpaque();
     }
 
     public drawOpaque() {
