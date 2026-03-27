@@ -1271,8 +1271,6 @@ class Renderer {
             this.enableBlendOneSrcAlpha();
 
             e.dispatch(e.forwardpass, this);
-
-            this.enableBlendDefault();
             this._drawForwardEntityCollections(0);
 
             //

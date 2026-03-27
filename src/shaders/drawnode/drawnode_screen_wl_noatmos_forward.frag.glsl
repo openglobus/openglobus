@@ -45,10 +45,10 @@ void main(void) {
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
 
     float overGround = 1.0 - step(0.1, v_height);
-    float shininess = texture(specularTexture, vGlobalTextureCoord.st).r * 255.0 * overGround;
+    float specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * 255.0 * overGround;
 
     vec4 lightWeighting;
-    vec3 spec;
+    vec3 specularWeighting;
 
     getPhongLighting(
     v_vertex,
@@ -58,8 +58,8 @@ void main(void) {
     ambient,
     diffuse,
     specular,
-    shininess,
-    spec,
+    specularMask,
+    specularWeighting,
     lightWeighting
     );
 
@@ -78,7 +78,7 @@ void main(void) {
     fragColor = texture(defaultTexture, vTextureCoord.xy);
 
     if (samplerCount == 0) {
-        fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+        fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
         fragColor *= transitionOpacity;
         return;
     }
@@ -87,33 +87,33 @@ void main(void) {
 
     blend(fragColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
     if (samplerCount == 1) {
-        fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+        fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
         fragColor *= transitionOpacity;
         return;
     }
 
     blend(fragColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
     if (samplerCount == 2) {
-        fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+        fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
         fragColor *= transitionOpacity;
         return;
     }
 
     blend(fragColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
     if (samplerCount == 3) {
-        fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+        fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
         fragColor *= transitionOpacity;
         return;
     }
 
     blend(fragColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
     if (samplerCount == 4) {
-        fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+        fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
         fragColor *= transitionOpacity;
         return;
     }
 
     blend(fragColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
-    fragColor = fragColor * lightWeighting + vec4(spec, 0.0);
+    fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
     fragColor *= transitionOpacity;
 }

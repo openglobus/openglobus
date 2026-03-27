@@ -28,10 +28,10 @@ void main(void) {
     vec3 vertex = texelFetch(positionTexture, fragCoord, 0).xyz;
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
 
-    float shininess = materials.r;
+    float specularMask = materials.r;
 
     vec4 lightWeighting;
-    vec3 spec;
+    vec3 specularWeighting;
 
     getPhongLighting(
     vertex,
@@ -41,12 +41,10 @@ void main(void) {
     lightAmbient,
     lightDiffuse,
     lightSpecular,
-    shininess,
-    spec,
+    specularMask,
+    specularWeighting,
     lightWeighting
     );
 
-    fragColor = baseColor * lightWeighting + vec4(spec, 0.0);
-
-    //fragColor = vec4(baseColor.rgb + vec3(keepAlive), 1.0);
+    fragColor = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
 }
