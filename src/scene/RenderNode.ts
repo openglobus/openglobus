@@ -49,7 +49,6 @@ class RenderNode extends BaseNode {
      * @public
      * @type {Array.<LightSource>}
      */
-    public _lightPosition: Float32Array;
     public _lightParams: Float32Array;
     public _lightShininess: number;
 
@@ -79,7 +78,6 @@ class RenderNode extends BaseNode {
 
         this.lightEnabled = false;
 
-        this._lightPosition = new Float32Array([100, 100, 100]);
         this._lightParams = new Float32Array(9);
         this._lightShininess = 100.0;
 

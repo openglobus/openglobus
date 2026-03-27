@@ -951,26 +951,6 @@ class Renderer {
             }
 
             //
-            // billboards pass
-            //
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
-
-            i = ec.length;
-            while (i--) {
-                let eci = ec[i];
-                eci._fadingOpacity && eci.billboardHandler.drawForward();
-            }
-
-            //
-            // labels pass
-            //
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].labelHandler.drawForward();
-            }
-
-            //
             // Lines, Rays and Strips
             //
             gl.activeTexture(gl.TEXTURE0);
@@ -992,6 +972,26 @@ class Renderer {
             i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].stripHandler.drawForward();
+            }
+
+            //
+            // billboards pass
+            //
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
+
+            i = ec.length;
+            while (i--) {
+                let eci = ec[i];
+                eci._fadingOpacity && eci.billboardHandler.drawForward();
+            }
+
+            //
+            // labels pass
+            //
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].labelHandler.drawForward();
             }
         }
     }
@@ -1018,19 +1018,6 @@ class Renderer {
             }
 
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
-
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].billboardHandler.drawTransparent();
-            }
-
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].labelHandler.drawTransparent();
-            }
-
-            gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
 
             // rays
@@ -1049,6 +1036,19 @@ class Renderer {
             i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].polylineHandler.drawTransparent();
+            }
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
+
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].billboardHandler.drawTransparent();
+            }
+
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].labelHandler.drawTransparent();
             }
 
             gl.depthMask(true);
