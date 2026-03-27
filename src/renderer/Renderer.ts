@@ -261,7 +261,7 @@ class Renderer {
 
         this.clearColor = new Float32Array(params.clearColor || [0, 0, 0, 1]);
 
-        this.lightPosition = new Float32Array([0, 0, 0]);
+        this.lightPosition = new Float32Array([1, 1, 1]);
         this.lightAmbient = new Float32Array([0.2, 0.2, 0.3]);
         this.lightDiffuse = new Float32Array([0.9, 0.9, 0.7]);
         this.lightSpecular = new Float32Array([0.00063, 0.00055, 0.00032, 18.0]);

@@ -13,7 +13,7 @@ function getColor(color?: number[] | TypedArray | string): Float32Array {
     } else if (typeof color === 'string') {
         return htmlColorToFloat32Array(color);
     }
-    return new Float32Array([0.5, 0.5, 0.5, 1]);
+    return new Float32Array([0.67, 0.67, 0.67, 1]);
 }
 
 function getColor3v(color?: NumberArray3 | TypedArray | string): Float32Array {

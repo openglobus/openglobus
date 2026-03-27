@@ -114,7 +114,7 @@ class GeoObject {
 
         this._localPosition = new Vec3();
 
-        const [r = 0.15, g = 0.15, b = 0.15, a = 1.0] = options.object3d?.color
+        const [r = 0.65, g = 0.65, b = 0.65, a = 1.0] = options.object3d?.color
             ? Array.from(options.object3d.color)
             : [];
 
