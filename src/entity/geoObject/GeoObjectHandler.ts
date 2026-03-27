@@ -739,8 +739,12 @@ export class GeoObjectHandler {
     }
 
     public drawForward() {
-        // todo
         //this.drawOpaque();
+        if (this._geoObjects.length) {
+            this._updateRTCEyePosition();
+            this.update();
+            this._displayOpaquePASS();
+        }
     }
 
     public drawOpaque() {
