@@ -1313,7 +1313,6 @@ class Renderer {
                 this.activeCamera!.setCurrentFrustum(k);
 
                 this._drawForwardEntityCollections(i);
-                this._drawTransparentEntityCollectionsForward(i);
 
                 if (refreshPicking) {
                     this._drawPickingBuffer(i);
