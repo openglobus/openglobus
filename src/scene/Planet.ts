@@ -862,19 +862,15 @@ export class Planet extends RenderNode {
             //this._renderTransparentScreenNodesPASS();
             if (this._atmosphereEnabled) {
                 this._renderTransparentScreenNodesPASSAtmos();
-                //this._renderScreenNodesWithHeightPASSAtmos();
             } else {
                 this._renderTransparentScreenNodesPASSNoAtmos();
-                //this._renderScreenNodesWithHeightPASSNoAtmos();
             }
         });
 
         this.renderer!.events.on("postforwardpass", () => {
             if (this._atmosphereEnabled) {
-                //this._renderTransparentScreenNodesPASSAtmos();
                 this._renderScreenNodesWithHeightPASSAtmos();
             } else {
-                //this._renderTransparentScreenNodesPASSNoAtmos();
                 this._renderScreenNodesWithHeightPASSNoAtmos();
             }
         });
