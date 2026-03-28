@@ -1137,7 +1137,7 @@ export class Planet extends RenderNode {
         // deferred PASS
         this._renderingOpaqueScreenNodes(
             this.quadTreeStrategy,
-            this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_deferred),
+            this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_deferred, true),
             cam,
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
@@ -1147,7 +1147,7 @@ export class Planet extends RenderNode {
         // forward PASS
         this._renderingTransparentScreenNodes(
             this.quadTreeStrategy,
-            this._setUniformsNoAtmos(this.camera, this.renderer!.handler.programs.drawnode_screen_wl_forward)
+            this._setUniformsNoAtmos(this.camera, this.renderer!.handler.programs.drawnode_screen_wl_forward, false)
         );
     }
 
@@ -1157,7 +1157,7 @@ export class Planet extends RenderNode {
         // PASS 1: rendering slices, and layers with heights, without transition opacity effect
         this._renderingScreenNodesWithHeight(
             this.quadTreeStrategy,
-            this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_forward),
+            this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_forward, false),
             cam,
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
@@ -1169,7 +1169,7 @@ export class Planet extends RenderNode {
         // deferred PASS
         this._renderingOpaqueScreenNodes(
             this.quadTreeStrategy,
-            this._setUniformsAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_deferred),
+            this._setUniformsAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_deferred, true),
             cam,
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
@@ -1179,7 +1179,7 @@ export class Planet extends RenderNode {
         // forward PASS
         this._renderingTransparentScreenNodes(
             this.quadTreeStrategy,
-            this._setUniformsAtmos(this.camera, this.renderer!.handler.programs.drawnode_screen_wl_forward)
+            this._setUniformsAtmos(this.camera, this.renderer!.handler.programs.drawnode_screen_wl_forward, false)
         );
     }
 
@@ -1189,7 +1189,7 @@ export class Planet extends RenderNode {
         // PASS 1: rendering slices, and layers with heights, without transition opacity effect
         this._renderingScreenNodesWithHeight(
             this.quadTreeStrategy,
-            this._setUniformsAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_forward),
+            this._setUniformsAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_forward, false),
             cam,
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
@@ -1267,7 +1267,7 @@ export class Planet extends RenderNode {
         this.camera.setTerrainCollisionActivity(true);
     }
 
-    protected _setUniformsNoAtmos(cam: PlanetCamera, program: ProgramController): Program {
+    protected _setUniformsNoAtmos(cam: PlanetCamera, program: ProgramController, disableBlend: boolean): Program {
         let sh, shu;
         let renderer = this.renderer!;
 
@@ -1276,7 +1276,11 @@ export class Planet extends RenderNode {
 
         gl.enable(gl.CULL_FACE);
 
-        renderer.enableBlendOneSrcAlpha();
+        if(disableBlend){
+            gl.disable(gl.BLEND);
+        }else{
+            renderer.enableBlendOneSrcAlpha();
+        }
 
         if (this.lightEnabled) {
             program.activate();
@@ -1326,7 +1330,7 @@ export class Planet extends RenderNode {
         return sh;
     }
 
-    protected _setUniformsAtmos(cam: PlanetCamera, program: ProgramController): Program {
+    protected _setUniformsAtmos(cam: PlanetCamera, program: ProgramController, disableBlend: boolean): Program {
 
         let sh, shu;
         let renderer = this.renderer!;
@@ -1335,7 +1339,11 @@ export class Planet extends RenderNode {
 
         gl.enable(gl.CULL_FACE);
 
-        renderer.enableBlendOneSrcAlpha();
+        if(disableBlend){
+            gl.disable(gl.BLEND);
+        }else{
+            renderer.enableBlendOneSrcAlpha();
+        }
 
         if (this.lightEnabled) {
             program.activate();
@@ -1684,9 +1692,6 @@ export class Planet extends RenderNode {
         for (let i = 0; i < this.quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
             this.quadTreeStrategy._fadingOpaqueSegments[i].colorPickingRendering(sh, sl[0], 0);
         }
-
-        // Here is set blending for transparent overlays
-        //renderer.enableBlendDefault();
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
