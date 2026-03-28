@@ -1670,6 +1670,7 @@ export class Planet extends RenderNode {
         let shu = sh.uniforms;
         let cam = renderer.activeCamera!;
 
+        gl.disable(gl.BLEND);
         gl.enable(gl.CULL_FACE);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
@@ -1702,6 +1703,7 @@ export class Planet extends RenderNode {
             }
         }
 
+        gl.enable(gl.BLEND);
         gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
