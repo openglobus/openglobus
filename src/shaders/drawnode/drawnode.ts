@@ -1,4 +1,4 @@
-import type {AtmosphereParameters} from "../atmos/atmos";
+import  {AtmosphereParameters, DEFAULT_PARAMS} from "../atmos/atmos";
 import {Program} from "../../webgl/Program";
 
 import drawnode_screen_nl_vert from './drawnode_screen_nl.vert.glsl';
@@ -7,10 +7,9 @@ import drawnode_screen_nl_frag from './drawnode_screen_nl.frag.glsl';
 import drawnode_screen_wl from './drawnode_screen_wl.vert.glsl';
 
 import drawnode_screen_wl_atmos_forward_frag from './drawnode_screen_wl_atmos_forward.frag.glsl';
-import drawnode_screen_wl_atmos_deferred_frag from './drawnode_screen_wl_atmos_deferred.frag.glsl';
-
 import drawnode_screen_wl_noatmos_forward_frag from './drawnode_screen_wl_noatmos_forward.frag.glsl';
-import drawnode_screen_wl_noatmos_deferred_frag from './drawnode_screen_wl_noatmos_deferred.frag.glsl';
+
+import drawnode_screen_deferred_frag from './drawnode_screen_deferred.frag.glsl';
 
 import drawnode_colorPicking_vert from './drawnode_colorPicking.vert.glsl';
 import drawnode_colorPicking_frag from './drawnode_colorPicking.frag.glsl';
@@ -56,7 +55,38 @@ export function drawnode_screen_nl(): Program {
     });
 }
 
-export function drawnode_screen_wl_noatmos_forward(): Program {
+export function drawnode_screen_deferred(): Program {
+    return new Program("drawnode_screen_deferred", {
+        uniforms: {
+            projectionMatrix: "mat4",
+            viewMatrix: "mat4",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
+            height: "float",
+            uGlobalTextureCoord: "vec4",
+            uNormalMapBias: "vec3",
+            samplerCount: "int",
+            tileOffsetArr: "vec4",
+            layerOpacityArr: "float",
+            samplerArr: "sampler2darraylegacy",
+            defaultTexture: "sampler2d",
+            uNormalMap: "sampler2d",
+            //nightTexture: "sampler2d",
+            specularTexture: "sampler2d",
+            lightPosition: "vec3",
+            //camHeight: "float",
+            //nightTextureCoefficient: "float",
+        }, attributes: {
+            aVertexPositionHigh: "vec3",
+            aVertexPositionLow: "vec3",
+            aTextureCoord: "vec2"
+        },
+        vertexShader: drawnode_screen_wl,
+        fragmentShader: drawnode_screen_deferred_frag
+    });
+}
+
+export function drawnode_screen_wl_forward_noatmos(): Program {
     return new Program("drawnode_screen_wl_forward", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -91,38 +121,7 @@ export function drawnode_screen_wl_noatmos_forward(): Program {
     });
 }
 
-export function drawnode_screen_wl_noatmos_deferred(): Program {
-    return new Program("drawnode_screen_wl_deferred", {
-        uniforms: {
-            projectionMatrix: "mat4",
-            viewMatrix: "mat4",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
-            height: "float",
-            uGlobalTextureCoord: "vec4",
-            uNormalMapBias: "vec3",
-            samplerCount: "int",
-            tileOffsetArr: "vec4",
-            layerOpacityArr: "float",
-            samplerArr: "sampler2darraylegacy",
-            defaultTexture: "sampler2d",
-            uNormalMap: "sampler2d",
-            //nightTexture: "sampler2d",
-            specularTexture: "sampler2d",
-            lightPosition: "vec3",
-            //camHeight: "float",
-            //nightTextureCoefficient: "float",
-        }, attributes: {
-            aVertexPositionHigh: "vec3",
-            aVertexPositionLow: "vec3",
-            aTextureCoord: "vec2"
-        },
-        vertexShader: drawnode_screen_wl,
-        fragmentShader: drawnode_screen_wl_noatmos_deferred_frag
-    });
-}
-
-export function drawnode_screen_wl_atmos_forward(atmosParams?: AtmosphereParameters): Program {
+export function drawnode_screen_wl_forward_atmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): Program {
     return new Program("drawnode_screen_wl_forward", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -157,44 +156,6 @@ export function drawnode_screen_wl_atmos_forward(atmosParams?: AtmosphereParamet
         },
         vertexShader: drawnode_screen_wl,
         fragmentShader: stringTemplate2(drawnode_screen_wl_atmos_forward_frag, atmosParams)
-    });
-}
-
-export function drawnode_screen_wl_atmos_deferred(atmosParams?: AtmosphereParameters): Program {
-    return new Program("drawnode_screen_wl_deferred", {
-        uniforms: {
-            projectionMatrix: "mat4",
-            viewMatrix: "mat4",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
-            height: "float",
-            uGlobalTextureCoord: "vec4",
-            uNormalMapBias: "vec3",
-            samplerCount: "int",
-            tileOffsetArr: "vec4",
-            layerOpacityArr: "float",
-            samplerArr: "sampler2darraylegacy",
-            defaultTexture: "sampler2d",
-            uNormalMap: "sampler2d",
-            nightTexture: "sampler2d",
-            specularTexture: "sampler2d",
-            lightPosition: "vec3",
-            diffuse: "vec3",
-            ambient: "vec3",
-            specular: "vec4",
-            transmittanceTexture: "sampler2D",
-            scatteringTexture: "sampler2D",
-            camHeight: "float",
-            nightTextureCoefficient: "float",
-            maxMinOpacity: "vec2",
-            transitionOpacity: "float"
-        }, attributes: {
-            aVertexPositionHigh: "vec3",
-            aVertexPositionLow: "vec3",
-            aTextureCoord: "vec2"
-        },
-        vertexShader: drawnode_screen_wl,
-        fragmentShader: stringTemplate2(drawnode_screen_wl_atmos_deferred_frag, atmosParams)
     });
 }
 

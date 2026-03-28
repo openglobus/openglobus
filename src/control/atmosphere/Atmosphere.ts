@@ -37,6 +37,8 @@ export class Atmosphere extends Control {
 
     protected _parameters: AtmosphereParameters;
 
+    protected _isReady: boolean = false;
+
     constructor(options: IAtmosphereParams = {}) {
         super({
             name: "Atmosphere",
@@ -57,6 +59,7 @@ export class Atmosphere extends Control {
 
     public setParameters(parameters: AtmosphereParameters) {
 
+        this._isReady = false;
         this._parameters = JSON.parse(JSON.stringify(parameters));
 
         this.initLookupTexturesShaders();
@@ -64,6 +67,10 @@ export class Atmosphere extends Control {
         this.removeLookupTexturesShaders();
 
         this.initPlanetAtmosphereShader();
+    }
+
+    public get isReady(): boolean {
+        return this._isReady;
     }
 
     public get parameters(): AtmosphereParameters {
@@ -221,6 +228,8 @@ export class Atmosphere extends Control {
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer!.numItems);
 
             this._scatteringBuffer.deactivate();
+
+            this._isReady = true;
         }
     }
 
@@ -229,6 +238,9 @@ export class Atmosphere extends Control {
     }
 
     protected _drawBackground() {
+
+        if(!this._isReady)return;
+
         let h = this.renderer!.handler;
         let sh = h.programs.atmosphereBackground,
             p = sh._program,

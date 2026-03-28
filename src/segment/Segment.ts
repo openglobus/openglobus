@@ -1690,6 +1690,9 @@ class Segment {
 
         if (notEmpty || !isOverlay) {
 
+            //
+            // @todo: fix deferred pass consistency
+            //
             gl.uniform1f(shu.transitionOpacity, forcedOpacity || this._transitionOpacity > 1.0 ? 1.0 : this._transitionOpacity);
 
             gl.uniform1i(shu.samplerCount, n);
