@@ -1,6 +1,5 @@
 import {Program} from "../../webgl/Program";
 import geo_object_vert from './geo_object.vert.glsl';
-import geo_object_deferred_vert from './geo_object_deferred.vert.glsl';
 import geo_object_deferred_frag from './geo_object_deferred.frag.glsl';
 import geo_object_forward_frag from './geo_object_forward.frag.glsl';
 import geo_object_woit_frag from './geo_object_woit.frag.glsl';
@@ -17,6 +16,8 @@ export const geo_object_deferred = (): Program =>
             uScaleByDistance: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
             uTexture: "sampler2d",
             uUseTexture: "float",
             useLighting: "float",
@@ -35,7 +36,7 @@ export const geo_object_deferred = (): Program =>
             aDispose: {type: "float", divisor: 1},
             qRot: {type: "vec4", divisor: 1}
         },
-        vertexShader: geo_object_deferred_vert,
+        vertexShader: geo_object_vert,
         fragmentShader: geo_object_deferred_frag
     });
 

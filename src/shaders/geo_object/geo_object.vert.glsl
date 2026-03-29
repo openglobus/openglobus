@@ -51,6 +51,7 @@ void main(void) {
     vec3 lowDiff = aRTCPositionLow - rtcEyePositionLow;
 
     cameraPosition = eyePositionHigh + eyePositionLow;
+    vec3 rtcWorldOffset = highDiff + lowDiff;
 
     highDiff = highDiff * step(1.0, length(highDiff));
 
@@ -66,5 +67,5 @@ void main(void) {
     gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
     gl_Position.z += depthOffset;
 
-    v_vertex = positionInViewSpace.xyz + vert;
+    v_vertex = rtcWorldOffset + cameraPosition + vert;
 }

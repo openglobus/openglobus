@@ -419,6 +419,9 @@ export class GeoObjectHandler {
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
 
+        gl.uniform3fv(u.eyePositionHigh, r.activeCamera.eyeHigh);
+        gl.uniform3fv(u.eyePositionLow, r.activeCamera.eyeLow);
+
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
     }
@@ -428,9 +431,6 @@ export class GeoObjectHandler {
         let r = this._renderer!,
             u = p.uniforms,
             gl = r.handler.gl!;
-
-        gl.uniform3fv(u.eyePositionHigh, r.activeCamera.eyeHigh);
-        gl.uniform3fv(u.eyePositionLow, r.activeCamera.eyeLow);
 
         //
         // Global sun position

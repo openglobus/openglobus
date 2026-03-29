@@ -42,6 +42,8 @@ import {Program} from "../webgl/Program";
 import {Segment} from "../segment/Segment";
 import type {AtmosphereParameters} from "../shaders/atmos/atmos";
 import {ProgramController} from "../webgl/ProgramController";
+import {AtmosphereDeferredShading} from "../renderer/AtmosphereDeferredShading";
+import {PhongDeferredShading} from "../renderer/PhongDeferredShading";
 
 export interface IPlanetParams {
     name?: string;
@@ -503,6 +505,10 @@ export class Planet extends RenderNode {
         return this._atmosphereMaxMinOpacity[1];
     }
 
+    public get atmosphereMaxMinOpacity(): Float32Array {
+        return this._atmosphereMaxMinOpacity;
+    }
+
     public set atmosphereEnabled(enabled: boolean) {
         if (enabled != this._atmosphereEnabled) {
             this._atmosphereEnabled = enabled;
@@ -724,6 +730,8 @@ export class Planet extends RenderNode {
             let h = this.renderer.handler;
                 h.removeProgram("drawnode_screen_wl_forward");
                 h.addProgram(shaders.drawnode_screen_wl_forward_atmos(atmosParams));
+
+            this._swapDeferredShadingPass(atmosParams);
         }
     }
 
@@ -753,6 +761,8 @@ export class Planet extends RenderNode {
 
             h.addProgram(shaders.drawnode_screen_wl_forward_atmos(this._atmosphere.parameters));
 
+            this._swapDeferredShadingPass(this._atmosphere.parameters);
+
             if (!this._transparentBackground) {
                 if (this.renderer.controls.SimpleSkyBackground) {
                     this.renderer.controls.SimpleSkyBackground.deactivate();
@@ -767,6 +777,8 @@ export class Planet extends RenderNode {
 
             this._atmosphere.deactivate();
 
+            this._restoreDefaultDeferredShadingPass();
+
             if (!this._transparentBackground) {
                 if (!this.renderer.controls.SimpleSkyBackground) {
                     this.addControl(new SimpleSkyBackground());
@@ -777,6 +789,22 @@ export class Planet extends RenderNode {
 
             h.addProgram(shaders.drawnode_screen_wl_forward_noatmos());
         }
+    }
+
+    protected _swapDeferredShadingPass(atmosParams?: AtmosphereParameters) {
+        if (!this.renderer) return;
+        let r = this.renderer;
+        r.deferredShadingPass.dispose();
+        r.deferredShadingPass = new AtmosphereDeferredShading(r, this._atmosphere, atmosParams!);
+        r.deferredShadingPass.init();
+    }
+
+    protected _restoreDefaultDeferredShadingPass() {
+        if (!this.renderer) return;
+        let r = this.renderer;
+        r.deferredShadingPass.dispose();
+        r.deferredShadingPass = new PhongDeferredShading(r);
+        r.deferredShadingPass.init();
     }
 
     protected _initializeShaders() {
