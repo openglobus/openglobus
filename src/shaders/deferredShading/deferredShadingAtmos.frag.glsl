@@ -150,6 +150,8 @@ void main(void) {
     vec3 sunPos = lightPosition;
     vec3 lightDir = normalize(sunPos);
     vec3 viewDir = normalize(cameraPosition - vertex);
+    vec3 sunIlluminance;
+    getSunIlluminance(vertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
 
     vec4 lightWeighting;
     vec3 specularWeighting;
@@ -163,6 +165,7 @@ void main(void) {
         lightDiffuse,
         lightSpecular,
         specularMask,
+        sunIlluminance,
         specularWeighting,
         lightWeighting
     );
@@ -170,7 +173,6 @@ void main(void) {
     vec4 atmosColor;
     atmosGroundColor(vertex, normal, cameraPosition, sunPos, atmosColor);
 
-    vec3 sunIlluminance;
     getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
     specularWeighting *= sunIlluminance;
 

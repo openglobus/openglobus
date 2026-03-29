@@ -210,6 +210,7 @@ void main(void) {
     diffuse,
     specular,
     specularMask,
+    sunIlluminance,
     specularWeighting,
     lightWeighting
     );
