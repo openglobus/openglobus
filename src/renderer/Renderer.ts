@@ -16,14 +16,15 @@ import {MAX_FLOAT, randomi} from "../math";
 import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame";
 import {toneMapping} from "../shaders/tone_mapping/toneMapping";
-import {deferredShading} from "../shaders/deferredShading/deferredShading";
-import {applyDeferredDepth} from "../shaders/applyDeferredDepth";
+import type {IDeferredShadingPass} from "./IDeferredShadingPass";
+import type {ITransparencyPass} from "./ITransparencyPass";
+import {PhongDeferredShading} from "./PhongDeferredShading";
+import {WOITPass} from "./WOITPass";
 import {TextureAtlas} from "../utils/TextureAtlas";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
-import {weightedOITResolve} from "../shaders/weightedOITResolve";
 import * as shaders from "../shaders/polyline/polyline";
 
 export interface IRendererParams {
@@ -192,10 +193,11 @@ class Renderer {
 
     protected _depthRefreshRequired: boolean;
 
-    protected forwardFramebuffer: Multisample | null;
-    protected woitFramebuffer: Framebuffer | null;
-    protected deferredFramebuffer: Framebuffer | null;
+    public forwardFramebuffer: Multisample | null;
     protected hdrFramebuffer: Framebuffer | null;
+
+    public deferredShadingPass: IDeferredShadingPass;
+    public transparencyPass: ITransparencyPass;
 
     protected toneMappingFramebuffer: Framebuffer | null;
 
@@ -324,9 +326,10 @@ class Renderer {
         this._depthComponent = "DEPTH_COMPONENT24";
 
         this.forwardFramebuffer = null;
-        this.woitFramebuffer = null;
-        this.deferredFramebuffer = null;
         this.hdrFramebuffer = null;
+
+        this.deferredShadingPass = new PhongDeferredShading(this);
+        this.transparencyPass = new WOITPass(this);
 
         this.toneMappingFramebuffer = null;
 
@@ -512,6 +515,14 @@ class Renderer {
         return this.handler.canvas!.height;
     }
 
+    public get internalFormat(): string {
+        return this._internalFormat;
+    }
+
+    public get depthComponent(): string {
+        return this._depthComponent;
+    }
+
     /**
      * Get the client width.
      * @public
@@ -649,11 +660,8 @@ class Renderer {
         }
 
         this.handler.addPrograms([
-            deferredShading(),
             toneMapping(),
-            depth(),
-            applyDeferredDepth(),
-            weightedOITResolve()
+            depth()
         ]);
 
         this.forwardFramebuffer = new Multisample(this.handler, {
@@ -666,47 +674,8 @@ class Renderer {
 
         this.forwardFramebuffer.init();
 
-        //accumTarget
-        //accumAlphaTarget
-        this.woitFramebuffer = new Framebuffer(this.handler, {
-            targets: [{
-                internalFormat: "RGBA16F",
-                attachment: "COLOR_ATTACHMENT",
-                filter: "NEAREST"
-            }, {
-                internalFormat: "R16F",
-                attachment: "COLOR_ATTACHMENT",
-                filter: "NEAREST"
-            }],
-            depthComponent: this._depthComponent,
-            useDepth: true
-        });
-
-        this.woitFramebuffer.init();
-
-
-        this.deferredFramebuffer = new Framebuffer(this.handler, {
-            useDepth: false,
-            targets: [{
-                internalFormat: this._internalFormat,
-                filter: "NEAREST"
-            }, {
-                internalFormat: this._internalFormat,
-                filter: "NEAREST"
-            }, {
-                internalFormat: this._internalFormat,
-                filter: "NEAREST"
-            }, {
-                internalFormat: "RGBA32F",
-                filter: "NEAREST"
-            }, {
-                attachment: "DEPTH_ATTACHMENT",
-                internalFormat: this._depthComponent,
-                filter: "NEAREST"
-            }]
-        });
-
-        this.deferredFramebuffer.init();
+        this.deferredShadingPass.init();
+        this.transparencyPass.init();
 
         this.hdrFramebuffer = new Framebuffer(this.handler, {
             useDepth: false,
@@ -773,8 +742,8 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(w, h);
         this.forwardFramebuffer!.setSize(w * 0.5, h * 0.5);
-        this.woitFramebuffer!.setSize(w * 0.5, h * 0.5);
-        this.deferredFramebuffer!.setSize(w * 0.5, h * 0.5, true);
+        this.deferredShadingPass.resize(w * 0.5, h * 0.5);
+        this.transparencyPass.resize(w * 0.5, h * 0.5);
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w * 0.5, h * 0.5, true);
     }
 
@@ -785,8 +754,8 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(w, h);
         this.forwardFramebuffer!.setSize(w, h);
-        this.woitFramebuffer!.setSize(w, h, true);
-        this.deferredFramebuffer!.setSize(w, h, true);
+        this.deferredShadingPass.resize(w, h);
+        this.transparencyPass.resize(w, h);
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w, h, true);
 
         this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(w, h, true);
@@ -1236,12 +1205,7 @@ class Renderer {
             //
             // Deferred geometry pass for opaque objects
             //
-            this.deferredFramebuffer!.activate();
-
-            gl.clearColor(0, 0, 0, 0.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-            gl.disable(gl.BLEND);
+            this.deferredShadingPass.beginPass();
 
             //@todo need to remove it
             i = rn.length;
@@ -1252,17 +1216,12 @@ class Renderer {
             e.dispatch(e.gbufferpass, this);
             this._drawGBufferEntityCollections(0);
 
-            this.deferredFramebuffer!.deactivate();
+            this.deferredShadingPass.endPass();
 
             //
-            // Transfer opaque geometry depth data to the next rendering stage
+            // Deferred shading pass (depth transfer + lighting)
             //
-            this._applyDeferredDepth();
-
-            //
-            // Deferred shading pass
-            //
-            this._deferredShadingPASS();
+            this.deferredShadingPass.applyLighting();
 
             //
             // Forward rendering and transparent object pass
@@ -1275,19 +1234,15 @@ class Renderer {
             //
             // Draw transparent objects
             //
-            // Copy depth from forwardFramebuffer
-            this.woitFramebuffer!.blitDepthFrom(this.forwardFramebuffer!);
-            this.woitFramebuffer!.activate();
-            gl.clearColor(0, 0, 0, 1);
-            gl.clear(gl.COLOR_BUFFER_BIT);
+            this.transparencyPass.beginPass();
             e.dispatch(e.transparentpass, this);
             this._drawTransparentEntityCollections(0);
-            this.woitFramebuffer!.deactivate();
+            this.transparencyPass.endPass();
 
             //
-            // Weighted OIT resolve (composite into forwardFramebuffer)
+            // Transparency resolve (composite into forwardFramebuffer)
             //
-            this._weightedOITResolvePASS();
+            this.transparencyPass.resolve();
 
             e.dispatch(e.postforwardpass, this);
 
@@ -1346,112 +1301,6 @@ class Renderer {
     //     this.draw();
     //     return this.handler.canvas ? this.handler.canvas.toDataURL(type, quality) : "";
     // }
-
-    protected _applyDeferredDepth() {
-        let h = this.handler,
-            gl = h.gl!,
-            sh = h.programs.applyDeferredDepth,
-            p = sh._program;
-
-        gl.disable(gl.BLEND);
-        gl.colorMask(false, false, false, false);
-        gl.depthMask(true);
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.ALWAYS);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
-        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-
-        sh.activate();
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[4]);
-        gl.uniform1i(p.uniforms.depthTexture, 0);
-
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-        gl.colorMask(true, true, true, true);
-        gl.depthFunc(gl.LESS);
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.BLEND);
-    }
-
-    protected _deferredShadingPASS() {
-
-        let h = this.handler;
-
-        let sh = h.programs.deferredShading,
-            p = sh._program,
-            gl = h.gl!;
-
-        gl.disable(gl.DEPTH_TEST);
-        gl.depthMask(false);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
-        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-
-        sh.activate();
-
-        gl.uniform3fv(p.uniforms.lightPosition, this.lightPosition);
-        gl.uniform3fv(p.uniforms.lightAmbient, this.lightAmbient);
-        gl.uniform3fv(p.uniforms.lightDiffuse, this.lightDiffuse);
-        gl.uniform4fv(p.uniforms.lightSpecular, this.lightSpecular);
-        gl.uniform3f(p.uniforms.cameraPosition, this.activeCamera.eye.x, this.activeCamera.eye.y, this.activeCamera.eye.z);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[0]);
-        gl.uniform1i(p.uniforms.baseTexture, 0);
-
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[1]);
-        gl.uniform1i(p.uniforms.materialsTexture, 1);
-
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[2]);
-        gl.uniform1i(p.uniforms.normalTexture, 2);
-
-        gl.activeTexture(gl.TEXTURE3);
-        gl.bindTexture(gl.TEXTURE_2D, this.deferredFramebuffer!.textures[3]);
-        gl.uniform1i(p.uniforms.positionTexture, 3);
-
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-        gl.depthMask(true);
-        gl.enable(gl.DEPTH_TEST);
-    }
-
-    protected _weightedOITResolvePASS() {
-        let h = this.handler,
-            gl = h.gl!,
-            sh = h.programs.weightedOITResolve,
-            p = sh._program;
-
-        gl.disable(gl.DEPTH_TEST);
-        gl.depthMask(false);
-
-        // Output is premultiplied alpha
-        this.enableBlendOneSrcAlpha();
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
-        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-
-        sh.activate();
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.woitFramebuffer!.textures[0]);
-        gl.uniform1i(p.uniforms.uAccumulate, 0);
-
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this.woitFramebuffer!.textures[1]);
-        gl.uniform1i(p.uniforms.uAccumulateAlpha, 1);
-
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-        this.enableBlendDefault();
-        gl.depthMask(true);
-        gl.enable(gl.DEPTH_TEST);
-    }
 
     protected _screenFrame() {
         let h = this.handler;
@@ -1784,10 +1633,11 @@ class Renderer {
 
         this.depthFramebuffer = null;
         this.forwardFramebuffer = null;
-        this.woitFramebuffer = null;
-        this.deferredFramebuffer = null;
         this.hdrFramebuffer = null;
         this.toneMappingFramebuffer = null;
+
+        this.deferredShadingPass.dispose();
+        this.transparencyPass.dispose();
 
         // todo
         //this.billboardsTextureAtlas.clear();

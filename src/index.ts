@@ -19,6 +19,10 @@ export * from './Globe';
 
 export type { IControlParams } from './control/Control';
 export type { ITouchState } from './renderer/RendererEvents';
+export type { IDeferredShadingPass } from './renderer/IDeferredShadingPass';
+export type { ITransparencyPass } from './renderer/ITransparencyPass';
+export { PhongDeferredShading } from './renderer/PhongDeferredShading';
+export { WOITPass } from './renderer/WOITPass';
 
 declare const __OG_VERSION__: string;
 export const version = __OG_VERSION__;
