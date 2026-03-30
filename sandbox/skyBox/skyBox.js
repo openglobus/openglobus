@@ -181,7 +181,7 @@ pointLayer.events.on("rclick", function (e) {
 
 const baseObj = Object3d.createCube(0.4, 2, 0.4)
     .translate(new Vec3(0, 1, 0))
-    .setColor("#ff5252");
+    .setColor("white");
 
 const viewObj = Object3d.createFrustum(3, 2, 1)
     .setColor("#1cdd23");

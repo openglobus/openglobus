@@ -9,6 +9,8 @@ import {Quat} from "../../math/Quat";
 import {Object3d} from "../../Object3d";
 import {InstanceData} from "./InstanceData";
 import {Renderer} from "../../renderer/Renderer";
+import type {Atmosphere} from "../../control/atmosphere/Atmosphere";
+import {Planet} from "../../scene/Planet";
 import {RenderNode} from "../../scene/RenderNode";
 import type {Program} from "../../webgl/Program";
 
@@ -170,14 +172,20 @@ export class GeoObjectHandler {
     }
 
     public initProgram() {
-        if (this._renderer) {
-            this._renderer.addPrograms(
+        if (this._renderer && this._renderNode) {
+            let programs = [
                 shaders.geo_object_forward(),
                 shaders.geo_object_deferred(),
                 shaders.geo_object_woit(),
                 shaders.geo_object_picking(),
                 shaders.geo_object_depth()
-            );
+            ];
+            if (this._renderNode instanceof Planet) {
+                programs.push(
+                    shaders.geo_object_woit_atmos(this._renderNode.atmosphereControl.parameters)
+                );
+            }
+            this._renderer.addPrograms(programs);
         }
     }
 
@@ -440,6 +448,26 @@ export class GeoObjectHandler {
         gl.uniform4fv(u.lightSpecular, r.lightSpecular);
     }
 
+    protected _bindAtmosphereParams(p: Program) {
+        let r = this._renderer!,
+            gl = r.handler.gl!,
+            u = p.uniforms,
+            atmosphere = r.controls.Atmosphere as Atmosphere,
+            planet = this._renderNode as Planet;
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, atmosphere._transmittanceBuffer!.textures[0]);
+        gl.uniform1i(u.transmittanceTexture, 1);
+
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, atmosphere._scatteringBuffer!.textures[0]);
+        gl.uniform1i(u.scatteringTexture, 2);
+
+        gl.uniform2fv(u.maxMinOpacity, planet.atmosphereMaxMinOpacity);
+
+        gl.activeTexture(gl.TEXTURE0);
+    }
+
     public _displayOpaquePASS() {
 
         let r = this._renderer!,
@@ -457,7 +485,10 @@ export class GeoObjectHandler {
 
     public _displayTransparentPASS() {
         let r = this._renderer!,
-            sh = r.handler.programs.geo_object_woit,
+            rn = this._renderNode,
+            //@ts-ignore
+            useAtmos = rn.atmosphereEnabled,
+            sh = useAtmos ? r.handler.programs.geo_object_woit_atmos : r.handler.programs.geo_object_woit,
             p = sh._program;
 
         sh.activate();
@@ -466,6 +497,9 @@ export class GeoObjectHandler {
 
         this._bindCommon(p);
         this._bindForwardParams(p);
+        if (useAtmos) {
+            this._bindAtmosphereParams(p);
+        }
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
