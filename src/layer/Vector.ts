@@ -24,7 +24,8 @@ export interface IVectorParams extends ILayerParams {
     pickingScale?: number | NumberArray3;
     scaleByDistance?: NumberArray3;
     labelMaxLetters?: number;
-    useLighting?: boolean;
+    /** 0 unlit, 1 Phong, 2 PBR for geo objects in this layer. */
+    shadeMode?: number;
     depthOrder?: number;
 }
 
@@ -79,6 +80,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
  * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
  * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset.
+ * @param {number} [options.shadeMode=1] - Geo object shading: 0 unlit, 1 Phong, 2 PBR.
  *
  * //@fires EventsHandler<VectorEventsList>#entitymove
  * @fires EventsHandler<VectorEventsList>#draw
@@ -158,7 +160,7 @@ class Vector extends Layer {
 
     protected _labelMaxLetters: number;
 
-    protected _useLighting: boolean;
+    protected _shadeMode: number;
 
     constructor(name?: string | null, options: IVectorParams = {}) {
         super(name, options);
@@ -172,7 +174,8 @@ class Vector extends Layer {
 
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 
-        this._useLighting = options.useLighting !== undefined ? options.useLighting : true;
+        this._shadeMode =
+            options.shadeMode !== undefined ? Vector._clampShadeMode(options.shadeMode) : 1;
 
 
         let pickingScale: Float32Array = new Float32Array([1.0, 1.0, 1.0]);
@@ -212,7 +215,7 @@ class Vector extends Layer {
 
         this._geoObjectEntityCollection = new EntityCollection({
             pickingEnabled: this.pickingEnabled,
-            useLighting: this._useLighting
+            shadeMode: this._shadeMode
         });
         this._bindEventsDefault(this._geoObjectEntityCollection);
 
@@ -242,15 +245,23 @@ class Vector extends Layer {
         }
     }
 
-    public get useLighting(): boolean {
-        return this._useLighting;
+    public get shadeMode(): number {
+        return this._shadeMode;
     }
 
-    public set useLighting(f: boolean) {
-        if (f !== this._useLighting) {
-            this._geoObjectEntityCollection.useLighting = f;
-            this._useLighting = f;
+    public set shadeMode(m: number) {
+        let v = Vector._clampShadeMode(m);
+        if (v !== this._shadeMode) {
+            this._shadeMode = v;
+            this._geoObjectEntityCollection.shadeMode = v;
         }
+    }
+
+    protected static _clampShadeMode(m: number): number {
+        let v = Math.round(Number(m));
+        if (v < 0) v = 0;
+        if (v > 2) v = 2;
+        return v;
     }
 
     public get labelMaxLetters(): number {

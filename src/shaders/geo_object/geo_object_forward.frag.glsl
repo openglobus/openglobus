@@ -10,7 +10,7 @@ uniform vec4 lightSpecular;
 uniform vec3 materialProperties;
 uniform sampler2D uTexture;
 uniform float uUseTexture;
-uniform float useLighting;
+uniform float shadeMode;
 
 in vec3 cameraPosition;
 in vec3 v_vertex;
@@ -31,7 +31,9 @@ void main(void) {
         baseColor = vColor;
     }
 
-    if (useLighting != 0.0) {
+    if (shadeMode < 0.5) {
+        fragColor = baseColor;
+    } else {
         float metallic = clamp(materialProperties[0], 0.0, 1.0);
 
         vec3 vertex = v_vertex;
@@ -41,6 +43,7 @@ void main(void) {
         vec4 lightWeighting;
         vec3 specularWeighting;
 
+        // shadeMode 1 Phong, 2 PBR — PBR forward not implemented yet
         getPhongLighting(
         vertex,
         normal,
@@ -55,7 +58,5 @@ void main(void) {
         );
 
         fragColor = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
-    } else {
-        fragColor = baseColor;
     }
 }

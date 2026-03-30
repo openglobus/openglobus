@@ -421,7 +421,7 @@ export class GeoObjectHandler {
             ec = this._entityCollection;
 
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
-        gl.uniform1f(u.useLighting, ec._useLighting);
+        gl.uniform1f(u.shadeMode, ec._shadeMode);
         gl.uniform1f(u.depthOffset, ec.polygonOffsetUnits);
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);

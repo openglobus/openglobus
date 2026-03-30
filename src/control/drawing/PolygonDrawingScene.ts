@@ -13,6 +13,7 @@ import {RenderNode} from '../../scene/RenderNode';
 import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
 import {Vector} from '../../layer/Vector';
+import {SHADE_MODE_UNLIT} from "../../shadeModeConstants";
 
 type PolygonDrawingSceneEventsList = ["change", "startpoint"];
 
@@ -111,7 +112,7 @@ class PolygonDrawingScene extends RenderNode {
             pickingEnabled: true,
             polygonOffsetUnits: -7,
             relativeToGround: true,
-            useLighting: false,
+            shadeMode: SHADE_MODE_UNLIT,
             scaleByDistance: [1, 4000000, 0.005]
         });
 
@@ -120,7 +121,7 @@ class PolygonDrawingScene extends RenderNode {
             pickingEnabled: true,
             polygonOffsetUnits: -5,
             relativeToGround: true,
-            useLighting: false,
+            shadeMode: SHADE_MODE_UNLIT,
             scaleByDistance: [1, 4000000, 0.005]
         });
 
@@ -148,7 +149,7 @@ class PolygonDrawingScene extends RenderNode {
         this._ghostOutlineLayer = new Vector("ghost-pointer", {
             pickingEnabled: false,
             polygonOffsetUnits: -5,
-            useLighting: false,
+            shadeMode: SHADE_MODE_UNLIT,
             relativeToGround: true,
             scaleByDistance: [1, 4000000, 0.005],
             opacity: 0.5

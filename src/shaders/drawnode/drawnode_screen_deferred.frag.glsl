@@ -3,6 +3,7 @@
 precision highp float;
 
 #include "../common/utils.glsl"
+#include "../common/shadeMode.glsl"
 #include "./common.glsl"
 #include "../common/lighting.glsl"
 
@@ -15,6 +16,8 @@ uniform sampler2D samplerArr[SLICE_SIZE];
 uniform vec4 tileOffsetArr[SLICE_SIZE];
 uniform vec3 lightPosition;
 uniform float layerOpacityArr[SLICE_SIZE];
+
+uniform float shadeMode;
 
 uniform int samplerCount;
 //uniform float nightTextureCoefficient;
@@ -65,7 +68,7 @@ void main(void) {
     */
 
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
-    normalColor = vec4(normal * 0.5 + 0.5, 1.0);
+    normalColor = vec4(normal * 0.5 + 0.5, encodeShadeModeUint(shadeModeToUint(shadeMode)));
 
     if (samplerCount == 0)return;
 

@@ -12,7 +12,7 @@ uniform vec4 lightSpecular;
 uniform vec3 materialProperties;
 uniform sampler2D uTexture;
 uniform float uUseTexture;
-uniform float useLighting;
+uniform float shadeMode;
 
 uniform sampler2D transmittanceTexture;
 uniform sampler2D scatteringTexture;
@@ -46,7 +46,9 @@ void main(void) {
     vec3 sunPos = lightPosition;
     vec4 color;
 
-    if (useLighting != 0.0) {
+    if (shadeMode < 0.5) {
+        color = baseColor;
+    } else {
         float metallic = clamp(materialProperties[0], 0.0, 1.0);
         float specularMask = metallic;
         vec3 lightDir = normalize(sunPos);
@@ -57,6 +59,7 @@ void main(void) {
         vec4 lightWeighting;
         vec3 specularWeighting;
 
+        // shadeMode 1 Phong, 2 PBR — PBR forward not implemented yet
         getPhongLighting(
             vertex,
             normal,
@@ -81,8 +84,6 @@ void main(void) {
         getAtmosFadingOpacity(vertex, cameraPosition, maxMinOpacity, fadingOpacity);
 
         color = mix(baseColor * lightWeighting, atmosColor * baseColor.a, fadingOpacity) + vec4(specularWeighting, 0.0);
-    } else {
-        color = baseColor;
     }
 
     weightedOITAccumulate(color, accumColor, accumAlpha);

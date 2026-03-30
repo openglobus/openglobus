@@ -29,7 +29,8 @@ interface IEntityCollectionParams {
     scaleByDistance?: NumberArray3;
     pickingScale?: number | NumberArray3;
     opacity?: number;
-    useLighting?: boolean;
+    /** 0 unlit, 1 Phong, 2 PBR (geo objects). */
+    shadeMode?: number;
     entities?: Entity[];
     depthOrder?: number;
 }
@@ -210,7 +211,7 @@ class EntityCollection {
     public _layer?: Vector;
     public _quadNode?: EntityCollectionNode;
 
-    public _useLighting: number;
+    public _shadeMode: number;
 
     protected _depthOrder: number;
 
@@ -270,7 +271,8 @@ class EntityCollection {
 
         this.events = this.rendererEvents = createEvents<EntityCollectionEventList>(ENTITYCOLLECTION_EVENTS, this);
 
-        this._useLighting = options.useLighting != undefined ? (options.useLighting ? 1.0 : 0.0) : 1.0;
+        this._shadeMode =
+            options.shadeMode !== undefined ? EntityCollection._clampShadeMode(options.shadeMode) : 1.0;
 
         // initialize current entities
         if (options.entities) {
@@ -297,12 +299,19 @@ class EntityCollection {
         return this.__id;
     }
 
-    public get useLighting(): boolean {
-        return Boolean(this._useLighting)
+    public get shadeMode(): number {
+        return this._shadeMode;
     }
 
-    public set useLighting(f: boolean) {
-        this._useLighting = Number(f);
+    public set shadeMode(m: number) {
+        this._shadeMode = EntityCollection._clampShadeMode(m);
+    }
+
+    protected static _clampShadeMode(m: number): number {
+        let v = Math.round(Number(m));
+        if (v < 0) v = 0;
+        if (v > 2) v = 2;
+        return v;
     }
 
     public isEqual(ec: EntityCollection | null): boolean {

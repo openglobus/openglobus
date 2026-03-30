@@ -18,6 +18,7 @@ import {Sphere} from "../../bv/Sphere";
 import {AxisTrackEntity} from "./AxisTrackEntity";
 import {CameraLock} from "../CameraLock";
 import {EntityCollection} from "../../entity/EntityCollection";
+import {SHADE_MODE_UNLIT} from "../../shadeModeConstants";
 
 export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
@@ -121,7 +122,7 @@ class GeoObjectEditorScene extends RenderNode {
 
         this._moveLayer = new EntityCollection({
             scaleByDistance: [0.1, MAX32, 0.1],
-            useLighting: false,
+            shadeMode: SHADE_MODE_UNLIT,
             pickingScale: [5, 1.1, 5],
             visibility: false,
             depthOrder: 1000,
@@ -129,13 +130,13 @@ class GeoObjectEditorScene extends RenderNode {
 
         this._planeLayer = new EntityCollection({
             scaleByDistance: [0.1, MAX32, 0.1],
-            useLighting: false,
+            shadeMode: SHADE_MODE_UNLIT,
             visibility: false,
             depthOrder: 1000,
         });
 
         this._rotateLayer = new EntityCollection({
-            useLighting: false,
+            shadeMode: SHADE_MODE_UNLIT,
             visibility: false,
             depthOrder: 1000,
             pickingScale: 5,
@@ -152,7 +153,7 @@ class GeoObjectEditorScene extends RenderNode {
         this._axisTrackVisibility = false;
 
         this._axisTrackLayer = new EntityCollection({
-            useLighting: false,
+            shadeMode: SHADE_MODE_UNLIT,
             visibility: false,
             pickingScale: 5,
             pickingEnabled: false,

@@ -44,6 +44,7 @@ import type {AtmosphereParameters} from "../shaders/atmos/atmos";
 import {ProgramController} from "../webgl/ProgramController";
 import {AtmosphereDeferredShading} from "../renderer/AtmosphereDeferredShading";
 import {PhongDeferredShading} from "../renderer/PhongDeferredShading";
+import {SHADE_MODE_PHONG} from "../shadeModeConstants";
 
 export interface IPlanetParams {
     name?: string;
@@ -66,6 +67,8 @@ export interface IPlanetParams {
     vectorTileSize?: number;
     maxNodesCount?: number;
     transparentBackground?: boolean;
+    /** Terrain drawnode + deferred G-buffer: 0 unlit, 1 Phong, 2 PBR (PBR uses Phong until implemented). */
+    shadeMode?: number;
 }
 
 export type PlanetEventsList = [
@@ -317,6 +320,12 @@ export class Planet extends RenderNode {
      */
     public nightTextureCoefficient: number;
 
+    /**
+     * Global terrain shading for drawnode (forward + deferred): 0 unlit, 1 Phong, 2 PBR.
+     * @public
+     */
+    protected _shadeMode: number;
+
     //protected _renderOpaqueScreenNodesPASS: () => void;
     //protected _renderTransparentScreenNodesPASS: () => void;
     //protected _renderScreenNodesWithHeightPASS: () => void;
@@ -350,6 +359,9 @@ export class Planet extends RenderNode {
         this._atmosphere = new Atmosphere(options.atmosphereParameters);
 
         this.lightEnabled = true;
+
+        this._shadeMode =
+            options.shadeMode !== undefined ? Planet._clampShadeMode(options.shadeMode) : SHADE_MODE_PHONG;
 
         this._planetRadius2 = (this.ellipsoid.getPolarSize() - 10000.0) * (this.ellipsoid.getPolarSize() - 10000.0);
 
@@ -518,6 +530,21 @@ export class Planet extends RenderNode {
 
     public get atmosphereEnabled(): boolean {
         return this._atmosphereEnabled;
+    }
+
+    public get shadeMode(): number {
+        return this._shadeMode;
+    }
+
+    public set shadeMode(m: number) {
+        this._shadeMode = Planet._clampShadeMode(m);
+    }
+
+    protected static _clampShadeMode(m: number): number {
+        let v = Math.round(Number(m));
+        if (v < 0) v = 0;
+        if (v > 2) v = 2;
+        return v;
     }
 
     // public set diffuse(rgb: string | NumberArray3 | Vec3) {
@@ -1284,6 +1311,8 @@ export class Planet extends RenderNode {
         sh = program._program;
         shu = sh.uniforms;
 
+        gl.uniform1f(shu.shadeMode, this._shadeMode);
+
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
@@ -1326,6 +1355,8 @@ export class Planet extends RenderNode {
             program.activate();
             sh = program._program;
             shu = sh.uniforms;
+
+            gl.uniform1f(shu.shadeMode, this._shadeMode);
 
             gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
@@ -1376,6 +1407,8 @@ export class Planet extends RenderNode {
             program.activate();
             sh = program._program;
             shu = sh.uniforms;
+
+            gl.uniform1f(shu.shadeMode, this._shadeMode);
 
         if(!atmosphereControl.isReady) return program._program;
 

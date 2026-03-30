@@ -24,7 +24,7 @@ export const geo_object_deferred = (): Program =>
             eyePositionLow: "vec3",
             uTexture: "sampler2d",
             uUseTexture: "float",
-            useLighting: "float",
+            shadeMode: "float",
             depthOffset: "float"
         },
         attributes: {
@@ -61,7 +61,7 @@ export const geo_object_forward = (): Program =>
             materialProperties: "vec3",
             uTexture: "sampler2d",
             uUseTexture: "float",
-            useLighting: "float",
+            shadeMode: "float",
             depthOffset: "float"
         },
         attributes: {
@@ -98,7 +98,7 @@ export const geo_object_woit = (): Program =>
             materialProperties: "vec3",
             uTexture: "sampler2d",
             uUseTexture: "float",
-            useLighting: "float",
+            shadeMode: "float",
             depthOffset: "float"
         },
         attributes: {
@@ -135,7 +135,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             materialProperties: "vec3",
             uTexture: "sampler2d",
             uUseTexture: "float",
-            useLighting: "float",
+            shadeMode: "float",
             depthOffset: "float",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",

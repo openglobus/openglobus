@@ -35,6 +35,7 @@ uniform vec2 maxMinOpacity;
 uniform float camHeight;
 
 uniform float transitionOpacity;
+uniform float shadeMode;
 
 in vec4 vTextureCoord;
 in vec3 v_vertex;
@@ -56,55 +57,56 @@ void main(void) {
     float overGround = 1.0 - step(0.1, v_height);
     float specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
 
-    float minH = 1200000.0;
-    float maxH = minH * 3.0;
-    float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
-
-    //vec3 lightDir = normalize(sunPos - v_vertex);
-    vec3 lightDir = normalize(sunPos);
-    float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
-    vec4 nightImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-    vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb * nightCoef;
-    night *= overGround * step(0.0, night);
-
-    // if(camHeight > 6000000.0)
-    // {
-    //    normal = normalize(v_vertex);
-    // }
-
-    vec3 viewDir = normalize(cameraPosition - v_vertex);
-
-    vec4 atmosColor;
-    atmosGroundColor(v_vertex, normal, cameraPosition, sunPos, atmosColor);
-
-    vec3 sunIlluminance;
-    getSunIlluminance(v_vertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
-
     vec4 lightWeighting;
     vec3 specularWeighting;
-
-    getPhongLighting(
-    v_vertex,
-    normal,
-    cameraPosition,
-    sunPos,
-    ambient,
-    diffuse,
-    specular,
-    specularMask,
-    sunIlluminance,
-    specularWeighting,
-    lightWeighting
-    );
-
     float fadingOpacity;
-    getAtmosFadingOpacity(v_vertex, cameraPosition, maxMinOpacity, fadingOpacity);
+    vec4 atmosColor;
 
-    getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+    if (shadeMode < 0.5) {
+        lightWeighting = vec4(1.0);
+        specularWeighting = vec3(0.0);
+        fadingOpacity = 0.0;
+        atmosColor = vec4(0.0);
+    } else {
+        float minH = 1200000.0;
+        float maxH = minH * 3.0;
+        float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
 
-    specularWeighting *= sunIlluminance;
+        vec3 lightDir = normalize(sunPos);
+        float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
+        vec4 nightImageColor = texture(nightTexture, vGlobalTextureCoord.st);
+        vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb * nightCoef;
+        night *= overGround * step(0.0, night);
 
-    lightWeighting += vec4(night, 0.0);
+        vec3 viewDir = normalize(cameraPosition - v_vertex);
+
+        atmosGroundColor(v_vertex, normal, cameraPosition, sunPos, atmosColor);
+
+        vec3 sunIlluminance;
+        getSunIlluminance(v_vertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+
+        getPhongLighting(
+        v_vertex,
+        normal,
+        cameraPosition,
+        sunPos,
+        ambient,
+        diffuse,
+        specular,
+        specularMask,
+        sunIlluminance,
+        specularWeighting,
+        lightWeighting
+        );
+
+        getAtmosFadingOpacity(v_vertex, cameraPosition, maxMinOpacity, fadingOpacity);
+
+        getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+
+        specularWeighting *= sunIlluminance;
+
+        lightWeighting += vec4(night, 0.0);
+    }
 
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
 

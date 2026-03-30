@@ -74,6 +74,7 @@ export function drawnode_screen_deferred(): Program {
             //nightTexture: "sampler2d",
             specularTexture: "sampler2d",
             lightPosition: "vec3",
+            shadeMode: "float",
             //camHeight: "float",
             //nightTextureCoefficient: "float",
         }, attributes: {
@@ -110,7 +111,8 @@ export function drawnode_screen_wl_forward_noatmos(): Program {
             specular: "vec4",
             camHeight: "float",
             nightTextureCoefficient: "float",
-            transitionOpacity: "float"
+            transitionOpacity: "float",
+            shadeMode: "float"
         }, attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
@@ -148,7 +150,8 @@ export function drawnode_screen_wl_forward_atmos(atmosParams: AtmosphereParamete
             camHeight: "float",
             nightTextureCoefficient: "float",
             maxMinOpacity: "vec2",
-            transitionOpacity: "float"
+            transitionOpacity: "float",
+            shadeMode: "float"
         }, attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",

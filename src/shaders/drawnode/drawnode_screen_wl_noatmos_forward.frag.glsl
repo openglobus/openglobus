@@ -26,6 +26,7 @@ uniform float nightTextureCoefficient;
 uniform float transitionOpacity;
 
 uniform float camHeight;
+uniform float shadeMode;
 
 in vec4 vTextureCoord;
 in vec3 v_vertex;
@@ -50,30 +51,35 @@ void main(void) {
     vec4 lightWeighting;
     vec3 specularWeighting;
 
-    getPhongLighting(
-    v_vertex,
-    normal,
-    cameraPosition,
-    sunPos,
-    ambient,
-    diffuse,
-    specular,
-    specularMask,
-    specularWeighting,
-    lightWeighting
-    );
+    if (shadeMode < 0.5) {
+        lightWeighting = vec4(1.0);
+        specularWeighting = vec3(0.0);
+    } else {
+        getPhongLighting(
+        v_vertex,
+        normal,
+        cameraPosition,
+        sunPos,
+        ambient,
+        diffuse,
+        specular,
+        specularMask,
+        specularWeighting,
+        lightWeighting
+        );
 
-    float minH = 1200000.0;
-    float maxH = minH * 3.0;
-    float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
+        float minH = 1200000.0;
+        float maxH = minH * 3.0;
+        float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
 
-    vec3 lightDir = normalize(sunPos - v_vertex);
-    float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
-    vec4 nightImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-    vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb * nightCoef;
-    night *= overGround * step(0.0, night);
+        vec3 lightDir = normalize(sunPos - v_vertex);
+        float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
+        vec4 nightImageColor = texture(nightTexture, vGlobalTextureCoord.st);
+        vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb * nightCoef;
+        night *= overGround * step(0.0, night);
 
-    lightWeighting += vec4(night, 0.0);
+        lightWeighting += vec4(night, 0.0);
+    }
 
     fragColor = texture(defaultTexture, vTextureCoord.xy);
 

@@ -2,6 +2,7 @@
 
 precision highp float;
 
+#include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
 
 uniform sampler2D baseTexture;
@@ -27,12 +28,19 @@ void main(void) {
     vec4 normalColor = texelFetch(normalTexture, fragCoord, 0);
     vec3 vertex = texelFetch(positionTexture, fragCoord, 0).xyz;
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
+    uint shade = decodeShadeMode(normalColor.a);
+
+    if (shade == SHADE_MODE_UNLIT) {
+        fragColor = baseColor;
+        return;
+    }
 
     float specularMask = materials.r;
 
     vec4 lightWeighting;
     vec3 specularWeighting;
 
+    // SHADE_MODE_PHONG and SHADE_MODE_PBR: PBR deferred not implemented yet
     getPhongLighting(
     vertex,
     normal,
