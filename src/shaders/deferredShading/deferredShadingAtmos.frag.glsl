@@ -10,6 +10,7 @@ uniform sampler2D baseTexture;
 uniform sampler2D materialsTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D positionTexture;
+
 uniform sampler2D transmittanceTexture;
 uniform sampler2D scatteringTexture;
 
