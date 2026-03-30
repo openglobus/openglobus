@@ -106,3 +106,12 @@ vec3 transmittance(float height, float angle)
     vec3 opticalDepth = opticalDepth(height, angle);
     return exp(-(rayleighScatteringCoefficient * opticalDepth.x + mieExtinctionCoefficient * opticalDepth.y + ozoneAbsorptionCoefficient * opticalDepth.z));
 }
+
+void getAtmosFadingOpacity(in vec3 _v_vertex, in vec3 _cameraPosition, in vec2 maxMinOpacity, out float opacity)
+{
+    float c = length(_cameraPosition);
+    float maxDist = sqrt(c * c - BOTTOM_RADIUS * BOTTOM_RADIUS);
+    float minDist = c - BOTTOM_RADIUS;
+    float vertDist = distance(_cameraPosition, _v_vertex);
+    opacity = clamp(maxMinOpacity.y + (maxMinOpacity.x - maxMinOpacity.y) * getLerpValue(minDist, maxDist, vertDist), 0.0, 1.0);
+}

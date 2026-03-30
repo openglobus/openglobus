@@ -302,7 +302,7 @@ function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): Program
             frustumParams: "vec4"
         },
         attributes: {
-            corners: "vec3"
+            corners: "vec2"
         },
         vertexShader: atmosphere_vert,
         fragmentShader: stringTemplate2(atmosphere_frag, {
