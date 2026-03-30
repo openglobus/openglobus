@@ -1,10 +1,8 @@
 import * as segmentHelper from "../segment/segmentHelper";
 import * as shaders from "../shaders/drawnode/drawnode";
-import * as utils from "../utils/shared";
 import {Atmosphere} from "../control/atmosphere/Atmosphere";
 import type {IAtmosphereParams} from "../control/atmosphere/Atmosphere";
 import {Control} from "../control/Control";
-import {createColorRGB} from "../utils/shared";
 import {createEvents} from "../Events";
 import type {EventsHandler} from "../Events";
 import {EarthQuadTreeStrategy} from "../quadTree/earth/EarthQuadTreeStrategy";
@@ -89,7 +87,7 @@ export type PlanetEventsList = [
  * @type {number}
  * @default
  */
-const DEFAULT_MAX_NODES = 200;
+const DEFAULT_MAX_NODES = 400;
 
 type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
 
@@ -843,7 +841,6 @@ export class Planet extends RenderNode {
             h = r.handler;
 
         h.addProgram(shaders.drawnode_screen_deferred());
-        h.addProgram(shaders.drawnode_screen_nl());
         h.addProgram(shaders.drawnode_colorPicking());
         h.addProgram(shaders.drawnode_depth());
 
@@ -901,7 +898,6 @@ export class Planet extends RenderNode {
         });
 
         this.renderer!.events.on("forwardpass", () => {
-            //this._renderTransparentScreenNodesPASS();
             if (this._atmosphereEnabled) {
                 this._renderTransparentScreenNodesPASSAtmos();
             } else {

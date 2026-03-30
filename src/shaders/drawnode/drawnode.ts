@@ -1,9 +1,6 @@
 import  {AtmosphereParameters, DEFAULT_PARAMS} from "../atmos/atmos";
 import {Program} from "../../webgl/Program";
 
-import drawnode_screen_nl_vert from './drawnode_screen_nl.vert.glsl';
-import drawnode_screen_nl_frag from './drawnode_screen_nl.frag.glsl';
-
 import drawnode_screen_wl from './drawnode_screen_wl.vert.glsl';
 
 import drawnode_screen_wl_atmos_forward_frag from './drawnode_screen_wl_atmos_forward.frag.glsl';
@@ -31,29 +28,6 @@ import {stringTemplate2} from "../../utils/shared";
 //                     DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
 //
 // const SLICE_SIZE = 4;
-
-export function drawnode_screen_nl(): Program {
-    return new Program("drawnode_screen_nl", {
-        uniforms: {
-            projectionMatrix: "mat4",
-            viewMatrix: "mat4",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
-            samplerCount: "int",
-            tileOffsetArr: "vec4",
-            layerOpacityArr: "float",
-            samplerArr: "sampler2darraylegacy",
-            defaultTexture: "sampler2d",
-            height: "float"
-        }, attributes: {
-            aVertexPositionHigh: "vec3",
-            aVertexPositionLow: "vec3",
-            aTextureCoord: "vec2"
-        },
-        vertexShader: drawnode_screen_nl_vert,
-        fragmentShader: drawnode_screen_nl_frag
-    });
-}
 
 export function drawnode_screen_deferred(): Program {
     return new Program("drawnode_screen_deferred", {
