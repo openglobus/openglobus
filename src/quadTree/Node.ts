@@ -356,7 +356,7 @@ class Node {
         }
 
         // Create normal map texture
-        if (seg.planet.lightEnabled && !seg.normalMapReady) {
+        if (!seg.normalMapReady) {
             this.whileNormalMapCreating();
         }
 

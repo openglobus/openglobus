@@ -598,7 +598,7 @@ class Segment {
                 n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] =
                     n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
 
-                if (this.planet.lightEnabled && !this._inTheQueue) {
+                if (!this._inTheQueue) {
                     this.planet._normalMapCreator.queue(this);
                 }
 
@@ -880,9 +880,7 @@ class Segment {
                 this.normalMapTexturePtr = this.planet.renderer!.handler.createEmptyTexture_l(nmc.width, nmc.height);
             }
 
-            if (this.planet.lightEnabled) {
-                this.planet._normalMapCreator.queue(this);
-            }
+            this.planet._normalMapCreator.queue(this);
         }
     }
 
@@ -1705,17 +1703,14 @@ class Segment {
             gl.uniform1fv(shu.layerOpacityArr, slice.layerOpacityArr);
             //gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
 
-            // bind normalmap texture
-            if (p.lightEnabled) {
-                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 3);
-                gl.bindTexture(gl.TEXTURE_2D, (this.normalMapTexture || p.transparentTexture)!);
-                gl.uniform1i(shu.uNormalMap, p.SLICE_SIZE + 3);
+            gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 3);
+            gl.bindTexture(gl.TEXTURE_2D, (this.normalMapTexture || p.transparentTexture)!);
+            gl.uniform1i(shu.uNormalMap, p.SLICE_SIZE + 3);
 
-                gl.uniform3fv(shu.uNormalMapBias, this.normalMapTextureBias);
+            gl.uniform3fv(shu.uNormalMapBias, this.normalMapTextureBias);
 
-                // bind segment specular and night material texture coordinates
-                gl.uniform4fv(shu.uGlobalTextureCoord, this._globalTextureCoordinates);
-            }
+            // bind segment specular and night material texture coordinates
+            gl.uniform4fv(shu.uGlobalTextureCoord, this._globalTextureCoordinates);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh!);
             gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh!.itemSize, gl.FLOAT, false, 0, 0);

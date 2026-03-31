@@ -122,13 +122,6 @@ export class Planet extends RenderNode {
     public ellipsoid: Ellipsoid;
 
     /**
-     * @public
-     * @override
-     * @type {Boolean}
-     */
-    public override lightEnabled: boolean;
-
-    /**
      * Squared ellipsoid radius.
      * @public
      * @type {number}
@@ -355,8 +348,6 @@ export class Planet extends RenderNode {
         this.ellipsoid = options.ellipsoid || wgs84;
 
         this._atmosphere = new Atmosphere(options.atmosphereParameters);
-
-        this.lightEnabled = true;
 
         this._shadeMode =
             options.shadeMode !== undefined ? Planet._clampShadeMode(options.shadeMode) : SHADE_MODE_PHONG;
