@@ -714,6 +714,17 @@ export class Planet extends RenderNode {
     }
 
     /**
+     * Sets LOD thresholds for quadtree terrain rendering.
+     * Proxy to {@link QuadTreeStrategy.setLodSize}.
+     * @param {number} currentLodSize - Current LOD size target.
+     * @param {number} [minLodSize] - Minimum LOD size.
+     * @param {number} [maxLodSize] - Maximum LOD size.
+     */
+    public setLodSize(currentLodSize: number, minLodSize?: number, maxLodSize?: number) {
+        this.quadTreeStrategy.setLodSize(currentLodSize, minLodSize, maxLodSize);
+    }
+
+    /**
      * Sets terrain provider
      * @public
      * @param {EmptyTerrain} terrain - Terrain provider.
