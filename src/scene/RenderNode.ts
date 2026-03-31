@@ -38,13 +38,6 @@ class RenderNode extends BaseNode {
     public override childNodes: RenderNode[];
 
     /**
-     * Lighting calculations.
-     * @public
-     * @type {boolean}
-     */
-    public lightEnabled: boolean;
-
-    /**
      * Point light array.
      * @public
      * @type {Array.<LightSource>}
@@ -75,8 +68,6 @@ class RenderNode extends BaseNode {
         this.show = true;
 
         this._isActive = true;
-
-        this.lightEnabled = false;
 
         this._lightParams = new Float32Array(9);
         this._lightShininess = 100.0;
@@ -346,7 +337,6 @@ class RenderNode extends BaseNode {
         }
 
         if (this.show) {
-            //this.lightEnabled && this.transformLights();
             this.preFrame();
             for (let i = 0; i < this._entityCollectionsByDepthOrder.length; i++) {
                 this.drawEntityCollections(this._entityCollectionsByDepthOrder[i], i);

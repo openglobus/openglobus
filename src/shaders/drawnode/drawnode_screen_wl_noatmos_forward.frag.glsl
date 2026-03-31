@@ -68,7 +68,7 @@ void main(void) {
     );
 
     vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-    vec3 emission = getNightEmission(normal, sunPos - v_vertex, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
+    vec3 emission = getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
 
     lightWeighting += vec4(emission, 0.0);
 
