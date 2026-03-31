@@ -20,6 +20,7 @@ export interface IPlanetCameraParams extends ICameraParams {
 export interface IPlanetFlyCartesianParams extends IFlyCartesianParams {
     amplitude?: number;
     preventLock?: boolean;
+    linearPath?: boolean;
 }
 
 export interface IPlanetFlyDistanceParams extends IPlanetFlyCartesianParams {
@@ -413,6 +414,49 @@ class PlanetCamera extends Camera {
 
         if (params.look instanceof LonLat) {
             params.look = this.planet.ellipsoid.lonLatToCartesian(params.look);
+        }
+
+        if (params.linearPath) {
+            let ground_a = this.eye.clone();
+
+            let v_a = this._u,
+                n_a = this._b;
+
+            let up_b = params.up;
+            let ground_b = cartesian.clone();
+            let n_b = Vec3.sub(cartesian, params.look as Vec3);
+            let u_b = up_b.cross(n_b);
+            n_b.normalize();
+            u_b.normalize();
+            let v_b = n_b.cross(u_b);
+
+            this._flight = {
+                fly: (progress: number) => {
+                    let t = ease(progress);
+                    let d = 1 - t;
+                    let eye_i = ground_a.smerp(ground_b, d);
+                    let up_i = v_a.smerp(v_b, d);
+                    let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
+
+                    let n = new Vec3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
+                    let u = up_i.cross(n);
+                    n.normalize();
+                    u.normalize();
+
+                    let v = n.cross(u);
+                    return {
+                        eye: eye_i,
+                        n: n,
+                        u: u,
+                        v: v
+                    };
+                },
+                duration: params.duration,
+                startedAt: Date.now()
+            }
+            this._flying = true;
+            this.events.dispatch(this.events.flystart, this);
+            return;
         }
 
         let ground_a = this.eye.clone();
