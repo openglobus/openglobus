@@ -78,9 +78,31 @@ export class VectorTileCreator {
                     vec2 lowDiff = coordLow - extentParamsLow.xy;                    
                     return vec2(-1.0 + (highDiff * step(1.0, length(highDiff)) + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0);
                 }
+
+                vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2, float eps) {
+                    vec2 dir = end2 - start2;
+                    vec2 perp = vec2(-dir.y, dir.x);
+                    float d2 = dot(perp, start2);
+                    float seg = dot(perp, start1) - d2;
+                    float prl = seg - dot(perp, end1) + d2;
+                    if (prl > -eps && prl < eps) {
+                        return start1;
+                    }
+                    float u = seg / prl;
+                    return start1 + u * (end1 - start1);
+                }
+
+                vec2 safeNormalize(vec2 v, vec2 fallback, float eps) {
+                    float len2 = dot(v, v);
+                    if (len2 > eps * eps) {
+                        return v * inversesqrt(len2);
+                    }
+                    return fallback;
+                }
                 
                 void main(){
                     vColor = color;
+                    float eps = 2.0 / max(viewport.x, viewport.y);
 
                     vec2 vNext = proj(nextHigh, nextLow),
                          vCurrent = proj(currentHigh, currentLow),
@@ -90,39 +112,43 @@ export class VectorTileCreator {
                     vec2 _prev = vPrev;
                     vec2 _current = vCurrent;
 
-                    if(_prev == _current){
-                        if(_next == _current){
+                    if(distance(_prev, _current) < eps){
+                        if(distance(_next, _current) < eps){
                             _next = _current + vec2(1.0, 0.0);
-                            _prev = _current - _next;
+                            _prev = _current - vec2(1.0, 0.0);
                         }else{
-                            _prev = _current + normalize(_current - _next);
+                            _prev = _current + safeNormalize(_current - _next, vec2(1.0, 0.0), eps);
                         }
                     }
 
-                    if(_next == _current){
-                        _next = _current + normalize(_current - _prev);
+                    if(distance(_next, _current) < eps){
+                        _next = _current + safeNormalize(_current - _prev, vec2(-1.0, 0.0), eps);
                     }
 
                     vec2 sNext = _next;
                     vec2 sCurrent = _current;
                     vec2 sPrev = _prev;
                     
-                    vec2 dirNext = normalize(sNext - sCurrent);
-                    vec2 dirPrev = normalize(sPrev - sCurrent);
-                    float dotNP = dot(dirNext, dirPrev);
+                    vec2 dirNext = safeNormalize(sNext - sCurrent, vec2(1.0, 0.0), eps);
+                    vec2 dirPrev = safeNormalize(sPrev - sCurrent, -dirNext, eps);
+                    float dotNP = clamp(dot(dirNext, dirPrev), -1.0, 1.0);
                     
-                    vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));
-                    vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));
+                    vec2 normalNext = safeNormalize(vec2(-dirNext.y, dirNext.x), vec2(0.0, 1.0), eps);
+                    vec2 normalPrev = safeNormalize(vec2(dirPrev.y, -dirPrev.x), vec2(0.0, 1.0), eps);
                     vec2 sideNormal = abs(order) == 1.0 ? normalPrev : normalNext;
                     float side = sign(order);
                     vec2 d = (thickness + thicknessOutline) * 0.5 * side / viewport;
                     
                     vec2 m;
-                    if(dotNP >= 0.99991){
+                    float lenNext = distance(sCurrent, sNext);
+                    float lenPrev = distance(sCurrent, sPrev);
+                    if(lenNext < eps || lenPrev < eps){
+                        m = sCurrent + sideNormal * d;
+                    }else if(dotNP >= 0.99991){
                         m = sCurrent - normalPrev * d;
                     }else{
-                        vec2 dir = normalPrev + normalNext;
-                        m = sCurrent + dir * d / (dirNext.x * dir.y - dirNext.y * dir.x);
+                        m = getIntersection(sCurrent + normalPrev * d, sPrev + normalPrev * d,
+                                            sCurrent + normalNext * d, sNext + normalNext * d, eps);
                         
                         if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){
                             float occw = order * sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);
