@@ -5,10 +5,11 @@ precision highp float;
 #include "../common/utils.glsl"
 #include "../common/shadeMode.glsl"
 #include "./common.glsl"
+#include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
 
 uniform sampler2D uNormalMap;
-//uniform sampler2D nightTexture;
+uniform sampler2D nightTexture;
 uniform sampler2D specularTexture;
 uniform sampler2D defaultTexture;
 uniform sampler2D samplerArr[SLICE_SIZE];
@@ -20,8 +21,8 @@ uniform float layerOpacityArr[SLICE_SIZE];
 uniform float shadeMode;
 
 uniform int samplerCount;
-//uniform float nightTextureCoefficient;
-//uniform float camHeight;
+uniform float nightTextureCoefficient;
+uniform float camHeight;
 
 in vec4 vTextureCoord;
 in vec3 v_vertex;
@@ -51,48 +52,33 @@ void main(void) {
         shadeEnc = shadeModeToUint(shadeMode);
     }
 
-    //float minH = 1200000.0;
-    //float maxH = minH * 3.0;
-    //float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
-
-    // if(camHeight > 6000000.0)
-    // {
-    //     normal = normalize(v_vertex);
-    // }
-
-    //    vec3 lightDir = normalize(sunPos);
-    //    vec3 viewDir = normalize(cameraPosition - v_vertex);
-
     float overGround = 1.0 - step(0.1, v_height);
     float specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
 
-    materials = vec4(specularMask, 0.0, 0.0, 1.0);
-    positionColor = vec4(v_vertex, 1.0);
+    vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
+    vec3 emission = getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
 
-    /*
-    vec4 nightImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-    vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb * nightCoef;
-    night *= overGround * step(0.0, night);
-    */
+    materials = vec4(specularMask, 0.0, 0.0, 1.0);
+    positionColor = vec4(v_vertex, packEmissionColor(emission));
 
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
     normalColor = vec4(normal * 0.5 + 0.5, encodeShadeModeUint(shadeEnc));
 
-    if (samplerCount == 0)return;
+    if (samplerCount > 0) {
+        vec4 src;//used in blend function
 
-    vec4 src;//used in blend function
-
-    blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
-    if (samplerCount == 1) return;
-
-    blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
-    if (samplerCount == 2)return;
-
-    blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
-    if (samplerCount == 3)return;
-
-    blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
-    if (samplerCount == 4)return;
-
-    blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
+        blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
+        if (samplerCount > 1) {
+            blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
+        }
+        if (samplerCount > 2) {
+            blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
+        }
+        if (samplerCount > 3) {
+            blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
+        }
+        if (samplerCount > 4) {
+            blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
+        }
+    }
 }

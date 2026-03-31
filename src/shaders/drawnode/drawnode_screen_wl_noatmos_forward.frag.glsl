@@ -4,6 +4,7 @@ precision highp float;
 
 #include "../common/utils.glsl"
 #include "./common.glsl"
+#include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
 
 uniform vec4 specular;
@@ -66,17 +67,10 @@ void main(void) {
     lightWeighting
     );
 
-    float minH = 1200000.0;
-    float maxH = minH * 3.0;
-    float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
+    vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
+    vec3 emission = getNightEmission(normal, sunPos - v_vertex, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
 
-    vec3 lightDir = normalize(sunPos - v_vertex);
-    float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
-    vec4 nightImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-    vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb * nightCoef;
-    night *= overGround * step(0.0, night);
-
-    lightWeighting += vec4(night, 0.0);
+    lightWeighting += vec4(emission, 0.0);
 
     fragColor = texture(defaultTexture, vTextureCoord.xy);
 

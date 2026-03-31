@@ -3,6 +3,7 @@
 precision highp float;
 
 #include "./common.glsl"
+#include "./nightEmission.glsl"
 
 #include "../atmos/common.glsl"
 #include "../common/lighting.glsl"
@@ -64,22 +65,15 @@ void main(void) {
     float fadingOpacity;
     vec4 atmosColor;
 
-    float minH = 1200000.0;
-    float maxH = minH * 3.0;
-    float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
-
-    vec3 lightDir = normalize(sunPos);
-    float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
-    vec4 nightImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-    vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb * nightCoef;
-    night *= overGround * step(0.0, night);
+    vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
+    vec3 emission = getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
 
     vec3 viewDir = normalize(cameraPosition - v_vertex);
 
     atmosGroundColor(v_vertex, normal, cameraPosition, sunPos, atmosColor);
 
     vec3 sunIlluminance;
-    getSunIlluminance(v_vertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+    getSunIlluminance(v_vertex * SPHERE_TO_ELLIPSOID_SCALE, normalize(sunPos) * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
 
     getPhongLighting(
     v_vertex,
@@ -101,7 +95,7 @@ void main(void) {
 
     specularWeighting *= sunIlluminance;
 
-    lightWeighting += vec4(night, 0.0);
+    lightWeighting += vec4(emission, 0.0);
 
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
 

@@ -543,7 +543,7 @@ export class Lighting extends Control {
     protected _update() {
         let l = this._selectedLayer;
         this._opacity.value = l && l.opacity ? l.opacity : 0.0;
-        this._night.value = l && l.nightTextureCoefficient ? l.nightTextureCoefficient : this.planet!.nightTextureCoefficient;
+        this._night.value = l?.nightTextureCoefficient ?? this.planet!.nightTextureCoefficient;
     }
 
     protected _fetchLayers() {

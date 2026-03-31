@@ -1308,11 +1308,12 @@ export class Planet extends RenderNode {
         shu = sh.uniforms;
 
         gl.uniform1f(shu.shadeMode, this._shadeMode);
+        gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
-        gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer?.nightTextureCoefficient || this.nightTextureCoefficient);
+        gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer?.nightTextureCoefficient ?? this.nightTextureCoefficient);
 
         //
         // Night and specular
@@ -1325,7 +1326,7 @@ export class Planet extends RenderNode {
         gl.bindTexture(gl.TEXTURE_2D, this._specularTexture! || this.transparentTexture!);
         gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
-        //gl.uniform1f(shu.camHeight, cam.getHeight());
+        gl.uniform1f(shu.camHeight, cam.getHeight());
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
@@ -1361,7 +1362,7 @@ export class Planet extends RenderNode {
             gl.uniform3fv(shu.ambient, renderer.lightAmbient);
             gl.uniform4fv(shu.specular, renderer.lightSpecular);
 
-            gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer?.nightTextureCoefficient || this.nightTextureCoefficient);
+            gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer?.nightTextureCoefficient ?? this.nightTextureCoefficient);
 
 
             //
@@ -1415,7 +1416,7 @@ export class Planet extends RenderNode {
             gl.uniform3fv(shu.ambient, renderer.lightAmbient);
             gl.uniform4fv(shu.specular, renderer.lightSpecular);
 
-            gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer?.nightTextureCoefficient || this.nightTextureCoefficient);
+            gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer?.nightTextureCoefficient ?? this.nightTextureCoefficient);
 
             gl.uniform2fv(shu.maxMinOpacity, this._atmosphereMaxMinOpacity);
 

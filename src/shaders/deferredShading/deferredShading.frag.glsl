@@ -26,7 +26,9 @@ void main(void) {
 
     vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
     vec4 normalColor = texelFetch(normalTexture, fragCoord, 0);
-    vec3 vertex = texelFetch(positionTexture, fragCoord, 0).xyz;
+    vec4 positionData = texelFetch(positionTexture, fragCoord, 0);
+    vec3 vertex = positionData.xyz;
+    vec3 emission = unpackEmissionColor(positionData.a);
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
     uint shade = decodeShadeMode(normalColor.a);
 
@@ -54,5 +56,5 @@ void main(void) {
     lightWeighting
     );
 
-    fragColor = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
+    fragColor = baseColor * (lightWeighting + vec4(emission, 0.0)) + vec4(specularWeighting, 0.0);
 }

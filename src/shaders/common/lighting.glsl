@@ -46,3 +46,19 @@ out vec4 outLightWeighting
     outSpecularWeighting = sunIlluminance * specular.rgb * pow(reflection, specular.w) * specularMask;
     outLightWeighting = vec4(ambient + sunIlluminance * diffuse * diffuseLightWeighting, 1.0);
 }
+
+const float EMISSION_PACK_RANGE = 8.0;
+
+float packEmissionColor(in vec3 emissionColor)
+{
+    vec3 packed = floor(clamp(emissionColor / EMISSION_PACK_RANGE, 0.0, 1.0) * 255.0 + 0.5);
+    return packed.r + packed.g * 256.0 + packed.b * 65536.0;
+}
+
+vec3 unpackEmissionColor(in float packedEmission)
+{
+    float r = mod(packedEmission, 256.0);
+    float g = mod(floor(packedEmission / 256.0), 256.0);
+    float b = mod(floor(packedEmission / 65536.0), 256.0);
+    return (vec3(r, g, b) / 255.0) * EMISSION_PACK_RANGE;
+}
