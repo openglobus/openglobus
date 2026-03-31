@@ -2,7 +2,7 @@ import * as shaders from "../../shaders/billboard/billboard";
 import {spliceTypedArray} from "../../utils/shared";
 import type {TypedArray} from "../../utils/shared";
 import {EntityCollection} from "../EntityCollection";
-import {Planet} from "../../scene/Planet";
+import type {Planet} from "../../scene/Planet";
 import {Renderer} from "../../renderer/Renderer";
 import {LOCK_FREE} from "../label/LabelWorker";
 import {Vec3} from "../../math/Vec3";

@@ -3,14 +3,14 @@ import {NW, NE, SW, SE, RENDERING, VISIBLE_DISTANCE} from './quadTree';
 import {EntityCollection} from '../entity/EntityCollection';
 import {Extent} from '../Extent';
 import {LonLat} from '../LonLat';
-import {Node} from "../quadTree/Node";
-import {Planet} from "../scene/Planet";
+import type {Node} from "../quadTree/Node";
+import type {Planet} from "../scene/Planet";
 import {Sphere} from '../bv/Sphere';
-import {Segment} from "../segment/Segment";
+import type {Segment} from "../segment/Segment";
 import {Vec3} from '../math/Vec3';
-import {Vector} from "../layer/Vector";
-import {Entity} from "../entity/Entity";
-import {EntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
+import type {Vector} from "../layer/Vector";
+import type {Entity} from "../entity/Entity";
+import type {EntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
 
 
 export type NodesDict = Record<number, Node>;

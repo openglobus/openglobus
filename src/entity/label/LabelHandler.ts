@@ -4,7 +4,7 @@ import {BaseBillboardHandler} from "../billboard/BaseBillboardHandler";
 import {concatTypedArrays, spliceTypedArray} from "../../utils/shared";
 import {EntityCollection} from "../EntityCollection";
 import {LOCK_FREE} from "./LabelWorker";
-import {Planet} from "../../scene/Planet";
+import type {Planet} from "../../scene/Planet";
 import type {WebGLBufferExt} from "../../webgl/Handler";
 import type {ProgramController} from "../../webgl/ProgramController";
 import {Vec3} from "../../math/Vec3";

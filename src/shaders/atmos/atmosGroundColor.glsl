@@ -1,5 +1,8 @@
 // Include after atmos/common.glsl and atmos/lut_helpers.glsl (with transmittance/scattering uniforms declared).
 
+#ifndef ATMOS_GROUND_COLOR_GLSL
+#define ATMOS_GROUND_COLOR_GLSL
+
 void atmosGroundColor(in vec3 _v_vertex, in vec3 _normal, in vec3 _cameraPosition, in vec3 _sunPos, out vec4 outColor)
 {
     if (length(_cameraPosition * SPHERE_TO_ELLIPSOID_SCALE) < BOTTOM_RADIUS + 1.0) {
@@ -87,3 +90,5 @@ void atmosGroundColor(in vec3 _v_vertex, in vec3 _normal, in vec3 _cameraPositio
 
     outColor = vec4(pow(light * 8.0, vec3(1.0 / 2.2)), 1.0);
 }
+
+#endif

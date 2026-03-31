@@ -1,9 +1,9 @@
-import {Vector} from "../layer/Vector";
-import {EntityCollectionNode} from "./EntityCollectionNode";
-import {Entity} from "../entity/Entity";
-import {EntityCollection} from "../entity/EntityCollection";
+import type {Vector} from "../layer/Vector";
+import type {EntityCollectionNode} from "./EntityCollectionNode";
+import type {Entity} from "../entity/Entity";
+import type {EntityCollection} from "../entity/EntityCollection";
 import {QueueArray} from "../QueueArray";
-import {QuadTreeStrategy} from "./QuadTreeStrategy";
+import type {QuadTreeStrategy} from "./QuadTreeStrategy";
 
 export class EntityCollectionsTreeStrategy {
 

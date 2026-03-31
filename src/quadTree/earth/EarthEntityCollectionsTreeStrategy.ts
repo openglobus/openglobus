@@ -1,14 +1,14 @@
 import {EntityCollectionNode} from "../EntityCollectionNode";
 import {EarthEntityCollectionNodeLonLat} from "./EarthEntityCollectionNodeLonLat";
-import {Vector} from "../../layer/Vector";
+import type {Vector} from "../../layer/Vector";
 import * as quadTree from "../quadTree";
 import {Extent} from "../../Extent";
 import * as mercator from "../../mercator";
-import {Entity} from "../../entity/Entity";
-import {EntityCollection} from "../../entity/EntityCollection";
-import {EarthQuadTreeStrategy} from "./EarthQuadTreeStrategy";
+import type {Entity} from "../../entity/Entity";
+import type {EntityCollection} from "../../entity/EntityCollection";
+import type {EarthQuadTreeStrategy} from "./EarthQuadTreeStrategy";
 import {EntityCollectionsTreeStrategy} from "../EntityCollectionsTreeStrategy";
-import {QuadTreeStrategy} from "../QuadTreeStrategy";
+import type {QuadTreeStrategy} from "../QuadTreeStrategy";
 
 export class EarthEntityCollectionsTreeStrategy extends EntityCollectionsTreeStrategy {
 

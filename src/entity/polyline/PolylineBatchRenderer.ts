@@ -4,7 +4,7 @@ import {LonLat} from "../../LonLat";
 import {Vec3} from "../../math/Vec3";
 import type {NumberArray3} from "../../math/Vec3";
 import type {NumberArray4} from "../../math/Vec4";
-import {Planet} from "../../scene/Planet";
+import type {Planet} from "../../scene/Planet";
 import {PolylineHandler} from "./PolylineHandler";
 import {RenderNode} from "../../scene/RenderNode";
 import type {WebGLBufferExt} from "../../webgl/Handler";

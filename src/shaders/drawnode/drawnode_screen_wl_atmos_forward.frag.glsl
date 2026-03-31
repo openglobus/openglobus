@@ -3,9 +3,9 @@
 precision highp float;
 
 #include "./common.glsl"
-#include "./nightEmission.glsl"
 
 #include "../atmos/common.glsl"
+#include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
 
 uniform vec4 specular;

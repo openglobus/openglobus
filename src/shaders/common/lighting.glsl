@@ -1,3 +1,6 @@
+#ifndef OG_LIGHTING_GLSL
+#define OG_LIGHTING_GLSL
+
 void getPhongLighting(
 in vec3 vertex,
 in vec3 normal,
@@ -62,3 +65,5 @@ vec3 unpackEmissionColor(in float packedEmission)
     float b = mod(floor(packedEmission / 65536.0), 256.0);
     return (vec3(r, g, b) / 255.0) * EMISSION_PACK_RANGE;
 }
+
+#endif

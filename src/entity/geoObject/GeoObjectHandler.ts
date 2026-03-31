@@ -1,17 +1,17 @@
 import * as shaders from "../../shaders/geo_object/geo_object";
 import {concatArrays, loadImage, spliceArray} from "../../utils/shared";
 import type {TypedArray} from "../../utils/shared";
-import {EntityCollection} from "../EntityCollection";
+import type {EntityCollection} from "../EntityCollection";
 import {GeoObject} from "./GeoObject";
 import {Vec3} from "../../math/Vec3";
 import {Vec4} from "../../math/Vec4";
 import {Quat} from "../../math/Quat";
 import {Object3d} from "../../Object3d";
 import {InstanceData} from "./InstanceData";
-import {Renderer} from "../../renderer/Renderer";
+import type {Renderer} from "../../renderer/Renderer";
 import type {Atmosphere} from "../../control/atmosphere/Atmosphere";
-import {Planet} from "../../scene/Planet";
-import {RenderNode} from "../../scene/RenderNode";
+import type {Planet} from "../../scene/Planet";
+import type {RenderNode} from "../../scene/RenderNode";
 import type {Program} from "../../webgl/Program";
 
 export const VERTEX_BUFFER = 0;
@@ -180,9 +180,10 @@ export class GeoObjectHandler {
                 shaders.geo_object_picking(),
                 shaders.geo_object_depth()
             ];
-            if (this._renderNode instanceof Planet) {
+            const atmosphereControl = (this._renderNode as RenderNode & { atmosphereControl?: Atmosphere }).atmosphereControl;
+            if (atmosphereControl) {
                 programs.push(
-                    shaders.geo_object_woit_atmos(this._renderNode.atmosphereControl.parameters)
+                    shaders.geo_object_woit_atmos(atmosphereControl.parameters)
                 );
             }
             this._renderer.addPrograms(programs);

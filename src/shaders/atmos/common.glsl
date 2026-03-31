@@ -1,3 +1,6 @@
+#ifndef ATMOS_COMMON_GLSL
+#define ATMOS_COMMON_GLSL
+
 #include "../common/utils.glsl"
 
 #define PI 3.1415926538
@@ -115,3 +118,5 @@ void getAtmosFadingOpacity(in vec3 _v_vertex, in vec3 _cameraPosition, in vec2 m
     float vertDist = distance(_cameraPosition, _v_vertex);
     opacity = clamp(maxMinOpacity.y + (maxMinOpacity.x - maxMinOpacity.y) * getLerpValue(minDist, maxDist, vertDist), 0.0, 1.0);
 }
+
+#endif

@@ -3,6 +3,9 @@
 //   uniform sampler2D scatteringTexture;
 // GLSL ES 3.00 / WebGL2: use texture()
 
+#ifndef ATMOS_LUT_HELPERS_GLSL
+#define ATMOS_LUT_HELPERS_GLSL
+
 vec3 transmittanceFromTexture(float height, float angle)
 {
     float u = (angle + 1.0) * 0.5;
@@ -23,3 +26,5 @@ void getSunIlluminance(in vec3 point, in vec3 lightDir, out vec3 sunIlluminance)
     float height = length(point) - BOTTOM_RADIUS;
     sunIlluminance = SUN_INTENSITY * transmittanceFromTexture(height, mu_s);
 }
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef OG_NIGHT_EMISSION_GLSL
+#define OG_NIGHT_EMISSION_GLSL
+
 vec3 getNightEmission(
     in vec3 normal,
     in vec3 sunPos,
@@ -21,3 +24,5 @@ vec3 getNightEmission(
 
     return emission;
 }
+
+#endif
