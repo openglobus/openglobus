@@ -231,7 +231,7 @@ class Globe {
         this.renderer = new Renderer(
             new Handler(this._canvas, {
                 autoActivate: false,
-                pixelRatio: options.dpi || (window.devicePixelRatio + 0.15),
+                pixelRatio: options.dpi || window.devicePixelRatio > 1.25 ? 1.25 : window.devicePixelRatio,
                 context: {
                     alpha: options.transparentBackground,
                     antialias: false,

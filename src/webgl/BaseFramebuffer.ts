@@ -17,6 +17,7 @@ export class BaseFramebuffer {
     public handler: Handler;
     public _fbo: WebGLFramebuffer | null;
     protected _depthRenderbuffer: WebGLRenderbuffer | null;
+    protected _ownsDepthRenderbuffer: boolean;
     public _width: number;
     public _height: number;
     protected _depthComponent: string;
@@ -36,6 +37,7 @@ export class BaseFramebuffer {
         this._active = false;
         this._size = options.size || 1;
         this._depthRenderbuffer = null;
+        this._ownsDepthRenderbuffer = true;
         this._filter = options.filter || "NEAREST";
     }
 
@@ -81,6 +83,10 @@ export class BaseFramebuffer {
 
     public get height(): number {
         return this._height;
+    }
+
+    public get depthRenderbuffer(): WebGLRenderbuffer | null {
+        return this._depthRenderbuffer;
     }
 
     /**
