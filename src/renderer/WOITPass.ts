@@ -7,7 +7,6 @@ export class WOITPass implements ITransparencyPass {
 
     protected _renderer: Renderer;
     protected _framebuffer: Framebuffer | null = null;
-    protected _useSharedDepth: boolean = false;
 
     constructor(renderer: Renderer) {
         this._renderer = renderer;
@@ -29,17 +28,17 @@ export class WOITPass implements ITransparencyPass {
                 filter: "NEAREST"
             }],
             depthComponent: this._renderer.depthComponent,
+            sharedDepthRenderbuffer: this._renderer.getMSAA() == 0 ? this._renderer.forwardFramebuffer!.depthRenderbuffer : null,
             useDepth: true
         });
 
         this._framebuffer.init();
-        this._configureDepthPath();
     }
 
     public beginPass() {
         let gl = this._renderer.handler.gl!;
 
-        if (!this._useSharedDepth) {
+        if (!this._framebuffer!.sharedDepthRenderbuffer) {
             this._framebuffer!.blitDepthFrom(this._renderer.forwardFramebuffer!);
         }
 
@@ -86,8 +85,11 @@ export class WOITPass implements ITransparencyPass {
     }
 
     public resize(width: number, height: number) {
-        this._framebuffer?.setSize(width, height, true);
-        this._configureDepthPath();
+        if (!this._framebuffer) return;
+        if(this._renderer.getMSAA() == 0 ) {
+            this._framebuffer.attachExternalDepthRenderbuffer(this._renderer.forwardFramebuffer!.depthRenderbuffer);
+        }
+        this._framebuffer.setSize(width, height, true);
     }
 
     public dispose() {
@@ -95,23 +97,6 @@ export class WOITPass implements ITransparencyPass {
             this._framebuffer.destroy();
             this._framebuffer = null;
         }
-        this._useSharedDepth = false;
         this._renderer.handler.removeProgram("weightedOITResolve");
-    }
-
-    protected _configureDepthPath() {
-        this._useSharedDepth = false;
-
-        if (!this._framebuffer || this._renderer.getMSAA() !== 0) {
-            return;
-        }
-
-        const forwardDepth = this._renderer.forwardFramebuffer?.depthRenderbuffer;
-        if (!forwardDepth) {
-            return;
-        }
-
-        this._framebuffer.attachExternalDepthRenderbuffer(forwardDepth);
-        this._useSharedDepth = true;
     }
 }

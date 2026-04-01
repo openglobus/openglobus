@@ -46,12 +46,11 @@ export class Multisample extends BaseFramebuffer {
         this.renderbuffers = new Array(this._size);
 
         gl.deleteFramebuffer(this._fbo);
-        if (this._ownsDepthRenderbuffer) {
+        if (this._depthRenderbuffer && !this._sharedDepthRenderbuffer) {
             gl.deleteRenderbuffer(this._depthRenderbuffer);
         }
 
         this._depthRenderbuffer = null;
-        this._ownsDepthRenderbuffer = true;
         this._fbo = null;
 
         this._active = false;
@@ -107,24 +106,28 @@ export class Multisample extends BaseFramebuffer {
         gl.drawBuffers(colorAttachments);
 
         if (this._useDepth) {
-            this._depthRenderbuffer = gl.createRenderbuffer();
-            this._ownsDepthRenderbuffer = true;
-            gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
-            if (this._msaa > 0) {
-                gl.renderbufferStorageMultisample(
-                    gl.RENDERBUFFER,
-                    this._msaa,
-                    (gl as any)[this._depthComponent],
-                    this._width,
-                    this._height
-                );
+            if (this._sharedDepthRenderbuffer) {
+                this._depthRenderbuffer = this._sharedDepthRenderbuffer;
             } else {
-                gl.renderbufferStorage(
-                    gl.RENDERBUFFER,
-                    (gl as any)[this._depthComponent],
-                    this._width,
-                    this._height
-                );
+                this._depthRenderbuffer = gl.createRenderbuffer();
+                gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
+                if (this._msaa > 0) {
+                    gl.renderbufferStorageMultisample(
+                        gl.RENDERBUFFER,
+                        this._msaa,
+                        (gl as any)[this._depthComponent],
+                        this._width,
+                        this._height
+                    );
+                } else {
+                    gl.renderbufferStorage(
+                        gl.RENDERBUFFER,
+                        (gl as any)[this._depthComponent],
+                        this._width,
+                        this._height
+                    );
+                }
+                gl.bindRenderbuffer(gl.RENDERBUFFER, null);
             }
             gl.framebufferRenderbuffer(
                 gl.FRAMEBUFFER,
@@ -132,7 +135,6 @@ export class Multisample extends BaseFramebuffer {
                 gl.RENDERBUFFER,
                 this._depthRenderbuffer
             );
-            gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         }
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
