@@ -7,6 +7,7 @@ export class WOITPass implements ITransparencyPass {
 
     protected _renderer: Renderer;
     protected _framebuffer: Framebuffer | null = null;
+    protected _useSharedDepth: boolean = false;
 
     constructor(renderer: Renderer) {
         this._renderer = renderer;
@@ -32,11 +33,16 @@ export class WOITPass implements ITransparencyPass {
         });
 
         this._framebuffer.init();
+        this._configureDepthPath();
     }
 
     public beginPass() {
         let gl = this._renderer.handler.gl!;
-        this._framebuffer!.blitDepthFrom(this._renderer.forwardFramebuffer!);
+
+        if (!this._useSharedDepth) {
+            this._framebuffer!.blitDepthFrom(this._renderer.forwardFramebuffer!);
+        }
+
         this._framebuffer!.activate();
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -81,6 +87,7 @@ export class WOITPass implements ITransparencyPass {
 
     public resize(width: number, height: number) {
         this._framebuffer?.setSize(width, height, true);
+        this._configureDepthPath();
     }
 
     public dispose() {
@@ -88,6 +95,23 @@ export class WOITPass implements ITransparencyPass {
             this._framebuffer.destroy();
             this._framebuffer = null;
         }
+        this._useSharedDepth = false;
         this._renderer.handler.removeProgram("weightedOITResolve");
+    }
+
+    protected _configureDepthPath() {
+        this._useSharedDepth = false;
+
+        if (!this._framebuffer || this._renderer.getMSAA() !== 0) {
+            return;
+        }
+
+        const forwardDepth = this._renderer.forwardFramebuffer?.depthRenderbuffer;
+        if (!forwardDepth) {
+            return;
+        }
+
+        this._framebuffer.attachExternalDepthRenderbuffer(forwardDepth);
+        this._useSharedDepth = true;
     }
 }

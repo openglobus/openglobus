@@ -46,9 +46,12 @@ export class Multisample extends BaseFramebuffer {
         this.renderbuffers = new Array(this._size);
 
         gl.deleteFramebuffer(this._fbo);
-        gl.deleteRenderbuffer(this._depthRenderbuffer);
+        if (this._ownsDepthRenderbuffer) {
+            gl.deleteRenderbuffer(this._depthRenderbuffer);
+        }
 
         this._depthRenderbuffer = null;
+        this._ownsDepthRenderbuffer = true;
         this._fbo = null;
 
         this._active = false;
@@ -105,6 +108,7 @@ export class Multisample extends BaseFramebuffer {
 
         if (this._useDepth) {
             this._depthRenderbuffer = gl.createRenderbuffer();
+            this._ownsDepthRenderbuffer = true;
             gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
             if (this._msaa > 0) {
                 gl.renderbufferStorageMultisample(
