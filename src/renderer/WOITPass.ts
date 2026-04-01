@@ -86,10 +86,10 @@ export class WOITPass implements ITransparencyPass {
 
     public resize(width: number, height: number) {
         if (!this._framebuffer) return;
+        this._framebuffer.setSize(width, height, true);
         if(this._renderer.getMSAA() == 0 ) {
             this._framebuffer.attachExternalDepthRenderbuffer(this._renderer.forwardFramebuffer!.depthRenderbuffer);
         }
-        this._framebuffer.setSize(width, height, true);
     }
 
     public dispose() {

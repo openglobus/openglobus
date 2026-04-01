@@ -153,7 +153,7 @@ export class Framebuffer extends BaseFramebuffer {
         if(this._fbo){
             gl.deleteFramebuffer(this._fbo);
         }
-        if (this._depthRenderbuffer && !this._sharedDepthRenderbuffer) {
+        if (this._depthRenderbuffer) {
             gl.deleteRenderbuffer(this._depthRenderbuffer);
         }
 
@@ -201,7 +201,7 @@ export class Framebuffer extends BaseFramebuffer {
 
         if (this._useDepth) {
             if (this._sharedDepthRenderbuffer) {
-                this._depthRenderbuffer = this._sharedDepthRenderbuffer;
+
             } else {
                 this._depthRenderbuffer = gl.createRenderbuffer();
                 gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
@@ -218,12 +218,12 @@ export class Framebuffer extends BaseFramebuffer {
         let gl = this.handler.gl;
         if (!gl || !this._fbo) return;
 
-        if (this._depthRenderbuffer && !this._sharedDepthRenderbuffer && this._depthRenderbuffer !== depthRenderbuffer) {
+        if (this._depthRenderbuffer) {
             gl.deleteRenderbuffer(this._depthRenderbuffer);
+            this._depthRenderbuffer = null;
         }
 
         this._sharedDepthRenderbuffer = depthRenderbuffer;
-        this._depthRenderbuffer = depthRenderbuffer;
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.framebufferRenderbuffer(
