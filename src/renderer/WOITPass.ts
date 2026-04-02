@@ -28,7 +28,7 @@ export class WOITPass implements ITransparencyPass {
                 filter: "NEAREST"
             }],
             depthComponent: this._renderer.depthComponent,
-            sharedDepthRenderbuffer: this._renderer.getMSAA() == 0 ? this._renderer.forwardFramebuffer!.depthRenderbuffer : null,
+            sharedDepthFramebuffer: this._renderer.getMSAA() == 0 ? this._renderer.forwardFramebuffer : null,
             useDepth: true
         });
 
@@ -38,7 +38,7 @@ export class WOITPass implements ITransparencyPass {
     public beginPass() {
         let gl = this._renderer.handler.gl!;
 
-        if (!this._framebuffer!.sharedDepthRenderbuffer) {
+        if (!this._framebuffer!.sharedDepthFramebuffer) {
             this._framebuffer!.blitDepthFrom(this._renderer.forwardFramebuffer!);
         }
 
@@ -87,9 +87,6 @@ export class WOITPass implements ITransparencyPass {
     public resize(width: number, height: number) {
         if (!this._framebuffer) return;
         this._framebuffer.setSize(width, height, true);
-        if(this._renderer.getMSAA() == 0 ) {
-            this._framebuffer.attachExternalDepthRenderbuffer(this._renderer.forwardFramebuffer!.depthRenderbuffer);
-        }
     }
 
     public dispose() {

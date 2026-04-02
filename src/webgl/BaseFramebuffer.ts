@@ -7,7 +7,7 @@ export interface IBaseFramebufferParams {
     depthComponent?: string;
     size?: number;
     filter?: string;
-    sharedDepthRenderbuffer?: WebGLRenderbuffer | null;
+    sharedDepthFramebuffer?: BaseFramebuffer | null;
 }
 
 export class BaseFramebuffer {
@@ -18,7 +18,7 @@ export class BaseFramebuffer {
     public handler: Handler;
     public _fbo: WebGLFramebuffer | null;
     protected _depthRenderbuffer: WebGLRenderbuffer | null;
-    protected _sharedDepthRenderbuffer: WebGLRenderbuffer | null;
+    protected _sharedDepthFramebuffer: BaseFramebuffer | null;
     public _width: number;
     public _height: number;
     protected _depthComponent: string;
@@ -38,7 +38,7 @@ export class BaseFramebuffer {
         this._active = false;
         this._size = options.size || 1;
         this._depthRenderbuffer = null;
-        this._sharedDepthRenderbuffer = options.sharedDepthRenderbuffer || null;
+        this._sharedDepthFramebuffer = options.sharedDepthFramebuffer || null;
         this._filter = options.filter || "NEAREST";
     }
 
@@ -87,11 +87,28 @@ export class BaseFramebuffer {
     }
 
     public get depthRenderbuffer(): WebGLRenderbuffer | null {
-        return this._depthRenderbuffer;
+        return this.sharedDepthRenderbuffer || this._depthRenderbuffer;
+    }
+
+    public get sharedDepthFramebuffer(): BaseFramebuffer | null {
+        return this._sharedDepthFramebuffer;
     }
 
     public get sharedDepthRenderbuffer(): WebGLRenderbuffer | null {
-        return this._sharedDepthRenderbuffer;
+        let current = this._sharedDepthFramebuffer;
+        let guard = 0;
+
+        while (current && guard++ < 32) {
+            if (current === this) {
+                return null;
+            }
+            if (!current._sharedDepthFramebuffer) {
+                return current._depthRenderbuffer;
+            }
+            current = current._sharedDepthFramebuffer;
+        }
+
+        return null;
     }
 
     /**

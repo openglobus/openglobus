@@ -200,30 +200,29 @@ export class Framebuffer extends BaseFramebuffer {
         gl.drawBuffers && gl.drawBuffers(attachmentArr);
 
         if (this._useDepth) {
-            if (this._sharedDepthRenderbuffer) {
-
+            const sharedDepthRenderbuffer = this.sharedDepthRenderbuffer;
+            if (sharedDepthRenderbuffer) {
+                this._attachExternalDepthRenderbuffer(sharedDepthRenderbuffer);
             } else {
                 this._depthRenderbuffer = gl.createRenderbuffer();
                 gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
                 gl.renderbufferStorage(gl.RENDERBUFFER, (gl as any)[this._depthComponent], this._width, this._height);
                 gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, (gl as any)[this._renderbufferTarget], gl.RENDERBUFFER, this._depthRenderbuffer);
             }
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, (gl as any)[this._renderbufferTarget], gl.RENDERBUFFER, this._depthRenderbuffer);
         }
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
     }
 
-    public attachExternalDepthRenderbuffer(depthRenderbuffer: WebGLRenderbuffer | null) {
+    protected _attachExternalDepthRenderbuffer(depthRenderbuffer: WebGLRenderbuffer | null) {
         let gl = this.handler.gl;
         if (!gl || !this._fbo) return;
 
-        if (this._depthRenderbuffer) {
+        if (this._depthRenderbuffer && this._depthRenderbuffer !== depthRenderbuffer) {
             gl.deleteRenderbuffer(this._depthRenderbuffer);
             this._depthRenderbuffer = null;
         }
-
-        this._sharedDepthRenderbuffer = depthRenderbuffer;
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.framebufferRenderbuffer(

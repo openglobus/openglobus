@@ -106,9 +106,8 @@ export class Multisample extends BaseFramebuffer {
         gl.drawBuffers(colorAttachments);
 
         if (this._useDepth) {
-            if (this._sharedDepthRenderbuffer) {
-                // empty
-            } else {
+            let depthRenderbuffer = this.sharedDepthRenderbuffer;
+            if (!depthRenderbuffer) {
                 this._depthRenderbuffer = gl.createRenderbuffer();
                 gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
                 if (this._msaa > 0) {
@@ -128,12 +127,13 @@ export class Multisample extends BaseFramebuffer {
                     );
                 }
                 gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                depthRenderbuffer = this._depthRenderbuffer;
             }
             gl.framebufferRenderbuffer(
                 gl.FRAMEBUFFER,
                 gl.DEPTH_ATTACHMENT,
                 gl.RENDERBUFFER,
-                this._depthRenderbuffer
+                depthRenderbuffer
             );
         }
 
