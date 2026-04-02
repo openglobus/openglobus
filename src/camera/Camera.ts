@@ -298,40 +298,9 @@ class Camera {
 
         this.frustumColors = [];
 
-        let aspect = this.getAspectRatio();
-
-        if (options.frustums) {
-            for (let i = 0, len = options.frustums.length; i < len; i++) {
-                let fi = options.frustums[i];
-                let fr = new Frustum({
-                    fov: this._viewAngle,
-                    aspect,
-                    near: fi[0],
-                    far: fi[1]
-                });
-
-                fr.cameraFrustumIndex = this.frustums.length;
-                this.frustums.push(fr);
-                this.frustumColors.push(fr._pickingColorU[0], fr._pickingColorU[1], fr._pickingColorU[2]);
-            }
-        } else {
-            let near = 1,
-                far = 500.0;
-
-            let fr = new Frustum({
-                fov: this._viewAngle,
-                aspect,
-                near,
-                far
-            });
-
-            fr.cameraFrustumIndex = this.frustums.length;
-            this.frustums.push(fr);
-            this.frustumColors.push(fr._pickingColorU[0], fr._pickingColorU[1], fr._pickingColorU[2]);
-        }
+        this.setFrustums(options.frustums || [[1, 500]]);
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
-
         this.currentFrustumIndex = 0;
         this.frustumColorIndex = 0;
 
