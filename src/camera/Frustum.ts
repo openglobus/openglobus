@@ -29,6 +29,9 @@ interface IFrustumParams {
 class Frustum {
 
     protected _f: [NumberArray4, NumberArray4, NumberArray4, NumberArray4, NumberArray4, NumberArray4];
+    protected _isOrthographic: boolean;
+    protected _aspect: number;
+    protected _tanViewAngle_hrad: number;
 
     /**
      * Camera projection matrix.
@@ -109,6 +112,12 @@ class Frustum {
 
         this.inverseProjectionViewMatrix = new Mat4();
 
+        this._isOrthographic = false;
+
+        this._aspect = 1.0;
+
+        this._tanViewAngle_hrad = 0.0;
+
         this.left = 0.0;
 
         this.right = 0.0;
@@ -180,15 +189,33 @@ class Frustum {
      * @param {number} far - Far camera distance.
      */
     public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic?: boolean, focusDistance: number = 10) {
+        this._isOrthographic = !!isOrthographic;
+        this._aspect = aspect;
+        this._tanViewAngle_hrad = Math.tan(viewAngle * RADIANS_HALF);
 
-        if (isOrthographic) {
-            let h = focusDistance * Math.tan(viewAngle * RADIANS_HALF);
+        if (this._isOrthographic) {
+            let h = focusDistance * this._tanViewAngle_hrad;
             let w = h * aspect;
             this._setFrustumParams(h, w, near, far);
             this.projectionMatrix.setOrthographic(this.left, this.right, this.bottom, this.top, this.near, this.far);
         } else {
-            let h = near * Math.tan(viewAngle * RADIANS_HALF);
+            let h = near * this._tanViewAngle_hrad;
             let w = h * aspect;
+            this._setFrustumParams(h, w, near, far);
+            this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, this.near, this.far);
+        }
+
+        this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
+    }
+
+    public setNearFar(near: number, far: number) {
+        if (this._isOrthographic) {
+            this.near = near;
+            this.far = far;
+            this.projectionMatrix.setOrthographic(this.left, this.right, this.bottom, this.top, this.near, this.far);
+        } else {
+            let h = near * this._tanViewAngle_hrad;
+            let w = h * this._aspect;
             this._setFrustumParams(h, w, near, far);
             this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, this.near, this.far);
         }

@@ -238,12 +238,21 @@ export class QuadTreeStrategy {
         });
     }
 
-    public init(camera: PlanetCamera) {
-        this._initEvents();
+    protected _updateRenderedNodesInFrustumArray(camera: PlanetCamera){
         this._renderedNodesInFrustum = new Array(camera.frustums.length);
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i] = [];
         }
+    }
+
+    public init(camera: PlanetCamera) {
+        this._initEvents();
+
+        this._updateRenderedNodesInFrustumArray(camera);
+
+        camera.events.on("frustumschanged", ()=>{
+            this._updateRenderedNodesInFrustumArray(camera);
+        });
 
         this.preRender();
         this.clearRenderedNodes();

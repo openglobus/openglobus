@@ -15,7 +15,7 @@ import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
 import {Easing, EasingFunction} from "../utils/easing";
 import {LonLat} from "../LonLat";
 
-export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flystop"];
+export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flystop", "frustumschanged"];
 
 const EVENT_NAMES: CameraEvents = [
     /**
@@ -46,7 +46,13 @@ const EVENT_NAMES: CameraEvents = [
      * Triggered when flight was stopped.
      * @event og.Camera#flystop
      */
-    "flystop"
+    "flystop",
+
+    /**
+     * Triggered when setFrustums called
+     * @event og.Camera#frustumschanged
+     */
+    "frustumschanged"
 ];
 
 export interface ICameraParams {
@@ -292,25 +298,21 @@ class Camera {
 
         this.frustumColors = [];
 
+        let aspect = this.getAspectRatio();
+
         if (options.frustums) {
             for (let i = 0, len = options.frustums.length; i < len; i++) {
                 let fi = options.frustums[i];
-
                 let fr = new Frustum({
                     fov: this._viewAngle,
-                    aspect: this.getAspectRatio(), //this._aspect,
+                    aspect,
                     near: fi[0],
                     far: fi[1]
                 });
 
                 fr.cameraFrustumIndex = this.frustums.length;
                 this.frustums.push(fr);
-                //this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
-                this.frustumColors.push(
-                    fr._pickingColorU[0],
-                    fr._pickingColorU[1],
-                    fr._pickingColorU[2]
-                );
+                this.frustumColors.push(fr._pickingColorU[0], fr._pickingColorU[1], fr._pickingColorU[2]);
             }
         } else {
             let near = 1,
@@ -318,18 +320,14 @@ class Camera {
 
             let fr = new Frustum({
                 fov: this._viewAngle,
-                aspect: this.getAspectRatio(),
-                near: near,
-                far: far
+                aspect,
+                near,
+                far
             });
 
             fr.cameraFrustumIndex = this.frustums.length;
             this.frustums.push(fr);
-            this.frustumColors.push(
-                fr._pickingColorU[0],
-                fr._pickingColorU[1],
-                fr._pickingColorU[2]
-            );
+            this.frustumColors.push(fr._pickingColorU[0], fr._pickingColorU[1], fr._pickingColorU[2]);
         }
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
@@ -523,6 +521,7 @@ class Camera {
 
     public bindFrustumsPickingColors(renderer: Renderer) {
         for (let i = 0; i < this.frustums.length; i++) {
+            renderer.clearPickingColor(this.frustums[i]);
             renderer.assignPickingColor<Frustum>(this.frustums[i]);
         }
     }
@@ -653,6 +652,40 @@ class Camera {
         }
         this._horizontalViewAngle = getHorizontalViewAngleByFov(viewAngle, aspect);
         this._updateViewportParameters();
+    }
+
+    public setNearFar(near: number, far: number, frustumIndex: number = 0) {
+        let frustum = this.frustums[frustumIndex];
+        frustum.setNearFar(near, far);
+    }
+
+    public setFrustums(frustums: [number, number][]) {
+
+        let aspect = this.getAspectRatio();
+
+        for(let i = 0; i < frustums.length; i++) {
+            if(this.frustums[i]){
+                this.frustums[i].setNearFar(frustums[i][0], frustums[i][1]);
+            }else{
+                let near = frustums[i][0],
+                    far = frustums[i][1];
+                let fi = new Frustum({
+                    cameraFrustumIndex: i,
+                    fov: this._viewAngle,
+                    aspect,
+                    near,
+                    far
+                });
+                this.frustums.push(fi);
+                this.frustumColors.push(fi._pickingColorU[0], fi._pickingColorU[1], fi._pickingColorU[2]);
+            }
+        }
+
+        this.frustums.length = frustums.length;
+        this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
+        this.setCurrentFrustum(0);
+
+        this.events.dispatch(this.events.frustumschanged, this);
     }
 
     protected _updateViewportParameters() {
