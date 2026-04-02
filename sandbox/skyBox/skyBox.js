@@ -73,7 +73,7 @@ let pointLayer = new Vector("points", {
 let globe = new Globe({
     target: "earth",
     name: "Earth",
-    //frustums: [[10, 10000], [10000,10000000]],
+    //frustums: [[20, 200000000]],
     terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer],
     msaa: 0
@@ -88,6 +88,23 @@ globe.planet.addControls([
 
 globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "#555555";
 globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "#555555";
+
+const EPSILON_NEAR = 1e-3;
+const planetDiameter = globe.planet.ellipsoid.equatorialSize * 2.0;
+
+function updateSkyBoxFrustum() {
+    const camera = globe.planet.camera;
+    const altitude = camera.getAltitude();
+    if (!Number.isFinite(altitude)) {
+        return;
+    }
+
+    const near = Math.max(altitude, EPSILON_NEAR);
+    camera.setNearFar(near, near + planetDiameter, 0);
+}
+
+// globe.planet.camera.events.on("viewchange", updateSkyBoxFrustum);
+// updateSkyBoxFrustum();
 
 let draggableObject = null;
 let dragStartClick = new Vec2();

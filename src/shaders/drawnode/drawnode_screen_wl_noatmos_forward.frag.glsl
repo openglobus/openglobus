@@ -48,8 +48,15 @@ void main(void) {
         ? normalize(v_vertex)
         : normalize((texNormal - 0.5) * 2.0);
 
-    float overGround = 1.0 - step(0.1, v_height);
-    float specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
+    float specularMask = 0.0;
+    vec3 emission = vec3(0.0);
+    if (camHeight >= NIGHT_SPECULAR_MIN_CAM_HEIGHT) {
+        float overGround = 1.0 - step(0.1, v_height);
+        specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
+
+        vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
+        emission = getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
+    }
 
     vec4 lightWeighting;
     vec3 specularWeighting;
@@ -66,9 +73,6 @@ void main(void) {
     specularWeighting,
     lightWeighting
     );
-
-    vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-    vec3 emission = getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
 
     lightWeighting += vec4(emission, 0.0);
 

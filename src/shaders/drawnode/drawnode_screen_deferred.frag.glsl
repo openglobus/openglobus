@@ -52,11 +52,15 @@ void main(void) {
         shadeEnc = shadeModeToUint(shadeMode);
     }
 
-    float overGround = 1.0 - step(0.1, v_height);
-    float specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
+    float specularMask = 0.0;
+    vec3 emission = vec3(0.0);
+    if (camHeight >= NIGHT_SPECULAR_MIN_CAM_HEIGHT) {
+        float overGround = 1.0 - step(0.1, v_height);
+        specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
 
-    vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-    vec3 emission = getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
+        vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
+        emission = getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
+    }
 
     materials = vec4(specularMask, 0.0, 0.0, 1.0);
     positionColor = vec4(v_vertex, packEmissionColor(emission));
