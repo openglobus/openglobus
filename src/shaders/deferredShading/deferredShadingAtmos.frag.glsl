@@ -1,6 +1,7 @@
 #version 300 es
 
 precision highp float;
+precision highp sampler2D;
 
 #include "../common/shadeMode.glsl"
 #include "../atmos/common.glsl"
