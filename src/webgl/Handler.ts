@@ -898,35 +898,19 @@ class Handler {
         /** Sets default extensions */
         this._params.extensions.push("EXT_texture_filter_anisotropic");
 
-        if (this.gl.type === "webgl") {
-            this._params.extensions.push("OES_standard_derivatives");
-            this._params.extensions.push("OES_element_index_uint");
-            this._params.extensions.push("WEBGL_depth_texture");
-            this._params.extensions.push("ANGLE_instanced_arrays");
-            //this._params.extensions.push("WEBGL_draw_buffers");
-            //this._params.extensions.push("EXT_frag_depth");
-        } else {
-            this._params.extensions.push("EXT_color_buffer_float");
-            this._params.extensions.push("OES_texture_float_linear");
-            //this._params.extensions.push("WEBGL_draw_buffers");
-        }
+        this._params.extensions.push("EXT_color_buffer_float");
+        this._params.extensions.push("OES_texture_float_linear");
+        //this._params.extensions.push("WEBGL_draw_buffers");
 
         let i = this._params.extensions.length;
         while (i--) {
             this.initializeExtension(this._params.extensions[i], true);
         }
 
-        if (this.gl.type === "webgl") {
-            this.createTexture_n = this.createTexture_n_webgl1.bind(this);
-            this.createTexture_l = this.createTexture_l_webgl1.bind(this);
-            this.createTexture_mm = this.createTexture_mm_webgl1.bind(this);
-            this.createTexture_a = this.createTexture_a_webgl1.bind(this);
-        } else {
-            this.createTexture_n = this.createTexture_n_webgl2.bind(this);
-            this.createTexture_l = this.createTexture_l_webgl2.bind(this);
-            this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
-            this.createTexture_a = this.createTexture_a_webgl2.bind(this);
-        }
+        this.createTexture_n = this.createTexture_n_webgl2.bind(this);
+        this.createTexture_l = this.createTexture_l_webgl2.bind(this);
+        this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
+        this.createTexture_a = this.createTexture_a_webgl2.bind(this);
 
         this.createTexture["NEAREST"] = this.createTexture_n;
         this.createTexture["LINEAR"] = this.createTexture_l;
