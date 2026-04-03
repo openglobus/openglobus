@@ -271,7 +271,7 @@ class Globe {
             minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
             quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
             maxLoadingRequests: options.maxLoadingRequests,
-            atmosphereEnabled: options.atmosphereEnabled,
+            atmosphereEnabled: options.atmosphereEnabled != undefined ? options.atmosphereEnabled : true,
             transitionOpacityEnabled: options.transitionOpacityEnabled,
             atmosphereParameters: options.atmosphereParameters,
             minDistanceBeforeMemClear: options.minDistanceBeforeMemClear,

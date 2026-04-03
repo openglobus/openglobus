@@ -323,6 +323,8 @@ export class Planet extends RenderNode {
 
     protected _atmosphereEnabled: boolean;
     protected _atmosphereMaxMinOpacity: Float32Array;
+    public atmosphereFadeDist: Float32Array;
+    protected _atmosphereBottomRadius: number;
 
     public solidTextureOne: WebGLTextureExt | null;
     public solidTextureTwo: WebGLTextureExt | null;
@@ -460,6 +462,8 @@ export class Planet extends RenderNode {
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
         this._atmosphereMaxMinOpacity = new Float32Array([0.95, 0.28]);
+        this.atmosphereFadeDist = new Float32Array(2);
+        this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
         this.solidTextureOne = null;
         this.solidTextureTwo = null;
@@ -508,6 +512,18 @@ export class Planet extends RenderNode {
 
     public get atmosphereMaxMinOpacity(): Float32Array {
         return this._atmosphereMaxMinOpacity;
+    }
+
+    protected _calcAtmosphereFadeDist() {
+        const cameraPosition = this.camera.eye;
+        const c = cameraPosition.length();
+        const radius = this._atmosphereBottomRadius;
+        const maxDist = Math.sqrt(Math.max(c * c - radius * radius, 0.0));
+        const minDist = c - radius;
+        const distRange = maxDist - minDist;
+
+        this.atmosphereFadeDist[0] = minDist;
+        this.atmosphereFadeDist[1] = distRange > 0.0 ? 1.0 / distRange : 0.0;
     }
 
     public set atmosphereEnabled(enabled: boolean) {
@@ -754,6 +770,7 @@ export class Planet extends RenderNode {
 
     public initAtmosphereShader(atmosParams?: AtmosphereParameters) {
         if (this.renderer && this.renderer.handler && this._atmosphereEnabled) {
+            this._atmosphereBottomRadius = atmosParams?.BOTTOM_RADIUS ?? this._atmosphere.parameters.BOTTOM_RADIUS;
             let h = this.renderer.handler;
                 h.removeProgram("drawnode_screen_wl_forward");
                 h.addProgram(shaders.drawnode_screen_wl_forward_atmos(atmosParams));
@@ -785,6 +802,7 @@ export class Planet extends RenderNode {
             }
 
             this._atmosphere.activate();
+            this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
             h.addProgram(shaders.drawnode_screen_wl_forward_atmos(this._atmosphere.parameters));
 
@@ -1233,6 +1251,10 @@ export class Planet extends RenderNode {
         this._distBeforeMemClear += this._prevCamEye.distance(cam.eye);
         this._prevCamEye.copy(cam.eye);
 
+        if(this._atmosphereEnabled){
+            this._calcAtmosphereFadeDist();
+        }
+
         // free memory
         if (this._createdNodesCount > this._maxNodes && this._distBeforeMemClear > this._minDistanceBeforeMemClear) {
             this.terrain!.clearCache();
@@ -1424,8 +1446,6 @@ export class Planet extends RenderNode {
 
             gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer?.nightTextureCoefficient ?? this.nightTextureCoefficient);
 
-            gl.uniform2fv(shu.maxMinOpacity, this._atmosphereMaxMinOpacity);
-
             //
             // Night and specular
             //
@@ -1448,6 +1468,7 @@ export class Planet extends RenderNode {
             gl.bindTexture(gl.TEXTURE_2D, atmosphereControl._scatteringBuffer!.textures[0]);
             gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
 
+            gl.uniform2fv(shu.atmosFadeDist, this.atmosphereFadeDist);
             gl.uniform1f(shu.camHeight, cam.getHeight());
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);

@@ -20,7 +20,7 @@ export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT
             lightDiffuse: "vec3",
             lightSpecular: "vec4",
             cameraPosition: "vec3",
-            maxMinOpacity: "vec2",
+            atmosFadeDist: "vec2",
         },
         attributes: {
             corners: "vec3"

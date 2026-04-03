@@ -38,6 +38,7 @@ const float SUN_INTENSITY = float(${SUN_INTENSITY});
 
 const float ozoneDensityHeight = float(${ozoneDensityHeight}); //25e3;
 const float ozoneDensityWide = float(${ozoneDensityWide}); //15e3;
+const vec2 ATMOS_MAX_MIN_OPACITY = vec2(0.95, 0.28);
 
 vec3 sunWithBloom(vec3 rayDir, vec3 sunDir)
 {
@@ -110,13 +111,11 @@ vec3 transmittance(float height, float angle)
     return exp(-(rayleighScatteringCoefficient * opticalDepth.x + mieExtinctionCoefficient * opticalDepth.y + ozoneAbsorptionCoefficient * opticalDepth.z));
 }
 
-void getAtmosFadingOpacity(in vec3 _v_vertex, in vec3 _cameraPosition, in vec2 maxMinOpacity, out float opacity)
+void getAtmosFadingOpacity(in vec3 _v_vertex, in vec3 _cameraPosition, in vec2 atmosFadeDist, out float opacity)
 {
-    float c = length(_cameraPosition);
-    float maxDist = sqrt(c * c - BOTTOM_RADIUS * BOTTOM_RADIUS);
-    float minDist = c - BOTTOM_RADIUS;
     float vertDist = distance(_cameraPosition, _v_vertex);
-    opacity = clamp(maxMinOpacity.y + (maxMinOpacity.x - maxMinOpacity.y) * getLerpValue(minDist, maxDist, vertDist), 0.0, 1.0);
+    float t = clamp((vertDist - atmosFadeDist.x) * atmosFadeDist.y, 0.0, 1.0);
+    opacity = mix(ATMOS_MAX_MIN_OPACITY.y, ATMOS_MAX_MIN_OPACITY.x, t);
 }
 
 #endif

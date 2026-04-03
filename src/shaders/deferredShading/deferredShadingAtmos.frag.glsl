@@ -22,7 +22,7 @@ uniform vec3 lightAmbient;
 uniform vec3 lightDiffuse;
 uniform vec4 lightSpecular;
 uniform vec3 cameraPosition;
-uniform vec2 maxMinOpacity;
+uniform vec2 atmosFadeDist;
 
 layout (location = 0) out vec4 fragColor;
 
@@ -78,7 +78,7 @@ void main(void) {
     specularWeighting *= sunIlluminance;
 
     float fadingOpacity;
-    getAtmosFadingOpacity(vertex, cameraPosition, maxMinOpacity, fadingOpacity);
+    getAtmosFadingOpacity(vertex, cameraPosition, atmosFadeDist, fadingOpacity);
 
     fragColor = mix(baseColor * (lightWeighting + vec4(emission, 0.0)), atmosColor * baseColor.a, fadingOpacity) + vec4(specularWeighting, 0.0);
 }

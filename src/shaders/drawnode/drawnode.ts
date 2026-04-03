@@ -121,9 +121,9 @@ export function drawnode_screen_wl_forward_atmos(atmosParams: AtmosphereParamete
             specular: "vec4",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
+            atmosFadeDist: "vec2",
             camHeight: "float",
             nightTextureCoefficient: "float",
-            maxMinOpacity: "vec2",
             transitionOpacity: "float",
             shadeMode: "float"
         }, attributes: {

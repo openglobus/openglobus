@@ -32,7 +32,7 @@ uniform float layerOpacityArr[SLICE_SIZE];
 uniform int samplerCount;
 uniform float nightTextureCoefficient;
 
-uniform vec2 maxMinOpacity;
+uniform vec2 atmosFadeDist;
 uniform float camHeight;
 
 uniform float transitionOpacity;
@@ -93,7 +93,7 @@ void main(void) {
     lightWeighting
     );
 
-    getAtmosFadingOpacity(v_vertex, cameraPosition, maxMinOpacity, fadingOpacity);
+    getAtmosFadingOpacity(v_vertex, cameraPosition, atmosFadeDist, fadingOpacity);
 
     getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
 
