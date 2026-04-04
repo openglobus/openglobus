@@ -27,7 +27,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
 
     protected override _deferredShadingPASS() {
         if (!this._atmosphere.isReady) {
-            super._deferredShadingPASS();
+            //super._deferredShadingPASS();
             return;
         }
 

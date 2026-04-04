@@ -687,6 +687,7 @@ export class Planet extends RenderNode {
      */
     public setBaseLayer(layer: Layer) {
         if (this.baseLayer) {
+            this._applyBaseLayerLighting(layer);
             if (!this.baseLayer.isEqual(layer)) {
                 this.baseLayer.setVisibility(false);
                 this.baseLayer = layer;
@@ -696,8 +697,28 @@ export class Planet extends RenderNode {
         } else {
             this.baseLayer = layer;
             this.baseLayer.setVisibility(true);
+            this._applyBaseLayerLighting(layer);
             this.events.dispatch(this.events.baselayerchange, layer);
         }
+    }
+
+    protected _applyBaseLayerLighting(layer: Layer) {
+        const renderer = this.renderer;
+        if (!renderer) return;
+
+        if (layer._ambient) {
+            renderer.lightAmbient.set(layer._ambient);
+        }
+
+        if (layer._diffuse) {
+            renderer.lightDiffuse.set(layer._diffuse);
+        }
+
+        if (layer._specular) {
+            renderer.lightSpecular.set(layer._specular);
+        }
+
+        this.nightTextureCoefficient = layer.nightTextureCoefficient;
     }
 
     /**

@@ -96,7 +96,6 @@ function updateSkyBoxFrustum() {
     const camera = globe.planet.camera;
     const altitude = camera.getAltitude();
     const near = altitude;
-    console.log(near);
     camera.setNearFar(near - near / 3, near + planetDiameter, 0);
 }
 
