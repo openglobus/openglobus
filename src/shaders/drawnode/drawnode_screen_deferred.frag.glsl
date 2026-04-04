@@ -69,19 +69,21 @@ void main(void) {
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
     normalColor = vec4(normal * 0.5 + 0.5, encodeShadeModeUint(shadeEnc));
 
+    if (samplerCount == 0) return;
+
     vec4 src;
 
     blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
-    if (samplerCount > 1) {
-        blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
-    }
-    if (samplerCount > 2) {
-        blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
-    }
-    if (samplerCount > 3) {
-        blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
-    }
-    if (samplerCount > 4) {
-        blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
-    }
+    if (samplerCount == 1) return;
+
+    blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
+    if (samplerCount == 2) return;
+
+    blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
+    if (samplerCount == 3) return;
+
+    blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
+    if (samplerCount == 4) return;
+
+    blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
 }

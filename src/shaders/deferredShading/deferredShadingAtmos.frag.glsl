@@ -82,7 +82,7 @@ void main(void) {
     getAtmosFadingOpacity(vertex, cameraPosition, atmosFadeDist, fadingOpacity);
 
     fragColor = vec4(
-        mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
-        baseColor.a
+    mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+    baseColor.a
     );
 }
