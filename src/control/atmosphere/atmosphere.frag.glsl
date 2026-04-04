@@ -125,8 +125,9 @@ void mainImage(out vec4 outColor)
 
         if (intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 100000.0, distanceToGround) && hitGround)
         {
-            outColor = vec4(0.47, 0.47, 0.5, 1.0);
-            return;
+            discard;
+//            outColor = vec4(0.47, 0.47, 0.5, 1.0);
+//            return;
         }
 
         float segmentLength = abs(((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(SAMPLE_COUNT));
