@@ -59,17 +59,17 @@ void main(void) {
 
     // SHADE_MODE_PHONG and SHADE_MODE_PBR: PBR deferred not implemented yet
     getPhongLighting(
-        vertex,
-        normal,
-        cameraPosition,
-        sunPos,
-        lightAmbient,
-        lightDiffuse,
-        lightSpecular,
-        specularMask,
-        sunIlluminance,
-        specularWeighting,
-        lightWeighting
+    vertex,
+    normal,
+    cameraPosition,
+    sunPos,
+    lightAmbient,
+    lightDiffuse,
+    lightSpecular,
+    specularMask,
+    sunIlluminance,
+    specularWeighting,
+    lightWeighting
     );
 
     vec4 atmosColor;
@@ -81,5 +81,8 @@ void main(void) {
     float fadingOpacity;
     getAtmosFadingOpacity(vertex, cameraPosition, atmosFadeDist, fadingOpacity);
 
-    fragColor = mix(baseColor * (lightWeighting + vec4(emission, 0.0)), atmosColor * baseColor.a, fadingOpacity) + vec4(specularWeighting, 0.0);
+    fragColor = vec4(
+        mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+        baseColor.a
+    );
 }

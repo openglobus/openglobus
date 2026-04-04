@@ -32,11 +32,11 @@ export class Bing extends XYZ {
                     'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
                 });
             },
-            specular: [0.00063, 0.00055, 0.00032],
-            ambient: [0.35, 0.35, 0.35],
-            diffuse: [1.5, 1.5, 1.5],
-            shininess: 20,
-            nightTextureCoefficient: 2.7,
+            ambient: [0.15, 0.15, 0.25],
+            diffuse: [1.25, 1.25, 1.15],
+            shininess: 30,
+            specular: [0.05, 0.05, 0.02],
+            nightTextureCoefficient: 1,
             ...options
         });
     }

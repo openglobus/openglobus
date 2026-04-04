@@ -56,5 +56,5 @@ void main(void) {
     lightWeighting
     );
 
-    fragColor = baseColor * (lightWeighting + vec4(emission, 0.0)) + vec4(specularWeighting, 0.0);
+    fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
 }

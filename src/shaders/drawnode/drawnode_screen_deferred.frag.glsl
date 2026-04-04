@@ -44,6 +44,7 @@ void main(void) {
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal;
     uint shadeEnc;
+
     if (shadeMode < 0.5) {
         normal = normalize(v_vertex);
         shadeEnc = SHADE_MODE_PHONG;
@@ -56,33 +57,31 @@ void main(void) {
     vec3 emission = vec3(0.0);
     if (camHeight >= NIGHT_SPECULAR_MIN_CAM_HEIGHT) {
         float overGround = 1.0 - step(0.1, v_height);
-        specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
+        specularMask = overGround * texture(specularTexture, vGlobalTextureCoord.st).r;
 
         vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-        emission = getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
+        emission = overGround * getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight);
+        emission *= emissionImageColor.a;
     }
 
     materials = vec4(specularMask, 0.0, 0.0, 1.0);
     positionColor = vec4(v_vertex, packEmissionColor(emission));
-
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
     normalColor = vec4(normal * 0.5 + 0.5, encodeShadeModeUint(shadeEnc));
 
-    if (samplerCount > 0) {
-        vec4 src;//used in blend function
+    vec4 src;
 
-        blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
-        if (samplerCount > 1) {
-            blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
-        }
-        if (samplerCount > 2) {
-            blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
-        }
-        if (samplerCount > 3) {
-            blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
-        }
-        if (samplerCount > 4) {
-            blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
-        }
+    blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
+    if (samplerCount > 1) {
+        blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
+    }
+    if (samplerCount > 2) {
+        blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
+    }
+    if (samplerCount > 3) {
+        blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
+    }
+    if (samplerCount > 4) {
+        blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
     }
 }

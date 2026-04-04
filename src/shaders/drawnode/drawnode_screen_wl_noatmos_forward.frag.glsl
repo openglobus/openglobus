@@ -55,7 +55,7 @@ void main(void) {
         specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
 
         vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-        emission = getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
+        emission = overGround * getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight);
     }
 
     vec4 lightWeighting;
@@ -74,12 +74,10 @@ void main(void) {
     lightWeighting
     );
 
-    lightWeighting += vec4(emission, 0.0);
-
     fragColor = texture(defaultTexture, vTextureCoord.xy);
 
     if (samplerCount == 0) {
-        fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
+        fragColor = vec4(fragColor.rgb * lightWeighting.rgb + specularWeighting + emission, fragColor.a);
         fragColor *= transitionOpacity;
         return;
     }
@@ -88,33 +86,33 @@ void main(void) {
 
     blend(fragColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
     if (samplerCount == 1) {
-        fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
+        fragColor = vec4(fragColor.rgb * lightWeighting.rgb + specularWeighting + emission, fragColor.a);
         fragColor *= transitionOpacity;
         return;
     }
 
     blend(fragColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
     if (samplerCount == 2) {
-        fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
+        fragColor = vec4(fragColor.rgb * lightWeighting.rgb + specularWeighting + emission, fragColor.a);
         fragColor *= transitionOpacity;
         return;
     }
 
     blend(fragColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
     if (samplerCount == 3) {
-        fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
+        fragColor = vec4(fragColor.rgb * lightWeighting.rgb + specularWeighting + emission, fragColor.a);
         fragColor *= transitionOpacity;
         return;
     }
 
     blend(fragColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
     if (samplerCount == 4) {
-        fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
+        fragColor = vec4(fragColor.rgb * lightWeighting.rgb + specularWeighting + emission, fragColor.a);
         fragColor *= transitionOpacity;
         return;
     }
 
     blend(fragColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
-    fragColor = fragColor * lightWeighting + vec4(specularWeighting, 0.0);
+    fragColor = vec4(fragColor.rgb * lightWeighting.rgb + specularWeighting + emission, fragColor.a);
     fragColor *= transitionOpacity;
 }

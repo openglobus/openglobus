@@ -64,7 +64,7 @@ void main(void) {
         specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
 
         vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-        emission = getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight, v_height);
+        emission = overGround * getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight);
     }
 
     vec4 lightWeighting;
@@ -99,12 +99,13 @@ void main(void) {
 
     specularWeighting *= sunIlluminance;
 
-    lightWeighting += vec4(emission, 0.0);
-
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
 
     if (samplerCount == 0) {
-        diffuseColor = mix(diffuseColor * lightWeighting, atmosColor, fadingOpacity) + vec4(specularWeighting, 0.0);
+        diffuseColor = vec4(
+            mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+            diffuseColor.a
+        );
         diffuseColor *= transitionOpacity;
         return;
     }
@@ -113,33 +114,48 @@ void main(void) {
 
     blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
     if (samplerCount == 1) {
-        diffuseColor = mix(diffuseColor * lightWeighting, atmosColor * diffuseColor.a, fadingOpacity) + vec4(specularWeighting, 0.0);
+        diffuseColor = vec4(
+            mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+            diffuseColor.a
+        );
         diffuseColor *= transitionOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
     if (samplerCount == 2) {
-        diffuseColor = mix(diffuseColor * lightWeighting, atmosColor * diffuseColor.a, fadingOpacity) + vec4(specularWeighting, 0.0);
+        diffuseColor = vec4(
+            mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+            diffuseColor.a
+        );
         diffuseColor *= transitionOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
     if (samplerCount == 3) {
-        diffuseColor = mix(diffuseColor * lightWeighting, atmosColor * diffuseColor.a, fadingOpacity) + vec4(specularWeighting, 0.0);
+        diffuseColor = vec4(
+            mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+            diffuseColor.a
+        );
         diffuseColor *= transitionOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
     if (samplerCount == 4) {
-        diffuseColor = mix(diffuseColor * lightWeighting, atmosColor * diffuseColor.a, fadingOpacity) + vec4(specularWeighting, 0.0);
+        diffuseColor = vec4(
+            mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+            diffuseColor.a
+        );
         diffuseColor *= transitionOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
-    diffuseColor = mix(diffuseColor * lightWeighting, atmosColor * diffuseColor.a, fadingOpacity) + vec4(specularWeighting, 0.0);
+    diffuseColor = vec4(
+        mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+        diffuseColor.a
+    );
     diffuseColor *= transitionOpacity;
 }

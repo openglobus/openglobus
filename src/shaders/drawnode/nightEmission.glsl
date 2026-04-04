@@ -4,13 +4,11 @@
 const float NIGHT_SPECULAR_MIN_CAM_HEIGHT = 3000000.0;
 
 vec3 getNightEmission(
-    in vec3 normal,
-    in vec3 sunPos,
-    in vec4 emissionImageColor,
-    in float emissionTextureCoefficient,
-    in float cameraHeight,
-    in float vertexHeight
-)
+in vec3 normal,
+in vec3 sunPos,
+in vec4 emissionImageColor,
+in float emissionTextureCoefficient,
+in float cameraHeight)
 {
     float maxH = NIGHT_SPECULAR_MIN_CAM_HEIGHT * 3.0;
     float emissionCoef = getLerpValue(NIGHT_SPECULAR_MIN_CAM_HEIGHT, maxH, cameraHeight) * emissionTextureCoefficient;
@@ -20,10 +18,7 @@ vec3 getNightEmission(
 
     vec3 emission = nightStep * (.18 - diffuseLightWeighting * 3.0) * emissionImageColor.rgb * emissionCoef;
 
-    float overGround = 1.0 - step(0.1, vertexHeight);
-    emission *= overGround * step(0.0, emission);
-
-    return emission;
+    return emission * step(0.0, emission);
 }
 
 #endif

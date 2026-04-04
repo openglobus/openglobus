@@ -454,7 +454,7 @@ export class Planet extends RenderNode {
 
         this._collectRenderNodesIsActive = true;
 
-        this.nightTextureCoefficient = 2.0;
+        this.nightTextureCoefficient = 1.0;
 
         //this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSNoAtmos;
         //this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSNoAtmos;
@@ -1122,6 +1122,7 @@ export class Planet extends RenderNode {
                 if (li.isBaseLayer()) {
                     this.createDefaultTextures(li._defaultTextures[0]!, li._defaultTextures[1]!);
                     this.baseLayer = li;
+                    this._applyBaseLayerLighting(li);
                 }
 
                 if (li.hasImageryTiles()) {
@@ -1362,7 +1363,7 @@ export class Planet extends RenderNode {
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
-        gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer?.nightTextureCoefficient ?? this.nightTextureCoefficient);
+        gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
 
         //
         // Night and specular
@@ -1411,7 +1412,7 @@ export class Planet extends RenderNode {
             gl.uniform3fv(shu.ambient, renderer.lightAmbient);
             gl.uniform4fv(shu.specular, renderer.lightSpecular);
 
-            gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer?.nightTextureCoefficient ?? this.nightTextureCoefficient);
+            gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
 
 
             //
@@ -1465,7 +1466,7 @@ export class Planet extends RenderNode {
             gl.uniform3fv(shu.ambient, renderer.lightAmbient);
             gl.uniform4fv(shu.specular, renderer.lightSpecular);
 
-            gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer?.nightTextureCoefficient ?? this.nightTextureCoefficient);
+            gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
 
             //
             // Night and specular
@@ -2271,4 +2272,3 @@ const PLANET_EVENTS: PlanetEventsList = [
      */
     "layerloadend"
 ];
-
