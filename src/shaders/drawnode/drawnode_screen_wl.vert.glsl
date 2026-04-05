@@ -16,6 +16,7 @@ uniform float height;
 
 out vec4 vTextureCoord;
 out vec3 v_vertex;
+out vec3 v_viewPosition;
 out vec3 cameraPosition;
 out vec2 vGlobalTextureCoord;
 out float v_height;
@@ -40,5 +41,7 @@ void main(void) {
     v_height = height;
     v_vertex = aVertexPosition + nh;
 
-    gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
+    vec4 viewPos = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
+    v_viewPosition = viewPos.xyz;
+    gl_Position = projectionMatrix * viewPos;
 }

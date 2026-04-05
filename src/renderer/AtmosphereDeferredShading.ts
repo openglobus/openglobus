@@ -46,6 +46,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         sh.activate();
 
         // Common uniforms (same as Phong)
+        gl.uniformMatrix4fv(p.uniforms.viewMatrix, false, r.activeCamera.getViewMatrix());
         gl.uniform3fv(p.uniforms.lightPosition, r.lightPosition);
         gl.uniform3fv(p.uniforms.lightAmbient, r.lightAmbient);
         gl.uniform3fv(p.uniforms.lightDiffuse, r.lightDiffuse);
@@ -68,7 +69,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
 
         gl.activeTexture(gl.TEXTURE3);
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer!.textures[3]);
-        gl.uniform1i(p.uniforms.positionTexture, 3);
+        gl.uniform1i(p.uniforms.viewPositionTexture, 3);
 
         // Atmosphere LUT textures
         gl.activeTexture(gl.TEXTURE4);

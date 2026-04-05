@@ -31,6 +31,7 @@ uniform float depthOffset;
 
 out vec3 cameraPosition;
 out vec3 v_vertex;
+out vec3 v_viewPosition;
 out vec4 vColor;
 out vec3 vNormal;
 out vec2 vTexCoords;
@@ -64,7 +65,9 @@ void main(void) {
     float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
     vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate)) + scd * aLocalPosition;
 
-    gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
+    vec4 viewPos = viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
+    v_viewPosition = viewPos.xyz;
+    gl_Position = projectionMatrix * viewPos;
     gl_Position.z += depthOffset;
 
     v_vertex = rtcWorldOffset + cameraPosition + vert;

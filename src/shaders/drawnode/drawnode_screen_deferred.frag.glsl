@@ -26,6 +26,7 @@ uniform float camHeight;
 
 in vec4 vTextureCoord;
 in vec3 v_vertex;
+in vec3 v_viewPosition;
 in vec3 cameraPosition;
 in vec2 vGlobalTextureCoord;
 in float v_height;
@@ -65,7 +66,7 @@ void main(void) {
     }
 
     materials = vec4(specularMask, 0.0, 0.0, 1.0);
-    positionColor = vec4(v_vertex, packEmissionColor(emission));
+    positionColor = vec4(v_viewPosition, packEmissionColor(emission));
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
     normalColor = vec4(normal * 0.5 + 0.5, encodeShadeModeUint(shadeEnc));
 

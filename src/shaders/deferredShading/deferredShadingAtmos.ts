@@ -9,10 +9,11 @@ import deferred_atmos_frag from './deferredShadingAtmos.frag.glsl';
 export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): Program {
     return new Program("deferredShadingAtmos", {
         uniforms: {
+            viewMatrix: "mat4",
             baseTexture: "sampler2d",
             materialsTexture: "sampler2d",
             normalTexture: "sampler2d",
-            positionTexture: "sampler2d",
+            viewPositionTexture: "sampler2d",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             lightPosition: "vec3",
