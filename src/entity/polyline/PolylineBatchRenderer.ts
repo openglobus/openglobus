@@ -341,6 +341,7 @@ class PolylineBatchRenderer {
     protected _changedBuffers: boolean[];
 
     protected _visibleSphere: Float32Array;
+    protected _visibleSpherePosition: Vec3;
 
     public __doubleToTwoFloats: (pos: Vec3, highPos: Vec3, lowPos: Vec3) => void;
 
@@ -453,9 +454,10 @@ class PolylineBatchRenderer {
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-        let c = createVector3(options.visibleSpherePosition).toArray();
-        let r = options.visibleSphereRadius || 0;
-        this._visibleSphere = new Float32Array([...c, r]);
+        this._visibleSpherePosition = createVector3(options.visibleSpherePosition);
+        const r = options.visibleSphereRadius || 0;
+        this._visibleSphere = new Float32Array([0, 0, 0, r]);
+        this._updateVisibleSphereRTC();
 
         // create path
         if (options.pathLonLat) {
@@ -4720,19 +4722,27 @@ class PolylineBatchRenderer {
     }
 
     public setVisibleSphere(p: Vec3, r: number) {
-        if (this._handler) {
-            this._visibleSphere[0] = p.x - this._handler._relativeCenter.x;
-            this._visibleSphere[1] = p.y - this._handler._relativeCenter.y;
-            this._visibleSphere[2] = p.z - this._handler._relativeCenter.z;
-        }
+        this._visibleSpherePosition.copy(p);
+        this._updateVisibleSphereRTC();
         this._visibleSphere[3] = r;
+    }
+
+    protected _updateVisibleSphereRTC() {
+        const relativeCenter = this._handler?._relativeCenter;
+        if (relativeCenter) {
+            this._visibleSphere[0] = this._visibleSpherePosition.x - relativeCenter.x;
+            this._visibleSphere[1] = this._visibleSpherePosition.y - relativeCenter.y;
+            this._visibleSphere[2] = this._visibleSpherePosition.z - relativeCenter.z;
+        } else {
+            this._visibleSphere[0] = this._visibleSpherePosition.x;
+            this._visibleSphere[1] = this._visibleSpherePosition.y;
+            this._visibleSphere[2] = this._visibleSpherePosition.z;
+        }
     }
 
     public updateRTCPosition() {
         if (this._handler && this._renderNode) {
-            this._visibleSphere[0] = this._visibleSphere[0] - this._handler._relativeCenter.x;
-            this._visibleSphere[1] = this._visibleSphere[1] - this._handler._relativeCenter.y;
-            this._visibleSphere[2] = this._visibleSphere[2] - this._handler._relativeCenter.z;
+            this._updateVisibleSphereRTC();
             this._setEqualPath3v(this._path3v);
             if (this.isTextured) {
                 this._rebuildBoundingSphereArr();
