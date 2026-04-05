@@ -20,8 +20,6 @@ export const geo_object_deferred = (): Program =>
             uScaleByDistance: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
             uTexture: "sampler2d",
             uUseTexture: "float",
             shadeMode: "float",

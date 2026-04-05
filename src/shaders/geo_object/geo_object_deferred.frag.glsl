@@ -7,7 +7,6 @@ uniform sampler2D uTexture;
 uniform float uUseTexture;
 uniform float shadeMode;
 
-in vec3 v_vertex;
 in vec3 v_viewPosition;
 in vec4 vColor;
 in vec3 vNormal;
