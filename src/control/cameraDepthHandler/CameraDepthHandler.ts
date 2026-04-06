@@ -231,6 +231,7 @@ export class CameraDepthHandler extends Control {
                 isEq && s.equalize();
                 s.readyToEngage && s.engage();
                 s.ensureIndexBuffer();
+                s.updateRTCEyePosition(cam);
                 s.depthRendering(sh);
             }
         }
@@ -240,6 +241,7 @@ export class CameraDepthHandler extends Control {
             isEq && s.equalize();
             s.readyToEngage && s.engage();
             s.ensureIndexBuffer();
+            s.updateRTCEyePosition(cam);
             s.depthRendering(sh);
         }
 

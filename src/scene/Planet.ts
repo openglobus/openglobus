@@ -1220,9 +1220,9 @@ export class Planet extends RenderNode {
 
         // deferred PASS
         this._renderingOpaqueScreenNodes(
+            cam,
             this.quadTreeStrategy,
             this._setUniformsDeferred(cam, this.renderer!.handler.programs.drawnode_screen_deferred),
-            cam,
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
     }
@@ -1230,6 +1230,7 @@ export class Planet extends RenderNode {
     protected _renderTransparentScreenNodesPASSNoAtmos() {
         // forward PASS
         this._renderingTransparentScreenNodes(
+            this.camera,
             this.quadTreeStrategy,
             this._setUniformsNoAtmos(this.camera, this.renderer!.handler.programs.drawnode_screen_wl_forward, false)
         );
@@ -1240,9 +1241,9 @@ export class Planet extends RenderNode {
 
         // PASS 1: rendering slices, and layers with heights, without transition opacity effect
         this._renderingScreenNodesWithHeight(
+            cam,
             this.quadTreeStrategy,
             this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_forward, false),
-            cam,
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
     }
@@ -1250,6 +1251,7 @@ export class Planet extends RenderNode {
     protected _renderTransparentScreenNodesPASSAtmos() {
         // forward PASS
         this._renderingTransparentScreenNodes(
+            this.camera,
             this.quadTreeStrategy,
             this._setUniformsAtmos(this.camera, this.renderer!.handler.programs.drawnode_screen_wl_forward, false)
         );
@@ -1260,9 +1262,9 @@ export class Planet extends RenderNode {
 
         // PASS 1: rendering slices, and layers with heights, without transition opacity effect
         this._renderingScreenNodesWithHeight(
+            cam,
             this.quadTreeStrategy,
             this._setUniformsAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_forward, false),
-            cam,
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
     }
@@ -1500,6 +1502,7 @@ export class Planet extends RenderNode {
     }
 
     protected _renderingFadingNodes = (
+        camera: PlanetCamera,
         quadTreeStrategy: QuadTreeStrategy,
         nodes: Map<number, boolean>,
         sh: Program,
@@ -1515,6 +1518,7 @@ export class Planet extends RenderNode {
 
         for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
             let f = currentNode._fadingNodes[j].segment;
+
             //if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[j].__id) && !nodes.has(f.node.__id)) {
             if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
                 nodes.set(f.node.__id, true);
@@ -1525,9 +1529,11 @@ export class Planet extends RenderNode {
                     if (isFirstPass) {
                         isEq && f.equalize();
                         f.readyToEngage && f.engage();
+                        f.updateRTCEyePosition(camera);
                         f.screenRendering(sh, sl, sliceIndex);
                         outOpaqueSegments!.push(f);
                     } else {
+                        f.updateRTCEyePosition(camera);
                         f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
                     }
                 }
@@ -1652,9 +1658,9 @@ export class Planet extends RenderNode {
     // }
 
     protected _renderingOpaqueScreenNodes(
+        cam: PlanetCamera,
         quadTreeStrategy: QuadTreeStrategy,
         sh: Program,
-        cam: PlanetCamera,
         renderedNodes: Node[]
     ) {
 
@@ -1684,21 +1690,23 @@ export class Planet extends RenderNode {
             let ri = renderedNodes[i];
             let s = ri.segment;
 
-            this._renderingFadingNodes(quadTreeStrategy, nodes, sh, ri, sl[0], 0, quadTreeStrategy._transparentSegments, quadTreeStrategy._fadingOpaqueSegments);
+            this._renderingFadingNodes(cam, quadTreeStrategy, nodes, sh, ri, sl[0], 0, quadTreeStrategy._transparentSegments, quadTreeStrategy._fadingOpaqueSegments);
 
             if (s._transitionOpacity < 1) {
                 quadTreeStrategy._transparentSegments.push(s);
             } else {
                 isEq && s.equalize();
                 s.readyToEngage && s.engage();
+                s.updateRTCEyePosition(cam);
                 s.screenRendering(sh, sl[0], 0);
             }
         }
     }
 
     protected _renderingTransparentScreenNodes(
+        camera: PlanetCamera,
         quadTreeStrategy: QuadTreeStrategy,
-        sh: Program
+        sh: Program,
     ) {
 
         let isEq = this.terrain!.equalizeVertices;
@@ -1709,14 +1717,15 @@ export class Planet extends RenderNode {
 
             isEq && tj.equalize();
             tj.readyToEngage && tj.engage();
+            tj.updateRTCEyePosition(camera);
             tj.screenRendering(sh, sl[0], 0);
         }
     }
 
     protected _renderingScreenNodesWithHeight(
+        camera: PlanetCamera,
         quadTreeStrategy: QuadTreeStrategy,
         sh: Program,
-        cam: PlanetCamera,
         renderedNodes: Node[]
     ) {
 
@@ -1732,7 +1741,7 @@ export class Planet extends RenderNode {
 
         for (let j = 1, len = sl.length; j < len; j++) {
 
-            if (cam.isFirstPass) {
+            if (camera.isFirstPass) {
                 Planet.__refreshLayersFadingOpacity__(sl[j], quadTreeStrategy.minCurrZoom, quadTreeStrategy.maxCurrZoom);
             }
 
@@ -1740,10 +1749,11 @@ export class Planet extends RenderNode {
             let i = renderedNodes.length;
             while (i--) {
                 let ri = renderedNodes[i];
-                this._renderingFadingNodes(quadTreeStrategy, nodes, sh, ri, sl[j], j, transparentSegments);
+                this._renderingFadingNodes(camera, quadTreeStrategy, nodes, sh, ri, sl[j], j, transparentSegments);
                 if (ri.segment._transitionOpacity < 1) {
                     ri.segment.initSlice(j);
                 } else {
+                    ri.segment.updateRTCEyePosition(camera);
                     ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
                 }
             }

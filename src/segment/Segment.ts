@@ -294,6 +294,10 @@ class Segment {
 
     public quadTreeStrategy: QuadTreeStrategy
 
+    public _relativeCenter: Vec3;
+    public _rtcEyePositionHigh: Float32Array;
+    public _rtcEyePositionLow: Float32Array;
+
     constructor(node: Node, quadTreeStrategy: QuadTreeStrategy, tileZoom: number, extent: Extent) {
 
         this.isPole = false;
@@ -417,6 +421,29 @@ class Segment {
         this._transitionOpacity = 1.0;
 
         this._transitionTimestamp = 0;
+
+        this._relativeCenter = new Vec3();
+        this._rtcEyePositionHigh = new Float32Array([0, 0, 0]);
+        this._rtcEyePositionLow = new Float32Array([0, 0, 0]);
+    }
+
+    public getRTCPosition(pos: Vec3, rtcPositionHigh: Vec3, rtcPositionLow: Vec3) {
+        let rtcPosition = pos.sub(this._relativeCenter);
+        Vec3.doubleToTwoFloats(rtcPosition, rtcPositionHigh, rtcPositionLow);
+    }
+
+    public setRelativeCenter(c: Vec3) {
+        this._relativeCenter.copy(c);
+        //
+        // ...change vertices
+        //
+    }
+
+    public updateRTCEyePosition(camera: PlanetCamera) {
+        if(camera.isFirstPass){
+            let rtcEyePosition = camera.eye.sub(this._relativeCenter);
+            Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
+        }
     }
 
     public checkZoom(): boolean {
@@ -1172,7 +1199,7 @@ class Segment {
 
             if (gridSize >= 1.0) {
                 //
-                // (*) Actually, we get parent whole bounding volume
+                // (*) Get parent whole bounding volume
                 //
                 this.bsphere.center.x = pn.segment.bsphere.center.x;
                 this.bsphere.center.y = pn.segment.bsphere.center.y;
