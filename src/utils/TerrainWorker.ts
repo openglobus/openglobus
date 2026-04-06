@@ -22,7 +22,7 @@ export interface ITerrainWorkerData {
     terrainVerticesHigh: Float32Array | null;
     terrainVerticesLow: Float32Array | null;
     noDataVertices: Uint8Array | null;
-    bounds: NumberArray6;
+    bounds: Float32Array;
 }
 
 type MessageEventExt = MessageEvent & {
@@ -45,6 +45,8 @@ class TerrainWorker extends BaseWorker<TerrainInfo> {
         e.data.terrainVertices = null;
         e.data.terrainVerticesHigh = null;
         e.data.terrainVerticesLow = null;
+        e.data.noDataVertices = null;
+        e.data.bounds = null;
     }
 
     public override make(info: TerrainInfo) {

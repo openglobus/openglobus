@@ -94,13 +94,14 @@ var blerp = function (x, y, fQ11, fQ21, fQ12, fQ22) {
     return (fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y);
 };
 
-var slice = function (t, h1, h0) {
-    return t * (h1 - h0);
-};
+// var slice = function (t, h1, h0) {
+//     return t * (h1 - h0);
+// };
 
 var _tempVec = new Vec3(0.0, 0.0, 0.0);
 
-var _tempHigh = new Vec3(0.0, 0.0, 0.0), _tempLow = new Vec3(0.0, 0.0, 0.0);
+var _tempHigh = new Vec3(0.0, 0.0, 0.0),
+    _tempLow = new Vec3(0.0, 0.0, 0.0);
 
 self.onmessage = function (e) {
     var elevations = e.data.elevations, this_plainVertices = e.data.this_plainVertices,
@@ -120,12 +121,18 @@ self.onmessage = function (e) {
     const gs = tgs + 1;
     const hf = heightFactor;
 
-    var nmvInd = 0, vInd = 0, noDataInd = 0;
+    var nmvInd = 0,
+        vInd = 0,
+        noDataInd = 0;
 
     var gsgs3 = gs * gs * 3;
 
-    var terrainVertices = new Float64Array(gsgs3), terrainVerticesHigh = new Float32Array(gsgs3),
-        terrainVerticesLow = new Float32Array(gsgs3), noDataVertices = new Uint8Array(gs * gs);
+    var terrainVertices = new Float64Array(gsgs3),
+        terrainVerticesHigh = new Float32Array(gsgs3),
+        terrainVerticesLow = new Float32Array(gsgs3),
+        noDataVertices = new Uint8Array(gs * gs);
+
+    var bounds = new Float32Array(6);
 
     var normalMapNormals, normalMapVertices, normalMapVerticesHigh, normalMapVerticesLow;
 
@@ -441,6 +448,13 @@ self.onmessage = function (e) {
         }
     }
 
+    bounds[0] = xmin;
+    bounds[1] = ymin;
+    bounds[2] = zmin;
+    bounds[3] = xmax;
+    bounds[4] = ymax;
+    bounds[5] = zmax;
+
     self.postMessage({
         id: id,
         normalMapNormals: normalMapNormals,
@@ -450,7 +464,17 @@ self.onmessage = function (e) {
         terrainVertices: terrainVertices,
         terrainVerticesHigh: terrainVerticesHigh,
         terrainVerticesLow: terrainVerticesLow,
-        noDataVertices: noDataVertices, //bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
-        bounds: [xmin, ymin, zmin, xmax, ymax, zmax]
-    }, [normalMapNormals.buffer, normalMapVertices.buffer, normalMapVerticesHigh.buffer, normalMapVerticesLow.buffer, terrainVertices.buffer, terrainVerticesHigh.buffer, terrainVerticesLow.buffer, noDataVertices.buffer]);
+        noDataVertices: noDataVertices,
+        bounds: bounds//[xmin, ymin, zmin, xmax, ymax, zmax]
+    }, [
+        normalMapNormals.buffer,
+        normalMapVertices.buffer,
+        normalMapVerticesHigh.buffer,
+        normalMapVerticesLow.buffer,
+        terrainVertices.buffer,
+        terrainVerticesHigh.buffer,
+        terrainVerticesLow.buffer,
+        noDataVertices.buffer,
+        bounds.buffer
+    ]);
 }

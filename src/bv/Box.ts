@@ -47,7 +47,7 @@ class Box {
      * Sets bounding box coordinates by the bounds array.
      * @param {NumberArray6} bounds - Bounds is an array where [minX, minY, minZ, maxX, maxY, maxZ]
      */
-    public setFromBoundsArr(bounds: NumberArray6) {
+    public setFromBoundsArr(bounds: Float32Array | NumberArray6) {
         let xmin = bounds[0],
             xmax = bounds[3],
             ymin = bounds[1],
