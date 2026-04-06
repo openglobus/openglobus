@@ -453,6 +453,16 @@ class Segment {
         }
     }
 
+    protected _setRTCEyePositionUniforms(gl: WebGL2RenderingContext, shu: { [id: string]: WebGLUniformLocation }) {
+        const rtcEyePositionHigh = shu.rtcEyePositionHigh;
+        const rtcEyePositionLow = shu.rtcEyePositionLow;
+
+        if (rtcEyePositionHigh && rtcEyePositionLow) {
+            gl.uniform3fv(rtcEyePositionHigh, this._rtcEyePositionHigh);
+            gl.uniform3fv(rtcEyePositionLow, this._rtcEyePositionLow);
+        }
+    }
+
     public checkZoom(): boolean {
         return this.tileZoom < this.planet.terrain!._maxNodeZoom;
     }
@@ -1726,6 +1736,7 @@ class Segment {
             //
             // @todo: fix deferred pass consistency
             //
+            this._setRTCEyePositionUniforms(gl, shu);
             gl.uniform1f(shu.transitionOpacity, forcedOpacity || this._transitionOpacity > 1.0 ? 1.0 : this._transitionOpacity);
 
             gl.uniform1i(shu.samplerCount, n);
@@ -1874,6 +1885,7 @@ class Segment {
         }
 
         if (notEmpty || !isOverlay) {
+            this._setRTCEyePositionUniforms(gl, shu);
             gl.uniform1i(shu.samplerCount, len);
             gl.uniform1f(shu.height, currHeight);
             gl.uniform1iv(shu.samplerArr, p._samplerArr);
@@ -1911,6 +1923,7 @@ class Segment {
             currHeight = 0;
         }
 
+        this._setRTCEyePositionUniforms(gl, shu);
         gl.uniform1f(shu.height, currHeight);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh!);

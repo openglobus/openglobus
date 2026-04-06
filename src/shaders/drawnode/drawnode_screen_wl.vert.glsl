@@ -14,6 +14,9 @@ uniform vec3 eyePositionHigh;
 uniform vec3 eyePositionLow;
 uniform float height;
 
+uniform vec3 rtcEyePositionHigh;
+uniform vec3 rtcEyePositionLow;
+
 out vec4 vTextureCoord;
 out vec3 v_vertex;
 out vec3 v_viewPosition;
@@ -32,8 +35,10 @@ void main(void) {
 
     cameraPosition = eyePositionHigh + eyePositionLow;
 
-    vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-    vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
+    vec3 highDiff = aVertexPositionHigh - rtcEyePositionHigh;
+    vec3 lowDiff = aVertexPositionLow - rtcEyePositionLow + nh;
+
+    highDiff = highDiff * step(1.0, length(highDiff));
 
     mat4 viewMatrixRTE = viewMatrix;
     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -41,7 +46,7 @@ void main(void) {
     v_height = height;
     v_vertex = aVertexPosition + nh;
 
-    vec4 viewPos = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
+    vec4 viewPos = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
     v_viewPosition = viewPos.xyz;
     gl_Position = projectionMatrix * viewPos;
 }
