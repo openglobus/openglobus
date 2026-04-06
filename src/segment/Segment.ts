@@ -298,6 +298,8 @@ class Segment {
     public _rtcEyePositionHigh: Float32Array;
     public _rtcEyePositionLow: Float32Array;
 
+    public __doubleToTwoFloats: (pos: Vec3, highPos: Vec3, lowPos: Vec3) => void;
+
     constructor(node: Node, quadTreeStrategy: QuadTreeStrategy, tileZoom: number, extent: Extent) {
 
         this.isPole = false;
@@ -425,6 +427,7 @@ class Segment {
         this._relativeCenter = new Vec3();
         this._rtcEyePositionHigh = new Float32Array([0, 0, 0]);
         this._rtcEyePositionLow = new Float32Array([0, 0, 0]);
+        this.__doubleToTwoFloats = this.getRTCPosition.bind(this);
     }
 
     public getRTCPosition(pos: Vec3, rtcPositionHigh: Vec3, rtcPositionLow: Vec3) {
@@ -434,6 +437,10 @@ class Segment {
 
     public setRelativeCenter(c: Vec3) {
         this._relativeCenter.copy(c);
+
+        //this._inTheQueue
+        //tnis.terrainReady
+
         //
         // ...change vertices
         //
@@ -1559,7 +1566,8 @@ class Segment {
                 nyl = ny * l,
                 nzl = nz * l;
 
-            Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
+            this.__doubleToTwoFloats(v, _tempHigh, _tempLow);
+            //Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
 
             nmVerts[nmInd] = v.x;
             nmVertsHigh[nmInd] = _tempHigh.x;
