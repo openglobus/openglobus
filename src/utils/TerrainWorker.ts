@@ -22,7 +22,7 @@ export interface ITerrainWorkerData {
     terrainVerticesHigh: Float32Array | null;
     terrainVerticesLow: Float32Array | null;
     noDataVertices: Uint8Array | null;
-    bounds: Float32Array;
+    bounds: NumberArray6;
 }
 
 type MessageEventExt = MessageEvent & {

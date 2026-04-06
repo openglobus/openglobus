@@ -1348,7 +1348,7 @@ class Segment {
         this.bsphere.radius = this.bsphere.center.distance(new Vec3(vmin.x, vmin.y, vmin.z));
     }
 
-    public setBoundingVolumeArr(bounds: Float32Array | NumberArray6) {
+    public setBoundingVolumeArr(bounds: NumberArray6) {
         this.bbox.setFromBoundsArr(bounds);
 
         let x = bounds[0] + (bounds[3] - bounds[0]) * 0.5,

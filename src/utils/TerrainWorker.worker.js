@@ -132,8 +132,6 @@ self.onmessage = function (e) {
         terrainVerticesLow = new Float32Array(gsgs3),
         noDataVertices = new Uint8Array(gs * gs);
 
-    var bounds = new Float32Array(6);
-
     var normalMapNormals, normalMapVertices, normalMapVerticesHigh, normalMapVerticesLow;
 
     var nv = this_normalMapVertices, nn = this_normalMapNormals;
@@ -448,13 +446,6 @@ self.onmessage = function (e) {
         }
     }
 
-    bounds[0] = xmin;
-    bounds[1] = ymin;
-    bounds[2] = zmin;
-    bounds[3] = xmax;
-    bounds[4] = ymax;
-    bounds[5] = zmax;
-
     self.postMessage({
         id: id,
         normalMapNormals: normalMapNormals,
@@ -464,8 +455,8 @@ self.onmessage = function (e) {
         terrainVertices: terrainVertices,
         terrainVerticesHigh: terrainVerticesHigh,
         terrainVerticesLow: terrainVerticesLow,
-        noDataVertices: noDataVertices,
-        bounds: bounds//[xmin, ymin, zmin, xmax, ymax, zmax]
+        noDataVertices: noDataVertices, //bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
+        bounds: [xmin, ymin, zmin, xmax, ymax, zmax]
     }, [
         normalMapNormals.buffer,
         normalMapVertices.buffer,
@@ -474,7 +465,6 @@ self.onmessage = function (e) {
         terrainVertices.buffer,
         terrainVerticesHigh.buffer,
         terrainVerticesLow.buffer,
-        noDataVertices.buffer,
-        bounds.buffer
+        noDataVertices.buffer
     ]);
 }
