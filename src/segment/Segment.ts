@@ -435,15 +435,48 @@ class Segment {
         Vec3.doubleToTwoFloats(rtcPosition, rtcPositionHigh, rtcPositionLow);
     }
 
+    static recalcRTCVertices = (relativeCenter: Vec3, vertices: Float64Array, verticesHigh: Float32Array, verticesLow: Float32Array) => {
+
+        let cx = relativeCenter.x;
+        let cy = relativeCenter.y;
+        let cz = relativeCenter.z;
+
+        let vrt  =new Vec3();
+        let vrtHigh = new Vec3();
+        let vrtLow = new Vec3();
+
+        const len = vertices.length;
+        const end = len - (len % 3);
+
+        for (let i = 0; i < end; i += 3) {
+            vrt.set(vertices[i] - cx, vertices[i + 1] - cy, vertices[i + 2] - cz);
+            Vec3.doubleToTwoFloats(vrt, vrtHigh, vrtLow);
+
+            verticesHigh[i] = vrtHigh.x;
+            verticesLow[i] = vrtLow.x;
+
+            verticesHigh[i + 1] = vrtHigh.y;
+            verticesLow[i + 1] = vrtLow.y;
+
+            verticesHigh[i + 2] = vrtHigh.z;
+            verticesLow[i + 2] = vrtLow.z;
+        }
+    };
+
     public setRelativeCenter(c: Vec3) {
+        if (this._relativeCenter.equal(c)) {
+            return;
+        }
+
         this._relativeCenter.copy(c);
 
-        //this._inTheQueue
-        //tnis.terrainReady
+        Segment.recalcRTCVertices(c, this.plainVertices!, this.plainVerticesHigh!, this.plainVerticesLow!);
+        Segment.recalcRTCVertices(c, this.terrainVertices!, this.terrainVerticesHigh!, this.terrainVerticesLow!);
+        Segment.recalcRTCVertices(c, this.tempVertices!, this.tempVerticesHigh!, this.tempVerticesLow!);
 
-        //
-        // ...change vertices
-        //
+        if (this.vertexPositionBufferHigh && this.vertexPositionBufferLow && this.tempVerticesHigh && this.tempVerticesLow) {
+            this.createCoordsBuffers(this.tempVerticesHigh, this.tempVerticesLow, this.gridSize);
+        }
     }
 
     public updateRTCEyePosition(camera: PlanetCamera) {
