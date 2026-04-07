@@ -720,7 +720,7 @@ class Segment {
 
     protected _equalizeSide(side: number,): void {
 
-        const n = this.node.neighbors[side][0];
+        let n = this.node.neighbors[side][0];
 
         if (this._checkEqualization(side, n)){
 
@@ -728,20 +728,23 @@ class Segment {
                 vHigh = this.tempVerticesHigh!,
                 vLow = this.tempVerticesLow!;
 
-            const gs = this.gridSize;
-            const gsOne = gs + 1;
+            let gs = this.gridSize;
+            let gsOne = gs + 1;
 
             this.node.equalizedSideWithNodeId[side] = n.equalizedSideWithNodeId[OPSIDE[side]];
             this.readyToEngage = true;
 
             let offset = this.node.getOffsetOppositeNeighbourSide(n, side);
 
-            let nv = n.segment.tempVertices!,
-                nvHigh = n.segment.tempVerticesHigh!,
-                nvLow = n.segment.tempVerticesLow!;
+            let ns = n.segment;
+            let nv = ns.tempVertices!;
 
-            let n_gs = n.segment.gridSize,
+            let n_gs = ns.gridSize,
                 n_gsOne = n_gs + 1;
+
+            let dxRtc = ns._relativeCenter.x - this._relativeCenter.x,
+                dyRtc = ns._relativeCenter.y - this._relativeCenter.y,
+                dzRtc = ns._relativeCenter.z - this._relativeCenter.z;
 
             let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
 
@@ -769,20 +772,27 @@ class Segment {
             }
 
             for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-                const index = (indexMul * k + indexOffset) * 3;
-                const n_index = (nIndexMul * nk + nIndexOffset) * 3;
+                let index = (indexMul * k + indexOffset) * 3;
+                let n_index = (nIndexMul * nk + nIndexOffset) * 3;
 
-                v[index] = nv[n_index];
-                v[index + 1] = nv[n_index + 1];
-                v[index + 2] = nv[n_index + 2];
+                let x = nv[n_index] + dxRtc;
+                let y = nv[n_index + 1] + dyRtc;
+                let z = nv[n_index + 2] + dzRtc;
+                
+                v[index] = x;
+                v[index + 1] = y;
+                v[index + 2] = z;
 
-                vHigh[index] = nvHigh[n_index];
-                vHigh[index + 1] = nvHigh[n_index + 1];
-                vHigh[index + 2] = nvHigh[n_index + 2];
+                _v0.set(x, y, z);
+                Vec3.doubleToTwoFloats(_v0, _tempHigh, _tempLow);
 
-                vLow[index] = nvLow[n_index];
-                vLow[index + 1] = nvLow[n_index + 1];
-                vLow[index + 2] = nvLow[n_index + 2];
+                vHigh[index] = _tempHigh.x;
+                vHigh[index + 1] = _tempHigh.y;
+                vHigh[index + 2] = _tempHigh.z;
+
+                vLow[index] = _tempLow.x;
+                vLow[index + 1] = _tempLow.y;
+                vLow[index + 2] = _tempLow.z;
             }
         }
     }
