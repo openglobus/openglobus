@@ -1301,7 +1301,7 @@ export class Planet extends RenderNode {
             this._updateVisibleLayers();
         }
 
-        if (this.camera.isFirstPass) {
+        if (this.camera.isFarthestFrustumActive) {
             this.camera.update();
 
             if (this._collectRenderNodesIsActive) {
@@ -1596,7 +1596,7 @@ export class Planet extends RenderNode {
     //
     //     let sl = this._visibleTileLayerSlices;
     //
-    //     if (sl.length && cam.isFirstPass) {
+    //     if (sl.length && cam.isFarthestFrustumActive) {
     //         Planet.__refreshLayersFadingOpacity__(sl[0], quadTreeStrategy.minCurrZoom, quadTreeStrategy.maxCurrZoom);
     //     }
     //
@@ -1666,7 +1666,7 @@ export class Planet extends RenderNode {
 
         let sl = this._visibleTileLayerSlices;
 
-        if (sl.length && cam.isFirstPass) {
+        if (sl.length && cam.isFarthestFrustumActive) {
             Planet.__refreshLayersFadingOpacity__(sl[0], quadTreeStrategy.minCurrZoom, quadTreeStrategy.maxCurrZoom);
         }
 
@@ -1741,7 +1741,7 @@ export class Planet extends RenderNode {
 
         for (let j = 1, len = sl.length; j < len; j++) {
 
-            if (camera.isFirstPass) {
+            if (camera.isFarthestFrustumActive) {
                 Planet.__refreshLayersFadingOpacity__(sl[j], quadTreeStrategy.minCurrZoom, quadTreeStrategy.maxCurrZoom);
             }
 

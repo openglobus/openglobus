@@ -220,7 +220,7 @@ class PolylineHandler {
 
     protected _updateRTCEyePosition() {
         let r = this._renderer!;
-        if (r.activeCamera.isFirstPass) {
+        if (r.activeCamera.isFarthestFrustumActive) {
             let rtcEyePosition = r.activeCamera.eye.sub(this._relativeCenter);
             Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
         }

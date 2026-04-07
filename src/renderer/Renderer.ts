@@ -1357,7 +1357,7 @@ class Renderer {
         let h = this.handler;
         let gl = h.gl!;
 
-        if (this.activeCamera!.isFirstPass && depthOrder === 0) {
+        if (this.activeCamera!.isFarthestFrustumActive && depthOrder === 0) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         } else {
@@ -1395,7 +1395,7 @@ class Renderer {
 
         gl.disable(gl.BLEND);
 
-        if (this.activeCamera!.isFirstPass && depthOrder === 0) {
+        if (this.activeCamera!.isFarthestFrustumActive && depthOrder === 0) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         } else {

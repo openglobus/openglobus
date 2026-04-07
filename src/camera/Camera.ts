@@ -226,7 +226,7 @@ class Camera {
 
     public frustumColorIndex: number;
 
-    public isFirstPass: boolean;
+    public isFarthestFrustumActive: boolean;
 
     public _width: number;
 
@@ -304,7 +304,7 @@ class Camera {
         this.currentFrustumIndex = 0;
         this.frustumColorIndex = 0;
 
-        this.isFirstPass = false;
+        this.isFarthestFrustumActive = false;
 
         this._projSizeConst = 0;
 
@@ -1029,7 +1029,7 @@ class Camera {
     public setCurrentFrustum(k: number) {
         this.currentFrustumIndex = k;
         this.frustumColorIndex = ((k + 1) * 10.0) / 255.0;
-        this.isFirstPass = k === this.FARTHEST_FRUSTUM_INDEX;
+        this.isFarthestFrustumActive = k === this.FARTHEST_FRUSTUM_INDEX;
     }
 
     public getCurrentFrustum(): number {

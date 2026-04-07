@@ -447,10 +447,8 @@ class Segment {
     }
 
     public updateRTCEyePosition(camera: PlanetCamera) {
-        if(camera.isFirstPass){
-            let rtcEyePosition = camera.eye.sub(this._relativeCenter);
-            Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
-        }
+        let rtcEyePosition = camera.eye.sub(this._relativeCenter);
+        Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
     }
 
     protected _setRTCEyePositionUniforms(gl: WebGL2RenderingContext, shu: { [id: string]: WebGLUniformLocation }) {
