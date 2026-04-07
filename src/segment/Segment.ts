@@ -27,8 +27,6 @@ import type {IPlainSegmentWorkerData} from "../utils/PlainSegmentWorker";
 import {MAX_LAT} from "../mercator";
 import {QuadTreeStrategy} from "../quadTree";
 
-//Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
-
 export function getTileCellIndex(coordinate: number, tileSize: number, worldEdge: number): number {
     return Math.floor(Math.abs(worldEdge - coordinate) / tileSize);
 }
@@ -720,6 +718,91 @@ class Segment {
             this.node.equalizedSideWithNodeId[neighborSide] !== neigborNode.equalizedSideWithNodeId[OPSIDE[neighborSide]];
     }
 
+    protected _equalizeSide(side: number,): void {
+
+        const n = this.node.neighbors[side][0];
+
+        if (this._checkEqualization(side, n)){
+
+            let v = this.tempVertices!,
+                vHigh = this.tempVerticesHigh!,
+                vLow = this.tempVerticesLow!;
+
+            const gs = this.gridSize;
+            const gsOne = gs + 1;
+
+            this.node.equalizedSideWithNodeId[side] = n.equalizedSideWithNodeId[OPSIDE[side]];
+            this.readyToEngage = true;
+
+            let offset = this.node.getOffsetOppositeNeighbourSide(n, side);
+
+            let nv = n.segment.tempVertices!,
+                nvHigh = n.segment.tempVerticesHigh!,
+                nvLow = n.segment.tempVerticesLow!;
+
+            let n_gs = n.segment.gridSize,
+                n_gsOne = n_gs + 1;
+
+            let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
+
+            let inc = Math.max(gs / (n_gs * dz), 1),
+                n_inc = Math.max((n_gs * dz) / gs, 1),
+                n_offset = offset * n_gs;
+
+            let indexMul = 1,
+                indexOffset = 0,
+                nIndexMul = 1,
+                nIndexOffset = 0;
+
+            if (side === N) {
+                nIndexOffset = n_gsOne * n_gs;
+            } else if (side === E) {
+                indexMul = gsOne;
+                indexOffset = gs;
+                nIndexMul = n_gsOne;
+            } else if (side === S) {
+                indexOffset = gsOne * gs;
+            } else {
+                indexMul = gsOne;
+                nIndexMul = n_gsOne;
+                nIndexOffset = n_gs;
+            }
+
+            for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
+                const index = (indexMul * k + indexOffset) * 3;
+                const n_index = (nIndexMul * nk + nIndexOffset) * 3;
+
+                v[index] = nv[n_index];
+                v[index + 1] = nv[n_index + 1];
+                v[index + 2] = nv[n_index + 2];
+
+                vHigh[index] = nvHigh[n_index];
+                vHigh[index + 1] = nvHigh[n_index + 1];
+                vHigh[index + 2] = nvHigh[n_index + 2];
+
+                vLow[index] = nvLow[n_index];
+                vLow[index + 1] = nvLow[n_index + 1];
+                vLow[index + 2] = nvLow[n_index + 2];
+            }
+        }
+    }
+
+    public equalize() {
+
+        // Equalization doesn't work correctly for gridSize equals 2
+        if (this.tileZoom < 2 || this.gridSize < 2) {
+            return;
+        }
+
+        this.readyToEngage = true;
+
+        this._equalizeSide(N);
+        this._equalizeSide(E);
+        this._equalizeSide(S);
+        this._equalizeSide(W);
+    }
+
+    /*
     public equalize() {
 
         // Equalization doesn't work correctly for gridSize equals 2
@@ -897,6 +980,7 @@ class Segment {
             }
         }
     }
+     */
 
     public engage() {
         this.readyToEngage = false;
