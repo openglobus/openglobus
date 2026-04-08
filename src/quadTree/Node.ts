@@ -668,9 +668,9 @@ class Node {
 
             const pseg = pn.segment;
 
-            let tempVertices: Float64Array,
-                tempVerticesHigh: Float32Array,
-                tempVerticesLow: Float32Array,
+            let renderVertices: Float64Array,
+                renderVerticesHigh: Float32Array,
+                renderVerticesLow: Float32Array,
                 noDataVertices: Uint8Array;
 
             this.appliedTerrainNodeId = pn.nodeId;
@@ -690,9 +690,9 @@ class Node {
                 seg.gridSize = gridSize;
 
                 let len = (gridSize + 1) * (gridSize + 1) * 3;
-                tempVertices = new Float64Array(len);
-                tempVerticesHigh = new Float32Array(len);
-                tempVerticesLow = new Float32Array(len);
+                renderVertices = new Float64Array(len);
+                renderVerticesHigh = new Float32Array(len);
+                renderVerticesLow = new Float32Array(len);
 
                 if (pseg.noDataVertices) {
                     noDataVertices = new Uint8Array(len / 3);
@@ -707,9 +707,9 @@ class Node {
                     gridSize * offsetY,
                     gridSize * offsetX,
                     gridSize,
-                    tempVertices,
-                    tempVerticesHigh,
-                    tempVerticesLow,
+                    renderVertices,
+                    renderVerticesHigh,
+                    renderVerticesLow,
                     BOUNDS,
                     noDataVertices!
                 );
@@ -719,9 +719,9 @@ class Node {
                 seg.gridSize = gridSizeExt;
 
                 let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
-                tempVertices = new Float64Array(len);
-                tempVerticesHigh = new Float32Array(len);
-                tempVerticesLow = new Float32Array(len);
+                renderVertices = new Float64Array(len);
+                renderVerticesHigh = new Float32Array(len);
+                renderVerticesLow = new Float32Array(len);
 
                 if (pseg.noDataVertices) {
                     noDataVertices = new Uint8Array(len / 3);
@@ -736,9 +736,9 @@ class Node {
                     gridSizeExt * offsetY,
                     gridSizeExt * offsetX,
                     gridSizeExt,
-                    tempVertices,
-                    tempVerticesHigh,
-                    tempVerticesLow,
+                    renderVertices,
+                    renderVerticesHigh,
+                    renderVerticesLow,
                     BOUNDS,
                     noDataVertices!
                 );
@@ -771,9 +771,9 @@ class Node {
 
                 let coords = new Vec3();
 
-                tempVertices = new Float64Array(3 * _vertOrder.length);
-                tempVerticesHigh = new Float32Array(3 * _vertOrder.length);
-                tempVerticesLow = new Float32Array(3 * _vertOrder.length);
+                renderVertices = new Float64Array(3 * _vertOrder.length);
+                renderVerticesHigh = new Float32Array(3 * _vertOrder.length);
+                renderVerticesLow = new Float32Array(3 * _vertOrder.length);
 
                 for (let i = 0; i < _vertOrder.length; i++) {
                     let vi_y = _vertOrder[i].y + t_i0, vi_x = _vertOrder[i].x + t_j0;
@@ -790,17 +790,17 @@ class Node {
 
                     let i3 = i * 3;
 
-                    tempVertices[i3] = coords.x;
-                    tempVertices[i3 + 1] = coords.y;
-                    tempVertices[i3 + 2] = coords.z;
+                    renderVertices[i3] = coords.x;
+                    renderVertices[i3 + 1] = coords.y;
+                    renderVertices[i3 + 2] = coords.z;
 
-                    tempVerticesHigh[i3] = _tempHigh.x;
-                    tempVerticesHigh[i3 + 1] = _tempHigh.y;
-                    tempVerticesHigh[i3 + 2] = _tempHigh.z;
+                    renderVerticesHigh[i3] = _tempHigh.x;
+                    renderVerticesHigh[i3 + 1] = _tempHigh.y;
+                    renderVerticesHigh[i3 + 2] = _tempHigh.z;
 
-                    tempVerticesLow[i3] = _tempLow.x;
-                    tempVerticesLow[i3 + 1] = _tempLow.y;
-                    tempVerticesLow[i3 + 2] = _tempLow.z;
+                    renderVerticesLow[i3] = _tempLow.x;
+                    renderVerticesLow[i3 + 1] = _tempLow.y;
+                    renderVerticesLow[i3 + 2] = _tempLow.z;
 
                     if (coords.x < BOUNDS.xmin) BOUNDS.xmin = coords.x;
                     if (coords.x > BOUNDS.xmax) BOUNDS.xmax = coords.x;
@@ -813,13 +813,13 @@ class Node {
 
             seg.readyToEngage = true;
 
-            seg.terrainVertices = tempVertices;
-            seg.terrainVerticesHigh = tempVerticesHigh;
-            seg.terrainVerticesLow = tempVerticesLow;
+            seg.terrainVertices = renderVertices;
+            seg.terrainVerticesHigh = renderVerticesHigh;
+            seg.terrainVerticesLow = renderVerticesLow;
 
-            seg.tempVertices = tempVertices;
-            seg.tempVerticesHigh = tempVerticesHigh;
-            seg.tempVerticesLow = tempVerticesLow;
+            seg.renderVertices = renderVertices;
+            seg.renderVerticesHigh = renderVerticesHigh;
+            seg.renderVerticesLow = renderVerticesLow;
 
             seg.noDataVertices = noDataVertices!;
 
@@ -833,9 +833,9 @@ class Node {
                     seg.terrainReady = true;
                     seg.terrainIsLoading = false;
 
-                    seg.terrainVertices = tempVertices;
-                    seg.terrainVerticesHigh = tempVerticesHigh;
-                    seg.terrainVerticesLow = tempVerticesLow;
+                    seg.terrainVertices = renderVertices;
+                    seg.terrainVerticesHigh = renderVerticesHigh;
+                    seg.terrainVerticesLow = renderVerticesLow;
 
                     seg.passReady = true;
 
@@ -843,8 +843,8 @@ class Node {
                     this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
 
                     if (pn.segment.terrainExists) {
-                        seg.normalMapVertices = tempVertices;
-                        seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
+                        seg.normalMapVertices = renderVertices;
+                        seg.fileGridSize = Math.sqrt(renderVertices.length / 3) - 1;
 
                         let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1,
                             fgsZ = fgs / dZ2;

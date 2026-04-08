@@ -1380,9 +1380,6 @@ export class Planet extends RenderNode {
 
         gl.uniform1f(shu.camHeight, cam.getHeight());
 
-        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
-
         return sh;
     }
 

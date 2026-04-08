@@ -34,8 +34,6 @@ export function drawnode_screen_deferred(): Program {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             height: "float",

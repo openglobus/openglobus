@@ -255,9 +255,9 @@ class Segment {
     public terrainVerticesLow: Float32Array | null;
     public noDataVertices: Uint8Array | null;
 
-    public tempVertices: Float64Array | null;
-    public tempVerticesHigh: Float32Array | null;
-    public tempVerticesLow: Float32Array | null;
+    public renderVertices: Float64Array | null;
+    public renderVerticesHigh: Float32Array | null;
+    public renderVerticesLow: Float32Array | null;
 
     public normalMapTexture: WebGLTextureExt | null;
     public normalMapTextureBias: Float32Array;
@@ -387,9 +387,9 @@ class Segment {
         this.terrainVerticesLow = null;
         this.noDataVertices = null;
 
-        this.tempVertices = null;
-        this.tempVerticesHigh = null;
-        this.tempVerticesLow = null;
+        this.renderVertices = null;
+        this.renderVerticesHigh = null;
+        this.renderVerticesLow = null;
 
         this.normalMapTexture = null;
         this.normalMapTextureBias = new Float32Array(3);
@@ -470,10 +470,10 @@ class Segment {
 
         Segment.recalcRTCVertices(c, this.plainVertices!, this.plainVerticesHigh!, this.plainVerticesLow!);
         Segment.recalcRTCVertices(c, this.terrainVertices!, this.terrainVerticesHigh!, this.terrainVerticesLow!);
-        Segment.recalcRTCVertices(c, this.tempVertices!, this.tempVerticesHigh!, this.tempVerticesLow!);
+        Segment.recalcRTCVertices(c, this.renderVertices!, this.renderVerticesHigh!, this.renderVerticesLow!);
 
-        if (this.vertexPositionBufferHigh && this.vertexPositionBufferLow && this.tempVerticesHigh && this.tempVerticesLow) {
-            this.createCoordsBuffers(this.tempVerticesHigh, this.tempVerticesLow, this.gridSize);
+        if (this.vertexPositionBufferHigh && this.vertexPositionBufferLow && this.renderVerticesHigh && this.renderVerticesLow) {
+            this.createCoordsBuffers(this.renderVerticesHigh, this.renderVerticesLow, this.gridSize);
         }
     }
 
@@ -524,7 +524,7 @@ class Segment {
      * @returns {number} -
      */
     public getTerrainPoint(xyz: Vec3, insideSegmentPosition: LonLat, res: Vec3): number {
-        let verts = this.tempVertices;
+        let verts = this.renderVertices;
 
         if (verts && verts.length) {
             let norm = this.planet.ellipsoid.getSurfaceNormal3v(xyz);
@@ -648,8 +648,8 @@ class Segment {
             this.normalMapVerticesLow = null;
 
             if (!this.planet.terrain!.equalizeVertices) {
-                this.tempVerticesHigh = null;
-                this.tempVerticesLow = null;
+                this.renderVerticesHigh = null;
+                this.renderVerticesLow = null;
             }
         }
     }
@@ -683,9 +683,9 @@ class Segment {
             this.terrainVerticesHigh = this.plainVerticesHigh;
             this.terrainVerticesLow = this.plainVerticesLow;
 
-            this.tempVertices = this.terrainVertices;
-            this.tempVerticesHigh = this.terrainVerticesHigh;
-            this.tempVerticesLow = this.terrainVerticesLow;
+            this.renderVertices = this.terrainVertices;
+            this.renderVerticesHigh = this.terrainVerticesHigh;
+            this.renderVerticesLow = this.terrainVerticesLow;
 
             this.noDataVertices = null;
 
@@ -724,9 +724,9 @@ class Segment {
 
         if (this._checkEqualization(side, n)){
 
-            let v = this.tempVertices!,
-                vHigh = this.tempVerticesHigh!,
-                vLow = this.tempVerticesLow!;
+            let v = this.renderVertices!,
+                vHigh = this.renderVerticesHigh!,
+                vLow = this.renderVerticesLow!;
 
             let gs = this.gridSize;
             let gsOne = gs + 1;
@@ -737,7 +737,7 @@ class Segment {
             let offset = this.node.getOffsetOppositeNeighbourSide(n, side);
 
             let ns = n.segment;
-            let nv = ns.tempVertices!;
+            let nv = ns.renderVertices!;
 
             let n_gs = ns.gridSize,
                 n_gsOne = n_gs + 1;
@@ -824,9 +824,9 @@ class Segment {
 
         let nn = this.node.neighbors;
 
-        let v = this.tempVertices!,
-            vHigh = this.tempVerticesHigh!,
-            vLow = this.tempVerticesLow!;
+        let v = this.renderVertices!,
+            vHigh = this.renderVerticesHigh!,
+            vLow = this.renderVerticesLow!;
 
         let gs = this.gridSize,
             gsOne = gs + 1;
@@ -840,9 +840,9 @@ class Segment {
 
             let offset = this.node.getOffsetOppositeNeighbourSide(n, N);
 
-            let nv = n.segment.tempVertices!,
-                nvHigh = n.segment.tempVerticesHigh!,
-                nvLow = n.segment.tempVerticesLow!;
+            let nv = n.segment.renderVertices!,
+                nvHigh = n.segment.renderVerticesHigh!,
+                nvLow = n.segment.renderVerticesLow!;
 
             let n_gs = n.segment.gridSize,
                 n_gsOne = n_gs + 1;
@@ -880,9 +880,9 @@ class Segment {
 
             let offset = this.node.getOffsetOppositeNeighbourSide(n, E);
 
-            let nv = n.segment.tempVertices!,
-                nvHigh = n.segment.tempVerticesHigh!,
-                nvLow = n.segment.tempVerticesLow!;
+            let nv = n.segment.renderVertices!,
+                nvHigh = n.segment.renderVerticesHigh!,
+                nvLow = n.segment.renderVerticesLow!;
 
             let n_gs = n.segment.gridSize,
                 n_gsOne = n_gs + 1;
@@ -920,9 +920,9 @@ class Segment {
 
             let offset = this.node.getOffsetOppositeNeighbourSide(n, S);
 
-            let nv = n.segment.tempVertices!,
-                nvHigh = n.segment.tempVerticesHigh!,
-                nvLow = n.segment.tempVerticesLow!;
+            let nv = n.segment.renderVertices!,
+                nvHigh = n.segment.renderVerticesHigh!,
+                nvLow = n.segment.renderVerticesLow!;
 
             let n_gs = n.segment.gridSize; // n_gsOne = n_gs + 1;
 
@@ -959,9 +959,9 @@ class Segment {
 
             let offset = this.node.getOffsetOppositeNeighbourSide(n, W);
 
-            let nv = n.segment.tempVertices!,
-                nvHigh = n.segment.tempVerticesHigh!,
-                nvLow = n.segment.tempVerticesLow!;
+            let nv = n.segment.renderVertices!,
+                nvHigh = n.segment.renderVerticesHigh!,
+                nvLow = n.segment.renderVerticesLow!;
 
             let n_gs = n.segment.gridSize,
                 n_gsOne = n_gs + 1;
@@ -994,7 +994,7 @@ class Segment {
 
     public engage() {
         this.readyToEngage = false;
-        this.createCoordsBuffers(this.tempVerticesHigh!, this.tempVerticesLow!, this.gridSize);
+        this.createCoordsBuffers(this.renderVerticesHigh!, this.renderVerticesLow!, this.gridSize);
     }
 
     public _terrainWorkerCallback(data: ITerrainWorkerData) {
@@ -1012,9 +1012,9 @@ class Segment {
             this.terrainVerticesLow = null;
             this.noDataVertices = null;
 
-            this.tempVertices = null;
-            this.tempVerticesHigh = null;
-            this.tempVerticesLow = null;
+            this.renderVertices = null;
+            this.renderVerticesHigh = null;
+            this.renderVerticesLow = null;
 
             this.normalMapNormals = data.normalMapNormals;
             this.normalMapVertices = data.normalMapVertices;
@@ -1027,9 +1027,9 @@ class Segment {
 
             this.noDataVertices = data.noDataVertices;
 
-            this.tempVertices = this.terrainVertices;
-            this.tempVerticesHigh = this.terrainVerticesHigh;
-            this.tempVerticesLow = this.terrainVerticesLow;
+            this.renderVertices = this.terrainVertices;
+            this.renderVerticesHigh = this.terrainVerticesHigh;
+            this.renderVerticesLow = this.terrainVerticesLow;
 
             this.setBoundingVolumeArr(data.bounds);
 
@@ -1186,9 +1186,9 @@ class Segment {
         this.normalMapVerticesLow = null;
         this.normalMapNormals = null;
 
-        this.tempVertices = null;
-        this.tempVerticesHigh = null;
-        this.tempVerticesLow = null;
+        this.renderVertices = null;
+        this.renderVerticesHigh = null;
+        this.renderVerticesLow = null;
 
         this.terrainVertices = null;
         this.terrainVerticesHigh = null;
@@ -1263,9 +1263,9 @@ class Segment {
         this.terrainVerticesLow = null;
         this.noDataVertices = null;
 
-        this.tempVertices = null;
-        this.tempVerticesHigh = null;
-        this.tempVerticesLow = null;
+        this.renderVertices = null;
+        this.renderVerticesHigh = null;
+        this.renderVerticesLow = null;
 
         //@ts-ignore
         this.normalMapTextureBias = null;
@@ -1358,7 +1358,7 @@ class Segment {
                     ind_ne = 3 * (i0 * pnGsOne + j0 + gridSize),
                     ind_se = 3 * ((i0 + gridSize) * pnGsOne + j0 + gridSize);
 
-                let pVerts = pn.segment.tempVertices!;
+                let pVerts = pn.segment.renderVertices!;
 
                 let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
                     v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
@@ -1385,9 +1385,9 @@ class Segment {
 
                 let bigOne;
                 if (pseg.gridSize === 1) {
-                    bigOne = pseg.tempVertices!;
+                    bigOne = pseg.renderVertices!;
                 } else {
-                    bigOne = getMatrixSubArray64(pseg.tempVertices!, pseg.gridSize, i0, j0, 1);
+                    bigOne = getMatrixSubArray64(pseg.renderVertices!, pseg.gridSize, i0, j0, 1);
                 }
 
                 let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
