@@ -699,13 +699,13 @@ class Node {
 
             getMatrixSubArrayBoundsExt(
                 pseg.terrainVertices!,
-                pseg.terrainVerticesHigh!,
-                pseg.terrainVerticesLow!,
                 pseg.noDataVertices!,
                 pseg.gridSize,
                 gridSize * offsetY,
                 gridSize * offsetX,
                 gridSize,
+                pseg._relativeCenter,
+                seg._relativeCenter,
                 renderVertices,
                 renderVerticesHigh,
                 renderVerticesLow,
@@ -728,13 +728,13 @@ class Node {
 
             getMatrixSubArrayBoundsExt(
                 pseg.normalMapVertices!,
-                pseg.normalMapVerticesHigh!,
-                pseg.normalMapVerticesLow!,
                 pseg.noDataVertices!,
                 pn.segment.fileGridSize,
                 gridSizeExt * offsetY,
                 gridSizeExt * offsetX,
                 gridSizeExt,
+                pseg._relativeCenter,
+                seg._relativeCenter,
                 renderVertices,
                 renderVerticesHigh,
                 renderVerticesLow,
@@ -785,13 +785,16 @@ class Node {
                     coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
                 }
 
-                Vec3.doubleToTwoFloats(coords, _tempHigh, _tempLow);
+                coords.addA(pseg._relativeCenter);
+                let dstCoords = coords.sub(seg._relativeCenter);
+
+                Vec3.doubleToTwoFloats(dstCoords, _tempHigh, _tempLow);
 
                 let i3 = i * 3;
 
-                renderVertices[i3] = coords.x;
-                renderVertices[i3 + 1] = coords.y;
-                renderVertices[i3 + 2] = coords.z;
+                renderVertices[i3] = dstCoords.x;
+                renderVertices[i3 + 1] = dstCoords.y;
+                renderVertices[i3 + 2] = dstCoords.z;
 
                 renderVerticesHigh[i3] = _tempHigh.x;
                 renderVerticesHigh[i3 + 1] = _tempHigh.y;
