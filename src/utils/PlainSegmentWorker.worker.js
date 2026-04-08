@@ -9,7 +9,7 @@ let v00 = null;
 let v01 = null;
 let v10 = null;
 let v11 = null;
-let t = null;
+//let t = null;
 
 function rawval(ix, iy) {
 
@@ -30,7 +30,7 @@ function rawval(ix, iy) {
     var k = (iy * model.width + ix) * 2 + model.i;
 
     return (model.rawfile[k] << 8) | model.rawfile[k + 1];
-};
+}
 
 function getHeightMSL(lon, lat) {
 
@@ -69,7 +69,7 @@ function getHeightMSL(lon, lat) {
     h = (1 - fy) * a + fy * b;
 
     return model.offset + model.scale * h;
-};
+}
 
 const HALF_PI = Math.PI * 0.5;
 const POLE = 20037508.34;
@@ -116,7 +116,8 @@ var geodeticToCartesianInverse = function (lon, lat, heightFactor, res) {
         res);
 };
 
-var v = new Vec3(0.0, 0.0, 0.0);
+var worldPos = new Vec3(0.0, 0.0, 0.0);
+var rtcPos = new Vec3(0.0, 0.0, 0.0);
 var _tempHigh = new Vec3(0.0, 0.0, 0.0);
 var _tempLow = new Vec3(0.0, 0.0, 0.0);
 
@@ -162,6 +163,10 @@ self.onmessage = function (msg) {
         model = msg.data.model;
         model.rawfile = msg.data.rawfile;
     } else if (msg.data.params) {
+
+        let rtc_x = msg.data.params[14];
+        let rtc_y = msg.data.params[15];
+        let rtc_z = msg.data.params[16];
 
         let xmin = 549755748352.0, xmax = -549755748352.0,
             ymin = 549755748352.0, ymax = -549755748352.0,
@@ -218,53 +223,60 @@ self.onmessage = function (msg) {
             let j = k % gs,
                 i = ~~(k / gs);
 
-            _projFunc(esw_lon + j * llStep, ene_lat - i * ltStep, heightFactor, v);
+            _projFunc(esw_lon + j * llStep, ene_lat - i * ltStep, heightFactor, worldPos);
 
-            let nx = v.x * r2_x, ny = v.y * r2_y, nz = v.z * r2_z;
+            let nx = worldPos.x * r2_x, ny = worldPos.y * r2_y, nz = worldPos.z * r2_z;
             let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
             let nxl = nx * l,
                 nyl = ny * l,
                 nzl = nz * l;
 
-            doubleToTwoFloats(v, _tempHigh, _tempLow);
+            rtcPos.x = worldPos.x - rtc_x;
+            rtcPos.y = worldPos.y - rtc_y;
+            rtcPos.z = worldPos.z - rtc_z;
 
-            normalMapVertices[nmInd] = v.x;
+            doubleToTwoFloats(worldPos, _tempHigh, _tempLow);
+
+            normalMapVertices[nmInd] = worldPos.x;
             normalMapVerticesHigh[nmInd] = _tempHigh.x;
             normalMapVerticesLow[nmInd] = _tempLow.x;
             normalMapNormals[nmInd++] = nxl;
 
-            normalMapVertices[nmInd] = v.y;
+            normalMapVertices[nmInd] = worldPos.y;
             normalMapVerticesHigh[nmInd] = _tempHigh.y;
             normalMapVerticesLow[nmInd] = _tempLow.y;
             normalMapNormals[nmInd++] = nyl;
 
-            normalMapVertices[nmInd] = v.z;
+            normalMapVertices[nmInd] = worldPos.z;
             normalMapVerticesHigh[nmInd] = _tempHigh.z;
             normalMapVerticesLow[nmInd] = _tempLow.z;
             normalMapNormals[nmInd++] = nzl;
 
             if (i % dg === 0 && j % dg === 0) {
-                plainVertices[ind] = v.x;
+
+                doubleToTwoFloats(rtcPos, _tempHigh, _tempLow);
+
+                plainVertices[ind] = rtcPos.x;
                 plainVerticesHigh[ind] = _tempHigh.x;
                 plainVerticesLow[ind] = _tempLow.x;
                 plainNormals[ind++] = nxl;
 
-                plainVertices[ind] = v.y;
+                plainVertices[ind] = rtcPos.y;
                 plainVerticesHigh[ind] = _tempHigh.y;
                 plainVerticesLow[ind] = _tempLow.y;
                 plainNormals[ind++] = nyl;
 
-                plainVertices[ind] = v.z;
+                plainVertices[ind] = rtcPos.z;
                 plainVerticesHigh[ind] = _tempHigh.z;
                 plainVerticesLow[ind] = _tempLow.z;
                 plainNormals[ind++] = nzl;
 
-                if (v.x < xmin) xmin = v.x;
-                if (v.x > xmax) xmax = v.x;
-                if (v.y < ymin) ymin = v.y;
-                if (v.y > ymax) ymax = v.y;
-                if (v.z < zmin) zmin = v.z;
-                if (v.z > zmax) zmax = v.z;
+                if (worldPos.x < xmin) xmin = worldPos.x;
+                if (worldPos.x > xmax) xmax = worldPos.x;
+                if (worldPos.y < ymin) ymin = worldPos.y;
+                if (worldPos.y > ymax) ymax = worldPos.y;
+                if (worldPos.z < zmin) zmin = worldPos.z;
+                if (worldPos.z > zmax) zmax = worldPos.z;
             }
         }
 
@@ -284,7 +296,8 @@ self.onmessage = function (msg) {
             normalMapVertices: normalMapVertices,
             normalMapVerticesHigh: normalMapVerticesHigh,
             normalMapVerticesLow: normalMapVerticesLow,
-            plainRadius: plainRadius
+            plainRadius: plainRadius,
+            relativeCenter: [rtc_x, rtc_y, rtc_z]
         }, [
             plainVertices.buffer,
             plainVerticesHigh.buffer,

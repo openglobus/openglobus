@@ -6,6 +6,7 @@ import {Segment} from "../segment/Segment";
 import {Geoid} from "../terrain/Geoid";
 //@ts-ignore
 import PlainSegmentWorkerImpl from './PlainSegmentWorker.worker.js?worker&inline';
+import type {NumberArray3} from "../math/Vec3";
 
 export interface IPlainSegmentWorkerData {
     plainVertices: Float64Array | null;
@@ -18,6 +19,8 @@ export interface IPlainSegmentWorkerData {
     normalMapVertices: Float64Array | null;
     normalMapVerticesHigh: Float32Array | null;
     normalMapVerticesLow: Float32Array | null;
+
+    relativeCenter: NumberArray3;
 }
 
 type MessageEventExt = MessageEvent & {
@@ -40,6 +43,7 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
         e.data.normalMapVertices = null;
         e.data.normalMapVerticesHigh = null;
         e.data.normalMapVerticesLow = null;
+        e.data.relativeCenter = null;
 
         this._source.delete(e.data.id)
     }
@@ -90,20 +94,30 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
 
                 let params = new Float64Array([
                     this._sourceId,
+
                     isLonLat,
+
                     segment.planet.terrain!.gridSizeByZoom[segment.tileZoom],
                     segment.planet.terrain!.plainGridSize,
+
                     segment._extent.southWest.lon,
                     segment._extent.southWest.lat,
                     segment._extent.northEast.lon,
                     segment._extent.northEast.lat,
+
                     // @ts-ignore
                     segment.planet.ellipsoid._e2,
                     segment.planet.ellipsoid.equatorialSize,
+
                     segment.planet.ellipsoid._invRadii2.x,
                     segment.planet.ellipsoid._invRadii2.y,
                     segment.planet.ellipsoid._invRadii2.z,
-                    segment.planet._heightFactor
+
+                    segment.planet._heightFactor,
+
+                    segment._relativeCenter.x,
+                    segment._relativeCenter.y,
+                    segment._relativeCenter.z,
                 ]);
 
                 this._sourceId++;
