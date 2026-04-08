@@ -56,7 +56,7 @@ class RgbTerrain extends GlobusTerrain {
             ...options
         });
 
-        this.equalizeNormals = options.equalizeNormals || false;
+        this.equalizeNormals = options.equalizeNormals != undefined ? options.equalizeNormals : true;
 
         this._dataType = "imageBitmap";
 

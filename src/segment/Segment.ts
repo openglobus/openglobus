@@ -275,6 +275,7 @@ class Segment {
     public _globalTextureCoordinates: Float32Array;
     public _inTheQueue: boolean;
     public _appliedNeighborsZoom: [number, number, number, number];
+    public _appliedNeighborsZoomNodeId: [number, number, number, number];
 
     public _slices: Slice[];
 
@@ -407,6 +408,7 @@ class Segment {
         this._globalTextureCoordinates = new Float32Array(4);
         this._inTheQueue = false;
         this._appliedNeighborsZoom = [0, 0, 0, 0];
+        this._appliedNeighborsZoomNodeId = [-1, -1, -1, -1];
 
         this._slices = [];
 
@@ -1074,10 +1076,8 @@ class Segment {
             b.terrainReady &&
             b.terrainExists &&
             b.tileZoom <= maxZ &&
-            s._appliedNeighborsZoom[side] !== b.tileZoom
+            (s._appliedNeighborsZoom[side] !== b.tileZoom || s._appliedNeighborsZoomNodeId[side] !== n.nodeId)
         ) {
-            s._appliedNeighborsZoom[side] = b.tileZoom;
-
             let seg_a = s.normalMapNormals,
                 seg_b = b.normalMapNormals;
 
@@ -1133,8 +1133,13 @@ class Segment {
                     }
                 }
 
-                if (!b._inTheQueue && b._appliedNeighborsZoom[OPSIDE[side]] !== s.tileZoom) {
-                    b._appliedNeighborsZoom[OPSIDE[side]] = s.tileZoom;
+                s._appliedNeighborsZoom[side] = b.tileZoom;
+                s._appliedNeighborsZoomNodeId[side] = n.nodeId;
+
+                const oppositeSide = OPSIDE[side];
+                if (!b._inTheQueue && (b._appliedNeighborsZoom[oppositeSide] !== s.tileZoom || b._appliedNeighborsZoomNodeId[oppositeSide] !== s.node.nodeId)) {
+                    b._appliedNeighborsZoom[oppositeSide] = s.tileZoom;
+                    b._appliedNeighborsZoomNodeId[oppositeSide] = s.node.nodeId;
                     s.planet._normalMapCreator.queue(b);
                 }
             }
@@ -1206,6 +1211,7 @@ class Segment {
         }
 
         this._appliedNeighborsZoom = [0, 0, 0, 0];
+        this._appliedNeighborsZoomNodeId = [-1, -1, -1, -1];
 
         this.normalMapTextureBias[0] = 0;
         this.normalMapTextureBias[1] = 0;
@@ -1285,6 +1291,8 @@ class Segment {
         this._projection = null;
         // @ts-ignore
         this._appliedNeighborsZoom = null;
+        // @ts-ignore
+        this._appliedNeighborsZoomNodeId = null;
         // @ts-ignore
         this._globalTextureCoordinates = null;
     }
