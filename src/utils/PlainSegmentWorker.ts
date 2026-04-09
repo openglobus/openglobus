@@ -17,8 +17,6 @@ export interface IPlainSegmentWorkerData {
 
     normalMapNormals: Float32Array | null;
     normalMapVertices: Float64Array | null;
-    normalMapVerticesHigh: Float32Array | null;
-    normalMapVerticesLow: Float32Array | null;
 
     relativeCenter: NumberArray3;
 }
@@ -41,8 +39,6 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
         e.data.plainNormals = null;
         e.data.normalMapNormals = null;
         e.data.normalMapVertices = null;
-        e.data.normalMapVerticesHigh = null;
-        e.data.normalMapVerticesLow = null;
         e.data.relativeCenter = null;
 
         this._source.delete(e.data.id)

@@ -262,8 +262,6 @@ class Segment {
     public normalMapTexture: WebGLTextureExt | null;
     public normalMapTextureBias: Float32Array;
     public normalMapVertices: Float64Array | null;
-    public normalMapVerticesHigh: Float32Array | null;
-    public normalMapVerticesLow: Float32Array | null;
     public normalMapNormals: Float32Array | null;
 
     public vertexNormalBuffer: WebGLBufferExt | null;
@@ -395,8 +393,6 @@ class Segment {
         this.normalMapTexture = null;
         this.normalMapTextureBias = new Float32Array(3);
         this.normalMapVertices = null;
-        this.normalMapVerticesHigh = null;
-        this.normalMapVerticesLow = null;
         this.normalMapNormals = null;
 
         this.vertexNormalBuffer = null;
@@ -646,9 +642,6 @@ class Segment {
             this.plainVerticesHigh = null;
             this.plainVerticesLow = null;
 
-            this.normalMapVerticesHigh = null;
-            this.normalMapVerticesLow = null;
-
             if (!this.planet.terrain!.equalizeVertices) {
                 this.renderVerticesHigh = null;
                 this.renderVerticesLow = null;
@@ -780,7 +773,7 @@ class Segment {
                 let x = nv[n_index] + dxRtc;
                 let y = nv[n_index + 1] + dyRtc;
                 let z = nv[n_index + 2] + dzRtc;
-                
+
                 v[index] = x;
                 v[index + 1] = y;
                 v[index + 2] = z;
@@ -1006,8 +999,6 @@ class Segment {
             this.normalMapNormals = null;
 
             this.normalMapVertices = null;
-            this.normalMapVerticesHigh = null;
-            this.normalMapVerticesLow = null;
 
             this.terrainVertices = null;
             this.terrainVerticesHigh = null;
@@ -1020,8 +1011,6 @@ class Segment {
 
             this.normalMapNormals = data.normalMapNormals;
             this.normalMapVertices = data.normalMapVertices;
-            this.normalMapVerticesHigh = data.normalMapVerticesHigh;
-            this.normalMapVerticesLow = data.normalMapVerticesLow;
 
             this.terrainVertices = data.terrainVertices;
             this.terrainVerticesHigh = data.terrainVerticesHigh;
@@ -1187,8 +1176,6 @@ class Segment {
         this.terrainIsLoading = false;
 
         this.normalMapVertices = null;
-        this.normalMapVerticesHigh = null;
-        this.normalMapVerticesLow = null;
         this.normalMapNormals = null;
 
         this.renderVertices = null;
@@ -1277,8 +1264,6 @@ class Segment {
         this.normalMapTextureBias = null;
         this.normalMapTexture = null;
         this.normalMapVertices = null;
-        this.normalMapVerticesHigh = null;
-        this.normalMapVerticesLow = null;
         this.normalMapNormals = null;
 
         this.vertexNormalBuffer = null;
@@ -1631,8 +1616,6 @@ class Segment {
 
             this.normalMapNormals = data.normalMapNormals;
             this.normalMapVertices = data.normalMapVertices;
-            this.normalMapVerticesHigh = data.normalMapVerticesHigh;
-            this.normalMapVerticesLow = data.normalMapVerticesLow;
 
             //this.terrainVertices = this.plainVertices;
             //this.terrainVerticesHigh = this.plainVerticesHigh;
@@ -1679,16 +1662,12 @@ class Segment {
 
         this.normalMapNormals = new Float32Array(gsgs * 3);
         this.normalMapVertices = new Float64Array(gsgs * 3);
-        this.normalMapVerticesHigh = new Float32Array(gsgs * 3);
-        this.normalMapVerticesLow = new Float32Array(gsgs * 3);
 
         let verts = this.plainVertices,
             vertsHigh = this.plainVerticesHigh,
             vertsLow = this.plainVerticesLow,
             norms = this.plainNormals,
             nmVerts = this.normalMapVertices,
-            nmVertsHigh = this.normalMapVerticesHigh,
-            nmVertsLow = this.normalMapVerticesLow,
             nmNorms = this.normalMapNormals;
 
         for (let k = 0; k < gsgs; k++) {
@@ -1713,18 +1692,12 @@ class Segment {
             //Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
 
             nmVerts[nmInd] = v.x;
-            nmVertsHigh[nmInd] = _tempHigh.x;
-            nmVertsLow[nmInd] = _tempLow.x;
             nmNorms[nmInd++] = nxl;
 
             nmVerts[nmInd] = v.y;
-            nmVertsHigh[nmInd] = _tempHigh.y;
-            nmVertsLow[nmInd] = _tempLow.y;
             nmNorms[nmInd++] = nyl;
 
             nmVerts[nmInd] = v.z;
-            nmVertsHigh[nmInd] = _tempHigh.z;
-            nmVertsLow[nmInd] = _tempLow.z;
             nmNorms[nmInd++] = nzl;
 
             if (i % dg === 0 && j % dg === 0) {

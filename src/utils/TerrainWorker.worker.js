@@ -94,10 +94,6 @@ var blerp = function (x, y, fQ11, fQ21, fQ12, fQ22) {
     return (fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y);
 };
 
-// var slice = function (t, h1, h0) {
-//     return t * (h1 - h0);
-// };
-
 var _tempVec = new Vec3(0.0, 0.0, 0.0);
 
 var _tempHigh = new Vec3(0.0, 0.0, 0.0),
@@ -121,8 +117,7 @@ self.onmessage = function (e) {
     const gs = tgs + 1;
     const hf = heightFactor;
 
-    var nmvInd = 0,
-        vInd = 0,
+    var vInd = 0,
         noDataInd = 0;
 
     var gsgs3 = gs * gs * 3;
@@ -132,7 +127,7 @@ self.onmessage = function (e) {
         terrainVerticesLow = new Float32Array(gsgs3),
         noDataVertices = new Uint8Array(gs * gs);
 
-    var normalMapNormals, normalMapVertices, normalMapVerticesHigh, normalMapVerticesLow;
+    var normalMapNormals, normalMapVertices;
 
     var nv = this_normalMapVertices, nn = this_normalMapNormals;
 
@@ -140,8 +135,6 @@ self.onmessage = function (e) {
 
         normalMapNormals = new Float32Array(fileGridSize_one_x2 * 3);
         normalMapVertices = new Float64Array(fileGridSize_one_x2 * 3);
-        normalMapVerticesHigh = new Float32Array(fileGridSize_one_x2 * 3);
-        normalMapVerticesLow = new Float32Array(fileGridSize_one_x2 * 3);
 
         for (let k = 0; k < fileGridSize_one_x2; k++) {
 
@@ -164,14 +157,6 @@ self.onmessage = function (e) {
             normalMapVertices[vInd0] = v0.x;
             normalMapVertices[vInd0 + 1] = v0.y;
             normalMapVertices[vInd0 + 2] = v0.z;
-
-            normalMapVerticesHigh[vInd0] = _tempHigh.x;
-            normalMapVerticesHigh[vInd0 + 1] = _tempHigh.y;
-            normalMapVerticesHigh[vInd0 + 2] = _tempHigh.z;
-
-            normalMapVerticesLow[vInd0] = _tempLow.x;
-            normalMapVerticesLow[vInd0 + 1] = _tempLow.y;
-            normalMapVerticesLow[vInd0 + 2] = _tempLow.z;
 
             //
             // The vertex goes into screen buffer
@@ -233,19 +218,9 @@ self.onmessage = function (e) {
                 var h1 = hf * elv;
                 var v1 = new Vec3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
 
-                doubleToTwoFloats(v1, _tempHigh, _tempLow);
-
                 normalMapVertices[vInd1] = v1.x;
                 normalMapVertices[vInd1 + 1] = v1.y;
                 normalMapVertices[vInd1 + 2] = v1.z;
-
-                normalMapVerticesHigh[vInd1] = _tempHigh.x;
-                normalMapVerticesHigh[vInd1 + 1] = _tempHigh.y;
-                normalMapVerticesHigh[vInd1 + 2] = _tempHigh.z;
-
-                normalMapVerticesLow[vInd1] = _tempLow.x;
-                normalMapVerticesLow[vInd1 + 1] = _tempLow.y;
-                normalMapVerticesLow[vInd1 + 2] = _tempLow.z;
 
                 //
                 //  V2
@@ -259,19 +234,10 @@ self.onmessage = function (e) {
                 var h2 = hf * elv;
                 var v2 = new Vec3(nv[vInd2] + h2 * nn[vInd2], nv[vInd2 + 1] + h2 * nn[vInd2 + 1], nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
 
-                doubleToTwoFloats(v2, _tempHigh, _tempLow);
 
                 normalMapVertices[vInd2] = v2.x;
                 normalMapVertices[vInd2 + 1] = v2.y;
                 normalMapVertices[vInd2 + 2] = v2.z;
-
-                normalMapVerticesHigh[vInd2] = _tempHigh.x;
-                normalMapVerticesHigh[vInd2 + 1] = _tempHigh.y;
-                normalMapVerticesHigh[vInd2 + 2] = _tempHigh.z;
-
-                normalMapVerticesLow[vInd2] = _tempLow.x;
-                normalMapVerticesLow[vInd2 + 1] = _tempLow.y;
-                normalMapVerticesLow[vInd2 + 2] = _tempLow.z;
 
                 //
                 //  V3
@@ -285,19 +251,10 @@ self.onmessage = function (e) {
                 var h3 = hf * elv;
                 var v3 = new Vec3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
 
-                doubleToTwoFloats(v3, _tempHigh, _tempLow);
 
                 normalMapVertices[vInd3] = v3.x;
                 normalMapVertices[vInd3 + 1] = v3.y;
                 normalMapVertices[vInd3 + 2] = v3.z;
-
-                normalMapVerticesHigh[vInd3] = _tempHigh.x;
-                normalMapVerticesHigh[vInd3 + 1] = _tempHigh.y;
-                normalMapVerticesHigh[vInd3 + 2] = _tempHigh.z;
-
-                normalMapVerticesLow[vInd3] = _tempLow.x;
-                normalMapVerticesLow[vInd3 + 1] = _tempLow.y;
-                normalMapVerticesLow[vInd3 + 2] = _tempLow.z;
 
                 //
                 // Normal
@@ -329,12 +286,9 @@ self.onmessage = function (e) {
 
         normalMapNormals = new Float32Array(gsgs3);
         normalMapVertices = new Float64Array(gsgs3);
-        normalMapVerticesHigh = new Float32Array(gsgs3);
-        normalMapVerticesLow = new Float32Array(gsgs3);
         normalMapNormals = new Float32Array(gsgs3);
 
         var oneSize = tgs / fileGridSize;
-        var h, inside_i, inside_j, v_i, v_j;
         var gsgs = gsgs3 / 3;
         var fgsOne = fileGridSize + 1;
 
@@ -405,8 +359,6 @@ self.onmessage = function (e) {
         }
 
         normalMapVertices.set(terrainVertices);
-        normalMapVerticesHigh.set(terrainVerticesHigh);
-        normalMapVerticesLow.set(terrainVerticesLow);
 
         for (let k = 0; k < gsgs; k++) {
 
@@ -450,18 +402,14 @@ self.onmessage = function (e) {
         id: id,
         normalMapNormals: normalMapNormals,
         normalMapVertices: normalMapVertices,
-        normalMapVerticesHigh: normalMapVerticesHigh,
-        normalMapVerticesLow: normalMapVerticesLow,
         terrainVertices: terrainVertices,
         terrainVerticesHigh: terrainVerticesHigh,
         terrainVerticesLow: terrainVerticesLow,
-        noDataVertices: noDataVertices, //bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
+        noDataVertices: noDataVertices,
         bounds: [xmin, ymin, zmin, xmax, ymax, zmax]
     }, [
         normalMapNormals.buffer,
         normalMapVertices.buffer,
-        normalMapVerticesHigh.buffer,
-        normalMapVerticesLow.buffer,
         terrainVertices.buffer,
         terrainVerticesHigh.buffer,
         terrainVerticesLow.buffer,

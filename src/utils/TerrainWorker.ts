@@ -16,8 +16,6 @@ export interface ITerrainWorkerData {
     id: number;
     normalMapNormals: Float32Array | null;
     normalMapVertices: Float64Array | null;
-    normalMapVerticesHigh: Float32Array | null;
-    normalMapVerticesLow: Float32Array | null;
     terrainVertices: Float64Array | null;
     terrainVerticesHigh: Float32Array | null;
     terrainVerticesLow: Float32Array | null;
@@ -40,8 +38,6 @@ class TerrainWorker extends BaseWorker<TerrainInfo> {
 
         e.data.normalMapNormals = null;
         e.data.normalMapVertices = null;
-        e.data.normalMapVerticesHigh = null;
-        e.data.normalMapVerticesLow = null;
         e.data.terrainVertices = null;
         e.data.terrainVerticesHigh = null;
         e.data.terrainVerticesLow = null;

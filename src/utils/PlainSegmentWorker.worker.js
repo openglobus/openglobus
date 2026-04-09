@@ -208,12 +208,8 @@ self.onmessage = function (msg) {
         let plainVertices = new Float64Array(gridSize3);
         let plainVerticesHigh = new Float32Array(gridSize3);
         let plainVerticesLow = new Float32Array(gridSize3);
-
         let normalMapNormals = new Float32Array(gsgs * 3);
-
         let normalMapVertices = new Float64Array(gsgs * 3);
-        let normalMapVerticesHigh = new Float32Array(gsgs * 3);
-        let normalMapVerticesLow = new Float32Array(gsgs * 3);
 
         let ind = 0,
             nmInd = 0;
@@ -235,21 +231,13 @@ self.onmessage = function (msg) {
             rtcPos.y = worldPos.y - rtc_y;
             rtcPos.z = worldPos.z - rtc_z;
 
-            doubleToTwoFloats(worldPos, _tempHigh, _tempLow);
-
             normalMapVertices[nmInd] = worldPos.x;
-            normalMapVerticesHigh[nmInd] = _tempHigh.x;
-            normalMapVerticesLow[nmInd] = _tempLow.x;
             normalMapNormals[nmInd++] = nxl;
 
             normalMapVertices[nmInd] = worldPos.y;
-            normalMapVerticesHigh[nmInd] = _tempHigh.y;
-            normalMapVerticesLow[nmInd] = _tempLow.y;
             normalMapNormals[nmInd++] = nyl;
 
             normalMapVertices[nmInd] = worldPos.z;
-            normalMapVerticesHigh[nmInd] = _tempHigh.z;
-            normalMapVerticesLow[nmInd] = _tempLow.z;
             normalMapNormals[nmInd++] = nzl;
 
             if (i % dg === 0 && j % dg === 0) {
@@ -294,8 +282,6 @@ self.onmessage = function (msg) {
             plainNormals: plainNormals,
             normalMapNormals: normalMapNormals,
             normalMapVertices: normalMapVertices,
-            normalMapVerticesHigh: normalMapVerticesHigh,
-            normalMapVerticesLow: normalMapVerticesLow,
             plainRadius: plainRadius,
             relativeCenter: [rtc_x, rtc_y, rtc_z]
         }, [
@@ -305,8 +291,6 @@ self.onmessage = function (msg) {
             plainNormals.buffer,
             normalMapNormals.buffer,
             normalMapVertices.buffer,
-            normalMapVerticesHigh.buffer,
-            normalMapVerticesLow.buffer
         ]);
     }
 }
