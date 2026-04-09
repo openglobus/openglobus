@@ -67,6 +67,10 @@ let _v0 = new Vec3(),
     _v2 = new Vec3(),
     _v3 = new Vec3();
 
+let _xyzRtc = new Vec3(),
+    _resRtc = new Vec3(),
+    _vrtRtc = new Vec3();
+
 let _ray = new Ray(),
     _rayEx = new Ray();
 
@@ -420,7 +424,7 @@ class Segment {
 
         this._transitionTimestamp = 0;
 
-        this._relativeCenter = new Vec3();
+        this._relativeCenter = new Vec3(-1326380.8397830778, -4758529.874201565, 4046843.547079439);
         this._rtcEyePositionHigh = new Float32Array([0, 0, 0]);
         this._rtcEyePositionLow = new Float32Array([0, 0, 0]);
         this.__doubleToTwoFloats = this.getRTCPosition.bind(this);
@@ -460,19 +464,20 @@ class Segment {
     };
 
     public setRelativeCenter(c: Vec3) {
-        if (this._relativeCenter.equal(c)) {
-            return;
-        }
-
-        this._relativeCenter.copy(c);
-
-        Segment.recalcRTCVertices(c, this.plainVertices!, this.plainVerticesHigh!, this.plainVerticesLow!);
-        Segment.recalcRTCVertices(c, this.terrainVertices!, this.terrainVerticesHigh!, this.terrainVerticesLow!);
-        Segment.recalcRTCVertices(c, this.renderVertices!, this.renderVerticesHigh!, this.renderVerticesLow!);
-
-        if (this.vertexPositionBufferHigh && this.vertexPositionBufferLow && this.renderVerticesHigh && this.renderVerticesLow) {
-            this.createCoordsBuffers(this.renderVerticesHigh, this.renderVerticesLow, this.gridSize);
-        }
+        // if (this._relativeCenter.equal(c)) {
+        //     return;
+        // }
+        //
+        // const prevRelativeCenter = this._relativeCenter.clone();
+        // this._relativeCenter.copy(c);
+        //
+        // Segment.recalcRTCVertices(prevRelativeCenter, c, this.plainVertices!, this.plainVerticesHigh!, this.plainVerticesLow!);
+        // Segment.recalcRTCVertices(prevRelativeCenter, c, this.terrainVertices!, this.terrainVerticesHigh!, this.terrainVerticesLow!);
+        // Segment.recalcRTCVertices(prevRelativeCenter, c, this.renderVertices!, this.renderVerticesHigh!, this.renderVerticesLow!);
+        //
+        // if (this.vertexPositionBufferHigh && this.vertexPositionBufferLow && this.renderVerticesHigh && this.renderVerticesLow) {
+        //     this.createCoordsBuffers(this.renderVerticesHigh, this.renderVerticesLow, this.gridSize);
+        // }
     }
 
     public updateRTCEyePosition(camera: PlanetCamera) {
@@ -481,13 +486,8 @@ class Segment {
     }
 
     protected _setRTCEyePositionUniforms(gl: WebGL2RenderingContext, shu: { [id: string]: WebGLUniformLocation }) {
-        const rtcEyePositionHigh = shu.rtcEyePositionHigh;
-        const rtcEyePositionLow = shu.rtcEyePositionLow;
-
-        if (rtcEyePositionHigh && rtcEyePositionLow) {
-            gl.uniform3fv(rtcEyePositionHigh, this._rtcEyePositionHigh);
-            gl.uniform3fv(rtcEyePositionLow, this._rtcEyePositionLow);
-        }
+        gl.uniform3fv(shu.rtcEyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(shu.rtcEyePositionLow, this._rtcEyePositionLow);
     }
 
     public checkZoom(): boolean {
@@ -526,7 +526,13 @@ class Segment {
 
         if (verts && verts.length) {
             let norm = this.planet.ellipsoid.getSurfaceNormal3v(xyz);
-            _ray.set(xyz, norm.negateTo());
+            _xyzRtc.set(
+                xyz.x - this._relativeCenter.x,
+                xyz.y - this._relativeCenter.y,
+                xyz.z - this._relativeCenter.z
+            );
+
+            _ray.set(_xyzRtc, norm.negateTo());
 
             let ne = this._extent.northEast,
                 sw = this._extent.southWest,
@@ -558,37 +564,59 @@ class Segment {
             _v1.set(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]);
             _v2.set(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
 
-            let d = _ray.hitTriangleRes(_v0, _v1, _v2, res);
+            let d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
 
             if (d === Ray.INSIDE) {
-                return xyz.distance(res);
+                res.set(
+                    _resRtc.x + this._relativeCenter.x,
+                    _resRtc.y + this._relativeCenter.y,
+                    _resRtc.z + this._relativeCenter.z
+                );
+                return _xyzRtc.distance(_resRtc);
             } else if (d === Ray.AWAY) {
-                _rayEx.set(xyz, norm);
-                let d = _rayEx.hitTriangleRes(_v0, _v1, _v2, res);
+                _rayEx.set(_xyzRtc, norm);
+                let d = _rayEx.hitTriangleRes(_v0, _v1, _v2, _resRtc);
                 if (d === Ray.INSIDE) {
-                    return -xyz.distance(res);
+                    res.set(
+                        _resRtc.x + this._relativeCenter.x,
+                        _resRtc.y + this._relativeCenter.y,
+                        _resRtc.z + this._relativeCenter.z
+                    );
+                    return -_xyzRtc.distance(_resRtc);
                 }
             }
 
             _v3.set(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
 
-            d = _ray.hitTriangleRes(_v1, _v3, _v2, res);
+            d = _ray.hitTriangleRes(_v1, _v3, _v2, _resRtc);
             if (d === Ray.INSIDE) {
-                return xyz.distance(res);
+                res.set(
+                    _resRtc.x + this._relativeCenter.x,
+                    _resRtc.y + this._relativeCenter.y,
+                    _resRtc.z + this._relativeCenter.z
+                );
+                return _xyzRtc.distance(_resRtc);
             } else if (d === Ray.AWAY) {
-                _rayEx.set(xyz, norm);
-                let d = _rayEx.hitTriangleRes(_v1, _v3, _v2, res);
+                _rayEx.set(_xyzRtc, norm);
+                let d = _rayEx.hitTriangleRes(_v1, _v3, _v2, _resRtc);
                 if (d === Ray.INSIDE) {
-                    return -xyz.distance(res);
+                    res.set(
+                        _resRtc.x + this._relativeCenter.x,
+                        _resRtc.y + this._relativeCenter.y,
+                        _resRtc.z + this._relativeCenter.z
+                    );
+                    return -_xyzRtc.distance(_resRtc);
                 }
             }
 
             if (d === Ray.AWAY) {
-                return -xyz.distance(res);
+                return -_xyzRtc.distance(_resRtc);
             }
 
-            return xyz.distance(res);
+            return _xyzRtc.distance(_resRtc);
         } else {
+            let norm = this.planet.ellipsoid.getSurfaceNormal3v(xyz);
+            _ray.set(xyz, norm.negateTo());
             return xyz.distance(this.planet.ellipsoid.hitRay(_ray.origin, _ray.direction)!);
         }
     }
@@ -1697,30 +1725,32 @@ class Segment {
                 nyl = ny * l,
                 nzl = nz * l;
 
-            this.__doubleToTwoFloats(v, _tempHigh, _tempLow);
-            //Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
+            _vrtRtc.set(v.x - rcx, v.y - rcy, v.z - rcz);
 
-            nmVerts[nmInd] = v.x - rcx;
+            nmVerts[nmInd] = _vrtRtc.x;
             nmNorms[nmInd++] = nxl;
 
-            nmVerts[nmInd] = v.y - rcy;
+            nmVerts[nmInd] = _vrtRtc.y;
             nmNorms[nmInd++] = nyl;
 
-            nmVerts[nmInd] = v.z - rcz;
+            nmVerts[nmInd] = _vrtRtc.z;
             nmNorms[nmInd++] = nzl;
 
             if (i % dg === 0 && j % dg === 0) {
-                verts[ind] = v.x;
+
+                Vec3.doubleToTwoFloats(_vrtRtc, _tempHigh, _tempLow);
+
+                verts[ind] = _vrtRtc.x;
                 vertsHigh[ind] = _tempHigh.x;
                 vertsLow[ind] = _tempLow.x;
                 norms[ind++] = nxl;
 
-                verts[ind] = v.y;
+                verts[ind] = _vrtRtc.y;
                 vertsHigh[ind] = _tempHigh.y;
                 vertsLow[ind] = _tempLow.y;
                 norms[ind++] = nyl;
 
-                verts[ind] = v.z;
+                verts[ind] = _vrtRtc.z;
                 vertsHigh[ind] = _tempHigh.z;
                 vertsLow[ind] = _tempLow.z;
                 norms[ind++] = nzl;
