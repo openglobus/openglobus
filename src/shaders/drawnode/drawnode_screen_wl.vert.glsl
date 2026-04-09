@@ -19,6 +19,7 @@ uniform vec3 rtcEyePositionLow;
 
 out vec4 vTextureCoord;
 out vec3 v_vertex;
+out vec3 v_worldVertex;
 out vec3 v_viewPosition;
 out vec3 cameraPosition;
 out vec2 vGlobalTextureCoord;
@@ -37,6 +38,7 @@ void main(void) {
 
     vec3 highDiff = aVertexPositionHigh - rtcEyePositionHigh;
     vec3 lowDiff = aVertexPositionLow - rtcEyePositionLow + nh;
+    vec3 rtcWorldOffset = highDiff + lowDiff;
 
     highDiff = highDiff * step(1.0, length(highDiff));
 
@@ -45,6 +47,7 @@ void main(void) {
 
     v_height = height;
     v_vertex = aVertexPosition + nh;
+    v_worldVertex = rtcWorldOffset + cameraPosition;
 
     vec4 viewPos = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
     v_viewPosition = viewPos.xyz;

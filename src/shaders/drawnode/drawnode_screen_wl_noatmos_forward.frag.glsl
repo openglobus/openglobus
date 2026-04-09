@@ -30,7 +30,7 @@ uniform float camHeight;
 uniform float shadeMode;
 
 in vec4 vTextureCoord;
-in vec3 v_vertex;
+in vec3 v_worldVertex;
 in vec3 cameraPosition;
 in vec2 vGlobalTextureCoord;
 in float v_height;
@@ -45,7 +45,7 @@ void main(void) {
 
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal = shadeMode < 0.5
-        ? normalize(v_vertex)
+        ? normalize(v_worldVertex)
         : normalize((texNormal - 0.5) * 2.0);
 
     float specularMask = 0.0;
@@ -62,7 +62,7 @@ void main(void) {
     vec3 specularWeighting;
 
     getPhongLighting(
-    v_vertex,
+    v_worldVertex,
     normal,
     cameraPosition,
     sunPos,

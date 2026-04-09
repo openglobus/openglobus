@@ -39,7 +39,7 @@ uniform float transitionOpacity;
 uniform float shadeMode;
 
 in vec4 vTextureCoord;
-in vec3 v_vertex;
+in vec3 v_worldVertex;
 in vec3 cameraPosition;
 in vec2 vGlobalTextureCoord;
 in float v_height;
@@ -54,7 +54,7 @@ void main(void) {
 
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal = shadeMode < 0.5
-        ? normalize(v_vertex)
+        ? normalize(v_worldVertex)
         : normalize((texNormal - 0.5) * 2.0);
 
     float specularMask = 0.0;
@@ -72,15 +72,15 @@ void main(void) {
     float fadingOpacity;
     vec4 atmosColor;
 
-    vec3 viewDir = normalize(cameraPosition - v_vertex);
+    vec3 viewDir = normalize(cameraPosition - v_worldVertex);
 
-    atmosGroundColor(v_vertex, normal, cameraPosition, sunPos, atmosColor);
+    atmosGroundColor(v_worldVertex, normal, cameraPosition, sunPos, atmosColor);
 
     vec3 sunIlluminance;
-    getSunIlluminance(v_vertex * SPHERE_TO_ELLIPSOID_SCALE, normalize(sunPos) * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+    getSunIlluminance(v_worldVertex * SPHERE_TO_ELLIPSOID_SCALE, normalize(sunPos) * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
 
     getPhongLighting(
-    v_vertex,
+    v_worldVertex,
     normal,
     cameraPosition,
     sunPos,
@@ -93,7 +93,7 @@ void main(void) {
     lightWeighting
     );
 
-    getAtmosFadingOpacity(v_vertex, cameraPosition, atmosFadeDist, fadingOpacity);
+    getAtmosFadingOpacity(v_worldVertex, cameraPosition, atmosFadeDist, fadingOpacity);
 
     getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
 
