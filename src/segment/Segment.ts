@@ -1110,13 +1110,8 @@ class Segment {
             let seg_a_raw = s.normalMapNormals!,
                 seg_b_raw = b.normalMapNormals!;
 
-            // let seg_a_verts = s.terrainVertices,
-            //     seg_b_verts = s.terrainVertices;
-
             let s_gs = Math.sqrt(seg_a.length / 3),
-                // b_gs = Math.sqrt(seg_b.length / 3),
                 s_gs1 = s_gs - 1;
-            // b_gs1 = b_gs - 1;
 
             const i_a = s_gs1 * _S[side];
 
@@ -1364,6 +1359,10 @@ class Segment {
         let offsetX = this.tileX - pn.segment.tileX * dZ2,
             offsetY = this.tileY - pn.segment.tileY * dZ2;
 
+        let rtc_x = this._relativeCenter.x,
+            rtc_y = this._relativeCenter.y,
+            rtc_z = this._relativeCenter.z;
+
         if (pn.segment.terrainReady && pn.segment.tileZoom >= this.planet.terrain!.minZoom) {
             let gridSize = pn.segment.gridSize / dZ2;
 
@@ -1388,12 +1387,12 @@ class Segment {
 
                 let pVerts = pn.segment.renderVertices!;
 
-                let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
-                    v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
+                let v_sw = new Vec3(pVerts[ind_sw] + rtc_x, pVerts[ind_sw + 1] + rtc_y, pVerts[ind_sw + 2] + rtc_z),
+                    v_ne = new Vec3(pVerts[ind_ne] + rtc_x, pVerts[ind_ne + 1] + rtc_y, pVerts[ind_ne + 2] + rtc_z);
 
                 // check for segment zoom
-                let v_nw = new Vec3(pVerts[ind_nw], pVerts[ind_nw + 1], pVerts[ind_nw + 2]),
-                    v_se = new Vec3(pVerts[ind_se], pVerts[ind_se + 1], pVerts[ind_se + 2]);
+                let v_nw = new Vec3(pVerts[ind_nw] + rtc_x, pVerts[ind_nw + 1] + rtc_y, pVerts[ind_nw + 2] + rtc_z),
+                    v_se = new Vec3(pVerts[ind_se] + rtc_x, pVerts[ind_se + 1] + rtc_y, pVerts[ind_se + 2] + rtc_z);
 
                 this._sw.copy(v_sw);
                 this._nw.copy(v_nw);
@@ -1418,29 +1417,13 @@ class Segment {
                     bigOne = getMatrixSubArray64(pseg.renderVertices!, pseg.gridSize, i0, j0, 1);
                 }
 
-                let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
-                    v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
+                let v_lt = new Vec3(bigOne[0] + rtc_x, bigOne[1] + rtc_y, bigOne[2] + rtc_z),
+                    v_rb = new Vec3(bigOne[9] + rtc_x, bigOne[10] + rtc_y, bigOne[11] + rtc_z);
 
-                let vn = new Vec3(
-                        bigOne[3] - bigOne[0],
-                        bigOne[4] - bigOne[1],
-                        bigOne[5] - bigOne[2]
-                    ),
-                    vw = new Vec3(
-                        bigOne[6] - bigOne[0],
-                        bigOne[7] - bigOne[1],
-                        bigOne[8] - bigOne[2]
-                    ),
-                    ve = new Vec3(
-                        bigOne[3] - bigOne[9],
-                        bigOne[4] - bigOne[10],
-                        bigOne[5] - bigOne[11]
-                    ),
-                    vs = new Vec3(
-                        bigOne[6] - bigOne[9],
-                        bigOne[7] - bigOne[10],
-                        bigOne[8] - bigOne[11]
-                    );
+                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                    ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                    vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
 
                 let vi_y = t_i0,
                     vi_x = t_j0;

@@ -313,6 +313,7 @@ var strips = new Vector("Strips", {
 globe.planet.addLayer(strips);
 
 globe.planet.addControl(new control.ElevationProfileControl());
+globe.planet.addControl(new control.DebugInfo());
 
 let ruler = new control.RulerSwitcher({
     ignoreTerrain: false
