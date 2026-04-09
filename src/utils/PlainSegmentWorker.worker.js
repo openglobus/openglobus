@@ -231,13 +231,13 @@ self.onmessage = function (msg) {
             rtcPos.y = worldPos.y - rtc_y;
             rtcPos.z = worldPos.z - rtc_z;
 
-            normalMapVertices[nmInd] = worldPos.x;
+            normalMapVertices[nmInd] = rtcPos.x;
             normalMapNormals[nmInd++] = nxl;
 
-            normalMapVertices[nmInd] = worldPos.y;
+            normalMapVertices[nmInd] = rtcPos.y;
             normalMapNormals[nmInd++] = nyl;
 
-            normalMapVertices[nmInd] = worldPos.z;
+            normalMapVertices[nmInd] = rtcPos.z;
             normalMapNormals[nmInd++] = nzl;
 
             if (i % dg === 0 && j % dg === 0) {

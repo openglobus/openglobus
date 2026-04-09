@@ -1606,6 +1606,9 @@ class Segment {
         this.plainProcessing = false;
 
         if (this.initialized && !this.terrainReady) {
+
+            this._relativeCenter.set(data.relativeCenter[0], data.relativeCenter[1], data.relativeCenter[2]);
+
             this.plainReady = true;
 
             this.plainVertices = data.plainVertices;
@@ -1616,10 +1619,6 @@ class Segment {
 
             this.normalMapNormals = data.normalMapNormals;
             this.normalMapVertices = data.normalMapVertices;
-
-            //this.terrainVertices = this.plainVertices;
-            //this.terrainVerticesHigh = this.plainVerticesHigh;
-            //this.terrainVerticesLow = this.plainVerticesLow;
 
             this.fileGridSize = Math.sqrt(data.normalMapVertices!.length / 3) - 1;
         }
@@ -1651,6 +1650,9 @@ class Segment {
         const r2 = this.planet.ellipsoid._invRadii2;
         const gsgs = gs * gs;
         const gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
+        const rcx = this._relativeCenter.x;
+        const rcy = this._relativeCenter.y;
+        const rcz = this._relativeCenter.z;
 
         let ind = 0,
             nmInd = 0;
@@ -1691,13 +1693,13 @@ class Segment {
             this.__doubleToTwoFloats(v, _tempHigh, _tempLow);
             //Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
 
-            nmVerts[nmInd] = v.x;
+            nmVerts[nmInd] = v.x - rcx;
             nmNorms[nmInd++] = nxl;
 
-            nmVerts[nmInd] = v.y;
+            nmVerts[nmInd] = v.y - rcy;
             nmNorms[nmInd++] = nyl;
 
-            nmVerts[nmInd] = v.z;
+            nmVerts[nmInd] = v.z - rcz;
             nmNorms[nmInd++] = nzl;
 
             if (i % dg === 0 && j % dg === 0) {
