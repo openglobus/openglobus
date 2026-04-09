@@ -994,6 +994,13 @@ class Segment {
 
     public _terrainWorkerCallback(data: ITerrainWorkerData) {
         if (this.plainReady) {
+
+            let originalRelativeCenter= new Vec3(data.relativeCenter[0], data.relativeCenter[1], data.relativeCenter[2]);
+
+            if(!this._relativeCenter.equal(originalRelativeCenter)) {
+                console.warn("RECALCULATE TERRAIN VERTICES");
+            }
+
             this.readyToEngage = true;
 
             this.normalMapNormals = null;

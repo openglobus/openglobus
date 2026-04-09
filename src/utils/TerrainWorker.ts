@@ -6,6 +6,7 @@ import type {NumberArray6} from "../bv/Sphere";
 
 //@ts-ignore
 import TerrainWorkerImpl from './TerrainWorker.worker.js?worker&inline';
+import {NumberArray3} from "../math/Vec3";
 
 interface TerrainInfo {
     segment: Segment;
@@ -21,6 +22,7 @@ export interface ITerrainWorkerData {
     terrainVerticesLow: Float32Array | null;
     noDataVertices: Uint8Array | null;
     bounds: NumberArray6;
+    relativeCenter: NumberArray3;
 }
 
 type MessageEventExt = MessageEvent & {
@@ -43,6 +45,7 @@ class TerrainWorker extends BaseWorker<TerrainInfo> {
         e.data.terrainVerticesLow = null;
         e.data.noDataVertices = null;
         e.data.bounds = null;
+        e.data.relativeCenter = null;
     }
 
     public override make(info: TerrainInfo) {
@@ -57,15 +60,16 @@ class TerrainWorker extends BaseWorker<TerrainInfo> {
                 let segment = info.segment;
 
                 w.postMessage({
-                    'elevations': info.elevations,
-                    'this_plainVertices': segment.plainVertices,
-                    'this_plainNormals': segment.plainNormals,
-                    'this_normalMapVertices': segment.normalMapVertices,
-                    'this_normalMapNormals': segment.normalMapNormals,
-                    'heightFactor': segment.planet._heightFactor,
-                    'gridSize': segment.planet.terrain!.gridSizeByZoom[segment.tileZoom],
-                    'noDataValues': segment.planet.terrain!.noDataValues,
-                    'id': this._sourceId
+                    elevations: info.elevations,
+                    this_plainVertices: segment.plainVertices,
+                    this_plainNormals: segment.plainNormals,
+                    this_normalMapVertices: segment.normalMapVertices,
+                    this_normalMapNormals: segment.normalMapNormals,
+                    heightFactor: segment.planet._heightFactor,
+                    gridSize: segment.planet.terrain!.gridSizeByZoom[segment.tileZoom],
+                    noDataValues: segment.planet.terrain!.noDataValues,
+                    id: this._sourceId,
+                    relativeCenter: [segment._relativeCenter.x, segment._relativeCenter.y, segment._relativeCenter.z],
                 }, [
                     info.elevations.buffer,
                     segment.plainVertices!.buffer,

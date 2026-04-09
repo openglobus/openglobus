@@ -95,15 +95,26 @@ var blerp = function (x, y, fQ11, fQ21, fQ12, fQ22) {
 };
 
 var _tempVec = new Vec3(0.0, 0.0, 0.0);
+var _rtcTempVec = new Vec3(0.0, 0.0, 0.0);
 
 var _tempHigh = new Vec3(0.0, 0.0, 0.0),
     _tempLow = new Vec3(0.0, 0.0, 0.0);
 
 self.onmessage = function (e) {
-    var elevations = e.data.elevations, this_plainVertices = e.data.this_plainVertices,
-        this_plainNormals = e.data.this_plainNormals, this_normalMapVertices = e.data.this_normalMapVertices,
-        this_normalMapNormals = e.data.this_normalMapNormals, heightFactor = e.data.heightFactor,
-        gridSize = e.data.gridSize, noDataValues = e.data.noDataValues, id = e.data.id;
+
+    var elevations = e.data.elevations,
+        this_plainVertices = e.data.this_plainVertices,
+        this_plainNormals = e.data.this_plainNormals,
+        this_normalMapVertices = e.data.this_normalMapVertices,
+        this_normalMapNormals = e.data.this_normalMapNormals,
+        heightFactor = e.data.heightFactor,
+        gridSize = e.data.gridSize,
+        noDataValues = e.data.noDataValues,
+        id = e.data.id;
+
+    let rtc_x = e.data.relativeCenter[0],
+        rtc_y = e.data.relativeCenter[1],
+        rtc_z = e.data.relativeCenter[2];
 
     var xmin = 549755748352.0, xmax = -549755748352.0, ymin = 549755748352.0, ymax = -549755748352.0,
         zmin = 549755748352.0, zmax = -549755748352.0;
@@ -150,20 +161,22 @@ self.onmessage = function (e) {
                 currElv = 0.0;
             }
             var h0 = hf * currElv;
-            var v0 = new Vec3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
+            var v0 = new Vec3(
+                rtc_x + nv[vInd0] + h0 * nn[vInd0],
+                rtc_y + nv[vInd0 + 1] + h0 * nn[vInd0 + 1],
+                rtc_z + nv[vInd0 + 2] + h0 * nn[vInd0 + 2]
+            );
 
-            doubleToTwoFloats(v0, _tempHigh, _tempLow);
-
-            normalMapVertices[vInd0] = v0.x;
-            normalMapVertices[vInd0 + 1] = v0.y;
-            normalMapVertices[vInd0 + 2] = v0.z;
+            normalMapVertices[vInd0] = v0.x - rtc_x;
+            normalMapVertices[vInd0 + 1] = v0.y - rtc_y;
+            normalMapVertices[vInd0 + 2] = v0.z - rtc_z;
 
             //
             // The vertex goes into screen buffer
             if (i % dg === 0 && j % dg === 0) {
 
-                let currVert = new Vec3(nv[vInd0], nv[vInd0 + 1], nv[vInd0 + 2]);
-                let nextVert = new Vec3(nv[vInd0 + 3], nv[vInd0 + 4], nv[vInd0 + 5]);
+                let currVert = new Vec3(rtc_x + nv[vInd0], rtc_y + nv[vInd0 + 1], rtc_z + nv[vInd0 + 2]);
+                let nextVert = new Vec3(rtc_x + nv[vInd0 + 3], rtc_y + nv[vInd0 + 4], rtc_z + nv[vInd0 + 5]);
 
                 let nextElv = elevations[hInd0 + 1];
                 if (checkNoDataValue(noDataValues, nextElv)) {
@@ -189,17 +202,20 @@ self.onmessage = function (e) {
                     if (v0.z > zmax) zmax = v0.z;
                 }
 
+                let rtc_v0 = new Vec3(v0.x - rtc_x, v0.y - rtc_y, v0.z - rtc_z);
+                doubleToTwoFloats(rtc_v0, _tempHigh, _tempLow);
+
                 terrainVerticesHigh[vInd] = _tempHigh.x;
                 terrainVerticesLow[vInd] = _tempLow.x;
-                terrainVertices[vInd++] = v0.x;
+                terrainVertices[vInd++] = rtc_v0.x;
 
                 terrainVerticesHigh[vInd] = _tempHigh.y;
                 terrainVerticesLow[vInd] = _tempLow.y;
-                terrainVertices[vInd++] = v0.y;
+                terrainVertices[vInd++] = rtc_v0.y;
 
                 terrainVerticesHigh[vInd] = _tempHigh.z;
                 terrainVerticesLow[vInd] = _tempLow.z;
-                terrainVertices[vInd++] = v0.z;
+                terrainVertices[vInd++] = rtc_v0.z;
 
                 noDataInd++;
             }
@@ -216,11 +232,15 @@ self.onmessage = function (e) {
                     elv = 0.0;
                 }
                 var h1 = hf * elv;
-                var v1 = new Vec3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
+                var v1 = new Vec3(
+                    rtc_x + nv[vInd1] + h1 * nn[vInd1],
+                    rtc_y + nv[vInd1 + 1] + h1 * nn[vInd1 + 1],
+                    rtc_z + nv[vInd1 + 2] + h1 * nn[vInd1 + 2]
+                );
 
-                normalMapVertices[vInd1] = v1.x;
-                normalMapVertices[vInd1 + 1] = v1.y;
-                normalMapVertices[vInd1 + 2] = v1.z;
+                normalMapVertices[vInd1] = v1.x - rtc_x;
+                normalMapVertices[vInd1 + 1] = v1.y - rtc_y;
+                normalMapVertices[vInd1 + 2] = v1.z - rtc_z;
 
                 //
                 //  V2
@@ -232,12 +252,15 @@ self.onmessage = function (e) {
                     elv = 0.0;
                 }
                 var h2 = hf * elv;
-                var v2 = new Vec3(nv[vInd2] + h2 * nn[vInd2], nv[vInd2 + 1] + h2 * nn[vInd2 + 1], nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
+                var v2 = new Vec3(
+                    rtc_x + nv[vInd2] + h2 * nn[vInd2],
+                    rtc_y + nv[vInd2 + 1] + h2 * nn[vInd2 + 1],
+                    rtc_z + nv[vInd2 + 2] + h2 * nn[vInd2 + 2]
+                );
 
-
-                normalMapVertices[vInd2] = v2.x;
-                normalMapVertices[vInd2 + 1] = v2.y;
-                normalMapVertices[vInd2 + 2] = v2.z;
+                normalMapVertices[vInd2] = v2.x - rtc_x;
+                normalMapVertices[vInd2 + 1] = v2.y - rtc_y;
+                normalMapVertices[vInd2 + 2] = v2.z - rtc_z;
 
                 //
                 //  V3
@@ -249,17 +272,24 @@ self.onmessage = function (e) {
                     elv = 0.0;
                 }
                 var h3 = hf * elv;
-                var v3 = new Vec3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
+                var v3 = new Vec3(
+                    rtc_x + nv[vInd3] + h3 * nn[vInd3],
+                    rtc_y + nv[vInd3 + 1] + h3 * nn[vInd3 + 1],
+                    rtc_z + nv[vInd3 + 2] + h3 * nn[vInd3 + 2]
+                );
 
 
-                normalMapVertices[vInd3] = v3.x;
-                normalMapVertices[vInd3 + 1] = v3.y;
-                normalMapVertices[vInd3 + 2] = v3.z;
+                normalMapVertices[vInd3] = v3.x - rtc_x;
+                normalMapVertices[vInd3 + 1] = v3.y - rtc_y;
+                normalMapVertices[vInd3 + 2] = v3.z - rtc_z;
 
                 //
                 // Normal
                 //
-                var e10 = v1.sub(v0), e20 = v2.sub(v0), e30 = v3.sub(v0);
+                var e10 = v1.sub(v0),
+                    e20 = v2.sub(v0),
+                    e30 = v3.sub(v0);
+
                 var sw = e20.cross(e30).normalize();
                 var ne = e30.cross(e10).normalize();
                 var n0 = ne.add(sw).normalize();
@@ -286,7 +316,6 @@ self.onmessage = function (e) {
 
         normalMapNormals = new Float32Array(gsgs3);
         normalMapVertices = new Float64Array(gsgs3);
-        normalMapNormals = new Float32Array(gsgs3);
 
         var oneSize = tgs / fileGridSize;
         var gsgs = gsgs3 / 3;
@@ -334,13 +363,15 @@ self.onmessage = function (e) {
 
             let i3 = i * 3;
 
-            _tempVec.x = this_plainVertices[i3] + hi * this_plainNormals[i3], _tempVec.y = this_plainVertices[i3 + 1] + hi * this_plainNormals[i3 + 1], _tempVec.z = this_plainVertices[i3 + 2] + hi * this_plainNormals[i3 + 2];
+            _rtcTempVec.x = this_plainVertices[i3] + hi * this_plainNormals[i3];
+            _rtcTempVec.y = this_plainVertices[i3 + 1] + hi * this_plainNormals[i3 + 1];
+            _rtcTempVec.z = this_plainVertices[i3 + 2] + hi * this_plainNormals[i3 + 2];
 
-            doubleToTwoFloats(_tempVec, _tempHigh, _tempLow);
+            doubleToTwoFloats(_rtcTempVec, _tempHigh, _tempLow);
 
-            terrainVertices[i3] = _tempVec.x;
-            terrainVertices[i3 + 1] = _tempVec.y;
-            terrainVertices[i3 + 2] = _tempVec.z;
+            terrainVertices[i3] = _rtcTempVec.x;
+            terrainVertices[i3 + 1] = _rtcTempVec.y;
+            terrainVertices[i3 + 2] = _rtcTempVec.z;
 
             terrainVerticesHigh[i3] = _tempHigh.x;
             terrainVerticesHigh[i3 + 1] = _tempHigh.y;
@@ -349,6 +380,10 @@ self.onmessage = function (e) {
             terrainVerticesLow[i3] = _tempLow.x;
             terrainVerticesLow[i3 + 1] = _tempLow.y;
             terrainVerticesLow[i3 + 2] = _tempLow.z;
+
+            _tempVec.x = _rtcTempVec.x + rtc_x;
+            _tempVec.y = _rtcTempVec.y + rtc_y;
+            _tempVec.z = _rtcTempVec.z + rtc_z;
 
             if (_tempVec.x < xmin) xmin = _tempVec.x;
             if (_tempVec.x > xmax) xmax = _tempVec.x;
@@ -367,11 +402,10 @@ self.onmessage = function (e) {
             if (i !== tgs && j !== tgs) {
                 let v0ind = k * 3, v1ind = v0ind + 3, v2ind = v0ind + gs * 3, v3ind = v2ind + 3;
 
-
-                let v0 = new Vec3(terrainVertices[v0ind], terrainVertices[v0ind + 1], terrainVertices[v0ind + 2]),
-                    v1 = new Vec3(terrainVertices[v1ind], terrainVertices[v1ind + 1], terrainVertices[v1ind + 2]),
-                    v2 = new Vec3(terrainVertices[v2ind], terrainVertices[v2ind + 1], terrainVertices[v2ind + 2]),
-                    v3 = new Vec3(terrainVertices[v3ind], terrainVertices[v3ind + 1], terrainVertices[v3ind + 2]);
+                let v0 = new Vec3(terrainVertices[v0ind] + rtc_x, terrainVertices[v0ind + 1] + rtc_y, terrainVertices[v0ind + 2] + rtc_z),
+                    v1 = new Vec3(terrainVertices[v1ind] + rtc_x, terrainVertices[v1ind + 1] + rtc_y, terrainVertices[v1ind + 2] + rtc_z),
+                    v2 = new Vec3(terrainVertices[v2ind] + rtc_x, terrainVertices[v2ind + 1] + rtc_y, terrainVertices[v2ind + 2] + rtc_z),
+                    v3 = new Vec3(terrainVertices[v3ind] + rtc_x, terrainVertices[v3ind + 1] + rtc_y, terrainVertices[v3ind + 2] + rtc_z);
 
                 let e10 = v1.sub(v0).normalize(), e20 = v2.sub(v0).normalize(), e30 = v3.sub(v0).normalize();
 
@@ -406,7 +440,8 @@ self.onmessage = function (e) {
         terrainVerticesHigh: terrainVerticesHigh,
         terrainVerticesLow: terrainVerticesLow,
         noDataVertices: noDataVertices,
-        bounds: [xmin, ymin, zmin, xmax, ymax, zmax]
+        bounds: [xmin, ymin, zmin, xmax, ymax, zmax],
+        relativeCenter: e.data.relativeCenter
     }, [
         normalMapNormals.buffer,
         normalMapVertices.buffer,
