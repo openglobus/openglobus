@@ -217,9 +217,6 @@ export class CameraDepthHandler extends Control {
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
-        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
-
         let isEq = this.planet.terrain!.equalizeVertices;
 
         let rn = this._quadTreeStrategy._renderedNodesInFrustum[cam.getCurrentFrustum()];
