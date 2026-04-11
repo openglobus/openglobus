@@ -161,6 +161,9 @@ class Node {
         seg.centerNormal.x = x * length;
         seg.centerNormal.y = y * length;
         seg.centerNormal.z = z * length;
+
+        // Initial relative center is the same as bounding sphere center
+        seg._relativeCenter.set(x,y,z);
     }
 
     public getState(): number | null {

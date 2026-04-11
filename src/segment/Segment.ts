@@ -424,7 +424,7 @@ class Segment {
 
         this._transitionTimestamp = 0;
 
-        this._relativeCenter = new Vec3(-1326380.8397830778, -4758529.874201565, 4046843.547079439);
+        this._relativeCenter = new Vec3();
         this._rtcEyePositionHigh = new Float32Array([0, 0, 0]);
         this._rtcEyePositionLow = new Float32Array([0, 0, 0]);
         this.__doubleToTwoFloats = this.getRTCPosition.bind(this);
@@ -1359,33 +1359,34 @@ class Segment {
         let offsetX = this.tileX - pn.segment.tileX * dZ2,
             offsetY = this.tileY - pn.segment.tileY * dZ2;
 
-        let rtc_x = this._relativeCenter.x,
-            rtc_y = this._relativeCenter.y,
-            rtc_z = this._relativeCenter.z;
+        const pseg = pn.segment;
+        const rtc_x = pseg._relativeCenter.x,
+            rtc_y = pseg._relativeCenter.y,
+            rtc_z = pseg._relativeCenter.z;
 
-        if (pn.segment.terrainReady && pn.segment.tileZoom >= this.planet.terrain!.minZoom) {
-            let gridSize = pn.segment.gridSize / dZ2;
+        if (pseg.terrainReady && pseg.tileZoom >= this.planet.terrain!.minZoom) {
+            let gridSize = pseg.gridSize / dZ2;
 
             if (gridSize >= 1.0) {
                 //
                 // (*) Get parent whole bounding volume
                 //
-                this.bsphere.center.x = pn.segment.bsphere.center.x;
-                this.bsphere.center.y = pn.segment.bsphere.center.y;
-                this.bsphere.center.z = pn.segment.bsphere.center.z;
-                this.bsphere.radius = pn.segment.bsphere.radius;
+                this.bsphere.center.x = pseg.bsphere.center.x;
+                this.bsphere.center.y = pseg.bsphere.center.y;
+                this.bsphere.center.z = pseg.bsphere.center.z;
+                this.bsphere.radius = pseg.bsphere.radius;
 
                 let i0 = gridSize * offsetY;
                 let j0 = gridSize * offsetX;
 
-                let pnGsOne = pn.segment.gridSize + 1;
+                let pnGsOne = pseg.gridSize + 1;
 
                 let ind_sw = 3 * ((i0 + gridSize) * pnGsOne + j0),
                     ind_nw = 3 * (i0 * pnGsOne + j0),
                     ind_ne = 3 * (i0 * pnGsOne + j0 + gridSize),
                     ind_se = 3 * ((i0 + gridSize) * pnGsOne + j0 + gridSize);
 
-                let pVerts = pn.segment.renderVertices!;
+                let pVerts = pseg.renderVertices!;
 
                 let v_sw = new Vec3(pVerts[ind_sw] + rtc_x, pVerts[ind_sw + 1] + rtc_y, pVerts[ind_sw + 2] + rtc_z),
                     v_ne = new Vec3(pVerts[ind_ne] + rtc_x, pVerts[ind_ne + 1] + rtc_y, pVerts[ind_ne + 2] + rtc_z);
@@ -1400,8 +1401,6 @@ class Segment {
                 this._se.copy(v_se);
 
             } else {
-                let pseg = pn.segment;
-
                 let i0 = Math.floor(gridSize * offsetY),
                     j0 = Math.floor(gridSize * offsetX);
 
@@ -1625,7 +1624,7 @@ class Segment {
 
         if (this.initialized && !this.terrainReady) {
 
-            this._relativeCenter.set(data.relativeCenter[0], data.relativeCenter[1], data.relativeCenter[2]);
+            //this._relativeCenter.set(data.relativeCenter[0], data.relativeCenter[1], data.relativeCenter[2]);
 
             this.plainReady = true;
 
