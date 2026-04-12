@@ -647,6 +647,71 @@ export class Mat4 {
     }
 
     /**
+     * Infinite reverse-Z perspective (default WebGL clip: NDC z in [-1, 1]; near → +1, infinity → -1).
+     * Use with gl.clearDepth(0), gl.depthFunc(GL_GREATER). Far plane is not used in the matrix (culling only).
+     */
+    public setPerspectiveReverseInfinite(left: number, right: number, bottom: number, top: number, near: number): Mat4 {
+        const h = right - left,
+            i = top - bottom,
+            n2 = 2 * near,
+            mm = this._m;
+
+        mm[0] = n2 / h;
+        mm[1] = 0;
+        mm[2] = 0;
+        mm[3] = 0;
+
+        mm[4] = 0;
+        mm[5] = n2 / i;
+        mm[6] = 0;
+        mm[7] = 0;
+
+        mm[8] = (right + left) / h;
+        mm[9] = (top + bottom) / i;
+        mm[10] = 1;
+        mm[11] = -1;
+
+        mm[12] = 0;
+        mm[13] = 0;
+        mm[14] = n2;
+        mm[15] = 0;
+
+        return this;
+    }
+
+    /**
+     * Infinite reverse-Z perspective for EXT_clip_control ZERO_TO_ONE (NDC z in [0, 1]; near → 1, infinity → 0).
+     * Use with gl.clearDepth(0), gl.depthFunc(GL_GREATER).
+     */
+    public setPerspectiveReverseInfiniteZeroToOne(left: number, right: number, bottom: number, top: number, near: number): Mat4 {
+        const h = right - left,
+            i = top - bottom,
+            mm = this._m;
+
+        mm[0] = (2 * near) / h;
+        mm[1] = 0;
+        mm[2] = 0;
+        mm[3] = 0;
+
+        mm[4] = 0;
+        mm[5] = (2 * near) / i;
+        mm[6] = 0;
+        mm[7] = 0;
+
+        mm[8] = (right + left) / h;
+        mm[9] = (top + bottom) / i;
+        mm[10] = 0;
+        mm[11] = -1;
+
+        mm[12] = 0;
+        mm[13] = 0;
+        mm[14] = near;
+        mm[15] = 0;
+
+        return this;
+    }
+
+    /**
      * Creates current orthographic projection matrix.
      * @public
      * @param {number} left -

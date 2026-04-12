@@ -11,7 +11,7 @@ import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
 import {Quat} from "../math/Quat";
-import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
+import {DEGREES_DOUBLE, MAX_FLOAT, RADIANS, RADIANS_HALF} from "../math";
 import {Easing, EasingFunction} from "../utils/easing";
 import {LonLat} from "../LonLat";
 
@@ -65,6 +65,8 @@ export interface ICameraParams {
     height?: number;
     isOrthographic?: boolean;
     focusDistance?: number;
+    /** Reverse-Z infinite projection; single frustum; `far` is for CPU culling only. Default true. */
+    reverseDepth?: boolean;
 }
 
 export interface IFlyCartesianParams extends IFlyBaseParams {
@@ -228,6 +230,13 @@ class Camera {
 
     public isFarthestFrustumActive: boolean;
 
+    /**
+     * Reverse-Z depth: GREATER test, clear 0, infinite projection; single frustum with large `far` for culling.
+     * @protected
+     */
+    protected _reverseDepth: boolean;
+    protected _depthZeroToOne: boolean;
+
     public _width: number;
 
     public _height: number;
@@ -298,7 +307,15 @@ class Camera {
 
         this.frustumColors = [];
 
-        this.setFrustums(options.frustums || [[1, 500]]);
+        this._reverseDepth = options.reverseDepth ?? true;
+        this._depthZeroToOne = false;
+
+        let initFrustums = options.frustums || [[1, 500]];
+        if (this.reverseDepthActive) {
+            const f0 = initFrustums[0] || [1, MAX_FLOAT];
+            initFrustums = [[f0[0], f0[1] ?? MAX_FLOAT]];
+        }
+        this.setFrustums(initFrustums);
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
         this.currentFrustumIndex = 0;
@@ -317,6 +334,27 @@ class Camera {
 
     public get isOrthographic(): boolean {
         return this._isOrthographic;
+    }
+
+    public get reverseDepth(): boolean {
+        return this._reverseDepth;
+    }
+
+    /** Reverse-Z depth compare and infinite perspective projection; always off in orthographic mode. */
+    public get reverseDepthActive(): boolean {
+        return this._reverseDepth && !this._isOrthographic;
+    }
+
+    /** True when EXT_clip_control ZERO_TO_ONE path is active for current perspective reverse-Z projection. */
+    public get depthZeroToOne(): boolean {
+        return this._depthZeroToOne && this.reverseDepthActive;
+    }
+
+    public setDepthZeroToOne(enabled: boolean) {
+        if (this._depthZeroToOne !== enabled) {
+            this._depthZeroToOne = enabled;
+            this.refresh();
+        }
     }
 
     public set isOrthographic(isOrthographic: boolean) {
@@ -617,7 +655,16 @@ class Camera {
         this._viewAngle = viewAngle;
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             let fi = this.frustums[i];
-            fi.setProjectionMatrix(viewAngle, aspect, fi.near, fi.far, this._isOrthographic, this._focusDistance);
+            fi.setProjectionMatrix(
+                viewAngle,
+                aspect,
+                fi.near,
+                fi.far,
+                this._isOrthographic,
+                this._focusDistance,
+                this.reverseDepthActive,
+                this.depthZeroToOne
+            );
         }
         this._horizontalViewAngle = getHorizontalViewAngleByFov(viewAngle, aspect);
         this._updateViewportParameters();
@@ -629,12 +676,26 @@ class Camera {
     }
 
     public setFrustums(frustums: [number, number][]) {
+        if (this.reverseDepthActive && frustums.length > 1) {
+            frustums = [frustums[0]];
+        }
 
         let aspect = this.getAspectRatio();
 
         for(let i = 0; i < frustums.length; i++) {
             if(this.frustums[i]){
-                this.frustums[i].setNearFar(frustums[i][0], frustums[i][1]);
+                let near = frustums[i][0],
+                    far = frustums[i][1];
+                this.frustums[i].setProjectionMatrix(
+                    this._viewAngle,
+                    aspect,
+                    near,
+                    far,
+                    this._isOrthographic,
+                    this._focusDistance,
+                    this.reverseDepthActive,
+                    this.depthZeroToOne
+                );
             }else{
                 let near = frustums[i][0],
                     far = frustums[i][1];
@@ -643,7 +704,9 @@ class Camera {
                     fov: this._viewAngle,
                     aspect,
                     near,
-                    far
+                    far,
+                    reverseDepth: this.reverseDepthActive,
+                    depthZeroToOne: this.depthZeroToOne
                 });
                 this.frustums.push(fi);
                 this.frustumColors.push(fi._pickingColorU[0], fi._pickingColorU[1], fi._pickingColorU[2]);
@@ -651,6 +714,7 @@ class Camera {
         }
 
         this.frustums.length = frustums.length;
+        this.frustumColors.length = frustums.length * 3;
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
         this.setCurrentFrustum(0);
 
@@ -912,8 +976,14 @@ class Camera {
             }
         } else {
             let invPV = f.inverseProjectionViewMatrix;
-            let nearPoint = invPV.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
+            let nearPoint: Vec4, farPoint: Vec4;
+            if (this.reverseDepthActive) {
+                nearPoint = invPV.mulVec4(new Vec4(px, py, 1.0, 1.0)).affinity();
+                farPoint = invPV.mulVec4(new Vec4(px, py, this.depthZeroToOne ? 0.5 : 0.0, 1.0)).affinity();
+            } else {
+                nearPoint = invPV.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity();
                 farPoint = invPV.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
+            }
             return farPoint.subA(nearPoint).toVec3().normalize();
         }
     }

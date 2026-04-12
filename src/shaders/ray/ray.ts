@@ -14,7 +14,7 @@ export function rayScreen(): Program {
             resolution: "float",
             uOpacity: "float",
             texAtlas: "sampler2d",
-            viewport: "vec2",
+            viewport: "vec2"
         },
         attributes: {
             a_vertices: "vec2",
@@ -44,6 +44,7 @@ export function rayScreenWoit(): Program {
             uOpacity: "float",
             texAtlas: "sampler2d",
             viewport: "vec2",
+            useReverseDepth: "float"
         },
         attributes: {
             a_vertices: "vec2",

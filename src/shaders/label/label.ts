@@ -55,7 +55,8 @@ export function label_woit(): Program {
             scaleByDistance: "vec3",
             opacity: "float",
             isOutlinePass: "int",
-            depthOffset: "float"
+            depthOffset: "float",
+            useReverseDepth: "float"
         },
         attributes: {
             a_outline: "float",

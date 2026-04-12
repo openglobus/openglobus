@@ -201,6 +201,7 @@ class Handler {
     public resizeObserver?: ResizeObserver;
 
     protected _requestAnimationFrameId: number = 0;
+    protected _clipControlZeroToOne: boolean = false;
 
     constructor(canvasTarget: string | HTMLCanvasElement | undefined, params: IHandlerParameters = {}) {
 
@@ -900,6 +901,7 @@ class Handler {
 
         this._params.extensions.push("EXT_color_buffer_float");
         this._params.extensions.push("OES_texture_float_linear");
+        this._params.extensions.push("EXT_clip_control");
         //this._params.extensions.push("WEBGL_draw_buffers");
 
         let i = this._params.extensions.length;
@@ -982,6 +984,48 @@ class Handler {
         this.createDefaultTexture({color: "rgba(255, 255, 255, 1.0)"}, (t: WebGLTextureExt) => {
             this.defaultTexture = t;
         });
+    }
+
+    public get canUseClipControlZeroToOne(): boolean {
+        const ext = this.extensions.EXT_clip_control;
+        return !!(ext && ext.clipControlEXT);
+    }
+
+    public get isClipControlZeroToOne(): boolean {
+        return this._clipControlZeroToOne;
+    }
+
+    protected _applyClipControlDepthRange(useZeroToOne: boolean) {
+        const ext = this.extensions.EXT_clip_control;
+        if (!(ext && ext.clipControlEXT)) {
+            this._clipControlZeroToOne = false;
+            return;
+        }
+        if (this._clipControlZeroToOne === useZeroToOne) {
+            return;
+        }
+
+        const depthMode = useZeroToOne ? ext.ZERO_TO_ONE_EXT : ext.NEGATIVE_ONE_TO_ONE_EXT;
+        ext.clipControlEXT(ext.LOWER_LEFT_EXT, depthMode);
+        this._clipControlZeroToOne = useZeroToOne;
+    }
+
+    /**
+     * Sets depth compare and clear value for the active camera (reverse-Z vs classic).
+     * Secondary passes (e.g. offscreen cameras) should call with null before drawing, then restore the main camera.
+     */
+    public applyDepthForCamera(camera: { reverseDepth?: boolean; isOrthographic?: boolean } | null | undefined) {
+        let gl = this.gl;
+        if (!gl) return;
+        const reversePerspective = !!(camera && camera.reverseDepth && !camera.isOrthographic);
+        this._applyClipControlDepthRange(reversePerspective);
+        if (reversePerspective) {
+            gl.depthFunc(gl.GREATER);
+            gl.clearDepth(0);
+        } else {
+            gl.depthFunc(gl.LESS);
+            gl.clearDepth(1);
+        }
     }
 
     public getCanvasSize(): NumberArray2 {

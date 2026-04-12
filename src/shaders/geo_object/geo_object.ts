@@ -97,7 +97,8 @@ export const geo_object_woit = (): Program =>
             uTexture: "sampler2d",
             uUseTexture: "float",
             shadeMode: "float",
-            depthOffset: "float"
+            depthOffset: "float",
+            useReverseDepth: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -135,6 +136,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             uUseTexture: "float",
             shadeMode: "float",
             depthOffset: "float",
+            useReverseDepth: "float",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             atmosFadeDist: "vec2"

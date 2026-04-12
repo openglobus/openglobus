@@ -19,6 +19,8 @@ interface IFrustumParams {
     aspect?: number,
     near?: number;
     far?: number;
+    reverseDepth?: boolean;
+    depthZeroToOne?: boolean;
 }
 
 /**
@@ -32,6 +34,8 @@ class Frustum {
     protected _isOrthographic: boolean;
     protected _aspect: number;
     protected _tanViewAngle_hrad: number;
+    protected _reverseDepth: boolean;
+    protected _depthZeroToOne: boolean;
 
     /**
      * Camera projection matrix.
@@ -118,6 +122,9 @@ class Frustum {
 
         this._tanViewAngle_hrad = 0.0;
 
+        this._reverseDepth = false;
+        this._depthZeroToOne = false;
+
         this.left = 0.0;
 
         this.right = 0.0;
@@ -136,7 +143,11 @@ class Frustum {
             options.fov || 30.0,
             options.aspect || 1.0,
             options.near || 1.0,
-            options.far || 1000.0
+            options.far || 1000.0,
+            false,
+            10,
+            !!options.reverseDepth,
+            !!options.depthZeroToOne
         );
     }
 
@@ -188,8 +199,10 @@ class Frustum {
      * @param {number} near - Near camera distance.
      * @param {number} far - Far camera distance.
      */
-    public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic?: boolean, focusDistance: number = 10) {
+    public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic?: boolean, focusDistance: number = 10, reverseDepth: boolean = false, depthZeroToOne: boolean = false) {
         this._isOrthographic = !!isOrthographic;
+        this._reverseDepth = reverseDepth;
+        this._depthZeroToOne = depthZeroToOne;
         this._aspect = aspect;
         this._tanViewAngle_hrad = Math.tan(viewAngle * RADIANS_HALF);
 
@@ -202,7 +215,16 @@ class Frustum {
             let h = near * this._tanViewAngle_hrad;
             let w = h * aspect;
             this._setFrustumParams(h, w, near, far);
-            this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, this.near, this.far);
+            // reverseDepth: `far` on this frustum is for CPU culling only; projection uses infinite reverse-Z.
+            if (reverseDepth) {
+                if (depthZeroToOne) {
+                    this.projectionMatrix.setPerspectiveReverseInfiniteZeroToOne(this.left, this.right, this.bottom, this.top, this.near);
+                } else {
+                    this.projectionMatrix.setPerspectiveReverseInfinite(this.left, this.right, this.bottom, this.top, this.near);
+                }
+            } else {
+                this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, this.near, this.far);
+            }
         }
 
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
@@ -217,7 +239,15 @@ class Frustum {
             let h = near * this._tanViewAngle_hrad;
             let w = h * this._aspect;
             this._setFrustumParams(h, w, near, far);
-            this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, this.near, this.far);
+            if (this._reverseDepth) {
+                if (this._depthZeroToOne) {
+                    this.projectionMatrix.setPerspectiveReverseInfiniteZeroToOne(this.left, this.right, this.bottom, this.top, this.near);
+                } else {
+                    this.projectionMatrix.setPerspectiveReverseInfinite(this.left, this.right, this.bottom, this.top, this.near);
+                }
+            } else {
+                this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, this.near, this.far);
+            }
         }
 
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);

@@ -372,6 +372,10 @@ class LabelHandler extends BaseBillboardHandler {
         gl.disable(gl.CULL_FACE);
         this._configureDepthPass(depthWrite);
 
+        if (labelProgram === h.programs.labelWoit) {
+            gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
+        }
+
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, fontTextureArray);
         gl.uniform1i(shu.fontTextureArr, 0);

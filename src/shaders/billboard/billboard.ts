@@ -75,7 +75,8 @@ export function billboard_screen_woit(): Program {
             planetRadius: "float",
             uScaleByDistance: "vec3",
             opacity: "float",
-            depthOffset: "float"
+            depthOffset: "float",
+            useReverseDepth: "float"
         },
         attributes: {
             a_vertices: "vec2",

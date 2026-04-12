@@ -77,7 +77,9 @@ class BaseBillboardHandler {
         }
 
         if (!disableDepthTest) {
-            gl.depthFunc(gl.LEQUAL);
+            gl.depthFunc(
+                this._renderer!.activeCamera.reverseDepthActive ? gl.GEQUAL : gl.LEQUAL
+            );
         }
 
         gl.depthMask(!disableDepthTest && depthWrite);
@@ -86,7 +88,7 @@ class BaseBillboardHandler {
     protected _restoreDepthPass(depthWrite: boolean) {
         const gl = this._renderer!.handler.gl!;
         gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LESS);
+        gl.depthFunc(this._renderer!.activeCamera.reverseDepthActive ? gl.GREATER : gl.LESS);
         gl.depthMask(depthWrite);
     }
 
@@ -348,6 +350,10 @@ class BaseBillboardHandler {
         gl.disable(gl.CULL_FACE);
         const writeDepth = depthWrite ?? (billboardProgram !== this._getTransparentProgram());
         this._configureDepthPass(writeDepth);
+
+        if (billboardProgram === this._getTransparentProgram()) {
+            gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
+        }
 
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 

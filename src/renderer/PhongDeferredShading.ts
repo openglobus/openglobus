@@ -99,7 +99,7 @@ export class PhongDeferredShading implements IDeferredShadingPass {
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.colorMask(true, true, true, true);
-        gl.depthFunc(gl.LESS);
+        gl.depthFunc(r.activeCamera.reverseDepthActive ? gl.GREATER : gl.LESS);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
     }

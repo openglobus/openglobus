@@ -71,6 +71,7 @@ function createPolylineTexWoitProgram(name: string): Program {
     return new Program(name, {
         uniforms: {
             ...SHARED_UNIFORMS,
+            useReverseDepth: 'float',
             time: 'float',
             texAtlas: 'sampler2d'
         },
@@ -97,7 +98,8 @@ export function polylineWoitTex(): Program {
 export function polylineWoitPlain(): Program {
     return new Program('polylineWoitPlain', {
         uniforms: {
-            ...SHARED_UNIFORMS
+            ...SHARED_UNIFORMS,
+            useReverseDepth: 'float'
         },
         attributes: {
             ...SHARED_ATTRIBUTES

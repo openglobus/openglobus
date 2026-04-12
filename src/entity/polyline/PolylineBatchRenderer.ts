@@ -4407,6 +4407,7 @@ class PolylineBatchRenderer {
             sh.activate();
 
             gl.disable(gl.CULL_FACE);
+            gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
             gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());

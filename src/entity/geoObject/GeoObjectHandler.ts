@@ -493,6 +493,8 @@ export class GeoObjectHandler {
 
         sh.activate();
 
+        r.handler.gl!.uniform1f(p.uniforms.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
+
         //gl.disable(gl.CULL_FACE);
 
         this._bindCommon(p);
