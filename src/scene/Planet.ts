@@ -1364,6 +1364,7 @@ export class Planet extends RenderNode {
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+        gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
 
         gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
 
@@ -1398,37 +1399,36 @@ export class Planet extends RenderNode {
             renderer.enableBlendOneSrcAlpha();
         }
 
-            program.activate();
-            sh = program._program;
-            shu = sh.uniforms;
+        program.activate();
+        sh = program._program;
+        shu = sh.uniforms;
 
-            gl.uniform1f(shu.shadeMode, this._shadeMode);
+        gl.uniform1f(shu.shadeMode, this._shadeMode);
 
-            gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
-            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
-            gl.uniform3fv(shu.diffuse, renderer.lightDiffuse);
-            gl.uniform3fv(shu.ambient, renderer.lightAmbient);
-            gl.uniform4fv(shu.specular, renderer.lightSpecular);
+        gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+        gl.uniform3fv(shu.diffuse, renderer.lightDiffuse);
+        gl.uniform3fv(shu.ambient, renderer.lightAmbient);
+        gl.uniform4fv(shu.specular, renderer.lightSpecular);
 
-            gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
+        gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
 
 
-            //
-            // Night and specular
-            //
-            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture! || this.transparentTexture!);
-            gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
+        //
+        // Night and specular
+        //
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
+        gl.bindTexture(gl.TEXTURE_2D, this._nightTexture! || this.transparentTexture!);
+        gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
-            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
-            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture! || this.transparentTexture!);
-            gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
+        gl.bindTexture(gl.TEXTURE_2D, this._specularTexture! || this.transparentTexture!);
+        gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
-            gl.uniform1f(shu.camHeight, cam.getHeight());
+        gl.uniform1f(shu.camHeight, cam.getHeight());
 
-        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+        gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
 
         return sh;
     }
@@ -1492,8 +1492,7 @@ export class Planet extends RenderNode {
         gl.uniform2fv(shu.atmosFadeDist, this.atmosphereFadeDist);
         gl.uniform1f(shu.camHeight, cam.getHeight());
 
-        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+        gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
 
         return sh;
     }
@@ -1776,6 +1775,7 @@ export class Planet extends RenderNode {
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+        gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
 
         // drawing planet nodes
         let rn = this.quadTreeStrategy._renderedNodesInFrustum[cam.getCurrentFrustum()];
@@ -1820,8 +1820,7 @@ export class Planet extends RenderNode {
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
-        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+        gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
 
         gl.uniform1f(shu.frustumPickingColor, cam.frustumColorIndex);
 

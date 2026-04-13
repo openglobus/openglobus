@@ -6,8 +6,7 @@ attribute vec2 aTextureCoord;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
-uniform vec3 eyePositionHigh;
-uniform vec3 eyePositionLow;
+uniform vec3 cameraPosition;
 uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
 uniform float height;
@@ -22,8 +21,6 @@ void main(void) {
     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
     mat4 m = projectionMatrix * viewMatrixRTE;
-
-    vec3 cameraPosition = eyePositionHigh + eyePositionLow;
 
     vec3 highDiff = aVertexPositionHigh - rtcEyePositionHigh;
     vec3 lowDiff = aVertexPositionLow - rtcEyePositionLow;
