@@ -355,7 +355,7 @@ class BaseBillboardHandler {
             gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
         }
 
-        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
+        gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
 
         gl.uniform1i(shu.u_texture, 0);
 
@@ -425,7 +425,7 @@ class BaseBillboardHandler {
             gl.disable(gl.DEPTH_TEST);
         }
 
-        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
+        gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());

@@ -4335,7 +4335,7 @@ class PolylineBatchRenderer {
             sh.activate();
 
             gl.disable(gl.CULL_FACE);
-            gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
+            gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera!.getViewMatrix());
@@ -4408,7 +4408,7 @@ class PolylineBatchRenderer {
 
             gl.disable(gl.CULL_FACE);
             gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
-            gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
+            gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera!.getViewMatrix());
@@ -4481,7 +4481,7 @@ class PolylineBatchRenderer {
 
             gl.disable(gl.CULL_FACE);
 
-            gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
+            gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera!.getViewMatrix());

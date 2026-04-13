@@ -423,7 +423,7 @@ export class GeoObjectHandler {
 
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
         gl.uniform1f(u.shadeMode, ec._shadeMode);
-        gl.uniform1f(u.depthOffset, ec.polygonOffsetUnits);
+        gl.uniform1f(u.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
@@ -560,7 +560,7 @@ export class GeoObjectHandler {
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera!.getViewMatrix());
 
         gl.uniform1f(u.frustumPickingColor, cam.frustumColorIndex);
-        gl.uniform1f(u.depthOffset, ec.polygonOffsetUnits);
+        gl.uniform1f(u.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             let tagData = this._instanceDataMapValues[i];
@@ -625,7 +625,7 @@ export class GeoObjectHandler {
 
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
         gl.uniform3fv(u.pickingScale, ec.pickingScale);
-        gl.uniform1f(u.depthOffset, ec.polygonOffsetUnits);
+        gl.uniform1f(u.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);

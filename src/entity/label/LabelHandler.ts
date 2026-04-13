@@ -428,7 +428,7 @@ class LabelHandler extends BaseBillboardHandler {
         const vertexCount = numLabels * 6 * this._maxLetters;
 
         gl.uniform1i(shu.isOutlinePass, isOutlinePass ? 1 : 0);
-        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
+        gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
 
         if (isOutlinePass) {
             gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer!);
@@ -512,7 +512,7 @@ class LabelHandler extends BaseBillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer!);
         gl.vertexAttribPointer(sha.a_rgba, this._pickingColorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
+        gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
 

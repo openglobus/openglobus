@@ -39,7 +39,7 @@ const depthPreviewShader = `float linearizeDepth(float z, float near, float far)
                 float ndcZ = z * 2.0 - 1.0;
                 return (2.0 * near * far) / (far + near - ndcZ * (far - near));
             }
-             
+
             void mainImage(out vec4 fragColor, in vec2 fragCoord){
                 float near = 100.0;
                 float far = 100000.0;
@@ -180,6 +180,15 @@ globus.planet.renderer.events.on("charkeypress", input.KEY_C, () => {
 globus.planet.renderer.events.on("charkeypress", input.KEY_V, () => {
     restoreCamera();
 });
+
+function updateSkyBoxFrustum() {
+    const camera = globus.planet.camera;
+    const alt = camera.getAltitude();
+    camera.setNearFar(alt - alt * 0.9);
+}
+
+globus.planet.camera.events.on("viewchange", updateSkyBoxFrustum);
+updateSkyBoxFrustum();
 
 // let toneMappingFramebufferPreview = new control.FramebufferPreview({
 //     title: "toneMappingFramebuffer",
