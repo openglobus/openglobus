@@ -1742,7 +1742,8 @@ export class Planet extends RenderNode {
                 Planet.__refreshLayersFadingOpacity__(sl[j], quadTreeStrategy.minCurrZoom, quadTreeStrategy.maxCurrZoom);
             }
 
-            gl.polygonOffset(0, -j);
+            const polygonOffsetUnits = camera.reverseDepthActive ? j : -j;
+            gl.polygonOffset(0, polygonOffsetUnits);
             let i = renderedNodes.length;
             while (i--) {
                 let ri = renderedNodes[i];
@@ -1794,7 +1795,8 @@ export class Planet extends RenderNode {
         gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             i = rn.length;
-            gl.polygonOffset(0, -j);
+            const polygonOffsetUnits = cam.reverseDepthActive ? j : -j;
+            gl.polygonOffset(0, polygonOffsetUnits);
             while (i--) {
                 rn[i].segment.colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
@@ -1818,6 +1820,8 @@ export class Planet extends RenderNode {
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
         gl.uniform1f(shu.frustumPickingColor, cam.frustumColorIndex);
 

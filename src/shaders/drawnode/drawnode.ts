@@ -145,6 +145,8 @@ export function drawnode_colorPicking(): Program {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             samplerCount: "int",
@@ -169,6 +171,8 @@ export function drawnode_depth(): Program {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
             height: "float",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             frustumPickingColor: "float"
