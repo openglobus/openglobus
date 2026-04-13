@@ -396,6 +396,27 @@ class Renderer {
         gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
     }
 
+    /**
+     * Sets depth compare and clear value for the camera (reverse-Z vs classic).
+     * Pass null to restore classic depth state:
+     * depthFunc(LESS), clearDepth(1), and clip-control NEGATIVE_ONE_TO_ONE.
+     */
+    public applyDepthForCamera(camera: Camera | null = this.activeCamera) {
+        let h = this.handler;
+        let gl = h.gl;
+        if (!gl) return;
+
+        if (camera?.reverseDepthActive) {
+            h.setClipControlZeroToOne(true);
+            gl.depthFunc(gl.GREATER);
+            gl.clearDepth(0);
+        } else {
+            h.setClipControlZeroToOne(false);
+            gl.depthFunc(gl.LESS);
+            gl.clearDepth(1);
+        }
+    }
+
     public setRelativeCenter(c?: Vec3) {
         this.events.dispatch(this.events.changerelativecenter, c || this.activeCamera.eye);
     }
@@ -1173,8 +1194,8 @@ class Renderer {
 
         e.handleEvents();
 
-        this.activeCamera!.setDepthZeroToOne(this.activeCamera!.reverseDepthActive && h.canUseClipControlZeroToOne);
-        h.applyDepthForCamera(this.activeCamera);
+        this.activeCamera.setDepthZeroToOne(this.activeCamera.reverseDepthActive && !!h.clipControl);
+        this.applyDepthForCamera(this.activeCamera);
 
         this.forwardFramebuffer!.activate();
 
@@ -1185,9 +1206,9 @@ class Renderer {
 
         e.dispatch(e.draw, this);
 
-        this.activeCamera!.checkFly();
+        this.activeCamera.checkFly();
 
-        let frustums = this.activeCamera!.frustums;
+        let frustums = this.activeCamera.frustums;
 
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
@@ -1197,7 +1218,7 @@ class Renderer {
         // RenderNodes PASS
         //
         while (k--) {
-            this.activeCamera!.setCurrentFrustum(k);
+            this.activeCamera.setCurrentFrustum(k);
             gl.clear(gl.DEPTH_BUFFER_BIT);
 
             let i = rn.length;
@@ -1268,7 +1289,7 @@ class Renderer {
             gl.clear(gl.DEPTH_BUFFER_BIT);
             let k = frustums.length;
             while (k--) {
-                this.activeCamera!.setCurrentFrustum(k);
+                this.activeCamera.setCurrentFrustum(k);
 
                 this._drawForwardEntityCollections(i);
 
@@ -1292,7 +1313,7 @@ class Renderer {
         // Tone mapping followed by rendering on the screen
         this._screenFrame();
 
-        h.applyDepthForCamera(null);
+        this.applyDepthForCamera(null);
 
         e.dispatch(e.postdraw, this);
 

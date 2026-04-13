@@ -203,11 +203,11 @@ export class CameraDepthHandler extends Control {
             h = framebuffer.handler,
             mainCam = this.renderer!.activeCamera;
 
-        h.applyDepthForCamera(null);
-
         framebuffer.activate();
 
         let cam = frameHandler.camera as PlanetCamera;
+
+        this.renderer!.applyDepthForCamera(cam);
 
         this._quadTreeStrategy.collectRenderNodes(cam);
 
@@ -251,7 +251,7 @@ export class CameraDepthHandler extends Control {
 
         framebuffer.deactivate();
 
-        h.applyDepthForCamera(mainCam);
+        this.renderer!.applyDepthForCamera(mainCam);
 
         this._renderFootprint(frameHandler)
     }
