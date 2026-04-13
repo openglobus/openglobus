@@ -146,8 +146,8 @@ class Frustum {
             options.far || 1000.0,
             false,
             10,
-            !!options.reverseDepth,
-            !!options.depthZeroToOne
+            options.reverseDepth,
+            options.depthZeroToOne
         );
     }
 
@@ -203,8 +203,8 @@ class Frustum {
      * @param {boolean} [reverseDepth=false] - Enables reverse-Z infinite perspective projection.
      * @param {boolean} [depthZeroToOne=false] - Uses `[0, 1]` NDC depth range for reverse-Z projection.
      */
-    public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic?: boolean, focusDistance: number = 10, reverseDepth: boolean = false, depthZeroToOne: boolean = false) {
-        this._isOrthographic = !!isOrthographic;
+    public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic: boolean = false, focusDistance: number = 10, reverseDepth: boolean = false, depthZeroToOne: boolean = false) {
+        this._isOrthographic = isOrthographic;
         this._reverseDepth = reverseDepth;
         this._depthZeroToOne = depthZeroToOne;
         this._aspect = aspect;
@@ -237,7 +237,7 @@ class Frustum {
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
     }
 
-    public setNearFar(near: number, far: number) {
+    public setNearFar(near: number, far: number = this.far) {
         if (this._isOrthographic) {
             this.near = near;
             this.far = far;

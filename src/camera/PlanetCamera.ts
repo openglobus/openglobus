@@ -114,14 +114,20 @@ class PlanetCamera extends Camera {
 
     constructor(planet: Planet, options: IPlanetCameraParams = {}) {
         const reverseDepth = options.reverseDepth ?? true;
+        const isOrthographic = options.isOrthographic ?? false;
+        const useSingleReverseFrustum = reverseDepth && !isOrthographic;
+
+        const frustums =
+            options.frustums ||
+            (useSingleReverseFrustum
+                ? [[1, 1e12]]
+                : [[1, 100.075], [100, 1000.075], [1000, 1e6 + 10000], [1e6, 1e9]]);
+
         super({
-                ...options,
-                frustums: reverseDepth && !(options.isOrthographic ?? false)
-                    ? (options.frustums || [[1, 1e12]])
-                    : (options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]]),
-                reverseDepth
-            }
-        );
+            ...options,
+            frustums,
+            reverseDepth
+        });
 
         this.planet = planet;
 

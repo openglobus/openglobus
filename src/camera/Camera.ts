@@ -669,9 +669,8 @@ class Camera {
         this._updateViewportParameters();
     }
 
-    public setNearFar(near: number, far: number, frustumIndex: number = 0) {
-        let frustum = this.frustums[frustumIndex];
-        frustum.setNearFar(near, far);
+    public setNearFar(near: number, far?: number, frustumIndex: number = 0) {
+        this.frustums[frustumIndex].setNearFar(near, far);
     }
 
     public setFrustums(frustums: [number, number][]) {
