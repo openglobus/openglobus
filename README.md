@@ -1,4 +1,6 @@
-# UNDER RECONSTRUCTION - v1.0.0 is coming
+# 🔴 UNDER RECONSTRUCTION - v1.0.0 is coming
+
+------
 
 [![NPM PACKAGE](https://img.shields.io/npm/v/@openglobus/og.svg?logo=npm&logoColor=fff&label=NPM+package&color=limegreen)](https://www.npmjs.com/@openglobus/og)
 ![BUILD](https://github.com/openglobus/openglobus/actions/workflows/push.yml/badge.svg)
