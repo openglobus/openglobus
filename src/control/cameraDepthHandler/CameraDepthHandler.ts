@@ -92,7 +92,7 @@ export class CameraDepthHandler extends Control {
         this.cameraFootprintLayer = new Vector(`cameraFootprintLayer:${this.__id}`, {
             entities: [this._cameraFootprintEntity],
             pickingEnabled: false,
-            polygonOffsetUnits: -POLYLINE_DEPTH_OFFSET,
+            polygonOffsetUnits: POLYLINE_DEPTH_OFFSET,
             hideInLayerSwitcher: true,
             clampToGround: true,
             visibility: this._showFootprint,
