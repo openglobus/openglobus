@@ -194,10 +194,14 @@ class Frustum {
     /**
      * Sets up camera projection matrix.
      * @public
-     * @param {number} viewAngle - Camera's vertical fov view angle.
-     * @param {number} aspect - Screen aspect ratio.
-     * @param {number} near - Near camera distance.
-     * @param {number} far - Far camera distance.
+     * @param {number} viewAngle - Camera vertical field of view angle in degrees.
+     * @param {number} aspect - Viewport aspect ratio (`width / height`).
+     * @param {number} near - Near clipping plane distance.
+     * @param {number} far - Far clipping plane distance.
+     * @param {boolean} [isOrthographic=false] - Enables orthographic projection mode.
+     * @param {number} [focusDistance=10] - Reference distance used to compute orthographic frustum size.
+     * @param {boolean} [reverseDepth=false] - Enables reverse-Z infinite perspective projection.
+     * @param {boolean} [depthZeroToOne=false] - Uses `[0, 1]` NDC depth range for reverse-Z projection.
      */
     public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic?: boolean, focusDistance: number = 10, reverseDepth: boolean = false, depthZeroToOne: boolean = false) {
         this._isOrthographic = !!isOrthographic;
@@ -217,11 +221,14 @@ class Frustum {
             this._setFrustumParams(h, w, near, far);
             // reverseDepth: `far` on this frustum is for CPU culling only; projection uses infinite reverse-Z.
             if (reverseDepth) {
-                if (depthZeroToOne) {
-                    this.projectionMatrix.setPerspectiveReverseInfiniteZeroToOne(this.left, this.right, this.bottom, this.top, this.near);
-                } else {
-                    this.projectionMatrix.setPerspectiveReverseInfinite(this.left, this.right, this.bottom, this.top, this.near);
-                }
+                this.projectionMatrix.setPerspectiveReverseInfinite(
+                    this.left,
+                    this.right,
+                    this.bottom,
+                    this.top,
+                    this.near,
+                    depthZeroToOne
+                );
             } else {
                 this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, this.near, this.far);
             }
@@ -240,11 +247,14 @@ class Frustum {
             let w = h * this._aspect;
             this._setFrustumParams(h, w, near, far);
             if (this._reverseDepth) {
-                if (this._depthZeroToOne) {
-                    this.projectionMatrix.setPerspectiveReverseInfiniteZeroToOne(this.left, this.right, this.bottom, this.top, this.near);
-                } else {
-                    this.projectionMatrix.setPerspectiveReverseInfinite(this.left, this.right, this.bottom, this.top, this.near);
-                }
+                this.projectionMatrix.setPerspectiveReverseInfinite(
+                    this.left,
+                    this.right,
+                    this.bottom,
+                    this.top,
+                    this.near,
+                    this._depthZeroToOne
+                );
             } else {
                 this.projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, this.near, this.far);
             }

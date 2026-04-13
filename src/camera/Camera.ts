@@ -65,7 +65,6 @@ export interface ICameraParams {
     height?: number;
     isOrthographic?: boolean;
     focusDistance?: number;
-    /** Reverse-Z infinite projection; single frustum; `far` is for CPU culling only. Default true. */
     reverseDepth?: boolean;
 }
 
@@ -312,8 +311,8 @@ class Camera {
 
         let initFrustums = options.frustums || [[1, 500]];
         if (this.reverseDepthActive) {
-            const f0 = initFrustums[0] || [1, MAX_FLOAT];
-            initFrustums = [[f0[0], f0[1] ?? MAX_FLOAT]];
+            const [near = 1, far = MAX_FLOAT] = initFrustums[0] ?? [];
+            initFrustums = [[near, far]];
         }
         this.setFrustums(initFrustums);
 
