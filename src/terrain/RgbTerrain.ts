@@ -21,13 +21,13 @@ export interface IRgbTerrainParams extends IGlobusTerrainParams {
 /**
  * @class
  * @extends {GlobusTerrain}
- * @param {string} [name=""] - Terrain provider name.
- * @param {IRgbTerrainParams} [options]:
- * @param {boolean} [equalizeNormals=true] - Make normal equalization on the edges of the tiles.
- * @param {string} [key=""] - API key.
- * @param {number} [imageSize=256] - Image size.
- * @param {number} [minHeight=-10000] - Minimal height for rgb to height converter.
- * @param {number} [resolution=0.1] - Height converter resolution.
+ * @param {string} [name="RgbTerrain"] - Terrain provider name.
+ * @param {IRgbTerrainParams} [options] - Provider options:
+ * @param {boolean} [options.equalizeNormals=true] - Enables normal equalization on tile edges.
+ * @param {string} [options.key=""] - API key.
+ * @param {number} [options.imageSize=256] - Source image size.
+ * @param {number} [options.minHeight=-10000] - Minimal height for RGB-to-height conversion.
+ * @param {number} [options.resolution=0.1] - RGB-to-height conversion resolution.
  */
 class RgbTerrain extends GlobusTerrain {
 
@@ -56,7 +56,7 @@ class RgbTerrain extends GlobusTerrain {
             ...options
         });
 
-        this.equalizeNormals = options.equalizeNormals || false;
+        this.equalizeNormals = options.equalizeNormals != undefined ? options.equalizeNormals : true;
 
         this._dataType = "imageBitmap";
 

@@ -6,8 +6,8 @@ export function camera_depth() {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
             height: "float",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
+            rtcEyePositionHigh: "vec3",
+            rtcEyePositionLow: "vec3",
         }, attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3"
@@ -23,8 +23,8 @@ export function camera_depth() {
 
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
-            uniform vec3 eyePositionHigh;
-            uniform vec3 eyePositionLow;
+            uniform vec3 rtcEyePositionHigh;
+            uniform vec3 rtcEyePositionLow;
             uniform float height;
 
             void main(void) {
@@ -36,12 +36,9 @@ export function camera_depth() {
 
                 vec3 nh = height * normalize(aVertexPositionHigh + aVertexPositionLow);
 
-                vec3 eyePosition = eyePositionHigh + eyePositionLow;
-                vec3 vertexPosition = aVertexPositionHigh + aVertexPositionLow;
-
-                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
-                
+                vec3 highDiff = aVertexPositionHigh - rtcEyePositionHigh;
+                vec3 lowDiff = aVertexPositionLow - rtcEyePositionLow + nh;
+                 
                 gl_Position =  m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);    
             }`,
 

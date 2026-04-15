@@ -158,7 +158,7 @@ export class Gltf {
     }
 
     private _getImage(mimeType?: MimeType, bufferView?: number): HTMLImageElement | undefined {
-        if (bufferView && mimeType) {
+        if (bufferView !== undefined && mimeType) {
             const view = this.gltf.gltf.bufferViews[bufferView];
             const url = URL.createObjectURL(
                 new Blob(
@@ -277,8 +277,9 @@ export class Gltf {
         index: string
     ): Primitive {
         let primitive: Primitive | null = null;
-        const material = this._materials[primitiveData.material || 0];
-        const texcoord = material.baseColorTexture?.texCoord
+        const material = this._materials[primitiveData.material ?? 0];
+        const materialName = material?.name ?? "material";
+        const texcoord = material?.baseColorTexture?.texCoord
             ? `TEXCOORD_${material.baseColorTexture.texCoord}`
             : `TEXCOORD_0`;
         if (primitiveData.extensions?.KHR_draco_mesh_compression) {
@@ -346,12 +347,12 @@ export class Gltf {
             draco.destroy(decoder);
 
             primitive = {
-                name: `${meshData.name}/${material.name}/${index}`,
+                name: `${meshData.name}/${materialName}/${index}`,
                 vertices: attributes.POSITION,
                 indices: indices,
                 mode: primitiveData.mode ? primitiveData.mode : PrimitiveMode.triangles,
-                material: this._materials[primitiveData.material || 0] || undefined,
-                normals: attributes.NORMAL,
+                material: material || undefined,
+                normals: attributes.NORMAL || undefined,
                 texCoords: undefined
             };
         } else {
@@ -360,20 +361,22 @@ export class Gltf {
                 ? this.gltf.gltf.accessors[texcoordAccessorKey]
                 : undefined;
             primitive = {
-                name: `${meshData.name}/${material.name}/${index}`,
-                indices: primitiveData.indices
+                name: `${meshData.name}/${materialName}/${index}`,
+                indices: primitiveData.indices !== undefined
                     ? Gltf._access(this.gltf.gltf.accessors[primitiveData.indices], this.gltf)
                     : undefined,
                 mode: primitiveData.mode ? primitiveData.mode : PrimitiveMode.triangles,
-                material: this._materials[primitiveData.material || 0] || undefined,
+                material: material || undefined,
                 vertices: Gltf._access(
                     this.gltf.gltf.accessors[primitiveData.attributes.POSITION],
                     this.gltf
                 ),
-                normals: Gltf._access(
-                    this.gltf.gltf.accessors[primitiveData.attributes.NORMAL],
-                    this.gltf
-                ),
+                normals: primitiveData.attributes.NORMAL !== undefined
+                    ? Gltf._access(
+                        this.gltf.gltf.accessors[primitiveData.attributes.NORMAL],
+                        this.gltf
+                    )
+                    : undefined,
                 texCoords: texcoordAccessor ? Gltf._access(texcoordAccessor, this.gltf) : undefined
             };
         }
@@ -388,11 +391,15 @@ export class Gltf {
         return new Object3d({
             name: primitive.name,
             vertices: Array.from(primitive.vertices as Float32Array),
-            normals: Array.from(primitive.normals as Float32Array),
+            normals: primitive.normals
+                ? Array.from(primitive.normals as Float32Array)
+                : undefined,
             texCoords: primitive.texCoords
                 ? Array.from(primitive.texCoords as Float32Array)
                 : undefined,
-            indices: Array.from(primitive.indices as Uint8Array),
+            indices: primitive.indices ?
+                Array.from(primitive.indices as Uint8Array)
+            : undefined,
             normalTextureImage: primitive.material?.normalTexture?.image.element,
             normalTextureSrc: primitive.material?.normalTexture?.image.src,
             colorTextureImage: primitive.material?.baseColorTexture?.image.element,

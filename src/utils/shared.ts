@@ -230,7 +230,22 @@ export function defaultString(str?: string, def: string = ""): string {
     return str ? str.trim() : def;
 }
 
-export function createVector3(v?: number | Vec3 | Vec2 | NumberArray3 | NumberArray2 | null, def?: Vec3): Vec3 {
+export function createVec2(v?: number | Vec2 | NumberArray2 | null, def?: Vec2): Vec2 {
+    if (v) {
+        if (isNumber(v)) {
+            return new Vec2(v as number, v as number);
+        } else if (v instanceof Vec2) {
+            return v.clone();
+        } else if (v instanceof Array) {
+            return Vec2.fromVec(v);
+        }
+    } else if (def) {
+        return def;
+    }
+    return new Vec2();
+}
+
+export function createVec3(v?: number | Vec3 | Vec2 | NumberArray3 | NumberArray2 | null, def?: Vec3): Vec3 {
     if (v) {
         if (isNumber(v)) {
             return new Vec3(v as number, v as number, v as number);
@@ -247,7 +262,7 @@ export function createVector3(v?: number | Vec3 | Vec2 | NumberArray3 | NumberAr
     return new Vec3();
 }
 
-export function createVector4(v?: Vec4 | NumberArray4 | null, def?: Vec4): Vec4 {
+export function createVec4(v?: Vec4 | NumberArray4 | null, def?: Vec4): Vec4 {
     if (v) {
         if (v instanceof Vec4) {
             return v.clone();
@@ -816,6 +831,18 @@ export function concatTypedArrays(a: TypedArray, b: TypedArray | number[]): Type
     return c;
 }
 
+export function insertTypedArray<T extends TypedArray>(arr: T, starting: number, insert: T | number[]): T {
+    if (insert.length === 0) return arr;
+    if (starting < 0) starting = 0;
+    if (starting > arr.length) starting = arr.length;
+
+    const out = new (arr as any).constructor(arr.length + insert.length) as T; //hacky
+    if (starting > 0) out.set(arr.subarray(0, starting), 0);
+    out.set(insert as any, starting);
+    if (starting < arr.length) out.set(arr.subarray(starting), starting + insert.length);
+    return out;
+}
+
 /**
  * Concatenates two the same  arrays
  * @param {TypedArray | number[]} [a=[]] - First array
@@ -919,7 +946,7 @@ export function spliceTypedArray<T extends TypedArray>(arr: T, starting: number,
 /**
  * Returns 64-bit triangle coordinate array from inside of the source triangle array.
  * @static
- * @param {TypedArray | number[]} sourceArr - Source array
+ * @param {TypedArray | number[]} srcArr - Source array
  * @param {number} gridSize - Source array square matrix size
  * @param {number} i0 - First row index source array matrix
  * @param {number} j0 - First column index
@@ -927,7 +954,7 @@ export function spliceTypedArray<T extends TypedArray>(arr: T, starting: number,
  * @return {Float64Array} Triangle coordinates array from the source array.
  * @TODO: optimization
  */
-export function getMatrixSubArray64(sourceArr: TypedArray | number[], gridSize: number, i0: number, j0: number, size: number): Float64Array {
+export function getMatrixSubArray64(srcArr: TypedArray | number[], gridSize: number, i0: number, j0: number, size: number): Float64Array {
 
     const size_1 = size + 1;
     const i0size = i0 + size_1;
@@ -941,9 +968,9 @@ export function getMatrixSubArray64(sourceArr: TypedArray | number[], gridSize: 
 
             let ind = 3 * (i * (gridSize + 1) + j);
 
-            res[vInd++] = sourceArr[ind];
-            res[vInd++] = sourceArr[ind + 1];
-            res[vInd++] = sourceArr[ind + 2];
+            res[vInd++] = srcArr[ind];
+            res[vInd++] = srcArr[ind + 1];
+            res[vInd++] = srcArr[ind + 2];
         }
     }
 
@@ -988,14 +1015,14 @@ export function getMatrixSubArray32(sourceArr: TypedArray | number[], gridSize: 
  * @TODO: optimization
  */
 export function getMatrixSubArrayBoundsExt(
-    sourceArr: TypedArray | number[],
-    sourceArrHigh: TypedArray | number[],
-    sourceArrLow: TypedArray | number[],
+    srcArr: TypedArray | number[],
     noDataVertices: TypedArray | number[] | undefined,
     gridSize: number,
     i0: number,
     j0: number,
     size: number,
+    srcRelativeCenter: Vec3,
+    dstRelativeCenter: Vec3,
     outArr: TypedArray | number[],
     outArrHigh: TypedArray | number[],
     outArrLow: TypedArray | number[],
@@ -1010,14 +1037,19 @@ export function getMatrixSubArrayBoundsExt(
     let vInd = 0,
         nInd = 0;
 
+    let dstPos = new Vec3(),
+        dstPosHigh = new Vec3(),
+        dstPosLow = new Vec3();
+
     for (let i = i0; i < i0size; i++) {
         for (let j = j0; j < j0size; j++) {
             let indBy3 = i * gridSize + j,
                 ind = 3 * indBy3;
 
-            let x = sourceArr[ind],
-                y = sourceArr[ind + 1],
-                z = sourceArr[ind + 2];
+            // world coordinates
+            let x = srcArr[ind] + srcRelativeCenter.x,
+                y = srcArr[ind + 1] + srcRelativeCenter.y,
+                z = srcArr[ind + 2] + srcRelativeCenter.z;
 
             if (!noDataVertices || noDataVertices[indBy3] === 0) {
                 if (x < outBounds.xmin) outBounds.xmin = x;
@@ -1030,19 +1062,22 @@ export function getMatrixSubArrayBoundsExt(
                 outNoDataVertices[nInd] = 1;
             }
 
+            dstPos.set(x - dstRelativeCenter.x, y - dstRelativeCenter.y, z - dstRelativeCenter.z);
+            Vec3.doubleToTwoFloats(dstPos, dstPosHigh, dstPosLow);
+
             nInd++;
 
-            outArr[vInd] = x;
-            outArrLow[vInd] = sourceArrLow[ind];
-            outArrHigh[vInd++] = sourceArrHigh[ind];
+            outArr[vInd] = dstPos.x;
+            outArrLow[vInd] = dstPosLow.x;
+            outArrHigh[vInd++] = dstPosHigh.x;
 
-            outArr[vInd] = y;
-            outArrLow[vInd] = sourceArrLow[ind + 1];
-            outArrHigh[vInd++] = sourceArrHigh[ind + 1];
+            outArr[vInd] = dstPos.y;
+            outArrLow[vInd] = dstPosLow.y;
+            outArrHigh[vInd++] = dstPosHigh.y;
 
-            outArr[vInd] = z;
-            outArrLow[vInd] = sourceArrLow[ind + 2];
-            outArrHigh[vInd++] = sourceArrHigh[ind + 2];
+            outArr[vInd] = dstPos.z;
+            outArrLow[vInd] = dstPosLow.z;
+            outArrHigh[vInd++] = dstPosHigh.z;
         }
     }
 }

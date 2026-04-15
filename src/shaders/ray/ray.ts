@@ -2,6 +2,7 @@ import {Program} from '../../webgl/Program';
 
 import ray_vert from './ray.vert.glsl';
 import ray_frag from './ray.frag.glsl';
+import ray_woit_frag from './ray_woit.frag.glsl';
 
 export function rayScreen(): Program {
     return new Program("rayScreen", {
@@ -13,7 +14,7 @@ export function rayScreen(): Program {
             resolution: "float",
             uOpacity: "float",
             texAtlas: "sampler2d",
-            viewport: "vec2",
+            viewport: "vec2"
         },
         attributes: {
             a_vertices: "vec2",
@@ -29,5 +30,35 @@ export function rayScreen(): Program {
         },
         vertexShader: ray_vert,
         fragmentShader: ray_frag
+    });
+}
+
+export function rayScreenWoit(): Program {
+    return new Program("rayScreenWoit", {
+        uniforms: {
+            projectionMatrix: "mat4",
+            viewMatrix: "mat4",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
+            resolution: "float",
+            uOpacity: "float",
+            texAtlas: "sampler2d",
+            viewport: "vec2",
+            useReverseDepth: "float"
+        },
+        attributes: {
+            a_vertices: "vec2",
+            a_texCoord: "vec4",
+            a_startPosHigh: "vec3",
+            a_startPosLow: "vec3",
+            a_endPosHigh: "vec3",
+            a_endPosLow: "vec3",
+            a_thickness: "float",
+            a_rgba: "vec4",
+            a_texOffset: "float",
+            a_strokeSize: "float"
+        },
+        vertexShader: ray_vert,
+        fragmentShader: ray_woit_frag
     });
 }

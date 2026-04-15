@@ -1,11 +1,10 @@
 import * as math from "../../math";
 import {createEvents, type EventsHandler} from '../../Events';
-import type {CoordinatesType, IGeometryStyle} from "../../entity/Geometry";
-import type {IGeoObjectParams} from "../../entity/GeoObject";
-import type {IPolylineParams} from "../../entity/Polyline";
+import type {CoordinatesType, IGeometryStyle} from "../../entity/geometry/Geometry";
+import type {IGeoObjectParams} from "../../entity/geoObject/GeoObject";
+import type {IPolylineParams} from "../../entity/polyline/Polyline";
 import {Entity} from '../../entity/Entity';
 import type {IMouseState} from "../../renderer/RendererEvents";
-import {OldMouseNavigation} from "../OldMouseNavigation";
 import {LonLat} from '../../LonLat';
 import {Line3} from '../../math/Line3';
 import {Object3d} from '../../Object3d';
@@ -14,6 +13,7 @@ import {RenderNode} from '../../scene/RenderNode';
 import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
 import {Vector} from '../../layer/Vector';
+import {SHADE_MODE_UNLIT} from "../../shadeModeConstants";
 
 type PolygonDrawingSceneEventsList = ["change", "startpoint"];
 
@@ -31,8 +31,8 @@ export interface IPolygonDrawingSceneParams {
 
 const POINTER_OBJ3D = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, -0.5, 0);
 
-export const NUM_SEGMENTS = 200;
-export const OUTLINE_ALT = 0.3;
+export const NUM_SEGMENTS = 300;
+export const OUTLINE_ALT = 0.0;
 
 class PolygonDrawingScene extends RenderNode {
     public events: EventsHandler<PolygonDrawingSceneEventsList>;
@@ -94,7 +94,7 @@ class PolygonDrawingScene extends RenderNode {
         };
 
         this._outlineStyle = {
-            thickness: 3.5,
+            thickness: 4.5,
             color: "rgb(0, 350, 50)",
             ...(options.outlineStyle || {})
         };
@@ -108,31 +108,30 @@ class PolygonDrawingScene extends RenderNode {
         // outline vectors
         //
         this._cornerLayer = new Vector("corners", {
-            pickingScale: 3,
+            pickingScale: 1.2,
             pickingEnabled: true,
-            polygonOffsetUnits: -5,
             relativeToGround: true,
-            scaleByDistance: [100, 4000000, 1.0]
+            shadeMode: SHADE_MODE_UNLIT,
+            scaleByDistance: [1, 4000000, 0.005]
         });
 
         this._centerLayer = new Vector("centers", {
-            pickingScale: 3,
+            pickingScale: 1.2,
             pickingEnabled: true,
-            polygonOffsetUnits: -5,
             relativeToGround: true,
-            scaleByDistance: [100, 4000000, 1.0]
+            shadeMode: SHADE_MODE_UNLIT,
+            scaleByDistance: [1, 4000000, 0.005]
         });
 
         this._outlineLayer = new Vector("outline", {
             entities: [new Entity({
                 polyline: {
                     path3v: [],
-                    isClosed: false,
                     ...this._outlineStyle
                 }
             })],
             pickingEnabled: false,
-            polygonOffsetUnits: -5,
+            depthOffset: -10,
             relativeToGround: true
         });
 
@@ -147,9 +146,10 @@ class PolygonDrawingScene extends RenderNode {
 
         this._ghostOutlineLayer = new Vector("ghost-pointer", {
             pickingEnabled: false,
-            polygonOffsetUnits: -5,
+            depthOffset: -10,
+            shadeMode: SHADE_MODE_UNLIT,
             relativeToGround: true,
-            scaleByDistance: [100, 4000000, 1.0],
+            scaleByDistance: [1, 4000000, 0.005],
             opacity: 0.5
         });
 
@@ -316,7 +316,7 @@ class PolygonDrawingScene extends RenderNode {
     }
 
     protected _onLup = (e: IMouseState) => {
-        (this._planet!.renderer!.controls.mouseNavigation as OldMouseNavigation).activate();
+        this._planet!.renderer!.controls.navigation?.activate();
         if (this._pickedCorner || this._pickedCenter) {
             this.events.dispatch(this.events.change, this);
             this.setGhostPointerPosition(this._planet!.getCartesianFromPixelTerrain(e)!);
@@ -327,7 +327,7 @@ class PolygonDrawingScene extends RenderNode {
     }
 
     protected _getLdown(e: IMouseState): Entity | null {
-        (this._planet!.renderer!.controls.mouseNavigation as OldMouseNavigation).deactivate();
+        this._planet!.renderer!.controls.navigation?.deactivate();
         this._startClick.set(e.x, e.y);
         let coords = e.pickingObject.getCartesian();
         this._startPos = this._planet!.getPixelFromCartesian(coords);
@@ -524,7 +524,6 @@ class PolygonDrawingScene extends RenderNode {
             let entity = new Entity({
                 polyline: {
                     path3v: [prevPath],
-                    isClosed: false,
                     ...this._outlineStyle
                 }
             });
@@ -723,13 +722,11 @@ class PolygonDrawingScene extends RenderNode {
             new Entity({
                 polyline: {
                     path3v: [],
-                    isClosed: false,
                     ...this._outlineStyle
                 }
             }), new Entity({
                 polyline: {
                     path3v: [],
-                    isClosed: false,
                     ...this._outlineStyle
                 }
             }),

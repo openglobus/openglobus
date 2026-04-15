@@ -66,7 +66,10 @@ export class ProgramController {
      */
     public activate(): this {
         if (!this._activated) {
-            this._handler.activeProgram!.deactivate();
+            const activeProgram = this._handler.activeProgram;
+            if (activeProgram && activeProgram !== this) {
+                activeProgram.deactivate();
+            }
             this._handler.activeProgram = this;
             let p = this._program;
             this._activated = true;
@@ -83,11 +86,15 @@ export class ProgramController {
     public remove() {
         let p = this._handler.programs;
         if (p[this._program.name]) {
+            const isActiveProgram = this._handler.activeProgram === this;
             if (this._activated) {
                 this.deactivate();
             }
             this._program.delete();
             delete p[this._program.name];
+            if (isActiveProgram) {
+                this._handler.activeProgram = null;
+            }
         }
     }
 

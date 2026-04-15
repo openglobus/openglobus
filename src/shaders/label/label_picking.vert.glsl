@@ -1,16 +1,19 @@
+#version 300 es
+
 #include "../billboard/common.glsl"
+#include "../common/getDepthOffsetScale.glsl"
 
-attribute vec4 a_gliphParam;
-attribute vec2 a_vertices;
-attribute vec4 a_texCoord;
-attribute vec3 a_positionsHigh;
-attribute vec3 a_positionsLow;
-attribute vec3 a_offset;
-attribute float a_size;
-attribute float a_rotation;
-attribute vec4 a_rgba;
+in vec4 a_gliphParam;
+in vec2 a_vertices;
+in vec4 a_texCoord;
+in vec3 a_positionsHigh;
+in vec3 a_positionsLow;
+in vec2 a_offset;
+in float a_size;
+in float a_rotation;
+in vec4 a_rgba;
 
-varying vec4 v_rgba;
+out vec4 v_rgba;
 
 uniform vec2 viewport;
 uniform mat4 viewMatrix;
@@ -21,6 +24,7 @@ uniform float planetRadius;
 uniform vec3 scaleByDistance;
 uniform float opacity;
 uniform float depthOffset;
+uniform float depthOffsetNear;
 
 const vec3 ZERO3 = vec3(0.0);
 
@@ -37,13 +41,12 @@ void main() {
 
     vec3 look = a_positions - cameraPos;
     float lookDist = length(look);
-    if (opacity * step(lookDist, sqrt(dot(cameraPos, cameraPos) - planetRadius) + sqrt(dot(a_positions, a_positions) - planetRadius)) == 0.0) {
-        return;
-    }
+    float horizonDist = sqrt(dot(cameraPos, cameraPos) - planetRadius) + sqrt(dot(a_positions, a_positions) - planetRadius);
+    float visibilityMask = step(1e-6, opacity) * step(lookDist, horizonDist);
 
     float scd = (1.0 - smoothstep(scaleByDistance[0], scaleByDistance[1], lookDist)) * (1.0 - step(scaleByDistance[2], lookDist));
 
-    v_rgba.a *= opacity;
+    v_rgba.a *= opacity * visibilityMask;
 
     mat4 viewMatrixRTE = viewMatrix;
     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -51,17 +54,13 @@ void main() {
     vec3 highDiff = a_positionsHigh - eyePositionHigh;
     vec3 lowDiff = a_positionsLow - eyePositionLow;
     vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-    vec4 projPos = projectionMatrix * posRTE;
 
-    float camSlope = dot(vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]), normalize(cameraPos));
-    if (camSlope > 0.5) {
-        float dist = dot(look, normalize(cameraPos));
-        projPos.z += dist * 0.02;
-    } else {
-        projPos.z += -(abs(projPos.z)) * 0.002;
+    if (depthOffset != 0.0) {
+        float depthOffsetScale = getDepthOffsetScale(depthOffset, posRTE.xyz, depthOffsetNear);
+        posRTE.xyz += posRTE.xyz * depthOffsetScale;
     }
 
-    projPos.z += depthOffset + a_offset.z;
+    vec4 projPos = projectionMatrix * posRTE;
 
     vec2 screenPos = project(projPos, viewport);
 
@@ -75,7 +74,8 @@ void main() {
         gp.z = a_gliphParam.z + a_texCoord.z;
     }
 
-    vec2 v = screenPos + rotate2d(a_rotation) * ((vert * gp.xy + gp.zw) * a_size * scd + a_offset.xy);
+    vec2 v = screenPos + rotate2d(a_rotation) * ((vert * gp.xy + gp.zw) * a_size * scd + a_offset);
 
-    gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
+    vec4 clipPos = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
+    gl_Position = mix(vec4(2.0, 2.0, 2.0, 1.0), clipPos, visibilityMask);
 }

@@ -66,9 +66,9 @@ export class Ray {
     }
 
     /**
-     * Get a point on the ray at a given distance `t`.
+     * Returns a point on the ray at the given distance.
      * @param {number} distance - Distance from the origin along the ray.
-     * @returns {Vec3} The point at distance `t`.
+     * @returns {Vec3} The point at the given distance.
      */
     public getPoint(distance: number): Vec3 {
         return Vec3.add(this.origin, this.direction.scaleTo(distance));

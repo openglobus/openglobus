@@ -77,9 +77,9 @@ const MODE_ADAPTIVE = 2;
  * @param {number} [options.poleThreshold] - Vertical rotation is reduced when camera is close to poles
  * @param {boolean} [options.disableRotation] - Disables horizontal rotation controls (right mouse button and touchpad). Default is false
  * @param {boolean} [options.disableTilt] - Disables vertical tilt controls (right mouse button and touchpad). Default is false
- * @fires og.Navigation#drag
- * @fires og.Navigation#zoom
- * @fires og.Navigation#rotate
+ * @fires drag
+ * @fires zoom
+ * @fires rotate
  */
 export class Navigation extends Control {
 

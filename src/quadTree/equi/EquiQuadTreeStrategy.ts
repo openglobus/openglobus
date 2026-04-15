@@ -1,7 +1,6 @@
 import {Extent} from "../../Extent";
 import {equi} from "../../proj/equi";
 import {Node} from "../Node";
-import {Planet} from "../../scene/Planet";
 import {SegmentLonLatEqui} from "../../segment/SegmentLonLatEqui";
 import {QuadTreeStrategy, QuadTreeStrategyParams} from "../QuadTreeStrategy";
 import {LonLat} from "../../LonLat";

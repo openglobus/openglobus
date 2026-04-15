@@ -107,9 +107,9 @@ class TouchExt {
  * @param {number} [options.inertia] - inertia factor. Default is 0.007
  * @param {number} [options.minSlope] - minimal slope for vertical camera movement. Default is 0.1
  * @param {number} [options.jerkLimit] - limit for touch jerk speed to prevent unexpected camera movement. Default is 0.08
- * @fires og.TouchNavigation#inertiamove
- * @fires og.TouchNavigation#drag
- * @fires og.TouchNavigation#doubletapzoom
+ * @fires inertiamove
+ * @fires drag
+ * @fires doubletapzoom
  */
 export class TouchNavigation extends Control {
 

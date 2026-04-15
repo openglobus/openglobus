@@ -1,6 +1,6 @@
 {
   "name": "@openglobus/og",
-  "version": "0.28.7",
+  "version": "1.0.0",
   "description": "[openglobus](https://www.openglobus.org/) is a javascript/typescript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers, and 3D objects. It uses the WebGL technology, open source, and completely free.",
   "main": "lib/og.es.js",
   "types": "lib/index.d.ts",
@@ -29,6 +29,8 @@
     "test:watch": "vitest",
     "test": "vitest run --reporter=verbose",
     "lint": "eslint src/",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "dts": "tsc --build tsconfig.json",
     "dev_serve": "npm-run-all --parallel --continue-on-error --race dev serve"
   },
@@ -37,7 +39,7 @@
     "url": "git+https://github.com/openglobus/openglobus.git"
   },
   "author": "Michael Gevlich(Zemledelec)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/openglobus/openglobus/issues",
     "email": "mgevlich@gmail.com"
@@ -51,7 +53,6 @@
     "@eslint-community/eslint-utils": "^4.6.1",
     "@rollup/plugin-terser": "^1.0.0",
     "@types/draco3d": "^1.4.10",
-    "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.3",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "clean-jsdoc-theme": "^4.3.0",
@@ -61,12 +62,12 @@
     "jsdom": "^26.1.0",
     "local-web-server": "^5.4.0",
     "npm-run-all": "^4.1.5",
+    "prettier": "^3.6.2",
     "terser": "^5.39.0",
     "typescript": "^5.8.3",
     "vite": "^6.4.2",
     "vite-plugin-glsl": "^1.4.1",
     "vite-plugin-static-copy": "^2.3.1",
-    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.1.2"
   },
   "keywords": [

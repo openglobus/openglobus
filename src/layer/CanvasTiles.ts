@@ -38,7 +38,7 @@ const CANVASTILES_EVENTS: CanvasTilesEventsList = [
 ];
 
 /**
- * Layer used to rendering each tile as a separate canvas object.
+ * Layer that renders each tile as a separate canvas object.
  * @class
  * @extends {Layer}
  * @param {String} [name="noname"] - Layer name.
@@ -46,12 +46,12 @@ const CANVASTILES_EVENTS: CanvasTilesEventsList = [
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
- * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
+ * @param {string} [options.attribution] - Layer attribution shown in the attribution area.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {DrawTileCallback} options.drawTile - Draw tile callback.
- * @fires EventsHandler<CanvasTilesEventsList>#load
- * @fires EventsHandler<CanvasTilesEventsList>#loadend
+ * @fires load
+ * @fires loadend
  */
 class CanvasTiles extends Layer {
 
@@ -73,7 +73,7 @@ class CanvasTiles extends Layer {
     protected _counter: number;
 
     /**
-     * Tile pending queue that waiting for create.
+     * Queue of pending tiles waiting to be created.
      * @protected
      * @type {Material[]}
      */

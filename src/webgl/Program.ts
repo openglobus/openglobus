@@ -444,9 +444,8 @@ class Program {
             this._p[u] = gl.getUniformLocation(this._p, u)!;
 
             if (this._p[u] == undefined) {
-                cons.logErr(`Shader program "${this.name}": uniform '${u}' not exists.`);
-                gl.deleteProgram(this._p);
-                return;
+                cons.logWrn(`Shader program "${this.name}": uniform '${u}' is inactive (optimized out by driver).`);
+                continue;
             }
 
             this._uniforms[u]._pName = this._p[u];

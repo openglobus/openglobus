@@ -37,6 +37,8 @@ export class Atmosphere extends Control {
 
     protected _parameters: AtmosphereParameters;
 
+    protected _isReady: boolean = false;
+
     constructor(options: IAtmosphereParams = {}) {
         super({
             name: "Atmosphere",
@@ -57,6 +59,7 @@ export class Atmosphere extends Control {
 
     public setParameters(parameters: AtmosphereParameters) {
 
+        this._isReady = false;
         this._parameters = JSON.parse(JSON.stringify(parameters));
 
         this.initLookupTexturesShaders();
@@ -64,6 +67,10 @@ export class Atmosphere extends Control {
         this.removeLookupTexturesShaders();
 
         this.initPlanetAtmosphereShader();
+    }
+
+    public get isReady(): boolean {
+        return this._isReady;
     }
 
     public get parameters(): AtmosphereParameters {
@@ -146,7 +153,6 @@ export class Atmosphere extends Control {
             useDepth: false,
             targets: [{
                 filter: "LINEAR",
-                type: "FLOAT",
                 internalFormat: "RGBA16F"
             }]
         });
@@ -159,7 +165,6 @@ export class Atmosphere extends Control {
             useDepth: false,
             targets: [{
                 filter: "LINEAR",
-                type: "FLOAT",
                 internalFormat: "RGBA16F"
             }]
         });
@@ -223,6 +228,8 @@ export class Atmosphere extends Control {
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer!.numItems);
 
             this._scatteringBuffer.deactivate();
+
+            this._isReady = true;
         }
     }
 
@@ -231,6 +238,9 @@ export class Atmosphere extends Control {
     }
 
     protected _drawBackground() {
+
+        if(!this._isReady)return;
+
         let h = this.renderer!.handler;
         let sh = h.programs.atmosphereBackground,
             p = sh._program,
@@ -261,7 +271,7 @@ export class Atmosphere extends Control {
         let sunPos = this.planet!.sunPos;
         gl.uniform3fv(shu.sunPos, [sunPos.x, sunPos.y, sunPos.z]);
         gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
-        gl.uniform2fv(shu.iResolution, [r.sceneFramebuffer!.width, r.sceneFramebuffer!.height]);
+        gl.uniform2fv(shu.iResolution, [r.viewportWidth, r.viewportHeight]);
         gl.uniform1f(shu.fov, cam.getViewAngle());
         gl.uniform1f(shu.opacity, this.opacity);
 
@@ -292,7 +302,7 @@ function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): Program
             frustumParams: "vec4"
         },
         attributes: {
-            corners: "vec3"
+            corners: "vec2"
         },
         vertexShader: atmosphere_vert,
         fragmentShader: stringTemplate2(atmosphere_frag, {

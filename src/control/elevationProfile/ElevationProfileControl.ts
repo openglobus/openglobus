@@ -4,7 +4,6 @@ import {View} from "../../ui/View";
 import {ToggleButton} from "../../ui/ToggleButton";
 import {ElevationProfileView} from "./ElevationProfileView";
 import {ElevationProfileScene} from "./ElevationProfileScene";
-import {OldMouseNavigation} from "../OldMouseNavigation";
 import {throttle} from "../../utils/shared";
 import {ElevationProfileButtonsView} from "./ElevationProfileButtonsView";
 import {PointListDialog} from "./PointListDialog";

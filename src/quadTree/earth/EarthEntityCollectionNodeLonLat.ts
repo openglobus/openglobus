@@ -1,10 +1,10 @@
-import {EarthEntityCollectionsTreeStrategy} from "./EarthEntityCollectionsTreeStrategy";
+import type {EarthEntityCollectionsTreeStrategy} from "./EarthEntityCollectionsTreeStrategy";
 import {Extent} from "../../Extent";
-import {Planet} from "../../scene/Planet";
+import type {Planet} from "../../scene/Planet";
 import {LonLat} from "../../LonLat";
 import {NE, NW, SE, SW} from "../quadTree";
-import {Entity} from "../../entity/Entity";
-import {EntityCollection} from "../../entity/EntityCollection";
+import type {Entity} from "../../entity/Entity";
+import type {EntityCollection} from "../../entity/EntityCollection";
 import {EntityCollectionNode} from "../EntityCollectionNode";
 import type {NodesDict} from "../EntityCollectionNode";
 

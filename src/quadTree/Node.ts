@@ -161,6 +161,9 @@ class Node {
         seg.centerNormal.x = x * length;
         seg.centerNormal.y = y * length;
         seg.centerNormal.z = z * length;
+
+        // Initial relative center is the same as bounding sphere center
+        seg._relativeCenter.set(x,y,z);
     }
 
     public getState(): number | null {
@@ -356,7 +359,7 @@ class Node {
         }
 
         // Create normal map texture
-        if (seg.planet.lightEnabled && !seg.normalMapReady) {
+        if (!seg.normalMapReady) {
             this.whileNormalMapCreating();
         }
 
@@ -660,201 +663,202 @@ class Node {
             }
         }
 
-        if (pn.segment.terrainReady && this.appliedTerrainNodeId !== pn.nodeId) {
+        if (!pn.segment.terrainReady || this.appliedTerrainNodeId === pn.nodeId) {
+            return;
+        }
 
-            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1), // 2 * Math.pow(2, dZ-1)
-                offsetX = seg.tileX - pn.segment.tileX * dZ2,
-                offsetY = seg.tileY - pn.segment.tileY * dZ2;
+        let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1), // 2 * Math.pow(2, dZ-1)
+            offsetX = seg.tileX - pn.segment.tileX * dZ2,
+            offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
-            const pseg = pn.segment;
+        const pseg = pn.segment;
 
-            let tempVertices: Float64Array,
-                tempVerticesHigh: Float32Array,
-                tempVerticesLow: Float32Array,
-                noDataVertices: Uint8Array;
+        let renderVertices: Float64Array,
+            renderVerticesHigh: Float32Array,
+            renderVerticesLow: Float32Array,
+            noDataVertices: Uint8Array;
 
-            this.appliedTerrainNodeId = pn.nodeId;
-            this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+        this.appliedTerrainNodeId = pn.nodeId;
+        this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] =
+            this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
 
-            let gridSize = pn.segment.gridSize / dZ2,
-                gridSizeExt = pn.segment.fileGridSize / dZ2;
+        let gridSize = pn.segment.gridSize / dZ2,
+            gridSizeExt = pn.segment.fileGridSize / dZ2;
 
-            BOUNDS.xmin = MAX;
-            BOUNDS.xmax = MIN;
-            BOUNDS.ymin = MAX;
-            BOUNDS.ymax = MIN;
-            BOUNDS.zmin = MAX;
-            BOUNDS.zmax = MIN;
+        BOUNDS.xmin = BOUNDS.ymin = BOUNDS.zmin = MAX;
+        BOUNDS.xmax = BOUNDS.ymax = BOUNDS.zmax = MIN;
 
-            if (gridSize >= 1) {
-                seg.gridSize = gridSize;
+        if (gridSize >= 1) {
+            seg.gridSize = gridSize;
 
-                let len = (gridSize + 1) * (gridSize + 1) * 3;
-                tempVertices = new Float64Array(len);
-                tempVerticesHigh = new Float32Array(len);
-                tempVerticesLow = new Float32Array(len);
+            let len = (gridSize + 1) * (gridSize + 1) * 3;
+            renderVertices = new Float64Array(len);
+            renderVerticesHigh = new Float32Array(len);
+            renderVerticesLow = new Float32Array(len);
 
-                if (pseg.noDataVertices) {
-                    noDataVertices = new Uint8Array(len / 3);
-                }
-
-                getMatrixSubArrayBoundsExt(
-                    pseg.terrainVertices!,
-                    pseg.terrainVerticesHigh!,
-                    pseg.terrainVerticesLow!,
-                    pseg.noDataVertices!,
-                    pseg.gridSize,
-                    gridSize * offsetY,
-                    gridSize * offsetX,
-                    gridSize,
-                    tempVertices,
-                    tempVerticesHigh,
-                    tempVerticesLow,
-                    BOUNDS,
-                    noDataVertices!
-                );
-
-            } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
-
-                seg.gridSize = gridSizeExt;
-
-                let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
-                tempVertices = new Float64Array(len);
-                tempVerticesHigh = new Float32Array(len);
-                tempVerticesLow = new Float32Array(len);
-
-                if (pseg.noDataVertices) {
-                    noDataVertices = new Uint8Array(len / 3);
-                }
-
-                getMatrixSubArrayBoundsExt(
-                    pseg.normalMapVertices!,
-                    pseg.normalMapVerticesHigh!,
-                    pseg.normalMapVerticesLow!,
-                    pseg.noDataVertices!,
-                    pn.segment.fileGridSize,
-                    gridSizeExt * offsetY,
-                    gridSizeExt * offsetX,
-                    gridSizeExt,
-                    tempVertices,
-                    tempVerticesHigh,
-                    tempVerticesLow,
-                    BOUNDS,
-                    noDataVertices!
-                );
-
-            } else {
-
-                seg.gridSize = _neGridSize;
-
-                let i0 = Math.floor(gridSize * offsetY),
-                    j0 = Math.floor(gridSize * offsetX);
-
-                let bigOne;
-                if (pseg.gridSize === 1) {
-                    bigOne = pseg.terrainVertices!;
-                } else {
-                    bigOne = getMatrixSubArray64(pseg.terrainVertices!, pseg.gridSize, i0, j0, 1);
-                }
-
-                let insideSize = 1.0 / gridSize;
-
-                let t_i0 = offsetY - insideSize * i0, t_j0 = offsetX - insideSize * j0;
-
-                let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
-                    v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
-
-                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
-                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
-                    ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
-                    vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
-
-                let coords = new Vec3();
-
-                tempVertices = new Float64Array(3 * _vertOrder.length);
-                tempVerticesHigh = new Float32Array(3 * _vertOrder.length);
-                tempVerticesLow = new Float32Array(3 * _vertOrder.length);
-
-                for (let i = 0; i < _vertOrder.length; i++) {
-                    let vi_y = _vertOrder[i].y + t_i0, vi_x = _vertOrder[i].x + t_j0;
-
-                    let vi_x_is = vi_x * gridSize, vi_y_is = vi_y * gridSize;
-
-                    if (vi_y + vi_x < insideSize) {
-                        coords = vn.scaleTo(vi_x_is).addA(vw.scaleTo(vi_y_is)).addA(v_lt);
-                    } else {
-                        coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
-                    }
-
-                    Vec3.doubleToTwoFloats(coords, _tempHigh, _tempLow);
-
-                    let i3 = i * 3;
-
-                    tempVertices[i3] = coords.x;
-                    tempVertices[i3 + 1] = coords.y;
-                    tempVertices[i3 + 2] = coords.z;
-
-                    tempVerticesHigh[i3] = _tempHigh.x;
-                    tempVerticesHigh[i3 + 1] = _tempHigh.y;
-                    tempVerticesHigh[i3 + 2] = _tempHigh.z;
-
-                    tempVerticesLow[i3] = _tempLow.x;
-                    tempVerticesLow[i3 + 1] = _tempLow.y;
-                    tempVerticesLow[i3 + 2] = _tempLow.z;
-
-                    if (coords.x < BOUNDS.xmin) BOUNDS.xmin = coords.x;
-                    if (coords.x > BOUNDS.xmax) BOUNDS.xmax = coords.x;
-                    if (coords.y < BOUNDS.ymin) BOUNDS.ymin = coords.y;
-                    if (coords.y > BOUNDS.ymax) BOUNDS.ymax = coords.y;
-                    if (coords.z < BOUNDS.zmin) BOUNDS.zmin = coords.z;
-                    if (coords.z > BOUNDS.zmax) BOUNDS.zmax = coords.z;
-                }
+            if (pseg.noDataVertices) {
+                noDataVertices = new Uint8Array(len / 3);
             }
 
-            seg.readyToEngage = true;
+            getMatrixSubArrayBoundsExt(
+                pseg.terrainVertices!,
+                pseg.noDataVertices!,
+                pseg.gridSize,
+                gridSize * offsetY,
+                gridSize * offsetX,
+                gridSize,
+                pseg._relativeCenter,
+                seg._relativeCenter,
+                renderVertices,
+                renderVerticesHigh,
+                renderVerticesLow,
+                BOUNDS,
+                noDataVertices!
+            );
 
-            seg.terrainVertices = tempVertices;
-            seg.terrainVerticesHigh = tempVerticesHigh;
-            seg.terrainVerticesLow = tempVerticesLow;
+        } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
 
-            seg.tempVertices = tempVertices;
-            seg.tempVerticesHigh = tempVerticesHigh;
-            seg.tempVerticesLow = tempVerticesLow;
+            seg.gridSize = gridSizeExt;
 
-            seg.noDataVertices = noDataVertices!;
+            let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
+            renderVertices = new Float64Array(len);
+            renderVerticesHigh = new Float32Array(len);
+            renderVerticesLow = new Float32Array(len);
 
-            seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
+            if (pseg.noDataVertices) {
+                noDataVertices = new Uint8Array(len / 3);
+            }
 
-            if (seg.tileZoom > seg.planet.terrain!.maxZoom) {
-                if (pn.segment.tileZoom >= seg.planet.terrain!.maxZoom) {
+            getMatrixSubArrayBoundsExt(
+                pseg.normalMapVertices!,
+                pseg.noDataVertices!,
+                pn.segment.fileGridSize,
+                gridSizeExt * offsetY,
+                gridSizeExt * offsetX,
+                gridSizeExt,
+                pseg._relativeCenter,
+                seg._relativeCenter,
+                renderVertices,
+                renderVerticesHigh,
+                renderVerticesLow,
+                BOUNDS,
+                noDataVertices!
+            );
 
-                    seg._plainRadius = pn.segment._plainRadius / dZ2;
+        } else {
 
-                    seg.terrainReady = true;
-                    seg.terrainIsLoading = false;
+            seg.gridSize = _neGridSize;
 
-                    seg.terrainVertices = tempVertices;
-                    seg.terrainVerticesHigh = tempVerticesHigh;
-                    seg.terrainVerticesLow = tempVerticesLow;
+            let i0 = Math.floor(gridSize * offsetY),
+                j0 = Math.floor(gridSize * offsetX);
 
-                    seg.passReady = true;
+            let bigOne;
+            if (pseg.gridSize === 1) {
+                bigOne = pseg.terrainVertices!;
+            } else {
+                bigOne = getMatrixSubArray64(pseg.terrainVertices!, pseg.gridSize, i0, j0, 1);
+            }
 
-                    this.appliedTerrainNodeId = this.nodeId;
-                    this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+            let insideSize = 1.0 / gridSize;
 
-                    if (pn.segment.terrainExists) {
-                        seg.normalMapVertices = tempVertices;
-                        seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
+            let t_i0 = offsetY - insideSize * i0, t_j0 = offsetX - insideSize * j0;
 
-                        let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1,
-                            fgsZ = fgs / dZ2;
+            let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
+                v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-                        if (fgs > 1) {
-                            seg.normalMapNormals = getMatrixSubArray32(pseg.normalMapNormals!, fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
-                        } else {
-                            // TODO: interpolation
-                            seg.normalMapNormals = pseg.normalMapNormals;
-                        }
+            let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
+
+            let coords = new Vec3();
+
+            renderVertices = new Float64Array(3 * _vertOrder.length);
+            renderVerticesHigh = new Float32Array(3 * _vertOrder.length);
+            renderVerticesLow = new Float32Array(3 * _vertOrder.length);
+
+            for (let i = 0; i < _vertOrder.length; i++) {
+                let vi_y = _vertOrder[i].y + t_i0, vi_x = _vertOrder[i].x + t_j0;
+
+                let vi_x_is = vi_x * gridSize, vi_y_is = vi_y * gridSize;
+
+                if (vi_y + vi_x < insideSize) {
+                    coords = vn.scaleTo(vi_x_is).addA(vw.scaleTo(vi_y_is)).addA(v_lt);
+                } else {
+                    coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
+                }
+
+                coords.addA(pseg._relativeCenter);
+                let dstCoords = coords.sub(seg._relativeCenter);
+
+                Vec3.doubleToTwoFloats(dstCoords, _tempHigh, _tempLow);
+
+                let i3 = i * 3;
+
+                renderVertices[i3] = dstCoords.x;
+                renderVertices[i3 + 1] = dstCoords.y;
+                renderVertices[i3 + 2] = dstCoords.z;
+
+                renderVerticesHigh[i3] = _tempHigh.x;
+                renderVerticesHigh[i3 + 1] = _tempHigh.y;
+                renderVerticesHigh[i3 + 2] = _tempHigh.z;
+
+                renderVerticesLow[i3] = _tempLow.x;
+                renderVerticesLow[i3 + 1] = _tempLow.y;
+                renderVerticesLow[i3 + 2] = _tempLow.z;
+
+                if (coords.x < BOUNDS.xmin) BOUNDS.xmin = coords.x;
+                if (coords.x > BOUNDS.xmax) BOUNDS.xmax = coords.x;
+                if (coords.y < BOUNDS.ymin) BOUNDS.ymin = coords.y;
+                if (coords.y > BOUNDS.ymax) BOUNDS.ymax = coords.y;
+                if (coords.z < BOUNDS.zmin) BOUNDS.zmin = coords.z;
+                if (coords.z > BOUNDS.zmax) BOUNDS.zmax = coords.z;
+            }
+        }
+
+        seg.readyToEngage = true;
+
+        seg.terrainVertices = renderVertices;
+        seg.terrainVerticesHigh = renderVerticesHigh;
+        seg.terrainVerticesLow = renderVerticesLow;
+
+        seg.renderVertices = renderVertices;
+        seg.renderVerticesHigh = renderVerticesHigh;
+        seg.renderVerticesLow = renderVerticesLow;
+
+        seg.noDataVertices = noDataVertices!;
+
+        seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
+
+        if (seg.tileZoom > seg.planet.terrain!.maxZoom) {
+            if (pn.segment.tileZoom >= seg.planet.terrain!.maxZoom) {
+
+                seg._plainRadius = pn.segment._plainRadius / dZ2;
+
+                seg.terrainReady = true;
+                seg.terrainIsLoading = false;
+
+                seg.terrainVertices = renderVertices;
+                seg.terrainVerticesHigh = renderVerticesHigh;
+                seg.terrainVerticesLow = renderVerticesLow;
+
+                seg.passReady = true;
+
+                this.appliedTerrainNodeId = this.nodeId;
+                this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+
+                if (pn.segment.terrainExists) {
+                    seg.normalMapVertices = renderVertices;
+                    seg.fileGridSize = Math.sqrt(renderVertices.length / 3) - 1;
+
+                    let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1,
+                        fgsZ = fgs / dZ2;
+
+                    if (fgs > 1) {
+                        seg.normalMapNormals = getMatrixSubArray32(pseg.normalMapNormals!, fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
+                    } else {
+                        // TODO: interpolation
+                        seg.normalMapNormals = pseg.normalMapNormals;
                     }
                 }
             }

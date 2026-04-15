@@ -58,11 +58,11 @@ export class Mat4 {
     }
 
     /**
-     * Get rotation matrix around the point
+     * Returns a rotation matrix around a point.
      * @public
-     * @param {number} angle - Rotation angle in radians
-     * @param {Vec3} [center] - Point that the camera rotates around
-     * @param {Vec3} [up] - Camera up vector
+     * @param {number} angle - Rotation angle in radians.
+     * @param {Vec3} [center] - Rotation center point.
+     * @param {Vec3} [up] - Up axis.
      */
     static getRotationAroundPoint(angle: number, center: Vec3 = Vec3.ZERO, up: Vec3 = Vec3.UP): Mat4 {
         let rot = Mat4.getRotation(angle, up);
@@ -188,7 +188,7 @@ export class Mat4 {
      * Copy matrix.
      * @public
      * @param {Mat4} a - Matrix to copy.
-     * @return {Mat4}
+     * @returns {Mat4}
      */
     public copy(a: Mat4): Mat4 {
         return this.set(a._m);
@@ -500,10 +500,10 @@ export class Mat4 {
     }
 
     /**
-     * Rotate current matrix around the aligned axis and angle.
+     * Rotates the current matrix around an axis by an angle.
      * @public
-     * @param {Vec3} u - Aligned axis.
-     * @param {number} angle - Aligned axis angle in radians.
+     * @param {Vec3} u - Rotation axis.
+     * @param {number} angle - Rotation angle in radians.
      * @returns {Mat4} -
      */
     public rotate(u: Vec3, angle: number): Mat4 {
@@ -647,6 +647,47 @@ export class Mat4 {
     }
 
     /**
+     * Infinite reverse-Z perspective.
+     * By default uses WebGL clip space (NDC z in [-1, 1]); with `zeroToOne=true` uses EXT_clip_control ZERO_TO_ONE (NDC z in [0, 1]).
+     * Use with gl.clearDepth(0), gl.depthFunc(GL_GREATER). Far plane is not used in the matrix (culling only).
+     */
+    public setPerspectiveReverseInfinite(
+        left: number,
+        right: number,
+        bottom: number,
+        top: number,
+        near: number,
+        zeroToOne: boolean = false
+    ): Mat4 {
+        const h = right - left,
+            i = top - bottom,
+            n2 = 2 * near,
+            mm = this._m;
+
+        mm[0] = n2 / h;
+        mm[1] = 0;
+        mm[2] = 0;
+        mm[3] = 0;
+
+        mm[4] = 0;
+        mm[5] = n2 / i;
+        mm[6] = 0;
+        mm[7] = 0;
+
+        mm[8] = (right + left) / h;
+        mm[9] = (top + bottom) / i;
+        mm[10] = zeroToOne ? 0 : 1;
+        mm[11] = -1;
+
+        mm[12] = 0;
+        mm[13] = 0;
+        mm[14] = zeroToOne ? near : n2;
+        mm[15] = 0;
+
+        return this;
+    }
+
+    /**
      * Creates current orthographic projection matrix.
      * @public
      * @param {number} left -
@@ -655,7 +696,7 @@ export class Mat4 {
      * @param {number} top -
      * @param {number} near -
      * @param {number} far -
-     * @return {Mat4} -
+     * @returns {Mat4} -
      */
     public setOrthographic(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4 {
 

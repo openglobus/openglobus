@@ -42,16 +42,16 @@ type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsLis
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
  * @param {number} [options.minNativeZoom=0] - Minimal available zoom level.
  * @param {number} [options.maxNativeZoom=19] - Maximal available zoom level.
- * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
+ * @param {string} [options.attribution] - Layer attribution shown in the attribution area.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {string} [options.crossOrigin=true] - If true, all tiles will have their crossOrigin attribute set to ''.
  * @param {string} options.url - Tile url source template(see example below).
- * @param {string} options.textureFilter - texture gl filter. NEAREST, LINEAR, MIPMAP, ANISOTROPIC.
- * @param {Function} options.urlRewrite - Url rewrite function.
+ * @param {string} options.textureFilter - Texture WebGL filter: NEAREST, LINEAR, MIPMAP, ANISOTROPIC.
+ * @param {Function} options.urlRewrite - URL rewrite function.
  *
- * @fires EventsHandler<XYZEventsList>#load
- * @fires EventsHandler<XYZEventsList>#loadend
+ * @fires load
+ * @fires loadend
  *
  * @example <caption>Creates OpenStreetMap base tile layer</caption>
  * new og.layer.XYZ("OpenStreetMap", {
@@ -96,7 +96,7 @@ export class XYZ extends Layer {
      * @private
      * @param {Segment} segment - Segment to load.
      * @param {string} url - Created url.
-     * @returns {string} - Url query string.
+     * @returns {string} URL query string.
      */
     protected _urlRewriteCallback: Function | null;
 
@@ -250,7 +250,7 @@ export class XYZ extends Layer {
      * @protected
      * @virtual
      * @param {Segment} segment - Creates specific url for current segment.
-     * @returns {string} - Returns url string.
+     * @returns {string} URL string.
      */
     protected _createUrl(segment: Segment): string {
         return stringTemplate(this.url, {
@@ -270,7 +270,7 @@ export class XYZ extends Layer {
      * Returns actual url query string.
      * @protected
      * @param {Segment} segment - Segment that loads image data.
-     * @returns {string} - Url string.
+     * @returns {string} URL string.
      */
     protected _getHTTPRequestString(segment: Segment) {
         return this._urlRewriteCallback ? this._urlRewriteCallback(segment, this.url) : this._createUrl(segment);

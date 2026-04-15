@@ -3,6 +3,7 @@ import {Rectangle} from '../Rectangle';
 import {TextureAtlas, TextureAtlasNode} from './TextureAtlas';
 import {Handler} from "../webgl/Handler";
 import type {HTMLImageElementExt} from "./ImagesCacheManager";
+import type {WebGLTextureExt} from "../webgl/Handler";
 
 //@todo: get the value from shader module
 const MAX_SIZE = 11;
@@ -113,12 +114,16 @@ class FontAtlas {
     public atlasesArr: FontTextureAtlas[];
     public samplerArr: Uint32Array;
     public sdfParamsArr: Float32Array;
+    public textureArray: WebGLTextureExt | null;
     public catalogSrc: string;
 
     protected atlasIndexes: Record<string, number>;
     protected atlasIndexesDeferred: Record<string, Deferred<number>>;
     protected tokenImageSize: number;
     protected _handler: Handler | null;
+    protected _textureArrayWidth: number;
+    protected _textureArrayHeight: number;
+    protected _textureArrayMismatchWarningShown: boolean;
 
     constructor(catalogSrc?: string) {
         this.atlasesArr = [];
@@ -127,7 +132,11 @@ class FontAtlas {
         this.tokenImageSize = 64;
         this.samplerArr = new Uint32Array(MAX_SIZE);
         this.sdfParamsArr = new Float32Array(MAX_SIZE * 4);
+        this.textureArray = null;
         this._handler = null;
+        this._textureArrayWidth = 0;
+        this._textureArrayHeight = 0;
+        this._textureArrayMismatchWarningShown = false;
         this.catalogSrc = catalogSrc || "./";
     }
 
@@ -297,6 +306,67 @@ class FontAtlas {
 
     protected _createTexture(atlas: FontTextureAtlas, img: HTMLImageElementExt) {
         atlas.createTexture(img);
+        this._updateTextureArrayLayer(atlas);
+    }
+
+    protected _ensureTextureArray(width: number, height: number): boolean {
+        if (!this._handler || !this._handler.isWebGl2() || !this._handler.gl) {
+            return false;
+        }
+
+        if (!this.textureArray) {
+            let gl = this._handler.gl;
+            this.textureArray = gl.createTexture() as WebGLTextureExt;
+            this._textureArrayWidth = width;
+            this._textureArrayHeight = height;
+
+            gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.textureArray);
+            gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.RGBA, width, height, MAX_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+        }
+
+        const isSameSize = this._textureArrayWidth === width && this._textureArrayHeight === height;
+        if (!isSameSize && !this._textureArrayMismatchWarningShown) {
+            this._textureArrayMismatchWarningShown = true;
+            console.warn("FontAtlas: all fonts must have identical atlas dimensions for sampler2DArray labels.");
+        }
+        return isSameSize;
+    }
+
+    protected _updateTextureArrayLayer(atlas: FontTextureAtlas) {
+        if (!this._handler || !this._handler.gl || !this._handler.isWebGl2()) {
+            return;
+        }
+
+        let index = this.atlasesArr.indexOf(atlas);
+        if (index === -1 || index >= MAX_SIZE) {
+            return;
+        }
+
+        if (!this._ensureTextureArray(atlas.width, atlas.height)) {
+            return;
+        }
+
+        let gl = this._handler.gl;
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.textureArray);
+        gl.texSubImage3D(
+            gl.TEXTURE_2D_ARRAY,
+            0,
+            0,
+            0,
+            index,
+            atlas.width,
+            atlas.height,
+            1,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            atlas.canvas.getCanvas()
+        );
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
     }
 
     public loadFont(faceName: string, srcDir: string, atlasUrl: string) {

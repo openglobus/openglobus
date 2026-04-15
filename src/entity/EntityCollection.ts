@@ -1,33 +1,36 @@
 import * as math from "../math";
-import {BillboardHandler} from "./BillboardHandler";
+import {BillboardHandler} from "./billboard/BillboardHandler";
 import {createEvents} from "../Events";
 import type {EventsHandler} from "../Events";
-import {Entity} from "./Entity";
+import type {Entity} from "./Entity";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
-import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
-import {GeoObjectHandler} from "./GeoObjectHandler";
-import {LabelHandler} from "./LabelHandler";
+import {Extent} from "../Extent";
+import type {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
+import {GeoObjectHandler} from "./geoObject/GeoObjectHandler";
+import {LabelHandler} from "./label/LabelHandler";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
-import {Planet} from "../scene/Planet";
-import {PointCloudHandler} from "./PointCloudHandler";
-import {PolylineHandler} from "./PolylineHandler";
-import {RayHandler} from "./RayHandler";
+import type {Planet} from "../scene/Planet";
+import {PointCloudHandler} from "./pointCloud/PointCloudHandler";
+import {PolylineHandler} from "./polyline/PolylineHandler";
+import {RayHandler} from "./ray/RayHandler";
 import {RenderNode} from "../scene/RenderNode";
-import {StripHandler} from "./StripHandler";
-import {Vector} from "../layer/Vector";
+import type {Node} from "../quadTree/Node";
+import {StripHandler} from "./strip/StripHandler";
+import type {Vector} from "../layer/Vector";
 
 export type EntityCollectionEvents = EventsHandler<EntityCollectionEventList>;
 
 interface IEntityCollectionParams {
-    polygonOffsetUnits?: number;
+    depthOffset?: number;
     visibility?: boolean;
     labelMaxLetters?: number;
     pickingEnabled?: boolean;
     scaleByDistance?: NumberArray3;
     pickingScale?: number | NumberArray3;
     opacity?: number;
-    useLighting?: boolean;
+    /** 0 unlit, 1 Phong, 2 PBR (geo objects). */
+    shadeMode?: number;
     entities?: Entity[];
     depthOrder?: number;
 }
@@ -45,40 +48,41 @@ interface IEntityCollectionParams {
  * Third index - far distance to the entity, when entity becomes invisible.
  * @param {number} [options.opacity] - Entity global opacity.
  * @param {boolean} [options.pickingEnabled=true] - Entity picking enable.
- * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset. The default value is 0.
- * //@fires EntityCollection#entitymove
- * @fires EntityCollection#draw
- * @fires EntityCollection#drawend
- * @fires EntityCollection#add
- * @fires EntityCollection#remove
- * @fires EntityCollection#entityadd
- * @fires EntityCollection#entityremove
- * @fires EntityCollection#visibilitychange
- * @fires EntityCollection#mousemove
- * @fires EntityCollection#mouseenter
- * @fires EntityCollection#mouseleave
- * @fires EntityCollection#lclick
- * @fires EntityCollection#rclick
- * @fires EntityCollection#mclick
- * @fires EntityCollection#ldblclick
- * @fires EntityCollection#rdblclick
- * @fires EntityCollection#mdblclick
- * @fires EntityCollection#lup
- * @fires EntityCollection#rup
- * @fires EntityCollection#mup
- * @fires EntityCollection#ldown
- * @fires EntityCollection#rdown
- * @fires EntityCollection#mdown
- * @fires EntityCollection#lhold
- * @fires EntityCollection#rhold
- * @fires EntityCollection#mhold
- * @fires EntityCollection#mousewheel
- * @fires EntityCollection#touchmove
- * @fires EntityCollection#touchstart
- * @fires EntityCollection#touchend
- * @fires EntityCollection#doubletouch
- * @fires EntityCollection#touchleave
- * @fires EntityCollection#touchenter
+ * @param {Number} [options.depthOffset=0.0] - Signed world-space depth offset along the camera ray.
+ * Negative values move geometry closer to the camera, positive values move it farther.
+ * //@fires entitymove
+ * @fires draw
+ * @fires drawend
+ * @fires add
+ * @fires remove
+ * @fires entityadd
+ * @fires entityremove
+ * @fires visibilitychange
+ * @fires mousemove
+ * @fires mouseenter
+ * @fires mouseleave
+ * @fires lclick
+ * @fires rclick
+ * @fires mclick
+ * @fires ldblclick
+ * @fires rdblclick
+ * @fires mdblclick
+ * @fires lup
+ * @fires rup
+ * @fires mup
+ * @fires ldown
+ * @fires rdown
+ * @fires mdown
+ * @fires lhold
+ * @fires rhold
+ * @fires mhold
+ * @fires mousewheel
+ * @fires touchmove
+ * @fires touchstart
+ * @fires touchend
+ * @fires doubletouch
+ * @fires touchleave
+ * @fires touchenter
  */
 class EntityCollection {
 
@@ -106,11 +110,13 @@ class EntityCollection {
     public _visibility: boolean;
 
     /**
-     * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
+     * Signed world-space depth offset along the camera ray.
+     * Negative values move geometry closer to the camera, positive values move it farther.
+     * 0.0 means no offset.
      * @public
      * @type {Number}
      */
-    public polygonOffsetUnits: number;
+    public depthOffset: number;
 
     /**
      * Billboards handler
@@ -208,7 +214,7 @@ class EntityCollection {
     public _layer?: Vector;
     public _quadNode?: EntityCollectionNode;
 
-    public _useLighting: number;
+    public _shadeMode: number;
 
     protected _depthOrder: number;
 
@@ -220,8 +226,7 @@ class EntityCollection {
 
         this._visibility = options.visibility == undefined ? true : options.visibility;
 
-        this.polygonOffsetUnits =
-            options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
+        this.depthOffset = options.depthOffset != undefined ? options.depthOffset : 0.0;
 
         this.billboardHandler = new BillboardHandler(this);
 
@@ -268,7 +273,8 @@ class EntityCollection {
 
         this.events = this.rendererEvents = createEvents<EntityCollectionEventList>(ENTITYCOLLECTION_EVENTS, this);
 
-        this._useLighting = options.useLighting != undefined ? (options.useLighting ? 1.0 : 0.0) : 1.0;
+        this._shadeMode =
+            options.shadeMode !== undefined ? EntityCollection._clampShadeMode(options.shadeMode) : 1.0;
 
         // initialize current entities
         if (options.entities) {
@@ -295,12 +301,19 @@ class EntityCollection {
         return this.__id;
     }
 
-    public get useLighting(): boolean {
-        return Boolean(this._useLighting)
+    public get shadeMode(): number {
+        return this._shadeMode;
     }
 
-    public set useLighting(f: boolean) {
-        this._useLighting = Number(f);
+    public set shadeMode(m: number) {
+        this._shadeMode = EntityCollection._clampShadeMode(m);
+    }
+
+    protected static _clampShadeMode(m: number): number {
+        let v = Math.round(Number(m));
+        if (v < 0) v = 0;
+        if (v > 2) v = 2;
+        return v;
     }
 
     public isEqual(ec: EntityCollection | null): boolean {
@@ -322,7 +335,7 @@ class EntityCollection {
     /**
      * Returns collection visibility.
      * @public
-     * @returns {boolean} -
+     * @returns {boolean} Collection visibility flag.
      */
     public getVisibility(): boolean {
         return this._visibility;
@@ -355,7 +368,7 @@ class EntityCollection {
     /**
      * Gets collection opacity.
      * @public
-     * @returns {number} -
+     * @returns {number} Collection opacity.
      */
     public getOpacity(): number {
         return this._opacity;
@@ -372,6 +385,74 @@ class EntityCollection {
         this.scaleByDistance[0] = near;
         this.scaleByDistance[1] = far;
         this.scaleByDistance[2] = farInvisible || math.MAX32;
+    }
+
+    public setVisibleSphere(p: Vec3, r: number) {
+        this.polylineHandler.setVisibleSphere(p, r);
+    }
+
+    /**
+     * Aligns collection entities to terrain.
+     * Currently applies to polyline entities.
+     */
+    public applyTerrainCollision(nodes: Node[], visibleExtent: Extent) {
+        const layer = this._layer;
+        if (!layer || (!layer.clampToGround && !layer.relativeToGround) || !layer._planet || nodes.length === 0) {
+            return;
+        }
+
+        const rtg = Number(layer.relativeToGround);
+        const res = new Vec3();
+        const entities = this._entities;
+        let i = entities.length;
+
+        while (i--) {
+            const entity = entities[i];
+            const p = entity.polyline;
+            if (!p) continue;
+
+            const ext = p._extent;
+            const hasValidExtent =
+                ext.southWest.lon <= ext.northEast.lon &&
+                ext.southWest.lat <= ext.northEast.lat;
+
+            if (hasValidExtent && !visibleExtent.overlaps(ext)) continue;
+
+            const mercPaths = p._pathLonLatMerc;
+            const cartPaths = p.getPath3v() as Vec3[][];
+            const alt = (rtg && p.altitude) || entity._altitude || 0.0;
+
+            // TODO: this works only for mercator area.
+            // needs to be working on poles.
+            let seg_i = Math.min(mercPaths.length, cartPaths.length);
+            while (seg_i--) {
+                const mercSeg = mercPaths[seg_i];
+                const cartSeg = cartPaths[seg_i];
+                if (!mercSeg || !cartSeg) continue;
+
+                let point_i = Math.min(mercSeg.length, cartSeg.length);
+                while (point_i--) {
+                    const ll = mercSeg[point_i];
+                    const cart = cartSeg[point_i];
+                    if (!ll || !cart) continue;
+
+                    let n_k = nodes.length;
+                    while (n_k--) {
+                        const seg = nodes[n_k].segment;
+                        if (seg._extent.isInside(ll)) {
+                            seg.getTerrainPoint(cart, ll, res);
+                            if (alt) {
+                                const n = layer._planet!.ellipsoid.getSurfaceNormal3v(res);
+                                p.setPoint3v(res.addA(n.scale(alt)), point_i, seg_i, true);
+                            } else {
+                                p.setPoint3v(res, point_i, seg_i, true);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public appendChildEntity(entity: Entity) {
@@ -423,7 +504,7 @@ class EntityCollection {
      * Adds entity to the collection and returns collection.
      * @public
      * @param {Entity} entity - Entity.
-     * @returns {EntityCollection} -
+     * @returns {EntityCollection} Current collection instance.
      */
     public add(entity: Entity): EntityCollection {
         if (!entity._entityCollection) {
@@ -439,7 +520,7 @@ class EntityCollection {
      * Adds entities array to the collection and returns collection.
      * @public
      * @param {Array.<Entity>} entities - Entities array.
-     * @returns {EntityCollection} -
+     * @returns {EntityCollection} Current collection instance.
      */
     public addEntities(entities: Entity[]): EntityCollection {
         for (let i = 0, len = entities.length; i < len; i++) {
@@ -449,10 +530,10 @@ class EntityCollection {
     }
 
     /**
-     * Returns true if the entity belongs this collection, otherwise returns false.
+     * Returns true if the entity belongs to this collection, otherwise returns false.
      * @public
      * @param {Entity} entity - Entity.
-     * @returns {boolean} -
+     * @returns {boolean} `true` if the entity belongs to this collection.
      */
     public belongs(entity: Entity) {
         return this.isEqual(entity._entityCollection);
@@ -571,8 +652,8 @@ class EntityCollection {
      * Adds this collection to render node.
      * @public
      * @param {RenderNode} renderNode - Render node.
-     * @param {boolean} [isHidden] - Uses in vector layers that render in planet render specific function.
-     * @returns {EntityCollection} -
+     * @param {boolean} [isHidden] - Used in vector layers with planet-specific rendering.
+     * @returns {EntityCollection} Current collection instance.
      */
     public addTo(renderNode: RenderNode, isHidden: boolean = false) {
         if (!this.renderNode) {
@@ -685,7 +766,7 @@ class EntityCollection {
     /**
      * Gets entity array.
      * @public
-     * @returns {Array.<Entity>} -
+     * @returns {Array.<Entity>} Entity array copy.
      */
     public getEntities(): Entity[] {
         return ([] as Entity[]).concat(this._entities);

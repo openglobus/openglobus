@@ -43,9 +43,11 @@ class Axes extends RenderNode {
                 gl_FragColor = vColor;
             }`
         }));
+
+        this.renderer?.events.on("forwardpass", this.forward);
     }
 
-    public override frame() {
+    public forward = () => {
 
         this.renderer!.handler.programs.axesShader.activate().set({
             projectionViewMatrix: this.renderer!.activeCamera!.getProjectionViewMatrix(),
@@ -60,7 +62,7 @@ class Axes extends RenderNode {
 
         const vertices = [
             0.0, 0.0, 0.0, gridSize - 1, 0.0, 0.0, // x - R
-            0.0, 0.0, 0.0, 0.0, gridSize - 1, 0.0, // y - B  
+            0.0, 0.0, 0.0, 0.0, gridSize - 1, 0.0, // y - B
             0.0, 0.0, 0.0, 0.0, 0.0, gridSize - 1  // z - G
         ];
 

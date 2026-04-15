@@ -76,8 +76,8 @@ class SelectionScene extends RenderNode {
             polyline: {
                 path3v: [],
                 thickness: 3.8,
-                color: "rgb(455,455,455)",
-                isClosed: false
+                color: ["rgb(455,455,455)"],
+                isClosed: [false]
             }
         } as any);
 
@@ -115,7 +115,7 @@ class SelectionScene extends RenderNode {
         this._trackLayer = new Vector("track", {
             entities: [this._trackEntity, this._propsLabel],
             pickingEnabled: false,
-            polygonOffsetUnits: -1.0,
+            depthOffset: -100.0,
             relativeToGround: true,
             hideInLayerSwitcher: false
         });

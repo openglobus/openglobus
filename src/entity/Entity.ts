@@ -1,32 +1,31 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
-import {Billboard} from "./Billboard";
-import {EntityCollection} from "./EntityCollection";
-import type {IBillboardParams} from "./Billboard";
+import {Billboard} from "./billboard/Billboard";
+import type {EntityCollection} from "./EntityCollection";
+import type {IBillboardParams} from "./billboard/Billboard";
 import type {EntityCollectionEvents} from "./EntityCollection";
 import {Extent} from "../Extent";
-import {Geometry} from "./Geometry";
-import {GeoObject} from "./GeoObject";
-import type {IGeometryParams} from "./Geometry";
-import type {IGeoObjectParams} from "./GeoObject";
+import {Geometry} from "./geometry/Geometry";
+import {GeoObject} from "./geoObject/GeoObject";
+import type {IGeometryParams} from "./geometry/Geometry";
+import type {IGeoObjectParams} from "./geoObject/GeoObject";
 import {LonLat} from "../LonLat";
-import {Label} from "./Label";
-import type {ILabelParams} from "./Label";
+import {Label} from "./label/Label";
+import type {ILabelParams} from "./label/Label";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import type {NumberArray2} from "../math/Vec2";
-import {Planet} from "../scene/Planet";
-import {PointCloud} from "./PointCloud";
-import {Polyline} from "./Polyline";
-import type {IPointCloudParams} from "./PointCloud";
-import type {IPolylineParams} from "./Polyline";
-import {Ray} from "./Ray";
-import type {IRayParams} from "./Ray";
-import {Strip} from "./Strip";
-import type {IStripParams} from "./Strip";
-import {Vector} from "../layer/Vector";
-import type {VectorEventsType} from "../layer/Vector";
-import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
+import type {Planet} from "../scene/Planet";
+import {PointCloud} from "./pointCloud/PointCloud";
+import {Polyline} from "./polyline/Polyline";
+import type {IPointCloudParams} from "./pointCloud/PointCloud";
+import type {IPolylineParams} from "./polyline/Polyline";
+import {Ray} from "./ray/Ray";
+import type {IRayParams} from "./ray/Ray";
+import {Strip} from "./strip/Strip";
+import type {IStripParams} from "./strip/Strip";
+import type {Vector, VectorEventsType} from "../layer/Vector";
+import type {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 import {Quat} from "../math/Quat";
 import {clamp} from "../math";
 
@@ -329,11 +328,11 @@ class Entity {
 
         this.forceGlobalScale = options.forceGlobalScale || false;
 
-        this._cartesian = utils.createVector3(options.cartesian);
+        this._cartesian = utils.createVec3(options.cartesian);
 
         this._rootCartesian = new Vec3();
 
-        this._localPosition = utils.createVector3(options.localPosition);
+        this._localPosition = utils.createVec3(options.localPosition);
         this._absoluteLocalPosition = new Vec3();
 
         this._lonLat = utils.createLonLat(options.lonlat);
@@ -362,7 +361,7 @@ class Entity {
         this._yawRad = options.yaw || 0;
         this._rollRad = options.roll || 0;
 
-        this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
+        this._scale = utils.createVec3(options.scale, new Vec3(1, 1, 1));
         this._absoluteScale = new Vec3();
 
         this._qFrame = Quat.IDENTITY;
@@ -424,7 +423,7 @@ class Entity {
     /**
      * Returns root entity object.
      * @public
-     * @return {Entity}
+     * @returns {Entity} Root entity object.
      */
     public get rootEntity(): Entity {
         let pn: Entity | null = this;
@@ -546,7 +545,7 @@ class Entity {
      * Adds current entity into the specified entity collection.
      * @public
      * @param {EntityCollection | Vector} collection - Specified entity collection or vector layer.
-     * @returns {Entity} - This object.
+     * @returns {Entity} This object.
      */
     public addTo(collection: EntityCollection | Vector): Entity {
         collection.add(this);
@@ -597,7 +596,7 @@ class Entity {
     /**
      * Returns entity visibility.
      * @public
-     * @returns {boolean} -
+     * @returns {boolean} Entity visibility flag.
      */
     public getVisibility() {
         return this._visibility;
@@ -924,7 +923,7 @@ class Entity {
     /**
      * Returns absolute cartesian position.
      * @public
-     * @returns {Vec3} -
+     * @returns {Vec3} Absolute cartesian position.
      */
     public getAbsoluteCartesian(): Vec3 {
         if (this.parent && this._relativePosition) {
@@ -1080,7 +1079,7 @@ class Entity {
     /**
      * Gets entity geodetic coordinates.
      * @public
-     * @returns {LonLat} -
+     * @returns {LonLat} Entity geodetic coordinates.
      */
     public getLonLat(): LonLat {
         return this._lonLat.clone();
@@ -1152,9 +1151,9 @@ class Entity {
     }
 
     /**
-     * Sets entity altitude over the planet.
+     * Returns entity altitude over the planet.
      * @public
-     * @return {number} Altitude.
+     * @returns {number} Altitude.
      */
     public getAltitude(): number {
         return this._altitude;
@@ -1163,7 +1162,7 @@ class Entity {
     /**
      * Returns cartesian position.
      * @public
-     * @returns {Vec3} -
+     * @returns {Vec3} Cartesian position.
      */
     public getCartesian(): Vec3 {
         return this._cartesian.clone();
@@ -1173,7 +1172,7 @@ class Entity {
      * Sets entity billboard.
      * @public
      * @param {Billboard} billboard - Billboard object.
-     * @returns {Billboard} -
+     * @returns {Billboard} Assigned billboard object.
      */
     public setBillboard(billboard: Billboard): Billboard {
         if (this.billboard) {
@@ -1191,7 +1190,7 @@ class Entity {
      * Sets entity label.
      * @public
      * @param {Label} label - Text label.
-     * @returns {Label} -
+     * @returns {Label} Assigned label object.
      */
     public setLabel(label: Label): Label {
         if (this.label) {
@@ -1209,7 +1208,7 @@ class Entity {
      * Sets entity ray.
      * @public
      * @param {Ray} ray - Ray object.
-     * @returns {Ray} -
+     * @returns {Ray} Assigned ray object.
      */
     public setRay(ray: Ray): Ray {
         if (this.ray) {
@@ -1226,7 +1225,7 @@ class Entity {
      * Sets entity polyline.
      * @public
      * @param {Polyline} polyline - Polyline object.
-     * @returns {Polyline} -
+     * @returns {Polyline} Assigned polyline object.
      */
     public setPolyline(polyline: Polyline): Polyline {
         if (this.polyline) {
@@ -1243,7 +1242,7 @@ class Entity {
      * Sets entity pointCloud.
      * @public
      * @param {PointCloud} pointCloud - PointCloud object.
-     * @returns {PointCloud} -
+     * @returns {PointCloud} Assigned point cloud object.
      */
     public setPointCloud(pointCloud: PointCloud): PointCloud {
         if (this.pointCloud) {
@@ -1260,7 +1259,7 @@ class Entity {
      * Sets entity geometry.
      * @public
      * @param {Geometry} geometry - Geometry object.
-     * @returns {Geometry} -
+     * @returns {Geometry} Assigned geometry object.
      */
     public setGeometry(geometry: Geometry): Geometry {
         if (this.geometry) {
@@ -1281,7 +1280,7 @@ class Entity {
      * Sets entity geoObject.
      * @public
      * @param {GeoObject} geoObject - GeoObject.
-     * @returns {GeoObject} -
+     * @returns {GeoObject} Assigned geo object.
      */
     public setGeoObject(geoObject: GeoObject): GeoObject {
         if (this.geoObject) {
@@ -1299,7 +1298,7 @@ class Entity {
      * Sets entity strip.
      * @public
      * @param {Strip} strip - Strip object.
-     * @returns {Strip} -
+     * @returns {Strip} Assigned strip object.
      */
     public setStrip(strip: Strip): Strip {
         if (this.strip) {
@@ -1385,9 +1384,9 @@ class Entity {
     }
 
     /**
-     * Return geodetic extent.
+     * Returns geodetic extent.
      * @public
-     * @returns {Extent} -
+     * @returns {Extent} Geodetic extent.
      */
     public getExtent(): Extent {
 

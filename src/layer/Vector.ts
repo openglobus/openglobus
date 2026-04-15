@@ -4,11 +4,10 @@ import type {IEntityParams} from "../entity/Entity";
 import {EntityCollection} from "../entity/EntityCollection";
 import {EntityCollectionsTreeStrategy} from "../quadTree/EntityCollectionsTreeStrategy";
 import type {EventsHandler} from "../Events";
-import {GeometryHandler} from "../entity/GeometryHandler";
+import {GeometryHandler} from "../entity/geometry/GeometryHandler";
 import type {IMouseState, ITouchState} from "../renderer/RendererEvents";
 import {Layer} from "./Layer";
 import type {ILayerParams, LayerEventsList} from "./Layer";
-import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
 import {Planet} from "../scene/Planet";
 import {Material} from "./Material";
@@ -17,7 +16,7 @@ import * as mercator from "../mercator";
 
 export interface IVectorParams extends ILayerParams {
     entities?: Entity[] | IEntityParams[];
-    polygonOffsetUnits?: number;
+    depthOffset?: number;
     nodeCapacity?: number;
     relativeToGround?: boolean;
     clampToGround?: boolean;
@@ -25,7 +24,8 @@ export interface IVectorParams extends ILayerParams {
     pickingScale?: number | NumberArray3;
     scaleByDistance?: NumberArray3;
     labelMaxLetters?: number;
-    useLighting?: boolean;
+    /** 0 unlit, 1 Phong, 2 PBR for geo objects in this layer. */
+    shadeMode?: number;
     depthOrder?: number;
 }
 
@@ -57,7 +57,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
 }
 
 /**
- * Vector layer represents alternative entities store. Used for geospatial data rendering like
+ * Vector layer is an alternative entity storage. Used for geospatial data rendering like
  * points, lines, polygons, geometry objects etc.
  * @class
  * @extends {Layer}
@@ -79,15 +79,17 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering. True for optimization huge data.
  * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
  * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
- * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset.
+ * @param {Number} [options.depthOffset=0.0] - Signed world-space depth offset along the camera ray.
+ * Negative values move geometry closer to the camera, positive values move it farther.
+ * @param {number} [options.shadeMode=1] - Geo object shading: 0 unlit, 1 Phong, 2 PBR.
  *
- * //@fires EventsHandler<VectorEventsList>#entitymove
- * @fires EventsHandler<VectorEventsList>#draw
- * @fires EventsHandler<VectorEventsList>#add
- * @fires EventsHandler<VectorEventsList>#remove
- * @fires EventsHandler<VectorEventsList>#entityadd
- * @fires EventsHandler<VectorEventsList>#entityremove
- * @fires EventsHandler<VectorEventsList>#visibilitychange
+ * //@fires entitymove
+ * @fires draw
+ * @fires add
+ * @fires remove
+ * @fires entityadd
+ * @fires entityremove
+ * @fires visibilitychange
  */
 class Vector extends Layer {
 
@@ -151,15 +153,17 @@ class Vector extends Layer {
     //protected _pendingsQueue: Entity[];
 
     /**
-     * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
+     * Signed world-space depth offset along the camera ray.
+     * Negative values move geometry closer to the camera, positive values move it farther.
+     * 0.0 means no offset.
      * @public
      * @type {Number}
      */
-    public polygonOffsetUnits: number;
+    public depthOffset: number;
 
     protected _labelMaxLetters: number;
 
-    protected _useLighting: boolean;
+    protected _shadeMode: number;
 
     constructor(name?: string | null, options: IVectorParams = {}) {
         super(name, options);
@@ -173,7 +177,8 @@ class Vector extends Layer {
 
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 
-        this._useLighting = options.useLighting !== undefined ? options.useLighting : true;
+        this._shadeMode =
+            options.shadeMode !== undefined ? Vector._clampShadeMode(options.shadeMode) : 1;
 
 
         let pickingScale: Float32Array = new Float32Array([1.0, 1.0, 1.0]);
@@ -213,7 +218,7 @@ class Vector extends Layer {
 
         this._geoObjectEntityCollection = new EntityCollection({
             pickingEnabled: this.pickingEnabled,
-            useLighting: this._useLighting
+            shadeMode: this._shadeMode
         });
         this._bindEventsDefault(this._geoObjectEntityCollection);
 
@@ -225,7 +230,7 @@ class Vector extends Layer {
 
         this.setEntities(this._entities);
 
-        this.polygonOffsetUnits = options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
+        this.depthOffset = options.depthOffset != undefined ? options.depthOffset : 0.0;
 
         this.pickingEnabled = this._pickingEnabled;
 
@@ -243,15 +248,23 @@ class Vector extends Layer {
         }
     }
 
-    public get useLighting(): boolean {
-        return this._useLighting;
+    public get shadeMode(): number {
+        return this._shadeMode;
     }
 
-    public set useLighting(f: boolean) {
-        if (f !== this._useLighting) {
-            this._geoObjectEntityCollection.useLighting = f;
-            this._useLighting = f;
+    public set shadeMode(m: number) {
+        let v = Vector._clampShadeMode(m);
+        if (v !== this._shadeMode) {
+            this._shadeMode = v;
+            this._geoObjectEntityCollection.shadeMode = v;
         }
+    }
+
+    protected static _clampShadeMode(m: number): number {
+        let v = Math.round(Number(m));
+        if (v < 0) v = 0;
+        if (v > 2) v = 2;
+        return v;
     }
 
     public get labelMaxLetters(): number {
@@ -303,7 +316,7 @@ class Vector extends Layer {
     /**
      * Returns stored entities.
      * @public
-     * @returns {Array.<Entity>} -
+     * @returns {Array.<Entity>} Stored entities.
      */
     public getEntities(): Entity[] {
         return ([] as Entity[]).concat(this._entities);
@@ -486,7 +499,7 @@ class Vector extends Layer {
     }
 
     /**
-     * Set layer picking events active.
+     * Sets layer picking events active.
      * @public
      * @param {boolean} picking - Picking enable flag.
      */
@@ -723,7 +736,7 @@ class Vector extends Layer {
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
-        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+        ec.depthOffset = this.depthOffset;
 
         outArr.push(ec);
     }
@@ -734,51 +747,14 @@ class Vector extends Layer {
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
-        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+        ec.depthOffset = this.depthOffset;
 
         outArr.push(ec);
 
         if (this.clampToGround || this.relativeToGround) {
-            let rtg = Number(this.relativeToGround);
-
             const nodes = this._planet!.quadTreeStrategy._renderedNodes;
             const visibleExtent = this._planet!.getViewExtent();
-            let e = ec._entities;
-            let e_i = e.length;
-            let res = new Vec3();
-
-            while (e_i--) {
-                let altModifier = e[e_i]._altitude || 0.0;
-                let p = e[e_i].polyline!;
-                if (p && visibleExtent.overlaps(p._extent)) {
-                    // TODO:this works only for mercator area.
-                    // needs to be working on poles.
-                    let coords = p._pathLonLatMerc,
-                        c_j = coords.length;
-                    while (c_j--) {
-                        let c_j_h = coords[c_j].length;
-                        while (c_j_h--) {
-                            let ll = coords[c_j][c_j_h],
-                                n_k = nodes.length;
-                            while (n_k--) {
-                                let seg = nodes[n_k].segment;
-                                if (seg._extent.isInside(ll)) {
-                                    let cart = p._path3v[c_j][c_j_h] as Vec3;
-                                    seg.getTerrainPoint(cart, ll, res);
-                                    let alt = (rtg && p.altitude) || altModifier;
-                                    if (alt) {
-                                        let n = this._planet!.ellipsoid.getSurfaceNormal3v(res);
-                                        p.setPoint3v(res.addA(n.scale(alt)), c_j_h, c_j, true);
-                                    } else {
-                                        p.setPoint3v(res, c_j_h, c_j, true);
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            ec.applyTerrainCollision(nodes, visibleExtent);
         }
     }
 
@@ -788,7 +764,7 @@ class Vector extends Layer {
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
-        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+        ec.depthOffset = this.depthOffset;
 
         outArr.push(ec);
 

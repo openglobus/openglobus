@@ -1,10 +1,10 @@
 import {BaseNode} from "./BaseNode";
 import {Renderer} from "../renderer/Renderer";
 import {LightSource} from "../light/LightSource";
-import {EntityCollection} from "../entity/EntityCollection";
+import type {EntityCollection} from "../entity/EntityCollection";
 import {Quat} from "../math/Quat";
 import {Vec3} from "../math/Vec3";
-import {Planet} from "./Planet";
+import type {Planet} from "./Planet";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -38,18 +38,10 @@ class RenderNode extends BaseNode {
     public override childNodes: RenderNode[];
 
     /**
-     * Lighting calculations.
-     * @public
-     * @type {boolean}
-     */
-    public lightEnabled: boolean;
-
-    /**
      * Point light array.
      * @public
      * @type {Array.<LightSource>}
      */
-    public _lightPosition: Float32Array;
     public _lightParams: Float32Array;
     public _lightShininess: number;
 
@@ -77,9 +69,6 @@ class RenderNode extends BaseNode {
 
         this._isActive = true;
 
-        this.lightEnabled = false;
-
-        this._lightPosition = new Float32Array([100, 100, 100]);
         this._lightParams = new Float32Array(9);
         this._lightShininess = 100.0;
 
@@ -348,7 +337,6 @@ class RenderNode extends BaseNode {
         }
 
         if (this.show) {
-            //this.lightEnabled && this.transformLights();
             this.preFrame();
             for (let i = 0; i < this._entityCollectionsByDepthOrder.length; i++) {
                 this.drawEntityCollections(this._entityCollectionsByDepthOrder[i], i);

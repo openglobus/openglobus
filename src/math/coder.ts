@@ -73,7 +73,7 @@ export function doubleToTwoFloats(value: number): Float32Array {
  * Separate 64 bit value to two 32-bit float values.
  * @function
  * @param {number} value - Double type value.
- * @param {NumberArray2 | Float32Array} - Reference out array.
+ * @param {NumberArray2 | Float32Array} highLowArr - Reference output array.
  * @returns {NumberArray2 | Float32Array} Encoded array. (exactly 2 entries)
  */
 export function doubleToTwoFloats2(value: number, highLowArr: NumberArray2 | Float32Array): NumberArray2 | Float32Array {

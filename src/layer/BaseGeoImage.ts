@@ -31,9 +31,8 @@ const BASEGEOIMAGE_EVENTS: BaseGeoImageEventsList = [
 export type BaseGeoImageEventsType = EventsHandler<BaseGeoImageEventsList> & EventsHandler<LayerEventsList>;
 
 /**
- * BaseGeoImage layer represents square imagery layer that
- * could be a static image, or animated video or webgl buffer
- * object displayed on the globe.
+ * BaseGeoImage represents a square imagery layer displayed on the globe.
+ * It can use a static image, animated video, or WebGL buffer as a source.
  * @class
  * @extends {Layer}
  */
@@ -160,7 +159,7 @@ class BaseGeoImage extends Layer {
     /**
      * Gets corners coordinates.
      * @public
-     * @return {Array.<LonLat>} - (exactly 4 entries)
+     * @returns {Array.<LonLat>} - (exactly 4 entries)
      */
     public getCornersLonLat(): LonLat[] {
         let c = this._cornersWgs84;
@@ -175,7 +174,7 @@ class BaseGeoImage extends Layer {
     /**
      * Gets corners coordinates.
      * @public
-     * @return {Array.<Array<number>>} - (exactly 3 entries)
+     * @returns {Array.<Array<number>>} - (exactly 4 entries)
      */
     public getCorners(): NumberArray2[] {
         let c = this._cornersWgs84;
@@ -190,9 +189,8 @@ class BaseGeoImage extends Layer {
     /**
      * Sets geoImage geographical corners coordinates.
      * @public
-     * @param {Array.<Array.<number>>} corners - GeoImage corners coordinates. Where first coordinate (exactly 3 entries)
-     * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom
-     * and fourth - left bottom image corner.
+     * @param {Array.<Array.<number>>} corners - GeoImage corner coordinates. Each coordinate has exactly 2 entries.
+     * First corner is top-left, second is top-right, third is bottom-right, and fourth is bottom-left.
      */
     public setCorners(corners: NumberArray2[]) {
         this.setCornersLonLat(LonLat.join(corners));
@@ -201,9 +199,9 @@ class BaseGeoImage extends Layer {
     /**
      * Sets geoImage geographical corners coordinates.
      * @public
-     * @param {Array.<LonLat>} corners - GeoImage corners coordinates. Where first coordinate
-     * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom
-     * and fourth - left bottom image corner. (exactly 4 entries)
+     * @param {Array.<LonLat>} corners - GeoImage corner coordinates.
+     * First corner is top-left, second is top-right, third is bottom-right, and fourth is bottom-left.
+     * (exactly 4 entries)
      */
     public setCornersLonLat(corners: LonLat[]) {
         this._refreshFrame = true;
@@ -383,7 +381,7 @@ class BaseGeoImage extends Layer {
     /**
      * @public
      * @override
-     * @returns {Array<number>} -
+     * @returns {NumberArray4}
      */
     public override applyMaterial(material: Material): NumberArray4 {
         let segment = material.segment;
@@ -417,7 +415,7 @@ class BaseGeoImage extends Layer {
     /**
      * Gets frame width size in pixels.
      * @public
-     * @returns {Number} Frame width.
+     * @returns {number} Frame width.
      */
     public get getFrameWidth(): number {
         return this._frameWidth;
@@ -426,7 +424,7 @@ class BaseGeoImage extends Layer {
     /**
      * Gets frame height size in pixels.
      * @public
-     * @returns {Number} Frame height.
+     * @returns {number} Frame height.
      */
     public get getFrameHeight(): number {
         return this._frameHeight;

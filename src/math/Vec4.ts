@@ -234,7 +234,7 @@ export class Vec4 {
     }
 
     /**
-     * Gets vectors dot production.
+     * Returns the dot product of two vectors.
      * @public
      * @param {Vec4} v - Another vector.
      * @returns {number} - Dot product.

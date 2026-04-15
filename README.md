@@ -7,8 +7,6 @@
 
 # OpenGlobus
 
-English | [简体中文](README_CN.md) | [Portuguese-BR](README_pt-BR.md)
-
 [openglobus](https://www.openglobus.org/) is a typescript/javascript library designed to display interactive 3D maps and other geospatial data at a
 scale from planet to bee.
 
@@ -16,10 +14,10 @@ It supports various high-resolution terrain providers, imagery layers, renders t
 geometry measurement tools, and more. It uses the WebGL technology, open-source and
 completely free.
 
-Openglobus main goal is to make 3D map features fast, good-looking, user-friendly and easy to implement in any
+OpenGlobus's main goal is to make 3D map features fast, good-looking, user-friendly, and easy to implement in any
 related project.
 
-## Getting Start
+## Getting Started
 
 ### Installation
 
@@ -29,7 +27,7 @@ npm install @openglobus/og
 
 ### Fast initialization
 
-Create your first openglobus application with [create-openglobus](https://www.npmjs.com/package/create-openglobus) template.  It support js, ts + react, etc.
+Create your first OpenGlobus application with the [create-openglobus](https://www.npmjs.com/package/create-openglobus) template. It supports JS, TS, React, and more.
 
 Run:
 
@@ -37,9 +35,9 @@ Run:
 npx create-openglobus
 ```
 
-## React integration
+## React Integration
 
-Openglobus React module is available with [openglobus-react](https://github.com/openglobus/openglobus-react) package.
+The OpenGlobus React module is available in the [openglobus-react](https://github.com/openglobus/openglobus-react) package.
 
 ```sh
 npm i @openglobus/openglobus-react
@@ -51,12 +49,12 @@ npm i @openglobus/openglobus-react
 - [Wiki](https://github.com/openglobus/openglobus/wiki)
 - [API documentation](https://openglobus.github.io/docs/)
 
-## Get Started to contribute
+## Get Started Contributing
 
 ### Development
 
-1. Clone repository.
-2. Run in the repo folder:
+1. Clone the repository.
+2. Run in the repository folder:
 
 ```sh
 npm install
@@ -70,7 +68,7 @@ Run
 npm run build
 ```
 
-Then, it will generate files at `lib/`:
+This generates files in `lib/`:
 
 - og.es.js
 - og.es.js.map
@@ -85,7 +83,7 @@ First, it starts by watching sources and building into ./lib folder es module:
 npm run dev
 ```
 
-Second, runs local server, then you can browse 127.0.0.1:8080:
+Second, run a local server. Then open `http://127.0.0.1:3000`:
 
 ```sh
 npm run serve
@@ -100,20 +98,35 @@ npm run dev_serve
 Third, try an example from the sandbox:
 
 ```sh
- http://127.0.0.1:8080/sandbox/osm/osm.html
+http://127.0.0.1:3000/sandbox/osm/osm.html
 ```
 
 ### Other scripts
 
-`npm run docs` - build [api documentation](https://openglobus.github.io/docs/) into /api folder
+`npm run docs` - build [api documentation](https://openglobus.github.io/docs/) into `docs/`
 
 `npm run serve` - run local web server for develop and watch examples
 
 `npm run lint` - run code linter
 
+`npm run format` - format code and docs with Prettier
+
+`npm run format:check` - check formatting with Prettier (non-modifying)
+
 `npm run test` - run tests
 
-`tsc` - run typescript parser
+`npm run dts` - generate TypeScript declarations
+
+## Contributor Resources
+
+- [Contributing guide](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [Style guide](STYLEGUIDE.md)
+- [Changelog](CHANGELOG.md)
+- [Open an issue](https://github.com/openglobus/openglobus/issues/new/choose)
+- [Start a discussion](https://github.com/openglobus/openglobus/discussions)
+- [Open a pull request](https://github.com/openglobus/openglobus/compare)
 
 ## Support the Project
 
@@ -129,4 +142,4 @@ There are many ways to contribute back to the project:
 
 ## License
 
-### MIT
+### Apache-2.0

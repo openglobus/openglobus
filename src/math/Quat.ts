@@ -162,7 +162,7 @@ export class Quat {
     }
 
     /**
-     * Compute rotation between two vectors.
+     * Computes rotation between two vectors.
      * @static
      * @param {Vec3} u - First vector.
      * @param {Vec3} v - Second vector.
@@ -175,11 +175,11 @@ export class Quat {
     }
 
     /**
-     * Compute rotation between two vectors.
+     * Computes rotation between two vectors.
      * @static
      * @param {Vec3} u - First vector.
      * @param {Vec3} v - Second vector.
-     * @param {Quat} res
+     * @param {Quat} res - Output quaternion.
      * @returns {Quat} -
      */
     static getRotationBetweenVectorsRes(u: Vec3, v: Vec3, res: Quat): Quat {
@@ -189,9 +189,9 @@ export class Quat {
     }
 
     /**
-     * Compute rotation between two vectors with around vector up
-     * for exactly opposite vectors. If vectors exactly in the same
-     * direction as returns identity Quat.
+     * Computes rotation between two vectors.
+     * Uses the `up` vector when vectors are exactly opposite.
+     * Returns identity when vectors are exactly equal.
      * @static
      * @param {Vec3} source - First vector.
      * @param {Vec3} dest - Second vector.
@@ -476,7 +476,7 @@ export class Quat {
      * Sets current Quat representing a rotation around an axis.
      * @public
      * @param {Vec3} axis - The axis of rotation.
-     * @param {number} angle The angle in radians to rotate around the axis.
+     * @param {number} angle - The angle in radians to rotate around the axis.
      * @returns {Quat} -
      */
     public setFromAxisAngle(axis: Vec3, angle: number): Quat {
@@ -496,7 +496,7 @@ export class Quat {
     /**
      * Returns axis and angle of the current Quat.
      * @public
-     * @returns QuatAxisAngle -
+     * @returns {QuatAxisAngle} Axis-angle representation.
      */
     public getAxisAngle(): { axis: Vec3, angle: number } {
         let x = this.x,
@@ -663,7 +663,7 @@ export class Quat {
     /**
      * Converts current Quat to the rotation 4x4 matrix.
      * @public
-     * @params {Mat4} [out] - Output matrix
+     * @param {Mat4} [out] - Output matrix.
      * @returns {Mat4} -
      */
     public getMat4(out: Mat4 = new Mat4()): Mat4 {
@@ -871,7 +871,7 @@ export class Quat {
     }
 
     /**
-     * Gets the conjugate of the Quat.
+     * Returns the conjugate of the current quaternion.
      * @public
      * @returns {Quat} -
      */

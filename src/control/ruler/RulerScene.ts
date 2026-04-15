@@ -1,4 +1,4 @@
-﻿import {Entity} from '../../entity/Entity';
+import {Entity} from '../../entity/Entity';
 import {createEvents} from '../../Events';
 import type {EventsHandler} from '../../Events';
 import {LonLat} from "../../LonLat";
@@ -10,7 +10,8 @@ import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
 import type {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
-import type {ILabelParams} from "../../entity/Label";
+import type {ILabelParams} from "../../entity/label/Label";
+import {SHADE_MODE_UNLIT} from "../../shadeModeConstants";
 
 const OUTLINE_COUNT = 120;
 
@@ -30,17 +31,18 @@ export const distanceFormat = (v: number): string => {
     }
 }
 
-let obj3d = Object3d.createCylinder(1.1, 0, 2.7, 20, 1, true, false, 0, 0, 0);
+let obj3d = Object3d.createCylinder(0.33, 0, 1.0, 20, 1, true, false, 0, 0, 0);
 
 const LABEL_OPTIONS: ILabelParams = {
     text: "",
     size: 11,
     color: "rgba(455,455,455,1.0)",
-    outlineColor: "rgba(0,0,0,0.34)",
-    outline: 0.23,
+    outlineColor: "rgba(0,0,0,1)",
+    outline: 0.15,
     align: "center",
-    offset: [0, 20, 0]
+    offset: [0, 20]
 };
+
 const RULER_CORNER_OPTIONS = {
     scale: 1,
     instanced: true,
@@ -123,7 +125,7 @@ class RulerScene extends RenderNode {
         this._trackLayer = new Vector("track", {
             entities: [],
             pickingEnabled: false,
-            polygonOffsetUnits: -1.0,
+            depthOffset: -5.0,
             relativeToGround: true,
             hideInLayerSwitcher: true
         });
@@ -131,7 +133,7 @@ class RulerScene extends RenderNode {
         this._labelLayer = new Vector("ruler-label", {
             entities: [],
             pickingEnabled: false,
-            polygonOffsetUnits: -100.0,
+            depthOffset: -5.0,
             relativeToGround: true,
             hideInLayerSwitcher: true
         });
@@ -140,8 +142,9 @@ class RulerScene extends RenderNode {
             entities: [],
             pickingEnabled: true,
             hideInLayerSwitcher: true,
-            scaleByDistance: [100, 4000000, 1.0],
-            pickingScale: 2
+            scaleByDistance: [1, 5000, 0.023],
+            pickingScale: 2,
+            shadeMode: SHADE_MODE_UNLIT
         });
 
         this._propsLabel = new Entity({
@@ -153,7 +156,7 @@ class RulerScene extends RenderNode {
             polyline: {
                 path3v: [],
                 thickness: 4.8,
-                color: "rgb(255,131,0)",
+                color: ["rgb(255,131,0)"],
                 isClosed: false
             }
         });

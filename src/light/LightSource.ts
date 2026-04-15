@@ -53,10 +53,11 @@ class LightSource {
         this._position.x = x;
         this._position.y = y;
         this._position.z = z;
-        if (this._renderNode) {
-            this._renderNode._lightPosition[0] = x;
-            this._renderNode._lightPosition[1] = y;
-            this._renderNode._lightPosition[2] = z;
+        const rn = this._renderNode;
+        if (rn && rn.renderer) {
+            rn.renderer.lightPosition[0] = x;
+            rn.renderer.lightPosition[1] = y;
+            rn.renderer.lightPosition[2] = z;
         }
     }
 
@@ -79,43 +80,38 @@ class LightSource {
     public setAmbient(r: number, g: number, b: number) {
         this._ambient.set(r, g, b);
         const rn = this._renderNode;
-        if (rn) {
-            rn._lightParams[0] = r;
-            rn._lightParams[1] = g;
-            rn._lightParams[2] = b;
+        if (rn && rn.renderer) {
+            rn.renderer.lightAmbient.set([r, g, b]);
         }
     }
 
     public setDiffuse(r: number, g: number, b: number) {
         this._diffuse.set(r, g, b);
         const rn = this._renderNode;
-        if (rn) {
-            rn._lightParams[3] = r;
-            rn._lightParams[4] = g;
-            rn._lightParams[5] = b;
+        if (rn && rn.renderer) {
+            rn.renderer.lightDiffuse.set([r, g, b]);
         }
     }
 
     public setSpecular(r: number, g: number, b: number) {
         this._specular.set(r, g, b);
         const rn = this._renderNode;
-        if (rn) {
-            rn._lightParams[6] = r;
-            rn._lightParams[7] = g;
-            rn._lightParams[8] = b;
+        if (rn && rn.renderer) {
+            rn.renderer.lightSpecular.set([r, g, b]);
         }
     }
 
     public setShininess(shininess: number) {
         this._shininess = shininess;
         const rn = this._renderNode;
-        if (rn) {
-            rn._lightShininess = shininess;
+        if (rn && rn.renderer) {
+            rn.renderer.lightSpecular[3] = shininess;
         }
     }
 
     public addTo(renderNode: RenderNode) {
         this._renderNode = renderNode;
+        this.setPosition3v(this._position);
         this.setShininess(this._shininess);
         this.setAmbient3v(this._ambient);
         this.setDiffuse3v(this._diffuse);

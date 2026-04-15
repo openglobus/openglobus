@@ -22,14 +22,13 @@ export type UrlRewriteFunc = (tileX: number, tileY: number, tileZoom: number, ti
  * Class represents terrain provider without elevation data.
  * @param {IEmptyTerrainParams} [options] - Provider options:
  * @param {string} [options.name="empty"] - Provider name.
- * @param {boolean} [options.equalizeVertices] -
+ * @param {boolean} [options.equalizeVertices=false] - Enables vertex equalization on tile borders.
  * @param {number} [options.minZoom=2] - Minimal visible zoom index when terrain handler works.
- * @param {number} [options.minZoom=50] - Maximal visible zoom index when terrain handler works.
+ * @param {number} [options.maxZoom=19] - Maximal visible zoom index when terrain handler works.
  * @param {number} [options.maxNativeZoom=19] - Maximal available terrain zoom level.
- * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
- * @param {Array.<number>} [gridSizeByZoom] - Array of values, where each value corresponds to the size of a tile(or segment) on the globe. Each value must be power of two.
- * @param {Geoid} [options.geoid] -
- * @param {string} [options.geoidSrc] -
+ * @param {Array.<number>} [options.gridSizeByZoom] - Segment triangulation grid sizes by zoom index.
+ * @param {Geoid} [options.geoid] - Geoid model instance.
+ * @param {string} [options.geoidSrc] - URL to geoid model source.
  */
 class EmptyTerrain {
 

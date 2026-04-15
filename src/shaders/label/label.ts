@@ -2,9 +2,7 @@ import {Program} from '../../webgl/Program';
 
 import label_webgl2_vert from './label_webgl2.vert.glsl';
 import label_webgl2_frag from './label_webgl2.frag.glsl';
-
-import label_webgl1_vert from './label_webgl1.vert.glsl';
-import label_webgl1_frag from './label_webgl1.frag.glsl';
+import label_woit_frag from './label_woit.frag.glsl';
 
 import label_picking_vert from './label_picking.vert.glsl';
 import label_picking_frag from './label_picking.frag.glsl';
@@ -23,7 +21,8 @@ export function label_webgl2(): Program {
             scaleByDistance: "vec3",
             opacity: "float",
             isOutlinePass: "int",
-            depthOffset: "float"
+            depthOffset: "float",
+            depthOffsetNear: "float"
         },
         attributes: {
             a_outline: "float",
@@ -35,7 +34,7 @@ export function label_webgl2(): Program {
             a_size: "float",
             a_rotation: "float",
             a_rgba: "vec4",
-            a_offset: "vec3",
+            a_offset: "vec2",
             a_fontIndex: "float"
         },
         vertexShader: label_webgl2_vert,
@@ -43,8 +42,8 @@ export function label_webgl2(): Program {
     });
 }
 
-export function label_screen(): Program {
-    return new Program("label", {
+export function label_woit(): Program {
+    return new Program("labelWoit", {
         uniforms: {
             viewport: "vec2",
             fontTextureArr: "sampler2darray",
@@ -57,7 +56,9 @@ export function label_screen(): Program {
             scaleByDistance: "vec3",
             opacity: "float",
             isOutlinePass: "int",
-            depthOffset: "float"
+            depthOffset: "float",
+            depthOffsetNear: "float",
+            useReverseDepth: "float"
         },
         attributes: {
             a_outline: "float",
@@ -69,11 +70,11 @@ export function label_screen(): Program {
             a_size: "float",
             a_rotation: "float",
             a_rgba: "vec4",
-            a_offset: "vec3",
+            a_offset: "vec2",
             a_fontIndex: "float"
         },
-        vertexShader: label_webgl1_vert,
-        fragmentShader: label_webgl1_frag,
+        vertexShader: label_webgl2_vert,
+        fragmentShader: label_woit_frag,
     });
 }
 
@@ -88,7 +89,8 @@ export function labelPicking(): Program {
             planetRadius: "float",
             scaleByDistance: "vec3",
             opacity: "float",
-            depthOffset: "float"
+            depthOffset: "float",
+            depthOffsetNear: "float"
         },
         attributes: {
             a_gliphParam: "vec4",
@@ -96,7 +98,7 @@ export function labelPicking(): Program {
             a_texCoord: "vec4",
             a_positionsHigh: "vec3",
             a_positionsLow: "vec3",
-            a_offset: "vec3",
+            a_offset: "vec2",
             a_size: "float",
             a_rotation: "float",
             a_rgba: "vec4"

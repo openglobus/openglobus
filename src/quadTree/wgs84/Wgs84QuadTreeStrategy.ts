@@ -1,7 +1,6 @@
 import {Extent} from "../../Extent";
 import {EPSG4326} from "../../proj/EPSG4326";
 import {Node} from "../Node";
-import {Planet} from "../../scene/Planet";
 import {SegmentLonLatEqui} from "../../segment/SegmentLonLatEqui";
 import {QuadTreeStrategy, QuadTreeStrategyParams} from "../QuadTreeStrategy";
 import {PlanetCamera} from "../../camera";

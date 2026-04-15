@@ -1,3 +1,6 @@
+#ifndef OG_DRAWNODE_COMMON_GLSL
+#define OG_DRAWNODE_COMMON_GLSL
+
 #ifdef WEBGL2
     #define TEXTURE_FUNC texture
 #else
@@ -17,3 +20,5 @@ p = TEXTURE_FUNC(MASK, tc); \
 DEST = mix(DEST, vec4(max(COLOR.rgb, p.rgb), OPACITY), (t.a == 0.0 ? 0.0: 1.0) * COLOR.a);
 
 const vec3 nightStep = 10.0 * vec3(0.58, 0.48, 0.25);
+
+#endif

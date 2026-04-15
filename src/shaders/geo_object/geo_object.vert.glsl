@@ -1,21 +1,22 @@
+#version 300 es
 precision highp float;
 
 #include "../common/qrot.glsl"
 
-attribute vec3 aVertexPosition;
-attribute vec3 aVertexNormal;
+in vec3 aVertexPosition;
+in vec3 aVertexNormal;
 
-attribute vec3 aRTCPositionHigh;
-attribute vec3 aRTCPositionLow;
+in vec3 aRTCPositionHigh;
+in vec3 aRTCPositionLow;
 
-attribute vec4 aColor;
-attribute vec3 aScale;
-attribute vec3 aTranslate;
-attribute float aDispose;
-attribute float aUseTexture;
-attribute vec2 aTexCoord;
-attribute vec4 qRot;
-attribute vec3 aLocalPosition;
+in vec4 aColor;
+in vec3 aScale;
+in vec3 aTranslate;
+in float aDispose;
+in float aUseTexture;
+in vec2 aTexCoord;
+in vec4 qRot;
+in vec3 aLocalPosition;
 
 uniform vec3 uScaleByDistance;
 uniform mat4 projectionMatrix;
@@ -27,12 +28,12 @@ uniform vec3 eyePositionLow;
 uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
 
-varying vec3 cameraPosition;
-varying vec3 vNormal;
-varying vec3 v_vertex;
-varying vec4 vColor;
-varying float vDispose;
-varying vec2 vTexCoords;
+out vec3 cameraPosition;
+out vec3 v_vertex;
+out vec3 v_viewPosition;
+out vec4 vColor;
+out vec3 vNormal;
+out vec2 vTexCoords;
 
 void main(void) {
 
@@ -50,6 +51,7 @@ void main(void) {
     vec3 lowDiff = aRTCPositionLow - rtcEyePositionLow;
 
     cameraPosition = eyePositionHigh + eyePositionLow;
+    vec3 rtcWorldOffset = highDiff + lowDiff;
 
     highDiff = highDiff * step(1.0, length(highDiff));
 
@@ -62,7 +64,9 @@ void main(void) {
     float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
     vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate)) + scd * aLocalPosition;
 
-    gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
+    vec4 viewPos = viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
+    v_viewPosition = viewPos.xyz;
+    gl_Position = projectionMatrix * viewPos;
 
-    v_vertex = positionInViewSpace.xyz + vert;
+    v_vertex = rtcWorldOffset + cameraPosition + vert;
 }

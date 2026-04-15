@@ -1,7 +1,6 @@
 import * as mercator from "../../mercator";
 import {Extent} from "../../Extent";
 import {Node} from "../Node";
-import {Planet} from "../../scene/Planet";
 import {QuadTreeStrategy, QuadTreeStrategyParams} from "../QuadTreeStrategy";
 import {
     Segment,

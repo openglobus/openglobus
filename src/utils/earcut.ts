@@ -4,11 +4,6 @@
 /* eslint-disable curly */
 /* eslint-disable operator-linebreak */
 /* eslint-disable no-mixed-operators */
-
-/**
- * @module og/utils/earcut
- */
-
 'use strict';
 
 // ISC License

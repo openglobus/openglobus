@@ -20,7 +20,10 @@ export type RendererEventsType = [
     "projchanged",
     "changerelativecenter",
     "draw",
-    "drawtransparent",
+    "forwardpass",
+    "postforwardpass",
+    "transparentpass",
+    "gbufferpass",
     "postdraw",
     "resize",
     "resizeend",
@@ -115,9 +118,9 @@ export interface IMouseState extends IBaseInputState {
     middleButtonClick: boolean;
     /** Mouse has just stopped now. */
     justStopped: boolean;
-    /** Mose double click delay response time.*/
+    /** Mouse double-click delay response time. */
     doubleClickDelay: number;
-    /** Mose click delay response time.*/
+    /** Mouse click delay response time. */
     clickDelay: number;
     /** Mouse wheel. */
     wheelDelta: number;
@@ -135,9 +138,9 @@ export interface ITouchState extends IBaseInputState {
     touchCancel: boolean;
     /** Touched twice.*/
     doubleTouch: boolean;
-    /** Double touching responce delay.*/
+    /** Double-touch response delay. */
     doubleTouchDelay: number;
-    /** Double touching responce radius in screen pixels.*/
+    /** Double-touch response radius in screen pixels. */
     doubleTouchRadius: number;
     /** Currently touching.*/
     touching: boolean;
@@ -1042,10 +1045,23 @@ const RENDERER_EVENTS: RendererEventsType = [
     "draw",
 
     /**
-     * Triggered after all transparent object are drawn
-     * @event og.RendererEvents#drawtransparent
+     * Triggered for forward pass
+     * @event og.RendererEvents#forwardpass
      */
-    "drawtransparent",
+    "forwardpass",
+    "postforwardpass",
+
+    /**
+     *  Triggered for WOIT (transparency) pass
+     *  @event og.RendererEvents#transparentpass
+     */
+    "transparentpass",
+
+    /**
+     * Triggered for deferred opaque geometry pass
+     * @event og.RendererEvents#gbufferpass
+     */
+    "gbufferpass",
 
     /**
      * Triggered after scene frame is rendered(after render nodes).

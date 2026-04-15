@@ -53,6 +53,16 @@ export class Vec2 {
     }
 
     /**
+     * Creates 2d vector from array.
+     * @function
+     * @param {NumberArray2} arr - Input array. (exactly 2 entries)
+     * @returns {Vec2}
+     */
+    static fromVec(arr: NumberArray2): Vec2 {
+        return new Vec2(arr[0], arr[1]);
+    }
+
+    /**
      * Returns summary vector.
      * @static
      * @param {Vec2} a - First vector.
@@ -153,11 +163,11 @@ export class Vec2 {
     }
 
     /**
-     * Get projection of the vector to plane where n - normal to the plane.
+     * Projects a vector onto a plane with normal `n`.
      * @static
      * @param {Vec2} b - Vector to project.
      * @param {Vec2} n - Plane normal.
-     * @param {Vec2} [def] - Default value for non existed result.
+     * @param {Vec3} [def] - Default value if the result is zero.
      * @returns {Vec2} -
      */
     static proj_b_to_plane(b: Vec2, n: Vec2, def?: Vec3): Vec2 {
@@ -228,7 +238,7 @@ export class Vec2 {
     /**
      * Adds vector to the current.
      * @public
-     * @param {Vec2}
+     * @param {Vec2} v - Vector to add.
      * @returns {Vec2}
      */
     public addA(v: Vec2): Vec2 {
@@ -238,9 +248,9 @@ export class Vec2 {
     }
 
     /**
-     * Summarize two vectors.
+     * Adds two vectors.
      * @public
-     * @param {Vec2}
+     * @param {Vec2} v - Vector to add.
      * @returns {Vec2}
      */
     public add(v: Vec2): Vec2 {
@@ -248,7 +258,7 @@ export class Vec2 {
     }
 
     /**
-     * Subtract vector from the current where results saved on the current instance.
+     * Subtracts a vector from the current vector in place.
      * @public
      * @param {Vec2} v - Subtract vector.
      * @returns {Vec2}
@@ -292,7 +302,7 @@ export class Vec2 {
     }
 
     /**
-     * Multiply current vector object to another and store result in the current instance.
+     * Multiplies the current vector by another vector in place.
      * @public
      * @param {Vec2} vec - Multiply vector.
      * @returns {Vec2}
@@ -304,7 +314,7 @@ export class Vec2 {
     }
 
     /**
-     * Multiply current vector object to another and returns new vector instance.
+     * Multiplies the current vector by another vector and returns a new vector.
      * @public
      * @param {Vec2} vec - Multiply vector.
      * @returns {Vec2}
@@ -314,9 +324,9 @@ export class Vec2 {
     }
 
     /**
-     * Divide current vector's components to another. Results stores in the current vector object.
+     * Divides current vector components by another vector in place.
      * @public
-     * @param {Vec2}
+     * @param {Vec2} vec - Divisor vector.
      * @returns {Vec2}
      */
     public divA(vec: Vec2): Vec2 {
@@ -326,7 +336,7 @@ export class Vec2 {
     }
 
     /**
-     * Gets vectors dot production.
+     * Returns the dot product of two vectors.
      * @public
      * @param {Vec2} v - Another vector.
      * @returns {number}
@@ -336,7 +346,7 @@ export class Vec2 {
     }
 
     /**
-     * Gets vectors dot production.
+     * Returns the dot product with a 2-element array.
      * @public
      * @param {Array.<number>} arr - Array vector. (exactly 2 entries)
      * @returns {number}
@@ -418,7 +428,7 @@ export class Vec2 {
     /**
      * Gets distance to point.
      * @public
-     * @param {Vec2} p - Distant point.
+     * @param {Vec2} p - Target point.
      * @returns {number}
      */
     public distance(p: Vec2): number {
@@ -555,7 +565,7 @@ export class Vec2 {
 /**
  * Vector 2d object creator.
  * @function
- * @param {number} [x] - First cvalue.
+ * @param {number} [x] - First value.
  * @param {number} [y] - Second value.
  * @returns {Vec2}
  */

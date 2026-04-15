@@ -10,11 +10,12 @@ import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
 import type {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
-import type {ILabelParams} from "../../entity/Label";
-import type {IRayParams} from "../../entity/Ray";
-import type {IBillboardParams} from "../../entity/Billboard";
+import type {ILabelParams} from "../../entity/label/Label";
+import type {IRayParams} from "../../entity/ray/Ray";
+import type {IBillboardParams} from "../../entity/billboard/Billboard";
 import {Ray} from "../../math/Ray";
 import {Plane} from "../../math/Plane";
+import {SHADE_MODE_UNLIT} from "../../shadeModeConstants";
 
 export interface IElevationProfileSceneParams {
     name?: string;
@@ -46,7 +47,7 @@ const POINTER_LABEL_OPTIONS: ILabelParams = {
     outlineColor: "rgba(0,0,0,0.34)",
     outline: 0.23,
     align: "left",
-    offset: [5, 15, -5]
+    offset: [5, 15]
 };
 
 const LABEL_OPTIONS: ILabelParams = {
@@ -57,7 +58,7 @@ const LABEL_OPTIONS: ILabelParams = {
     outlineColor: "rgba(0,0,0,0.34)",
     outline: 0.23,
     align: "right",
-    offset: [-47, 25, 0]
+    offset: [-47, 25]
 };
 
 const GROUND_POINTER_OPTIONS = {
@@ -115,7 +116,7 @@ class ElevationProfileScene extends RenderNode {
         this._trackLayer = new Vector("track", {
             entities: [],
             pickingEnabled: false,
-            polygonOffsetUnits: -1.0,
+            depthOffset: -5.0,
             relativeToGround: true,
             hideInLayerSwitcher: true
         });
@@ -125,7 +126,8 @@ class ElevationProfileScene extends RenderNode {
             pickingEnabled: true,
             hideInLayerSwitcher: true,
             scaleByDistance: [1, 5000, 0.02],
-            pickingScale: 1.5
+            pickingScale: 1,
+            shadeMode: SHADE_MODE_UNLIT
         });
 
         this._headPointersLayer = new Vector("head-pointers", {
@@ -133,7 +135,8 @@ class ElevationProfileScene extends RenderNode {
             pickingEnabled: true,
             hideInLayerSwitcher: true,
             scaleByDistance: [1, 10000, 0.02],
-            pickingScale: 1
+            pickingScale: 1,
+            shadeMode: SHADE_MODE_UNLIT
         });
 
         this._columnPointersLayer = new Vector("column-pointers", {
@@ -146,8 +149,7 @@ class ElevationProfileScene extends RenderNode {
             polyline: {
                 path3v: [],
                 thickness: 3.8,
-                color: "rgba(0,305,0,0.8)",
-                isClosed: false
+                color: "rgba(0,305,0,0.8)"
             }
         });
 
@@ -244,11 +246,12 @@ class ElevationProfileScene extends RenderNode {
             label: LABEL_OPTIONS
         });
 
-        heightLabelEntity.appendChild(new Entity({
-                cartesian: headCart,
-                label: {...LABEL_OPTIONS, offset: [-47, 45, 0]}
-            })
-        );
+        let altitudeLabelEntity = new Entity({
+            cartesian: headCart,
+            label: {...LABEL_OPTIONS, offset: [-47, 45]}
+        });
+        heightLabelEntity.appendChild(altitudeLabelEntity);
+        altitudeLabelEntity.relativePosition = true;
 
         const index = this._groundPointersLayer.getEntities().length;
 
@@ -398,7 +401,7 @@ class ElevationProfileScene extends RenderNode {
         this._columnPointersLayer.add(columnEntity);
         this._headPointersLayer.add(headEntity);
         this._heightsLayer.add(heightLabelEntity);
-        this._trackEntity.polyline!.appendPoint3v(headEntity.getCartesian());
+        this._trackEntity.polyline!.addPoint3v(headEntity.getCartesian());
 
         groundEntity.properties.lonLatEll.lon = ellLonLat.lon;
         groundEntity.properties.lonLatEll.lat = ellLonLat.lat;
@@ -422,6 +425,7 @@ class ElevationProfileScene extends RenderNode {
 
                 groundEntity.setCartesian3v(groundPos);
                 heightLabelEntity.setCartesian3v(headPos);
+                heightLabelEntity.childEntities[0].setAbsoluteCartesian3v(headPos);
                 heightLabelEntity.label!.setText(`${hEll.toFixed(1)} m`);
                 heightLabelEntity.childEntities[0].label!.setText(`${altitude.toFixed(1)} m`);
                 headEntity.properties.altitude = altitude;
@@ -462,7 +466,7 @@ class ElevationProfileScene extends RenderNode {
             this._columnPointersLayer.add(columnEntity);
             this._headPointersLayer.add(headEntity);
             this._heightsLayer.add(heightLabelEntity);
-            this._trackEntity.polyline!.appendPoint3v(headEntity.getCartesian());
+            this._trackEntity.polyline!.addPoint3v(headEntity.getCartesian());
 
             groundEntity.properties.lonLatEll.lon = lonLat.lon;
             groundEntity.properties.lonLatEll.lat = lonLat.lat;
@@ -474,6 +478,7 @@ class ElevationProfileScene extends RenderNode {
                 let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(groundPos);
                 let headPos = groundPos.add(groundNormal.scale(altitude));
                 heightLabelEntity.setCartesian3v(headPos);
+                heightLabelEntity.childEntities[0].setAbsoluteCartesian3v(headPos);
                 heightLabelEntity.label!.setText(`${hEll.toFixed(1)} m`);
                 heightLabelEntity.childEntities[0].label!.setText(`${altitude.toFixed(1)} m`);
                 headEntity.setCartesian3v(headPos);
@@ -539,6 +544,7 @@ class ElevationProfileScene extends RenderNode {
             headEntity.setCartesian3v(headPos);
             headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
             headEntity.properties.heightLabelEntity.setCartesian3v(headPos);
+            headEntity.properties.heightLabelEntity.childEntities[0].setAbsoluteCartesian3v(headPos);
             headEntity.properties.heightLabelEntity.childEntities[0].label!.setText(`${altitude.toFixed(1)} m`);
 
             this._trackEntity.polyline!.setPoint3v(headPos, entityIndex);
@@ -573,6 +579,7 @@ class ElevationProfileScene extends RenderNode {
             this._trackEntity.polyline?.setPoint3v(headPos, headEntity.properties.index);
 
             heightLabelEntity.setCartesian3v(headPos);
+            heightLabelEntity.childEntities[0].setAbsoluteCartesian3v(headPos);
             heightLabelEntity.label!.setText(`${lonLat.height.toFixed(1)} m`);
             heightLabelEntity.childEntities[0].label!.setText(`${altitude.toFixed(1)} m`);
 

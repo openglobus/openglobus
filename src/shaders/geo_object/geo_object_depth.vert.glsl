@@ -40,5 +40,6 @@ void main(void) {
 
     vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate)) + scd * aLocalPosition;
 
-    gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
+    vec4 viewPos = viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
+    gl_Position = projectionMatrix * viewPos;
 }

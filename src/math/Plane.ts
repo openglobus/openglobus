@@ -10,7 +10,7 @@ const INTERSECT = 2;
  * Plane class.
  * @constructor
  * @param {Vec3} [p] - Plane point.
- * @param {Vec3} [n] - Planet normal.
+ * @param {Vec3} [n] - Plane normal.
  */
 class Plane {
     public p: Vec3;

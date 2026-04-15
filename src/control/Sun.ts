@@ -73,8 +73,6 @@ export class Sun extends Control {
     }
 
     public override oninit() {
-        this.planet!.lightEnabled = true;
-
         // sunlight initialization
         this.sunlight.addTo(this.planet!);
 

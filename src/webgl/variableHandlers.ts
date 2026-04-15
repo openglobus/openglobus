@@ -5,6 +5,7 @@
 import {types} from "./types";
 import {Program} from "./Program";
 import type {WebGLBufferExt} from "./Handler";
+import type {WebGLTextureExt} from "./Handler";
 
 export type VariableHandler = {
     u: { [id: number]: Function },
@@ -15,7 +16,7 @@ export type ProgramVariable = {
     type: string | number,
     func: Function,
     _pName: WebGLUniformLocation | number,
-    value: number | Float32Array | Int32Array | WebGLBufferExt,
+    value: number | Float32Array | Int32Array | WebGLBufferExt | WebGLTextureExt | WebGLTextureExt[],
     itemType: string | number,
     normalized: boolean,
     divisor: number
@@ -74,16 +75,48 @@ variableHandlers.u[types.SAMPLERCUBE] = function (program: Program, variable: Pr
 };
 
 variableHandlers.u[types.SAMPLER2DARRAY] = function (program: Program, variable: ProgramVariable) {
-    let value = variable.value as Int32Array;
-    let pgl = program.gl!,
-        size = value.length;
+    const value = variable.value as any;
+
+    // Legacy mode for array uniforms declared as sampler2D[N]
+    if (Array.isArray(value) || ArrayBuffer.isView(value)) {
+        variableHandlers.u[types.SAMPLER2DARRAYLEGACY](program, variable);
+        return;
+    }
+
+    // Real sampler2DArray texture (TEXTURE_2D_ARRAY)
+    let pgl = program.gl!;
+    pgl.activeTexture(pgl.TEXTURE0 + program._textureID);
+    pgl.bindTexture(pgl.TEXTURE_2D_ARRAY, value as WebGLTextureExt);
+    pgl.uniform1i(variable._pName, program._textureID);
+    program._textureID++;
+};
+
+variableHandlers.u[types.SAMPLER2DARRAYLEGACY] = function (program: Program, variable: ProgramVariable) {
+    let pgl = program.gl!;
+    let value = variable.value as Int32Array | WebGLTextureExt[];
+
+    if (!value || value.length === 0) {
+        pgl.uniform1iv(variable._pName, new Int32Array(0));
+        return;
+    }
+
+    // Pre-bound texture units path.
+    if (typeof value[0] === "number") {
+        pgl.uniform1iv(variable._pName, value as Int32Array);
+        return;
+    }
+
+    // Legacy sampler2D array path: bind one texture per texture unit.
+    let size = value.length;
     let samplerArr = new Int32Array(size);
     for (let i = 0; i < size; i++) {
-        pgl.activeTexture(pgl.TEXTURE0 + program._textureID + i);
-        pgl.bindTexture(pgl.TEXTURE_2D, value[i]);
-        samplerArr[i] = i;
+        let textureUnit = program._textureID + i;
+        pgl.activeTexture(pgl.TEXTURE0 + textureUnit);
+        pgl.bindTexture(pgl.TEXTURE_2D, value[i] as WebGLTextureExt);
+        samplerArr[i] = textureUnit;
     }
     pgl.uniform1iv(variable._pName, samplerArr);
+    program._textureID += size;
 };
 
 variableHandlers.u[types.INTXX] = function (program: Program, variable: ProgramVariable) {
