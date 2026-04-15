@@ -427,7 +427,9 @@ class RayHandler {
         let gl = h.gl!,
             ec = this._entityCollection;
 
-        //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
+        if (rayProgram === r.handler.programs.rayScreenWoit) {
+            gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
+        }
 
         gl.disable(gl.CULL_FACE);
 

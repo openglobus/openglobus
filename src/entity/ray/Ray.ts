@@ -107,7 +107,7 @@ class Ray {
 
         this._thickness = options.thickness || 2.0;
 
-        this._startPosition = utils.createVector3(options.startPosition);
+        this._startPosition = utils.createVec3(options.startPosition);
         this._startPositionHigh = new Vec3();
         this._startPositionLow = new Vec3();
         Vec3.doubleToTwoFloats(
@@ -116,7 +116,7 @@ class Ray {
             this._startPositionLow
         );
 
-        this._endPosition = utils.createVector3(options.endPosition);
+        this._endPosition = utils.createVec3(options.endPosition);
         this._endPositionHigh = new Vec3();
         this._endPositionLow = new Vec3();
         Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);

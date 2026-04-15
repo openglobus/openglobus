@@ -61,7 +61,7 @@
 
             collection.add(entity);
 
-            globus.planet.renderer.handler.defaultClock.setInterval(35, () => {
+            globus.planet.renderer.handler.defaultClock.setInterval(5, () => {
                 let e = collection.getEntities()[0].polyline;
                 let cArr = e.getPathColors();
                 for (let i = 0; i < cArr.length; i++) {
@@ -152,6 +152,8 @@
             stopped: true
         }
     });
+
+    globus.planet.camera.setNearFar(100);
 
 </script>
 </body>

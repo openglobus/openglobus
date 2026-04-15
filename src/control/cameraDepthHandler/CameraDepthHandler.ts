@@ -50,7 +50,7 @@ const PERIMETER_STEP_PX = 1;
 const DEPTH_NEAR = 100;
 const DEPTH_FAR = 1000000;
 
-const POLYLINE_DEPTH_OFFSET = -14;
+const POLYLINE_DEPTH_OFFSET = -100;
 
 export interface ICameraDepthHandlerParams extends IControlParams {
     showFrustum?: boolean;
@@ -92,7 +92,7 @@ export class CameraDepthHandler extends Control {
         this.cameraFootprintLayer = new Vector(`cameraFootprintLayer:${this.__id}`, {
             entities: [this._cameraFootprintEntity],
             pickingEnabled: false,
-            polygonOffsetUnits: POLYLINE_DEPTH_OFFSET,
+            depthOffset: POLYLINE_DEPTH_OFFSET,
             hideInLayerSwitcher: true,
             clampToGround: true,
             visibility: this._showFootprint,
@@ -109,14 +109,16 @@ export class CameraDepthHandler extends Control {
                 frustums: [[DEPTH_NEAR, DEPTH_FAR]],
                 width: CAM_WIDTH,
                 height: CAM_HEIGHT,
-                viewAngle: 45
+                viewAngle: 45,
+                reverseDepth: false
             })
         } else {
             return new Camera({
                 frustums: [[DEPTH_NEAR, DEPTH_FAR]],
                 width: CAM_WIDTH,
                 height: CAM_HEIGHT,
-                viewAngle: 45
+                viewAngle: 45,
+                reverseDepth: false
             });
         }
     }
@@ -197,11 +199,15 @@ export class CameraDepthHandler extends Control {
         if (!this._quadTreeStrategy) return;
 
         let framebuffer = frameHandler.frameBuffer,
-            gl = framebuffer.handler.gl!;
+            gl = framebuffer.handler.gl!,
+            h = framebuffer.handler,
+            mainCam = this.renderer!.activeCamera;
 
         framebuffer.activate();
 
         let cam = frameHandler.camera as PlanetCamera;
+
+        this.renderer!.applyDepthForCamera(cam);
 
         this._quadTreeStrategy.collectRenderNodes(cam);
 
@@ -209,7 +215,6 @@ export class CameraDepthHandler extends Control {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
 
-        let h = framebuffer.handler;
         h.programs.camera_depth.activate();
         let sh = h.programs.camera_depth._program;
         let shu = sh.uniforms;
@@ -245,6 +250,8 @@ export class CameraDepthHandler extends Control {
         gl.enable(gl.BLEND);
 
         framebuffer.deactivate();
+
+        this.renderer!.applyDepthForCamera(mainCam);
 
         this._renderFootprint(frameHandler)
     }

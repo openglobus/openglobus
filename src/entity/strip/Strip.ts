@@ -270,6 +270,10 @@ class Strip {
 
             gl.disable(gl.CULL_FACE);
 
+            if (sh === r.handler.programs.stripTransparent) {
+                gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
+            }
+
             gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
 

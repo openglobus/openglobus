@@ -37,10 +37,10 @@ uniform float camHeight;
 
 uniform float transitionOpacity;
 uniform float shadeMode;
+uniform vec3 cameraPosition;
 
 in vec4 vTextureCoord;
 in vec3 v_worldVertex;
-in vec3 cameraPosition;
 in vec2 vGlobalTextureCoord;
 in float v_height;
 

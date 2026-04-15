@@ -16,7 +16,7 @@ import * as mercator from "../mercator";
 
 export interface IVectorParams extends ILayerParams {
     entities?: Entity[] | IEntityParams[];
-    polygonOffsetUnits?: number;
+    depthOffset?: number;
     nodeCapacity?: number;
     relativeToGround?: boolean;
     clampToGround?: boolean;
@@ -79,7 +79,8 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering. True for optimization huge data.
  * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
  * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
- * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset.
+ * @param {Number} [options.depthOffset=0.0] - Signed world-space depth offset along the camera ray.
+ * Negative values move geometry closer to the camera, positive values move it farther.
  * @param {number} [options.shadeMode=1] - Geo object shading: 0 unlit, 1 Phong, 2 PBR.
  *
  * //@fires EventsHandler<VectorEventsList>#entitymove
@@ -152,11 +153,13 @@ class Vector extends Layer {
     //protected _pendingsQueue: Entity[];
 
     /**
-     * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
+     * Signed world-space depth offset along the camera ray.
+     * Negative values move geometry closer to the camera, positive values move it farther.
+     * 0.0 means no offset.
      * @public
      * @type {Number}
      */
-    public polygonOffsetUnits: number;
+    public depthOffset: number;
 
     protected _labelMaxLetters: number;
 
@@ -227,7 +230,7 @@ class Vector extends Layer {
 
         this.setEntities(this._entities);
 
-        this.polygonOffsetUnits = options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
+        this.depthOffset = options.depthOffset != undefined ? options.depthOffset : 0.0;
 
         this.pickingEnabled = this._pickingEnabled;
 
@@ -733,7 +736,7 @@ class Vector extends Layer {
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
-        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+        ec.depthOffset = this.depthOffset;
 
         outArr.push(ec);
     }
@@ -744,7 +747,7 @@ class Vector extends Layer {
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
-        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+        ec.depthOffset = this.depthOffset;
 
         outArr.push(ec);
 
@@ -761,7 +764,7 @@ class Vector extends Layer {
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
-        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+        ec.depthOffset = this.depthOffset;
 
         outArr.push(ec);
 

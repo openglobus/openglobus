@@ -5,6 +5,7 @@ import {EntityCollection} from "../EntityCollection";
 import type {Planet} from "../../scene/Planet";
 import {Renderer} from "../../renderer/Renderer";
 import {LOCK_FREE} from "../label/LabelWorker";
+import {Vec2} from "../../math/Vec2";
 import {Vec3} from "../../math/Vec3";
 import {Vec4} from "../../math/Vec4";
 import type {WebGLBufferExt} from "../../webgl/Handler";
@@ -77,7 +78,9 @@ class BaseBillboardHandler {
         }
 
         if (!disableDepthTest) {
-            gl.depthFunc(gl.LEQUAL);
+            gl.depthFunc(
+                this._renderer!.activeCamera.reverseDepthActive ? gl.GEQUAL : gl.LEQUAL
+            );
         }
 
         gl.depthMask(!disableDepthTest && depthWrite);
@@ -86,7 +89,7 @@ class BaseBillboardHandler {
     protected _restoreDepthPass(depthWrite: boolean) {
         const gl = this._renderer!.handler.gl!;
         gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LESS);
+        gl.depthFunc(this._renderer!.activeCamera.reverseDepthActive ? gl.GREATER : gl.LESS);
         gl.depthMask(depthWrite);
     }
 
@@ -173,7 +176,7 @@ class BaseBillboardHandler {
         this._swapArrayItems(this._rgbaArr, 24, firstIndex, secondIndex);
         this._swapArrayItems(this._positionHighArr, 18, firstIndex, secondIndex);
         this._swapArrayItems(this._positionLowArr, 18, firstIndex, secondIndex);
-        this._swapArrayItems(this._offsetArr, 18, firstIndex, secondIndex);
+        this._swapArrayItems(this._offsetArr, 12, firstIndex, secondIndex);
         this._swapArrayItems(this._pickingColorArr, 18, firstIndex, secondIndex);
         this._swapArrayItems(this._vertexArr, 12, firstIndex, secondIndex);
         this._swapArrayItems(this._sizeArr, 12, firstIndex, secondIndex);
@@ -349,7 +352,12 @@ class BaseBillboardHandler {
         const writeDepth = depthWrite ?? (billboardProgram !== this._getTransparentProgram());
         this._configureDepthPass(writeDepth);
 
-        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
+        if (billboardProgram === this._getTransparentProgram()) {
+            gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
+        }
+
+        gl.uniform1f(shu.depthOffset, ec.depthOffset);
+        gl.uniform1f(shu.depthOffsetNear, r.activeCamera.frustum.depthOffsetNear);
 
         gl.uniform1i(shu.u_texture, 0);
 
@@ -419,7 +427,8 @@ class BaseBillboardHandler {
             gl.disable(gl.DEPTH_TEST);
         }
 
-        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
+        gl.uniform1f(shu.depthOffset, ec.depthOffset);
+        gl.uniform1f(shu.depthOffsetNear, r.activeCamera.frustum.depthOffsetNear);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
@@ -527,8 +536,10 @@ class BaseBillboardHandler {
         i = lastIndex * 18;
         this._positionHighArr = spliceTypedArray(this._positionHighArr, i, 18) as Float32Array;
         this._positionLowArr = spliceTypedArray(this._positionLowArr, i, 18) as Float32Array;
-        this._offsetArr = spliceTypedArray(this._offsetArr, i, 18) as Float32Array;
         this._pickingColorArr = spliceTypedArray(this._pickingColorArr, i, 18) as Float32Array;
+
+        i = lastIndex * 12;
+        this._offsetArr = spliceTypedArray(this._offsetArr, i, 12) as Float32Array;
 
         i = lastIndex * 12;
         this._vertexArr = spliceTypedArray(this._vertexArr, i, 12) as Float32Array;
@@ -687,36 +698,29 @@ class BaseBillboardHandler {
         this._changedBuffers[SIZE_BUFFER] = true;
     }
 
-    public setOffsetArr(index: number, offset: Vec3) {
-        let i = index * 18;
+    public setOffsetArr(index: number, offset: Vec2) {
+        let i = index * 12;
         let a = this._offsetArr,
             x = offset.x,
-            y = offset.y,
-            z = offset.z;
+            y = offset.y;
 
         a[i] = x;
         a[i + 1] = y;
-        a[i + 2] = z;
 
-        a[i + 3] = x;
-        a[i + 4] = y;
-        a[i + 5] = z;
+        a[i + 2] = x;
+        a[i + 3] = y;
+
+        a[i + 4] = x;
+        a[i + 5] = y;
 
         a[i + 6] = x;
         a[i + 7] = y;
-        a[i + 8] = z;
 
-        a[i + 9] = x;
-        a[i + 10] = y;
-        a[i + 11] = z;
+        a[i + 8] = x;
+        a[i + 9] = y;
 
-        a[i + 12] = x;
-        a[i + 13] = y;
-        a[i + 14] = z;
-
-        a[i + 15] = x;
-        a[i + 16] = y;
-        a[i + 17] = z;
+        a[i + 10] = x;
+        a[i + 11] = y;
 
         this._changedBuffers[OFFSET_BUFFER] = true;
     }
@@ -863,7 +867,7 @@ class BaseBillboardHandler {
     public createOffsetBuffer() {
         let h = this._renderer!.handler;
         h.gl!.deleteBuffer(this._offsetBuffer as WebGLBuffer);
-        this._offsetBuffer = h.createArrayBuffer(this._offsetArr, 3, this._offsetArr.length / 3);
+        this._offsetBuffer = h.createArrayBuffer(this._offsetArr, 2, this._offsetArr.length / 2);
     }
 
     createRgbaBuffer() {

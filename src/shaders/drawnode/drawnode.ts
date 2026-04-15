@@ -34,6 +34,7 @@ export function drawnode_screen_deferred(): Program {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
+            cameraPosition: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             height: "float",
@@ -66,8 +67,7 @@ export function drawnode_screen_wl_forward_noatmos(): Program {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
+            cameraPosition: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             height: "float",
@@ -104,8 +104,7 @@ export function drawnode_screen_wl_forward_atmos(atmosParams: AtmosphereParamete
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
+            cameraPosition: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             height: "float",
@@ -145,6 +144,7 @@ export function drawnode_colorPicking(): Program {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
+            cameraPosition: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             samplerCount: "int",
@@ -169,6 +169,7 @@ export function drawnode_depth(): Program {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
             height: "float",
+            cameraPosition: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             frustumPickingColor: "float"

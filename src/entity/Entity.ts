@@ -328,11 +328,11 @@ class Entity {
 
         this.forceGlobalScale = options.forceGlobalScale || false;
 
-        this._cartesian = utils.createVector3(options.cartesian);
+        this._cartesian = utils.createVec3(options.cartesian);
 
         this._rootCartesian = new Vec3();
 
-        this._localPosition = utils.createVector3(options.localPosition);
+        this._localPosition = utils.createVec3(options.localPosition);
         this._absoluteLocalPosition = new Vec3();
 
         this._lonLat = utils.createLonLat(options.lonlat);
@@ -361,7 +361,7 @@ class Entity {
         this._yawRad = options.yaw || 0;
         this._rollRad = options.roll || 0;
 
-        this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
+        this._scale = utils.createVec3(options.scale, new Vec3(1, 1, 1));
         this._absoluteScale = new Vec3();
 
         this._qFrame = Quat.IDENTITY;

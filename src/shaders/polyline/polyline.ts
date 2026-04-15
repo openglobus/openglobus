@@ -20,6 +20,7 @@ const SHARED_UNIFORMS = {
     thicknessScale: 'float',
     opacity: 'float',
     depthOffset: 'float',
+    depthOffsetNear: 'float',
     visibleSphere: 'vec4'
 };
 
@@ -71,6 +72,7 @@ function createPolylineTexWoitProgram(name: string): Program {
     return new Program(name, {
         uniforms: {
             ...SHARED_UNIFORMS,
+            useReverseDepth: 'float',
             time: 'float',
             texAtlas: 'sampler2d'
         },
@@ -97,7 +99,8 @@ export function polylineWoitTex(): Program {
 export function polylineWoitPlain(): Program {
     return new Program('polylineWoitPlain', {
         uniforms: {
-            ...SHARED_UNIFORMS
+            ...SHARED_UNIFORMS,
+            useReverseDepth: 'float'
         },
         attributes: {
             ...SHARED_ATTRIBUTES
@@ -117,6 +120,7 @@ export function polyline_picking(): Program {
             rtcEyePositionLow: 'vec3',
             thicknessScale: 'float',
             depthOffset: 'float',
+            depthOffsetNear: 'float',
             visibleSphere: 'vec4'
         },
         attributes: {

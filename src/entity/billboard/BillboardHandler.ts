@@ -79,14 +79,13 @@ class BillboardHandler extends BaseBillboardHandler {
 
         x = billboard._offset.x;
         y = billboard._offset.y;
-        z = billboard._offset.z;
         this._offsetArr = concatTypedArrays(this._offsetArr, [
-            x, y, z,
-            x, y, z,
-            x, y, z,
-            x, y, z,
-            x, y, z,
-            x, y, z
+            x, y,
+            x, y,
+            x, y,
+            x, y,
+            x, y,
+            x, y
         ]) as Float32Array;
 
         x = billboard._color.x;

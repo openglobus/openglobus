@@ -6,6 +6,7 @@ attribute vec2 aTextureCoord;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
+uniform vec3 cameraPosition;
 uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
 uniform float height;
@@ -21,10 +22,11 @@ void main(void) {
 
     mat4 m = projectionMatrix * viewMatrixRTE;
 
-    vec3 nh = height * normalize(aVertexPositionHigh + aVertexPositionLow);
-
     vec3 highDiff = aVertexPositionHigh - rtcEyePositionHigh;
-    vec3 lowDiff = aVertexPositionLow - rtcEyePositionLow + nh;
+    vec3 lowDiff = aVertexPositionLow - rtcEyePositionLow;
+    vec3 worldPosition = highDiff + lowDiff + cameraPosition;
+    vec3 nh = height * normalize(worldPosition);
+    lowDiff += nh;
 
     gl_Position = m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
 }

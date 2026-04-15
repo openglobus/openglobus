@@ -21,7 +21,8 @@ export function label_webgl2(): Program {
             scaleByDistance: "vec3",
             opacity: "float",
             isOutlinePass: "int",
-            depthOffset: "float"
+            depthOffset: "float",
+            depthOffsetNear: "float"
         },
         attributes: {
             a_outline: "float",
@@ -33,7 +34,7 @@ export function label_webgl2(): Program {
             a_size: "float",
             a_rotation: "float",
             a_rgba: "vec4",
-            a_offset: "vec3",
+            a_offset: "vec2",
             a_fontIndex: "float"
         },
         vertexShader: label_webgl2_vert,
@@ -55,7 +56,9 @@ export function label_woit(): Program {
             scaleByDistance: "vec3",
             opacity: "float",
             isOutlinePass: "int",
-            depthOffset: "float"
+            depthOffset: "float",
+            depthOffsetNear: "float",
+            useReverseDepth: "float"
         },
         attributes: {
             a_outline: "float",
@@ -67,7 +70,7 @@ export function label_woit(): Program {
             a_size: "float",
             a_rotation: "float",
             a_rgba: "vec4",
-            a_offset: "vec3",
+            a_offset: "vec2",
             a_fontIndex: "float"
         },
         vertexShader: label_webgl2_vert,
@@ -86,7 +89,8 @@ export function labelPicking(): Program {
             planetRadius: "float",
             scaleByDistance: "vec3",
             opacity: "float",
-            depthOffset: "float"
+            depthOffset: "float",
+            depthOffsetNear: "float"
         },
         attributes: {
             a_gliphParam: "vec4",
@@ -94,7 +98,7 @@ export function labelPicking(): Program {
             a_texCoord: "vec4",
             a_positionsHigh: "vec3",
             a_positionsLow: "vec3",
-            a_offset: "vec3",
+            a_offset: "vec2",
             a_size: "float",
             a_rotation: "float",
             a_rgba: "vec4"

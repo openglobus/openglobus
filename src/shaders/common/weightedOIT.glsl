@@ -1,5 +1,8 @@
+uniform float useReverseDepth;
+
 float weightedOITWeight(float z, float a) {
-    return clamp(pow(min(1.0, a * 10.0) + 0.01, 3.0) * 1e8 * pow(1.0 - z * 0.9, 3.0), 1e-2, 3e3);
+    float zw = mix(z, 1.0 - z, useReverseDepth);
+    return clamp(pow(min(1.0, a * 10.0) + 0.01, 3.0) * 1e8 * pow(1.0 - zw * 0.9, 3.0), 1e-2, 3e3);
 }
 
 void weightedOITAccumulate(in vec4 color, out vec4 outAccumColor, out float outAccumAlpha) {

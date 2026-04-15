@@ -47,7 +47,7 @@ const POINTER_LABEL_OPTIONS: ILabelParams = {
     outlineColor: "rgba(0,0,0,0.34)",
     outline: 0.23,
     align: "left",
-    offset: [5, 15, -5]
+    offset: [5, 15]
 };
 
 const LABEL_OPTIONS: ILabelParams = {
@@ -58,7 +58,7 @@ const LABEL_OPTIONS: ILabelParams = {
     outlineColor: "rgba(0,0,0,0.34)",
     outline: 0.23,
     align: "right",
-    offset: [-47, 25, 0]
+    offset: [-47, 25]
 };
 
 const GROUND_POINTER_OPTIONS = {
@@ -116,7 +116,7 @@ class ElevationProfileScene extends RenderNode {
         this._trackLayer = new Vector("track", {
             entities: [],
             pickingEnabled: false,
-            polygonOffsetUnits: -1.0,
+            depthOffset: -5.0,
             relativeToGround: true,
             hideInLayerSwitcher: true
         });
@@ -248,7 +248,7 @@ class ElevationProfileScene extends RenderNode {
 
         let altitudeLabelEntity = new Entity({
             cartesian: headCart,
-            label: {...LABEL_OPTIONS, offset: [-47, 45, 0]}
+            label: {...LABEL_OPTIONS, offset: [-47, 45]}
         });
         heightLabelEntity.appendChild(altitudeLabelEntity);
         altitudeLabelEntity.relativePosition = true;

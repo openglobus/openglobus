@@ -18,13 +18,14 @@ export function billboardPicking(): Program {
             planetRadius: "float",
             uScaleByDistance: "vec3",
             opacity: "float",
-            depthOffset: "float"
+            depthOffset: "float",
+            depthOffsetNear: "float"
         },
         attributes: {
             a_vertices: "vec2",
             a_positionsHigh: "vec3",
             a_positionsLow: "vec3",
-            a_offset: "vec3",
+            a_offset: "vec2",
             a_size: "vec2",
             a_rotation: "float",
             a_rgba: "vec4"
@@ -46,14 +47,15 @@ export function billboard_screen(): Program {
             planetRadius: "float",
             uScaleByDistance: "vec3",
             opacity: "float",
-            depthOffset: "float"
+            depthOffset: "float",
+            depthOffsetNear: "float"
         },
         attributes: {
             a_vertices: "vec2",
             a_texCoord: "vec2",
             a_positionsHigh: "vec3",
             a_positionsLow: "vec3",
-            a_offset: "vec3",
+            a_offset: "vec2",
             a_size: "vec2",
             a_rotation: "float",
             a_rgba: "vec4",
@@ -75,14 +77,16 @@ export function billboard_screen_woit(): Program {
             planetRadius: "float",
             uScaleByDistance: "vec3",
             opacity: "float",
-            depthOffset: "float"
+            depthOffset: "float",
+            depthOffsetNear: "float",
+            useReverseDepth: "float"
         },
         attributes: {
             a_vertices: "vec2",
             a_texCoord: "vec2",
             a_positionsHigh: "vec3",
             a_positionsLow: "vec3",
-            a_offset: "vec3",
+            a_offset: "vec2",
             a_size: "vec2",
             a_rotation: "float",
             a_rgba: "vec4",

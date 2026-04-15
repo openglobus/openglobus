@@ -2,12 +2,13 @@
 precision highp float;
 
 #include "./common.glsl"
+#include "../common/getDepthOffsetScale.glsl"
 
 in vec2 a_vertices;
 in vec2 a_texCoord;
 in vec3 a_positionsHigh;
 in vec3 a_positionsLow;
-in vec3 a_offset;
+in vec2 a_offset;
 in vec2 a_size;
 in float a_rotation;
 in vec4 a_rgba;
@@ -24,6 +25,7 @@ uniform float opacity;
 uniform float planetRadius;
 uniform vec2 viewport;
 uniform float depthOffset;
+uniform float depthOffsetNear;
 
 const vec3 ZERO3 = vec3(0.0);
 
@@ -50,13 +52,17 @@ void main() {
     vec3 highDiff = a_positionsHigh - eyePositionHigh;
     vec3 lowDiff = a_positionsLow - eyePositionLow;
     vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-    vec4 projPos = projectionMatrix * posRTE;
 
-    projPos.z += depthOffset + a_offset.z;
+    if (depthOffset != 0.0) {
+        float depthOffsetScale = getDepthOffsetScale(depthOffset, posRTE.xyz, depthOffsetNear);
+        posRTE.xyz += posRTE.xyz * depthOffsetScale;
+    }
+
+    vec4 projPos = projectionMatrix * posRTE;
 
     vec2 screenPos = project(projPos, viewport);
 
-    vec2 v = screenPos + rotate2d(a_rotation) * (a_vertices * a_size * scd + a_offset.xy);
+    vec2 v = screenPos + rotate2d(a_rotation) * (a_vertices * a_size * scd + a_offset);
 
     vec4 clipPos = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
     gl_Position = mix(vec4(2.0, 2.0, 2.0, 1.0), clipPos, visibilityMask);

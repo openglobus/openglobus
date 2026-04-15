@@ -19,6 +19,7 @@ uniform vec3 lightPosition;
 uniform float layerOpacityArr[SLICE_SIZE];
 
 uniform float shadeMode;
+uniform vec3 cameraPosition;
 
 uniform int samplerCount;
 uniform float nightTextureCoefficient;
@@ -27,7 +28,6 @@ uniform float camHeight;
 in vec4 vTextureCoord;
 in vec3 v_vertex;
 in vec3 v_viewPosition;
-in vec3 cameraPosition;
 in vec2 vGlobalTextureCoord;
 in float v_height;
 

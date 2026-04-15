@@ -22,8 +22,7 @@ export const geo_object_deferred = (): Program =>
             rtcEyePositionLow: "vec3",
             uTexture: "sampler2d",
             uUseTexture: "float",
-            shadeMode: "float",
-            depthOffset: "float"
+            shadeMode: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -59,8 +58,7 @@ export const geo_object_forward = (): Program =>
             materialProperties: "vec3",
             uTexture: "sampler2d",
             uUseTexture: "float",
-            shadeMode: "float",
-            depthOffset: "float"
+            shadeMode: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -97,7 +95,7 @@ export const geo_object_woit = (): Program =>
             uTexture: "sampler2d",
             uUseTexture: "float",
             shadeMode: "float",
-            depthOffset: "float"
+            useReverseDepth: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -134,7 +132,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             uTexture: "sampler2d",
             uUseTexture: "float",
             shadeMode: "float",
-            depthOffset: "float",
+            useReverseDepth: "float",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             atmosFadeDist: "vec2"
@@ -168,7 +166,6 @@ export const geo_object_picking = (): Program =>
             pickingScale: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
-            depthOffset: "float",
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -193,8 +190,7 @@ export const geo_object_depth = (): Program =>
             uScaleByDistance: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
-            frustumPickingColor: "float",
-            depthOffset: "float"
+            frustumPickingColor: "float"
         },
         attributes: {
             aVertexPosition: "vec3",

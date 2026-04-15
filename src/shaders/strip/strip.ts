@@ -12,7 +12,8 @@ export function stripTransparent(): Program {
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             uColor: "vec4",
-            uOpacity: "float"
+            uOpacity: "float",
+            useReverseDepth: "float"
         },
         attributes: {
             aVertexPositionHigh: "vec3",

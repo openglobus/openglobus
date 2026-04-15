@@ -396,6 +396,27 @@ class Renderer {
         gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
     }
 
+    /**
+     * Sets depth compare and clear value for the camera (reverse-Z vs classic).
+     * Pass null to restore classic depth state:
+     * depthFunc(LESS), clearDepth(1), and clip-control NEGATIVE_ONE_TO_ONE.
+     */
+    public applyDepthForCamera(camera: Camera | null = this.activeCamera) {
+        let h = this.handler;
+        let gl = h.gl;
+        if (!gl) return;
+
+        if (camera?.reverseDepthActive) {
+            h.setClipControlZeroToOne(true);
+            gl.depthFunc(gl.GREATER);
+            gl.clearDepth(0);
+        } else {
+            h.setClipControlZeroToOne(false);
+            gl.depthFunc(gl.LESS);
+            gl.clearDepth(1);
+        }
+    }
+
     public setRelativeCenter(c?: Vec3) {
         this.events.dispatch(this.events.changerelativecenter, c || this.activeCamera.eye);
     }
@@ -1173,6 +1194,9 @@ class Renderer {
 
         e.handleEvents();
 
+        this.activeCamera.setDepthZeroToOne(this.activeCamera.reverseDepthActive && !!h.clipControl);
+        this.applyDepthForCamera(this.activeCamera);
+
         this.forwardFramebuffer!.activate();
 
         gl.clearColor(this.clearColor[0], this.clearColor[1], this.clearColor[2], this.clearColor[3]);
@@ -1182,9 +1206,9 @@ class Renderer {
 
         e.dispatch(e.draw, this);
 
-        this.activeCamera!.checkFly();
+        this.activeCamera.checkFly();
 
-        let frustums = this.activeCamera!.frustums;
+        let frustums = this.activeCamera.frustums;
 
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
@@ -1194,7 +1218,7 @@ class Renderer {
         // RenderNodes PASS
         //
         while (k--) {
-            this.activeCamera!.setCurrentFrustum(k);
+            this.activeCamera.setCurrentFrustum(k);
             gl.clear(gl.DEPTH_BUFFER_BIT);
 
             let i = rn.length;
@@ -1265,7 +1289,7 @@ class Renderer {
             gl.clear(gl.DEPTH_BUFFER_BIT);
             let k = frustums.length;
             while (k--) {
-                this.activeCamera!.setCurrentFrustum(k);
+                this.activeCamera.setCurrentFrustum(k);
 
                 this._drawForwardEntityCollections(i);
 
@@ -1288,6 +1312,8 @@ class Renderer {
 
         // Tone mapping followed by rendering on the screen
         this._screenFrame();
+
+        this.applyDepthForCamera(null);
 
         e.dispatch(e.postdraw, this);
 
@@ -1474,11 +1500,18 @@ class Renderer {
         let ddd = new Float32Array(4);
         let fff = new Uint8Array(4);
 
-        this.depthFramebuffer!.readData(x, y, fff, 0);
-        this.depthFramebuffer!.readData(x, y, ddd, 1);
+        if (this.activeCamera.frustums.length === 1) {
+            this.depthFramebuffer!.readData(x, y, fff, 0);
+            this.depthFramebuffer!.readData(x, y, ddd, 1);
+            outDepth[0] = ddd[0];
+            outDepth[1] = fff[0] === 0 && fff[1] === 0 && fff[2] === 0 ? -1.0 : 0.0;
+        } else {
+            this.depthFramebuffer!.readData(x, y, fff, 0);
+            this.depthFramebuffer!.readData(x, y, ddd, 1);
 
-        outDepth[0] = ddd[0];
-        outDepth[1] = Math.round(fff[0] / 10.0) - 1.0; // See Camera.frustumColorIndex
+            outDepth[0] = ddd[0];
+            outDepth[1] = Math.round(fff[0] / 10.0) - 1.0; // See Camera.frustumColorIndex
+        }
     }
 
     /**
@@ -1507,7 +1540,8 @@ class Renderer {
 
         if (!frustum) return;
 
-        let ndc = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+        let ndcZ = camera.depthZeroToOne ? depth : depth * 2.0 - 1.0;
+        let ndc = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, ndcZ, 1.0);
         let view = frustum.inverseProjectionMatrix.mulVec4(ndc);
         let zView = -view.z / view.w;
 

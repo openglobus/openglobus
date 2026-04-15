@@ -1,6 +1,8 @@
 #version 300 es
 precision highp float;
 
+#include "../common/getDepthOffsetScale.glsl"
+
 in vec3 prevHigh;
 in vec3 currentHigh;
 in vec3 nextHigh;
@@ -21,6 +23,7 @@ uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
 uniform float opacity;
 uniform float depthOffset;
+uniform float depthOffsetNear;
 
 out vec4 v_rgba;
 out vec3 vPos;
@@ -70,6 +73,15 @@ void main() {
     highDiff = highDiff * step(1.0, length(highDiff));
     lowDiff = nextLow - rtcEyePositionLow;
     vec4 vNext = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+
+    if (depthOffset != 0.0) {
+        float vCurrentDepthOffsetScale = getDepthOffsetScale(depthOffset, vCurrent.xyz, depthOffsetNear);
+        float vPrevDepthOffsetScale = getDepthOffsetScale(depthOffset, vPrev.xyz, depthOffsetNear);
+        float vNextDepthOffsetScale = getDepthOffsetScale(depthOffset, vNext.xyz, depthOffsetNear);
+        vCurrent.xyz += vCurrent.xyz * vCurrentDepthOffsetScale;
+        vPrev.xyz += vPrev.xyz * vPrevDepthOffsetScale;
+        vNext.xyz += vNext.xyz * vNextDepthOffsetScale;
+    }
 
     if (vCurrent.z > NEAR) {
         if (vPrev.z < NEAR && abs(order) == 1.0) {
@@ -139,5 +151,5 @@ void main() {
     float wrongSide = 1.0 - step(0.0, sameSide);
     m = mix(m, sCurrent + sideNormal * d, wrongSide);
 
-    gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
+    gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);
 }

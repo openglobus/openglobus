@@ -1,5 +1,7 @@
 precision highp float;
 
+#include "../common/getDepthOffsetScale.glsl"
+
 attribute vec3 prevHigh;
 attribute vec3 currentHigh;
 attribute vec3 nextHigh;
@@ -19,6 +21,7 @@ uniform vec2 viewport;
 uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
 uniform float depthOffset;
+uniform float depthOffsetNear;
 
 varying vec4 vColor;
 varying vec3 vPos;
@@ -69,6 +72,15 @@ void main() {
     highDiff = highDiff * step(1.0, length(highDiff));
     lowDiff = nextLow - rtcEyePositionLow;
     vec4 vNext = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+
+    if (depthOffset != 0.0) {
+        float vCurrentDepthOffsetScale = getDepthOffsetScale(depthOffset, vCurrent.xyz, depthOffsetNear);
+        float vPrevDepthOffsetScale = getDepthOffsetScale(depthOffset, vPrev.xyz, depthOffsetNear);
+        float vNextDepthOffsetScale = getDepthOffsetScale(depthOffset, vNext.xyz, depthOffsetNear);
+        vCurrent.xyz += vCurrent.xyz * vCurrentDepthOffsetScale;
+        vPrev.xyz += vPrev.xyz * vPrevDepthOffsetScale;
+        vNext.xyz += vNext.xyz * vNextDepthOffsetScale;
+    }
 
 /*Clip near plane*/
     if (vCurrent.z > NEAR) {
@@ -137,5 +149,5 @@ void main() {
     float sameSide = dot(m - sCurrent, sideNormal) * side;
     float wrongSide = 1.0 - step(0.0, sameSide);
     m = mix(m, sCurrent + sideNormal * d, wrongSide);
-    gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
+    gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);
 }
