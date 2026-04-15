@@ -50,7 +50,7 @@ const PERIMETER_STEP_PX = 1;
 const DEPTH_NEAR = 100;
 const DEPTH_FAR = 1000000;
 
-const POLYLINE_DEPTH_OFFSET = -14;
+const POLYLINE_DEPTH_OFFSET = -100;
 
 export interface ICameraDepthHandlerParams extends IControlParams {
     showFrustum?: boolean;
@@ -92,7 +92,7 @@ export class CameraDepthHandler extends Control {
         this.cameraFootprintLayer = new Vector(`cameraFootprintLayer:${this.__id}`, {
             entities: [this._cameraFootprintEntity],
             pickingEnabled: false,
-            polygonOffsetUnits: POLYLINE_DEPTH_OFFSET,
+            depthOffset: POLYLINE_DEPTH_OFFSET,
             hideInLayerSwitcher: true,
             clampToGround: true,
             visibility: this._showFootprint,

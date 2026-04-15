@@ -14,7 +14,7 @@ export interface IBaseBillboardParams {
     rotation?: number;
     color?: string | NumberArray4 | Vec4;
     alignedAxis?: NumberArray3 | Vec3;
-    offset?: NumberArray2 | NumberArray3 | Vec2 | Vec3;
+    offset?: NumberArray2 | Vec2;
     visibility?: boolean;
 }
 
@@ -26,7 +26,7 @@ export interface IBaseBillboardParams {
  * @param {number} [options.rotation] - Screen angle rotation.
  * @param {Vec4|string|Array.<number>} [options.color] - Billboard color.
  * @param {Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
- * @param {Vec3|Array.<number>} [options.offset] - Billboard center screen offset.
+ * @param {Vec2|Array.<number>} [options.offset] - Billboard center screen offset.
  * @param {boolean} [options.visibility] - Visibility.
  */
 class BaseBillboard {
@@ -66,11 +66,11 @@ class BaseBillboard {
     protected _alignedAxis: Vec3;
 
     /**
-     * Billboard center screen space offset. Where x,y - screen space offset and z - depth offset.
+     * Billboard center screen space offset.
      * @public
-     * @type {Vec3}
+     * @type {Vec2}
      */
-    public _offset: Vec3;
+    public _offset: Vec2;
 
     /**
      * Billboard visibility.
@@ -113,7 +113,7 @@ class BaseBillboard {
 
         this.__id = BaseBillboard.__counter__++;
 
-        this._position = utils.createVector3(options.position);
+        this._position = utils.createVec3(options.position);
 
         this._positionHigh = new Vec3();
 
@@ -125,9 +125,9 @@ class BaseBillboard {
 
         this._color = utils.createColorRGBA(options.color);
 
-        this._alignedAxis = utils.createVector3(options.alignedAxis);
+        this._alignedAxis = utils.createVec3(options.alignedAxis);
 
-        this._offset = utils.createVector3(options.offset);
+        this._offset = utils.createVec2(options.offset);
 
         this._visibility = options.visibility != undefined ? options.visibility : true;
 
@@ -192,12 +192,10 @@ class BaseBillboard {
      * @public
      * @param {number} x - X offset.
      * @param {number} y - Y offset.
-     * @param {number} [z] - Z offset.
      */
-    public setOffset(x: number, y: number, z?: number) {
+    public setOffset(x: number, y: number) {
         this._offset.x = x;
         this._offset.y = y;
-        z != undefined && (this._offset.z = z);
         if (this._isReady && this._handler) {
             this._handler.setOffsetArr(this._handlerIndex, this._offset);
         } else if (this._lockId !== LOCK_FREE) {
@@ -210,16 +208,16 @@ class BaseBillboard {
      * @public
      * @param {Vec2} offset - Offset size.
      */
-    public setOffset3v(offset: Vec3) {
-        this.setOffset(offset.x, offset.y, offset.z);
+    public setOffset2v(offset: Vec2) {
+        this.setOffset(offset.x, offset.y);
     }
 
     /**
      * Returns billboard screen space offset size.
      * @public
-     * @returns {Vec3}
+     * @returns {Vec2}
      */
-    public getOffset(): Vec3 {
+    public getOffset(): Vec2 {
         return this._offset;
     }
 

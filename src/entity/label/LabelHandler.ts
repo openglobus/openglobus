@@ -7,6 +7,7 @@ import {LOCK_FREE} from "./LabelWorker";
 import type {Planet} from "../../scene/Planet";
 import type {WebGLBufferExt} from "../../webgl/Handler";
 import type {ProgramController} from "../../webgl/ProgramController";
+import {Vec2} from "../../math/Vec2";
 import {Vec3} from "../../math/Vec3";
 import {Vec4} from "../../math/Vec4";
 import {BaseBillboard} from "../billboard/BaseBillboard";
@@ -200,7 +201,7 @@ class LabelHandler extends BaseBillboardHandler {
 
         this._swapArrayItems(this._positionHighArr, 18 * this._maxLetters, firstIndex, secondIndex);
         this._swapArrayItems(this._positionLowArr, 18 * this._maxLetters, firstIndex, secondIndex);
-        this._swapArrayItems(this._offsetArr, 18 * this._maxLetters, firstIndex, secondIndex);
+        this._swapArrayItems(this._offsetArr, 12 * this._maxLetters, firstIndex, secondIndex);
         this._swapArrayItems(this._pickingColorArr, 18 * this._maxLetters, firstIndex, secondIndex);
 
         this._swapArrayItems(this._vertexArr, 12 * this._maxLetters, firstIndex, secondIndex);
@@ -428,7 +429,8 @@ class LabelHandler extends BaseBillboardHandler {
         const vertexCount = numLabels * 6 * this._maxLetters;
 
         gl.uniform1i(shu.isOutlinePass, isOutlinePass ? 1 : 0);
-        gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
+        gl.uniform1f(shu.depthOffset, ec.depthOffset);
+        gl.uniform1f(shu.depthOffsetNear, r.activeCamera.frustum.depthOffsetNear);
 
         if (isOutlinePass) {
             gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer!);
@@ -512,7 +514,8 @@ class LabelHandler extends BaseBillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer!);
         gl.vertexAttribPointer(sha.a_rgba, this._pickingColorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
+        gl.uniform1f(shu.depthOffset, ec.depthOffset);
+        gl.uniform1f(shu.depthOffsetNear, r.activeCamera.frustum.depthOffsetNear);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
 
@@ -547,8 +550,11 @@ class LabelHandler extends BaseBillboardHandler {
         i = lastIndex * ml;
         this._positionHighArr = spliceTypedArray<Float32Array>(this._positionHighArr, i, ml);
         this._positionLowArr = spliceTypedArray<Float32Array>(this._positionLowArr, i, ml);
-        this._offsetArr = spliceTypedArray<Float32Array>(this._offsetArr, i, ml);
         this._pickingColorArr = spliceTypedArray<Float32Array>(this._pickingColorArr, i, ml);
+
+        ml = 12 * this._maxLetters;
+        i = lastIndex * ml;
+        this._offsetArr = spliceTypedArray<Float32Array>(this._offsetArr, i, ml);
 
         ml = 12 * this._maxLetters;
         i = lastIndex * ml;
@@ -823,38 +829,31 @@ class LabelHandler extends BaseBillboardHandler {
         this._changedBuffers[SIZE_BUFFER] = true;
     }
 
-    public override setOffsetArr(index: number, offset: Vec3) {
-        let i = index * 18 * this._maxLetters;
+    public override setOffsetArr(index: number, offset: Vec2) {
+        let i = index * 12 * this._maxLetters;
         let a = this._offsetArr,
             x = offset.x,
-            y = offset.y,
-            z = offset.z;
+            y = offset.y;
 
         for (let q = 0; q < this._maxLetters; q++) {
-            let j = i + q * 18;
+            let j = i + q * 12;
             a[j] = x;
             a[j + 1] = y;
-            a[j + 2] = z;
 
-            a[j + 3] = x;
-            a[j + 4] = y;
-            a[j + 5] = z;
+            a[j + 2] = x;
+            a[j + 3] = y;
+
+            a[j + 4] = x;
+            a[j + 5] = y;
 
             a[j + 6] = x;
             a[j + 7] = y;
-            a[j + 8] = z;
 
-            a[j + 9] = x;
-            a[j + 10] = y;
-            a[j + 11] = z;
+            a[j + 8] = x;
+            a[j + 9] = y;
 
-            a[j + 12] = x;
-            a[j + 13] = y;
-            a[j + 14] = z;
-
-            a[j + 15] = x;
-            a[j + 16] = y;
-            a[j + 17] = z;
+            a[j + 10] = x;
+            a[j + 11] = y;
         }
 
         this._changedBuffers[OFFSET_BUFFER] = true;

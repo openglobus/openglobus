@@ -22,7 +22,7 @@ import type {Vector} from "../layer/Vector";
 export type EntityCollectionEvents = EventsHandler<EntityCollectionEventList>;
 
 interface IEntityCollectionParams {
-    polygonOffsetUnits?: number;
+    depthOffset?: number;
     visibility?: boolean;
     labelMaxLetters?: number;
     pickingEnabled?: boolean;
@@ -48,7 +48,8 @@ interface IEntityCollectionParams {
  * Third index - far distance to the entity, when entity becomes invisible.
  * @param {number} [options.opacity] - Entity global opacity.
  * @param {boolean} [options.pickingEnabled=true] - Entity picking enable.
- * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset. The default value is 0.
+ * @param {Number} [options.depthOffset=0.0] - Signed world-space depth offset along the camera ray.
+ * Negative values move geometry closer to the camera, positive values move it farther.
  * //@fires EntityCollection#entitymove
  * @fires EntityCollection#draw
  * @fires EntityCollection#drawend
@@ -109,11 +110,13 @@ class EntityCollection {
     public _visibility: boolean;
 
     /**
-     * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
+     * Signed world-space depth offset along the camera ray.
+     * Negative values move geometry closer to the camera, positive values move it farther.
+     * 0.0 means no offset.
      * @public
      * @type {Number}
      */
-    public polygonOffsetUnits: number;
+    public depthOffset: number;
 
     /**
      * Billboards handler
@@ -223,8 +226,7 @@ class EntityCollection {
 
         this._visibility = options.visibility == undefined ? true : options.visibility;
 
-        this.polygonOffsetUnits =
-            options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
+        this.depthOffset = options.depthOffset != undefined ? options.depthOffset : 0.0;
 
         this.billboardHandler = new BillboardHandler(this);
 

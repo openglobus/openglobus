@@ -431,8 +431,6 @@ class RayHandler {
             gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
         }
 
-        //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
-
         gl.disable(gl.CULL_FACE);
 
         gl.uniform1f(shu.uOpacity, ec._fadingOpacity);

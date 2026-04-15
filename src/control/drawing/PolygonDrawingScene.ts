@@ -110,7 +110,6 @@ class PolygonDrawingScene extends RenderNode {
         this._cornerLayer = new Vector("corners", {
             pickingScale: 1.2,
             pickingEnabled: true,
-            polygonOffsetUnits: -7,
             relativeToGround: true,
             shadeMode: SHADE_MODE_UNLIT,
             scaleByDistance: [1, 4000000, 0.005]
@@ -119,7 +118,6 @@ class PolygonDrawingScene extends RenderNode {
         this._centerLayer = new Vector("centers", {
             pickingScale: 1.2,
             pickingEnabled: true,
-            polygonOffsetUnits: -5,
             relativeToGround: true,
             shadeMode: SHADE_MODE_UNLIT,
             scaleByDistance: [1, 4000000, 0.005]
@@ -133,7 +131,7 @@ class PolygonDrawingScene extends RenderNode {
                 }
             })],
             pickingEnabled: false,
-            polygonOffsetUnits: -3,
+            depthOffset: -10,
             relativeToGround: true
         });
 
@@ -148,7 +146,7 @@ class PolygonDrawingScene extends RenderNode {
 
         this._ghostOutlineLayer = new Vector("ghost-pointer", {
             pickingEnabled: false,
-            polygonOffsetUnits: -5,
+            depthOffset: -10,
             shadeMode: SHADE_MODE_UNLIT,
             relativeToGround: true,
             scaleByDistance: [1, 4000000, 0.005],

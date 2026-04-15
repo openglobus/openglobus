@@ -53,6 +53,16 @@ export class Vec2 {
     }
 
     /**
+     * Creates 2d vector from array.
+     * @function
+     * @param {NumberArray2} arr - Input array. (exactly 2 entries)
+     * @returns {Vec2}
+     */
+    static fromVec(arr: NumberArray2): Vec2 {
+        return new Vec2(arr[0], arr[1]);
+    }
+
+    /**
      * Returns summary vector.
      * @static
      * @param {Vec2} a - First vector.

@@ -20,7 +20,7 @@ export interface IBillboardParams extends IBaseBillboardParams {
  * @param {number} [options.rotation] - Screen angle rotation.
  * @param {Vec4|string|Array.<number>} [options.color] - Billboard color.
  * @param {Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
- * @param {Vec3|Array.<number>} [options.offset] - Billboard center screen offset.
+ * @param {Vec2|Array.<number>} [options.offset] - Billboard center screen offset.
  * @param {boolean} [options.visibility] - Visibility.
  * @param {string} [options.src] - Billboard image url source.
  * @param {Image} [options.image] - Billboard image object.

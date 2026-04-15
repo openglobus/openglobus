@@ -18,10 +18,10 @@ const LABEL_OPTIONS: ILabelParams = {
     text: "",
     size: 11,
     color: "rgba(455,455,455,1.0)",
-    outlineColor: "rgba(0,0,0,0.34)",
-    outline: 0.23,
-    align: "center",
-    offset: [0, 18, 0]
+    outlineColor: "rgba(0,0,0,1)",
+    outline: 0.13,
+    align: "left",
+    offset: [10, 18]
 };
 
 const RULER_CORNER_OPTIONS = {
@@ -48,7 +48,7 @@ class HeightRulerScene extends RulerScene {
         this._geoRulerLayer = new Vector("rayHeightRuler", {
             entities: [],
             pickingEnabled: false,
-            polygonOffsetUnits: -2.0,
+            depthOffset: -5.0,
             relativeToGround: false,
             hideInLayerSwitcher: true
         });

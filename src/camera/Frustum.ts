@@ -72,16 +72,19 @@ class Frustum {
      * @public
      */
     public left: number;
+
     /**
      * Projection frustum right value.
      * @public
      */
     public right: number;
+
     /**
      * Projection frustum bottom value.
      * @public
      */
     public bottom: number;
+
     /**
      * Projection frustum top value.
      * @public
@@ -92,6 +95,14 @@ class Frustum {
      * @public
      */
     public near: number;
+
+    /**
+     * Near-plane safety value used by depth offset logic in shaders.
+     * Updated together with `near`.
+     * @public
+     */
+    public depthOffsetNear: number;
+
     /**
      * Projection frustum far value.
      * @public
@@ -134,6 +145,7 @@ class Frustum {
         this.top = 0.0;
 
         this.near = 0.0;
+        this.depthOffsetNear = 0.0;
 
         this.far = 0.0;
 
@@ -270,6 +282,7 @@ class Frustum {
         this.left = -this.right;
         this.near = near;
         this.far = far;
+        this.depthOffsetNear = near * 1.001 + 1e-6;
     }
 
     public setProjectionViewRTEMatrix(viewRTEMatrix: Mat4) {

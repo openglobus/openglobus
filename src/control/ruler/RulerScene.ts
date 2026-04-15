@@ -37,10 +37,10 @@ const LABEL_OPTIONS: ILabelParams = {
     text: "",
     size: 11,
     color: "rgba(455,455,455,1.0)",
-    outlineColor: "rgba(0,0,0,0.34)",
-    outline: 0.23,
+    outlineColor: "rgba(0,0,0,1)",
+    outline: 0.15,
     align: "center",
-    offset: [0, 20, 0]
+    offset: [0, 20]
 };
 
 const RULER_CORNER_OPTIONS = {
@@ -125,7 +125,7 @@ class RulerScene extends RenderNode {
         this._trackLayer = new Vector("track", {
             entities: [],
             pickingEnabled: false,
-            polygonOffsetUnits: -1.0,
+            depthOffset: -5.0,
             relativeToGround: true,
             hideInLayerSwitcher: true
         });
@@ -133,7 +133,7 @@ class RulerScene extends RenderNode {
         this._labelLayer = new Vector("ruler-label", {
             entities: [],
             pickingEnabled: false,
-            polygonOffsetUnits: -100.0,
+            depthOffset: -5.0,
             relativeToGround: true,
             hideInLayerSwitcher: true
         });

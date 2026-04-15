@@ -20,6 +20,7 @@ const SHARED_UNIFORMS = {
     thicknessScale: 'float',
     opacity: 'float',
     depthOffset: 'float',
+    depthOffsetNear: 'float',
     visibleSphere: 'vec4'
 };
 
@@ -119,6 +120,7 @@ export function polyline_picking(): Program {
             rtcEyePositionLow: 'vec3',
             thicknessScale: 'float',
             depthOffset: 'float',
+            depthOffsetNear: 'float',
             visibleSphere: 'vec4'
         },
         attributes: {

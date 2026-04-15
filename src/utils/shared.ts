@@ -230,7 +230,22 @@ export function defaultString(str?: string, def: string = ""): string {
     return str ? str.trim() : def;
 }
 
-export function createVector3(v?: number | Vec3 | Vec2 | NumberArray3 | NumberArray2 | null, def?: Vec3): Vec3 {
+export function createVec2(v?: number | Vec2 | NumberArray2 | null, def?: Vec2): Vec2 {
+    if (v) {
+        if (isNumber(v)) {
+            return new Vec2(v as number, v as number);
+        } else if (v instanceof Vec2) {
+            return v.clone();
+        } else if (v instanceof Array) {
+            return Vec2.fromVec(v);
+        }
+    } else if (def) {
+        return def;
+    }
+    return new Vec2();
+}
+
+export function createVec3(v?: number | Vec3 | Vec2 | NumberArray3 | NumberArray2 | null, def?: Vec3): Vec3 {
     if (v) {
         if (isNumber(v)) {
             return new Vec3(v as number, v as number, v as number);
@@ -247,7 +262,7 @@ export function createVector3(v?: number | Vec3 | Vec2 | NumberArray3 | NumberAr
     return new Vec3();
 }
 
-export function createVector4(v?: Vec4 | NumberArray4 | null, def?: Vec4): Vec4 {
+export function createVec4(v?: Vec4 | NumberArray4 | null, def?: Vec4): Vec4 {
     if (v) {
         if (v instanceof Vec4) {
             return v.clone();

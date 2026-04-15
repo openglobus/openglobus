@@ -27,7 +27,6 @@ uniform vec3 eyePositionLow;
 
 uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
-uniform float depthOffset;
 
 out vec3 cameraPosition;
 out vec3 v_vertex;
@@ -68,7 +67,6 @@ void main(void) {
     vec4 viewPos = viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
     v_viewPosition = viewPos.xyz;
     gl_Position = projectionMatrix * viewPos;
-    gl_Position.z += depthOffset;
 
     v_vertex = rtcWorldOffset + cameraPosition + vert;
 }

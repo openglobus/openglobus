@@ -10,7 +10,7 @@ import {RenderNode} from "../../scene/RenderNode";
 import type {WebGLBufferExt} from "../../webgl/Handler";
 import {
     cloneArray,
-    createVector3,
+    createVec3,
     htmlColorToFloat32Array,
     htmlColorToRgba,
     makeArray,
@@ -454,7 +454,7 @@ class PolylineBatchRenderer {
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-        this._visibleSpherePosition = createVector3(options.visibleSpherePosition);
+        this._visibleSpherePosition = createVec3(options.visibleSpherePosition);
         const r = options.visibleSphereRadius || 0;
         this._visibleSphere = new Float32Array([0, 0, 0, r]);
         this._updateVisibleSphereRTC();
@@ -4335,7 +4335,8 @@ class PolylineBatchRenderer {
             sh.activate();
 
             gl.disable(gl.CULL_FACE);
-            gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
+            gl.uniform1f(shu.depthOffset, ec.depthOffset);
+            gl.uniform1f(shu.depthOffsetNear, r.activeCamera!.frustum.depthOffsetNear);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera!.getViewMatrix());
@@ -4408,7 +4409,8 @@ class PolylineBatchRenderer {
 
             gl.disable(gl.CULL_FACE);
             gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
-            gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
+            gl.uniform1f(shu.depthOffset, ec.depthOffset);
+            gl.uniform1f(shu.depthOffsetNear, r.activeCamera!.frustum.depthOffsetNear);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera!.getViewMatrix());
@@ -4481,7 +4483,8 @@ class PolylineBatchRenderer {
 
             gl.disable(gl.CULL_FACE);
 
-            gl.uniform1f(shu.depthOffset, r.activeCamera.reverseDepthActive ? -ec.polygonOffsetUnits : ec.polygonOffsetUnits);
+            gl.uniform1f(shu.depthOffset, ec.depthOffset);
+            gl.uniform1f(shu.depthOffsetNear, r.activeCamera!.frustum.depthOffsetNear);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera!.getViewMatrix());

@@ -17,16 +17,16 @@ self.onmessage = function (e) {
         /*3, 4, 5*/_positionHigh_x = labelData[3], _positionHigh_y = labelData[4], _positionHigh_z = labelData[5],
         /*6, 7, 8*/_positionLow_x = labelData[6], _positionLow_y = labelData[7], _positionLow_z = labelData[8],
         /*9*/_size = labelData[9],
-        /*10, 11, 12*/_offset_x = labelData[10], _offset_y = labelData[11], _offset_z = labelData[12],
-        /*13, 14, 15, 16*/_color_x = labelData[13], _color_y = labelData[14], _color_z = labelData[15],
-        _color_w = labelData[16],
-        /*17*/_rotation = labelData[17],
-        /*18, 19, 20*/_alignedAxis_x = labelData[18], _alignedAxis_y = labelData[19], _alignedAxis_z = labelData[20],
-        /*21*/_fontIndex = labelData[21],
-        /*22*/_outline = labelData[22],
-        /*23, 24, 25, 26*/_outlineColor_x = labelData[23], _outlineColor_y = labelData[24],
-        _outlineColor_z = labelData[25], _outlineColor_w = labelData[26],
-        /*27, 28, 29*/_pickingColor_x = labelData[27], _pickingColor_y = labelData[28], _pickingColor_z = labelData[29]
+        /*10, 11*/_offset_x = labelData[10], _offset_y = labelData[11],
+        /*12, 13, 14, 15*/_color_x = labelData[12], _color_y = labelData[13], _color_z = labelData[14],
+        _color_w = labelData[15],
+        /*16*/_rotation = labelData[16],
+        /*17, 18, 19*/_alignedAxis_x = labelData[17], _alignedAxis_y = labelData[18], _alignedAxis_z = labelData[19],
+        /*20*/_fontIndex = labelData[20],
+        /*21*/_outline = labelData[21],
+        /*22, 23, 24, 25*/_outlineColor_x = labelData[22], _outlineColor_y = labelData[23],
+        _outlineColor_z = labelData[24], _outlineColor_w = labelData[25],
+        /*26, 27, 28*/_pickingColor_x = labelData[26], _pickingColor_y = labelData[27], _pickingColor_z = labelData[28]
 
 
     let _vertexArr = new Float32Array(maxLetters * 12),
@@ -35,7 +35,7 @@ self.onmessage = function (e) {
         _positionHighArr = new Float32Array(maxLetters * 18),
         _positionLowArr = new Float32Array(maxLetters * 18),
         _sizeArr = new Float32Array(maxLetters * 6),
-        _offsetArr = new Float32Array(maxLetters * 18),
+        _offsetArr = new Float32Array(maxLetters * 12),
         _rgbaArr = new Float32Array(maxLetters * 24),
         _rotationArr = new Float32Array(maxLetters * 6),
         _alignedAxisArr = new Float32Array(maxLetters * 18),
@@ -67,8 +67,7 @@ self.onmessage = function (e) {
 
         x = _offset_x;
         y = _offset_y;
-        z = _offset_z;
-        concatTypedArrays(_offsetArr, i, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        concatTypedArrays(_offsetArr, i, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
         x = _color_x;
         y = _color_y;

@@ -103,14 +103,14 @@ class GeoObject {
 
         this._entity = null;
 
-        this._position = utils.createVector3(options.position);
+        this._position = utils.createVec3(options.position);
 
         this._rtcPositionHigh = new Vec3();
         ``
         this._rtcPositionLow = new Vec3();
 
-        this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
-        this._translate = utils.createVector3(options.translate, new Vec3());
+        this._scale = utils.createVec3(options.scale, new Vec3(1, 1, 1));
+        this._translate = utils.createVec3(options.translate, new Vec3());
 
         this._localPosition = new Vec3();
 
