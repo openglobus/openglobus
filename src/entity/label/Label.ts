@@ -150,10 +150,10 @@ class Label extends BaseBillboard {
     }
 
     /**
-     * Set label text.
+     * Sets label text.
      * @public
      * @param {string} text - Text string.
-     * It can't be bigger than maximum labelHandler _maxLetters value.
+     * Text length cannot exceed the `labelHandler._maxLetters` value.
      */
     public setText(text: string) {
         this._text = text.toString();
@@ -163,9 +163,9 @@ class Label extends BaseBillboard {
     }
 
     /**
-     * Set text letter spacing.
+     * Sets text letter spacing.
      * @public
-     * @param {number} spacing - Letter spacing.
+     * @param {number} letterSpacing - Letter spacing.
      */
     public setLetterSpacing(letterSpacing: number) {
         this._letterSpacing = letterSpacing;

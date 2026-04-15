@@ -118,9 +118,9 @@ export interface IMouseState extends IBaseInputState {
     middleButtonClick: boolean;
     /** Mouse has just stopped now. */
     justStopped: boolean;
-    /** Mose double click delay response time.*/
+    /** Mouse double-click delay response time. */
     doubleClickDelay: number;
-    /** Mose click delay response time.*/
+    /** Mouse click delay response time. */
     clickDelay: number;
     /** Mouse wheel. */
     wheelDelta: number;
@@ -138,9 +138,9 @@ export interface ITouchState extends IBaseInputState {
     touchCancel: boolean;
     /** Touched twice.*/
     doubleTouch: boolean;
-    /** Double touching responce delay.*/
+    /** Double-touch response delay. */
     doubleTouchDelay: number;
-    /** Double touching responce radius in screen pixels.*/
+    /** Double-touch response radius in screen pixels. */
     doubleTouchRadius: number;
     /** Currently touching.*/
     touching: boolean;

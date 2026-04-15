@@ -50,39 +50,39 @@ interface IEntityCollectionParams {
  * @param {boolean} [options.pickingEnabled=true] - Entity picking enable.
  * @param {Number} [options.depthOffset=0.0] - Signed world-space depth offset along the camera ray.
  * Negative values move geometry closer to the camera, positive values move it farther.
- * //@fires EntityCollection#entitymove
- * @fires EntityCollection#draw
- * @fires EntityCollection#drawend
- * @fires EntityCollection#add
- * @fires EntityCollection#remove
- * @fires EntityCollection#entityadd
- * @fires EntityCollection#entityremove
- * @fires EntityCollection#visibilitychange
- * @fires EntityCollection#mousemove
- * @fires EntityCollection#mouseenter
- * @fires EntityCollection#mouseleave
- * @fires EntityCollection#lclick
- * @fires EntityCollection#rclick
- * @fires EntityCollection#mclick
- * @fires EntityCollection#ldblclick
- * @fires EntityCollection#rdblclick
- * @fires EntityCollection#mdblclick
- * @fires EntityCollection#lup
- * @fires EntityCollection#rup
- * @fires EntityCollection#mup
- * @fires EntityCollection#ldown
- * @fires EntityCollection#rdown
- * @fires EntityCollection#mdown
- * @fires EntityCollection#lhold
- * @fires EntityCollection#rhold
- * @fires EntityCollection#mhold
- * @fires EntityCollection#mousewheel
- * @fires EntityCollection#touchmove
- * @fires EntityCollection#touchstart
- * @fires EntityCollection#touchend
- * @fires EntityCollection#doubletouch
- * @fires EntityCollection#touchleave
- * @fires EntityCollection#touchenter
+ * //@fires entitymove
+ * @fires draw
+ * @fires drawend
+ * @fires add
+ * @fires remove
+ * @fires entityadd
+ * @fires entityremove
+ * @fires visibilitychange
+ * @fires mousemove
+ * @fires mouseenter
+ * @fires mouseleave
+ * @fires lclick
+ * @fires rclick
+ * @fires mclick
+ * @fires ldblclick
+ * @fires rdblclick
+ * @fires mdblclick
+ * @fires lup
+ * @fires rup
+ * @fires mup
+ * @fires ldown
+ * @fires rdown
+ * @fires mdown
+ * @fires lhold
+ * @fires rhold
+ * @fires mhold
+ * @fires mousewheel
+ * @fires touchmove
+ * @fires touchstart
+ * @fires touchend
+ * @fires doubletouch
+ * @fires touchleave
+ * @fires touchenter
  */
 class EntityCollection {
 
@@ -335,7 +335,7 @@ class EntityCollection {
     /**
      * Returns collection visibility.
      * @public
-     * @returns {boolean} -
+     * @returns {boolean} Collection visibility flag.
      */
     public getVisibility(): boolean {
         return this._visibility;
@@ -368,7 +368,7 @@ class EntityCollection {
     /**
      * Gets collection opacity.
      * @public
-     * @returns {number} -
+     * @returns {number} Collection opacity.
      */
     public getOpacity(): number {
         return this._opacity;
@@ -504,7 +504,7 @@ class EntityCollection {
      * Adds entity to the collection and returns collection.
      * @public
      * @param {Entity} entity - Entity.
-     * @returns {EntityCollection} -
+     * @returns {EntityCollection} Current collection instance.
      */
     public add(entity: Entity): EntityCollection {
         if (!entity._entityCollection) {
@@ -520,7 +520,7 @@ class EntityCollection {
      * Adds entities array to the collection and returns collection.
      * @public
      * @param {Array.<Entity>} entities - Entities array.
-     * @returns {EntityCollection} -
+     * @returns {EntityCollection} Current collection instance.
      */
     public addEntities(entities: Entity[]): EntityCollection {
         for (let i = 0, len = entities.length; i < len; i++) {
@@ -530,10 +530,10 @@ class EntityCollection {
     }
 
     /**
-     * Returns true if the entity belongs this collection, otherwise returns false.
+     * Returns true if the entity belongs to this collection, otherwise returns false.
      * @public
      * @param {Entity} entity - Entity.
-     * @returns {boolean} -
+     * @returns {boolean} `true` if the entity belongs to this collection.
      */
     public belongs(entity: Entity) {
         return this.isEqual(entity._entityCollection);
@@ -652,8 +652,8 @@ class EntityCollection {
      * Adds this collection to render node.
      * @public
      * @param {RenderNode} renderNode - Render node.
-     * @param {boolean} [isHidden] - Uses in vector layers that render in planet render specific function.
-     * @returns {EntityCollection} -
+     * @param {boolean} [isHidden] - Used in vector layers with planet-specific rendering.
+     * @returns {EntityCollection} Current collection instance.
      */
     public addTo(renderNode: RenderNode, isHidden: boolean = false) {
         if (!this.renderNode) {
@@ -766,7 +766,7 @@ class EntityCollection {
     /**
      * Gets entity array.
      * @public
-     * @returns {Array.<Entity>} -
+     * @returns {Array.<Entity>} Entity array copy.
      */
     public getEntities(): Entity[] {
         return ([] as Entity[]).concat(this._entities);

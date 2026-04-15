@@ -163,42 +163,92 @@ class Frustum {
         );
     }
 
+    /**
+     * Returns right clipping plane.
+     * @public
+     * @returns {NumberArray4} Right clipping plane coefficients.
+     */
     public getRightPlane(): NumberArray4 {
         return this._f[0];
     }
 
+    /**
+     * Returns left clipping plane.
+     * @public
+     * @returns {NumberArray4} Left clipping plane coefficients.
+     */
     public getLeftPlane(): NumberArray4 {
         return this._f[1];
     }
 
+    /**
+     * Returns bottom clipping plane.
+     * @public
+     * @returns {NumberArray4} Bottom clipping plane coefficients.
+     */
     public getBottomPlane(): NumberArray4 {
         return this._f[2];
     }
 
+    /**
+     * Returns top clipping plane.
+     * @public
+     * @returns {NumberArray4} Top clipping plane coefficients.
+     */
     public getTopPlane(): NumberArray4 {
         return this._f[3];
     }
 
+    /**
+     * Returns backward clipping plane.
+     * @public
+     * @returns {NumberArray4} Backward clipping plane coefficients.
+     */
     public getBackwardPlane(): NumberArray4 {
         return this._f[4];
     }
 
+    /**
+     * Returns forward clipping plane.
+     * @public
+     * @returns {NumberArray4} Forward clipping plane coefficients.
+     */
     public getForwardPlane(): NumberArray4 {
         return this._f[5];
     }
 
+    /**
+     * Returns projection-view matrix.
+     * @public
+     * @returns {NumberArray16} Projection-view matrix values.
+     */
     public getProjectionViewMatrix(): NumberArray16 {
         return this.projectionViewMatrix._m;
     }
 
+    /**
+     * Returns projection-view RTE matrix.
+     * @public
+     * @returns {NumberArray16} Projection-view RTE matrix values.
+     */
     public getProjectionViewRTEMatrix(): NumberArray16 {
         return this.projectionViewRTEMatrix._m;
     }
 
+    /**
+     * Returns projection matrix.
+     * @public
+     * @returns {NumberArray16} Projection matrix values.
+     */
     public getProjectionMatrix(): NumberArray16 {
         return this.projectionMatrix._m;
     }
 
+    /**
+     * Returns inverse projection matrix.
+     * @public
+     * @returns {NumberArray16} Inverse projection matrix values.
+     */
     public getInverseProjectionMatrix(): NumberArray16 {
         return this.inverseProjectionMatrix._m;
     }
@@ -249,6 +299,12 @@ class Frustum {
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
     }
 
+    /**
+     * Updates near and far clipping planes.
+     * @public
+     * @param {number} near - Near clipping plane distance.
+     * @param {number} [far=this.far] - Far clipping plane distance.
+     */
     public setNearFar(near: number, far: number = this.far) {
         if (this._isOrthographic) {
             this.near = near;
@@ -285,6 +341,11 @@ class Frustum {
         this.depthOffsetNear = near * 1.001 + 1e-6;
     }
 
+    /**
+     * Updates projection-view RTE matrix.
+     * @public
+     * @param {Mat4} viewRTEMatrix - View matrix in RTE coordinates.
+     */
     public setProjectionViewRTEMatrix(viewRTEMatrix: Mat4) {
         this.projectionViewRTEMatrix = this.projectionMatrix.mul(viewRTEMatrix);
     }
@@ -344,10 +405,10 @@ class Frustum {
     }
 
     /**
-     * Returns true if a point in the frustum.
+     * Returns true if the point is inside the frustum.
      * @public
      * @param {Vec3} point - Cartesian point.
-     * @returns {boolean} -
+     * @returns {boolean} `true` when the point is inside.
      */
     public containsPoint(point: Vec3): boolean {
         for (let p = 0; p < 6; p++) {
@@ -360,10 +421,10 @@ class Frustum {
     }
 
     /**
-     * Returns true if the frustum contains a bonding sphere, but bottom plane exclude.
+     * Returns true if the sphere is inside the frustum, ignoring the bottom plane.
      * @public
      * @param {Sphere} sphere - Bounding sphere.
-     * @returns {boolean} -
+     * @returns {boolean} `true` when the sphere passes all checked planes.
      */
     public containsSphereBottomExc(sphere: Sphere): boolean {
         let r = -sphere.radius,
@@ -376,6 +437,12 @@ class Frustum {
         return true;
     }
 
+    /**
+     * Checks sphere intersection with the bottom frustum plane only.
+     * @public
+     * @param {Sphere} sphere - Bounding sphere.
+     * @returns {boolean} `true` when the sphere is not clipped by the bottom plane.
+     */
     public containsSphereButtom(sphere: Sphere): boolean {
         let r = -sphere.radius,
             f = this._f;
@@ -385,10 +452,10 @@ class Frustum {
     }
 
     /**
-     * Returns true if the frustum contains a bonding sphere.
+     * Returns true if the sphere is inside the frustum.
      * @public
      * @param {Sphere} sphere - Bounding sphere.
-     * @returns {boolean} -
+     * @returns {boolean} `true` when the sphere is inside.
      */
     public containsSphere(sphere: Sphere): boolean {
         let r = -sphere.radius,
@@ -403,11 +470,11 @@ class Frustum {
     }
 
     /**
-     * Returns true if the frustum contains a bonding sphere.
+     * Returns true if the sphere is inside the frustum.
      * @public
      * @param {Vec3} center - Sphere center.
      * @param {number} radius - Sphere radius.
-     * @returns {boolean} -
+     * @returns {boolean} `true` when the sphere is inside.
      */
     public containsSphere2(center: Vec3, radius: number): boolean {
         let r = -radius;
@@ -421,10 +488,10 @@ class Frustum {
     }
 
     /**
-     * Returns true if the frustum contains a bounding box.
+     * Returns true if the box intersects or is inside the frustum.
      * @public
      * @param {Box} box - Bounding box.
-     * @returns {boolean} -
+     * @returns {boolean} `true` when the box is not fully outside.
      */
     public containsBox(box: Box): boolean {
         let result: boolean = true,

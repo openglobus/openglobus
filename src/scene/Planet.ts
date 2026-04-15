@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 Michael Gevlich
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as segmentHelper from "../segment/segmentHelper";
 import * as shaders from "../shaders/drawnode/drawnode";
 import {Atmosphere} from "../control/atmosphere/Atmosphere";
@@ -92,22 +107,27 @@ const DEFAULT_MAX_NODES = 400;
 type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
 
 /**
- * Main class for rendering planet
+ * Main class for rendering a planet.
  * @class
  * @extends {RenderNode}
- * @param {string} [options.name="Earth"] - Planet name(Earth by default)
- * @param {Ellipsoid} [options.ellipsoid] - Planet ellipsoid(WGS84 by default)
- * @param {Number} [options.maxGridSize=128] - Segment maximal grid size
- * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen become the same zoom level
- * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen become the same zoom level
- * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen become the same zoom level
+ * @param {IPlanetParams} [options={}] - Planet configuration parameters.
+ * @param {string} [options.name] - Planet name.
+ * @param {Ellipsoid} [options.ellipsoid] - Planet ellipsoid (WGS84 by default).
+ * @param {Number} [options.maxGridSize=256] - Maximum segment grid size.
+ * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximum altitude where visible segments stay at the same zoom level.
+ * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimum altitude where visible segments stay at the same zoom level.
+ * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimum camera slope above the globe where visible segments stay at the same zoom level.
+ * @param {Number} [options.maxLoadingRequests=12] - Maximum concurrent tile loading requests.
+ * @param {Number} [options.maxNodesCount=400] - Maximum number of created nodes.
  *
- * @fires EventsHandler<PlanetEventList>#draw
- * @fires EventsHandler<PlanetEventList>#layeradd
- * @fires EventsHandler<PlanetEventList>#baselayerchange
- * @fires EventsHandler<PlanetEventList>#layerremove
- * @fires EventsHandler<PlanetEventList>#layervisibilitychange
- * @fires EventsHandler<PlanetEventList>#geoimageadd
+ * @fires draw - Triggered before globe frame begins to render.
+ * @fires layeradd - Triggered when a layer is added to the planet.
+ * @fires baselayerchange - Triggered when the base layer changes.
+ * @fires layerremove - Triggered when a layer is removed from the planet.
+ * @fires layervisibilitychange - Triggered when layer visibility changes.
+ * @fires rendercompleted - Triggered when all data is loaded.
+ * @fires terraincompleted - Triggered when terrain data is loaded.
+ * @fires layerloadend - Triggered when layer data finishes loading.
  */
 export class Planet extends RenderNode {
 
@@ -2235,44 +2255,44 @@ const PLANET_EVENTS: PlanetEventsList = [
     "draw",
 
     /**
-     * Triggered when layer has added to the planet.
+     * Triggered when a layer is added to the planet.
      * @event og.scene.Planet#layeradd
      */
     "layeradd",
 
     /**
-     * Triggered when base layer changed.
+     * Triggered when the base layer changes.
      * @event og.scene.Planet#baselayerchange
      */
     "baselayerchange",
 
     /**
-     * Triggered when layer has removed from the planet.
+     * Triggered when a layer is removed from the planet.
      * @event og.scene.Planet#layerremove
      */
     "layerremove",
 
     /**
-     * Triggered when some layer visibility changed.
+     * Triggered when layer visibility changes.
      * @event og.scene.Planet#layervisibilitychange
      */
     "layervisibilitychange",
 
     /**
-     * Triggered when all data is loaded
+     * Triggered when all data is loaded.
      * @event og.scene.Planet#rendercompleted
      */
     "rendercompleted",
 
     /**
-     * Triggered when all data is loaded
+     * Triggered when all terrain data is loaded.
      * @event og.scene.Planet#terraincompleted
      */
     "terraincompleted",
 
     /**
-     * Triggered when layer data is laded
-     * @event og.scene.Planet#terraincompleted
+     * Triggered when layer data finishes loading.
+     * @event og.scene.Planet#layerloadend
      */
     "layerloadend"
 ];

@@ -410,7 +410,7 @@ class Polyline {
     }
 
     /**
-     * Set closed/open state for one path segment.
+     * Sets closed/open state for one path segment.
      * @public
      */
     public set isClosed(isClosed: boolean) {
@@ -895,7 +895,7 @@ class Polyline {
     /**
      * Gets Polyline visibility.
      * @public
-     * @return {boolean} Polyline visibility.
+     * @returns {boolean} Polyline visibility.
      */
     public getVisibility(): boolean {
         return this._visibility;

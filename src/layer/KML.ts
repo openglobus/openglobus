@@ -13,11 +13,11 @@ interface IKMLParams extends IVectorParams {
 }
 
 /**
- * Layer to render KMLs files
+ * Layer to render KML files.
  * @class
  * @extends {Vector}
- * @param {string} name
- * @param {*} [options]
+ * @param {string} name - Layer name.
+ * @param {IKMLParams} [options] - KML layer options.
  */
 export class KML extends Vector {
 
@@ -64,7 +64,7 @@ export class KML extends Vector {
 
     /**
      * @protected
-     * @returns array of longitude, latitude, altitude (altitude optional)
+     * @returns {number[][]} Array of `[longitude, latitude, altitude?]`.
      */
     protected _parseKMLcoordinates(coords: Element): number[][] {
         const coordinates = coords.innerHTML.trim()
@@ -213,9 +213,10 @@ export class KML extends Vector {
     /**
      * Creates billboards or polylines from array of lonlat.
      * @protected
-     * @param {Array} coordonates
-     * @param {string} color
-     * @returns {any}
+     * @param {number[][][][]} coordinates - Coordinates grouped by files and paths.
+     * @param {string} color - Polyline color.
+     * @param {IBillboardParams} [billboard] - Billboard options.
+     * @returns {{entities: Array.<(Entity|undefined)>, extent: Extent}}
      */
     protected _convertCoordonatesIntoEntities(coordinates: number[][][][], color: string, billboard?: IBillboardParams): any {
         const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
@@ -253,7 +254,7 @@ export class KML extends Vector {
 
     /**
      * @protected
-     * @returns {Document}
+     * @returns {Promise<XMLDocument>}
      */
     protected _getXmlContent(file: Blob): Promise<XMLDocument> {
         return new Promise((resolve) => {
@@ -279,9 +280,9 @@ export class KML extends Vector {
 
     /**
      * @public
-     * @param {File[]} kmls
-     * @param {string} [color]
-     * @param {Billboard} [billboard]
+     * @param {Blob[]} kmls - KML files.
+     * @param {string} [color] - Polyline color.
+     * @param {IBillboardParams} [billboard] - Billboard options.
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     public async addKmlFromFiles(kmls: Blob[], color?: string, billboard?: IBillboardParams) {
@@ -299,7 +300,7 @@ export class KML extends Vector {
     }
 
     /**
-     * @param {string} color
+     * @param {string} color - Layer color.
      * @public
      */
     public setColor(color: string) {
@@ -326,9 +327,9 @@ export class KML extends Vector {
 
     /**
      * @public
-     * @param {string} url - Url of the KML to display. './myFile.kml' or 'http://mySite/myFile.kml' for example.
-     * @param {string} [color]
-     * @param {Billboard} [billboard]
+     * @param {string} url - URL of the KML to display. For example: './myFile.kml' or 'http://mySite/myFile.kml'.
+     * @param {string} [color] - Polyline color.
+     * @param {Billboard | IBillboardParams} [billboard] - Billboard options.
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     public async addKmlFromUrl(url: string, color?: string, billboard?: Billboard | IBillboardParams): Promise<any> {

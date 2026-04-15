@@ -53,40 +53,40 @@ export interface ILayerParams {
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
- * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
+ * @param {string} [options.attribution] - Layer attribution shown in the attribution area.
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {boolean} [options.hideInLayerSwitcher=false] - Presence of layer in dialog window of LayerSwitcher control.
- * @param {boolean} [options.isSRGB=false] - Layer image webgl internal format.
+ * @param {boolean} [options.isSRGB=false] - Layer image WebGL internal format.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
  * @param {string} [options.icon] - Icon for LayerSwitcher
- * @fires EventsHandler<LayerEventsList>#visibilitychange
- * @fires EventsHandler<LayerEventsList>#add
- * @fires EventsHandler<LayerEventsList>#remove
- * @fires EventsHandler<LayerEventsList>#mousemove
- * @fires EventsHandler<LayerEventsList>#mouseenter
- * @fires EventsHandler<LayerEventsList>#mouseleave
- * @fires EventsHandler<LayerEventsList>#lclick
- * @fires EventsHandler<LayerEventsList>#rclick
- * @fires EventsHandler<LayerEventsList>#mclick
- * @fires EventsHandler<LayerEventsList>#ldblclick
- * @fires EventsHandler<LayerEventsList>#rdblclick
- * @fires EventsHandler<LayerEventsList>#mdblclick
- * @fires EventsHandler<LayerEventsList>#lup
- * @fires EventsHandler<LayerEventsList>#rup
- * @fires EventsHandler<LayerEventsList>#mup
- * @fires EventsHandler<LayerEventsList>#ldown
- * @fires EventsHandler<LayerEventsList>#rdown
- * @fires EventsHandler<LayerEventsList>#mdown
- * @fires EventsHandler<LayerEventsList>#lhold
- * @fires EventsHandler<LayerEventsList>#rhold
- * @fires EventsHandler<LayerEventsList>#mhold
- * @fires EventsHandler<LayerEventsList>#mousewheel
- * @fires EventsHandler<LayerEventsList>#touchmove
- * @fires EventsHandler<LayerEventsList>#touchstart
- * @fires EventsHandler<LayerEventsList>#touchend
- * @fires EventsHandler<LayerEventsList>#doubletouch
+ * @fires visibilitychange
+ * @fires add
+ * @fires remove
+ * @fires mousemove
+ * @fires mouseenter
+ * @fires mouseleave
+ * @fires lclick
+ * @fires rclick
+ * @fires mclick
+ * @fires ldblclick
+ * @fires rdblclick
+ * @fires mdblclick
+ * @fires lup
+ * @fires rup
+ * @fires mup
+ * @fires ldown
+ * @fires rdown
+ * @fires mdown
+ * @fires lhold
+ * @fires rhold
+ * @fires mhold
+ * @fires mousewheel
+ * @fires touchmove
+ * @fires touchstart
+ * @fires touchend
+ * @fires doubletouch
  */
 class Layer {
 
@@ -432,7 +432,7 @@ class Layer {
      * Returns true if a layer has imagery tiles.
      * @public
      * @virtual
-     * @returns {boolean} - Imagery tiles flag.
+     * @returns {boolean} Imagery tiles flag.
      */
     public hasImageryTiles(): boolean {
         return this._hasImageryTiles;
@@ -441,7 +441,7 @@ class Layer {
     /**
      * Gets layer identifier.
      * @public
-     * @returns {string} - Layer object id.
+     * @returns {number} Layer object id.
      */
     public getID(): number {
         return this.__id;
@@ -462,7 +462,7 @@ class Layer {
      * Compares layers instances.
      * @public
      * @param {Layer} layer - Layer instance to compare.
-     * @returns {boolean} - Returns true if the layers is the same instance of the input.
+     * @returns {boolean} Returns true if the layer is the same instance as the input.
      */
     public isEqual(layer: Layer): boolean {
         return layer.__id === this.__id;
@@ -533,7 +533,7 @@ class Layer {
     /**
      * Removes from planet.
      * @public
-     * @returns {Layer} -This layer.
+     * @returns {Layer} This layer.
      */
     public remove(): this {
         let p = this._planet;
@@ -577,7 +577,7 @@ class Layer {
     /**
      * Sets layer attribution text.
      * @public
-     * @param {string} html - HTML code that represents layer attribution, it could be just a text.
+     * @param {string} html - HTML string that represents layer attribution.
      */
     public setAttribution(html: string) {
         if (this._attribution !== html) {
@@ -589,7 +589,7 @@ class Layer {
     /**
      * Gets layer attribution.
      * @public
-     * @returns {string} Layer attribution
+     * @returns {string} Layer attribution.
      */
     public getAttribution(): string {
         return this._attribution;
@@ -608,7 +608,7 @@ class Layer {
     /**
      * Gets layer height.
      * @public
-     * @returns {number} -
+     * @returns {number}
      */
     public getHeight(): number {
         return this._height;
@@ -627,14 +627,14 @@ class Layer {
     /**
      * Gets z-index.
      * @public
-     * @returns {number} -
+     * @returns {number}
      */
     public getZIndex(): number {
         return this._zIndex;
     }
 
     /**
-     * Set zIndex to the maximal value depend on other layers on the planet.
+     * Sets z-index to the maximum value relative to other layers on the planet.
      * @public
      */
     public bringToFront() {
@@ -650,7 +650,7 @@ class Layer {
     /**
      * Returns true if the layer is a base.
      * @public
-     * @returns {boolean} - Base layer flag.
+     * @returns {boolean} Base layer flag.
      */
     public isBaseLayer(): boolean {
         return this._isBaseLayer;
@@ -752,7 +752,7 @@ class Layer {
     /**
      * Gets layer visibility.
      * @public
-     * @returns {boolean} - Layer visibility.
+     * @returns {boolean} Layer visibility.
      */
     public getVisibility(): boolean {
         return this._visibility;
@@ -784,7 +784,7 @@ class Layer {
     /**
      * Gets layer extent.
      * @public
-     * @return {Extent} - Layer geodetic extent.
+     * @returns {Extent} Layer geodetic extent.
      */
     public getExtent(): Extent {
         return this._extent;
@@ -793,7 +793,7 @@ class Layer {
     /**
      * Gets layer web-mercator extent.
      * @public
-     * @return {Extent} - Layer extent.
+     * @returns {Extent} Layer extent.
      */
     public getExtentMerc(): Extent {
         return this._extentMerc;
@@ -923,19 +923,19 @@ export type LayerEventsList = [
 
 export const LAYER_EVENTS: LayerEventsList = [
     /**
-     * Triggered when layer visibility changed.
+     * Triggered when layer visibility changes.
      * @event og.Layer#visibilitychange
      */
     "visibilitychange",
 
     /**
-     * Triggered when layer has added to the planet.
+     * Triggered when the layer is added to the planet.
      * @event og.Layer#add
      */
     "add",
 
     /**
-     * Triggered when layer has removed from the planet.
+     * Triggered when the layer is removed from the planet.
      * @event og.Layer#remove
      */
     "remove",

@@ -383,7 +383,7 @@ class Ray {
     }
 
     /**
-     * Set picking color.
+     * Sets picking color.
      * @public
      * @param {Vec3} color - Picking color.
      */

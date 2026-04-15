@@ -22,7 +22,7 @@ interface IWMSParams extends IXYZParams {
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
- * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
+ * @param {string} [options.attribution] - Layer attribution shown in the attribution area.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {string} options.url - WMS url source.

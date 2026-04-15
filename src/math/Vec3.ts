@@ -94,7 +94,7 @@ export class Vec3 {
     }
 
     /**
-     * Separate 63 bit Vec3 to two Vec3 32-bit float values.
+     * Splits a 64-bit Vec3 value into two Vec3 values with 32-bit float components.
      * @function
      * @param {Vec3} v - Double type value.
      * @param {Vec3} high - Out vector high values.
@@ -137,7 +137,7 @@ export class Vec3 {
     }
 
     /**
-     * Separate 63 bit Vec3 to two Vec3 32-bit float values.
+     * Splits a 64-bit Vec3 value into two float arrays with 32-bit components.
      * @function
      * @param {Vec3} v - Double type value.
      * @param {Float32Array} high - Out vector high values.
@@ -219,11 +219,11 @@ export class Vec3 {
     }
 
     /**
-     * Returns summary vector.
+     * Returns the sum of two vectors.
      * @static
      * @param {Vec3} a - First vector.
      * @param {Vec3} b - Second vector.
-     * @returns {Vec3} - Summary vector.
+     * @returns {Vec3} - Sum vector.
      */
     static add(a: Vec3, b: Vec3): Vec3 {
         let res = new Vec3(a.x, a.y, a.z);
@@ -232,11 +232,11 @@ export class Vec3 {
     }
 
     /**
-     * Returns two vectors subtraction.
+     * Returns the difference between two vectors.
      * @static
      * @param {Vec3} a - First vector.
      * @param {Vec3} b - Second vector.
-     * @returns {Vec3} - Vectors subtraction.
+     * @returns {Vec3} - Subtraction result.
      */
     static sub(a: Vec3, b: Vec3): Vec3 {
         let res = new Vec3(a.x, a.y, a.z);
@@ -280,11 +280,11 @@ export class Vec3 {
     }
 
     /**
-     * Get projection of the vector to plane where n - normal to the plane.
+     * Projects a vector onto a plane with normal `n`.
      * @static
      * @param {Vec3} b - Vector to project.
      * @param {Vec3} n - Plane normal.
-     * @param {Vec3} [def] - Default value for non existed result.
+     * @param {Vec3} [def] - Default value if the result is zero.
      * @returns {Vec3} -
      */
     static proj_b_to_plane(b: Vec3, n: Vec3, def?: Vec3): Vec3 {
@@ -500,7 +500,7 @@ export class Vec3 {
      * Gets vector subtraction.
      * @public
      * @param {Vec3} p - Subtract vector.
-     * @return {Vec3} Returns new instance of a subtraction
+     * @returns {Vec3} Returns a new subtraction vector.
      */
     public sub(p: Vec3): Vec3 {
         return new Vec3(this.x - p.x, this.y - p.y, this.z - p.z);
@@ -563,9 +563,9 @@ export class Vec3 {
     }
 
     /**
-     * Divide current vector's components to another. Results stores in the current vector object.
+     * Divides current vector components by another vector in place.
      * @public
-     * @param {Vec3} vec - Div vector.
+     * @param {Vec3} vec - Divisor vector.
      * @returns {Vec3} -
      */
     public divA(vec: Vec3): Vec3 {
@@ -578,7 +578,7 @@ export class Vec3 {
     /**
      * Divide current vector's components to another and returns new vector instance.
      * @public
-     * @param {Vec3} vec - Div vector.
+     * @param {Vec3} vec - Divisor vector.
      * @returns {Vec3} -
      */
     public div(vec: Vec3): Vec3 {
@@ -586,7 +586,7 @@ export class Vec3 {
     }
 
     /**
-     * Gets vectors dot production.
+     * Returns the dot product of two vectors.
      * @public
      * @param {Vec3} a - Another vector.
      * @returns {number} -
@@ -596,7 +596,7 @@ export class Vec3 {
     }
 
     /**
-     * Gets vectors dot production.
+     * Returns the dot product with an array.
      * @public
      * @param {Array.<number>} arr - Array vector. (exactly 3 entries)
      * @returns {number} -
@@ -667,7 +667,7 @@ export class Vec3 {
     }
 
     /**
-     * Returns normalized negate vector.
+     * Returns the normalized negated vector.
      * @public
      * @returns {Vec3} -
      */
@@ -685,7 +685,7 @@ export class Vec3 {
     }
 
     /**
-     * Returns normalized negate scale vector.
+     * Returns the normalized negated vector multiplied by `scale`.
      * @public
      * @returns {Vec3} -
      */
@@ -755,7 +755,7 @@ export class Vec3 {
     /**
      * Gets distance to point.
      * @public
-     * @param {Vec3} p - Distant point.
+     * @param {Vec3} p - Target point.
      * @returns {number} -
      */
     public distance(p: Vec3): number {
@@ -768,7 +768,7 @@ export class Vec3 {
     /**
      * Gets square distance to point.
      * @public
-     * @param {Vec3} p - Distant point.
+     * @param {Vec3} p - Target point.
      * @returns {number} -
      */
     public distance2(p: Vec3): number {
@@ -841,7 +841,7 @@ export class Vec3 {
      * Returns two vectors linear interpolation.
      * @public
      * @param {Vec3} v2 - End vector.
-     * @param {number} l - Interpolate value.
+     * @param {number} l - Interpolation value.
      * @returns {Vec3} -
      */
     public lerp(v2: Vec3, l: number) {
@@ -856,7 +856,7 @@ export class Vec3 {
      * Returns vector interpolation by v(t) = v1 * t + v2 * (1 - t)
      * @public
      * @param {Vec3} v2 - End vector.
-     * @param {number} t - Interpolate value.
+     * @param {number} t - Interpolation value.
      * @returns {Vec3} -
      */
     public smerp(v2: Vec3, t: number): Vec3 {
@@ -917,9 +917,9 @@ export class Vec3 {
     }
 
     /**
-     * Gets the shortest arc quaternion to rotate this vector to the destination vector.
-     * @param {Vec3} dest -
-     * @param {Vec3} fallbackAxis -
+     * Returns the shortest-arc quaternion rotating this vector to `dest`.
+     * @param {Vec3} dest - Destination vector.
+     * @param {Vec3} fallbackAxis - Axis used when vectors are opposite.
      * @returns {Quat} -
      * @todo: TEST IT!
      */
@@ -965,9 +965,9 @@ export class Vec3 {
 /**
  * Vector 3d object creator.
  * @function
- * @param {number} [x] - value X.
- * @param {number} [y] - value Y.
- * @param {number} [z] - value Z.
+ * @param {number} [x] - Value X.
+ * @param {number} [y] - Value Y.
+ * @param {number} [z] - Value Z.
  * @returns {Vec3} -
  */
 export function vec3(x: number = 0, y: number = 0, z: number = 0): Vec3 {

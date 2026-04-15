@@ -423,7 +423,7 @@ class Entity {
     /**
      * Returns root entity object.
      * @public
-     * @return {Entity}
+     * @returns {Entity} Root entity object.
      */
     public get rootEntity(): Entity {
         let pn: Entity | null = this;
@@ -545,7 +545,7 @@ class Entity {
      * Adds current entity into the specified entity collection.
      * @public
      * @param {EntityCollection | Vector} collection - Specified entity collection or vector layer.
-     * @returns {Entity} - This object.
+     * @returns {Entity} This object.
      */
     public addTo(collection: EntityCollection | Vector): Entity {
         collection.add(this);
@@ -596,7 +596,7 @@ class Entity {
     /**
      * Returns entity visibility.
      * @public
-     * @returns {boolean} -
+     * @returns {boolean} Entity visibility flag.
      */
     public getVisibility() {
         return this._visibility;
@@ -923,7 +923,7 @@ class Entity {
     /**
      * Returns absolute cartesian position.
      * @public
-     * @returns {Vec3} -
+     * @returns {Vec3} Absolute cartesian position.
      */
     public getAbsoluteCartesian(): Vec3 {
         if (this.parent && this._relativePosition) {
@@ -1079,7 +1079,7 @@ class Entity {
     /**
      * Gets entity geodetic coordinates.
      * @public
-     * @returns {LonLat} -
+     * @returns {LonLat} Entity geodetic coordinates.
      */
     public getLonLat(): LonLat {
         return this._lonLat.clone();
@@ -1151,9 +1151,9 @@ class Entity {
     }
 
     /**
-     * Sets entity altitude over the planet.
+     * Returns entity altitude over the planet.
      * @public
-     * @return {number} Altitude.
+     * @returns {number} Altitude.
      */
     public getAltitude(): number {
         return this._altitude;
@@ -1162,7 +1162,7 @@ class Entity {
     /**
      * Returns cartesian position.
      * @public
-     * @returns {Vec3} -
+     * @returns {Vec3} Cartesian position.
      */
     public getCartesian(): Vec3 {
         return this._cartesian.clone();
@@ -1172,7 +1172,7 @@ class Entity {
      * Sets entity billboard.
      * @public
      * @param {Billboard} billboard - Billboard object.
-     * @returns {Billboard} -
+     * @returns {Billboard} Assigned billboard object.
      */
     public setBillboard(billboard: Billboard): Billboard {
         if (this.billboard) {
@@ -1190,7 +1190,7 @@ class Entity {
      * Sets entity label.
      * @public
      * @param {Label} label - Text label.
-     * @returns {Label} -
+     * @returns {Label} Assigned label object.
      */
     public setLabel(label: Label): Label {
         if (this.label) {
@@ -1208,7 +1208,7 @@ class Entity {
      * Sets entity ray.
      * @public
      * @param {Ray} ray - Ray object.
-     * @returns {Ray} -
+     * @returns {Ray} Assigned ray object.
      */
     public setRay(ray: Ray): Ray {
         if (this.ray) {
@@ -1225,7 +1225,7 @@ class Entity {
      * Sets entity polyline.
      * @public
      * @param {Polyline} polyline - Polyline object.
-     * @returns {Polyline} -
+     * @returns {Polyline} Assigned polyline object.
      */
     public setPolyline(polyline: Polyline): Polyline {
         if (this.polyline) {
@@ -1242,7 +1242,7 @@ class Entity {
      * Sets entity pointCloud.
      * @public
      * @param {PointCloud} pointCloud - PointCloud object.
-     * @returns {PointCloud} -
+     * @returns {PointCloud} Assigned point cloud object.
      */
     public setPointCloud(pointCloud: PointCloud): PointCloud {
         if (this.pointCloud) {
@@ -1259,7 +1259,7 @@ class Entity {
      * Sets entity geometry.
      * @public
      * @param {Geometry} geometry - Geometry object.
-     * @returns {Geometry} -
+     * @returns {Geometry} Assigned geometry object.
      */
     public setGeometry(geometry: Geometry): Geometry {
         if (this.geometry) {
@@ -1280,7 +1280,7 @@ class Entity {
      * Sets entity geoObject.
      * @public
      * @param {GeoObject} geoObject - GeoObject.
-     * @returns {GeoObject} -
+     * @returns {GeoObject} Assigned geo object.
      */
     public setGeoObject(geoObject: GeoObject): GeoObject {
         if (this.geoObject) {
@@ -1298,7 +1298,7 @@ class Entity {
      * Sets entity strip.
      * @public
      * @param {Strip} strip - Strip object.
-     * @returns {Strip} -
+     * @returns {Strip} Assigned strip object.
      */
     public setStrip(strip: Strip): Strip {
         if (this.strip) {
@@ -1384,9 +1384,9 @@ class Entity {
     }
 
     /**
-     * Return geodetic extent.
+     * Returns geodetic extent.
      * @public
-     * @returns {Extent} -
+     * @returns {Extent} Geodetic extent.
      */
     public getExtent(): Extent {
 

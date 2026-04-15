@@ -108,7 +108,7 @@ export class Mat3 {
     /**
      * Multiply to 3d vector.
      * @public
-     * @params {Vec3} p - 3d vector.
+     * @param {Vec3} p - 3D vector.
      * @returns {Vec3}
      */
     public mulVec(p: Vec3): Vec3 {
@@ -161,7 +161,7 @@ export class Mat3 {
 /**
  * Mat3 factory.
  * @static
- * @return {Mat3}
+ * @returns {Mat3}
  */
 export function mat3(): Mat3 {
     return new Mat3();

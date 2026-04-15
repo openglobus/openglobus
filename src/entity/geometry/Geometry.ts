@@ -277,10 +277,10 @@ class Geometry {
 
     /**
      * Returns geometry extent.
-     @static
-     @param {IGeometry} geometryObj - GeoJSON style geometry feature.
-     @param {IGeometryCoordinates} outCoordinates - Geometry feature coordinates clone.
-     @returns {Extent} -
+     * @static
+     * @param {IGeometry} geometryObj - GeoJSON-style geometry feature.
+     * @param {IGeometryCoordinates} outCoordinates - Cloned geometry coordinates.
+     * @returns {Extent} Geometry extent.
      */
     static getExtent(geometryObj: IGeometry, outCoordinates: IGeometryCoordinates): Extent {
         let res = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));

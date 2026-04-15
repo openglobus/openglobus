@@ -212,9 +212,9 @@ class Strip {
     }
 
     /**
-     * Set strip opacity.
+     * Sets strip opacity.
      * @public
-     * @param {number} opacity - opacity.
+     * @param {number} opacity - Opacity.
      */
     public setOpacity(opacity: number) {
         this.color[3] = opacity || 0;
@@ -222,7 +222,7 @@ class Strip {
     }
 
     /**
-     * Sets cloud visibility.
+     * Sets strip visibility.
      * @public
      * @param {boolean} visibility - Visibility flag.
      */
@@ -231,7 +231,7 @@ class Strip {
     }
 
     /**
-     * @return {boolean} Strip visibility.
+     * @returns {boolean} Strip visibility.
      */
     public getVisibility(): boolean {
         return this.visibility;

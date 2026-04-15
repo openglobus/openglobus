@@ -58,37 +58,45 @@ let __depthCallbackCounter__ = 0;
 let _tempDepth_ = new Float32Array(2);
 
 /**
- * Represents high level WebGL context interface that starts WebGL handler working in real time.
+ * High-level WebGL interface that runs the WebGL handler in real time.
  * @class
- * @param {Handler} handler - WebGL handler context.
- * @param {Object} [params] - Renderer parameters:
- * @fires RendererEventsHandler<RendererEventsType>#draw
- * @fires RendererEventsHandler<RendererEventsType>#resize
- * @fires RendererEventsHandler<RendererEventsType>#mousemove
- * @fires RendererEventsHandler<RendererEventsType>#mousestop
- * @fires RendererEventsHandler<RendererEventsType>#lclick
- * @fires RendererEventsHandler<RendererEventsType>#rclick
- * @fires RendererEventsHandler<RendererEventsType>#mclick
- * @fires RendererEventsHandler<RendererEventsType>#ldblclick
- * @fires RendererEventsHandler<RendererEventsType>#rdblclick
- * @fires RendererEventsHandler<RendererEventsType>#mdblclick
- * @fires RendererEventsHandler<RendererEventsType>#lup
- * @fires RendererEventsHandler<RendererEventsType>#rup
- * @fires RendererEventsHandler<RendererEventsType>#mup
- * @fires RendererEventsHandler<RendererEventsType>#ldown
- * @fires RendererEventsHandler<RendererEventsType>#rdown
- * @fires RendererEventsHandler<RendererEventsType>#mdown
- * @fires RendererEventsHandler<RendererEventsType>#lhold
- * @fires RendererEventsHandler<RendererEventsType>#rhold
- * @fires RendererEventsHandler<RendererEventsType>#mhold
- * @fires RendererEventsHandler<RendererEventsType>#mousewheel
- * @fires RendererEventsHandler<RendererEventsType>#touchstart
- * @fires RendererEventsHandler<RendererEventsType>#touchend
- * @fires RendererEventsHandler<RendererEventsType>#touchcancel
- * @fires RendererEventsHandler<RendererEventsType>#touchmove
- * @fires RendererEventsHandler<RendererEventsType>#doubletouch
- * @fires RendererEventsHandler<RendererEventsType>#touchleave
- * @fires RendererEventsHandler<RendererEventsType>#touchenter
+ * @param {Handler | string | HTMLCanvasElement} handler - WebGL handler instance or canvas target selector/element.
+ * @param {IRendererParams} [params={}] - Renderer parameters:
+ *     - controls: Control instances to add to the renderer
+ *     - msaa: MSAA (Multi-Sample Anti-Aliasing) level
+ *     - autoActivate: Start rendering automatically after creation
+ *     - fontsSrc: Path to font resources
+ *     - gamma: Gamma correction value
+ *     - exposure: HDR exposure value
+ *     - dpi: Device pixel ratio
+ *     - clearColor: RGBA clear color array
+ * @fires draw - Triggered before each frame is rendered.
+ * @fires resize - Triggered when the canvas is resized.
+ * @fires mousemove - Triggered when the mouse moves over the canvas.
+ * @fires mousestop - Triggered when the mouse stops moving.
+ * @fires lclick - Triggered on left mouse button click.
+ * @fires rclick - Triggered on right mouse button click.
+ * @fires mclick - Triggered on middle mouse button click.
+ * @fires ldblclick - Triggered on left mouse button double-click.
+ * @fires rdblclick - Triggered on right mouse button double-click.
+ * @fires mdblclick - Triggered on middle mouse button double-click.
+ * @fires lup - Triggered when the left mouse button is released.
+ * @fires rup - Triggered when the right mouse button is released.
+ * @fires mup - Triggered when the middle mouse button is released.
+ * @fires ldown - Triggered when the left mouse button is pressed.
+ * @fires rdown - Triggered when the right mouse button is pressed.
+ * @fires mdown - Triggered when the middle mouse button is pressed.
+ * @fires lhold - Triggered while the left mouse button is held.
+ * @fires rhold - Triggered while the right mouse button is held.
+ * @fires mhold - Triggered while the middle mouse button is held.
+ * @fires mousewheel - Triggered on mouse wheel scroll.
+ * @fires touchstart - Triggered on touch start.
+ * @fires touchend - Triggered on touch end.
+ * @fires touchcancel - Triggered on touch cancel.
+ * @fires touchmove - Triggered on touch move.
+ * @fires doubletouch - Triggered on double touch.
+ * @fires touchleave - Triggered when touch leaves the canvas.
+ * @fires touchenter - Triggered when touch enters the canvas.
  */
 
 export interface HTMLDivElementExt extends HTMLDivElement {
@@ -422,8 +430,9 @@ class Renderer {
     }
 
     /**
-     * Sets renderer events activity.
-     * @param {Boolean} activity - Events activity.
+     * Enables or disables renderer events.
+     * @public
+     * @param {boolean} activity - Events activity flag.
      */
     public setEventsActivity(activity: boolean) {
         this.events.active = activity;
@@ -447,10 +456,11 @@ class Renderer {
     }
 
     /**
-     * Adds picking rendering callback function.
-     * @param {object} sender - Callback context.
-     * @param {Function} callback - Rendering callback.
-     * @returns {Number} Handler id
+     * Adds a picking render callback.
+     * @public
+     * @param {any} sender - Callback context.
+     * @param {Function} callback - Render callback function.
+     * @returns {number} Callback ID.
      */
     public addPickingCallback(sender: any, callback: Function) {
         let id = __pickingCallbackCounter__++;
@@ -461,8 +471,9 @@ class Renderer {
     }
 
     /**
-     * Removes picking rendering callback function.
-     * @param {Number} id - Handler id to remove.
+     * Removes a picking render callback.
+     * @public
+     * @param {number} id - Callback ID to remove.
      */
     public removePickingCallback(id: number) {
         for (let i = 0; i < this._pickingCallbacks.length; i++) {
@@ -486,9 +497,9 @@ class Renderer {
     }
 
     /**
-     * Assign picking color to the object.
+     * Assigns a picking color to an object.
      * @public
-     * @param {Object} obj - Object that presume to be picked.
+     * @param {Object} obj - Object that receives a picking color.
      */
     public assignPickingColor<T>(obj: T & IPickingObject) {
         if (!obj._pickingColor || obj._pickingColor.isZero()) {
@@ -514,9 +525,9 @@ class Renderer {
     }
 
     /**
-     * Removes picking color from object.
+     * Removes the picking color from an object.
      * @public
-     * @param {Object} obj - Object to remove picking color.
+     * @param {Object} obj - Object to clear the picking color from.
      */
     public clearPickingColor<T>(obj: T & IPickingObject) {
         if (obj._pickingColor && !obj._pickingColor.isZero()) {
@@ -545,27 +556,27 @@ class Renderer {
     }
 
     /**
-     * Get the client width.
+     * Returns the canvas client width.
      * @public
-     * @returns {number} -
+     * @returns {number}
      */
     public getWidth(): number {
         return this.handler.canvas!.clientWidth;
     }
 
     /**
-     * Get the client height.
+     * Returns the canvas client height.
      * @public
-     * @returns {number} -
+     * @returns {number}
      */
     public getHeight(): number {
         return this.handler.canvas!.clientHeight;
     }
 
     /**
-     * Get center of the canvas
+     * Returns the canvas viewport center.
      * @public
-     * @returns {Vec2} -
+     * @returns {Vec2}
      */
     public getViewportCenter(): Vec2 {
         let cnv = this.handler.canvas!;
@@ -583,7 +594,8 @@ class Renderer {
     // }
 
     /**
-     * Add the given control to the renderer.
+     * Adds a control to the renderer.
+     * @public
      * @param {Control} control - Control.
      */
     public addControl(control: Control) {
@@ -591,7 +603,8 @@ class Renderer {
     }
 
     /**
-     * Add the given controls array to the planet node.
+     * Adds an array of controls to the renderer.
+     * @public
      * @param {Array.<Control>} cArr - Control array.
      */
     public addControls(cArr: Control[]) {
@@ -601,8 +614,9 @@ class Renderer {
     }
 
     /**
-     * Remove control from the renderer.
-     * @param {Control} control  - Control.
+     * Removes a control from the renderer.
+     * @public
+     * @param {Control} control - Control.
      */
     public removeControl(control: Control) {
         control.remove();

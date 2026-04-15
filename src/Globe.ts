@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 Michael Gevlich
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import {CompassButton} from "./control/CompassButton";
 import {Control} from "./control/Control";
 import {EarthCoordinates} from "./control/EarthCoordinates";
@@ -131,7 +146,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {number} [options.minAltitude=1.0] - Minimal camera altitude above terrain
  * @param {number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen became the same zoom level
  * @param {number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen became the same zoom level
- * @param {number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen became the same zoom level
+ * @param {number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above the globe where segments on the screen became the same zoom level
  * @param {number} [options.loadingBatchSize=12] -
  * @param {number} [options.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
  * @param {number} [options.msaa=0] - MSAA antialiasing parameter: 2,4,8,16. Default is 0.

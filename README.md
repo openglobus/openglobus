@@ -138,4 +138,4 @@ There are many ways to contribute back to the project:
 
 ## License
 
-### MIT
+### Apache-2.0

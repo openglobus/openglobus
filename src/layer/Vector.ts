@@ -57,7 +57,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
 }
 
 /**
- * Vector layer represents alternative entities store. Used for geospatial data rendering like
+ * Vector layer is an alternative entity storage. Used for geospatial data rendering like
  * points, lines, polygons, geometry objects etc.
  * @class
  * @extends {Layer}
@@ -83,13 +83,13 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * Negative values move geometry closer to the camera, positive values move it farther.
  * @param {number} [options.shadeMode=1] - Geo object shading: 0 unlit, 1 Phong, 2 PBR.
  *
- * //@fires EventsHandler<VectorEventsList>#entitymove
- * @fires EventsHandler<VectorEventsList>#draw
- * @fires EventsHandler<VectorEventsList>#add
- * @fires EventsHandler<VectorEventsList>#remove
- * @fires EventsHandler<VectorEventsList>#entityadd
- * @fires EventsHandler<VectorEventsList>#entityremove
- * @fires EventsHandler<VectorEventsList>#visibilitychange
+ * //@fires entitymove
+ * @fires draw
+ * @fires add
+ * @fires remove
+ * @fires entityadd
+ * @fires entityremove
+ * @fires visibilitychange
  */
 class Vector extends Layer {
 
@@ -316,7 +316,7 @@ class Vector extends Layer {
     /**
      * Returns stored entities.
      * @public
-     * @returns {Array.<Entity>} -
+     * @returns {Array.<Entity>} Stored entities.
      */
     public getEntities(): Entity[] {
         return ([] as Entity[]).concat(this._entities);
@@ -499,7 +499,7 @@ class Vector extends Layer {
     }
 
     /**
-     * Set layer picking events active.
+     * Sets layer picking events active.
      * @public
      * @param {boolean} picking - Picking enable flag.
      */

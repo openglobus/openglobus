@@ -724,7 +724,7 @@ class PolylineBatchRenderer {
     }
 
     /**
-     * Set stroke source (string or Image) for a segment index.
+     * Sets stroke source (string or `Image`) for a segment index.
      * @public
      */
     public setPathSrc(src: StrokeSource, segmentIndex: number = 0) {
@@ -745,7 +745,7 @@ class PolylineBatchRenderer {
     }
 
     /**
-     * Set closed/open state for one path segment.
+     * Sets closed/open state for one path segment.
      * @public
      */
     public setPathClosed(isClosed: boolean, segmentIndex: number = 0) {
@@ -3652,7 +3652,7 @@ class PolylineBatchRenderer {
     /**
      * Gets Polyline visibility.
      * @public
-     * @return {boolean} Polyline visibility.
+     * @returns {boolean} Polyline visibility.
      */
     public getVisibility(): boolean {
         return this.visibility;
@@ -3905,7 +3905,7 @@ class PolylineBatchRenderer {
     /**
      * Returns polyline geodetic extent.
      * @public
-     * @returns {Extent} - Geodetic extent
+     * @returns {Extent} Geodetic extent.
      */
     public getExtent(): Extent {
         return this._extent.clone();
@@ -3913,7 +3913,7 @@ class PolylineBatchRenderer {
 
     /**
      * Returns path cartesian coordinates.
-     * @return {SegmentPath3vExt[]} Polyline path.
+     * @returns {SegmentPath3vExt[]} Polyline path.
      */
     public getPath3v(): SegmentPath3vExt[] {
         return this._path3v;
@@ -3921,7 +3921,7 @@ class PolylineBatchRenderer {
 
     /**
      * Returns geodetic path coordinates.
-     * @return {SegmentPathLonLatExt[]} Polyline path.
+     * @returns {SegmentPathLonLatExt[]} Polyline path.
      */
     public getPathLonLat(): SegmentPathLonLatExt[] {
         return this._pathLonLat;

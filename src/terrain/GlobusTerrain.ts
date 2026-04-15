@@ -40,22 +40,20 @@ type TileData = {
 /**
  * Class that loads segment elevation data, converts it to the array and passes it to the planet segment.
  * @class
- * @extends {GlobusTerrain}
+ * @extends {EmptyTerrain}
  * @param {string} [name=""] - Terrain provider name.
  * @param {IGlobusTerrainParams} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.
- * @param {number} [options.minZoom=14] - Maximal visible zoom index when terrain handler works.
- * @param {number} [options.minNativeZoom=14] - Maximal available terrain zoom level.
- * @param {string} [options.url="//openglobus.org/heights/srtm3/{z}/{y}/{x}.ddm"] - Terrain source path url template. Default is openglobus ddm elevation file.
- * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
+ * @param {number} [options.maxZoom=14] - Maximal visible zoom index when terrain handler works.
+ * @param {number} [options.maxNativeZoom=14] - Maximal available terrain zoom level.
+ * @param {string} [options.url="https://{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm"] - Terrain source URL template.
+ * @param {Array.<number>} [options.gridSizeByZoom] - Segment triangulation grid sizes where array index matches segment zoom index.
  * @param {number} [options.plainGridSize=32] - Elevation grid size. Default is 32x32. Must be power of two.
- * @param {string} [options.responseType="arraybuffer"] - Response type.
- * @param {number} [options.MAX_LOADING_TILES] - Maximum at one time loading tiles.
- * @param {Array.<number>} [gridSizeByZoom] - Array of values, where each value corresponds to the size of a tile(or segment) on the globe. Each value must be power of two.
- * @param {number} [heightFactor=1] - Elevation height multiplier.
+ * @param {number} [options.heightFactor=1] - Elevation height multiplier.
+ * @param {FetchCache} [options.cache="default"] - Fetch cache mode.
  *
- * @fires GlobusTerrainEvents#load
- * @fires GlobusTerrainEvents#loadend
+ * @fires load
+ * @fires loadend
  */
 class GlobusTerrain extends EmptyTerrain {
 
@@ -330,7 +328,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @public
      * @param {string} url - Url template.
      * @example <caption>Default openglobus url template:</caption>:
-     * "http://earth3.openglobus.org/{z}/{y}/{x}.ddm"
+     * "https://{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm"
      */
     public setUrl(url: string) {
         this.url = url;
@@ -352,8 +350,8 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Starts to load segment elevation data.
      * @public
-     * @param {Segment} segment - Segment that wants a terrain data.
-     * @param {boolean} [forceLoading] -
+     * @param {Segment} segment - Segment that requests terrain data.
+     * @param {boolean} [forceLoading=false] - Forces loading even if default filter would skip it.
      */
     public override loadTerrain(segment: Segment, forceLoading: boolean = false) {
 
@@ -434,8 +432,8 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Creates default query url string.
      * @protected
-     * @param {Segment} segment -
-     * @returns {string} -
+     * @param {Segment} segment - Segment to create URL for.
+     * @returns {string} URL string.
      */
     protected _createUrl(segment: Segment): string {
         return this.buildURL(segment.tileX, segment.tileY, segment.tileZoom, segment._tileGroup);
@@ -444,8 +442,8 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Returns actual url query string.
      * @protected
-     * @param {Segment} segment - Segment that loads image data.
-     * @returns {string} - Url string.
+     * @param {Segment} segment - Segment that loads terrain data.
+     * @returns {string} URL string.
      */
     protected _getHTTPRequestString(segment: Segment): string {
         if (this._urlRewriteCallback) {
@@ -467,7 +465,7 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Converts loaded data to segment elevation data type(column major elevation data array in meters)
      * @public
-     * @returns {Array.<number>} -
+     * @returns {Array.<number> | TypedArray} Column-major elevation data array in meters.
      */
     protected _createHeights(data: any, segment?: Segment | null, tileGroup?: number, x?: number, y?: number, z?: number, extent?: Extent, isMaxZoom?: boolean): TypedArray | number[] {
         if (this._heightFactor !== 1) {

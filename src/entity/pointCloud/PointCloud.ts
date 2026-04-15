@@ -253,7 +253,7 @@ class PointCloud {
     }
 
     /**
-     * @return {boolean} Point cloud visibility.
+     * @returns {boolean} Point cloud visibility.
      */
     public getVisibility(): boolean {
         return this.visibility;
@@ -354,7 +354,7 @@ class PointCloud {
      * Returns specific point by index.
      * @public
      * @param {number} index - Point index.
-     * @return {Poi} Specific point
+     * @returns {IPoint} Point at the given index.
      */
     public getPoint(index: number): IPoint {
         return this._points[index];
