@@ -1,4 +1,4 @@
-[![NPM PACKAGE](https://img.shields.io/npm/v/@openglobus/og.svg?logo=npm&logoColor=fff&label=NPM+package&color=limegreen)](https://www.npmjs.com/@openglobus/og)
+[![NPM PACKAGE](https://img.shields.io/npm/v/@openglobus/og.svg?logo=npm&logoColor=fff&label=NPM+package&color=limegreen)](https://www.npmjs.com/package/@openglobus/og)
 ![BUILD](https://github.com/openglobus/openglobus/actions/workflows/push.yml/badge.svg)
 
 # OpenGlobus
