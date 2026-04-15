@@ -4,3 +4,4 @@ docs
 dist
 coverage
 package-lock.json
+*.glb
