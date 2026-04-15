@@ -2,17 +2,17 @@
  * @module og/utils/shared
  */
 
-import {Extent} from "../Extent";
-import {LonLat} from "../LonLat";
-import {Vec2} from "../math/Vec2";
-import type {NumberArray2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
-import type {NumberArray3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
-import type {NumberArray4} from "../math/Vec4";
-import {colorTable} from "./colorTable";
-import {Ellipsoid} from "../ellipsoid/Ellipsoid";
-import {wgs84} from "../ellipsoid/wgs84";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
+import { Vec2 } from "../math/Vec2";
+import type { NumberArray2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
+import type { NumberArray3 } from "../math/Vec3";
+import { Vec4 } from "../math/Vec4";
+import type { NumberArray4 } from "../math/Vec4";
+import { colorTable } from "./colorTable";
+import { Ellipsoid } from "../ellipsoid/Ellipsoid";
+import { wgs84 } from "../ellipsoid/wgs84";
 import * as mercator from "../mercator";
 
 export function getDefault(param?: any, def?: any): boolean {
@@ -52,7 +52,7 @@ export function isString(s: any): boolean {
 }
 
 function d2h(val: number): string {
-    return val.toString(16).padStart(2, '0');
+    return val.toString(16).padStart(2, "0");
 }
 
 export function rgbToStringHTML(rgb: NumberArray3 | Vec3): string {
@@ -144,11 +144,7 @@ export function htmlColorToRgb(htmlColor: string): Vec3 {
         }
     } else {
         let m = htmlColor.split(",");
-        return new Vec3(
-            parseInt(m[0].split("(")[1]) / 255,
-            parseInt(m[1]) / 255,
-            parseInt(m[2]) / 255
-        );
+        return new Vec3(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255);
     }
 }
 
@@ -223,7 +219,7 @@ export function print2d(id: string, text: string, x: number, y: number) {
 }
 
 export function isNumber(value: any): boolean {
-    return typeof value === 'number';
+    return typeof value === "number";
 }
 
 export function defaultString(str?: string, def: string = ""): string {
@@ -408,7 +404,13 @@ export function binaryInsert(ar: any[], el: any, compare_fn: Function): number {
  * @param {boolean} [isSegment] - Lines are segments.
  * @return {Vec2} - Intersection coordinate.
  */
-export function getLinesIntersection2v(start1: Vec2, end1: Vec2, start2: Vec2, end2: Vec2, isSegment: boolean): Vec2 | undefined {
+export function getLinesIntersection2v(
+    start1: Vec2,
+    end1: Vec2,
+    start2: Vec2,
+    end2: Vec2,
+    isSegment: boolean
+): Vec2 | undefined {
     let dir1 = end1.sub(start1);
     let dir2 = end2.sub(start2);
 
@@ -426,10 +428,7 @@ export function getLinesIntersection2v(start1: Vec2, end1: Vec2, start2: Vec2, e
     let seg2_line1_start = a1 * start2.x + b1 * start2.y + d1;
     let seg2_line1_end = a1 * end2.x + b1 * end2.y + d1;
 
-    if (
-        isSegment &&
-        (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0)
-    ) {
+    if (isSegment && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0)) {
         return undefined;
     }
 
@@ -448,7 +447,13 @@ export function getLinesIntersection2v(start1: Vec2, end1: Vec2, start2: Vec2, e
  * @param {boolean} [isSegment=false] - Lines are segments.
  * @return {Vec2} - Intersection coordinate.
  */
-export function getLinesIntersectionLonLat(start1: LonLat, end1: LonLat, start2: LonLat, end2: LonLat, isSegment: boolean = false): LonLat | undefined {
+export function getLinesIntersectionLonLat(
+    start1: LonLat,
+    end1: LonLat,
+    start2: LonLat,
+    end2: LonLat,
+    isSegment: boolean = false
+): LonLat | undefined {
     let dir1 = new LonLat(end1.lon - start1.lon, end1.lat - start1.lat);
     let dir2 = new LonLat(end2.lon - start2.lon, end2.lat - start2.lat);
 
@@ -466,10 +471,7 @@ export function getLinesIntersectionLonLat(start1: LonLat, end1: LonLat, start2:
     let seg2_line1_start = a1 * start2.lon + b1 * start2.lat + d1;
     let seg2_line1_end = a1 * end2.lon + b1 * end2.lat + d1;
 
-    if (
-        isSegment &&
-        (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0)
-    ) {
+    if (isSegment && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0)) {
         return undefined;
     }
 
@@ -554,7 +556,7 @@ export const castType = {
         }
 
         if (typeof str === "boolean") {
-            if (str === true) {
+            if (str) {
                 return true;
             }
             return false;
@@ -578,7 +580,6 @@ export const castType = {
 };
 
 export function base64toBlob(base64Data: string, contentType: string = ""): Blob {
-
     let sliceSize = 1024;
     let byteCharacters = atob(base64Data);
     let bytesLength = byteCharacters.length;
@@ -586,7 +587,6 @@ export function base64toBlob(base64Data: string, contentType: string = ""): Blob
     let byteArrays = new Array(slicesCount);
 
     for (let sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
-
         let begin = sliceIndex * sliceSize;
         let end = Math.min(begin + sliceSize, bytesLength);
         let bytes = new Array(end - begin);
@@ -597,11 +597,10 @@ export function base64toBlob(base64Data: string, contentType: string = ""): Blob
 
         byteArrays[sliceIndex] = new Uint8Array(bytes);
     }
-    return new Blob(byteArrays, {type: contentType});
+    return new Blob(byteArrays, { type: contentType });
 }
 
 export function base64StringToBlog(string: string): Blob {
-
     let block = string.split(";");
     let contentType = block[0].split(":")[1];
     let data = block[1].split(",")[1];
@@ -656,12 +655,15 @@ export function throttle(func: Function, limit: number, skip: boolean = false) {
             if (skip) {
                 clearTimeout(lastFunc);
             }
-            lastFunc = setTimeout(() => {
-                if (Date.now() - lastRan >= limit) {
-                    func.apply(null, args);
-                    lastRan = Date.now();
-                }
-            }, limit - (Date.now() - lastRan));
+            lastFunc = setTimeout(
+                () => {
+                    if (Date.now() - lastRan >= limit) {
+                        func.apply(null, args);
+                        lastRan = Date.now();
+                    }
+                },
+                limit - (Date.now() - lastRan)
+            );
         }
     };
 }
@@ -695,8 +697,17 @@ export function throttle(func: Function, limit: number, skip: boolean = false) {
  * @param {Number} [y2=1.0] -
  */
 export function blerp(
-    x: number, y: number, fQ11: number, fQ21: number, fQ12: number, fQ22: number,
-    x1: number = 0.0, x2: number = 1.0, y1: number = 0.0, y2: number = 1.0): number {
+    x: number,
+    y: number,
+    fQ11: number,
+    fQ21: number,
+    fQ12: number,
+    fQ22: number,
+    x1: number = 0.0,
+    x2: number = 1.0,
+    y1: number = 0.0,
+    y2: number = 1.0
+): number {
     return (
         (fQ11 * (x2 - x) * (y2 - y) +
             fQ21 * (x - x1) * (y2 - y) +
@@ -707,12 +718,14 @@ export function blerp(
 }
 
 export function blerp2(x: number, y: number, fQ11: number, fQ21: number, fQ12: number, fQ22: number): number {
-    return (
-        fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y
-    );
+    return fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y;
 }
 
-export function extractElevationTiles(rgbaData: number[] | TypedArray, outCurrenElevations: number[] | TypedArray, outChildrenElevations: number[][][] | TypedArray[][]) {
+export function extractElevationTiles(
+    rgbaData: number[] | TypedArray,
+    outCurrenElevations: number[] | TypedArray,
+    outChildrenElevations: number[][][] | TypedArray[][]
+) {
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;
     let destSizeOne = destSize + 1;
     let sourceSize = Math.sqrt(rgbaData.length / 4);
@@ -721,11 +734,7 @@ export function extractElevationTiles(rgbaData: number[] | TypedArray, outCurren
     let rightHeigh = 0,
         bottomHeigh = 0;
 
-    for (
-        let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4;
-        k < sourceDataLength;
-        k++
-    ) {
+    for (let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4; k < sourceDataLength; k++) {
         let height = rgbaData[k * 4];
 
         let i = Math.floor(k / sourceSize),
@@ -779,12 +788,7 @@ export function extractElevationTiles(rgbaData: number[] | TypedArray, outCurren
             outChildrenElevations[tileY + 1][tileX][bottomindex] = middleHeight;
         }
 
-        if (
-            (j + 1) % destSize === 0 &&
-            j !== sourceSize - 1 &&
-            (i + 1) % destSize === 0 &&
-            i !== sourceSize - 1
-        ) {
+        if ((j + 1) % destSize === 0 && j !== sourceSize - 1 && (i + 1) % destSize === 0 && i !== sourceSize - 1) {
             //current tile
             let rightBottomHeight = rgbaData[(k + sourceSize + 1) * 4];
             let middleHeight = (height + rightHeigh + bottomHeigh + rightBottomHeight) * 0.25;
@@ -897,9 +901,16 @@ export function makeArray(arr: TypedArray | number[]): number[] {
  * @param {{ result: number[] }} [out]
  */
 
-export function spliceArray(arr: TypedArray | number[], starting: number, deleteCount: number, out?: {
-    result: number[]
-} | { result: TypedArray }): TypedArray | number[] {
+export function spliceArray(
+    arr: TypedArray | number[],
+    starting: number,
+    deleteCount: number,
+    out?:
+        | {
+              result: number[];
+          }
+        | { result: TypedArray }
+): TypedArray | number[] {
     if (ArrayBuffer.isView(arr)) {
         if (starting < 0) {
             deleteCount = Math.abs(starting);
@@ -927,9 +938,14 @@ export function spliceArray(arr: TypedArray | number[], starting: number, delete
  * @param {Number} deleteCount
  * @param {{ result: TypedArray }} [out]
  */
-export function spliceTypedArray<T extends TypedArray>(arr: T, starting: number, deleteCount: number, out?: {
-    result: T
-}): T {
+export function spliceTypedArray<T extends TypedArray>(
+    arr: T,
+    starting: number,
+    deleteCount: number,
+    out?: {
+        result: T;
+    }
+): T {
     if (arr.length === 0) {
         return arr;
     }
@@ -954,8 +970,13 @@ export function spliceTypedArray<T extends TypedArray>(arr: T, starting: number,
  * @return {Float64Array} Triangle coordinates array from the source array.
  * @TODO: optimization
  */
-export function getMatrixSubArray64(srcArr: TypedArray | number[], gridSize: number, i0: number, j0: number, size: number): Float64Array {
-
+export function getMatrixSubArray64(
+    srcArr: TypedArray | number[],
+    gridSize: number,
+    i0: number,
+    j0: number,
+    size: number
+): Float64Array {
     const size_1 = size + 1;
     const i0size = i0 + size_1;
     const j0size = j0 + size_1;
@@ -965,7 +986,6 @@ export function getMatrixSubArray64(srcArr: TypedArray | number[], gridSize: num
 
     for (let i = i0; i < i0size; i++) {
         for (let j = j0; j < j0size; j++) {
-
             let ind = 3 * (i * (gridSize + 1) + j);
 
             res[vInd++] = srcArr[ind];
@@ -987,8 +1007,13 @@ export function getMatrixSubArray64(srcArr: TypedArray | number[], gridSize: num
  * @param {number} size - Square matrix result size.
  * @return {Float32Array} Triangle coordinates array from the source array.
  */
-export function getMatrixSubArray32(sourceArr: TypedArray | number[], gridSize: number, i0: number, j0: number, size: number): Float32Array {
-
+export function getMatrixSubArray32(
+    sourceArr: TypedArray | number[],
+    gridSize: number,
+    i0: number,
+    j0: number,
+    size: number
+): Float32Array {
     const size_1 = size + 1;
     const i0size = i0 + size_1;
     const j0size = j0 + size_1;
@@ -998,7 +1023,6 @@ export function getMatrixSubArray32(sourceArr: TypedArray | number[], gridSize: 
 
     for (let i = i0; i < i0size; i++) {
         for (let j = j0; j < j0size; j++) {
-
             let ind = 3 * (i * (gridSize + 1) + j);
 
             res[vInd++] = sourceArr[ind];
@@ -1093,13 +1117,13 @@ export function cloneArray(items: any[]): any[] {
  * @returns {Promise<Image>} Returns promise.
  */
 export async function loadImage(url: string): Promise<HTMLImageElement> {
-    return new Promise<HTMLImageElement>(resolve => {
+    return new Promise<HTMLImageElement>((resolve) => {
         const image = new Image();
-        image.addEventListener('load', () => {
+        image.addEventListener("load", () => {
             resolve(image);
         });
         image.src = url;
-        image.crossOrigin = ""
+        image.crossOrigin = "";
         return image;
     });
 }
@@ -1129,12 +1153,12 @@ export function distanceFormatExt(v: number): [string, string] {
         if (d !== 0) {
             return [(v / 1000).toFixed(2), "km"];
         }
-        return [(v / 1000).toFixed(0), "km"]
+        return [(v / 1000).toFixed(0), "km"];
     } else if (v > 9) {
         return [Math.round(v).toString(), "m"];
     } else {
         if (v <= 0.01) {
-            return ["0", "m"]
+            return ["0", "m"];
         }
         return [v.toFixed(1), "m"];
     }
@@ -1147,7 +1171,6 @@ export function getUrlParam(paramName: string): number | undefined {
         return Number(param);
     }
 }
-
 
 /**
  *

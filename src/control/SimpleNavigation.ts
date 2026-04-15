@@ -1,13 +1,12 @@
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import {input} from "../input/input";
-import type {IMouseState} from "../renderer/RendererEvents";
-import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
+import { input } from "../input/input";
+import type { IMouseState } from "../renderer/RendererEvents";
+import { Vec2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
 import * as math from "../math";
-import {Ray} from "../math/Ray";
-import {Plane} from "../math/Plane";
-import {Camera} from "../camera/Camera";
+import { Ray } from "../math/Ray";
+import { Plane } from "../math/Plane";
 
 interface ISimpleNavigationParams extends IControlParams {
     speed?: number;
@@ -39,7 +38,8 @@ export class SimpleNavigation extends Control {
     constructor(options: ISimpleNavigationParams = {}) {
         super({
             name: "SimpleNavigation",
-            autoActivate: true, ...options
+            autoActivate: true,
+            ...options
         });
         this.speed = options.speed || 1.0; // m/s
         this.force = new Vec3();
@@ -56,8 +56,7 @@ export class SimpleNavigation extends Control {
         this._wheelPos = new Vec3();
     }
 
-    override oninit() {
-    }
+    override oninit() {}
 
     public override onactivate() {
         super.onactivate();
@@ -142,14 +141,14 @@ export class SimpleNavigation extends Control {
                 this._eye0.copy(this.renderer.activeCamera.eye);
             }
         }
-    }
+    };
 
     protected _onMouseLeftButtonUp = (e: IMouseState) => {
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
         if (e.x === e.prev_x && e.y === e.prev_y) {
             //this.force.set(0, 0, 0);
         }
-    }
+    };
 
     protected _onMouseLeftButtonHold = (e: IMouseState) => {
         if (this.renderer && this._grabbedPoint && e.moving) {
@@ -165,7 +164,9 @@ export class SimpleNavigation extends Control {
                 cam.eye = this._eye0.add(cam_sx.add(cam_sy));
             } else {
                 let camSlope = Math.abs(cam.getForward().dot(Vec3.UP));
-                let p0 = this._grabbedPoint, p1, p2;
+                let p0 = this._grabbedPoint,
+                    p1,
+                    p2;
                 if (camSlope > 0.7) {
                     p1 = Vec3.add(p0, Vec3.LEFT);
                     p2 = Vec3.add(p0, cam.getRight());
@@ -180,7 +181,7 @@ export class SimpleNavigation extends Control {
             }
             cam.update();
         }
-    }
+    };
 
     protected _onRHold = (e: IMouseState) => {
         if (this._lookPos && e.moving && this.renderer) {
@@ -196,7 +197,7 @@ export class SimpleNavigation extends Control {
             cam.rotateVertical(l * (e.y - e.prev_y), this._lookPos);
             cam.update();
         }
-    }
+    };
 
     protected _onRDown = (e: IMouseState) => {
         if (this.renderer) {
@@ -209,11 +210,11 @@ export class SimpleNavigation extends Control {
                 let pl = new Plane(Vec3.ZERO, Vec3.UP);
                 let ray = new Ray(cam.eye, e.direction);
                 this._lookPos = new Vec3();
-                ray.hitPlaneRes(pl, this._lookPos)
+                ray.hitPlaneRes(pl, this._lookPos);
                 this._up = Vec3.UP;
             }
         }
-    }
+    };
 
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.renderer) {
@@ -244,53 +245,53 @@ export class SimpleNavigation extends Control {
                 this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
             }
         }
-    }
+    };
 
     protected onCameraMoveForward = () => {
         this.force.addA(this.renderer!.activeCamera.getForward()).normalize();
-    }
+    };
 
     protected onCameraMoveBackward = () => {
         this.force.addA(this.renderer!.activeCamera.getBackward()).normalize();
-    }
+    };
 
     protected onCameraStrifeLeft = () => {
         this.force.addA(this.renderer!.activeCamera.getLeft()).normalize();
-    }
+    };
 
     protected onCameraStrifeRight = () => {
         this.force.addA(this.renderer!.activeCamera.getRight()).normalize();
-    }
+    };
 
     protected onCameraLookUp = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected onCameraLookDown = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected onCameraTurnLeft = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected onCameraTurnRight = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected onCameraRollLeft = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected onCameraRollRight = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected _handleMouseWheel() {
         let cam = this.renderer!.activeCamera;

@@ -1,9 +1,9 @@
-import {binarySearchFast} from "../utils/shared";
-import type {TypedArray} from "../utils/shared";
-import {Geoid} from "./Geoid";
-import {LonLat} from "../LonLat";
-import {Planet} from "../scene/Planet";
-import {Segment} from "../segment/Segment";
+import { binarySearchFast } from "../utils/shared";
+import type { TypedArray } from "../utils/shared";
+import { Geoid } from "./Geoid";
+import { LonLat } from "../LonLat";
+import { Planet } from "../scene/Planet";
+import { Segment } from "../segment/Segment";
 
 export interface IEmptyTerrainParams {
     equalizeVertices?: boolean;
@@ -13,10 +13,15 @@ export interface IEmptyTerrainParams {
     maxNativeZoom?: number;
     geoidSrc?: string;
     geoid?: Geoid;
-    gridSizeByZoom?: number[]
+    gridSizeByZoom?: number[];
 }
 
-export type UrlRewriteFunc = (tileX: number, tileY: number, tileZoom: number, tileGroup: number) => string | null | undefined;
+export type UrlRewriteFunc = (
+    tileX: number,
+    tileY: number,
+    tileZoom: number,
+    tileGroup: number
+) => string | null | undefined;
 
 /**
  * Class represents terrain provider without elevation data.
@@ -31,7 +36,6 @@ export type UrlRewriteFunc = (tileX: number, tileY: number, tileZoom: number, ti
  * @param {string} [options.geoidSrc] - URL to geoid model source.
  */
 class EmptyTerrain {
-
     static __counter__: number = 0;
 
     /**
@@ -103,7 +107,6 @@ class EmptyTerrain {
     public _isReady: boolean;
 
     constructor(options: IEmptyTerrainParams = {}) {
-
         this.__id = EmptyTerrain.__counter__++;
 
         this.equalizeVertices = options.equalizeVertices || false;
@@ -132,9 +135,11 @@ class EmptyTerrain {
 
         this._planet = null;
 
-        this._geoid = options.geoid || new Geoid({
-            src: options.geoidSrc || null
-        });
+        this._geoid =
+            options.geoid ||
+            new Geoid({
+                src: options.geoidSrc || null
+            });
 
         this._isReady = false;
 
@@ -164,8 +169,7 @@ class EmptyTerrain {
      * @public
      * @param {UrlRewriteFunc} ur - The callback that returns tile custom created url.
      */
-    public setUrlRewriteCallback(ur: UrlRewriteFunc) {
-    }
+    public setUrlRewriteCallback(ur: UrlRewriteFunc) {}
 
     public get isIdle(): boolean {
         return true;
@@ -221,20 +225,16 @@ class EmptyTerrain {
         return this._isReady;
     }
 
-    public abortLoading() {
-    }
+    public abortLoading() {}
 
-    public clearCache() {
-    }
+    public clearCache() {}
 
     public getHeightAsync(lonLat: LonLat, callback: (height: number) => void): boolean {
         callback(0);
         return true;
     }
 
-    public loadTerrain(segment: Segment, forceLoading: boolean = false) {
-
-    }
+    public loadTerrain(segment: Segment, forceLoading: boolean = false) {}
 }
 
-export {EmptyTerrain};
+export { EmptyTerrain };

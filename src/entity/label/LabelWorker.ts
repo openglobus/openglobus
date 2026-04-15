@@ -1,9 +1,9 @@
-import {BaseWorker} from "../../utils/BaseWorker";
-import {Label} from "./Label";
-import {LabelHandler} from "./LabelHandler";
+import { BaseWorker } from "../../utils/BaseWorker";
+import { Label } from "./Label";
+import { LabelHandler } from "./LabelHandler";
 
 //@ts-ignore
-import LabelWorkerImpl from './LabelWorker.worker.js?worker&inline';
+import LabelWorkerImpl from "./LabelWorker.worker.js?worker&inline";
 
 export const LOCK_UPDATE = -2;
 export const LOCK_FREE = -1;
@@ -14,7 +14,6 @@ interface LabelInfo {
 }
 
 class LabelWorker extends BaseWorker<LabelInfo> {
-
     constructor(numWorkers: number = 4) {
         super(numWorkers, LabelWorkerImpl);
     }
@@ -24,7 +23,7 @@ class LabelWorker extends BaseWorker<LabelInfo> {
 
         if (s.label._lockId === LOCK_UPDATE) {
             requestAnimationFrame(() => {
-                this.make({handler: s.handler, label: s.label});
+                this.make({ handler: s.handler, label: s.label });
             });
         } else {
             s.handler.workerCallback(e.data, s.label);
@@ -32,7 +31,6 @@ class LabelWorker extends BaseWorker<LabelInfo> {
 
         this._source.delete(e.data.id);
     }
-
 
     public override make(data: LabelInfo) {
         let label = data.label,
@@ -46,11 +44,12 @@ class LabelWorker extends BaseWorker<LabelInfo> {
                     this._source.set(this._sourceId, data);
                     label._lockId = this._sourceId;
                     this._sourceId++;
-                    w.postMessage({
-                        labelData: labelData
-                    }, [
-                        labelData.buffer,
-                    ]);
+                    w.postMessage(
+                        {
+                            labelData: labelData
+                        },
+                        [labelData.buffer]
+                    );
                 } else {
                     this._pendingQueue.push(data);
                 }
@@ -59,4 +58,4 @@ class LabelWorker extends BaseWorker<LabelInfo> {
     }
 }
 
-export {LabelWorker};
+export { LabelWorker };

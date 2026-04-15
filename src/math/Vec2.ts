@@ -1,4 +1,4 @@
-import {Vec3} from "./Vec3";
+import { Vec3 } from "./Vec3";
 
 export type NumberArray2 = [number, number];
 
@@ -9,7 +9,6 @@ export type NumberArray2 = [number, number];
  * @param {number} [y] - Second value.
  */
 export class Vec2 {
-
     /**
      * @public
      * @type {number}
@@ -493,11 +492,12 @@ export class Vec2 {
     }
 
     /**
-     * Returns two vectors linear interpolation.
+     * Returns linear interpolation between two vectors.
      * @public
+     * @param {Vec2} v1 - Start vector.
      * @param {Vec2} v2 - End vector.
-     * @param {number} l - Interpolate value.
-     * @returns {Vec2}
+     * @param {number} l - Interpolation factor in range [0, 1].
+     * @returns {Vec2} Interpolated vector.
      */
     public lerp(v1: Vec2, v2: Vec2, l: number): Vec2 {
         let res = this.clone();

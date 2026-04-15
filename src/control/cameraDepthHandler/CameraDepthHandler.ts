@@ -1,21 +1,19 @@
-import {CameraFrameComposer} from "../CameraFrameComposer";
-import {CameraFrameHandler} from "../CameraFrameHandler";
-import {Camera} from "../../camera/Camera";
-import {PlanetCamera} from "../../camera/PlanetCamera";
-import {Framebuffer} from "../../webgl";
-import {camera_depth} from "./camera_depth";
-import {Control, IControlParams} from "../Control";
-import {Vec2} from "../../math/Vec2";
-import {Vec4} from "../../math/Vec4";
-import {Vec3} from "../../math/Vec3";
-import {LonLat} from "../../LonLat";
-import {Vector} from "../../layer/Vector";
-import {Entity} from "../../entity/Entity";
-import {QuadTreeStrategy} from "../../quadTree";
-
+import { CameraFrameComposer } from "../CameraFrameComposer";
+import { CameraFrameHandler } from "../CameraFrameHandler";
+import { Camera } from "../../camera/Camera";
+import { PlanetCamera } from "../../camera/PlanetCamera";
+import { Framebuffer } from "../../webgl";
+import { camera_depth } from "./camera_depth";
+import { Control, IControlParams } from "../Control";
+import { Vec2 } from "../../math/Vec2";
+import { Vec4 } from "../../math/Vec4";
+import { Vec3 } from "../../math/Vec3";
+import { LonLat } from "../../LonLat";
+import { Vector } from "../../layer/Vector";
+import { Entity } from "../../entity/Entity";
+import { QuadTreeStrategy } from "../../quadTree";
 
 function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer: Framebuffer): number {
-
     let px = new Vec2(x, y);
 
     let nx = px.x / framebuffer.width;
@@ -58,7 +56,6 @@ export interface ICameraDepthHandlerParams extends IControlParams {
 }
 
 export class CameraDepthHandler extends Control {
-
     protected _frameHandler: CameraFrameHandler | null;
     protected _frameComposer: CameraFrameComposer;
 
@@ -95,7 +92,7 @@ export class CameraDepthHandler extends Control {
             depthOffset: POLYLINE_DEPTH_OFFSET,
             hideInLayerSwitcher: true,
             clampToGround: true,
-            visibility: this._showFootprint,
+            visibility: this._showFootprint
         });
 
         this._cameraFootprintPointCount = null;
@@ -111,7 +108,7 @@ export class CameraDepthHandler extends Control {
                 height: CAM_HEIGHT,
                 viewAngle: 45,
                 reverseDepth: false
-            })
+            });
         } else {
             return new Camera({
                 frustums: [[DEPTH_NEAR, DEPTH_FAR]],
@@ -144,11 +141,13 @@ export class CameraDepthHandler extends Control {
             width: CAM_WIDTH,
             height: CAM_HEIGHT,
             depthComponent: "DEPTH_COMPONENT32F",
-            targets: [{
-                internalFormat: "RGBA32F",
-                attachment: "COLOR_ATTACHMENT",
-                readAsync: true
-            }],
+            targets: [
+                {
+                    internalFormat: "RGBA32F",
+                    attachment: "COLOR_ATTACHMENT",
+                    readAsync: true
+                }
+            ],
             useDepth: true
         });
 
@@ -168,13 +167,12 @@ export class CameraDepthHandler extends Control {
         this._frameComposer.add(this._frameHandler);
 
         if (this.planet) {
-
             const quadTreeParams = {
                 planet: this.planet,
                 maxEqualZoomAltitude: this.planet.quadTreeStrategy.maxEqualZoomAltitude,
                 minEqualZoomAltitude: this.planet.quadTreeStrategy.minEqualZoomAltitude,
                 minEqualZoomCameraSlope: this.planet.quadTreeStrategy.minEqualZoomCameraSlope,
-                transitionOpacityEnabled: false,
+                transitionOpacityEnabled: false
             };
 
             this._quadTreeStrategy = new this.planet.quadTreeStrategyPrototype(quadTreeParams);
@@ -194,7 +192,6 @@ export class CameraDepthHandler extends Control {
     }
 
     protected _depthHandlerCallback = (frameHandler: CameraFrameHandler) => {
-
         if (!this.planet) return;
         if (!this._quadTreeStrategy) return;
 
@@ -253,12 +250,11 @@ export class CameraDepthHandler extends Control {
 
         this.renderer!.applyDepthForCamera(mainCam);
 
-        this._renderFootprint(frameHandler)
-    }
+        this._renderFootprint(frameHandler);
+    };
 
     protected _renderFootprint(frameHandler: CameraFrameHandler) {
-        if(this._showFootprint) {
-
+        if (this._showFootprint) {
             let framebuffer = frameHandler.frameBuffer;
 
             framebuffer.readPixelBuffersAsync();

@@ -1,33 +1,33 @@
-import {DEFAULT_PARAMS, type AtmosphereParameters, transmittance, scattering} from "../../shaders/atmos/atmos";
-import {Framebuffer} from "../../webgl/Framebuffer";
-import {Program} from '../../webgl/Program';
-import {Control, type IControlParams} from "../Control";
+import { DEFAULT_PARAMS, type AtmosphereParameters, transmittance, scattering } from "../../shaders/atmos/atmos";
+import { Framebuffer } from "../../webgl/Framebuffer";
+import { Program } from "../../webgl/Program";
+import { Control, type IControlParams } from "../Control";
 
-import atmosphere_vert from './atmosphere.vert.glsl';
-import atmosphere_frag from './atmosphere.frag.glsl';
+import atmosphere_vert from "./atmosphere.vert.glsl";
+import atmosphere_frag from "./atmosphere.frag.glsl";
 
-import {stringTemplate2} from "../../utils/shared";
+import { stringTemplate2 } from "../../utils/shared";
 
 export interface IAtmosphereParams extends IControlParams {
-    ATMOS_HEIGHT?: number,
-    RAYLEIGH_SCALE?: number,
-    MIE_SCALE?: number,
-    GROUND_ALBEDO?: number,
-    BOTTOM_RADIUS?: number,
-    EQUATORIAL_RADIUS?: number,
-    rayleighScatteringCoefficient_0?: number,
-    rayleighScatteringCoefficient_1?: number,
-    rayleighScatteringCoefficient_2?: number,
-    mieScatteringCoefficient?: number,
-    mieExtinctionCoefficient?: number,
-    ozoneAbsorptionCoefficient_0?: number,
-    ozoneAbsorptionCoefficient_1?: number,
-    ozoneAbsorptionCoefficient_2?: number,
-    SUN_ANGULAR_RADIUS?: number,
-    SUN_INTENSITY?: number,
-    ozoneDensityHeight?: number,
-    ozoneDensityWide?: number,
-    disableSunDisk?: boolean
+    ATMOS_HEIGHT?: number;
+    RAYLEIGH_SCALE?: number;
+    MIE_SCALE?: number;
+    GROUND_ALBEDO?: number;
+    BOTTOM_RADIUS?: number;
+    EQUATORIAL_RADIUS?: number;
+    rayleighScatteringCoefficient_0?: number;
+    rayleighScatteringCoefficient_1?: number;
+    rayleighScatteringCoefficient_2?: number;
+    mieScatteringCoefficient?: number;
+    mieExtinctionCoefficient?: number;
+    ozoneAbsorptionCoefficient_0?: number;
+    ozoneAbsorptionCoefficient_1?: number;
+    ozoneAbsorptionCoefficient_2?: number;
+    SUN_ANGULAR_RADIUS?: number;
+    SUN_INTENSITY?: number;
+    ozoneDensityHeight?: number;
+    ozoneDensityWide?: number;
+    disableSunDisk?: boolean;
 }
 
 export class Atmosphere extends Control {
@@ -51,14 +51,15 @@ export class Atmosphere extends Control {
         this.opacity = 1.0;
 
         const o = options as unknown as Partial<AtmosphereParameters>;
-        this._parameters = JSON.parse(JSON.stringify({
-            ...DEFAULT_PARAMS,
-            ...o
-        }));
+        this._parameters = JSON.parse(
+            JSON.stringify({
+                ...DEFAULT_PARAMS,
+                ...o
+            })
+        );
     }
 
     public setParameters(parameters: AtmosphereParameters) {
-
         this._isReady = false;
         this._parameters = JSON.parse(JSON.stringify(parameters));
 
@@ -83,7 +84,6 @@ export class Atmosphere extends Control {
 
     public override oninit() {
         if (this.renderer) {
-
             //
             // Draw atmosphere lookup textures
             //
@@ -143,7 +143,6 @@ export class Atmosphere extends Control {
     }
 
     protected _initLookupTextures() {
-
         let width = 1024,
             height = 1024;
 
@@ -151,10 +150,12 @@ export class Atmosphere extends Control {
             width: width,
             height: height,
             useDepth: false,
-            targets: [{
-                filter: "LINEAR",
-                internalFormat: "RGBA16F"
-            }]
+            targets: [
+                {
+                    filter: "LINEAR",
+                    internalFormat: "RGBA16F"
+                }
+            ]
         });
 
         this._transmittanceBuffer.init();
@@ -163,10 +164,12 @@ export class Atmosphere extends Control {
             width: width,
             height: height,
             useDepth: false,
-            targets: [{
-                filter: "LINEAR",
-                internalFormat: "RGBA16F"
-            }]
+            targets: [
+                {
+                    filter: "LINEAR",
+                    internalFormat: "RGBA16F"
+                }
+            ]
         });
 
         this._scatteringBuffer.init();
@@ -238,8 +241,7 @@ export class Atmosphere extends Control {
     }
 
     protected _drawBackground() {
-
-        if(!this._isReady)return;
+        if (!this._isReady) return;
 
         let h = this.renderer!.handler;
         let sh = h.programs.atmosphereBackground,

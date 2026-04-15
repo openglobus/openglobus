@@ -1,11 +1,11 @@
 import * as utils from "../../utils/shared";
-import {Vec3} from "../../math/Vec3";
-import {Vec4} from "../../math/Vec4";
-import type {NumberArray3} from "../../math/Vec3";
-import type {NumberArray4} from "../../math/Vec4";
-import {Entity} from "../Entity";
-import {RayHandler} from "./RayHandler";
-import type {HTMLImageElementExt} from "../../utils/ImagesCacheManager";
+import { Vec3 } from "../../math/Vec3";
+import { Vec4 } from "../../math/Vec4";
+import type { NumberArray3 } from "../../math/Vec3";
+import type { NumberArray4 } from "../../math/Vec4";
+import { Entity } from "../Entity";
+import { RayHandler } from "./RayHandler";
+import type { HTMLImageElementExt } from "../../utils/ImagesCacheManager";
 
 export interface IRayParams {
     thickness?: number;
@@ -31,7 +31,6 @@ export interface IRayParams {
  * @param {boolean} [options.visibility] - Visibility.
  */
 class Ray {
-
     static __counter__: number = 0;
     /**
      * Object uniq identifier.
@@ -95,14 +94,13 @@ class Ray {
      * @protected
      * @type {Object}
      */
-    protected _image: HTMLImageElement & { __nodeIndex?: number } | null;
+    protected _image: (HTMLImageElement & { __nodeIndex?: number }) | null;
 
     protected _texOffset: number;
 
     protected _strokeSize: number;
 
     constructor(options: IRayParams = {}) {
-
         this.__id = Ray.__counter__++;
 
         this._thickness = options.thickness || 2.0;
@@ -110,11 +108,7 @@ class Ray {
         this._startPosition = utils.createVec3(options.startPosition);
         this._startPositionHigh = new Vec3();
         this._startPositionLow = new Vec3();
-        Vec3.doubleToTwoFloats(
-            this._startPosition,
-            this._startPositionHigh,
-            this._startPositionLow
-        );
+        Vec3.doubleToTwoFloats(this._startPosition, this._startPositionHigh, this._startPositionLow);
 
         this._endPosition = utils.createVec3(options.endPosition);
         this._endPositionHigh = new Vec3();
@@ -152,17 +146,9 @@ class Ray {
         this._startPosition.x = x;
         this._startPosition.y = y;
         this._startPosition.z = z;
-        Vec3.doubleToTwoFloats(
-            this._startPosition,
-            this._startPositionHigh,
-            this._startPositionLow
-        );
+        Vec3.doubleToTwoFloats(this._startPosition, this._startPositionHigh, this._startPositionLow);
         this._handler &&
-        this._handler.setStartPositionArr(
-            this._handlerIndex,
-            this._startPositionHigh,
-            this._startPositionLow
-        );
+            this._handler.setStartPositionArr(this._handlerIndex, this._startPositionHigh, this._startPositionLow);
     }
 
     public getLength(): number {
@@ -186,10 +172,7 @@ class Ray {
                         if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
                             this._image = img;
                             let taData = ta.get(img!.__nodeIndex!)!;
-                            bh!.setTexCoordArr(
-                                this._handlerIndex,
-                                taData.texCoords
-                            );
+                            bh!.setTexCoordArr(this._handlerIndex, taData.texCoords);
                         } else {
                             ta.addImage(img);
                             ta.createTexture();
@@ -231,17 +214,9 @@ class Ray {
         this._startPosition.x = position.x;
         this._startPosition.y = position.y;
         this._startPosition.z = position.z;
-        Vec3.doubleToTwoFloats(
-            this._startPosition,
-            this._startPositionHigh,
-            this._startPositionLow
-        );
+        Vec3.doubleToTwoFloats(this._startPosition, this._startPositionHigh, this._startPositionLow);
         this._handler &&
-        this._handler.setStartPositionArr(
-            this._handlerIndex,
-            this._startPositionHigh,
-            this._startPositionLow
-        );
+            this._handler.setStartPositionArr(this._handlerIndex, this._startPositionHigh, this._startPositionLow);
     }
 
     /**
@@ -257,11 +232,7 @@ class Ray {
         this._endPosition.z = z;
         Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
         this._handler &&
-        this._handler.setEndPositionArr(
-            this._handlerIndex,
-            this._endPositionHigh,
-            this._endPositionLow
-        );
+            this._handler.setEndPositionArr(this._handlerIndex, this._endPositionHigh, this._endPositionLow);
     }
 
     /**
@@ -275,11 +246,7 @@ class Ray {
         this._endPosition.z = position.z;
         Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
         this._handler &&
-        this._handler.setEndPositionArr(
-            this._handlerIndex,
-            this._endPositionHigh,
-            this._endPositionLow
-        );
+            this._handler.setEndPositionArr(this._handlerIndex, this._endPositionHigh, this._endPositionLow);
     }
 
     public setThickness(thickness: number) {
@@ -302,8 +269,7 @@ class Ray {
             this._endColor.w = endColor.w;
         }
 
-        this._handler &&
-        this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
+        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
     }
 
     public setColorsHTML(startColor?: string, endColor?: string) {
@@ -392,4 +358,4 @@ class Ray {
     }
 }
 
-export {Ray};
+export { Ray };

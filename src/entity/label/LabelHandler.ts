@@ -1,32 +1,32 @@
 import * as shaders from "../../shaders/label/label";
-import {ALIGN, Label} from "./Label";
-import {BaseBillboardHandler} from "../billboard/BaseBillboardHandler";
-import {concatTypedArrays, spliceTypedArray} from "../../utils/shared";
-import {EntityCollection} from "../EntityCollection";
-import {LOCK_FREE} from "./LabelWorker";
-import type {Planet} from "../../scene/Planet";
-import type {WebGLBufferExt} from "../../webgl/Handler";
-import type {ProgramController} from "../../webgl/ProgramController";
-import {Vec2} from "../../math/Vec2";
-import {Vec3} from "../../math/Vec3";
-import {Vec4} from "../../math/Vec4";
-import {BaseBillboard} from "../billboard/BaseBillboard";
+import { ALIGN, Label } from "./Label";
+import { BaseBillboardHandler } from "../billboard/BaseBillboardHandler";
+import { concatTypedArrays, spliceTypedArray } from "../../utils/shared";
+import { EntityCollection } from "../EntityCollection";
+import { LOCK_FREE } from "./LabelWorker";
+import type { Planet } from "../../scene/Planet";
+import type { WebGLBufferExt } from "../../webgl/Handler";
+import type { ProgramController } from "../../webgl/ProgramController";
+import { Vec2 } from "../../math/Vec2";
+import { Vec3 } from "../../math/Vec3";
+import { Vec4 } from "../../math/Vec4";
+import { BaseBillboard } from "../billboard/BaseBillboard";
 
 type LabelWorkerCallbackData = {
-    vertexArr: Float32Array,
-    texCoordArr: Float32Array,
-    gliphParamArr: Float32Array,
-    positionHighArr: Float32Array,
-    positionLowArr: Float32Array,
-    sizeArr: Float32Array,
-    offsetArr: Float32Array,
-    rgbaArr: Float32Array,
-    rotationArr: Float32Array,
-    fontIndexArr: Float32Array,
-    outlineArr: Float32Array,
-    outlineColorArr: Float32Array,
-    pickingColorArr: Float32Array
-}
+    vertexArr: Float32Array;
+    texCoordArr: Float32Array;
+    gliphParamArr: Float32Array;
+    positionHighArr: Float32Array;
+    positionLowArr: Float32Array;
+    sizeArr: Float32Array;
+    offsetArr: Float32Array;
+    rgbaArr: Float32Array;
+    rotationArr: Float32Array;
+    fontIndexArr: Float32Array;
+    outlineArr: Float32Array;
+    outlineColorArr: Float32Array;
+    pickingColorArr: Float32Array;
+};
 
 const PICKINGCOLOR_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -66,7 +66,6 @@ class LabelPassHandler {
 }
 
 class LabelHandler extends BaseBillboardHandler {
-
     protected override _billboards: Label[];
 
     protected _gliphParamBuffer: WebGLBufferExt | null;
@@ -113,11 +112,7 @@ class LabelHandler extends BaseBillboardHandler {
 
     public override initProgram() {
         if (this._renderer && this._renderer.handler && this._renderer.handler.gl) {
-            this._renderer.addPrograms(
-                shaders.label_webgl2(),
-                shaders.label_woit(),
-                shaders.labelPicking()
-            );
+            this._renderer.addPrograms(shaders.label_webgl2(), shaders.label_woit(), shaders.labelPicking());
         }
     }
 
@@ -142,7 +137,7 @@ class LabelHandler extends BaseBillboardHandler {
     }
 
     protected _addLabelToArrays(label: Label) {
-        this._renderer && this._renderer.labelWorker.make({handler: this, label: label});
+        this._renderer && this._renderer.labelWorker.make({ handler: this, label: label });
     }
 
     public assignFontAtlas(label: Label) {
@@ -346,15 +341,29 @@ class LabelHandler extends BaseBillboardHandler {
         this._drawLabelPass(startBillboardIndex, endBillboardIndex, labelProgram, isOutlinePass, depthWrite);
     }
 
-    protected _displayOutlinePASS(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController) {
+    protected _displayOutlinePASS(
+        startBillboardIndex: number,
+        endBillboardIndex: number,
+        labelProgram: ProgramController
+    ) {
         this._drawLabelPass(startBillboardIndex, endBillboardIndex, labelProgram, true);
     }
 
-    protected _displayFillPASS(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController) {
+    protected _displayFillPASS(
+        startBillboardIndex: number,
+        endBillboardIndex: number,
+        labelProgram: ProgramController
+    ) {
         this._drawLabelPass(startBillboardIndex, endBillboardIndex, labelProgram, false);
     }
 
-    protected _drawLabelPass(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController, isOutlinePass: boolean, depthWrite: boolean = true) {
+    protected _drawLabelPass(
+        startBillboardIndex: number,
+        endBillboardIndex: number,
+        labelProgram: ProgramController,
+        isOutlinePass: boolean,
+        depthWrite: boolean = true
+    ) {
         let r = this._renderer!;
         let h = r.handler;
         labelProgram.activate();
@@ -453,7 +462,11 @@ class LabelHandler extends BaseBillboardHandler {
         gl.enable(gl.CULL_FACE);
     }
 
-    protected override _displayPASS(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ProgramController) {
+    protected override _displayPASS(
+        startBillboardIndex: number,
+        endBillboardIndex: number,
+        labelProgram: ProgramController
+    ) {
         this._displayOutlinePASS(startBillboardIndex, endBillboardIndex, labelProgram);
         this._displayFillPASS(startBillboardIndex, endBillboardIndex, labelProgram);
     }
@@ -526,7 +539,6 @@ class LabelHandler extends BaseBillboardHandler {
     }
 
     protected override _removeBillboard(label: Label) {
-
         let removeIndex = label._handlerIndex;
 
         if (removeIndex < this._opaqueCounterIndex) {
@@ -574,9 +586,15 @@ class LabelHandler extends BaseBillboardHandler {
         label._isReady = false;
     }
 
-    public setText(index: number, text: string, fontIndex: number, align: number, letterSpacing: number = 0, isRTL: boolean = false) {
-
-        text = text.normalize('NFKC');
+    public setText(
+        index: number,
+        text: string,
+        fontIndex: number,
+        align: number,
+        letterSpacing: number = 0,
+        isRTL: boolean = false
+    ) {
+        text = text.normalize("NFKC");
 
         let fa = this._renderer!.fontAtlas.atlasesArr[fontIndex];
 
@@ -1092,4 +1110,4 @@ class LabelHandler extends BaseBillboardHandler {
     }
 }
 
-export {LabelHandler};
+export { LabelHandler };

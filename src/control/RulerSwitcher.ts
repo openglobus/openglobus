@@ -1,7 +1,7 @@
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import {ToggleButton} from "../ui/ToggleButton";
-import {HeightRuler} from "./heightRuler/HeightRuler";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
+import { ToggleButton } from "../ui/ToggleButton";
+import { HeightRuler } from "./heightRuler/HeightRuler";
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="iso-8859-1"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
@@ -54,7 +54,6 @@ export class RulerSwitcher extends Control {
     }
 
     protected _createMenuBtn() {
-
         let btn = new ToggleButton({
             classList: ["og-map-button", "og-ruler_button"],
             icon: ICON_BUTTON_SVG

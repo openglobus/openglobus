@@ -1,17 +1,16 @@
-import * as mercator from '../mercator';
-import {NW, NE, SW, SE, RENDERING, VISIBLE_DISTANCE} from './quadTree';
-import {EntityCollection} from '../entity/EntityCollection';
-import {Extent} from '../Extent';
-import {LonLat} from '../LonLat';
-import type {Node} from "../quadTree/Node";
-import type {Planet} from "../scene/Planet";
-import {Sphere} from '../bv/Sphere';
-import type {Segment} from "../segment/Segment";
-import {Vec3} from '../math/Vec3';
-import type {Vector} from "../layer/Vector";
-import type {Entity} from "../entity/Entity";
-import type {EntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
-
+import * as mercator from "../mercator";
+import { NW, NE, SW, SE, RENDERING, VISIBLE_DISTANCE } from "./quadTree";
+import { EntityCollection } from "../entity/EntityCollection";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
+import type { Node } from "../quadTree/Node";
+import type { Planet } from "../scene/Planet";
+import { Sphere } from "../bv/Sphere";
+import type { Segment } from "../segment/Segment";
+import { Vec3 } from "../math/Vec3";
+import type { Vector } from "../layer/Vector";
+import type { Entity } from "../entity/Entity";
+import type { EntityCollectionsTreeStrategy } from "./EntityCollectionsTreeStrategy";
 
 export type NodesDict = Record<number, Node>;
 
@@ -19,9 +18,8 @@ export type NodesDict = Record<number, Node>;
  * @todo: remove planet parameter. It's already available in the layer.
  */
 class EntityCollectionNode {
-
     public layer: Vector;
-    public strategy: EntityCollectionsTreeStrategy
+    public strategy: EntityCollectionsTreeStrategy;
     public parentNode: EntityCollectionNode | null;
     public childNodes: EntityCollectionNode[];
     public partId: number;
@@ -105,7 +103,6 @@ class EntityCollectionNode {
     }
 
     public __setLonLat__(entity: Entity): LonLat {
-
         if (entity._lonLat.isZero() && !entity._cartesian.isZero()) {
             entity._lonLat = this.layer._planet!.ellipsoid.cartesianToLonLat(entity._cartesian);
         }
@@ -119,7 +116,6 @@ class EntityCollectionNode {
     }
 
     public buildTree(entities: Entity[], rightNow: boolean = false) {
-
         this.count += entities.length;
 
         if (entities.length > this.layer._nodeCapacity) {
@@ -155,7 +151,6 @@ class EntityCollectionNode {
             en_ne.length && cn[NE].buildTree(en_ne, rightNow);
             en_sw.length && cn[SW].buildTree(en_sw, rightNow);
             en_se.length && cn[SE].buildTree(en_se, rightNow);
-
         } else {
             this._addEntitiesToCollection(entities, rightNow);
         }
@@ -181,10 +176,24 @@ class EntityCollectionNode {
         const p = this.layer._planet!;
         const z = this.zoom + 1;
 
-        nd[NW] = new EntityCollectionNode(s, NW, this, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
+        nd[NW] = new EntityCollectionNode(
+            s,
+            NW,
+            this,
+            new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)),
+            p,
+            z
+        );
         nd[NE] = new EntityCollectionNode(s, NE, this, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
         nd[SW] = new EntityCollectionNode(s, SW, this, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
-        nd[SE] = new EntityCollectionNode(s, SE, this, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
+        nd[SE] = new EntityCollectionNode(
+            s,
+            SE,
+            this,
+            new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)),
+            p,
+            z
+        );
     }
 
     public collectRenderCollectionsPASS1(visibleNodes: NodesDict, outArr: EntityCollection[]) {
@@ -210,11 +219,11 @@ class EntityCollectionNode {
         const p = this.layer._planet!;
         const cam = p.camera;
 
-        const altVis = (cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
-            VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) || cam._lonLat.height > 10000;
+        const altVis =
+            cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
+                VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height) || cam._lonLat.height > 10000;
 
         if (this.count > 0 && altVis && cam.containsSphere(this.bsphere)) {
-
             const cn = this.childNodes;
 
             if (this.entityCollection) {
@@ -236,7 +245,6 @@ class EntityCollectionNode {
     }
 
     public traverseTree(callback: Function) {
-
         const cn = this.childNodes;
 
         if (this.entityCollection) {
@@ -250,7 +258,6 @@ class EntityCollectionNode {
     }
 
     public renderCollection(outArr: EntityCollection[], visibleNodes: NodesDict, renderingNodeId?: number) {
-
         const s = this.strategy;
 
         s._renderingNodes[this.nodeId] = true;
@@ -316,11 +323,8 @@ class EntityCollectionNode {
     }
 
     public isVisible(): boolean {
-        if (this.strategy._renderingNodes[this.nodeId]) {
-            return true;
-        }
-        return false;
+        return this.strategy._renderingNodes[this.nodeId];
     }
 }
 
-export {EntityCollectionNode}
+export { EntityCollectionNode };

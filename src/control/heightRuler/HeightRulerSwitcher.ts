@@ -11,5 +11,4 @@ export class HeightRulerSwitcher extends RulerSwitcher {
             ignoreTerrain: options.ignoreTerrain
         });
     }
-
 }

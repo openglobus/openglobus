@@ -3,9 +3,9 @@ export const MSL = 1;
 export const GND = 2;
 
 export const heightMode: Record<string, number> = {
-    "ell": ELL,
-    "msl": MSL,
-    "gnd": GND
+    ell: ELL,
+    msl: MSL,
+    gnd: GND
 };
 
 const KM_to_M = 1000.0;
@@ -32,7 +32,6 @@ const DEFAULT_NAN = "--";
 const _abbr: string[] = ["m", "km", "ft", "s", "h", "m/s", "km/h", "ft/s"];
 
 export const _tenth = [0, 2, 0, 0, 0, 0, 0, 0];
-
 
 let _convFn: ((v: number) => number)[][] = [];
 

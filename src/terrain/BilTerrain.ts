@@ -1,12 +1,12 @@
-import {getTileExtent} from "../mercator";
-import {GlobusTerrain} from "./GlobusTerrain";
-import type {IGlobusTerrainParams} from "./GlobusTerrain";
-import {Layer} from "../layer/Layer";
-import {WMS} from "../layer/WMS";
-import {isPowerOfTwo, nextHighestPowerOfTwo} from "../math";
-import {Segment} from "../segment/Segment";
-import {Extent} from "../Extent";
-import type {TypedArray} from "../utils/shared";
+import { getTileExtent } from "../mercator";
+import type { IGlobusTerrainParams } from "./GlobusTerrain";
+import { GlobusTerrain } from "./GlobusTerrain";
+import { Layer } from "../layer/Layer";
+import { WMS } from "../layer/WMS";
+import { isPowerOfTwo, nextHighestPowerOfTwo } from "../math";
+import { Segment } from "../segment/Segment";
+import { Extent } from "../Extent";
+import type { TypedArray } from "../utils/shared";
 
 interface IBilTerrainParams extends IGlobusTerrainParams {
     layers?: string;
@@ -14,7 +14,6 @@ interface IBilTerrainParams extends IGlobusTerrainParams {
 }
 
 class BilTerrain extends GlobusTerrain {
-
     protected _format: string;
 
     protected _layers: string;
@@ -42,9 +41,12 @@ class BilTerrain extends GlobusTerrain {
 
         this._imageSize = options.imageSize || 256;
 
-        this.plainGridSize = options.plainGridSize != undefined
-            ? options.plainGridSize
-            : isPowerOfTwo(this._imageSize) ? this._imageSize / 2 : nextHighestPowerOfTwo(this._imageSize) / 2;
+        this.plainGridSize =
+            options.plainGridSize != undefined
+                ? options.plainGridSize
+                : isPowerOfTwo(this._imageSize)
+                  ? this._imageSize / 2
+                  : nextHighestPowerOfTwo(this._imageSize) / 2;
 
         this._dataType = "arrayBuffer";
     }
@@ -67,8 +69,16 @@ class BilTerrain extends GlobusTerrain {
         );
     }
 
-    protected override _createHeights(data: number[], segment: Segment | null, tileGroup: number, tileX: number, tileY: number, tileZoom: number, extent: Extent, preventChildren: boolean): TypedArray | number[] {
-
+    protected override _createHeights(
+        data: number[],
+        segment: Segment | null,
+        tileGroup: number,
+        tileX: number,
+        tileY: number,
+        tileZoom: number,
+        extent: Extent,
+        preventChildren: boolean
+    ): TypedArray | number[] {
         let bil16 = new Int16Array(data);
 
         //
@@ -130,7 +140,12 @@ function extractElevationTilesNonPowerOfTwo(data: number[] | TypedArray, outCurr
     }
 }
 
-function extractElevationTiles(data: number[] | TypedArray, noDataValues: number[] | TypedArray, outCurrenElevations: number[] | TypedArray, outChildrenElevations: number[][][] | TypedArray[][]) {
+function extractElevationTiles(
+    data: number[] | TypedArray,
+    noDataValues: number[] | TypedArray,
+    outCurrenElevations: number[] | TypedArray,
+    outChildrenElevations: number[][][] | TypedArray[][]
+) {
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;
     let destSizeOne = destSize + 1;
     let sourceSize = Math.sqrt(data.length);
@@ -212,12 +227,7 @@ function extractElevationTiles(data: number[] | TypedArray, noDataValues: number
             outChildrenElevations[tileY + 1][tileX][bottomindex] = middleHeight;
         }
 
-        if (
-            (j + 1) % destSize === 0 &&
-            j !== sourceSize - 1 &&
-            (i + 1) % destSize === 0 &&
-            i !== sourceSize - 1
-        ) {
+        if ((j + 1) % destSize === 0 && j !== sourceSize - 1 && (i + 1) % destSize === 0 && i !== sourceSize - 1) {
             //current tile
             let rightBottomHeight = data[k + sourceSize + 1];
 
@@ -239,8 +249,7 @@ function extractElevationTiles(data: number[] | TypedArray, noDataValues: number
             outChildrenElevations[tileY][tileX + 1][rightindex] = middleHeight;
 
             //next bottom tile
-            let bottomindex = destSize;
-            outChildrenElevations[tileY + 1][tileX][bottomindex] = middleHeight;
+            outChildrenElevations[tileY + 1][tileX][destSize] = middleHeight;
 
             //next right bottom tile
             let rightBottomindex = 0;
@@ -249,4 +258,4 @@ function extractElevationTiles(data: number[] | TypedArray, noDataValues: number
     }
 }
 
-export {BilTerrain};
+export { BilTerrain };

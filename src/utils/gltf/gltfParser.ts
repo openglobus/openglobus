@@ -1,10 +1,10 @@
-import {DecoderModule} from "draco3d";
-import {Entity} from "../../entity";
-import {Quat} from "../../math/Quat";
-import {Vec3} from "../../math/Vec3";
-import {Mat4, NumberArray16} from "../../math/Mat4";
-import {Object3d} from "../../Object3d";
-import {Glb} from "./glbParser";
+import { DecoderModule } from "draco3d";
+import { Entity } from "../../entity";
+import { Quat } from "../../math/Quat";
+import { Vec3 } from "../../math/Vec3";
+import { Mat4, NumberArray16 } from "../../math/Mat4";
+import { Object3d } from "../../Object3d";
+import { Glb } from "./glbParser";
 import {
     Accessor,
     AccessorComponentType,
@@ -38,10 +38,7 @@ export class Gltf {
     public meshes: Mesh[] = [];
 
     constructor(private gltf: GltfData) {
-        if (
-            gltf.gltf.extensionsRequired?.includes("KHR_draco_mesh_compression") &&
-            Gltf._dracoDecoderModule === null
-        ) {
+        if (gltf.gltf.extensionsRequired?.includes("KHR_draco_mesh_compression") && Gltf._dracoDecoderModule === null) {
             throw new Error("Unable to import GLTF. Draco decoder module is not connected");
         }
         this._initImages();
@@ -83,7 +80,7 @@ export class Gltf {
         const entity = new Entity({
             name: node.name,
             cartesian: new Vec3(0, 0, 0),
-            relativePosition: parent !== undefined,
+            relativePosition: parent !== undefined
         });
         let meshEntity: Entity | null = null;
         if (node.mesh !== undefined) {
@@ -102,7 +99,9 @@ export class Gltf {
             entity.setCartesian(node.translation[0], node.translation[1], node.translation[2]);
         }
         if (node.rotation !== undefined && node.matrix === undefined) {
-            entity.setDirectQuaternionRotation(new Quat(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]));
+            entity.setDirectQuaternionRotation(
+                new Quat(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3])
+            );
         }
         if (node.scale !== undefined && node.matrix === undefined) {
             entity.setScale3v(new Vec3(node.scale[0], node.scale[1], node.scale[2]));
@@ -161,17 +160,9 @@ export class Gltf {
         if (bufferView !== undefined && mimeType) {
             const view = this.gltf.gltf.bufferViews[bufferView];
             const url = URL.createObjectURL(
-                new Blob(
-                    [
-                        this.gltf.bin[view.buffer].slice(
-                            view.byteOffset,
-                            view.byteOffset + view.byteLength
-                        )
-                    ],
-                    {
-                        type: mimeType
-                    }
-                )
+                new Blob([this.gltf.bin[view.buffer].slice(view.byteOffset, view.byteOffset + view.byteLength)], {
+                    type: mimeType
+                })
             );
             const img = new Image();
             img.src = url;
@@ -196,10 +187,7 @@ export class Gltf {
                     mat.baseColorFactor = material.pbrMetallicRoughness.baseColorFactor;
                 }
                 if (material.pbrMetallicRoughness.baseColorTexture) {
-                    const source =
-                        this.gltf.gltf.textures[
-                            material.pbrMetallicRoughness.baseColorTexture.index
-                            ].source;
+                    const source = this.gltf.gltf.textures[material.pbrMetallicRoughness.baseColorTexture.index].source;
                     if (source !== undefined) {
                         mat.baseColorTexture = {
                             image: this._images[source],
@@ -209,14 +197,11 @@ export class Gltf {
                 }
                 if (material.pbrMetallicRoughness.metallicRoughnessTexture) {
                     const source =
-                        this.gltf.gltf.textures[
-                            material.pbrMetallicRoughness.metallicRoughnessTexture.index
-                            ].source;
+                        this.gltf.gltf.textures[material.pbrMetallicRoughness.metallicRoughnessTexture.index].source;
                     if (source !== undefined) {
                         mat.metallicRoughnessTexture = {
                             image: this._images[source],
-                            texCoord:
-                            material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord
+                            texCoord: material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord
                         };
                     }
                 }
@@ -263,19 +248,13 @@ export class Gltf {
                 primitives: []
             };
             for (let i = 0; i < meshData.primitives.length; i++) {
-                mesh.primitives.push(
-                    this._buildPrimitive(meshData, meshData.primitives[i], `${m}-${i}`)
-                );
+                mesh.primitives.push(this._buildPrimitive(meshData, meshData.primitives[i], `${m}-${i}`));
             }
             this.meshes.push(mesh);
         }
     }
 
-    private _buildPrimitive(
-        meshData: GltfMesh,
-        primitiveData: GltfPrimitive,
-        index: string
-    ): Primitive {
+    private _buildPrimitive(meshData: GltfMesh, primitiveData: GltfPrimitive, index: string): Primitive {
         let primitive: Primitive | null = null;
         const material = this._materials[primitiveData.material ?? 0];
         const materialName = material?.name ?? "material";
@@ -290,12 +269,7 @@ export class Gltf {
             const decoder = new draco.Decoder();
             const decoderBuffer = new draco.DecoderBuffer();
             decoderBuffer.Init(
-                new Int8Array(
-                    this.gltf.bin[bufferView.buffer].slice(
-                        bvOffset,
-                        bvOffset + bufferView.byteLength
-                    )
-                ),
+                new Int8Array(this.gltf.bin[bufferView.buffer].slice(bvOffset, bvOffset + bufferView.byteLength)),
                 bufferView.byteLength
             );
 
@@ -357,26 +331,20 @@ export class Gltf {
             };
         } else {
             const texcoordAccessorKey = texcoord ? primitiveData.attributes[texcoord] : undefined;
-            const texcoordAccessor = texcoordAccessorKey
-                ? this.gltf.gltf.accessors[texcoordAccessorKey]
-                : undefined;
+            const texcoordAccessor = texcoordAccessorKey ? this.gltf.gltf.accessors[texcoordAccessorKey] : undefined;
             primitive = {
                 name: `${meshData.name}/${materialName}/${index}`,
-                indices: primitiveData.indices !== undefined
-                    ? Gltf._access(this.gltf.gltf.accessors[primitiveData.indices], this.gltf)
-                    : undefined,
+                indices:
+                    primitiveData.indices !== undefined
+                        ? Gltf._access(this.gltf.gltf.accessors[primitiveData.indices], this.gltf)
+                        : undefined,
                 mode: primitiveData.mode ? primitiveData.mode : PrimitiveMode.triangles,
                 material: material || undefined,
-                vertices: Gltf._access(
-                    this.gltf.gltf.accessors[primitiveData.attributes.POSITION],
-                    this.gltf
-                ),
-                normals: primitiveData.attributes.NORMAL !== undefined
-                    ? Gltf._access(
-                        this.gltf.gltf.accessors[primitiveData.attributes.NORMAL],
-                        this.gltf
-                    )
-                    : undefined,
+                vertices: Gltf._access(this.gltf.gltf.accessors[primitiveData.attributes.POSITION], this.gltf),
+                normals:
+                    primitiveData.attributes.NORMAL !== undefined
+                        ? Gltf._access(this.gltf.gltf.accessors[primitiveData.attributes.NORMAL], this.gltf)
+                        : undefined,
                 texCoords: texcoordAccessor ? Gltf._access(texcoordAccessor, this.gltf) : undefined
             };
         }
@@ -391,15 +359,9 @@ export class Gltf {
         return new Object3d({
             name: primitive.name,
             vertices: Array.from(primitive.vertices as Float32Array),
-            normals: primitive.normals
-                ? Array.from(primitive.normals as Float32Array)
-                : undefined,
-            texCoords: primitive.texCoords
-                ? Array.from(primitive.texCoords as Float32Array)
-                : undefined,
-            indices: primitive.indices ?
-                Array.from(primitive.indices as Uint8Array)
-            : undefined,
+            normals: primitive.normals ? Array.from(primitive.normals as Float32Array) : undefined,
+            texCoords: primitive.texCoords ? Array.from(primitive.texCoords as Float32Array) : undefined,
+            indices: primitive.indices ? Array.from(primitive.indices as Uint8Array) : undefined,
             normalTextureImage: primitive.material?.normalTexture?.image.element,
             normalTextureSrc: primitive.material?.normalTexture?.image.src,
             colorTextureImage: primitive.material?.baseColorTexture?.image.element,

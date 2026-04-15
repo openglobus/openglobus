@@ -1,16 +1,16 @@
 import * as shaders from "../../shaders/billboard/billboard";
-import {spliceTypedArray} from "../../utils/shared";
-import type {TypedArray} from "../../utils/shared";
-import {EntityCollection} from "../EntityCollection";
-import type {Planet} from "../../scene/Planet";
-import {Renderer} from "../../renderer/Renderer";
-import {LOCK_FREE} from "../label/LabelWorker";
-import {Vec2} from "../../math/Vec2";
-import {Vec3} from "../../math/Vec3";
-import {Vec4} from "../../math/Vec4";
-import type {WebGLBufferExt} from "../../webgl/Handler";
-import type {ProgramController} from "../../webgl/ProgramController";
-import {BaseBillboard} from "./BaseBillboard";
+import { spliceTypedArray } from "../../utils/shared";
+import type { TypedArray } from "../../utils/shared";
+import { EntityCollection } from "../EntityCollection";
+import type { Planet } from "../../scene/Planet";
+import { Renderer } from "../../renderer/Renderer";
+import { LOCK_FREE } from "../label/LabelWorker";
+import { Vec2 } from "../../math/Vec2";
+import { Vec3 } from "../../math/Vec3";
+import { Vec4 } from "../../math/Vec4";
+import type { WebGLBufferExt } from "../../webgl/Handler";
+import type { ProgramController } from "../../webgl/ProgramController";
+import { BaseBillboard } from "./BaseBillboard";
 
 const PICKINGCOLOR_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -25,7 +25,6 @@ const VERTEX_BUFFER = 7;
  * @class BaseBillboardHandler
  */
 class BaseBillboardHandler {
-
     static __counter__: number = 0;
 
     public __id: number;
@@ -78,9 +77,7 @@ class BaseBillboardHandler {
         }
 
         if (!disableDepthTest) {
-            gl.depthFunc(
-                this._renderer!.activeCamera.reverseDepthActive ? gl.GEQUAL : gl.LEQUAL
-            );
+            gl.depthFunc(this._renderer!.activeCamera.reverseDepthActive ? gl.GEQUAL : gl.LEQUAL);
         }
 
         gl.depthMask(!disableDepthTest && depthWrite);
@@ -94,7 +91,6 @@ class BaseBillboardHandler {
     }
 
     constructor(entityCollection: EntityCollection) {
-
         this.__id = BaseBillboardHandler.__counter__++;
 
         this.pickingEnabled = true;
@@ -140,7 +136,7 @@ class BaseBillboardHandler {
     }
 
     public isEqual(handler: BaseBillboardHandler) {
-        return handler && (handler.__id === this.__id);
+        return handler && handler.__id === this.__id;
     }
 
     static concArr(dest: number[], curr: number[]) {
@@ -337,7 +333,12 @@ class BaseBillboardHandler {
         }
     }
 
-    protected _displayPASS(startBillboardIndex: number, endBillboardIndex: number, billboardProgram: ProgramController, depthWrite?: boolean) {
+    protected _displayPASS(
+        startBillboardIndex: number,
+        endBillboardIndex: number,
+        billboardProgram: ProgramController,
+        depthWrite?: boolean
+    ) {
         let r = this._renderer!;
         let h = r.handler;
         billboardProgram.activate();
@@ -349,7 +350,7 @@ class BaseBillboardHandler {
             ec = this._entityCollection;
 
         gl.disable(gl.CULL_FACE);
-        const writeDepth = depthWrite ?? (billboardProgram !== this._getTransparentProgram());
+        const writeDepth = depthWrite ?? billboardProgram !== this._getTransparentProgram();
         this._configureDepthPass(writeDepth);
 
         if (billboardProgram === this._getTransparentProgram()) {
@@ -517,7 +518,6 @@ class BaseBillboardHandler {
     }
 
     protected _removeBillboard(billboard: BaseBillboard) {
-
         let removeIndex = billboard._handlerIndex;
 
         if (removeIndex < this._opaqueCounterIndex) {
@@ -915,8 +915,7 @@ class BaseBillboardHandler {
         this._pickingColorBuffer = h.createArrayBuffer(this._pickingColorArr, 3, this._pickingColorArr.length / 3);
     }
 
-    public refreshTexCoordsArr() {
-    }
+    public refreshTexCoordsArr() {}
 }
 
-export {BaseBillboardHandler};
+export { BaseBillboardHandler };

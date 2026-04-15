@@ -1,9 +1,9 @@
-import {BaseFramebuffer} from "./BaseFramebuffer";
-import type {IBaseFramebufferParams} from "./BaseFramebuffer";
-import {ImageCanvas} from "../ImageCanvas";
-import {Handler} from "./Handler";
-import type {TypedArray} from "../utils/shared";
-import type {NumberArray4} from "../math/Vec4";
+import { BaseFramebuffer } from "./BaseFramebuffer";
+import type { IBaseFramebufferParams } from "./BaseFramebuffer";
+import { ImageCanvas } from "../ImageCanvas";
+import { Handler } from "./Handler";
+import type { TypedArray } from "../utils/shared";
+import type { NumberArray4 } from "../math/Vec4";
 
 export interface ITargetParams {
     internalFormat?: string;
@@ -28,7 +28,7 @@ interface ITarget {
     attachment: string;
     filter: string;
     pixelBufferIndex: number;
-    TypeArrayConstructor: TypedArrayConstructor
+    TypeArrayConstructor: TypedArrayConstructor;
 }
 
 interface IPixelBuffer {
@@ -39,9 +39,9 @@ interface IPixelBuffer {
 }
 
 const TypeArrayConstructor: Record<string, TypedArrayConstructor> = {
-    "UNSIGNED_BYTE": Uint8Array,
-    "FLOAT": Float32Array
-}
+    UNSIGNED_BYTE: Uint8Array,
+    FLOAT: Float32Array
+};
 
 export function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: number): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -67,7 +67,6 @@ export function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, fla
  * @param {IFrameBufferParams} [options] - Framebuffer options:
  */
 export class Framebuffer extends BaseFramebuffer {
-
     protected _renderbufferTarget: string;
 
     protected _targets: ITarget[];
@@ -84,14 +83,14 @@ export class Framebuffer extends BaseFramebuffer {
     protected _skipFrame: boolean;
 
     constructor(handler: Handler, options: IFrameBufferParams = {}) {
-
         super(handler, options);
 
         this._targets = Framebuffer.createTargets(options.targets);
 
         this._size = this._targets.length;
 
-        this._renderbufferTarget = options.renderbufferTarget != undefined ? options.renderbufferTarget : "DEPTH_ATTACHMENT";
+        this._renderbufferTarget =
+            options.renderbufferTarget != undefined ? options.renderbufferTarget : "DEPTH_ATTACHMENT";
 
         this.textures = options.textures || new Array(this._size);
 
@@ -100,8 +99,13 @@ export class Framebuffer extends BaseFramebuffer {
         this._skipFrame = false;
     }
 
-    static getTargetReadParams(internalFormat: string): { pixelFormat: string; pixelType: string; TypeArrayConstructor: TypedArrayConstructor } {
-        const pixelType = (internalFormat.indexOf("16F") !== -1 || internalFormat.indexOf("32F") !== -1) ? "FLOAT" : "UNSIGNED_BYTE";
+    static getTargetReadParams(internalFormat: string): {
+        pixelFormat: string;
+        pixelType: string;
+        TypeArrayConstructor: TypedArrayConstructor;
+    } {
+        const pixelType =
+            internalFormat.indexOf("16F") !== -1 || internalFormat.indexOf("32F") !== -1 ? "FLOAT" : "UNSIGNED_BYTE";
         return {
             pixelFormat: "RGBA",
             pixelType,
@@ -125,13 +129,15 @@ export class Framebuffer extends BaseFramebuffer {
                     ...rp,
                     attachment,
                     filter: ti.filter || "NEAREST",
-                    pixelBufferIndex: ti.readAsync ? pbInd++ : -1,
-                }
+                    pixelBufferIndex: ti.readAsync ? pbInd++ : -1
+                };
             });
         }
 
         const rp = Framebuffer.getTargetReadParams("RGBA8");
-        return [{internalFormat: "RGBA8", ...rp, attachment: "COLOR_ATTACHMENT0", filter: "NEAREST", pixelBufferIndex: -1}];
+        return [
+            { internalFormat: "RGBA8", ...rp, attachment: "COLOR_ATTACHMENT0", filter: "NEAREST", pixelBufferIndex: -1 }
+        ];
     }
 
     public override destroy() {
@@ -150,7 +156,7 @@ export class Framebuffer extends BaseFramebuffer {
         }
         this.pixelBuffers = [];
 
-        if(this._fbo){
+        if (this._fbo) {
             gl.deleteFramebuffer(this._fbo);
         }
         if (this._depthRenderbuffer) {
@@ -180,7 +186,9 @@ export class Framebuffer extends BaseFramebuffer {
         let attachmentArr = [];
         for (let i = 0; i < this._targets.length; i++) {
             let tr = this._targets[i];
-            let ti = this.textures[i] || this.handler.createEmptyTexture2DExt(this._width, this._height, tr.filter, tr.internalFormat);
+            let ti =
+                this.textures[i] ||
+                this.handler.createEmptyTexture2DExt(this._width, this._height, tr.filter, tr.internalFormat);
             let att_i = (gl as any)[tr.attachment];
 
             if (ti) {
@@ -208,7 +216,12 @@ export class Framebuffer extends BaseFramebuffer {
                 gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
                 gl.renderbufferStorage(gl.RENDERBUFFER, (gl as any)[this._depthComponent], this._width, this._height);
                 gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, (gl as any)[this._renderbufferTarget], gl.RENDERBUFFER, this._depthRenderbuffer);
+                gl.framebufferRenderbuffer(
+                    gl.FRAMEBUFFER,
+                    (gl as any)[this._renderbufferTarget],
+                    gl.RENDERBUFFER,
+                    this._depthRenderbuffer
+                );
             }
         }
 
@@ -243,7 +256,6 @@ export class Framebuffer extends BaseFramebuffer {
      * }],
      **/
     public readPixelBuffersAsync = (callback?: (buf: this) => void) => {
-
         const gl = this.handler.gl!;
 
         if (this._skipFrame) return;
@@ -284,7 +296,7 @@ export class Framebuffer extends BaseFramebuffer {
             gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
             callback && callback(this);
         });
-    }
+    };
 
     public getPixelBufferData(targetIndex: number = 0): TypedArray | null {
         let pbInd = this._targets[targetIndex].pixelBufferIndex;
@@ -348,7 +360,15 @@ export class Framebuffer extends BaseFramebuffer {
         let gl = this.handler.gl!;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
-        gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, (gl as any)[this._targets[index].pixelType], res);
+        gl.readPixels(
+            nx * this._width,
+            ny * this._height,
+            w,
+            h,
+            gl.RGBA,
+            (gl as any)[this._targets[index].pixelType],
+            res
+        );
         gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
     }
 
@@ -362,7 +382,15 @@ export class Framebuffer extends BaseFramebuffer {
         let gl = this.handler.gl!;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
-        gl.readPixels(0, 0, this._width, this._height, gl.RGBA, (gl as any)[this._targets[attachmentIndex].pixelType], res);
+        gl.readPixels(
+            0,
+            0,
+            this._width,
+            this._height,
+            gl.RGBA,
+            (gl as any)[this._targets[attachmentIndex].pixelType],
+            res
+        );
         gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
     }
 

@@ -1,8 +1,8 @@
 import * as math from "../math";
-import {Vec3} from "./Vec3";
-import {Mat4} from "./Mat4";
-import {Mat3} from "./Mat3";
-import {PI_TWO} from "../math";
+import { Vec3 } from "./Vec3";
+import { Mat4 } from "./Mat4";
+import { Mat3 } from "./Mat3";
+import { PI_TWO } from "../math";
 
 /**
  * A set of 4-dimensional coordinates used to represent rotation in 3-dimensional space.
@@ -315,7 +315,8 @@ export class Quat {
      * Computes the componentwise sum of two Quats.
      * @public
      * @param {Quat} q - Quat to add.
-     * @returns {Quat} -
+     * @param {Quat} res - Output quaternion.
+     * @returns {Quat} Result quaternion.
      */
     public addRes(q: Quat, res: Quat): Quat {
         return res.set(this.x + q.x, this.y + q.y, this.z + q.z, this.w + q.w);
@@ -440,7 +441,6 @@ export class Quat {
      * @returns {Object} Returns object with latitude, longitude and alpha.
      */
     public getSphericalCoords(): any {
-
         let cos_a = this.w;
         let sin_a = Math.sqrt(1.0 - cos_a * cos_a);
 
@@ -453,7 +453,8 @@ export class Quat {
         let ty = this.y / sin_a;
         let tz = this.z / sin_a;
 
-        let lon, lat = -Math.asin(ty);
+        let lon,
+            lat = -Math.asin(ty);
 
         if (tx * tx + tz * tz < 0.0005) {
             lon = 0;
@@ -498,7 +499,7 @@ export class Quat {
      * @public
      * @returns {QuatAxisAngle} Axis-angle representation.
      */
-    public getAxisAngle(): { axis: Vec3, angle: number } {
+    public getAxisAngle(): { axis: Vec3; angle: number } {
         let x = this.x,
             y = this.y,
             z = this.z,
@@ -526,9 +527,7 @@ export class Quat {
 
     public getPitch(): number {
         let sinPitch = -2 * (this.y * this.z - this.w * this.x);
-        return Math.abs(sinPitch) >= 1
-            ? Math.sign(sinPitch) * PI_TWO
-            : Math.asin(sinPitch);
+        return Math.abs(sinPitch) >= 1 ? Math.sign(sinPitch) * PI_TWO : Math.asin(sinPitch);
     }
 
     public getYaw(): number {
@@ -681,10 +680,22 @@ export class Quat {
         let zz = this.z * zs;
 
         return out.set([
-            1 - (yy + zz), xy - wz, xz + wy, 0,
-            xy + wz, 1 - (xx + zz), yz - wx, 0,
-            xz - wy, yz + wx, 1 - (xx + yy), 0,
-            0, 0, 0, 1
+            1 - (yy + zz),
+            xy - wz,
+            xz + wy,
+            0,
+            xy + wz,
+            1 - (xx + zz),
+            yz - wx,
+            0,
+            xz - wy,
+            yz + wx,
+            1 - (xx + yy),
+            0,
+            0,
+            0,
+            0,
+            1
         ]);
     }
 
@@ -824,7 +835,8 @@ export class Quat {
      * Computes the product of two Quats.
      * @public
      * @param {Quat} q - Quat to multiply.
-     * @returns {Quat} -
+     * @param {Quat} res - Output quaternion.
+     * @returns {Quat} Result quaternion.
      */
     public mulRes(q: Quat, res: Quat): Quat {
         let d = this.x,
@@ -931,7 +943,6 @@ export class Quat {
      * @returns {Quat} -
      */
     public normalize(): Quat {
-
         let c = this.x,
             d = this.y,
             e = this.z,
@@ -963,10 +974,7 @@ export class Quat {
      */
     public isEqual(q: Quat): boolean {
         let matching = this.dot(q);
-        if (Math.abs(matching - 1.0) < 0.001) {
-            return true;
-        }
-        return false;
+        return Math.abs(matching - 1.0) < 0.001;
     }
 
     /**
@@ -977,7 +985,6 @@ export class Quat {
      * @returns {Quat} -
      */
     public slerp(b: Quat, t: number): Quat {
-
         let ax = this.x,
             ay = this.y,
             az = this.z,

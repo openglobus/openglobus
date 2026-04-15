@@ -1,19 +1,19 @@
-import {type EventsHandler, createEvents} from "../Events";
-import {Frustum} from "./Frustum";
-import {Mat3} from "../math/Mat3";
-import type {NumberArray9} from "../math/Mat3";
-import {Mat4} from "../math/Mat4";
-import type {NumberArray16} from "../math/Mat4";
-import {Renderer} from "../renderer/Renderer";
-import {Vec2} from "../math/Vec2";
-import type {NumberArray2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
-import {Sphere} from "../bv/Sphere";
-import {Quat} from "../math/Quat";
-import {DEGREES_DOUBLE, MAX_FLOAT, RADIANS, RADIANS_HALF} from "../math";
-import {Easing, EasingFunction} from "../utils/easing";
-import {LonLat} from "../LonLat";
+import { type EventsHandler, createEvents } from "../Events";
+import { Frustum } from "./Frustum";
+import { Mat3 } from "../math/Mat3";
+import type { NumberArray9 } from "../math/Mat3";
+import { Mat4 } from "../math/Mat4";
+import type { NumberArray16 } from "../math/Mat4";
+import { Renderer } from "../renderer/Renderer";
+import { Vec2 } from "../math/Vec2";
+import type { NumberArray2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
+import { Vec4 } from "../math/Vec4";
+import { Sphere } from "../bv/Sphere";
+import { Quat } from "../math/Quat";
+import { DEGREES_DOUBLE, MAX_FLOAT, RADIANS, RADIANS_HALF } from "../math";
+import { Easing, EasingFunction } from "../utils/easing";
+import { LonLat } from "../LonLat";
 
 export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flystop", "frustumschanged"];
 
@@ -436,11 +436,9 @@ class Camera {
         params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
         const ease = params.ease || DEFAULT_EASING;
 
-        this._completeCallback = params.completeCallback || (() => {
-        });
+        this._completeCallback = params.completeCallback || (() => {});
 
-        this._frameCallback = params.frameCallback || (() => {
-        });
+        this._frameCallback = params.frameCallback || (() => {});
 
         if (params.startCallback) {
             params.startCallback.call(this);
@@ -484,7 +482,7 @@ class Camera {
             },
             duration: params.duration,
             startedAt: Date.now()
-        }
+        };
         this._flying = true;
         this.events.dispatch(this.events.flystart, this);
     }
@@ -509,10 +507,7 @@ class Camera {
      */
     public checkFly() {
         if (this._flying && this._flight !== null) {
-            let progress = Math.min(
-                (Date.now() - this._flight.startedAt) / this._flight.duration,
-                1
-            );
+            let progress = Math.min((Date.now() - this._flight.startedAt) / this._flight.duration, 1);
 
             const frame = this._flight.fly(progress);
             this.eye = frame.eye;
@@ -665,23 +660,33 @@ class Camera {
      * @virtual
      */
     public update() {
-        let u = this._r, v = this._u, n = this._b, eye = this.eye;
+        let u = this._r,
+            v = this._u,
+            n = this._b,
+            eye = this.eye;
 
         Vec3.doubleToTwoFloat32Array(eye, this.eyeHigh, this.eyeLow);
 
         this._viewMatrix.set([
-            u.x, v.x, n.x, 0.0,
-            u.y, v.y, n.y, 0.0,
-            u.z, v.z, n.z, 0.0,
-            -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
+            u.x,
+            v.x,
+            n.x,
+            0.0,
+            u.y,
+            v.y,
+            n.y,
+            0.0,
+            u.z,
+            v.z,
+            n.z,
+            0.0,
+            -eye.dot(u),
+            -eye.dot(v),
+            -eye.dot(n),
+            1.0
         ]);
 
-        this._viewMatrixRTE.set([
-            u.x, v.x, n.x, 0.0,
-            u.y, v.y, n.y, 0.0,
-            u.z, v.z, n.z, 0.0,
-            0, 0, 0, 1.0
-        ]);
+        this._viewMatrixRTE.set([u.x, v.x, n.x, 0.0, u.y, v.y, n.y, 0.0, u.z, v.z, n.z, 0.0, 0, 0, 0, 1.0]);
 
         // do not clean up, someday it will be using
         //this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
@@ -790,8 +795,8 @@ class Camera {
 
         let aspect = this.getAspectRatio();
 
-        for(let i = 0; i < frustums.length; i++) {
-            if(this.frustums[i]){
+        for (let i = 0; i < frustums.length; i++) {
+            if (this.frustums[i]) {
                 let near = frustums[i][0],
                     far = frustums[i][1];
                 this.frustums[i].setProjectionMatrix(
@@ -804,7 +809,7 @@ class Camera {
                     this.reverseDepthActive,
                     this.depthZeroToOne
                 );
-            }else{
+            } else {
                 let near = frustums[i][0],
                     far = frustums[i][1];
                 let fi = new Frustum({
@@ -833,7 +838,8 @@ class Camera {
         this._tanViewAngle_hrad = Math.tan(this._viewAngle * RADIANS_HALF);
         this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * (1.0 / this._height);
         this._projSizeConst =
-            Math.min(this._width < 512 ? 512 : this._width, this._height < 512 ? 512 : this._height) / (this._viewAngle * RADIANS);
+            Math.min(this._width < 512 ? 512 : this._width, this._height < 512 ? 512 : this._height) /
+            (this._viewAngle * RADIANS);
     }
 
     /**
@@ -944,16 +950,8 @@ class Camera {
         let cs = Math.cos(angle);
         let sn = Math.sin(angle);
         let t = this._r.clone();
-        this._r.set(
-            cs * t.x - sn * this._u.x,
-            cs * t.y - sn * this._u.y,
-            cs * t.z - sn * this._u.z
-        );
-        this._u.set(
-            sn * t.x + cs * this._u.x,
-            sn * t.y + cs * this._u.y,
-            sn * t.z + cs * this._u.z
-        );
+        this._r.set(cs * t.x - sn * this._u.x, cs * t.y - sn * this._u.y, cs * t.z - sn * this._u.z);
+        this._u.set(sn * t.x + cs * this._u.x, sn * t.y + cs * this._u.y, sn * t.z + cs * this._u.z);
     }
 
     /**
@@ -965,16 +963,8 @@ class Camera {
         let cs = Math.cos(angle);
         let sn = Math.sin(angle);
         let t = this._b;
-        this._b.set(
-            cs * t.x - sn * this._u.x,
-            cs * t.y - sn * this._u.y,
-            cs * t.z - sn * this._u.z
-        );
-        this._u.set(
-            sn * t.x + cs * this._u.x,
-            sn * t.y + cs * this._u.y,
-            sn * t.z + cs * this._u.z
-        );
+        this._b.set(cs * t.x - sn * this._u.x, cs * t.y - sn * this._u.y, cs * t.z - sn * this._u.z);
+        this._u.set(sn * t.x + cs * this._u.x, sn * t.y + cs * this._u.y, sn * t.z + cs * this._u.z);
     }
 
     /**
@@ -986,16 +976,8 @@ class Camera {
         let cs = Math.cos(angle);
         let sn = Math.sin(angle);
         let t = this._r;
-        this._r.set(
-            cs * t.x - sn * this._b.x,
-            cs * t.y - sn * this._b.y,
-            cs * t.z - sn * this._b.z
-        );
-        this._b.set(
-            sn * t.x + cs * this._b.x,
-            sn * t.y + cs * this._b.y,
-            sn * t.z + cs * this._b.z
-        );
+        this._r.set(cs * t.x - sn * this._b.x, cs * t.y - sn * this._b.y, cs * t.z - sn * this._b.z);
+        this._b.set(sn * t.x + cs * this._b.x, sn * t.y + cs * this._b.y, sn * t.z + cs * this._b.z);
     }
 
     /**
@@ -1104,8 +1086,10 @@ class Camera {
     /**
      * Returns normal vector direction to the unprojected screen point from camera eye
      * @public
-     * @param {Vec2} pos - Screen X coordinate
-     * @returns {Vec3} - Direction vector
+     * @param {Vec2} pos - Screen coordinates in pixels.
+     * @param {number} [dist] - Optional projection distance for orthographic mode.
+     * @param {Vec3} [outPos] - Optional output world position for orthographic mode.
+     * @returns {Vec3} - Direction vector.
      */
     public unproject2v(pos: Vec2, dist?: number, outPos?: Vec3) {
         return this.unproject(pos.x, pos.y, dist, outPos);
@@ -1114,9 +1098,11 @@ class Camera {
     /**
      * Returns normal vector direction to the unprojected screen point from camera eye
      * @public
-     * @param {number} x - Screen X coordinate
-     * @param {number} y - Screen Y coordinate
-     * @returns {Vec3} - Direction vector
+     * @param {number} x - Screen X coordinate in pixels.
+     * @param {number} y - Screen Y coordinate in pixels.
+     * @param {number} [dist] - Optional projection distance for orthographic mode.
+     * @param {Vec3} [outPos] - Optional output world position for orthographic mode.
+     * @returns {Vec3} - Direction vector.
      */
     public unproject(x: number, y: number, dist?: number, outPos?: Vec3) {
         let w = this._width * 0.5,
@@ -1195,12 +1181,7 @@ class Camera {
      * @param {Vec3} [center] - Point that the camera rotates around
      * @param {Vec3} [up] - Camera up vector
      */
-    public rotateAround(
-        angle: number,
-        isArc: boolean = false,
-        center: Vec3 = Vec3.ZERO,
-        up: Vec3 = Vec3.UP
-    ) {
+    public rotateAround(angle: number, isArc: boolean = false, center: Vec3 = Vec3.ZERO, up: Vec3 = Vec3.UP) {
         up = isArc ? this._u : up;
         let rot = Mat4.getRotation(angle, up);
         let trm = Mat4.getRotationAroundPoint(angle, center, up);
@@ -1242,7 +1223,6 @@ class Camera {
      * @returns {number} - Size factor.
      */
     public projectedSize(p: Vec3, r: number): number {
-
         // @todo: cleanup
         if (this.isOrthographic) {
             const m = this.frustums[0].projectionMatrix._m;
@@ -1399,4 +1379,4 @@ class Camera {
     }
 }
 
-export {Camera};
+export { Camera };

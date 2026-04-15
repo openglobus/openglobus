@@ -1,14 +1,14 @@
-import {Extent} from "../Extent";
-import {getTileExtent} from "../mercator";
-import {GlobusTerrain} from "./GlobusTerrain";
-import type {IGlobusTerrainParams} from "./GlobusTerrain";
-import {isPowerOfTwo} from "../math";
-import {Layer} from "../layer/Layer";
-import {LonLat} from "../LonLat";
-import {Segment} from "../segment/Segment";
-import {binarySearchFast} from "../utils/shared";
-import type {TypedArray} from "../utils/shared";
-import type {IResponse} from "../utils/Loader";
+import { Extent } from "../Extent";
+import { getTileExtent } from "../mercator";
+import type { IGlobusTerrainParams } from "./GlobusTerrain";
+import { GlobusTerrain } from "./GlobusTerrain";
+import { isPowerOfTwo } from "../math";
+import { Layer } from "../layer/Layer";
+import { LonLat } from "../LonLat";
+import { Segment } from "../segment/Segment";
+import type { TypedArray } from "../utils/shared";
+import { binarySearchFast } from "../utils/shared";
+import type { IResponse } from "../utils/Loader";
 
 export interface IRgbTerrainParams extends IGlobusTerrainParams {
     equalizeNormals?: boolean;
@@ -30,7 +30,6 @@ export interface IRgbTerrainParams extends IGlobusTerrainParams {
  * @param {number} [options.resolution=0.1] - RGB-to-height conversion resolution.
  */
 class RgbTerrain extends GlobusTerrain {
-
     protected _imageSize: number;
 
     protected _ctx: CanvasRenderingContext2D;
@@ -47,9 +46,10 @@ class RgbTerrain extends GlobusTerrain {
             maxZoom: options.maxZoom || 17,
             noDataValues: options.noDataValues || [options.minHeight != undefined ? options.minHeight : -10000],
             plainGridSize: options.plainGridSize || 128,
-            url: options.url != undefined
-                ? options.url
-                : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${options.key || "<key>"}`,
+            url:
+                options.url != undefined
+                    ? options.url
+                    : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${options.key || "<key>"}`,
             gridSizeByZoom: options.gridSizeByZoom || [
                 64, 32, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 64, 64, 64, 32, 32, 16, 8
             ],
@@ -98,8 +98,16 @@ class RgbTerrain extends GlobusTerrain {
         })!;
     }
 
-    protected override _createHeights(data: HTMLImageElement | ImageBitmap, segment: Segment | null, tileGroup: number, tileX: number, tileY: number, tileZoom: number, extent: Extent, preventChildren: boolean): TypedArray | number[] {
-
+    protected override _createHeights(
+        data: HTMLImageElement | ImageBitmap,
+        segment: Segment | null,
+        tileGroup: number,
+        tileX: number,
+        tileY: number,
+        tileZoom: number,
+        extent: Extent,
+        preventChildren: boolean
+    ): TypedArray | number[] {
         this._ctx.clearRect(0, 0, this._imageSize, this._imageSize);
         this._ctx.drawImage(data, 0, 0);
         let rgbaData = this._ctx.getImageData(0, 0, this._imageSize, this._imageSize).data;
@@ -145,19 +153,19 @@ class RgbTerrain extends GlobusTerrain {
         // When image size equals grid size
         //
         if (this._imageSize === this.plainGridSize) {
-
             let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
             let outCurrenElevations = new Float32Array(elevationsSize);
 
-            let [
-                availableParentOffsetX,
-                availableParentOffsetY,
-                availableZoomDiff
-            ] =
-                segment ? getTileOffset(
-                    segment.tileX, segment.tileY, segment.tileZoom,
-                    availableParentTileX, availableParentTileY, availableParentTileZoom
-                ) : [0, 0, 0];
+            let [availableParentOffsetX, availableParentOffsetY, availableZoomDiff] = segment
+                ? getTileOffset(
+                      segment.tileX,
+                      segment.tileY,
+                      segment.tileZoom,
+                      availableParentTileX,
+                      availableParentTileY,
+                      availableParentTileZoom
+                  )
+                : [0, 0, 0];
 
             this.extractElevationSimple(
                 rgbaData,
@@ -252,7 +260,6 @@ class RgbTerrain extends GlobusTerrain {
     }
 
     public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number): boolean {
-
         zoom = zoom != undefined ? zoom : this.maxZoom;
 
         if (zoom === 0) {
@@ -281,7 +288,9 @@ class RgbTerrain extends GlobusTerrain {
         let def = this._fetchCache[tileIndex];
         if (!def) {
             def = this._loader.fetch({
-                src: this._urlRewriteCallback && this._urlRewriteCallback(x, y, z, tileGroup) || this.buildURL(x, y, z, tileGroup),
+                src:
+                    (this._urlRewriteCallback && this._urlRewriteCallback(x, y, z, tileGroup)) ||
+                    this.buildURL(x, y, z, tileGroup),
                 type: this._dataType,
                 options: {
                     cache: this._cache
@@ -328,15 +337,23 @@ class RgbTerrain extends GlobusTerrain {
         heightFactor: number = 1,
         imageSize: number
     ) {
-
         for (let k = 0, len = imageSize * imageSize; k < len; k++) {
             let j = k % imageSize,
                 i = Math.floor(k / imageSize);
             let fromInd4 = k * 4;
-            let height = heightFactor * this.rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+            let height =
+                heightFactor * this.rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
             let isNoData = RgbTerrain.checkNoDataValue(noDataValues, height);
             if ((isNoData || height === 0) && availableParentData) {
-                height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, i, j, skipPositiveHeights);
+                height = getParentHeight(
+                    availableZoomDiff,
+                    availableParentOffsetX,
+                    availableParentOffsetY,
+                    availableParentData,
+                    i,
+                    j,
+                    skipPositiveHeights
+                );
             }
             outCurrenElevations[i * (imageSize + 1) + j] = height;
         }
@@ -344,10 +361,19 @@ class RgbTerrain extends GlobusTerrain {
         for (let i = 0, len = imageSize; i < len; i++) {
             let j = imageSize - 1;
             let fromInd4 = (i * imageSize + j) * 4;
-            let height = heightFactor * this.rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+            let height =
+                heightFactor * this.rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
             let isNoData = RgbTerrain.checkNoDataValue(noDataValues, height);
             if ((isNoData || height === 0) && availableParentData) {
-                height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, i, j, skipPositiveHeights);
+                height = getParentHeight(
+                    availableZoomDiff,
+                    availableParentOffsetX,
+                    availableParentOffsetY,
+                    availableParentData,
+                    i,
+                    j,
+                    skipPositiveHeights
+                );
             }
             outCurrenElevations[i * (imageSize + 1) + imageSize] = height;
         }
@@ -355,23 +381,50 @@ class RgbTerrain extends GlobusTerrain {
         for (let j = 0, len = imageSize; j < len; j++) {
             let i = imageSize - 1;
             let fromInd4 = (i * imageSize + j) * 4;
-            let height = heightFactor * this.rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+            let height =
+                heightFactor * this.rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
             let isNoData = RgbTerrain.checkNoDataValue(noDataValues, height);
             if ((isNoData || height === 0) && availableParentData) {
-                height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, i, j, skipPositiveHeights);
+                height = getParentHeight(
+                    availableZoomDiff,
+                    availableParentOffsetX,
+                    availableParentOffsetY,
+                    availableParentData,
+                    i,
+                    j,
+                    skipPositiveHeights
+                );
             }
             outCurrenElevations[imageSize * (imageSize + 1) + j] = height;
         }
 
-        let height = heightFactor * this.rgb2Height(rgbaData[rgbaData.length - 4], rgbaData[rgbaData.length - 3], rgbaData[rgbaData.length - 2]);
+        let height =
+            heightFactor *
+            this.rgb2Height(
+                rgbaData[rgbaData.length - 4],
+                rgbaData[rgbaData.length - 3],
+                rgbaData[rgbaData.length - 2]
+            );
         let isNoData = RgbTerrain.checkNoDataValue(noDataValues, height);
         if ((isNoData || height === 0) && availableParentData) {
-            height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, imageSize - 1, imageSize - 1, skipPositiveHeights);
+            height = getParentHeight(
+                availableZoomDiff,
+                availableParentOffsetX,
+                availableParentOffsetY,
+                availableParentData,
+                imageSize - 1,
+                imageSize - 1,
+                skipPositiveHeights
+            );
         }
         outCurrenElevations[outCurrenElevations.length - 1] = height;
     }
 
-    public extractElevationTilesRgbNonPowerOfTwo(rgbaData: number[] | TypedArray, outCurrenElevations: number[] | TypedArray, heightFactor: number = 1) {
+    public extractElevationTilesRgbNonPowerOfTwo(
+        rgbaData: number[] | TypedArray,
+        outCurrenElevations: number[] | TypedArray,
+        heightFactor: number = 1
+    ) {
         for (let i = 0, len = outCurrenElevations.length; i < len; i++) {
             let i4 = i * 4;
             outCurrenElevations[i] = heightFactor * this.rgb2Height(rgbaData[i4], rgbaData[i4 + 1], rgbaData[i4 + 2]);
@@ -403,15 +456,15 @@ class RgbTerrain extends GlobusTerrain {
             sourceSize4 = 0;
 
         let [availableParentOffsetX, availableParentOffsetY, availableZoomDiff] = getTileOffset(
-            currentTileX, currentTileY, currentTileZoom,
-            availableParentTileX, availableParentTileY, availableParentTileZoom
+            currentTileX,
+            currentTileY,
+            currentTileZoom,
+            availableParentTileX,
+            availableParentTileY,
+            availableParentTileZoom
         );
 
-        for (
-            let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4;
-            k < sourceDataLength;
-            k++
-        ) {
+        for (let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4; k < sourceDataLength; k++) {
             let k4 = k * 4;
 
             let height = heightFactor * this.rgb2Height(rgbaData[k4], rgbaData[k4 + 1], rgbaData[k4 + 2]);
@@ -426,7 +479,15 @@ class RgbTerrain extends GlobusTerrain {
             //
             // Try to get current height from the parent data
             if ((isNoDataCurrent || height === 0) && availableParentData) {
-                height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(i / dt), Math.floor(j / dt), skipPositiveHeights);
+                height = getParentHeight(
+                    availableZoomDiff,
+                    availableParentOffsetX,
+                    availableParentOffsetY,
+                    availableParentData,
+                    Math.floor(i / dt),
+                    Math.floor(j / dt),
+                    skipPositiveHeights
+                );
             }
 
             let tileX = Math.floor(j / destSize),
@@ -453,7 +514,15 @@ class RgbTerrain extends GlobusTerrain {
                 //
                 // Try to get right height from the parent data
                 if ((isNoDataRight || rightHeight === 0) && availableParentData) {
-                    rightHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(i / dt), Math.floor((j + 1) / dt), skipPositiveHeights);
+                    rightHeight = getParentHeight(
+                        availableZoomDiff,
+                        availableParentOffsetX,
+                        availableParentOffsetY,
+                        availableParentData,
+                        Math.floor(i / dt),
+                        Math.floor((j + 1) / dt),
+                        skipPositiveHeights
+                    );
                 }
 
                 let middleHeight = height;
@@ -478,13 +547,27 @@ class RgbTerrain extends GlobusTerrain {
                 //current tile
                 sourceSize4 = sourceSize * 4;
 
-                bottomHeight = heightFactor * this.rgb2Height(rgbaData[k4 + sourceSize4], rgbaData[k4 + sourceSize4 + 1], rgbaData[k4 + sourceSize4 + 2]);
+                bottomHeight =
+                    heightFactor *
+                    this.rgb2Height(
+                        rgbaData[k4 + sourceSize4],
+                        rgbaData[k4 + sourceSize4 + 1],
+                        rgbaData[k4 + sourceSize4 + 2]
+                    );
                 isNoDataBottom = RgbTerrain.checkNoDataValue(noDataValues, bottomHeight);
 
                 //
                 // Try to get bottom height from the parent data
                 if ((isNoDataBottom || bottomHeight === 0) && availableParentData) {
-                    bottomHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor((i + 1) / dt), Math.floor(j / dt), skipPositiveHeights);
+                    bottomHeight = getParentHeight(
+                        availableZoomDiff,
+                        availableParentOffsetX,
+                        availableParentOffsetY,
+                        availableParentData,
+                        Math.floor((i + 1) / dt),
+                        Math.floor(j / dt),
+                        skipPositiveHeights
+                    );
                 }
 
                 let middleHeight = (height + bottomHeight) * 0.5;
@@ -505,18 +588,29 @@ class RgbTerrain extends GlobusTerrain {
                 outChildrenElevations[tileY + 1][tileX][bottomindex] = middleHeight;
             }
 
-            if (
-                (j + 1) % destSize === 0 && j !== sourceSize - 1 &&
-                (i + 1) % destSize === 0 && i !== sourceSize - 1
-            ) {
+            if ((j + 1) % destSize === 0 && j !== sourceSize - 1 && (i + 1) % destSize === 0 && i !== sourceSize - 1) {
                 //current tile
-                let rightBottomHeight = heightFactor * this.rgb2Height(rgbaData[k4 + sourceSize4 + 4], rgbaData[k4 + sourceSize4 + 5], rgbaData[k4 + sourceSize4 + 6]);
+                let rightBottomHeight =
+                    heightFactor *
+                    this.rgb2Height(
+                        rgbaData[k4 + sourceSize4 + 4],
+                        rgbaData[k4 + sourceSize4 + 5],
+                        rgbaData[k4 + sourceSize4 + 6]
+                    );
                 let isNoDataRightBottom = RgbTerrain.checkNoDataValue(noDataValues, rightBottomHeight);
 
                 //
                 // Try to get right bottom height from the parent data
                 if ((isNoDataRightBottom || rightBottomHeight === 0) && availableParentData) {
-                    rightBottomHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor((i + 1) / dt), Math.floor((j + 1) / dt), skipPositiveHeights);
+                    rightBottomHeight = getParentHeight(
+                        availableZoomDiff,
+                        availableParentOffsetX,
+                        availableParentOffsetY,
+                        availableParentData,
+                        Math.floor((i + 1) / dt),
+                        Math.floor((j + 1) / dt),
+                        skipPositiveHeights
+                    );
                 }
 
                 let middleHeight = height;
@@ -535,8 +629,7 @@ class RgbTerrain extends GlobusTerrain {
                 outChildrenElevations[tileY][tileX + 1][rightindex] = middleHeight;
 
                 //next bottom tile
-                let bottomindex = destSize;
-                outChildrenElevations[tileY + 1][tileX][bottomindex] = middleHeight;
+                outChildrenElevations[tileY + 1][tileX][destSize] = middleHeight;
 
                 //next right bottom tile
                 let rightBottomindex = 0;
@@ -569,15 +662,15 @@ class RgbTerrain extends GlobusTerrain {
             sourceSize4 = 0;
 
         let [availableParentOffsetX, availableParentOffsetY, availableZoomDiff] = getTileOffset(
-            currentTileX, currentTileY, currentTileZoom,
-            availableParentTileX, availableParentTileY, availableParentTileZoom
+            currentTileX,
+            currentTileY,
+            currentTileZoom,
+            availableParentTileX,
+            availableParentTileY,
+            availableParentTileZoom
         );
 
-        for (
-            let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4;
-            k < sourceDataLength;
-            k++
-        ) {
+        for (let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4; k < sourceDataLength; k++) {
             let k4 = k * 4;
 
             let height = heightFactor * this.rgb2Height(rgbaData[k4], rgbaData[k4 + 1], rgbaData[k4 + 2]);
@@ -590,7 +683,15 @@ class RgbTerrain extends GlobusTerrain {
                 j = k % sourceSize;
 
             if ((isNoDataCurrent || height === 0) && availableParentData) {
-                height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(currIndex / destSizeOne), currIndex % destSizeOne, skipPositiveHeights);
+                height = getParentHeight(
+                    availableZoomDiff,
+                    availableParentOffsetX,
+                    availableParentOffsetY,
+                    availableParentData,
+                    Math.floor(currIndex / destSizeOne),
+                    currIndex % destSizeOne,
+                    skipPositiveHeights
+                );
             }
 
             let tileX = Math.floor(j / destSize),
@@ -606,7 +707,15 @@ class RgbTerrain extends GlobusTerrain {
                 isNoDataRight = RgbTerrain.checkNoDataValue(noDataValues, rightHeight);
 
                 if ((isNoDataRight || rightHeight === 0) && availableParentData) {
-                    rightHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(currIndex / destSizeOne), currIndex % destSizeOne, skipPositiveHeights);
+                    rightHeight = getParentHeight(
+                        availableZoomDiff,
+                        availableParentOffsetX,
+                        availableParentOffsetY,
+                        availableParentData,
+                        Math.floor(currIndex / destSizeOne),
+                        currIndex % destSizeOne,
+                        skipPositiveHeights
+                    );
                 }
 
                 let middleHeight = height;
@@ -624,11 +733,25 @@ class RgbTerrain extends GlobusTerrain {
                 //current tile
                 sourceSize4 = sourceSize * 4;
 
-                bottomHeight = heightFactor * this.rgb2Height(rgbaData[k4 + sourceSize4], rgbaData[k4 + sourceSize4 + 1], rgbaData[k4 + sourceSize4 + 2]);
+                bottomHeight =
+                    heightFactor *
+                    this.rgb2Height(
+                        rgbaData[k4 + sourceSize4],
+                        rgbaData[k4 + sourceSize4 + 1],
+                        rgbaData[k4 + sourceSize4 + 2]
+                    );
                 isNoDataBottom = RgbTerrain.checkNoDataValue(noDataValues, bottomHeight);
 
                 if ((isNoDataBottom || bottomHeight === 0) && availableParentData) {
-                    bottomHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(currIndex / destSizeOne), currIndex % destSizeOne, skipPositiveHeights);
+                    bottomHeight = getParentHeight(
+                        availableZoomDiff,
+                        availableParentOffsetX,
+                        availableParentOffsetY,
+                        availableParentData,
+                        Math.floor(currIndex / destSizeOne),
+                        currIndex % destSizeOne,
+                        skipPositiveHeights
+                    );
                 }
 
                 let middleHeight = (height + bottomHeight) * 0.5;
@@ -642,16 +765,27 @@ class RgbTerrain extends GlobusTerrain {
                 }
             }
 
-            if (
-                (j + 1) % destSize === 0 && j !== sourceSize - 1 &&
-                (i + 1) % destSize === 0 && i !== sourceSize - 1
-            ) {
+            if ((j + 1) % destSize === 0 && j !== sourceSize - 1 && (i + 1) % destSize === 0 && i !== sourceSize - 1) {
                 //current tile
-                let rightBottomHeight = heightFactor * this.rgb2Height(rgbaData[k4 + sourceSize4 + 4], rgbaData[k4 + sourceSize4 + 5], rgbaData[k4 + sourceSize4 + 6]);
+                let rightBottomHeight =
+                    heightFactor *
+                    this.rgb2Height(
+                        rgbaData[k4 + sourceSize4 + 4],
+                        rgbaData[k4 + sourceSize4 + 5],
+                        rgbaData[k4 + sourceSize4 + 6]
+                    );
                 let isNoDataRightBottom = RgbTerrain.checkNoDataValue(noDataValues, rightBottomHeight);
 
                 if ((isNoDataRightBottom || rightBottomHeight === 0) && availableParentData) {
-                    rightBottomHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(currIndex / destSizeOne), currIndex % destSizeOne, skipPositiveHeights);
+                    rightBottomHeight = getParentHeight(
+                        availableZoomDiff,
+                        availableParentOffsetX,
+                        availableParentOffsetY,
+                        availableParentData,
+                        Math.floor(currIndex / destSizeOne),
+                        currIndex % destSizeOne,
+                        skipPositiveHeights
+                    );
                 }
 
                 let middleHeight = height;
@@ -688,7 +822,15 @@ function getChildTileIndex(
     return [currentParentTileX * 2 + childOffsetX, currentParentTileY * 2 + childOffsetY, currentParentTileZoom + 1];
 }
 
-function getParentHeight(oneByDz2: number, offsetX: number, offsetY: number, heights: TypedArray | number[], i: number, j: number, skipPositiveHeights?: boolean) {
+function getParentHeight(
+    oneByDz2: number,
+    offsetX: number,
+    offsetY: number,
+    heights: TypedArray | number[],
+    i: number,
+    j: number,
+    skipPositiveHeights?: boolean
+) {
     let parentGridSize = Math.sqrt(heights.length);
     let pi = Math.floor(offsetY * oneByDz2 * parentGridSize + i * oneByDz2),
         pj = Math.floor(offsetX * oneByDz2 * parentGridSize + j * oneByDz2);
@@ -696,4 +838,4 @@ function getParentHeight(oneByDz2: number, offsetX: number, offsetY: number, hei
     return skipPositiveHeights ? (h > 0 ? 0 : h) : h;
 }
 
-export {RgbTerrain};
+export { RgbTerrain };

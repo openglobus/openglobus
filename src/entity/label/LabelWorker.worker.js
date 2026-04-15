@@ -1,5 +1,5 @@
 /* eslint-env worker */
-'use strict';
+"use strict";
 
 function concatTypedArrays(dest, index, source) {
     let len = source.length,
@@ -14,20 +14,32 @@ self.onmessage = function (e) {
         id = labelData[0],
         maxLetters = labelData[1],
         isVisible = labelData[2],
-        /*3, 4, 5*/_positionHigh_x = labelData[3], _positionHigh_y = labelData[4], _positionHigh_z = labelData[5],
-        /*6, 7, 8*/_positionLow_x = labelData[6], _positionLow_y = labelData[7], _positionLow_z = labelData[8],
-        /*9*/_size = labelData[9],
-        /*10, 11*/_offset_x = labelData[10], _offset_y = labelData[11],
-        /*12, 13, 14, 15*/_color_x = labelData[12], _color_y = labelData[13], _color_z = labelData[14],
+        /*3, 4, 5*/ _positionHigh_x = labelData[3],
+        _positionHigh_y = labelData[4],
+        _positionHigh_z = labelData[5],
+        /*6, 7, 8*/ _positionLow_x = labelData[6],
+        _positionLow_y = labelData[7],
+        _positionLow_z = labelData[8],
+        /*9*/ _size = labelData[9],
+        /*10, 11*/ _offset_x = labelData[10],
+        _offset_y = labelData[11],
+        /*12, 13, 14, 15*/ _color_x = labelData[12],
+        _color_y = labelData[13],
+        _color_z = labelData[14],
         _color_w = labelData[15],
-        /*16*/_rotation = labelData[16],
-        /*17, 18, 19*/_alignedAxis_x = labelData[17], _alignedAxis_y = labelData[18], _alignedAxis_z = labelData[19],
-        /*20*/_fontIndex = labelData[20],
-        /*21*/_outline = labelData[21],
-        /*22, 23, 24, 25*/_outlineColor_x = labelData[22], _outlineColor_y = labelData[23],
-        _outlineColor_z = labelData[24], _outlineColor_w = labelData[25],
-        /*26, 27, 28*/_pickingColor_x = labelData[26], _pickingColor_y = labelData[27], _pickingColor_z = labelData[28]
-
+        /*16*/ _rotation = labelData[16],
+        /*17, 18, 19*/ _alignedAxis_x = labelData[17],
+        _alignedAxis_y = labelData[18],
+        _alignedAxis_z = labelData[19],
+        /*20*/ _fontIndex = labelData[20],
+        /*21*/ _outline = labelData[21],
+        /*22, 23, 24, 25*/ _outlineColor_x = labelData[22],
+        _outlineColor_y = labelData[23],
+        _outlineColor_z = labelData[24],
+        _outlineColor_w = labelData[25],
+        /*26, 27, 28*/ _pickingColor_x = labelData[26],
+        _pickingColor_y = labelData[27],
+        _pickingColor_z = labelData[28];
 
     let _vertexArr = new Float32Array(maxLetters * 12),
         _texCoordArr = new Float32Array(maxLetters * 24),
@@ -51,10 +63,17 @@ self.onmessage = function (e) {
             concatTypedArrays(_vertexArr, i, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
         }
 
-        concatTypedArrays(_texCoordArr, i, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
+        concatTypedArrays(
+            _texCoordArr,
+            i,
+            [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]
+        );
         concatTypedArrays(_gliphParamArr, i, [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0]);
 
-        var x = _positionHigh_x, y = _positionHigh_y, z = _positionHigh_z, w;
+        var x = _positionHigh_x,
+            y = _positionHigh_y,
+            z = _positionHigh_z,
+            w;
         concatTypedArrays(_positionHighArr, i, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
         x = _positionLow_x;
@@ -93,7 +112,32 @@ self.onmessage = function (e) {
         y = _outlineColor_y;
         z = _outlineColor_z;
         w = _outlineColor_w;
-        concatTypedArrays(_outlineColorArr, i, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+        concatTypedArrays(_outlineColorArr, i, [
+            x,
+            y,
+            z,
+            w,
+            x,
+            y,
+            z,
+            w,
+            x,
+            y,
+            z,
+            w,
+            x,
+            y,
+            z,
+            w,
+            x,
+            y,
+            z,
+            w,
+            x,
+            y,
+            z,
+            w
+        ]);
 
         x = _pickingColor_x / 255;
         y = _pickingColor_y / 255;
@@ -101,36 +145,39 @@ self.onmessage = function (e) {
         concatTypedArrays(_pickingColorArr, i, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
     }
 
-    self.postMessage({
-        id: id,
-        vertexArr: _vertexArr,
-        texCoordArr: _texCoordArr,
-        gliphParamArr: _gliphParamArr,
-        positionHighArr: _positionHighArr,
-        positionLowArr: _positionLowArr,
-        sizeArr: _sizeArr,
-        offsetArr: _offsetArr,
-        rgbaArr: _rgbaArr,
-        rotationArr: _rotationArr,
-        alignedAxisArr: _alignedAxisArr,
-        fontIndexArr: _fontIndexArr,
-        outlineArr: _outlineArr,
-        outlineColorArr: _outlineColorArr,
-        pickingColorArr: _pickingColorArr
-    }, [
-        _vertexArr.buffer,
-        _texCoordArr.buffer,
-        _gliphParamArr.buffer,
-        _positionHighArr.buffer,
-        _positionLowArr.buffer,
-        _sizeArr.buffer,
-        _offsetArr.buffer,
-        _rgbaArr.buffer,
-        _rotationArr.buffer,
-        _alignedAxisArr.buffer,
-        _fontIndexArr.buffer,
-        _outlineArr.buffer,
-        _outlineColorArr.buffer,
-        _pickingColorArr.buffer
-    ]);
-}
+    self.postMessage(
+        {
+            id: id,
+            vertexArr: _vertexArr,
+            texCoordArr: _texCoordArr,
+            gliphParamArr: _gliphParamArr,
+            positionHighArr: _positionHighArr,
+            positionLowArr: _positionLowArr,
+            sizeArr: _sizeArr,
+            offsetArr: _offsetArr,
+            rgbaArr: _rgbaArr,
+            rotationArr: _rotationArr,
+            alignedAxisArr: _alignedAxisArr,
+            fontIndexArr: _fontIndexArr,
+            outlineArr: _outlineArr,
+            outlineColorArr: _outlineColorArr,
+            pickingColorArr: _pickingColorArr
+        },
+        [
+            _vertexArr.buffer,
+            _texCoordArr.buffer,
+            _gliphParamArr.buffer,
+            _positionHighArr.buffer,
+            _positionLowArr.buffer,
+            _sizeArr.buffer,
+            _offsetArr.buffer,
+            _rgbaArr.buffer,
+            _rotationArr.buffer,
+            _alignedAxisArr.buffer,
+            _fontIndexArr.buffer,
+            _outlineArr.buffer,
+            _outlineColorArr.buffer,
+            _pickingColorArr.buffer
+        ]
+    );
+};

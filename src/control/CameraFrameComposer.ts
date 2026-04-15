@@ -1,14 +1,13 @@
-import {Control, IControlParams} from "./Control";
-import {CameraFrameHandler} from "./CameraFrameHandler";
-import {EntityCollection} from "../entity";
-import {RenderNode} from '../scene/RenderNode';
+import { Control, IControlParams } from "./Control";
+import { CameraFrameHandler } from "./CameraFrameHandler";
+import { EntityCollection } from "../entity";
+import { RenderNode } from "../scene/RenderNode";
 
 export interface ICameraFrameComposerParams extends IControlParams {
-    frameHandlers?: CameraFrameHandler[]
+    frameHandlers?: CameraFrameHandler[];
 }
 
 export class CameraFrameComposer extends Control {
-
     public readonly _frameHandlers: CameraFrameHandler[];
     protected _cameraLayer: EntityCollection;
     protected _cameraScene: RenderNode;
@@ -22,7 +21,7 @@ export class CameraFrameComposer extends Control {
 
         this._cameraLayer = new EntityCollection({
             scaleByDistance: [100, 1000000, 1.0],
-            pickingEnabled: false,
+            pickingEnabled: false
         });
 
         this._cameraScene = new RenderNode("CameraScene");
@@ -64,5 +63,5 @@ export class CameraFrameComposer extends Control {
         for (let i = 0, len = this._frameHandlers.length; i < len; i++) {
             this._frameHandlers[i].frame();
         }
-    }
+    };
 }

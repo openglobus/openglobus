@@ -1,8 +1,8 @@
-import {EPS5} from "../math";
-import {Vec3} from "./Vec3";
-import {Line3} from "./Line3";
+import { EPS5 } from "../math";
+import { Vec3 } from "./Vec3";
+import { Line3 } from "./Line3";
 
-const DISJOINT = 0
+const DISJOINT = 0;
 const COINCIDE = 1;
 const INTERSECT = 2;
 
@@ -18,7 +18,7 @@ class Plane {
 
     constructor(p?: Vec3, n?: Vec3) {
         this.p = p ? p.clone() : new Vec3();
-        this.n = n ? n.clone() : (this.p.isZero() ? Vec3.UP : this.p.getNormal());
+        this.n = n ? n.clone() : this.p.isZero() ? Vec3.UP : this.p.getNormal();
     }
 
     public setByPoints(v0: Vec3, v1: Vec3, v2: Vec3): Plane {
@@ -132,4 +132,4 @@ class Plane {
     }
 }
 
-export {Plane};
+export { Plane };

@@ -1,9 +1,9 @@
-import {getDefault, stringTemplate} from '../utils/shared';
-import {Button} from './Button';
-import {CLOSE_ICON} from './icons';
-import {View} from './View';
-import type {IViewParams, ViewEventsList} from './View';
-import type {EventsHandler} from "../Events";
+import { getDefault, stringTemplate } from "../utils/shared";
+import { Button } from "./Button";
+import { CLOSE_ICON } from "./icons";
+import { View } from "./View";
+import type { IViewParams, ViewEventsList } from "./View";
+import type { EventsHandler } from "../Events";
 
 export interface IDialogParams extends IViewParams {
     title?: string;
@@ -18,7 +18,7 @@ export interface IDialogParams extends IViewParams {
     maxHeight?: number;
     minWidth?: number;
     maxWidth?: number;
-    useHide?: boolean;     // Using hide instead of remove when close
+    useHide?: boolean; // Using hide instead of remove when close
 }
 
 export type DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
@@ -38,7 +38,6 @@ const TEMPLATE = `<div class="og-ddialog"
     </div>>`;
 
 class Dialog<M> extends View<M> {
-
     static __zIndex__: number = 0;
 
     public override events: EventsHandler<DialogEventsList> & EventsHandler<ViewEventsList>;
@@ -72,10 +71,10 @@ class Dialog<M> extends View<M> {
                 height: options.height ? `height: ${options.height || DEFAULT_HEIGHT}px` : "",
                 left: options.left || 0,
                 top: options.top || 0,
-                minHeight: options.minHeight ? `${options.minHeight}px` : 'unset',
-                maxHeight: options.maxHeight ? `${options.maxHeight}px` : 'unset',
-                minWidth: options.minWidth ? `${options.minWidth}px` : 'unset',
-                maxWidth: options.maxWidth ? `${options.maxWidth}px` : 'unset',
+                minHeight: options.minHeight ? `${options.minHeight}px` : "unset",
+                maxHeight: options.maxHeight ? `${options.maxHeight}px` : "unset",
+                minWidth: options.minWidth ? `${options.minWidth}px` : "unset",
+                maxWidth: options.maxWidth ? `${options.maxWidth}px` : "unset"
             }),
             ...options
         });
@@ -139,12 +138,14 @@ class Dialog<M> extends View<M> {
         if (this._right != null) {
             this.el!.style.visibility = "hidden";
             const observer = new IntersectionObserver((entries, obs) => {
-                entries.forEach(entry => {
+                entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         this.el!.style.visibility = "visible";
                         //@ts-ignore
                         if (this.el!.parentNode) {
-                            this.setPosition((this.el!.parentNode as HTMLElement).clientWidth - this.el!.clientWidth - this._right!);
+                            this.setPosition(
+                                (this.el!.parentNode as HTMLElement).clientWidth - this.el!.clientWidth - this._right!
+                            );
                             obs.disconnect();
                         }
                     }
@@ -206,11 +207,11 @@ class Dialog<M> extends View<M> {
 
     protected _onCloseBtnClick = () => {
         this.close();
-    }
+    };
 
     protected _onMouseDownAll = () => {
         this.bringToFront();
-    }
+    };
 
     protected _onMouseDown = (e: MouseEvent) => {
         e.preventDefault();
@@ -222,7 +223,7 @@ class Dialog<M> extends View<M> {
 
         document.addEventListener("mousemove", this._onMouseMove);
         document.addEventListener("mouseup", this._onMouseUp);
-    }
+    };
 
     public setPosition(x?: number, y?: number) {
         if (x != undefined) {
@@ -240,7 +241,7 @@ class Dialog<M> extends View<M> {
         this._startPosX = e.clientX;
         this._startPosY = e.clientY;
         this.setPosition(this.el!.offsetLeft - dx, this.el!.offsetTop - dy);
-    }
+    };
 
     protected _startDragging() {
         if (!this.el!.classList.contains("dragging")) {
@@ -260,7 +261,7 @@ class Dialog<M> extends View<M> {
         this._clearDragging();
         document.removeEventListener("mouseup", this._onMouseUp);
         document.removeEventListener("mousemove", this._onMouseMove);
-    }
+    };
 
     public override remove() {
         this._clearDragging();
@@ -279,4 +280,4 @@ class Dialog<M> extends View<M> {
     }
 }
 
-export {Dialog};
+export { Dialog };

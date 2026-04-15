@@ -13,29 +13,29 @@
  * limitations under the License.
  */
 
-import {CompassButton} from "./control/CompassButton";
-import {Control} from "./control/Control";
-import {EarthCoordinates} from "./control/EarthCoordinates";
-import {Ellipsoid} from "./ellipsoid/Ellipsoid";
-import {EmptyTerrain} from "./terrain/EmptyTerrain";
-import {Handler} from "./webgl/Handler";
-import {isEmpty} from "./utils/shared";
-import {Layer} from "./layer/Layer";
-import {Navigation} from "./control/Navigation";
-import type {NumberArray2} from "./math/Vec2";
-import type {NumberArray4} from "./math/Vec4";
-import {Planet} from "./scene/Planet";
-import {ScaleControl} from "./control/ScaleControl";
-import {Sun} from "./control/Sun";
-import {TouchNavigation} from "./control/TouchNavigation";
-import {Renderer} from "./renderer/Renderer";
-import type {HTMLDivElementExt} from "./renderer/Renderer";
-import {RenderNode} from "./scene/RenderNode";
-import {ZoomControl} from "./control/ZoomControl";
-import {Extent} from "./Extent";
-import type {IAtmosphereParams} from "./control/atmosphere/Atmosphere";
-import {CameraFrameComposer} from "./control/CameraFrameComposer";
-import {QuadTreeStrategy} from "./quadTree";
+import { CompassButton } from "./control/CompassButton";
+import { Control } from "./control/Control";
+import { EarthCoordinates } from "./control/EarthCoordinates";
+import { Ellipsoid } from "./ellipsoid/Ellipsoid";
+import { EmptyTerrain } from "./terrain/EmptyTerrain";
+import { Handler } from "./webgl/Handler";
+import { isEmpty } from "./utils/shared";
+import { Layer } from "./layer/Layer";
+import { Navigation } from "./control/Navigation";
+import type { NumberArray2 } from "./math/Vec2";
+import type { NumberArray4 } from "./math/Vec4";
+import { Planet } from "./scene/Planet";
+import { ScaleControl } from "./control/ScaleControl";
+import { Sun } from "./control/Sun";
+import { TouchNavigation } from "./control/TouchNavigation";
+import { Renderer } from "./renderer/Renderer";
+import type { HTMLDivElementExt } from "./renderer/Renderer";
+import { RenderNode } from "./scene/RenderNode";
+import { ZoomControl } from "./control/ZoomControl";
+import { Extent } from "./Extent";
+import type { IAtmosphereParams } from "./control/atmosphere/Atmosphere";
+import { CameraFrameComposer } from "./control/CameraFrameComposer";
+import { QuadTreeStrategy } from "./quadTree";
 
 export interface IGlobeParams {
     attributionContainer?: HTMLElement;
@@ -63,7 +63,7 @@ export interface IGlobeParams {
     minSlope?: number;
     sun?: {
         active?: boolean;
-        stopped?: boolean
+        stopped?: boolean;
     };
     navigation?: {
         active?: boolean;
@@ -95,7 +95,7 @@ export interface IGlobeParams {
 
 const DEFAULT_NIGHT_SRC = `/night.png`;
 const DEFAULT_SPEC_SRC = `/spec.png`;
-const DEFAULT_RESOURCES_SRC = '/res';
+const DEFAULT_RESOURCES_SRC = "/res";
 
 /** @const {string} */
 const PLANET_NAME_PREFIX = "globus_planet_";
@@ -159,7 +159,6 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  */
 
 class Globe {
-
     static __counter__: number = 0;
 
     public $target: HTMLElement | null;
@@ -191,7 +190,6 @@ class Globe {
     public navigation: Navigation;
 
     constructor(options: IGlobeParams) {
-
         this.$target = null;
 
         this._instanceID = `__globus${Globe.__counter__++ ? Globe.__counter__ : ""}__`;
@@ -213,11 +211,11 @@ class Globe {
          * @public
          * @type {Element}
          */
-        this.$inner = document.createElement('div');
+        this.$inner = document.createElement("div");
         this.$inner.classList.add("og-inner");
         this.$inner.appendChild(this._canvas);
 
-        this.$inner.attributions = document.createElement('div');
+        this.$inner.attributions = document.createElement("div");
         if (options.attributionContainer) {
             options.attributionContainer.appendChild(this.$inner.attributions);
         } else {
@@ -231,7 +229,7 @@ class Globe {
 
         const _disableWheel = (e: Event) => {
             e.preventDefault();
-        }
+        };
 
         this._canvas.onmouseenter = function () {
             document.addEventListener("mousewheel", _disableWheel, {
@@ -253,13 +251,14 @@ class Globe {
                     premultipliedAlpha: true,
                     preserveDrawingBuffer: false
                 }
-            }), {
+            }),
+            {
                 autoActivate: false,
                 msaa: options.msaa,
                 fontsSrc: options.fontsSrc,
                 gamma: options.gamma,
                 exposure: options.exposure,
-                ...(options.transparentBackground && {clearColor: [0, 0, 0, 0]})
+                ...(options.transparentBackground && { clearColor: [0, 0, 0, 0] })
             }
         );
 
@@ -277,8 +276,15 @@ class Globe {
             frustums: options.frustums,
             ellipsoid: options.ellipsoid,
             maxGridSize: options.maxGridSize,
-            nightTextureSrc: options.nightTextureSrc === null ? null : options.nightTextureSrc || `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_NIGHT_SRC}`,
-            specularTextureSrc: options.specularTextureSrc === null ? null : options.specularTextureSrc || `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_SPEC_SRC}`,
+            nightTextureSrc:
+                options.nightTextureSrc === null
+                    ? null
+                    : options.nightTextureSrc || `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_NIGHT_SRC}`,
+            specularTextureSrc:
+                options.specularTextureSrc === null
+                    ? null
+                    : options.specularTextureSrc ||
+                      `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_SPEC_SRC}`,
             minAltitude: options.minAltitude,
             maxAltitude: options.maxAltitude || 15000000,
             maxEqualZoomAltitude: options.maxEqualZoomAltitude,
@@ -293,7 +299,7 @@ class Globe {
             vectorTileSize: options.vectorTileSize,
             maxNodesCount: options.maxNodesCount,
             transparentBackground: options.transparentBackground,
-            shadeMode: options.shadeMode,
+            shadeMode: options.shadeMode
         });
 
         // Attach terrain provider (can be one object or array)
@@ -435,7 +441,6 @@ class Globe {
     }
 
     public attachTo(target: HTMLElement | string, isFirst?: boolean) {
-
         this.detach();
 
         let t;
@@ -468,11 +473,11 @@ class Globe {
 
     public destroy() {
         this.detach();
-        this.planet.layers.forEach(l => l.remove());
+        this.planet.layers.forEach((l) => l.remove());
         this.planet.destroy();
         this.renderer.destroy();
         (window as any)[this._instanceID] = null;
     }
 }
 
-export {Globe};
+export { Globe };

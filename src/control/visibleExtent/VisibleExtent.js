@@ -63,11 +63,10 @@ export class VisibleExtent extends Control {
         h.addProgram(shaders.drawnode_heightPicking(), true);
 
         h.start();
-
     }
 }
 
 /**
- * @deprecated 
+ * @deprecated
  */
 export const visibleExtent = () => new VisibleExtent();

@@ -2,24 +2,24 @@
  * @module og/webgl/variableHandlers
  */
 
-import {types} from "./types";
-import {Program} from "./Program";
-import type {WebGLBufferExt} from "./Handler";
-import type {WebGLTextureExt} from "./Handler";
+import { types } from "./types";
+import { Program } from "./Program";
+import type { WebGLBufferExt } from "./Handler";
+import type { WebGLTextureExt } from "./Handler";
 
 export type VariableHandler = {
-    u: { [id: number]: Function },
-    a: { [id: number]: Function }
+    u: { [id: number]: Function };
+    a: { [id: number]: Function };
 };
 
 export type ProgramVariable = {
-    type: string | number,
-    func: Function,
-    _pName: WebGLUniformLocation | number,
-    value: number | Float32Array | Int32Array | WebGLBufferExt | WebGLTextureExt | WebGLTextureExt[],
-    itemType: string | number,
-    normalized: boolean,
-    divisor: number
+    type: string | number;
+    func: Function;
+    _pName: WebGLUniformLocation | number;
+    value: number | Float32Array | Int32Array | WebGLBufferExt | WebGLTextureExt | WebGLTextureExt[];
+    itemType: string | number;
+    normalized: boolean;
+    divisor: number;
 };
 
 /*=========================

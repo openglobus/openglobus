@@ -1,20 +1,22 @@
-import {Key} from "../Lock";
-import {Button} from "../ui/Button";
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import {Renderer} from "../renderer/Renderer";
-import {Vec2} from "../math/Vec2";
-import {Navigation} from "./Navigation";
+import { Key } from "../Lock";
+import { Button } from "../ui/Button";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
+import { Renderer } from "../renderer/Renderer";
+import { Vec2 } from "../math/Vec2";
+import { Navigation } from "./Navigation";
 
-const ICON_PLUS_SVG = '<?xml version="1.0"?>' +
+const ICON_PLUS_SVG =
+    '<?xml version="1.0"?>' +
     '<svg width=24 height=24 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
     '    <path d="M 11 5 L 11 11 L 5 11 L 5 13 L 11 13 L 11 19 L 13 19 L 13 13 L 19 13 L 19 11 L 13 11 L 13 5 L 11 5 z"/>' +
-    '</svg>';
+    "</svg>";
 
-const ICON_MINUS_SVG = '<?xml version="1.0"?>' +
+const ICON_MINUS_SVG =
+    '<?xml version="1.0"?>' +
     '<svg width=24 height=24 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
     '    <path d="M 5 11 L 5 13 L 19 13 L 19 11 L 5 11 z"/>' +
-    '</svg>';
+    "</svg>";
 
 /**
  * Planet zoom buttons control.
@@ -32,13 +34,11 @@ class ZoomControl extends Control {
     }
 
     public override oninit() {
-
         let zoomInBtn = new Button({
             classList: ["og-map-button", "og-zoomin-button"],
             icon: ICON_PLUS_SVG
         });
         zoomInBtn.appendTo(this.renderer!.div!);
-
 
         let zoomOutBtn = new Button({
             classList: ["og-map-button", "og-zoomout-button"],
@@ -112,4 +112,4 @@ class ZoomControl extends Control {
     }
 }
 
-export {ZoomControl};
+export { ZoomControl };

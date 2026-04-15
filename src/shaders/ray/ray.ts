@@ -1,8 +1,8 @@
-import {Program} from '../../webgl/Program';
+import { Program } from "../../webgl/Program";
 
-import ray_vert from './ray.vert.glsl';
-import ray_frag from './ray.frag.glsl';
-import ray_woit_frag from './ray_woit.frag.glsl';
+import ray_vert from "./ray.vert.glsl";
+import ray_frag from "./ray.frag.glsl";
+import ray_woit_frag from "./ray_woit.frag.glsl";
 
 export function rayScreen(): Program {
     return new Program("rayScreen", {

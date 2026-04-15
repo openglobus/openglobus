@@ -1,7 +1,7 @@
-import {Button} from './Button';
-import type {IButtonParams, ButtonEventsList} from './Button';
-import type {EventsHandler} from "../Events";
-import type {ViewEventsList} from "./View";
+import { Button } from "./Button";
+import type { IButtonParams, ButtonEventsList } from "./Button";
+import type { EventsHandler } from "../Events";
+import type { ViewEventsList } from "./View";
 
 interface IToggleButtonParams extends IButtonParams {
     isActive?: boolean;
@@ -13,8 +13,9 @@ type ToggleButtonEventsList = ["change"];
 const TOGGLEBUTTON_EVENTS: ToggleButtonEventsList = ["change"];
 
 class ToggleButton extends Button {
-
-    public override events: EventsHandler<ToggleButtonEventsList> & EventsHandler<ButtonEventsList> & EventsHandler<ViewEventsList>;
+    public override events: EventsHandler<ToggleButtonEventsList> &
+        EventsHandler<ButtonEventsList> &
+        EventsHandler<ViewEventsList>;
 
     protected _isActive: boolean;
     public preventClick: boolean;
@@ -63,7 +64,7 @@ class ToggleButton extends Button {
             this._mouseClickHandler(e);
             this.setActive(!this.isActive);
         }
-    }
+    };
 }
 
-export {ToggleButton}
+export { ToggleButton };

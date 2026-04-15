@@ -1,18 +1,18 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
-import {createColorRGB} from "../utils/shared";
-import {createEvents} from "../Events";
-import type {EventsHandler} from "../Events";
-import {Extent} from "../Extent";
-import {LonLat} from "../LonLat";
-import {Node} from "../quadTree/Node";
-import {Material} from "./Material";
-import {Planet} from "../scene/Planet";
-import {Segment} from "../segment/Segment";
-import {Vec3} from "../math/Vec3";
-import type {NumberArray3} from "../math/Vec3";
-import type {NumberArray4} from "../math/Vec4";
-import type {IDefaultTextureParams} from "../webgl/Handler";
+import { createColorRGB } from "../utils/shared";
+import { createEvents } from "../Events";
+import type { EventsHandler } from "../Events";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
+import { Node } from "../quadTree/Node";
+import { Material } from "./Material";
+import { Planet } from "../scene/Planet";
+import { Segment } from "../segment/Segment";
+import { Vec3 } from "../math/Vec3";
+import type { NumberArray3 } from "../math/Vec3";
+import type { NumberArray4 } from "../math/Vec4";
+import type { IDefaultTextureParams } from "../webgl/Handler";
 
 const FADING_RATIO = 30;
 
@@ -89,7 +89,6 @@ export interface ILayerParams {
  * @fires doubletouch
  */
 class Layer {
-
     static __counter__: number = 0;
 
     /**
@@ -236,7 +235,6 @@ class Layer {
     protected _iconSrc: string | null;
 
     constructor(name?: string | null, options: ILayerParams = {}) {
-
         this.__id = Layer.__counter__++;
 
         this._iconSrc = options.iconSrc || null;
@@ -296,12 +294,7 @@ class Layer {
         this._extentMerc = new Extent();
 
         // Setting the extent up
-        this.setExtent(
-            utils.createExtent(
-                options.extent,
-                new Extent(new LonLat(-180, -90), new LonLat(180, 90))
-            )
-        );
+        this.setExtent(utils.createExtent(options.extent, new Extent(new LonLat(-180, -90), new LonLat(180, 90))));
 
         /**
          * Layer picking color. Assign when added to the planet.
@@ -475,7 +468,6 @@ class Layer {
      * @param {Planet} planet - Planet render node.
      */
     public _assignPlanet(planet: Planet) {
-
         this._planet = planet;
 
         planet._layers.push(this);
@@ -507,7 +499,7 @@ class Layer {
     }
 
     public get isIdle(): boolean {
-        return this._planet && this._planet.quadTreeStrategy._terrainCompletedActivated || false;
+        return (this._planet && this._planet.quadTreeStrategy._terrainCompletedActivated) || false;
     }
 
     /**
@@ -739,7 +731,6 @@ class Layer {
 
     protected _preLoad() {
         if (this._planet && this._preLoadZoomLevels.length) {
-
             let p = this._planet,
                 maxZoom = Math.max(...this._preLoadZoomLevels);
 
@@ -799,7 +790,6 @@ class Layer {
         return this._extentMerc;
     }
 
-
     /**
      * Fly extent.
      * @public
@@ -850,7 +840,8 @@ class Layer {
     public _refreshFadingOpacity(minCurrZoom: number, maxCurrZoom: number) {
         let p = this._planet!;
         if (
-            this._visibility && p.getViewExtent().overlaps(this._extent) &&
+            this._visibility &&
+            p.getViewExtent().overlaps(this._extent) &&
             maxCurrZoom >= this.minZoom &&
             minCurrZoom <= this.maxZoom
         ) {
@@ -881,13 +872,9 @@ class Layer {
         this._planet?.quadTreeStrategy.clearLayerMaterial(this);
     }
 
-    public abortMaterialLoading(material: Material) {
+    public abortMaterialLoading(material: Material) {}
 
-    }
-
-    public abortLoading() {
-
-    }
+    public abortLoading() {}
 }
 
 export type LayerEventsList = [
@@ -1091,4 +1078,4 @@ export const LAYER_EVENTS: LayerEventsList = [
     "touchenter"
 ];
 
-export {Layer};
+export { Layer };

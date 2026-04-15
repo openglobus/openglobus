@@ -1,9 +1,9 @@
-import {Deferred} from '../Deferred';
-import {Rectangle} from '../Rectangle';
-import {TextureAtlas, TextureAtlasNode} from './TextureAtlas';
-import {Handler} from "../webgl/Handler";
-import type {HTMLImageElementExt} from "./ImagesCacheManager";
-import type {WebGLTextureExt} from "../webgl/Handler";
+import { Deferred } from "../Deferred";
+import { Rectangle } from "../Rectangle";
+import { TextureAtlas, TextureAtlasNode } from "./TextureAtlas";
+import type { WebGLTextureExt } from "../webgl/Handler";
+import { Handler } from "../webgl/Handler";
+import type { HTMLImageElementExt } from "./ImagesCacheManager";
 
 //@todo: get the value from shader module
 const MAX_SIZE = 11;
@@ -39,7 +39,7 @@ export interface IFontParams {
     };
     distanceField: {
         distanceRange: number;
-    }
+    };
     chars: IChar[];
     kernings: IKerning[];
     pages: string[];
@@ -72,7 +72,7 @@ interface IMetrics extends IChar {
     nChar: string;
     nCode: number;
     nWidth: number;
-    nHeight: number
+    nHeight: number;
     nAdvance: number;
     nXOffset: number;
     nYOffset: number;
@@ -106,7 +106,7 @@ class FontTextureAtlasNode extends TextureAtlasNode {
             nAdvance: 0,
             nXOffset: 0,
             nYOffset: 0
-        }
+        };
     }
 }
 
@@ -183,9 +183,8 @@ class FontAtlas {
 
         for (let i = 0; i < chars.length; i++) {
             let ci = chars[i];
-            let ti = ci.char;
 
-            idToChar[ci.id] = ti;
+            idToChar[ci.id] = ci.char;
 
             let r = new Rectangle(ci.x, ci.y, ci.x + ci.width, ci.y + ci.height);
 
@@ -210,7 +209,7 @@ class FontAtlas {
             tc[11] = r.top / h;
 
             let taNode = new FontTextureAtlasNode(r, tc);
-            let ciNorm = ci.char.normalize('NFKC');
+            let ciNorm = ci.char.normalize("NFKC");
             let ciCode = ciNorm.charCodeAt(0);
 
             //taNode.metrics = ci;
@@ -370,7 +369,6 @@ class FontAtlas {
     }
 
     public loadFont(faceName: string, srcDir: string, atlasUrl: string) {
-
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
 
@@ -404,7 +402,6 @@ class FontAtlas {
                 return response.json();
             })
             .then((data: IFontParams) => {
-
                 this._applyFontDataToAtlas(atlas, data, index);
 
                 let img = new Image();
@@ -416,11 +413,11 @@ class FontAtlas {
                 img.src = `${srcDir}/${data.pages[0]}`;
                 img.crossOrigin = "Anonymous";
             })
-            .catch(err => {
+            .catch((err) => {
                 def.reject();
-                return {'status': "error", 'msg': err.toString()};
+                return { status: "error", msg: err.toString() };
             });
     }
 }
 
-export {FontAtlas};
+export { FontAtlas };

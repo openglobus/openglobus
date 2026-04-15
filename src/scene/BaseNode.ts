@@ -4,7 +4,6 @@
  * @param {string} name - Node name.
  */
 class BaseNode {
-
     static __counter__: number = 0;
 
     protected __id: number;
@@ -40,7 +39,6 @@ class BaseNode {
     public parentNode: BaseNode | null;
 
     constructor(name?: string) {
-
         this.__id = BaseNode.__counter__++;
 
         this._name = name || `nonameNode:${this.__id}`;
@@ -112,4 +110,4 @@ class BaseNode {
     }
 }
 
-export {BaseNode};
+export { BaseNode };

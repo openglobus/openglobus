@@ -1,19 +1,17 @@
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import {Dialog} from '../ui/Dialog';
-import {Layer} from "../layer/Layer";
-import {Slider} from "../ui/Slider";
-import {Sun} from "./Sun";
-import {ToggleButton} from "../ui/ToggleButton";
-import {View} from '../ui/View';
-import {Atmosphere} from "./atmosphere/Atmosphere";
-import {Color} from "../ui/Color";
-import {SimpleSkyBackground} from "../control/SimpleSkyBackground";
-import {SHADE_MODE_PHONG, SHADE_MODE_UNLIT} from "../shadeModeConstants";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
+import { Dialog } from "../ui/Dialog";
+import { Layer } from "../layer/Layer";
+import { Slider } from "../ui/Slider";
+import { Sun } from "./Sun";
+import { ToggleButton } from "../ui/ToggleButton";
+import { View } from "../ui/View";
+import { Atmosphere } from "./atmosphere/Atmosphere";
+import { Color } from "../ui/Color";
+import { SimpleSkyBackground } from "../control/SimpleSkyBackground";
+import { SHADE_MODE_PHONG, SHADE_MODE_UNLIT } from "../shadeModeConstants";
 
-interface ILightingParams extends IControlParams {
-
-}
+interface ILightingParams extends IControlParams {}
 
 const SUN_STOP_SVG_ICON = `<?xml version="1.0" encoding="utf-8"?><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 122.88 70.41" style="enable-background:new 0 0 122.88 70.41" xml:space="preserve"><g><path d="M60.91,19.12c6.95,0,13.24,2.95,17.8,7.72c4.55,4.77,7.37,11.37,7.37,18.64c0,1.94-0.2,3.83-0.58,5.65h31.61 c2.1,0,2.62,1.16,2.62,2.59c0,1.43-0.52,2.59-2.62,2.59H7.09c-2.1,0-2.62-1.16-2.62-2.59c0-1.43,0.52-2.59,2.62-2.59h29.23 c-0.38-1.82-0.58-3.71-0.58-5.65c0-7.28,2.82-13.87,7.37-18.64C47.67,22.08,53.96,19.12,60.91,19.12L60.91,19.12L60.91,19.12z M63.4,70.41c-2.1,0-2.62-1.16-2.62-2.59s0.52-2.59,2.62-2.59h56.86c2.1,0,2.62,1.16,2.62,2.59s-0.52,2.59-2.62,2.59H63.4 L63.4,70.41z M2.62,70.41c-2.1,0-2.62-1.16-2.62-2.59s0.52-2.59,2.62-2.59h29.51c2.1,0,2.62,1.16,2.62,2.59s-0.52,2.59-2.62,2.59 H2.62L2.62,70.41z M38.39,9.46c-0.78-1.35-0.32-3.07,1.03-3.85c1.35-0.78,3.07-0.32,3.85,1.03l3.62,6.27 c0.78,1.35,0.32,3.07-1.03,3.85c-1.35,0.78-3.07,0.32-3.85-1.03L38.39,9.46L38.39,9.46L38.39,9.46z M58.67,2.83 c0-1.56,1.27-2.83,2.83-2.83c1.56,0,2.83,1.27,2.83,2.83v7.24c0,1.56-1.27,2.83-2.83,2.83c-1.56,0-2.83-1.26-2.83-2.83V2.83 L58.67,2.83L58.67,2.83z M79.56,7.23c0.77-1.35,2.49-1.81,3.84-1.04c1.35,0.77,1.81,2.49,1.04,3.84l-3.62,6.27 c-0.77,1.35-2.49,1.81-3.84,1.04c-1.35-0.77-1.81-2.49-1.04-3.84L79.56,7.23L79.56,7.23L79.56,7.23z M95.45,21.48 c1.35-0.78,3.07-0.32,3.85,1.03c0.78,1.35,0.32,3.07-1.03,3.85L92,29.98c-1.35,0.78-3.07,0.32-3.85-1.03 c-0.78-1.35-0.32-3.07,1.03-3.85L95.45,21.48L95.45,21.48L95.45,21.48z M102.08,41.76c1.56,0,2.83,1.27,2.83,2.83 c0,1.56-1.27,2.83-2.83,2.83h-7.24c-1.56,0-2.83-1.26-2.83-2.83s1.26-2.83,2.83-2.83H102.08L102.08,41.76L102.08,41.76z M19.74,46.25c-1.56,0-2.83-1.27-2.83-2.83c0-1.56,1.27-2.83,2.83-2.83h7.24c1.56,0,2.83,1.26,2.83,2.83s-1.27,2.83-2.83,2.83 H19.74L19.74,46.25L19.74,46.25z M24.14,25.35c-1.35-0.77-1.81-2.49-1.04-3.84c0.77-1.35,2.49-1.81,3.84-1.04l6.27,3.62 c1.35,0.77,1.81,2.49,1.04,3.84c-0.77,1.35-2.49,1.81-3.84,1.04L24.14,25.35L24.14,25.35L24.14,25.35z"/></g></svg>`;
 const SUN_ACTIVE_SVG_ICON = `<?xml version="1.0"?>
@@ -40,9 +38,7 @@ const LIGHTING_ENABLED_SVG_ICON = `<?xml version="1.0" encoding="utf-8"?>
 const ATMOSPHERE_SVG_ICON = `<?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
 <svg width="800px" height="800px" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path fill="#000000" d="M135.688 18.5c-6.798 74.842-23.842 85.39-107.907 59.656 84.85 52.022 73.57 64.954-6.843 96.938 87.743-10.27 103.29 4.89 70.75 87.594 17.805-27.56 32.5-44.498 46.282-54.47-11.813 28.26-18.345 59.274-18.345 91.813 0 84.184 43.71 157.96 109.656 200.376-41.624-43.834-67.686-102.7-67.686-167.875 0-134.923 109.45-244.405 244.375-244.405 30.92 0 60.76 5.762 88 16.25-38.584-26.87-85.517-42.625-136.064-42.625-55.257 0-106.14 18.802-146.562 50.375 4.627-18.783 17.39-38.073 41.03-60.906C190.18 90.942 153.53 95.634 135.69 18.5zm10.03 77.188c5.67.002 11.428 1.247 16.876 3.874 14.506 6.998 22.72 21.81 22 36.938-10.26 10.87-19.507 22.696-27.594 35.344-9.035 2.753-19.075 2.27-28.25-2.156-19.37-9.343-27.5-32.6-18.156-51.97 6.715-13.92 20.638-22.036 35.125-22.03z"/></svg>`;
 
-
-const TEMPLATE =
-    `<div class="og-lighing og-options-container">
+const TEMPLATE = `<div class="og-lighing og-options-container">
 
          <div class="og-option">
            <div class="og-suncontrol"></div>
@@ -87,7 +83,7 @@ const TEMPLATE =
 
     </div>`;
 
-const ICON_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="256" height="256" viewBox="0 0 256 256" xml:space="preserve">
+const ICON_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256" height="256" viewBox="0 0 256 256" xml:space="preserve">
 
 <defs>
 </defs>
@@ -145,7 +141,6 @@ export class Lighting extends Control {
     public $specular: HTMLElement | null;
     public $atmosphereOpacity: HTMLElement | null;
     public $simpleSkyBackground: HTMLElement | null;
-
 
     constructor(options: ILightingParams = {}) {
         super(options);
@@ -289,7 +284,6 @@ export class Lighting extends Control {
     }
 
     public override oninit() {
-
         this._toggleBtn.appendTo(this.renderer!.div!);
         this._dialog.appendTo(this.renderer!.div!);
         this._panel.appendTo(this._dialog.container!);
@@ -478,60 +472,48 @@ export class Lighting extends Control {
         });
 
         this._opacity.events.on("change", (val: number) => {
-            if (this._selectedLayer)
-                this._selectedLayer.opacity = val;
+            if (this._selectedLayer) this._selectedLayer.opacity = val;
         });
 
         this._ambient_r.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._ambient)
-                this._selectedLayer._ambient[0] = val
+            if (this._selectedLayer && this._selectedLayer._ambient) this._selectedLayer._ambient[0] = val;
         });
 
         this._ambient_g.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._ambient)
-                this._selectedLayer._ambient[1] = val
+            if (this._selectedLayer && this._selectedLayer._ambient) this._selectedLayer._ambient[1] = val;
         });
 
         this._ambient_b.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._ambient)
-                this._selectedLayer._ambient[2] = val
+            if (this._selectedLayer && this._selectedLayer._ambient) this._selectedLayer._ambient[2] = val;
         });
 
         this._diffuse_r.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._diffuse)
-                this._selectedLayer._diffuse[0] = val
+            if (this._selectedLayer && this._selectedLayer._diffuse) this._selectedLayer._diffuse[0] = val;
         });
 
         this._diffuse_g.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._diffuse)
-                this._selectedLayer._diffuse[1] = val
+            if (this._selectedLayer && this._selectedLayer._diffuse) this._selectedLayer._diffuse[1] = val;
         });
 
         this._diffuse_b.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._diffuse)
-                this._selectedLayer._diffuse[2] = val
+            if (this._selectedLayer && this._selectedLayer._diffuse) this._selectedLayer._diffuse[2] = val;
         });
 
         this._specular_r.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._specular)
-                this._selectedLayer._specular[0] = val
+            if (this._selectedLayer && this._selectedLayer._specular) this._selectedLayer._specular[0] = val;
         });
 
         this._specular_g.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._specular)
-                this._selectedLayer._specular[1] = val
+            if (this._selectedLayer && this._selectedLayer._specular) this._selectedLayer._specular[1] = val;
         });
 
         this._specular_b.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._specular)
-                this._selectedLayer._specular[2] = val
+            if (this._selectedLayer && this._selectedLayer._specular) this._selectedLayer._specular[2] = val;
         });
 
         this._shininess.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._specular)
-                this._selectedLayer._specular[3] = val
+            if (this._selectedLayer && this._selectedLayer._specular) this._selectedLayer._specular[3] = val;
         });
-
 
         if (this.planet) {
             this.planet!.events.on("layeradd", this._onLayerAdd, this);
@@ -564,6 +546,5 @@ export class Lighting extends Control {
         this._panel.el!.querySelector<HTMLSelectElement>("#layers")!.value = e.name;
     }
 
-    protected _onLayerRemove(e: Layer) {
-    }
+    protected _onLayerRemove(e: Layer) {}
 }

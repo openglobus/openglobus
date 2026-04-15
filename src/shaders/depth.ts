@@ -1,4 +1,4 @@
-import {Program} from '../webgl/Program';
+import { Program } from "../webgl/Program";
 
 export function depth() {
     return new Program("depth", {
@@ -8,16 +8,14 @@ export function depth() {
         attributes: {
             corners: "vec2"
         },
-        vertexShader:
-            `#version 300 es
+        vertexShader: `#version 300 es
 
             in vec2 corners;
 
             void main(void) {
                 gl_Position = vec4(corners, 0.0, 1.0);
             }`,
-        fragmentShader:
-            `#version 300 es
+        fragmentShader: `#version 300 es
 
             precision highp float;
 

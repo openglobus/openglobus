@@ -1,33 +1,33 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
-import {Billboard} from "./billboard/Billboard";
-import type {EntityCollection} from "./EntityCollection";
-import type {IBillboardParams} from "./billboard/Billboard";
-import type {EntityCollectionEvents} from "./EntityCollection";
-import {Extent} from "../Extent";
-import {Geometry} from "./geometry/Geometry";
-import {GeoObject} from "./geoObject/GeoObject";
-import type {IGeometryParams} from "./geometry/Geometry";
-import type {IGeoObjectParams} from "./geoObject/GeoObject";
-import {LonLat} from "../LonLat";
-import {Label} from "./label/Label";
-import type {ILabelParams} from "./label/Label";
-import {Vec3} from "../math/Vec3";
-import type {NumberArray3} from "../math/Vec3";
-import type {NumberArray2} from "../math/Vec2";
-import type {Planet} from "../scene/Planet";
-import {PointCloud} from "./pointCloud/PointCloud";
-import {Polyline} from "./polyline/Polyline";
-import type {IPointCloudParams} from "./pointCloud/PointCloud";
-import type {IPolylineParams} from "./polyline/Polyline";
-import {Ray} from "./ray/Ray";
-import type {IRayParams} from "./ray/Ray";
-import {Strip} from "./strip/Strip";
-import type {IStripParams} from "./strip/Strip";
-import type {Vector, VectorEventsType} from "../layer/Vector";
-import type {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
-import {Quat} from "../math/Quat";
-import {clamp} from "../math";
+import { Billboard } from "./billboard/Billboard";
+import type { EntityCollection } from "./EntityCollection";
+import type { IBillboardParams } from "./billboard/Billboard";
+import type { EntityCollectionEvents } from "./EntityCollection";
+import { Extent } from "../Extent";
+import { Geometry } from "./geometry/Geometry";
+import { GeoObject } from "./geoObject/GeoObject";
+import type { IGeometryParams } from "./geometry/Geometry";
+import type { IGeoObjectParams } from "./geoObject/GeoObject";
+import { LonLat } from "../LonLat";
+import { Label } from "./label/Label";
+import type { ILabelParams } from "./label/Label";
+import { Vec3 } from "../math/Vec3";
+import type { NumberArray3 } from "../math/Vec3";
+import type { NumberArray2 } from "../math/Vec2";
+import type { Planet } from "../scene/Planet";
+import { PointCloud } from "./pointCloud/PointCloud";
+import { Polyline } from "./polyline/Polyline";
+import type { IPointCloudParams } from "./pointCloud/PointCloud";
+import type { IPolylineParams } from "./polyline/Polyline";
+import { Ray } from "./ray/Ray";
+import type { IRayParams } from "./ray/Ray";
+import { Strip } from "./strip/Strip";
+import type { IStripParams } from "./strip/Strip";
+import type { Vector, VectorEventsType } from "../layer/Vector";
+import type { EntityCollectionNode } from "../quadTree/EntityCollectionNode";
+import { Quat } from "../math/Quat";
+import { clamp } from "../math";
 
 /**
  * Interface for Entity parameters.
@@ -113,7 +113,6 @@ export interface IEntityParams {
  * @param {boolean} [options.forceGlobalScale] - Forces global scale for the entity make the same scale as its parent.
  */
 class Entity {
-
     static __counter__: number = 0;
 
     protected _name: string;
@@ -131,7 +130,6 @@ class Entity {
      * @type {Object}
      */
     public properties: any;
-
 
     /**
      * Children entities.
@@ -307,7 +305,6 @@ class Entity {
     protected _useDirectQuaternion: boolean;
 
     constructor(options: IEntityParams = {}) {
-
         options.properties = options.properties || {};
 
         this.__id = Entity.__counter__++;
@@ -395,7 +392,6 @@ class Entity {
         this.geoObject = this._createOptionFeature<GeoObject, IGeoObjectParams>("geoObject", options.geoObject);
 
         this.strip = this._createOptionFeature<Strip, IStripParams>("strip", options.strip);
-
     }
 
     public get name(): string {
@@ -410,14 +406,16 @@ class Entity {
     }
 
     public get isEmpty(): boolean {
-        return !(this.strip
-            || this.polyline
-            || this.ray
-            || this.geoObject
-            || this.geometry
-            || this.billboard
-            || this.label
-            || this.pointCloud);
+        return !(
+            this.strip ||
+            this.polyline ||
+            this.ray ||
+            this.geoObject ||
+            this.geometry ||
+            this.billboard ||
+            this.label ||
+            this.pointCloud
+        );
     }
 
     /**
@@ -441,9 +439,7 @@ class Entity {
      * @param isRelative
      */
     public set relativePosition(isRelative: boolean) {
-
         if (isRelative !== this._relativePosition) {
-
             let cart = this.getAbsoluteCartesian(),
                 pitch = this.getAbsolutePitch(),
                 yaw = this.getAbsoluteYaw(),
@@ -522,10 +518,7 @@ class Entity {
         return "Entity";
     }
 
-    protected _createOptionFeature<T, K>(
-        featureName: string,
-        options?: T | K
-    ): T | null {
+    protected _createOptionFeature<T, K>(featureName: string, options?: T | K): T | null {
         if (options) {
             let c = this._featureConstructorArray[featureName];
             return c[1].call(this, new c[0](options)) as T;
@@ -677,7 +670,6 @@ class Entity {
         if (this._entityCollection) {
             let up = (this._entityCollection.renderNode as Planet).ellipsoid.getSurfaceNormal3v(p0);
             rot = lq.setLookRotation(cart.sub(p0), up).conjugate();
-
         } else {
             rot = lq.setLookRotation(cart.sub(p0), Vec3.UP).conjugate();
         }
@@ -727,7 +719,6 @@ class Entity {
      * @param {Quat} rot - Quaternion from glTF
      */
     public setDirectQuaternionRotation(rot: Quat) {
-
         this._qRot.copy(rot);
         this._useDirectQuaternion = true;
 
@@ -887,7 +878,7 @@ class Entity {
                 lookLength = this._entityCollection.renderNode.renderer.activeCamera.eye.distance(this._rootCartesian);
             }
             //the same in the shader
-            scd = scaleByDistance[2] * clamp(lookLength, scaleByDistance[0], scaleByDistance[1]) / scaleByDistance[0];
+            scd = (scaleByDistance[2] * clamp(lookLength, scaleByDistance[0], scaleByDistance[1])) / scaleByDistance[0];
         }
         return scd;
     }
@@ -913,7 +904,10 @@ class Entity {
 
         if (this.parent && this._relativePosition) {
             let scd = this._getScaleByDistance();
-            pos = absolutCartesian.sub(this.parent.getAbsoluteCartesian()).scale(1 / scd).divA(this.parent._absoluteScale);
+            pos = absolutCartesian
+                .sub(this.parent.getAbsoluteCartesian())
+                .scale(1 / scd)
+                .divA(this.parent._absoluteScale);
             pos = this.parent._absoluteQRot.conjugate().mulVec3(pos);
         }
 
@@ -941,7 +935,6 @@ class Entity {
      * @param {number} z - 3d space Z - position.
      */
     public setCartesian(x: number, y: number, z: number) {
-
         this._cartesian.set(x, y, z);
 
         this._updateAbsolutePosition();
@@ -979,7 +972,6 @@ class Entity {
     }
 
     public _updateAbsolutePosition() {
-
         let parent = this.parent;
 
         if (parent && this._relativePosition) {
@@ -999,7 +991,9 @@ class Entity {
             }
             parent._absoluteQRot.mulRes(this._qRot, this._absoluteQRot);
 
-            let rotCart = parent._absoluteQRot.mulVec3(this._cartesian.add(this._localPosition)).mulA(parent._absoluteScale);
+            let rotCart = parent._absoluteQRot
+                .mulVec3(this._cartesian.add(this._localPosition))
+                .mulA(parent._absoluteScale);
             parent._absoluteLocalPosition.addRes(rotCart, this._absoluteLocalPosition);
         } else {
             this._qFrame = Quat.IDENTITY;
@@ -1047,7 +1041,6 @@ class Entity {
      * @param {boolean} skipLonLat - skip geodetic calculation.
      */
     public _setCartesian3vSilent(cartesian: Vec3, skipLonLat: boolean = false) {
-
         this._cartesian.copy(cartesian);
 
         this._updateAbsolutePosition();
@@ -1389,7 +1382,6 @@ class Entity {
      * @returns {Extent} Geodetic extent.
      */
     public getExtent(): Extent {
-
         let res;
         let c = this._lonLat;
 
@@ -1430,4 +1422,4 @@ class Entity {
     }
 }
 
-export {Entity};
+export { Entity };

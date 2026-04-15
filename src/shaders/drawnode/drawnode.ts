@@ -1,19 +1,19 @@
-import  {AtmosphereParameters, DEFAULT_PARAMS} from "../atmos/atmos";
-import {Program} from "../../webgl/Program";
+import { AtmosphereParameters, DEFAULT_PARAMS } from "../atmos/atmos";
+import { Program } from "../../webgl/Program";
 
-import drawnode_screen_wl from './drawnode_screen_wl.vert.glsl';
+import drawnode_screen_wl from "./drawnode_screen_wl.vert.glsl";
 
-import drawnode_screen_wl_atmos_forward_frag from './drawnode_screen_wl_atmos_forward.frag.glsl';
-import drawnode_screen_wl_noatmos_forward_frag from './drawnode_screen_wl_noatmos_forward.frag.glsl';
+import drawnode_screen_wl_atmos_forward_frag from "./drawnode_screen_wl_atmos_forward.frag.glsl";
+import drawnode_screen_wl_noatmos_forward_frag from "./drawnode_screen_wl_noatmos_forward.frag.glsl";
 
-import drawnode_screen_deferred_frag from './drawnode_screen_deferred.frag.glsl';
+import drawnode_screen_deferred_frag from "./drawnode_screen_deferred.frag.glsl";
 
-import drawnode_colorPicking_vert from './drawnode_colorPicking.vert.glsl';
-import drawnode_colorPicking_frag from './drawnode_colorPicking.frag.glsl';
+import drawnode_colorPicking_vert from "./drawnode_colorPicking.vert.glsl";
+import drawnode_colorPicking_frag from "./drawnode_colorPicking.frag.glsl";
 
-import drawnode_depth_vert from './drawnode_depth.vert.glsl';
-import drawnode_depth_frag from './drawnode_depth.frag.glsl';
-import {stringTemplate2} from "../../utils/shared";
+import drawnode_depth_vert from "./drawnode_depth.vert.glsl";
+import drawnode_depth_frag from "./drawnode_depth.frag.glsl";
+import { stringTemplate2 } from "../../utils/shared";
 
 // REMEMBER!
 // src*(1)+dest*(1-src.alpha)
@@ -51,8 +51,9 @@ export function drawnode_screen_deferred(): Program {
             lightPosition: "vec3",
             shadeMode: "float",
             camHeight: "float",
-            nightTextureCoefficient: "float",
-        }, attributes: {
+            nightTextureCoefficient: "float"
+        },
+        attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
@@ -89,7 +90,8 @@ export function drawnode_screen_wl_forward_noatmos(): Program {
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
             shadeMode: "float"
-        }, attributes: {
+        },
+        attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
@@ -129,7 +131,8 @@ export function drawnode_screen_wl_forward_atmos(atmosParams: AtmosphereParamete
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
             shadeMode: "float"
-        }, attributes: {
+        },
+        attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
@@ -153,7 +156,8 @@ export function drawnode_colorPicking(): Program {
             pickingMaskArr: "sampler2darraylegacy",
             pickingColorArr: "vec4",
             height: "float"
-        }, attributes: {
+        },
+        attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
@@ -173,7 +177,8 @@ export function drawnode_depth(): Program {
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             frustumPickingColor: "float"
-        }, attributes: {
+        },
+        attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3"
         },

@@ -1,4 +1,4 @@
-import {Program} from "../webgl/Program";
+import { Program } from "../webgl/Program";
 
 export function applyDeferredDepth() {
     return new Program("applyDeferredDepth", {

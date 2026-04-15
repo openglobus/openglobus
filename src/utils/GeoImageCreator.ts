@@ -1,14 +1,13 @@
-import * as utils from '../utils/shared';
-import {BaseGeoImage} from "../layer/BaseGeoImage";
-import {Framebuffer} from '../webgl/Framebuffer';
-import {LonLat} from '../LonLat';
-import {Program} from '../webgl/Program';
-import {Planet} from "../scene/Planet";
-import {doubleToTwoFloats2} from "../math/coder";
-import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import * as utils from "../utils/shared";
+import { BaseGeoImage } from "../layer/BaseGeoImage";
+import { Framebuffer } from "../webgl/Framebuffer";
+import { LonLat } from "../LonLat";
+import { Program } from "../webgl/Program";
+import { Planet } from "../scene/Planet";
+import { doubleToTwoFloats2 } from "../math/coder";
+import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 
 export class GeoImageCreator {
-
     public MAX_FRAMES: number;
 
     protected _gridSize: number;
@@ -73,7 +72,6 @@ export class GeoImageCreator {
         let tempArr = new Float32Array(2);
 
         for (let i = 0; i <= gs; i++) {
-
             let P03i = new LonLat(c[0].lon + i * v03.lon, c[0].lat + i * v03.lat),
                 P12i = new LonLat(c[1].lon + i * v12.lon, c[1].lat + i * v12.lat);
 
@@ -157,13 +155,12 @@ export class GeoImageCreator {
     }
 
     protected _initBuffers() {
-
         let h = this._planet.renderer!.handler!;
 
-        this._framebuffer = new Framebuffer(h, {width: 2, height: 2, useDepth: false});
+        this._framebuffer = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
         this._framebuffer.init();
 
-        this._framebufferMercProj = new Framebuffer(h, {width: 2, height: 2, useDepth: false});
+        this._framebufferMercProj = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
         this._framebufferMercProj.init();
 
         let gs = Math.log2(this._gridSize);
@@ -177,21 +174,20 @@ export class GeoImageCreator {
     }
 
     protected _initShaders() {
-
-        this._planet.renderer!.handler.addProgram(new Program("geoImageTransform", {
-            uniforms: {
-                sourceTexture: "sampler2d",
-                extentParamsHigh: "vec4",
-                extentParamsLow: "vec4",
-                isFullExtent: "bool"
-            },
-            attributes: {
-                cornersHigh: "vec2",
-                cornersLow: "vec2",
-                texCoords: "vec2"
-            },
-            vertexShader:
-                `attribute vec2 cornersHigh; 
+        this._planet.renderer!.handler.addProgram(
+            new Program("geoImageTransform", {
+                uniforms: {
+                    sourceTexture: "sampler2d",
+                    extentParamsHigh: "vec4",
+                    extentParamsLow: "vec4",
+                    isFullExtent: "bool"
+                },
+                attributes: {
+                    cornersHigh: "vec2",
+                    cornersLow: "vec2",
+                    texCoords: "vec2"
+                },
+                vertexShader: `attribute vec2 cornersHigh; 
                      attribute vec2 cornersLow;
                       attribute vec2 texCoords; 
                       uniform vec4 extentParamsHigh; 
@@ -203,8 +199,7 @@ export class GeoImageCreator {
                           vec2 lowDiff = cornersLow - extentParamsLow.xy;                                        
                           gl_Position = vec4((-1.0 + (highDiff * step(1.0, length(highDiff)) + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0), 0.0, 1.0); 
                       }`,
-            fragmentShader:
-                `precision highp float;
+                fragmentShader: `precision highp float;
                         uniform sampler2D sourceTexture;
                         uniform bool isFullExtent;
                         varying vec2 v_texCoords;
@@ -215,6 +210,7 @@ export class GeoImageCreator {
                             }
                             gl_FragColor = texture2D(sourceTexture, v_texCoords);
                         }`
-        }));
+            })
+        );
     }
 }

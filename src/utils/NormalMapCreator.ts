@@ -1,12 +1,12 @@
 import * as quadTree from "../quadTree/quadTree";
-import {Framebuffer} from "../webgl/Framebuffer";
-import {Lock, Key} from "../Lock";
-import {Planet} from "../scene/Planet";
-import {Program} from "../webgl/Program";
-import {QueueArray} from "../QueueArray";
-import {Segment} from "../segment/Segment";
-import {Handler} from "../webgl/Handler";
-import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import { Framebuffer } from "../webgl/Framebuffer";
+import { Lock, Key } from "../Lock";
+import { Planet } from "../scene/Planet";
+import { Program } from "../webgl/Program";
+import { QueueArray } from "../QueueArray";
+import { Segment } from "../segment/Segment";
+import { Handler } from "../webgl/Handler";
+import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 
 interface INormalMapCreatorParams {
     minTableSize?: number;
@@ -16,7 +16,6 @@ interface INormalMapCreatorParams {
 }
 
 export class NormalMapCreator {
-
     protected _minTabelSize: number;
     protected _maxTableSize: number;
 
@@ -36,7 +35,6 @@ export class NormalMapCreator {
     protected _lock: Lock;
 
     constructor(planet: Planet, options: INormalMapCreatorParams = {}) {
-
         this._minTabelSize = options.minTableSize || 1;
         this._maxTableSize = options.maxTableSize || 8;
 
@@ -65,7 +63,6 @@ export class NormalMapCreator {
     }
 
     public init() {
-
         this._maxTableSize = this._planet.maxGridSize || 8;
 
         this._handler = this._planet.renderer!.handler;
@@ -82,8 +79,7 @@ export class NormalMapCreator {
             uniforms: {
                 s_texture: "sampler2d"
             },
-            vertexShader:
-                `attribute vec2 a_position;
+            vertexShader: `attribute vec2 a_position;
                        attribute vec2 a_texCoord;
 
                       varying vec2 blurCoordinates[5];
@@ -158,8 +154,7 @@ export class NormalMapCreator {
 
         //create vertices hasharray for different grid size segments from 2^4(16) to 2^7(128)
         for (let p = this._minTabelSize; p <= this._maxTableSize; p++) {
-
-            const gs = (1 << p);//Math.pow(2, p);
+            const gs = 1 << p; //Math.pow(2, p);
             const gs2 = gs / 2;
 
             let vertices = new Float32Array((gs + 1) * (gs + 1) * 2);
@@ -172,14 +167,12 @@ export class NormalMapCreator {
                 }
             }
 
-            this._verticesBufferArray[gs] = this._handler.createArrayBuffer(
-                vertices,
-                2,
-                vertices.length / 2
-            );
+            this._verticesBufferArray[gs] = this._handler.createArrayBuffer(vertices, 2, vertices.length / 2);
 
             this._indexBufferArray[gs] =
-                this._planet._indexesCache[Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)].buffer!;
+                this._planet._indexesCache[Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][
+                    Math.log2(gs)
+                ].buffer!;
         }
 
         //create 2d screen square buffer
@@ -190,12 +183,7 @@ export class NormalMapCreator {
 
     protected _drawNormalMapBlur(segment: Segment): boolean {
         let normals = segment.normalMapNormals;
-        if (
-            segment.node &&
-            segment.node.getState() !== quadTree.NOTRENDERING &&
-            normals &&
-            normals.length
-        ) {
+        if (segment.node && segment.node.getState() !== quadTree.NOTRENDERING && normals && normals.length) {
             const size = normals.length / 3;
             const gridSize = Math.sqrt(size) - 1;
 
@@ -231,12 +219,7 @@ export class NormalMapCreator {
                 gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-                gl.drawElements(
-                    gl.TRIANGLE_STRIP,
-                    this._indexBufferArray[gridSize].numItems,
-                    gl.UNSIGNED_INT,
-                    0
-                );
+                gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_INT, 0);
 
                 gl.deleteBuffer(_normalsBuffer);
 
@@ -271,12 +254,7 @@ export class NormalMapCreator {
 
     protected _drawNormalMapNoBlur(segment: Segment): boolean {
         let normals = segment.normalMapNormals;
-        if (
-            segment.node &&
-            segment.node.getState() !== quadTree.NOTRENDERING &&
-            normals &&
-            normals.length
-        ) {
+        if (segment.node && segment.node.getState() !== quadTree.NOTRENDERING && normals && normals.length) {
             const size = normals.length / 3;
             const gridSize = Math.sqrt(size) - 1;
 
@@ -312,12 +290,7 @@ export class NormalMapCreator {
                 gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-                gl.drawElements(
-                    gl.TRIANGLE_STRIP,
-                    this._indexBufferArray[gridSize].numItems,
-                    gl.UNSIGNED_INT,
-                    0
-                );
+                gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_INT, 0);
 
                 gl.deleteBuffer(_normalsBuffer);
 
@@ -438,5 +411,4 @@ export class NormalMapCreator {
     public free(key: Key) {
         this._lock.free(key);
     }
-
 }

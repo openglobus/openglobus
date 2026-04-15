@@ -1,13 +1,13 @@
 import * as mercator from "../mercator";
-import {Layer} from "./Layer";
-import type {ILayerParams, LayerEventsList} from "./Layer";
-import {RENDERING} from "../quadTree/quadTree";
-import {Segment} from "../segment/Segment";
-import {stringTemplate} from "../utils/shared";
-import type {EventsHandler} from "../Events";
-import {Material} from "./Material";
-import type {NumberArray4} from "../math/Vec4";
-import type {FetchCache, IResponse} from "../utils/Loader";
+import { Layer } from "./Layer";
+import type { ILayerParams, LayerEventsList } from "./Layer";
+import { RENDERING } from "../quadTree/quadTree";
+import { Segment } from "../segment/Segment";
+import { stringTemplate } from "../utils/shared";
+import type { EventsHandler } from "../Events";
+import { Material } from "./Material";
+import type { NumberArray4 } from "../math/Vec4";
+import type { FetchCache, IResponse } from "../utils/Loader";
 
 export interface IXYZParams extends ILayerParams {
     url?: string;
@@ -23,10 +23,7 @@ export interface IXYZParams extends ILayerParams {
     cache?: FetchCache;
 }
 
-type XYZEventsList = [
-    "load",
-    "loadend"
-];
+type XYZEventsList = ["load", "loadend"];
 
 type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsList>;
 
@@ -62,7 +59,6 @@ type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsLis
  * });
  */
 export class XYZ extends Layer {
-
     public override events: XYZEventsType;
 
     /**
@@ -194,7 +190,6 @@ export class XYZ extends Layer {
      * @param {boolean} [forceLoading=false] -
      */
     public override loadMaterial(material: Material, forceLoading: boolean = false) {
-
         let seg = material.segment;
 
         if (this._isBaseLayer) {
@@ -211,7 +206,8 @@ export class XYZ extends Layer {
             if (this._checkSegment(seg)) {
                 material.loadingAttempts++;
 
-                this._planet!._tileLoader.load({
+                this._planet!._tileLoader.load(
+                    {
                         sender: this,
                         src: this._getHTTPRequestString(material.segment),
                         type: "imageBitmap",
@@ -263,7 +259,11 @@ export class XYZ extends Layer {
 
     protected _getSubdomain(): string {
         this._requestCount++;
-        return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomains * this._s.length) / this._requestsPeerSubdomains)];
+        return this._s[
+            Math.floor(
+                (this._requestCount % (this._requestsPeerSubdomains * this._s.length)) / this._requestsPeerSubdomains
+            )
+        ];
     }
 
     /**
@@ -291,7 +291,6 @@ export class XYZ extends Layer {
         } else if (material.segment.tileZoom < this.minNativeZoom) {
             material.textureNotExists();
         } else {
-
             let segment = material.segment,
                 pn = segment.node,
                 notEmpty = false;
@@ -322,9 +321,7 @@ export class XYZ extends Layer {
                     if (pnm) {
                         !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm, true);
                     } else {
-                        pnm = pn.segment.materials[material.layer.__id] = material.layer.createMaterial(
-                            pn.segment
-                        );
+                        pnm = pn.segment.materials[material.layer.__id] = material.layer.createMaterial(pn.segment);
                         this.loadMaterial(pnm, true);
                     }
                 }

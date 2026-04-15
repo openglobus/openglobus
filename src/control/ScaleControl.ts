@@ -1,19 +1,19 @@
-import {binarySearch, parseHTML} from "../utils/shared";
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import {RADIANS} from "../math";
-import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
-import {GlobusTerrain} from "../terrain/GlobusTerrain";
-import type {IMouseState} from "../renderer/RendererEvents";
+import { binarySearch, parseHTML } from "../utils/shared";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
+import { RADIANS } from "../math";
+import { Vec2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
+import { GlobusTerrain } from "../terrain/GlobusTerrain";
+import type { IMouseState } from "../renderer/RendererEvents";
 
 interface IScaleControlParams extends IControlParams {
-    isCenter?: boolean
+    isCenter?: boolean;
 }
 
 const scale: number[] = [
-    0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 300, 500, 1e3, 2e3, 3e3, 5e3, 10e3, 20e3, 30e3, 50e3,
-    100e3, 200e3, 300e3, 500e3, 1000e3, 2000e3, 3000e3, 5000e3, 10000e3
+    0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 300, 500, 1e3, 2e3, 3e3, 5e3, 10e3,
+    20e3, 30e3, 50e3, 100e3, 200e3, 300e3, 500e3, 1000e3, 2000e3, 3000e3, 5000e3, 10000e3
 ];
 
 const TEMPLATE = `<div class="og-scale-container">
@@ -25,7 +25,6 @@ const TEMPLATE = `<div class="og-scale-container">
  * Planet zoom buttons control.
  */
 export class ScaleControl extends Control {
-
     public el: HTMLElement | null;
     protected _template: string;
     protected _minWidth: number;
@@ -49,7 +48,7 @@ export class ScaleControl extends Control {
 
         this._isCenter = options.isCenter != undefined ? options.isCenter : true;
 
-        this._mPx = 0
+        this._mPx = 0;
         this.currWidth = 0;
         this._metersInMinSize = 0;
 
@@ -74,9 +73,10 @@ export class ScaleControl extends Control {
                 this._drawScreen(this.planet!.renderer!.handler.getCenter());
             });
 
-            !this.planet!.terrain!.isEmpty && (this.planet!.terrain as GlobusTerrain).events.on("loadend", () => {
-                this._drawScreen(this.planet!.renderer!.handler.getCenter());
-            });
+            !this.planet!.terrain!.isEmpty &&
+                (this.planet!.terrain as GlobusTerrain).events.on("loadend", () => {
+                    this._drawScreen(this.planet!.renderer!.handler.getCenter());
+                });
         } else {
             this.renderer!.events.on("mousemove", (e: IMouseState) => {
                 if (!e.leftButtonHold && !e.rightButtonHold) {
@@ -128,7 +128,6 @@ export class ScaleControl extends Control {
         } else {
             this._scaleLabelEl!.innerText = `${minMeters * 1000} mm`;
         }
-
 
         this._metersInMinSize = metersInMinSize;
 

@@ -3,12 +3,12 @@
  */
 
 import * as math from "../math";
-import {Vec4} from "./Vec4";
-import {Vec2} from "./Vec2";
+import { Vec4 } from "./Vec4";
+import { Vec2 } from "./Vec2";
 
-import type {NumberArray4} from "./Vec4";
-import type {NumberArray3} from "./Vec3";
-import type {NumberArray2} from "./Vec2";
+import type { NumberArray4 } from "./Vec4";
+import type { NumberArray3 } from "./Vec3";
+import type { NumberArray2 } from "./Vec2";
 
 /**
  * Encode 32 bit float value to the RGBA vector.
@@ -17,7 +17,7 @@ import type {NumberArray2} from "./Vec2";
  * @returns {Vec4} - RGBA vector value.
  */
 export function encodeFloatToRGBA(v: number): Vec4 {
-    let enc = new Vec4((1.0 * v) % 1, (255.0 * v) % 1, (65025.0 * v) % 1, (160581375.0 * v) % 1);
+    let enc = new Vec4(v % 1, (255.0 * v) % 1, (65025.0 * v) % 1, (160581375.0 * v) % 1);
     let yzww = new Vec4(enc.y / 255, enc.z / 255, enc.w / 255, 0);
     return enc.subA(yzww);
 }
@@ -76,7 +76,10 @@ export function doubleToTwoFloats(value: number): Float32Array {
  * @param {NumberArray2 | Float32Array} highLowArr - Reference output array.
  * @returns {NumberArray2 | Float32Array} Encoded array. (exactly 2 entries)
  */
-export function doubleToTwoFloats2(value: number, highLowArr: NumberArray2 | Float32Array): NumberArray2 | Float32Array {
+export function doubleToTwoFloats2(
+    value: number,
+    highLowArr: NumberArray2 | Float32Array
+): NumberArray2 | Float32Array {
     if (value >= 0.0) {
         let doubleHigh = Math.floor(value / 65536.0) * 65536.0;
         highLowArr[0] = Math.fround(doubleHigh);

@@ -1,6 +1,6 @@
-import {BaseFramebuffer} from "./BaseFramebuffer";
-import type {IBaseFramebufferParams} from "./BaseFramebuffer";
-import {Handler} from "./Handler";
+import { BaseFramebuffer } from "./BaseFramebuffer";
+import type { IBaseFramebufferParams } from "./BaseFramebuffer";
+import { Handler } from "./Handler";
 
 interface IMultisampleParams extends IBaseFramebufferParams {
     msaa?: number;
@@ -23,7 +23,6 @@ export class Multisample extends BaseFramebuffer {
     public renderbuffers: WebGLRenderbuffer[];
 
     constructor(handler: Handler, options: IMultisampleParams = {}) {
-
         super(handler, options);
 
         this._internalFormat = options.internalFormat ? options.internalFormat.toUpperCase() : "RGBA8";
@@ -85,20 +84,10 @@ export class Multisample extends BaseFramebuffer {
                     this._height
                 );
             } else {
-                gl.renderbufferStorage(
-                    gl.RENDERBUFFER,
-                    (gl as any)[this._internalFormat],
-                    this._width,
-                    this._height
-                );
+                gl.renderbufferStorage(gl.RENDERBUFFER, (gl as any)[this._internalFormat], this._width, this._height);
             }
 
-            gl.framebufferRenderbuffer(
-                gl.FRAMEBUFFER,
-                gl.COLOR_ATTACHMENT0 + i,
-                gl.RENDERBUFFER,
-                rb
-            );
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.RENDERBUFFER, rb);
             colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
             this.renderbuffers[i] = rb!;
             gl.bindRenderbuffer(gl.RENDERBUFFER, null!);
@@ -129,12 +118,7 @@ export class Multisample extends BaseFramebuffer {
                 gl.bindRenderbuffer(gl.RENDERBUFFER, null);
                 depthRenderbuffer = this._depthRenderbuffer;
             }
-            gl.framebufferRenderbuffer(
-                gl.FRAMEBUFFER,
-                gl.DEPTH_ATTACHMENT,
-                gl.RENDERBUFFER,
-                depthRenderbuffer
-            );
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
         }
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);

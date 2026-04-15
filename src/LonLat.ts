@@ -1,6 +1,6 @@
 import * as mercator from "./mercator";
-import type {NumberArray2} from "./math/Vec2";
-import type {NumberArray3} from "./math/Vec3";
+import type { NumberArray2 } from "./math/Vec2";
+import type { NumberArray3 } from "./math/Vec3";
 
 const HALF_PI = Math.PI * 0.5;
 const INV_PI_BY_180 = 180.0 / Math.PI;
@@ -82,7 +82,7 @@ export class LonLat {
      * @returns {number[]}
      */
     static toArray(lonLat: LonLat): [number, number, number] {
-        return [lonLat.lon, lonLat.lat, lonLat.height]
+        return [lonLat.lon, lonLat.lat, lonLat.height];
     }
 
     /**
@@ -118,8 +118,8 @@ export class LonLat {
      */
     static forwardMercatorRes(lonLat: LonLat, res: LonLat): LonLat {
         res.lon = lonLat.lon * mercator.POLE_BY_180;
-        res.lat = Math.log(Math.tan((90.0 + lonLat.lat) * PI_BY_360)) * mercator.POLE_BY_PI,
-            res.height = lonLat.height;
+        ((res.lat = Math.log(Math.tan((90.0 + lonLat.lat) * PI_BY_360)) * mercator.POLE_BY_PI),
+            (res.height = lonLat.height));
         return res;
     }
 

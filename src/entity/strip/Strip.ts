@@ -1,14 +1,14 @@
 import * as utils from "../../utils/shared";
-import {Entity} from "../Entity";
-import {Line3} from "../../math/Line3";
-import {RenderNode} from "../../scene/RenderNode";
-import {Vec3} from "../../math/Vec3";
-import {Vec4} from "../../math/Vec4";
-import type {NumberArray3} from "../../math/Vec3";
-import type {NumberArray4} from "../../math/Vec4";
-import {StripHandler} from "./StripHandler";
-import type {WebGLBufferExt} from "../../webgl/Handler";
-import type {ProgramController} from "../../webgl/ProgramController";
+import { Entity } from "../Entity";
+import { Line3 } from "../../math/Line3";
+import { RenderNode } from "../../scene/RenderNode";
+import { Vec3 } from "../../math/Vec3";
+import { Vec4 } from "../../math/Vec4";
+import type { NumberArray3 } from "../../math/Vec3";
+import type { NumberArray4 } from "../../math/Vec4";
+import { StripHandler } from "./StripHandler";
+import type { WebGLBufferExt } from "../../webgl/Handler";
+import type { ProgramController } from "../../webgl/ProgramController";
 
 type TPoiExt = Vec3 | NumberArray3;
 type TStripExt = [TPoiExt, TPoiExt];
@@ -44,7 +44,6 @@ let _tempHigh = new Vec3(),
  * });
  */
 class Strip {
-
     static __counter__: number = 0;
 
     protected __id: number;
@@ -92,7 +91,6 @@ class Strip {
     public _handlerIndex: number;
 
     constructor(options: IStripParams = {}) {
-
         this.__id = Strip.__counter__++;
 
         this.visibility = options.visibility != undefined ? options.visibility : true;
@@ -295,11 +293,19 @@ class Strip {
     }
 
     public drawTransparent() {
-        this._drawImpl(this._renderNode!.renderer!.handler.programs.stripTransparent, this.color, this._entity!._entityCollection!._fadingOpacity);
+        this._drawImpl(
+            this._renderNode!.renderer!.handler.programs.stripTransparent,
+            this.color,
+            this._entity!._entityCollection!._fadingOpacity
+        );
     }
 
     public drawOpaque() {
-        this._drawImpl(this._renderNode!.renderer!.handler.programs.stripForward, this.color, this._entity!._entityCollection!._fadingOpacity);
+        this._drawImpl(
+            this._renderNode!.renderer!.handler.programs.stripForward,
+            this.color,
+            this._entity!._entityCollection!._fadingOpacity
+        );
     }
 
     drawPicking() {
@@ -665,4 +671,4 @@ class Strip {
     }
 }
 
-export {Strip};
+export { Strip };

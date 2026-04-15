@@ -1,9 +1,9 @@
-import {ImageCanvas} from "../ImageCanvas";
-import {Rectangle} from "../Rectangle";
-import {ImagesCacheManager} from "./ImagesCacheManager";
-import type {HTMLImageElementExt, ImagesCacheManagerCallback} from "./ImagesCacheManager";
-import {Handler} from "../webgl/Handler";
-import type {WebGLTextureExt} from "../webgl/Handler";
+import { ImageCanvas } from "../ImageCanvas";
+import { Rectangle } from "../Rectangle";
+import { ImagesCacheManager } from "./ImagesCacheManager";
+import type { HTMLImageElementExt, ImagesCacheManagerCallback } from "./ImagesCacheManager";
+import { Handler } from "../webgl/Handler";
+import type { WebGLTextureExt } from "../webgl/Handler";
 
 /**
  * Texture atlas stores images in one texture. Each image has its own
@@ -41,7 +41,6 @@ class TextureAtlas {
     protected _imagesCacheManager: ImagesCacheManager;
 
     constructor(width: number = 1024, height: number = 1024) {
-
         this.nodes = new Map<number, TextureAtlasNode>();
 
         this.texture = null;
@@ -129,10 +128,9 @@ class TextureAtlas {
             return this.get(image.__nodeIndex);
         }
     }
-    
+
     protected _completeNode(nodes: Map<number, TextureAtlasNode>, node?: TextureAtlasNode | null) {
         if (node) {
-
             let w = this.canvas.getWidth(),
                 h = this.canvas.getHeight();
 
@@ -200,9 +198,7 @@ class TextureAtlas {
                 );
             });
 
-            this._btree = new TextureAtlasNode(
-                new Rectangle(0, 0, this.canvas.getWidth(), this.canvas.getHeight())
-            );
+            this._btree = new TextureAtlasNode(new Rectangle(0, 0, this.canvas.getWidth(), this.canvas.getHeight()));
             this._btree.atlas = this;
 
             this.clearCanvas();
@@ -330,4 +326,4 @@ class TextureAtlasNode {
     }
 }
 
-export {TextureAtlas, TextureAtlasNode};
+export { TextureAtlas, TextureAtlasNode };

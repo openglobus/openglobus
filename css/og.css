@@ -1,8 +1,8 @@
 :root {
     --grey0: rgb(45 45 45); /*dialog background*/
     --grey1: #434244; /*dialog border*/
-    --grey2: #3F3F46; /*dialog header*/
-    --grey3: #BBBBBB; /*dialog font color*/
+    --grey2: #3f3f46; /*dialog header*/
+    --grey3: #bbbbbb; /*dialog font color*/
     --grey4: #5e5e5e; /*hover color*/
     --grey5: rgb(64, 59, 59); /*map button background*/
     --grey6: #bfbfbf; /*map button icon color*/
@@ -63,14 +63,13 @@
     overflow: hidden;
 }
 
-
 .og-attribution {
     background: rgb(206 206 206);
     text-align: right;
     bottom: 0;
     right: 0;
     position: absolute;
-    font-size: .7rem;
+    font-size: 0.7rem;
     padding: 1px 0 1px 0;
     line-height: 1.375em;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
@@ -115,7 +114,6 @@ input {
     accent-color: var(--blue0);
     cursor: pointer;
 }
-
 
 /* =============================== */
 /*         MENU V-BAR STYLING      */
@@ -199,7 +197,7 @@ input {
     color: var(--grey3);
     padding-left: 5px;
     pointer-events: none;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     font-size: 14px;
     font-weight: 400;
 }
@@ -252,7 +250,7 @@ input {
 }
 
 .og-button .og-button-text {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     font-size: 14px;
     font-weight: 400;
 }
@@ -320,9 +318,8 @@ input {
 }
 
 .og-layerSwitcher__layerButton.og-layerSwitcher__visible img {
-    opacity: 1.0;
+    opacity: 1;
 }
-
 
 .og-layerSwitcher__layerButton img {
     width: 100%;
@@ -331,15 +328,14 @@ input {
     position: absolute;
     left: 0;
     top: 0;
-    opacity: 1.0;
+    opacity: 1;
 }
 
 .og-layerSwitcher__layerButton img:hover {
-    opacity: 1.0;
+    opacity: 1;
 }
 
 .og-layerSwitcher__layerButton_title {
-
 }
 
 .og-layerSwitcher__name {
@@ -432,15 +428,17 @@ input {
     width: 24px;
     scale: 70%;
     cursor: pointer;
-    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYEAQAAAAa7ikwAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAABgAAAAYADwa0LPAAAAB3RJTUUH5ggMBTM4rM25AwAAAAJiS0dEAACqjSMyAAABsUlEQVRIx81WWYrCQBAVg4Iwbp8ud5DoYRRBxPMoouiPegQVPYp6Azdc/ly++01XKkmPksQ4ZmAKAr3V0u9VVScU8ikQkQhwuRifHIeCFiAWgy2xWHCGRSIBVKtAt6scdDrGmtz7IOJUyjAk7ne4Ce2JdhsimXzTeKkE7PfK0vEIjMdqTuPTSc23W6BY9G/cjvpwgKjVmOBHDnitXmfnJLcboOs+YNntWGGxADIZtRcOQ4xGEMMhjdV6Ngssl6yz2XjywuSZkf8w/vrW5MS8iWi13LPFgkbC8n5SEFwmVOLry+EApaJJ6C8KCSIaVcRXKk8FlE4D/T5vzmY81zT/0Wsa68znbKPX47ksSC5/JxkM/EdPxDvJ5RKMA3nWw8EfQxQsyecz2yiXvdNUptz7adposO716pim7EQ2Lrv3ZLP+o8/n7RQVzabHwWSSGxcJlb9y4t4qcjlgtWKd9RoiHn9x1WKRG5d1E1mhBr7PzY7WCBaruAiaQsEnnrpuNC5biLzJRL0D06ki1Ircp/FH0lstdRsnoaibzZeweDuKx6m3qE5rPZnlsmu2/KtH/9Pflm+sYR/yIsaCAQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMi0wOC0xMlQwNTo1MTo1NiswMDowMIPhE+YAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMDgtMTJUMDU6NTE6NTYrMDA6MDDyvKtaAAAAKHRFWHRkYXRlOnRpbWVzdGFtcAAyMDIyLTA4LTEyVDA1OjUxOjU2KzAwOjAwpamKhQAAAABJRU5ErkJggg==) center center no-repeat;
-
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYEAQAAAAa7ikwAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAABgAAAAYADwa0LPAAAAB3RJTUUH5ggMBTM4rM25AwAAAAJiS0dEAACqjSMyAAABsUlEQVRIx81WWYrCQBAVg4Iwbp8ud5DoYRRBxPMoouiPegQVPYp6Azdc/ly++01XKkmPksQ4ZmAKAr3V0u9VVScU8ikQkQhwuRifHIeCFiAWgy2xWHCGRSIBVKtAt6scdDrGmtz7IOJUyjAk7ne4Ce2JdhsimXzTeKkE7PfK0vEIjMdqTuPTSc23W6BY9G/cjvpwgKjVmOBHDnitXmfnJLcboOs+YNntWGGxADIZtRcOQ4xGEMMhjdV6Ngssl6yz2XjywuSZkf8w/vrW5MS8iWi13LPFgkbC8n5SEFwmVOLry+EApaJJ6C8KCSIaVcRXKk8FlE4D/T5vzmY81zT/0Wsa68znbKPX47ksSC5/JxkM/EdPxDvJ5RKMA3nWw8EfQxQsyecz2yiXvdNUptz7adposO716pim7EQ2Lrv3ZLP+o8/n7RQVzabHwWSSGxcJlb9y4t4qcjlgtWKd9RoiHn9x1WKRG5d1E1mhBr7PzY7WCBaruAiaQsEnnrpuNC5biLzJRL0D06ki1Ircp/FH0lstdRsnoaibzZeweDuKx6m3qE5rPZnlsmu2/KtH/9Pflm+sYR/yIsaCAQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMi0wOC0xMlQwNTo1MTo1NiswMDowMIPhE+YAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMDgtMTJUMDU6NTE6NTYrMDA6MDDyvKtaAAAAKHRFWHRkYXRlOnRpbWVzdGFtcAAyMDIyLTA4LTEyVDA1OjUxOjU2KzAwOjAwpamKhQAAAABJRU5ErkJggg==)
+        center center no-repeat;
 }
 
 .ogViewExtentBtn:hover {
     border-radius: 10px;
-    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYEAQAAAAa7ikwAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAABgAAAAYADwa0LPAAAAB3RJTUUH5ggMBTM4rM25AwAAAAJiS0dEAACqjSMyAAABsUlEQVRIx81WWYrCQBAVg4Iwbp8ud5DoYRRBxPMoouiPegQVPYp6Azdc/ly++01XKkmPksQ4ZmAKAr3V0u9VVScU8ikQkQhwuRifHIeCFiAWgy2xWHCGRSIBVKtAt6scdDrGmtz7IOJUyjAk7ne4Ce2JdhsimXzTeKkE7PfK0vEIjMdqTuPTSc23W6BY9G/cjvpwgKjVmOBHDnitXmfnJLcboOs+YNntWGGxADIZtRcOQ4xGEMMhjdV6Ngssl6yz2XjywuSZkf8w/vrW5MS8iWi13LPFgkbC8n5SEFwmVOLry+EApaJJ6C8KCSIaVcRXKk8FlE4D/T5vzmY81zT/0Wsa68znbKPX47ksSC5/JxkM/EdPxDvJ5RKMA3nWw8EfQxQsyecz2yiXvdNUptz7adposO716pim7EQ2Lrv3ZLP+o8/n7RQVzabHwWSSGxcJlb9y4t4qcjlgtWKd9RoiHn9x1WKRG5d1E1mhBr7PzY7WCBaruAiaQsEnnrpuNC5biLzJRL0D06ki1Ircp/FH0lstdRsnoaibzZeweDuKx6m3qE5rPZnlsmu2/KtH/9Pflm+sYR/yIsaCAQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMi0wOC0xMlQwNTo1MTo1NiswMDowMIPhE+YAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMDgtMTJUMDU6NTE6NTYrMDA6MDDyvKtaAAAAKHRFWHRkYXRlOnRpbWVzdGFtcAAyMDIyLTA4LTEyVDA1OjUxOjU2KzAwOjAwpamKhQAAAABJRU5ErkJggg==) center center no-repeat, var(--blue0);
+    background:
+        url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYEAQAAAAa7ikwAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAABgAAAAYADwa0LPAAAAB3RJTUUH5ggMBTM4rM25AwAAAAJiS0dEAACqjSMyAAABsUlEQVRIx81WWYrCQBAVg4Iwbp8ud5DoYRRBxPMoouiPegQVPYp6Azdc/ly++01XKkmPksQ4ZmAKAr3V0u9VVScU8ikQkQhwuRifHIeCFiAWgy2xWHCGRSIBVKtAt6scdDrGmtz7IOJUyjAk7ne4Ce2JdhsimXzTeKkE7PfK0vEIjMdqTuPTSc23W6BY9G/cjvpwgKjVmOBHDnitXmfnJLcboOs+YNntWGGxADIZtRcOQ4xGEMMhjdV6Ngssl6yz2XjywuSZkf8w/vrW5MS8iWi13LPFgkbC8n5SEFwmVOLry+EApaJJ6C8KCSIaVcRXKk8FlE4D/T5vzmY81zT/0Wsa68znbKPX47ksSC5/JxkM/EdPxDvJ5RKMA3nWw8EfQxQsyecz2yiXvdNUptz7adposO716pim7EQ2Lrv3ZLP+o8/n7RQVzabHwWSSGxcJlb9y4t4qcjlgtWKd9RoiHn9x1WKRG5d1E1mhBr7PzY7WCBaruAiaQsEnnrpuNC5biLzJRL0D06ki1Ircp/FH0lstdRsnoaibzZeweDuKx6m3qE5rPZnlsmu2/KtH/9Pflm+sYR/yIsaCAQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMi0wOC0xMlQwNTo1MTo1NiswMDowMIPhE+YAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMDgtMTJUMDU6NTE6NTYrMDA6MDDyvKtaAAAAKHRFWHRkYXRlOnRpbWVzdGFtcAAyMDIyLTA4LTEyVDA1OjUxOjU2KzAwOjAwpamKhQAAAABJRU5ErkJggg==)
+            center center no-repeat,
+        var(--blue0);
 }
-
 
 /**
  *DebugInfo
@@ -599,7 +597,6 @@ input {
 */
 
 .og-suncontrol {
-
 }
 
 .og-suncontrol-button {
@@ -674,7 +671,7 @@ input {
     text-align: right;
     overflow: hidden;
     font-family: monospace;
-    font-size: 1.0em;
+    font-size: 1em;
     cursor: pointer;
     float: left;
     background-color: var(--grey5);
@@ -726,7 +723,6 @@ input {
     position: absolute;
     pointer-events: none;
 }
-
 
 /*
 ==========================
@@ -817,7 +813,7 @@ TIMELINE
     margin: 0 auto;
     width: 1px;
     height: 100%;
-    background-color: #ff3434;;
+    background-color: #ff3434;
     pointer-events: none;
 }
 
@@ -826,7 +822,7 @@ TIMELINE
     height: 0;
     border-left: 7px solid transparent;
     border-right: 7px solid transparent;
-    border-top: 7px solid #ff3434;;
+    border-top: 7px solid #ff3434;
     margin-left: -6px;
 }
 
@@ -939,10 +935,9 @@ TIMELINE
 }
 
 /* Firefox */
-.og-slider input[type=number] {
+.og-slider input[type="number"] {
     -moz-appearance: textfield;
 }
-
 
 /*
     INPUT
@@ -1048,10 +1043,9 @@ TIMELINE
 /*}*/
 
 /* Firefox */
-.og-input input[type=number] {
+.og-input input[type="number"] {
     -moz-appearance: textfield;
 }
-
 
 .og-selection_button {
     top: 117px;
@@ -1098,7 +1092,7 @@ TIMELINE
 }
 
 .og-elevationprofile-legend {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     font-size: 12px;
     color: var(--grey8);
     position: absolute;
@@ -1171,7 +1165,6 @@ TIMELINE
     margin: 3px;
     /*background-color: var(--grey2);*/
 }
-
 
 .og-elevationprofile-list {
     position: relative;
@@ -1258,13 +1251,13 @@ TIMELINE
 
 @keyframes ldio-p0v5a1f6oz {
     0% {
-        opacity: 1
+        opacity: 1;
     }
     50% {
-        opacity: .5
+        opacity: 0.5;
     }
     100% {
-        opacity: 1
+        opacity: 1;
     }
 }
 
@@ -1364,7 +1357,6 @@ TIMELINE
     border-radius: 5px;
     margin: 3px;
     border: 2px solid rgba(0, 0, 0, 0);
-
 }
 
 .og-object3d-collection__item.active {

@@ -1,12 +1,11 @@
-import type {Vector} from "../layer/Vector";
-import type {EntityCollectionNode} from "./EntityCollectionNode";
-import type {Entity} from "../entity/Entity";
-import type {EntityCollection} from "../entity/EntityCollection";
-import {QueueArray} from "../QueueArray";
-import type {QuadTreeStrategy} from "./QuadTreeStrategy";
+import type { Vector } from "../layer/Vector";
+import type { EntityCollectionNode } from "./EntityCollectionNode";
+import type { Entity } from "../entity/Entity";
+import type { EntityCollection } from "../entity/EntityCollection";
+import { QueueArray } from "../QueueArray";
+import type { QuadTreeStrategy } from "./QuadTreeStrategy";
 
 export class EntityCollectionsTreeStrategy {
-
     public _layer: Vector;
 
     /**
@@ -36,24 +35,15 @@ export class EntityCollectionsTreeStrategy {
         this._renderingNodes = {};
     }
 
-    public insertEntity(entity: Entity, rightNow: boolean = false) {
+    public insertEntity(entity: Entity, rightNow: boolean = false) {}
 
-    }
+    public setPickingEnabled(pickingEnabled: boolean) {}
 
-    public setPickingEnabled(pickingEnabled: boolean) {
+    public dispose() {}
 
-    }
+    public insertEntities(entitiesForTree: Entity[]) {}
 
-    public dispose() {
-
-    }
-
-    public insertEntities(entitiesForTree: Entity[]) {
-
-    }
-
-    public collectVisibleEntityCollections(outArr: EntityCollection[]) {
-    }
+    public collectVisibleEntityCollections(outArr: EntityCollection[]) {}
 
     public _queueDeferredNode(node: EntityCollectionNode) {
         if (this._layer.getVisibility()) {

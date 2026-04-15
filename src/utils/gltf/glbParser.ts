@@ -62,7 +62,8 @@ export class Glb {
     }
 
     private static parseChunks(chunks: GlbChunk[]): GltfData {
-        let gltf: GltfMetadata | undefined, bin: ArrayBuffer[] = [];
+        let gltf: GltfMetadata | undefined,
+            bin: ArrayBuffer[] = [];
         for (const chunk of chunks) {
             switch (chunk.type) {
                 case ChunkType.JSON:
@@ -76,7 +77,7 @@ export class Glb {
             }
         }
         if (gltf === undefined) {
-            throw new Error('GLB json data extraction failed');
+            throw new Error("GLB json data extraction failed");
         }
         return {
             gltf,

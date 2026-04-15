@@ -1,7 +1,7 @@
 import * as mercator from "../../mercator";
-import {Extent} from "../../Extent";
-import {Node} from "../Node";
-import {QuadTreeStrategy, QuadTreeStrategyParams} from "../QuadTreeStrategy";
+import { Extent } from "../../Extent";
+import { Node } from "../Node";
+import { QuadTreeStrategy, QuadTreeStrategyParams } from "../QuadTreeStrategy";
 import {
     Segment,
     TILEGROUP_NORTH,
@@ -10,14 +10,13 @@ import {
     getTileCellExtent,
     getTileCellIndex
 } from "../../segment/Segment";
-import {SegmentLonLat} from "../../segment/SegmentLonLat";
-import {LonLat} from "../../LonLat";
-import {Vector} from "../../layer/Vector";
-import {EarthEntityCollectionsTreeStrategy} from "./EarthEntityCollectionsTreeStrategy";
-import {PlanetCamera} from "../../camera";
+import { SegmentLonLat } from "../../segment/SegmentLonLat";
+import { LonLat } from "../../LonLat";
+import { Vector } from "../../layer/Vector";
+import { EarthEntityCollectionsTreeStrategy } from "./EarthEntityCollectionsTreeStrategy";
+import { PlanetCamera } from "../../camera";
 
 export class EarthQuadTreeStrategy extends QuadTreeStrategy {
-
     /**
      * Current visible north pole nodes tree nodes array.
      * @public
@@ -33,7 +32,7 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
     public _visibleNodesSouth: Record<number, Node>;
 
     constructor(params: QuadTreeStrategyParams) {
-        super({name: "Earth", ...params});
+        super({ name: "Earth", ...params });
 
         this._visibleNodesNorth = {};
         this._visibleNodesSouth = {};
@@ -56,22 +55,25 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
         this._visibleNodesSouth = {};
     }
 
-    public override createEntityCollectionsTreeStrategy(layer: Vector, nodeCapacity: number): EarthEntityCollectionsTreeStrategy {
+    public override createEntityCollectionsTreeStrategy(
+        layer: Vector,
+        nodeCapacity: number
+    ): EarthEntityCollectionsTreeStrategy {
         return new EarthEntityCollectionsTreeStrategy(this, layer, nodeCapacity);
     }
 
     public override init(camera: PlanetCamera) {
-
         this._quadTreeList = [
-            new Node(Segment, this, 0, null, 0,
+            new Node(
+                Segment,
+                this,
+                0,
+                null,
+                0,
                 Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
             ),
-            new Node(SegmentLonLat, this, 0, null, 0,
-                Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])
-            ),
-            new Node(SegmentLonLat, this, 0, null, 0,
-                Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
-            )
+            new Node(SegmentLonLat, this, 0, null, 0, Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])),
+            new Node(SegmentLonLat, this, 0, null, 0, Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT]))
         ];
 
         super.init(camera);
@@ -82,7 +84,7 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
             z = zoom,
             x: number,
             y: number,
-            pz = (1 << z)/*Math.pow(2, z)*/;
+            pz = 1 << z; /*Math.pow(2, z)*/
 
         if (tileGroup === TILEGROUP_NORTH) {
             x = getTileCellIndex(lonLat.lon, 360 / pz, -180);
@@ -99,7 +101,13 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
         return [x, y, z, tileGroup];
     }
 
-    public override getLonLatTileOffset(lonLat: LonLat, x: number, y: number, z: number, gridSize: number): [number, number] {
+    public override getLonLatTileOffset(
+        lonLat: LonLat,
+        x: number,
+        y: number,
+        z: number,
+        gridSize: number
+    ): [number, number] {
         let coords = lonLat;
         let extent: Extent;
 

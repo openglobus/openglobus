@@ -1,16 +1,16 @@
-import {Entity} from "../Entity";
-import {LonLat} from "../../LonLat";
-import {Vec3} from "../../math/Vec3";
-import type {NumberArray3} from "../../math/Vec3";
-import type {NumberArray2} from "../../math/Vec2";
-import type {NumberArray4} from "../../math/Vec4";
-import type {HTMLImageElementExt} from "../../utils/ImagesCacheManager";
-import {htmlColorToRgba} from "../../utils/shared";
-import {PolylineHandler} from "./PolylineHandler";
-import {PolylineBatchRenderer} from "./PolylineBatchRenderer";
-import {Extent} from "../../Extent";
+import { Entity } from "../Entity";
+import { LonLat } from "../../LonLat";
+import { Vec3 } from "../../math/Vec3";
+import type { NumberArray3 } from "../../math/Vec3";
+import type { NumberArray2 } from "../../math/Vec2";
+import type { NumberArray4 } from "../../math/Vec4";
+import type { HTMLImageElementExt } from "../../utils/ImagesCacheManager";
+import { htmlColorToRgba } from "../../utils/shared";
+import { PolylineHandler } from "./PolylineHandler";
+import { PolylineBatchRenderer } from "./PolylineBatchRenderer";
+import { Extent } from "../../Extent";
 
-export type Geodetic = LonLat | NumberArray2 | NumberArray3
+export type Geodetic = LonLat | NumberArray2 | NumberArray3;
 export type Cartesian = Vec3 | NumberArray3;
 
 export type SegmentPath3vExt = Cartesian[];
@@ -100,8 +100,8 @@ class Polyline {
         this._pathLonLat = options.pathLonLat || [];
 
         this._pathColors = options.pathColors || [];
-        this._color = Array.isArray(options.color) ? options.color.slice() : (options.color ? [options.color] : []);
-        this._segmentTexParams = options.texParams ? {...options.texParams} : null;
+        this._color = Array.isArray(options.color) ? options.color.slice() : options.color ? [options.color] : [];
+        this._segmentTexParams = options.texParams ? { ...options.texParams } : null;
 
         this._entity = null;
 
@@ -158,7 +158,7 @@ class Polyline {
         return res;
     }
 
-    public set altitude(alt:number  ){
+    public set altitude(alt: number) {
         this._altitude = alt;
     }
 
@@ -279,14 +279,14 @@ class Polyline {
     }
 
     protected _updateExtent() {
-        let lonmin = Infinity, lonmax = -Infinity,
-            latmin = Infinity, latmax = -Infinity;
+        let lonmin = Infinity,
+            lonmax = -Infinity,
+            latmin = Infinity,
+            latmax = -Infinity;
         let hasData = false;
 
         const hasBatchRendererPaths = !!this._batchRenderer && this._batchRendererIndexes.length > 0;
-        const paths = hasBatchRendererPaths
-            ? this._batchRenderer!._pathLonLat
-            : this._pathLonLat;
+        const paths = hasBatchRendererPaths ? this._batchRenderer!._pathLonLat : this._pathLonLat;
 
         const pathsCount = hasBatchRendererPaths ? this._batchRendererIndexes.length : paths.length;
 
@@ -369,7 +369,7 @@ class Polyline {
         }
     }
 
-    public getImage(): (HTMLImageElementExt | null) {
+    public getImage(): HTMLImageElementExt | null {
         return this._image;
     }
 
@@ -426,8 +426,7 @@ class Polyline {
         return this._isClosed;
     }
 
-    public setTextureDisabled() {
-    }
+    public setTextureDisabled() {}
 
     static setPathColors(
         pathLonLat: SegmentPathLonLatExt[],
@@ -572,7 +571,12 @@ class Polyline {
 
         if (this._batchRenderer) {
             if (segmentIndex < this._batchRendererIndexes.length) {
-                this._batchRenderer.addPointLonLat(lonLat, this._batchRendererIndexes[segmentIndex], color, this._opacity);
+                this._batchRenderer.addPointLonLat(
+                    lonLat,
+                    this._batchRendererIndexes[segmentIndex],
+                    color,
+                    this._opacity
+                );
             } else {
                 this._tryAddSegmentToBatch(segmentIndex);
             }
@@ -650,23 +654,33 @@ class Polyline {
         this._updateExtent();
     }
 
-    public setPathLonLatFast(pathLonLat: SegmentPathLonLatExt[], pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4) {
+    public setPathLonLatFast(
+        pathLonLat: SegmentPathLonLatExt[],
+        pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4
+    ) {
         if (!pathColors) {
             this.setPathLonLat(pathLonLat, undefined, true);
             return;
         }
         const isSingleColor = Array.isArray(pathColors) && pathColors.length > 0 && typeof pathColors[0] === "number";
-        const normalized = isSingleColor ? [pathColors as NumberArray4] : pathColors as (SegmentPathColor | NumberArray4)[];
+        const normalized = isSingleColor
+            ? [pathColors as NumberArray4]
+            : (pathColors as (SegmentPathColor | NumberArray4)[]);
         this.setPathLonLat(pathLonLat, normalized, true);
     }
 
-    public setPath3vFast(path3v: SegmentPath3vExt[], pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4) {
+    public setPath3vFast(
+        path3v: SegmentPath3vExt[],
+        pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4
+    ) {
         if (!pathColors) {
             this.setPath3v(path3v, undefined, true);
             return;
         }
         const isSingleColor = Array.isArray(pathColors) && pathColors.length > 0 && typeof pathColors[0] === "number";
-        const normalized = isSingleColor ? [pathColors as NumberArray4] : pathColors as (SegmentPathColor | NumberArray4)[];
+        const normalized = isSingleColor
+            ? [pathColors as NumberArray4]
+            : (pathColors as (SegmentPathColor | NumberArray4)[]);
         this.setPath3v(path3v, normalized, true);
     }
 
@@ -677,9 +691,23 @@ class Polyline {
      * @param {SegmentPathColor[]} [pathColors] - Polyline path cartesian coordinates. (exactly 3 entries)
      * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
      */
-    public setPath3v(path3v: SegmentPath3vExt[], pathColors?: (SegmentPathColor | NumberArray4)[], forceEqual?: boolean): void;
-    public setPath3v(path3v: SegmentPath3vExt, pathColors?: SegmentPathColor | NumberArray4, forceEqual?: boolean, segmentIndex?: number): void;
-    public setPath3v(path3v: SegmentPath3vExt[] | SegmentPath3vExt, pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4, forceEqual: boolean = false, segmentIndex?: number) {
+    public setPath3v(
+        path3v: SegmentPath3vExt[],
+        pathColors?: (SegmentPathColor | NumberArray4)[],
+        forceEqual?: boolean
+    ): void;
+    public setPath3v(
+        path3v: SegmentPath3vExt,
+        pathColors?: SegmentPathColor | NumberArray4,
+        forceEqual?: boolean,
+        segmentIndex?: number
+    ): void;
+    public setPath3v(
+        path3v: SegmentPath3vExt[] | SegmentPath3vExt,
+        pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4,
+        forceEqual: boolean = false,
+        segmentIndex?: number
+    ) {
         if (segmentIndex !== undefined) {
             this._path3v[segmentIndex] = path3v as SegmentPath3vExt;
             const resolvedPathColors = pathColors ?? this._getDefaultPathColor(segmentIndex);
@@ -730,9 +758,23 @@ class Polyline {
      * @param {SegmentPathColor[]} pathColors - Polyline path points colors.
      * @param {Boolean} [forceEqual=false] - OPTIMIZATION FLAG: Makes assigning faster for size equal coordinates array.
      */
-    public setPathLonLat(pathLonLat: SegmentPathLonLatExt[], pathColors?: (SegmentPathColor | NumberArray4)[], forceEqual?: boolean): void;
-    public setPathLonLat(pathLonLat: SegmentPathLonLatExt, pathColors?: SegmentPathColor | NumberArray4, forceEqual?: boolean, segmentIndex?: number): void;
-    public setPathLonLat(pathLonLat: SegmentPathLonLatExt[] | SegmentPathLonLatExt, pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4, forceEqual: boolean = false, segmentIndex?: number) {
+    public setPathLonLat(
+        pathLonLat: SegmentPathLonLatExt[],
+        pathColors?: (SegmentPathColor | NumberArray4)[],
+        forceEqual?: boolean
+    ): void;
+    public setPathLonLat(
+        pathLonLat: SegmentPathLonLatExt,
+        pathColors?: SegmentPathColor | NumberArray4,
+        forceEqual?: boolean,
+        segmentIndex?: number
+    ): void;
+    public setPathLonLat(
+        pathLonLat: SegmentPathLonLatExt[] | SegmentPathLonLatExt,
+        pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4,
+        forceEqual: boolean = false,
+        segmentIndex?: number
+    ) {
         if (segmentIndex !== undefined) {
             this._pathLonLat[segmentIndex] = pathLonLat as SegmentPathLonLatExt;
             const resolvedPathColors = pathColors ?? this._getDefaultPathColor(segmentIndex);
@@ -916,13 +958,21 @@ class Polyline {
         if (segmentIndex !== undefined) {
             this._pathColors[segmentIndex] = pathColors as SegmentPathColor;
             if (this._batchRenderer && segmentIndex < this._batchRendererIndexes.length) {
-                this._batchRenderer.setPathColors(pathColors as SegmentPathColor, this._batchRendererIndexes[segmentIndex], this._opacity);
+                this._batchRenderer.setPathColors(
+                    pathColors as SegmentPathColor,
+                    this._batchRendererIndexes[segmentIndex],
+                    this._opacity
+                );
             }
         } else {
             this._pathColors = (pathColors as SegmentPathColor[]).slice();
             if (this._batchRenderer) {
                 for (let i = 0; i < this._batchRendererIndexes.length && i < this._pathColors.length; i++) {
-                    this._batchRenderer.setPathColors(this._pathColors[i], this._batchRendererIndexes[i], this._opacity);
+                    this._batchRenderer.setPathColors(
+                        this._pathColors[i],
+                        this._batchRendererIndexes[i],
+                        this._opacity
+                    );
                 }
             }
         }
@@ -966,4 +1016,4 @@ class Polyline {
     }
 }
 
-export {Polyline};
+export { Polyline };

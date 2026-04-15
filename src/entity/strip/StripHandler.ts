@@ -1,11 +1,10 @@
-import {EntityCollection} from "../EntityCollection";
-import {Renderer} from "../../renderer/Renderer";
-import {RenderNode} from "../../scene/RenderNode";
-import {Strip} from "./Strip";
-import {stripForward, stripTransparent} from "../../shaders/strip/strip";
+import { EntityCollection } from "../EntityCollection";
+import { Renderer } from "../../renderer/Renderer";
+import { RenderNode } from "../../scene/RenderNode";
+import { Strip } from "./Strip";
+import { stripForward, stripTransparent } from "../../shaders/strip/strip";
 
 class StripHandler {
-
     static __counter__: number = 0;
     protected __id: number;
 
@@ -44,7 +43,6 @@ class StripHandler {
     }
 
     constructor(entityCollection: EntityCollection) {
-
         this.__id = StripHandler.__counter__++;
 
         this.pickingEnabled = true;
@@ -59,10 +57,8 @@ class StripHandler {
 
     protected _initProgram() {
         if (this._renderer && this._renderer.handler) {
-            !this._renderer.handler.programs.stripTransparent &&
-            this._renderer.handler.addProgram(stripTransparent());
-            !this._renderer.handler.programs.stripForward &&
-            this._renderer.handler.addProgram(stripForward());
+            !this._renderer.handler.programs.stripTransparent && this._renderer.handler.addProgram(stripTransparent());
+            !this._renderer.handler.programs.stripForward && this._renderer.handler.addProgram(stripForward());
         }
     }
 
@@ -85,7 +81,6 @@ class StripHandler {
         ti._handlerIndex = j;
     }
 
-
     public add(strip: Strip) {
         if (strip._handlerIndex === -1) {
             strip._handler = this;
@@ -99,8 +94,8 @@ class StripHandler {
                 this._opaqueCount++;
             }
             this._entityCollection &&
-            this._entityCollection.renderNode &&
-            strip.setRenderNode(this._entityCollection.renderNode);
+                this._entityCollection.renderNode &&
+                strip.setRenderNode(this._entityCollection.renderNode);
         }
     }
 
@@ -195,4 +190,4 @@ class StripHandler {
     }
 }
 
-export {StripHandler};
+export { StripHandler };

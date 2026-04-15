@@ -1,14 +1,14 @@
-import {Events} from "../Events";
-import type {EventsHandler, EventCallback} from "../Events";
-import {input} from "../input/input";
-import {KeyboardHandler} from "../input/KeyboardHandler";
-import {MouseHandler} from "../input/MouseHandler";
-import type {MouseHandlerEvent, MouseEventExt} from "../input/MouseHandler";
-import {Renderer} from "./Renderer";
-import {PointerHandler, type PointerEventExt} from "../input/PointerHandler";
-import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
-import type {NumberArray3} from "../math/Vec3";
+import { Events } from "../Events";
+import type { EventsHandler, EventCallback } from "../Events";
+import { input } from "../input/input";
+import { KeyboardHandler } from "../input/KeyboardHandler";
+import { MouseHandler } from "../input/MouseHandler";
+import type { MouseHandlerEvent, MouseEventExt } from "../input/MouseHandler";
+import { Renderer } from "./Renderer";
+import { PointerHandler, type PointerEventExt } from "../input/PointerHandler";
+import { Vec2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
+import type { NumberArray3 } from "../math/Vec3";
 
 export type RendererEventsHandler = RendererEvents & EventsHandler<RendererEventsType>;
 
@@ -74,7 +74,7 @@ export interface IBaseInputState {
     /** Previous touch X coordinate. */
     prev_x: number;
     /** Previous touch Y coordinate. */
-    prev_y: number,
+    prev_y: number;
     /** Screen touch position world direction. */
     direction: Vec3;
     /** Current touched(picking) object. */
@@ -241,7 +241,6 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     protected _entityPickingEventsActive: boolean;
 
     constructor(renderer: Renderer) {
-
         super(RENDERER_EVENTS);
 
         this.renderer = renderer;
@@ -340,11 +339,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
     public pointerEvent(): boolean {
         let ms = this.mouseState;
-        return (
-            ms.moving ||
-            ms.justStopped ||
-            ms.wheelDelta !== 0
-        )
+        return ms.moving || ms.justStopped || ms.wheelDelta !== 0;
     }
 
     public get active(): boolean {
@@ -362,17 +357,11 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
      */
     public handleEvents() {
         if (this._active) {
-            this.mouseState.direction = this.renderer.activeCamera!.unproject(
-                this.mouseState.x,
-                this.mouseState.y
-            );
+            this.mouseState.direction = this.renderer.activeCamera!.unproject(this.mouseState.x, this.mouseState.y);
             //
             // TODO: Replace in some other place with a thought that we do
             // not need to make unproject when we do not make touching
-            this.touchState.direction = this.renderer.activeCamera!.unproject(
-                this.touchState.x,
-                this.touchState.y
-            );
+            this.touchState.direction = this.renderer.activeCamera!.unproject(this.touchState.x, this.touchState.y);
 
             this._keyboardHandler.handleEvents();
             this.handleMouseEvents();
@@ -381,7 +370,13 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    public override on(name: string, p0: EventCallback | number, p1?: number | EventCallback, p2?: any, keyPriority?: number) {
+    public override on(
+        name: string,
+        p0: EventCallback | number,
+        p1?: number | EventCallback,
+        p2?: any,
+        keyPriority?: number
+    ) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
             this._keyboardHandler.addEvent(name, p0 as number, p1 as EventCallback, p2, keyPriority);
         } else {
@@ -440,21 +435,21 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
     public updateButtonsStates(buttons: number) {
         let ms = this.mouseState;
-        if ((buttons & LB_M) && ms.leftButtonDown) {
+        if (buttons & LB_M && ms.leftButtonDown) {
             ms.leftButtonDown = true;
         } else {
             ms.leftButtonHold = false;
             ms.leftButtonDown = false;
         }
 
-        if ((buttons & RB_M) && ms.rightButtonDown) {
+        if (buttons & RB_M && ms.rightButtonDown) {
             ms.rightButtonDown = true;
         } else {
             ms.rightButtonHold = false;
             ms.rightButtonDown = false;
         }
 
-        if ((buttons & MB_M) && ms.middleButtonDown) {
+        if (buttons & MB_M && ms.middleButtonDown) {
             ms.middleButtonDown = true;
         } else {
             ms.middleButtonHold = false;
@@ -463,7 +458,6 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     }
 
     protected onMouseMove(sys: MouseEvent, event?: MouseHandlerEvent) {
-
         let ms = this.mouseState;
         this.updateButtonsStates(sys.buttons);
         ms.sys = sys;
@@ -696,8 +690,8 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         ts.sys = event;
         ts.moving = true;
 
-        let dX = ts.x - ts.prev_x
-        let dY = ts.y - ts.prev_y
+        let dX = ts.x - ts.prev_x;
+        let dY = ts.y - ts.prev_y;
         if (Math.abs(dX) > 9 || Math.abs(dY) > 9) {
             this._dblTchBegins = 0;
             this._oneTouchStart = false;
@@ -722,14 +716,23 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
                     ts.pickingObject = co;
                     pe && pe.dispatch(pe.touchleave, ts);
                 }
-                _currPickingColor[0] = _currPickingColor[1] = _currPickingColor[2] = _currPickingColor[3] =
-                    _prevPickingColor[0] = _prevPickingColor[1] = _prevPickingColor[2] = _prevPickingColor[3] =
-                        _tempCurrPickingColor[0] = _tempCurrPickingColor[1] = _tempCurrPickingColor[2] = _tempCurrPickingColor[3] = 0.0;
+                _currPickingColor[0] =
+                    _currPickingColor[1] =
+                    _currPickingColor[2] =
+                    _currPickingColor[3] =
+                    _prevPickingColor[0] =
+                    _prevPickingColor[1] =
+                    _prevPickingColor[2] =
+                    _prevPickingColor[3] =
+                    _tempCurrPickingColor[0] =
+                    _tempCurrPickingColor[1] =
+                    _tempCurrPickingColor[2] =
+                    _tempCurrPickingColor[3] =
+                        0.0;
             }
         }
 
         if (this._isMouseInside && !(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
-
             let r = this.renderer;
             let c = _currPickingColor,
                 p = _prevPickingColor,
@@ -759,7 +762,6 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
             //object is changed
             if (c[0] !== p[0] || c[1] !== p[1] || c[2] !== p[2]) {
-
                 //current is black
                 if (ISBLACK(c)) {
                     let po = r.getPickingObjectArr<any>(p);
@@ -1244,4 +1246,4 @@ const RENDERER_EVENTS: RendererEventsType = [
     "touchenter"
 ];
 
-export {RendererEvents};
+export { RendererEvents };

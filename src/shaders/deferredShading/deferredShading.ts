@@ -1,7 +1,7 @@
-import {Program} from '../../webgl/Program';
+import { Program } from "../../webgl/Program";
 
-import deferred_vert from './deferredShading.vert.glsl';
-import deferred_frag from './deferredShading.frag.glsl';
+import deferred_vert from "./deferredShading.vert.glsl";
+import deferred_frag from "./deferredShading.frag.glsl";
 
 export function deferredShading(): Program {
     return new Program("deferredShading", {
@@ -14,7 +14,7 @@ export function deferredShading(): Program {
             lightPosition: "vec3",
             lightAmbient: "vec3",
             lightDiffuse: "vec3",
-            lightSpecular: "vec4",
+            lightSpecular: "vec4"
         },
         attributes: {
             corners: "vec3"

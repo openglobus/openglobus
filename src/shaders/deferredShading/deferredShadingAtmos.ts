@@ -1,10 +1,10 @@
-import {Program} from '../../webgl/Program';
-import {stringTemplate2} from "../../utils/shared";
-import type {AtmosphereParameters} from "../atmos/atmos";
-import {DEFAULT_PARAMS} from "../atmos/atmos";
+import { Program } from "../../webgl/Program";
+import { stringTemplate2 } from "../../utils/shared";
+import type { AtmosphereParameters } from "../atmos/atmos";
+import { DEFAULT_PARAMS } from "../atmos/atmos";
 
-import deferred_vert from './deferredShading.vert.glsl';
-import deferred_atmos_frag from './deferredShadingAtmos.frag.glsl';
+import deferred_vert from "./deferredShading.vert.glsl";
+import deferred_atmos_frag from "./deferredShadingAtmos.frag.glsl";
 
 export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): Program {
     return new Program("deferredShadingAtmos", {
@@ -21,7 +21,7 @@ export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT
             lightDiffuse: "vec3",
             lightSpecular: "vec4",
             cameraPosition: "vec3",
-            atmosFadeDist: "vec2",
+            atmosFadeDist: "vec2"
         },
         attributes: {
             corners: "vec3"

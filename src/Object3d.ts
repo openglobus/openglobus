@@ -1,16 +1,16 @@
-import {htmlColorToFloat32Array} from './utils/shared';
-import type {TypedArray} from './utils/shared';
-import {Vec3} from './math/Vec3';
-import type {NumberArray3} from './math/Vec3';
-import {DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF} from './math';
-import {Mat4} from "./math/Mat4";
-import {Obj} from "./utils/objParser";
-import type {IObjGeometry} from "./utils/objParser";
+import { htmlColorToFloat32Array } from "./utils/shared";
+import type { TypedArray } from "./utils/shared";
+import { Vec3 } from "./math/Vec3";
+import type { NumberArray3 } from "./math/Vec3";
+import { DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF } from "./math";
+import { Mat4 } from "./math/Mat4";
+import { Obj } from "./utils/objParser";
+import type { IObjGeometry } from "./utils/objParser";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
     if (color instanceof Array) {
         return new Float32Array(color);
-    } else if (typeof color === 'string') {
+    } else if (typeof color === "string") {
         return htmlColorToFloat32Array(color);
     }
     return new Float32Array([0.67, 0.67, 0.67, 1]);
@@ -22,7 +22,7 @@ function getColor3v(color?: NumberArray3 | TypedArray | string): Float32Array {
         res[0] = color[0];
         res[1] = color[1];
         res[2] = color[2];
-    } else if (typeof color === 'string') {
+    } else if (typeof color === "string") {
         let c = htmlColorToFloat32Array(color);
         res[0] = c[0];
         res[1] = c[1];
@@ -51,11 +51,9 @@ interface IObject3dParams {
     metallicRoughnessTextureImage?: HTMLImageElement;
 }
 
-type MaterialProperties = Pick<IObject3dParams, 'metallic' | 'roughness' | 'ambientOcclusion'>;
-
+type MaterialProperties = Pick<IObject3dParams, "metallic" | "roughness" | "ambientOcclusion">;
 
 class Object3d {
-
     protected _name: string;
     protected _vertices: number[];
     protected _numVertices: number;
@@ -90,7 +88,6 @@ class Object3d {
         //     this._texCoords = Array.from({length: 2 * this._numVertices}, (_, i) => 0);
         // }
 
-
         this.color = getColor(data.color);
 
         this.metallic = data.metallic || 0;
@@ -107,7 +104,7 @@ class Object3d {
         if (data.scale) {
             let s = data.scale;
             let scale: Vec3;
-            if (typeof s === 'number') {
+            if (typeof s === "number") {
                 scale = new Vec3(s, s, s);
             } else {
                 scale = s;
@@ -134,12 +131,17 @@ class Object3d {
     }
 
     static getCenter(verts: number[]): Vec3 {
-
-        let min_x = MAX, min_y = MAX, min_z = MAX,
-            max_x = MIN, max_y = MIN, max_z = MIN;
+        let min_x = MAX,
+            min_y = MAX,
+            min_z = MAX,
+            max_x = MIN,
+            max_y = MIN,
+            max_z = MIN;
 
         for (let i = 0, len = verts.length; i < len; i += 3) {
-            let x = verts[i], y = verts[i + 1], z = verts[i + 2];
+            let x = verts[i],
+                y = verts[i + 1],
+                z = verts[i + 2];
             if (x < min_x) min_x = x;
             if (y < min_y) min_y = y;
             if (z < min_z) min_z = z;
@@ -148,11 +150,7 @@ class Object3d {
             if (z > max_z) max_z = z;
         }
 
-        return new Vec3(
-            min_x + (max_x - min_x) * 0.5,
-            min_y + (max_y - min_y) * 0.5,
-            min_z + (max_z - min_z) * 0.5
-        );
+        return new Vec3(min_x + (max_x - min_x) * 0.5, min_y + (max_y - min_y) * 0.5, min_z + (max_z - min_z) * 0.5);
     }
 
     static centering(verts: number[]) {
@@ -262,10 +260,17 @@ class Object3d {
     }
 
     static centroid(vertices: number[]) {
-        let minX = 1000.0, minY = 1000.0, minZ = 1000.0, maxX = -1000.0, maxY = -1000.0, maxZ = -1000.0;
+        let minX = 1000.0,
+            minY = 1000.0,
+            minZ = 1000.0,
+            maxX = -1000.0,
+            maxY = -1000.0,
+            maxZ = -1000.0;
 
         for (let i = 0; i < vertices.length; i += 3) {
-            let x = vertices[i], y = vertices[i + 1], z = vertices[i + 2];
+            let x = vertices[i],
+                y = vertices[i + 1],
+                z = vertices[i + 2];
             if (x < minX) minX = x;
             if (y < minY) minY = y;
             if (z < minZ) minZ = z;
@@ -289,12 +294,26 @@ class Object3d {
         let res = new Array(vertices.length);
 
         for (let i = 0; i < vertices.length; i += 9) {
-
-            let t03 = i, t13 = i + 3, t23 = i + 6, v0_x = vertices[t03], v0_y = vertices[t03 + 1],
-                v0_z = vertices[t03 + 2], v1_x = vertices[t13], v1_y = vertices[t13 + 1], v1_z = vertices[t13 + 2],
-                v2_x = vertices[t23], v2_y = vertices[t23 + 1], v2_z = vertices[t23 + 2], vv0_x = v1_x - v0_x,
-                vv0_y = v1_y - v0_y, vv0_z = v1_z - v0_z, vv1_x = v2_x - v0_x, vv1_y = v2_y - v0_y, vv1_z = v2_z - v0_z,
-                n_x = vv0_y * vv1_z - vv0_z * vv1_y, n_y = vv0_z * vv1_x - vv0_x * vv1_z,
+            let t03 = i,
+                t13 = i + 3,
+                t23 = i + 6,
+                v0_x = vertices[t03],
+                v0_y = vertices[t03 + 1],
+                v0_z = vertices[t03 + 2],
+                v1_x = vertices[t13],
+                v1_y = vertices[t13 + 1],
+                v1_z = vertices[t13 + 2],
+                v2_x = vertices[t23],
+                v2_y = vertices[t23 + 1],
+                v2_z = vertices[t23 + 2],
+                vv0_x = v1_x - v0_x,
+                vv0_y = v1_y - v0_y,
+                vv0_z = v1_z - v0_z,
+                vv1_x = v2_x - v0_x,
+                vv1_y = v2_y - v0_y,
+                vv1_z = v2_z - v0_z,
+                n_x = vv0_y * vv1_z - vv0_z * vv1_y,
+                n_y = vv0_z * vv1_x - vv0_x * vv1_z,
                 n_z = vv0_x * vv1_y - vv0_y * vv1_x;
 
             let l = Math.sqrt(n_x * n_x + n_y * n_y + n_z * n_z);
@@ -319,18 +338,25 @@ class Object3d {
         return res;
     }
 
-    static createSphere(lonBands: number = 16, latBands: number = 16, radius: number = 1.0,
-                        offsetX: number = 0, offsetY: number = 0, offsetZ: number = 0): Object3d {
-
-        let vertices = [], indices = [], normals = [];
+    static createSphere(
+        lonBands: number = 16,
+        latBands: number = 16,
+        radius: number = 1.0,
+        offsetX: number = 0,
+        offsetY: number = 0,
+        offsetZ: number = 0
+    ): Object3d {
+        let vertices = [],
+            indices = [],
+            normals = [];
 
         for (let latNumber = 0; latNumber <= latBands; latNumber++) {
-            let theta = latNumber * Math.PI / latBands;
+            let theta = (latNumber * Math.PI) / latBands;
             let sinTheta = Math.sin(theta);
             let cosTheta = Math.cos(theta);
 
             for (let longNumber = 0; longNumber <= lonBands; longNumber++) {
-                let phi = longNumber * 2 * Math.PI / lonBands;
+                let phi = (longNumber * 2 * Math.PI) / lonBands;
                 let sinPhi = Math.sin(phi);
                 let cosPhi = Math.cos(phi);
                 let x = cosPhi * sinTheta + offsetX;
@@ -351,7 +377,7 @@ class Object3d {
 
         for (let latNumber = 0; latNumber < latBands; latNumber++) {
             for (let longNumber = 0; longNumber < lonBands; longNumber++) {
-                let first = (latNumber * (lonBands + 1)) + longNumber;
+                let first = latNumber * (lonBands + 1) + longNumber;
                 let second = first + lonBands + 1;
 
                 indices.push(first);
@@ -365,18 +391,28 @@ class Object3d {
         }
 
         return new Object3d({
-            'vertices': vertices, 'normals': normals, 'indices': indices
+            vertices: vertices,
+            normals: normals,
+            indices: indices
         });
     }
 
-    static createDisc(radius: number = 1.0, height: number = 0.0,
-                      radialSegments: number = 8, isTop: boolean = true, startIndex: number = 0,
-                      offsetX: number = 0, offsetY: number = 0, offsetZ: number = 0
+    static createDisc(
+        radius: number = 1.0,
+        height: number = 0.0,
+        radialSegments: number = 8,
+        isTop: boolean = true,
+        startIndex: number = 0,
+        offsetX: number = 0,
+        offsetY: number = 0,
+        offsetZ: number = 0
     ): Object3d {
+        let vertices = [],
+            indices = [],
+            normals = [];
 
-        let vertices = [], indices = [], normals = [];
-
-        let thetaStart = 0.0, thetaLength = Math.PI * 2;
+        let thetaStart = 0.0,
+            thetaLength = Math.PI * 2;
 
         let sign = isTop ? 1.0 : -1.0;
 
@@ -392,7 +428,6 @@ class Object3d {
         let centerIndexEnd = startIndex;
 
         for (let x = 0; x <= radialSegments; x++) {
-
             let u = x / radialSegments;
             let theta = u * thetaLength + thetaStart;
 
@@ -407,7 +442,8 @@ class Object3d {
         }
 
         for (let x = 0; x < radialSegments; x++) {
-            let c = centerIndexStart + x, i = centerIndexEnd + x;
+            let c = centerIndexStart + x,
+                i = centerIndexEnd + x;
             if (isTop) {
                 indices.push(i, i + 1, c);
             } else {
@@ -416,7 +452,9 @@ class Object3d {
         }
 
         return new Object3d({
-            'vertices': vertices, 'normals': normals, 'indices': indices
+            vertices: vertices,
+            normals: normals,
+            indices: indices
         });
     }
 
@@ -445,9 +483,14 @@ class Object3d {
         return Object3d.getFrustumScaleByCameraAngles(length, horizontalAngle, vAngle);
     }
 
-    static createFrustum(length: number = 1, width: number = 1, height: number = 1,
-                         xOffset: number = 0, yOffset: number = 0, zOffset: number = 0): Object3d {
-
+    static createFrustum(
+        length: number = 1,
+        width: number = 1,
+        height: number = 1,
+        xOffset: number = 0,
+        yOffset: number = 0,
+        zOffset: number = 0
+    ): Object3d {
         width *= 0.5;
         height *= 0.5;
 
@@ -457,53 +500,110 @@ class Object3d {
                 //inside
                 //
                 //top
-                0 + xOffset, 0 + yOffset, 0 + zOffset,
-                -1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
-                1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                xOffset,
+                yOffset,
+                zOffset,
+                -1 * width + xOffset,
+                height + yOffset,
+                -1 * length + zOffset,
+                width + xOffset,
+                height + yOffset,
+                -1 * length + zOffset,
                 //bottop
-                0 + xOffset, 0 + yOffset, 0 + zOffset,
-                1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
-                -1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
+                xOffset,
+                yOffset,
+                zOffset,
+                width + xOffset,
+                -1 * height + yOffset,
+                -1 * length + zOffset,
+                -1 * width + xOffset,
+                -1 * height + yOffset,
+                -1 * length + zOffset,
                 //right
-                0 + xOffset, 0 + yOffset, 0 + zOffset,
-                1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
-                1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
+                xOffset,
+                yOffset,
+                zOffset,
+                width + xOffset,
+                height + yOffset,
+                -1 * length + zOffset,
+                width + xOffset,
+                -1 * height + yOffset,
+                -1 * length + zOffset,
                 //left
-                0 + xOffset, 0 + yOffset, 0 + zOffset,
-                -1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
-                -1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                xOffset,
+                yOffset,
+                zOffset,
+                -1 * width + xOffset,
+                -1 * height + yOffset,
+                -1 * length + zOffset,
+                -1 * width + xOffset,
+                height + yOffset,
+                -1 * length + zOffset,
                 //
                 // outside
                 //
                 //top
-                0 + xOffset, 0 + yOffset, 0 + zOffset,
-                1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
-                -1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                xOffset,
+                yOffset,
+                zOffset,
+                width + xOffset,
+                height + yOffset,
+                -1 * length + zOffset,
+                -1 * width + xOffset,
+                height + yOffset,
+                -1 * length + zOffset,
                 //bottop
-                0 + xOffset, 0 + yOffset, 0 + zOffset,
-                -1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
-                1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
+                xOffset,
+                yOffset,
+                zOffset,
+                -1 * width + xOffset,
+                -1 * height + yOffset,
+                -1 * length + zOffset,
+                width + xOffset,
+                -1 * height + yOffset,
+                -1 * length + zOffset,
                 //right
-                0 + xOffset, 0 + yOffset, 0 + zOffset,
-                1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
-                1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                xOffset,
+                yOffset,
+                zOffset,
+                width + xOffset,
+                -1 * height + yOffset,
+                -1 * length + zOffset,
+                width + xOffset,
+                height + yOffset,
+                -1 * length + zOffset,
                 //left
-                0 + xOffset, 0 + yOffset, 0 + zOffset,
-                -1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
-                -1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset
+                xOffset,
+                yOffset,
+                zOffset,
+                -1 * width + xOffset,
+                height + yOffset,
+                -1 * length + zOffset,
+                -1 * width + xOffset,
+                -1 * height + yOffset,
+                -1 * length + zOffset
             ]
         });
     }
 
-    static createCylinder(radiusTop: number = 1.0, radiusBottom: number = 1.0, height: number = 1.0,
-                          radialSegments: number = 32, heightSegments: number = 1.0, isTop: boolean = true,
-                          isBottom: boolean = true, offsetX: number = 0, offsetY: number = 0, offsetZ: number = 0): Object3d {
-
+    static createCylinder(
+        radiusTop: number = 1.0,
+        radiusBottom: number = 1.0,
+        height: number = 1.0,
+        radialSegments: number = 32,
+        heightSegments: number = 1.0,
+        isTop: boolean = true,
+        isBottom: boolean = true,
+        offsetX: number = 0,
+        offsetY: number = 0,
+        offsetZ: number = 0
+    ): Object3d {
         let vertices: number[] = [],
             indices: number[] = [],
             normals: number[] = [];
 
-        let thetaStart = 0.0, thetaLength = Math.PI * 2;
+        let thetaStart = 0.0,
+            thetaLength = Math.PI * 2;
 
         let index = 0;
         let indexArray = [];
@@ -513,7 +613,6 @@ class Object3d {
         let slope = (radiusBottom - radiusTop) / height;
 
         for (let y = 0; y <= heightSegments; y++) {
-
             let indexRow = [];
 
             let v = y / heightSegments;
@@ -521,12 +620,12 @@ class Object3d {
             let radius = v * (radiusBottom - radiusTop) + radiusTop;
 
             for (let x = 0; x <= radialSegments; x++) {
-
                 let u = x / radialSegments;
 
                 let theta = u * thetaLength + thetaStart;
 
-                let sinTheta = Math.sin(theta), cosTheta = Math.cos(theta);
+                let sinTheta = Math.sin(theta),
+                    cosTheta = Math.cos(theta);
 
                 vertices.push(radius * sinTheta + offsetX, -v * height + height + offsetY, radius * cosTheta + offsetZ);
 
@@ -542,8 +641,9 @@ class Object3d {
 
         for (let x = 0; x < radialSegments; x++) {
             for (let y = 0; y < heightSegments; y++) {
-
-                let a = indexArray[y][x], b = indexArray[y + 1][x], c = indexArray[y + 1][x + 1],
+                let a = indexArray[y][x],
+                    b = indexArray[y + 1][x],
+                    c = indexArray[y + 1][x + 1],
                     d = indexArray[y][x + 1];
 
                 indices.push(a, b, d);
@@ -559,7 +659,16 @@ class Object3d {
         }
 
         if (radiusBottom !== 0.0 && isBottom) {
-            let cap = Object3d.createDisc(radiusBottom, 0, radialSegments, false, index + (isTop ? (1 + 2 * radialSegments) : 0), offsetX, offsetY, offsetZ);
+            let cap = Object3d.createDisc(
+                radiusBottom,
+                0,
+                radialSegments,
+                false,
+                index + (isTop ? 1 + 2 * radialSegments : 0),
+                offsetX,
+                offsetY,
+                offsetZ
+            );
             vertices.push(...cap.vertices);
             normals.push(...cap.normals);
             indices.push(...cap.indices);
@@ -572,102 +681,303 @@ class Object3d {
         });
     }
 
-    static createCube(length: number = 1, height: number = 1, depth: number = 1,
-                      xOffset: number = 0, yOffset: number = 0, zOffset: number = 0): Object3d {
-        let l = length * 0.5 + xOffset, h = height * 0.5 + yOffset, d = depth * 0.5 + zOffset;
-
-        return new Object3d({
-            vertices: [//bottom
-                -l, -h, d, l, -h, -d, l, -h, d, -l, -h, d, -l, -h, -d, l, -h, -d,
-
-                //top
-                -l, h, d, l, h, d, l, h, -d, -l, h, d, l, h, -d, -l, h, -d,
-
-                //front
-                -l, -h, d, l, -h, d, -l, h, d, -l, h, d, l, -h, d, l, h, d,
-
-                //back
-                -l, -h, -d, -l, h, -d, l, -h, -d, -l, h, -d, l, h, -d, l, -h, -d,
-
-                //left
-                l, -h, d, l, -h, -d, l, h, d, l, h, d, l, -h, -d, l, h, -d,
-
-                //right
-                -l, -h, d, -l, h, d, -l, -h, -d, -l, h, d, -l, h, -d, -l, -h, -d]
-        });
-    }
-
-    static createPlane(width: number = 1, height: number = 1, xOffset: number = 0, yOffset: number = 0, zOffset: number = 0): Object3d {
-        let sx = width * 0.5, sy = yOffset, sz = height * 0.5;
+    static createCube(
+        length: number = 1,
+        height: number = 1,
+        depth: number = 1,
+        xOffset: number = 0,
+        yOffset: number = 0,
+        zOffset: number = 0
+    ): Object3d {
+        let l = length * 0.5 + xOffset,
+            h = height * 0.5 + yOffset,
+            d = depth * 0.5 + zOffset;
 
         return new Object3d({
             vertices: [
                 //bottom
-                -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, sx + xOffset, sy, sz + zOffset, -sx + xOffset, sy, sz + zOffset, -sx + xOffset, sy, -sz + zOffset, sx + xOffset, sy, -sz + zOffset,
+                -l,
+                -h,
+                d,
+                l,
+                -h,
+                -d,
+                l,
+                -h,
+                d,
+                -l,
+                -h,
+                d,
+                -l,
+                -h,
+                -d,
+                l,
+                -h,
+                -d,
+
                 //top
-                -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, -sx + xOffset, sy, -sz + zOffset
+                -l,
+                h,
+                d,
+                l,
+                h,
+                d,
+                l,
+                h,
+                -d,
+                -l,
+                h,
+                d,
+                l,
+                h,
+                -d,
+                -l,
+                h,
+                -d,
+
+                //front
+                -l,
+                -h,
+                d,
+                l,
+                -h,
+                d,
+                -l,
+                h,
+                d,
+                -l,
+                h,
+                d,
+                l,
+                -h,
+                d,
+                l,
+                h,
+                d,
+
+                //back
+                -l,
+                -h,
+                -d,
+                -l,
+                h,
+                -d,
+                l,
+                -h,
+                -d,
+                -l,
+                h,
+                -d,
+                l,
+                h,
+                -d,
+                l,
+                -h,
+                -d,
+
+                //left
+                l,
+                -h,
+                d,
+                l,
+                -h,
+                -d,
+                l,
+                h,
+                d,
+                l,
+                h,
+                d,
+                l,
+                -h,
+                -d,
+                l,
+                h,
+                -d,
+
+                //right
+                -l,
+                -h,
+                d,
+                -l,
+                h,
+                d,
+                -l,
+                -h,
+                -d,
+                -l,
+                h,
+                d,
+                -l,
+                h,
+                -d,
+                -l,
+                -h,
+                -d
+            ]
+        });
+    }
+
+    static createPlane(
+        width: number = 1,
+        height: number = 1,
+        xOffset: number = 0,
+        yOffset: number = 0,
+        zOffset: number = 0
+    ): Object3d {
+        let sx = width * 0.5,
+            sy = yOffset,
+            sz = height * 0.5;
+
+        return new Object3d({
+            vertices: [
+                //bottom
+                -sx + xOffset,
+                sy,
+                sz + zOffset,
+                sx + xOffset,
+                sy,
+                -sz + zOffset,
+                sx + xOffset,
+                sy,
+                sz + zOffset,
+                -sx + xOffset,
+                sy,
+                sz + zOffset,
+                -sx + xOffset,
+                sy,
+                -sz + zOffset,
+                sx + xOffset,
+                sy,
+                -sz + zOffset,
+                //top
+                -sx + xOffset,
+                sy,
+                sz + zOffset,
+                sx + xOffset,
+                sy,
+                sz + zOffset,
+                sx + xOffset,
+                sy,
+                -sz + zOffset,
+                -sx + xOffset,
+                sy,
+                sz + zOffset,
+                sx + xOffset,
+                sy,
+                -sz + zOffset,
+                -sx + xOffset,
+                sy,
+                -sz + zOffset
             ]
         });
     }
 
     static createArrow(back: number = 0.0, height: number = 2.1, front: number = -15): Object3d {
         return new Object3d({
-            vertices: [0, height, 0, 7, 0, 6, 0, 0, front,
-                0, 0, back, 7, 0, 6, 0, height, 0,
-                -7, 0, 6, 0, 0, back, 0, height, 0,
-                -7, 0, 6, 0, height, 0, 0, 0, front,
-                -7, 0, 6, 0, 0, front, 0, 0, back, 0, 0, back, 0, 0, front, 7, 0, 6]
+            vertices: [
+                0,
+                height,
+                0,
+                7,
+                0,
+                6,
+                0,
+                0,
+                front,
+                0,
+                0,
+                back,
+                7,
+                0,
+                6,
+                0,
+                height,
+                0,
+                -7,
+                0,
+                6,
+                0,
+                0,
+                back,
+                0,
+                height,
+                0,
+                -7,
+                0,
+                6,
+                0,
+                height,
+                0,
+                0,
+                0,
+                front,
+                -7,
+                0,
+                6,
+                0,
+                0,
+                front,
+                0,
+                0,
+                back,
+                0,
+                0,
+                back,
+                0,
+                0,
+                front,
+                7,
+                0,
+                6
+            ]
         });
     }
 
     static async readFileObj(objFile: File, mtlFile?: File | null, baseUrl?: string): Promise<Object3d[]> {
-
         let obj = new Obj();
 
         const res = await obj.readFile(objFile, mtlFile);
 
         let materials = res.materials;
 
-        return res.geometries.map(
-            (obj: IObjGeometry) => {
-                let mat = materials[obj.material] || {};
-                return new Object3d({
-                    name: obj.object,
-                    vertices: obj.data.vertices,
-                    normals: obj.data.normals,
-                    texCoords: obj.data.texCoords,
-                    color: mat.color || mat.diffuse,
-                    colorTextureSrc: baseUrl ? `${baseUrl}/${mat.colorTexture}` : mat.colorTexture,
-                    normalTextureSrc: baseUrl ? `${baseUrl}/${mat.normalTexture}` : mat.normalTexture,
-                    metallicRoughnessTextureSrc: baseUrl ? `${baseUrl}/${mat.metallicRoughnessTexture}` : mat.metallicRoughnessTexture
-                })
-            }
-        );
+        return res.geometries.map((obj: IObjGeometry) => {
+            let mat = materials[obj.material] || {};
+            return new Object3d({
+                name: obj.object,
+                vertices: obj.data.vertices,
+                normals: obj.data.normals,
+                texCoords: obj.data.texCoords,
+                color: mat.color || mat.diffuse,
+                colorTextureSrc: baseUrl ? `${baseUrl}/${mat.colorTexture}` : mat.colorTexture,
+                normalTextureSrc: baseUrl ? `${baseUrl}/${mat.normalTexture}` : mat.normalTexture,
+                metallicRoughnessTextureSrc: baseUrl
+                    ? `${baseUrl}/${mat.metallicRoughnessTexture}`
+                    : mat.metallicRoughnessTexture
+            });
+        });
     }
 
     static async loadObj(src: string): Promise<Object3d[]> {
-
         let obj = new Obj();
 
         const res = await obj.load(src);
 
         let materials = res.materials;
 
-        return res.geometries.map(
-            (obj: IObjGeometry) => {
-                let mat = materials[obj.material] || {};
-                return new Object3d({
-                    name: obj.object,
-                    vertices: obj.data.vertices,
-                    normals: obj.data.normals,
-                    texCoords: obj.data.texCoords,
-                    color: mat.color || mat.diffuse,
-                    colorTextureSrc: mat.colorTexture,
-                    normalTextureSrc: mat.normalTexture,
-                    metallicRoughnessTextureSrc: mat.metallicRoughnessTexture
-                })
-            }
-        );
+        return res.geometries.map((obj: IObjGeometry) => {
+            let mat = materials[obj.material] || {};
+            return new Object3d({
+                name: obj.object,
+                vertices: obj.data.vertices,
+                normals: obj.data.normals,
+                texCoords: obj.data.texCoords,
+                color: mat.color || mat.diffuse,
+                colorTextureSrc: mat.colorTexture,
+                normalTextureSrc: mat.normalTexture,
+                metallicRoughnessTextureSrc: mat.metallicRoughnessTexture
+            });
+        });
     }
 
     public merge(other: Object3d): Object3d {
@@ -712,4 +1022,4 @@ class Object3d {
     }
 }
 
-export {Object3d};
+export { Object3d };

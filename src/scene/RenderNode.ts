@@ -1,10 +1,10 @@
-import {BaseNode} from "./BaseNode";
-import {Renderer} from "../renderer/Renderer";
-import {LightSource} from "../light/LightSource";
-import type {EntityCollection} from "../entity/EntityCollection";
-import {Quat} from "../math/Quat";
-import {Vec3} from "../math/Vec3";
-import type {Planet} from "./Planet";
+import { BaseNode } from "./BaseNode";
+import { Renderer } from "../renderer/Renderer";
+import { LightSource } from "../light/LightSource";
+import type { EntityCollection } from "../entity/EntityCollection";
+import { Quat } from "../math/Quat";
+import { Vec3 } from "../math/Vec3";
+import type { Planet } from "./Planet";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -18,7 +18,6 @@ import type {Planet} from "./Planet";
  */
 
 class RenderNode extends BaseNode {
-
     /**
      * Renderer that calls frame() callback.
      * @public
@@ -153,7 +152,6 @@ class RenderNode extends BaseNode {
      * @returns {RenderNode} -
      */
     public addEntityCollection(entityCollection: EntityCollection, isHidden?: boolean): void {
-
         if (!entityCollection.renderNode) {
             entityCollection.renderNode = this;
 
@@ -187,8 +185,7 @@ class RenderNode extends BaseNode {
     }
 
     public updateEntityCollectionsDepthOrder() {
-
-        let grouped: Record<number, EntityCollection[]> = {0: []};
+        let grouped: Record<number, EntityCollection[]> = { 0: [] };
         for (const ec of this.entityCollections) {
             if (ec.getVisibility()) {
                 if (!grouped[ec.depthOrder]) {
@@ -202,7 +199,7 @@ class RenderNode extends BaseNode {
         this._entityCollectionsByDepthOrder = [];
         this._entityCollectionsByDepthOrder = Object.keys(grouped)
             .sort((a, b) => Number(a) - Number(b))
-            .map(key => grouped[Number(key)]);
+            .map((key) => grouped[Number(key)]);
     }
 
     /**
@@ -223,7 +220,6 @@ class RenderNode extends BaseNode {
     public preDrawNode() {
         this._isActive && this._preDrawNodes();
     }
-
 
     /**
      * Calls render frame node's callback. Used in renderer.
@@ -254,10 +250,7 @@ class RenderNode extends BaseNode {
             if (this._isActive && this._pickingId === -1) {
                 // This picking callback MUST be the first picking callback
                 // in the rendering queue in the renderer. It affects on blending.
-                this._pickingId = this.renderer.addPickingCallback(
-                    this,
-                    this._entityCollectionPickingCallback
-                );
+                this._pickingId = this.renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
             } else if (!this._isActive && this._pickingId !== -1) {
                 this.renderer.removePickingCallback(this._pickingId);
                 this._pickingId = -1;
@@ -367,7 +360,6 @@ class RenderNode extends BaseNode {
      */
     public drawPickingEntityCollections(ec: EntityCollection[]) {
         if (ec.length) {
-
             // billboard pass
             let i = ec.length;
             while (i--) {
@@ -419,4 +411,4 @@ class RenderNode extends BaseNode {
     }
 }
 
-export {RenderNode};
+export { RenderNode };

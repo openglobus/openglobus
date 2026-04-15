@@ -1,8 +1,8 @@
-import {Entity, type IEntityParams} from "../../entity/Entity";
-import {Vec3} from "../../math/Vec3";
-import {SEL_X_COLOR, SEL_Y_COLOR, SEL_Z_COLOR, X_COLOR, Y_COLOR, Z_COLOR} from "./colors";
-import {ArrowEntity} from "./ArrowEntity";
-import {RADIANS} from "../../math";
+import { Entity, type IEntityParams } from "../../entity/Entity";
+import { Vec3 } from "../../math/Vec3";
+import { SEL_X_COLOR, SEL_Y_COLOR, SEL_Z_COLOR, X_COLOR, Y_COLOR, Z_COLOR } from "./colors";
+import { ArrowEntity } from "./ArrowEntity";
+import { RADIANS } from "../../math";
 
 export interface IAxisEntityParams extends IEntityParams {
     size?: number;
@@ -20,7 +20,6 @@ export class MoveAxisEntity extends Entity {
     }
 
     private _init() {
-
         let arrowX = new ArrowEntity({
             color: X_COLOR,
             yaw: 0,

@@ -1,5 +1,5 @@
 /* eslint-env worker */
-'use strict';
+"use strict";
 
 let model = null;
 
@@ -12,7 +12,6 @@ let v11 = null;
 //let t = null;
 
 function rawval(ix, iy) {
-
     if (iy < 0) {
         iy = -iy;
         ix += model.width / 2;
@@ -33,7 +32,6 @@ function rawval(ix, iy) {
 }
 
 function getHeightMSL(lon, lat) {
-
     if (!model) return 0;
 
     if (lon < 0) lon += 360.0;
@@ -46,12 +44,11 @@ function getHeightMSL(lon, lat) {
     fx -= ix;
     fy -= iy;
 
-    if (iy === (model.height - 1)) {
+    if (iy === model.height - 1) {
         iy--;
     }
 
-    if ((cached_ix !== ix) || (cached_iy !== iy)) {
-
+    if (cached_ix !== ix || cached_iy !== iy) {
         cached_ix = ix;
         cached_iy = iy;
 
@@ -92,7 +89,6 @@ const Vec3 = function (x, y, z) {
 };
 
 var geodeticToCartesian = function (lon, lat, heightFactor, res) {
-
     let h = getHeightMSL(lon, lat) * heightFactor;
 
     let latrad = RADIANS * lat,
@@ -113,7 +109,8 @@ var geodeticToCartesianInverse = function (lon, lat, heightFactor, res) {
         lon * INV_POLE_BY_180,
         INV_PI_BY_360 * Math.atan(Math.exp(lat * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI,
         heightFactor,
-        res);
+        res
+    );
 };
 
 var worldPos = new Vec3(0.0, 0.0, 0.0);
@@ -122,8 +119,9 @@ var _tempHigh = new Vec3(0.0, 0.0, 0.0);
 var _tempLow = new Vec3(0.0, 0.0, 0.0);
 
 var doubleToTwoFloats = function (v, high, low) {
-
-    let x = v.x, y = v.y, z = v.z;
+    let x = v.x,
+        y = v.y,
+        z = v.z;
 
     var doubleHigh;
 
@@ -163,14 +161,16 @@ self.onmessage = function (msg) {
         model = msg.data.model;
         model.rawfile = msg.data.rawfile;
     } else if (msg.data.params) {
-
         let rtc_x = msg.data.params[14];
         let rtc_y = msg.data.params[15];
         let rtc_z = msg.data.params[16];
 
-        let xmin = 549755748352.0, xmax = -549755748352.0,
-            ymin = 549755748352.0, ymax = -549755748352.0,
-            zmin = 549755748352.0, zmax = -549755748352.0;
+        let xmin = 549755748352.0,
+            xmax = -549755748352.0,
+            ymin = 549755748352.0,
+            ymax = -549755748352.0,
+            zmin = 549755748352.0,
+            zmax = -549755748352.0;
 
         E2 = msg.data.params[8];
         A = msg.data.params[9];
@@ -215,13 +215,14 @@ self.onmessage = function (msg) {
             nmInd = 0;
 
         for (let k = 0; k < gsgs; k++) {
-
             let j = k % gs,
                 i = ~~(k / gs);
 
             _projFunc(esw_lon + j * llStep, ene_lat - i * ltStep, heightFactor, worldPos);
 
-            let nx = worldPos.x * r2_x, ny = worldPos.y * r2_y, nz = worldPos.z * r2_z;
+            let nx = worldPos.x * r2_x,
+                ny = worldPos.y * r2_y,
+                nz = worldPos.z * r2_z;
             let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
             let nxl = nx * l,
                 nyl = ny * l,
@@ -241,7 +242,6 @@ self.onmessage = function (msg) {
             normalMapNormals[nmInd++] = nzl;
 
             if (i % dg === 0 && j % dg === 0) {
-
                 doubleToTwoFloats(rtcPos, _tempHigh, _tempLow);
 
                 plainVertices[ind] = rtcPos.x;
@@ -274,23 +274,26 @@ self.onmessage = function (msg) {
 
         let plainRadius = Math.sqrt(x * x + y * y + z * z);
 
-        self.postMessage({
-            id: msg.data.params[0],
-            plainVertices: plainVertices,
-            plainVerticesHigh: plainVerticesHigh,
-            plainVerticesLow: plainVerticesLow,
-            plainNormals: plainNormals,
-            normalMapNormals: normalMapNormals,
-            normalMapVertices: normalMapVertices,
-            plainRadius: plainRadius,
-            relativeCenter: [rtc_x, rtc_y, rtc_z]
-        }, [
-            plainVertices.buffer,
-            plainVerticesHigh.buffer,
-            plainVerticesLow.buffer,
-            plainNormals.buffer,
-            normalMapNormals.buffer,
-            normalMapVertices.buffer,
-        ]);
+        self.postMessage(
+            {
+                id: msg.data.params[0],
+                plainVertices: plainVertices,
+                plainVerticesHigh: plainVerticesHigh,
+                plainVerticesLow: plainVerticesLow,
+                plainNormals: plainNormals,
+                normalMapNormals: normalMapNormals,
+                normalMapVertices: normalMapVertices,
+                plainRadius: plainRadius,
+                relativeCenter: [rtc_x, rtc_y, rtc_z]
+            },
+            [
+                plainVertices.buffer,
+                plainVerticesHigh.buffer,
+                plainVerticesLow.buffer,
+                plainNormals.buffer,
+                normalMapNormals.buffer,
+                normalMapVertices.buffer
+            ]
+        );
     }
-}
+};

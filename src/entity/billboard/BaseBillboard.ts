@@ -1,13 +1,13 @@
 import * as utils from "../../utils/shared";
-import {Entity} from "../Entity";
-import {LOCK_FREE, LOCK_UPDATE} from "../label/LabelWorker";
-import {Vec2} from "../../math/Vec2";
-import {Vec3} from "../../math/Vec3";
-import {Vec4} from "../../math/Vec4";
-import type {NumberArray2} from "../../math/Vec2";
-import type {NumberArray3} from "../../math/Vec3";
-import type {NumberArray4} from "../../math/Vec4";
-import {BaseBillboardHandler} from "./BaseBillboardHandler";
+import { Entity } from "../Entity";
+import { LOCK_FREE, LOCK_UPDATE } from "../label/LabelWorker";
+import { Vec2 } from "../../math/Vec2";
+import { Vec3 } from "../../math/Vec3";
+import { Vec4 } from "../../math/Vec4";
+import type { NumberArray2 } from "../../math/Vec2";
+import type { NumberArray3 } from "../../math/Vec3";
+import type { NumberArray4 } from "../../math/Vec4";
+import { BaseBillboardHandler } from "./BaseBillboardHandler";
 
 export interface IBaseBillboardParams {
     position?: NumberArray3 | Vec3;
@@ -110,7 +110,6 @@ class BaseBillboard {
     public _lockId: number;
 
     constructor(options: IBaseBillboardParams = {}) {
-
         this.__id = BaseBillboard.__counter__++;
 
         this._position = utils.createVec3(options.position);
@@ -402,4 +401,4 @@ class BaseBillboard {
     }
 }
 
-export {BaseBillboard};
+export { BaseBillboard };

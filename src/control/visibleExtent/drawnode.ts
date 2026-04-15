@@ -11,8 +11,7 @@ const CORNERS = `const vec2 BOTTOMLEFT = vec2(-0.01);
 
 const NIGHT = `const vec3 nightStep = 10.0 * vec3(0.58, 0.48, 0.25);`;
 
-const INSIDE_BOX =
-    `/* return 1 if v inside the box, return 0 otherwise */
+const INSIDE_BOX = `/* return 1 if v inside the box, return 0 otherwise */
     float insideBox(vec2 v) {
         vec2 s = step(BOTTOMLEFT, v) - step(TOPRIGHT, v);
         return s.x * s.y;

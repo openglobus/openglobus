@@ -1,4 +1,4 @@
-import {Program} from "../../webgl";
+import { Program } from "../../webgl";
 
 export function camera_depth() {
     return new Program("camera_depth", {
@@ -7,14 +7,14 @@ export function camera_depth() {
             viewMatrix: "mat4",
             height: "float",
             rtcEyePositionHigh: "vec3",
-            rtcEyePositionLow: "vec3",
-        }, attributes: {
+            rtcEyePositionLow: "vec3"
+        },
+        attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3"
         },
 
-        vertexShader:
-            `#version 300 es
+        vertexShader: `#version 300 es
             
             precision highp float;
 
@@ -42,8 +42,7 @@ export function camera_depth() {
                 gl_Position =  m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);    
             }`,
 
-        fragmentShader:
-            `#version 300 es
+        fragmentShader: `#version 300 es
             
             precision highp float;        
 

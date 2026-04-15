@@ -1,11 +1,11 @@
 import * as utils from "../../utils/shared";
-import {BaseBillboard} from "../billboard/BaseBillboard";
-import type {IBaseBillboardParams} from "../billboard/BaseBillboard";
-import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker";
-import {Vec4} from "../../math/Vec4";
-import type {NumberArray4} from "../../math/Vec4";
-import {FontAtlas} from "../../utils/FontAtlas";
-import {LabelHandler} from "./LabelHandler";
+import { BaseBillboard } from "../billboard/BaseBillboard";
+import type { IBaseBillboardParams } from "../billboard/BaseBillboard";
+import { LOCK_FREE, LOCK_UPDATE } from "./LabelWorker";
+import { Vec4 } from "../../math/Vec4";
+import type { NumberArray4 } from "../../math/Vec4";
+import { FontAtlas } from "../../utils/FontAtlas";
+import { LabelHandler } from "./LabelHandler";
 
 export interface ILabelParams extends IBaseBillboardParams {
     text?: string;
@@ -57,7 +57,6 @@ const STR2ALIGN: Record<string, number> = {
  * @param {string} [options.align] - Text horizontal align: "left", "right" and "center".
  */
 class Label extends BaseBillboard {
-
     public override _handler: LabelHandler | null;
 
     /**
@@ -97,8 +96,8 @@ class Label extends BaseBillboard {
 
     /**
      * Text horizontal align: "left", "right" and "center".
-     * @private
-     * @type {Label.ALIGN}
+     * @protected
+     * @type {number}
      */
     protected _align: number;
 
@@ -133,12 +132,11 @@ class Label extends BaseBillboard {
 
         this._outline = options.outline != undefined ? options.outline : 0.0;
 
-        this._outlineColor = utils.createColorRGBA(
-            options.outlineColor,
-            new Vec4(0.0, 0.0, 0.0, 1.0)
-        );
+        this._outlineColor = utils.createColorRGBA(options.outlineColor, new Vec4(0.0, 0.0, 0.0, 1.0));
 
-        this._align = options.align ? STR2ALIGN[options.align.trim().toLowerCase()] as number || ALIGN.RIGHT : ALIGN.RIGHT;
+        this._align = options.align
+            ? (STR2ALIGN[options.align.trim().toLowerCase()] as number) || ALIGN.RIGHT
+            : ALIGN.RIGHT;
 
         this._fontIndex = 0;
 
@@ -158,7 +156,14 @@ class Label extends BaseBillboard {
     public setText(text: string) {
         this._text = text.toString();
         if (this._isReady && this._handler) {
-            this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align, this._letterSpacing, this._isRTL);
+            this._handler.setText(
+                this._handlerIndex,
+                text,
+                this._fontIndex,
+                this._align,
+                this._letterSpacing,
+                this._isRTL
+            );
         }
     }
 
@@ -170,14 +175,20 @@ class Label extends BaseBillboard {
     public setLetterSpacing(letterSpacing: number) {
         this._letterSpacing = letterSpacing;
         if (this._isReady && this._handler) {
-            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, letterSpacing, this._isRTL);
+            this._handler.setText(
+                this._handlerIndex,
+                this._text,
+                this._fontIndex,
+                this._align,
+                letterSpacing,
+                this._isRTL
+            );
         }
     }
 
     /**
      * Returns label text letter spacing.
      * @public
-     * @param {number} spacing - Letter spacing.
      */
     public getLetterSpacing(): number {
         return this._letterSpacing;
@@ -191,7 +202,14 @@ class Label extends BaseBillboard {
     public setRtl(isRTL: boolean) {
         this._isRTL = isRTL;
         if (this._isReady && this._handler) {
-            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._letterSpacing, this._isRTL);
+            this._handler.setText(
+                this._handlerIndex,
+                this._text,
+                this._fontIndex,
+                this._align,
+                this._letterSpacing,
+                this._isRTL
+            );
         }
     }
 
@@ -212,7 +230,14 @@ class Label extends BaseBillboard {
     public setAlign(align: string) {
         this._align = STR2ALIGN[align.trim().toLowerCase()] as number;
         if (this._isReady && this._handler) {
-            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._letterSpacing, this._isRTL);
+            this._handler.setText(
+                this._handlerIndex,
+                this._text,
+                this._fontIndex,
+                this._align,
+                this._letterSpacing,
+                this._isRTL
+            );
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;
         }
@@ -313,7 +338,12 @@ class Label extends BaseBillboard {
      * @param {number} a - Alpha.
      */
     public setOutlineColor(r: number, g: number, b: number, a: number) {
-        if (a !== this._outlineColor.w || r !== this._outlineColor.x || g !== this._outlineColor.y || b !== this._outlineColor.z) {
+        if (
+            a !== this._outlineColor.w ||
+            r !== this._outlineColor.x ||
+            g !== this._outlineColor.y ||
+            b !== this._outlineColor.z
+        ) {
             this._outlineColor.x = r;
             this._outlineColor.y = g;
             this._outlineColor.z = b;
@@ -393,7 +423,14 @@ class Label extends BaseBillboard {
         this._fontIndex = fontIndex;
         if (this._isReady && this._handler) {
             this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
-            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._letterSpacing, this._isRTL);
+            this._handler.setText(
+                this._handlerIndex,
+                this._text,
+                this._fontIndex,
+                this._align,
+                this._letterSpacing,
+                this._isRTL
+            );
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;
         }
@@ -414,20 +451,35 @@ class Label extends BaseBillboard {
     public override serializeWorkerData(workerId: number): Float32Array | null {
         if (this._handler) {
             return new Float32Array([
-                /*0*/workerId,
-                /*1*/this._handler!._maxLetters,
-                /*2*/this.getVisibility() ? 1 : 0,
-                /*3, 4, 5*/this._positionHigh.x, this._positionHigh.y, this._positionHigh.z,
-                /*6, 7, 8*/this._positionLow.x, this._positionLow.y, this._positionLow.z,
-                /*9*/this._size,
-                /*10, 11*/this._offset.x, this._offset.y,
-                /*12, 13, 14, 15*/this._color.x, this._color.y, this._color.z, this._color.w,
-                /*16*/this._rotation,
-                /*17, 18, 19*/this._alignedAxis.x, this._alignedAxis.y, this._alignedAxis.z,
-                /*20*/this._fontIndex,
-                /*21*/this._outline,
-                /*22, 23, 24, 25*/this._outlineColor.x, this._outlineColor.y, this._outlineColor.z, this._outlineColor.w,
-                /*26, 27, 28*/this._entity!._pickingColor.x, this._entity!._pickingColor.y, this._entity!._pickingColor.z
+                /*0*/ workerId,
+                /*1*/ this._handler!._maxLetters,
+                /*2*/ this.getVisibility() ? 1 : 0,
+                /*3, 4, 5*/ this._positionHigh.x,
+                this._positionHigh.y,
+                this._positionHigh.z,
+                /*6, 7, 8*/ this._positionLow.x,
+                this._positionLow.y,
+                this._positionLow.z,
+                /*9*/ this._size,
+                /*10, 11*/ this._offset.x,
+                this._offset.y,
+                /*12, 13, 14, 15*/ this._color.x,
+                this._color.y,
+                this._color.z,
+                this._color.w,
+                /*16*/ this._rotation,
+                /*17, 18, 19*/ this._alignedAxis.x,
+                this._alignedAxis.y,
+                this._alignedAxis.z,
+                /*20*/ this._fontIndex,
+                /*21*/ this._outline,
+                /*22, 23, 24, 25*/ this._outlineColor.x,
+                this._outlineColor.y,
+                this._outlineColor.z,
+                this._outlineColor.w,
+                /*26, 27, 28*/ this._entity!._pickingColor.x,
+                this._entity!._pickingColor.y,
+                this._entity!._pickingColor.z
             ]);
         }
 
@@ -435,4 +487,4 @@ class Label extends BaseBillboard {
     }
 }
 
-export {Label, ALIGN};
+export { Label, ALIGN };

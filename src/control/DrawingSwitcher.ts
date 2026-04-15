@@ -1,7 +1,7 @@
-import {ButtonGroup} from "../ui/ButtonGroup";
-import {Control} from "./Control";
-import {DrawingControl} from "./drawing/DrawingControl";
-import {ToggleButton} from "../ui/ToggleButton";
+import { ButtonGroup } from "../ui/ButtonGroup";
+import { Control } from "./Control";
+import { DrawingControl } from "./drawing/DrawingControl";
+import { ToggleButton } from "../ui/ToggleButton";
 
 const ICON_POLYGON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 24.1.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
@@ -66,7 +66,6 @@ export class DrawingSwitcher extends Control {
     }
 
     protected _createMenu() {
-
         let defaultBtn = new ToggleButton({
             classList: ["og-map-button", "og-drawing-default_button"],
             icon: ICON_DEFAULT_SVG,
@@ -87,9 +86,7 @@ export class DrawingSwitcher extends Control {
         });
 
         let buttons = new ButtonGroup({
-            buttons: [
-                defaultBtn, polyBtn, lineBtn
-            ]
+            buttons: [defaultBtn, polyBtn, lineBtn]
         });
 
         buttons.events.on("change", (btn: ToggleButton) => {
@@ -104,7 +101,7 @@ export class DrawingSwitcher extends Control {
             }
         });
 
-        defaultBtn.appendTo(this.renderer!.div!)
+        defaultBtn.appendTo(this.renderer!.div!);
         polyBtn.appendTo(this.renderer!.div!);
         lineBtn.appendTo(this.renderer!.div!);
     }

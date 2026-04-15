@@ -1,19 +1,24 @@
-import {EntityCollectionsTreeStrategy} from "../EntityCollectionsTreeStrategy";
-import {Extent} from "../../Extent";
-import {Planet} from "../../scene/Planet";
-import {LonLat} from "../../LonLat";
-import {NE, NW, SE, SW} from "../quadTree";
-import {Entity} from "../../entity/Entity";
-import {EntityCollection} from "../../entity/EntityCollection";
-import {EntityCollectionNode} from "../EntityCollectionNode";
-import type {NodesDict} from "../EntityCollectionNode";
-import {EquiEntityCollectionsTreeStrategy} from "./EquiEntityCollectionsTreeStrategy";
+import { Extent } from "../../Extent";
+import { Planet } from "../../scene/Planet";
+import { LonLat } from "../../LonLat";
+import { NE, NW, SE, SW } from "../quadTree";
+import { Entity } from "../../entity/Entity";
+import { EntityCollection } from "../../entity/EntityCollection";
+import { EntityCollectionNode } from "../EntityCollectionNode";
+import type { NodesDict } from "../EntityCollectionNode";
+import { EquiEntityCollectionsTreeStrategy } from "./EquiEntityCollectionsTreeStrategy";
 
 export class EquiEntityCollectionNodeLonLat extends EntityCollectionNode {
-
     public override strategy: EquiEntityCollectionsTreeStrategy;
 
-    constructor(strategy: EquiEntityCollectionsTreeStrategy, partId: number, parent: EquiEntityCollectionNodeLonLat | null, extent: Extent, planet: Planet, zoom: number) {
+    constructor(
+        strategy: EquiEntityCollectionsTreeStrategy,
+        partId: number,
+        parent: EquiEntityCollectionNodeLonLat | null,
+        extent: Extent,
+        planet: Planet,
+        zoom: number
+    ) {
         super(strategy, partId, parent, extent, planet, zoom);
         this.strategy = strategy;
     }
@@ -30,10 +35,24 @@ export class EquiEntityCollectionNodeLonLat extends EntityCollectionNode {
         const p = this.layer._planet!;
         const z = this.zoom + 1;
 
-        nd[NW] = new EquiEntityCollectionNodeLonLat(s, NW, this, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
+        nd[NW] = new EquiEntityCollectionNodeLonLat(
+            s,
+            NW,
+            this,
+            new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)),
+            p,
+            z
+        );
         nd[NE] = new EquiEntityCollectionNodeLonLat(s, NE, this, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
         nd[SW] = new EquiEntityCollectionNodeLonLat(s, SW, this, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
-        nd[SE] = new EquiEntityCollectionNodeLonLat(s, SE, this, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
+        nd[SE] = new EquiEntityCollectionNodeLonLat(
+            s,
+            SE,
+            this,
+            new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)),
+            p,
+            z
+        );
     }
 
     protected override _setExtentBounds() {
@@ -61,7 +80,6 @@ export class EquiEntityCollectionNodeLonLat extends EntityCollectionNode {
     }
 
     public override renderCollection(outArr: EntityCollection[], visibleNodes: NodesDict, renderingNode: number) {
-
         if (this.extent.southWest.lon < 0) {
             this.strategy._renderingNodesWest[this.nodeId] = true;
         } else {

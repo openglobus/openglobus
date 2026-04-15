@@ -1,21 +1,16 @@
-import {Extent} from "../../Extent";
-import {equi} from "../../proj/equi";
-import {Node} from "../Node";
-import {SegmentLonLatEqui} from "../../segment/SegmentLonLatEqui";
-import {QuadTreeStrategy, QuadTreeStrategyParams} from "../QuadTreeStrategy";
-import {LonLat} from "../../LonLat";
-import {
-    getTileCellExtent,
-    getTileCellIndex,
-    TILEGROUP_COMMON
-} from "../../segment/Segment";
-import {Vector} from "../../layer/Vector";
-import {EntityCollectionsTreeStrategy} from "../EntityCollectionsTreeStrategy";
-import {EquiEntityCollectionsTreeStrategy} from "./EquiEntityCollectionsTreeStrategy";
-import {PlanetCamera} from "../../camera";
+import { Extent } from "../../Extent";
+import { equi } from "../../proj/equi";
+import { Node } from "../Node";
+import { SegmentLonLatEqui } from "../../segment/SegmentLonLatEqui";
+import { QuadTreeStrategy, QuadTreeStrategyParams } from "../QuadTreeStrategy";
+import { LonLat } from "../../LonLat";
+import { getTileCellExtent, getTileCellIndex, TILEGROUP_COMMON } from "../../segment/Segment";
+import { Vector } from "../../layer/Vector";
+import { EntityCollectionsTreeStrategy } from "../EntityCollectionsTreeStrategy";
+import { EquiEntityCollectionsTreeStrategy } from "./EquiEntityCollectionsTreeStrategy";
+import { PlanetCamera } from "../../camera";
 
 export class EquiQuadTreeStrategy extends QuadTreeStrategy {
-
     private readonly _westExtent: Extent;
     private readonly _eastExtent: Extent;
 
@@ -23,7 +18,7 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
     public _visibleNodesEast: Record<number, Node>;
 
     constructor(params: QuadTreeStrategyParams) {
-        super({name: "Mars", proj: equi, ...params});
+        super({ name: "Mars", proj: equi, ...params });
         this._westExtent = Extent.createFromArray([-180, -90, 0, 90]);
         this._eastExtent = Extent.createFromArray([0, -90, 180, 90]);
 
@@ -32,24 +27,9 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
     }
 
     public override init(camera: PlanetCamera) {
-
         this._quadTreeList = [
-            new Node(
-                SegmentLonLatEqui,
-                this,
-                0,
-                null,
-                0,
-                this._westExtent
-            ),
-            new Node(
-                SegmentLonLatEqui,
-                this,
-                0,
-                null,
-                0,
-                this._eastExtent
-            )
+            new Node(SegmentLonLatEqui, this, 0, null, 0, this._westExtent),
+            new Node(SegmentLonLatEqui, this, 0, null, 0, this._eastExtent)
         ];
 
         super.init(camera);
@@ -59,7 +39,7 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
         let z = zoom,
             x: number,
             y: number,
-            pz = (1 << z);
+            pz = 1 << z;
 
         if (lonLat.lon > 0) {
             x = getTileCellIndex(lonLat.lon, 180 / pz, 0) + pz;
@@ -72,7 +52,13 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
         return [x, y, z, TILEGROUP_COMMON];
     }
 
-    public override getLonLatTileOffset(lonLat: LonLat, x: number, y: number, z: number, gridSize: number): [number, number] {
+    public override getLonLatTileOffset(
+        lonLat: LonLat,
+        x: number,
+        y: number,
+        z: number,
+        gridSize: number
+    ): [number, number] {
         let extent: Extent;
 
         if (lonLat.lon > 0) {
@@ -90,7 +76,10 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
         return [i, j];
     }
 
-    public override createEntityCollectionsTreeStrategy(layer: Vector, nodeCapacity: number): EntityCollectionsTreeStrategy {
+    public override createEntityCollectionsTreeStrategy(
+        layer: Vector,
+        nodeCapacity: number
+    ): EntityCollectionsTreeStrategy {
         return new EquiEntityCollectionsTreeStrategy(this, layer, nodeCapacity);
     }
 

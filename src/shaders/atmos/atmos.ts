@@ -1,33 +1,33 @@
-import {Program} from '../../webgl/Program';
+import { Program } from "../../webgl/Program";
 
-import transmittance_vert from './transmittance.vert.glsl';
-import transmittance_frag from './transmittance.frag.glsl';
+import transmittance_vert from "./transmittance.vert.glsl";
+import transmittance_frag from "./transmittance.frag.glsl";
 
-import scattering_vert from './scattering.vert.glsl';
-import scattering_frag from './scattering.frag.glsl';
+import scattering_vert from "./scattering.vert.glsl";
+import scattering_frag from "./scattering.frag.glsl";
 
-import {stringTemplate2} from "../../utils/shared";
+import { stringTemplate2 } from "../../utils/shared";
 
 export interface AtmosphereParameters {
-    ATMOS_HEIGHT: number,
-    RAYLEIGH_SCALE: number,
-    MIE_SCALE: number,
-    GROUND_ALBEDO: number,
-    BOTTOM_RADIUS: number,
-    EQUATORIAL_RADIUS: number,
-    rayleighScatteringCoefficient_0: number,
-    rayleighScatteringCoefficient_1: number,
-    rayleighScatteringCoefficient_2: number,
-    mieScatteringCoefficient: number,
-    mieExtinctionCoefficient: number,
-    ozoneAbsorptionCoefficient_0: number,
-    ozoneAbsorptionCoefficient_1: number,
-    ozoneAbsorptionCoefficient_2: number,
-    SUN_ANGULAR_RADIUS: number,
-    SUN_INTENSITY: number,
-    ozoneDensityHeight: number,
-    ozoneDensityWide: number,
-    disableSunDisk?: boolean
+    ATMOS_HEIGHT: number;
+    RAYLEIGH_SCALE: number;
+    MIE_SCALE: number;
+    GROUND_ALBEDO: number;
+    BOTTOM_RADIUS: number;
+    EQUATORIAL_RADIUS: number;
+    rayleighScatteringCoefficient_0: number;
+    rayleighScatteringCoefficient_1: number;
+    rayleighScatteringCoefficient_2: number;
+    mieScatteringCoefficient: number;
+    mieExtinctionCoefficient: number;
+    ozoneAbsorptionCoefficient_0: number;
+    ozoneAbsorptionCoefficient_1: number;
+    ozoneAbsorptionCoefficient_2: number;
+    SUN_ANGULAR_RADIUS: number;
+    SUN_INTENSITY: number;
+    ozoneDensityHeight: number;
+    ozoneDensityWide: number;
+    disableSunDisk?: boolean;
 }
 
 export const DEFAULT_PARAMS: AtmosphereParameters = {
@@ -39,10 +39,10 @@ export const DEFAULT_PARAMS: AtmosphereParameters = {
     EQUATORIAL_RADIUS: 6378137.0,
     rayleighScatteringCoefficient_0: 5.802,
     rayleighScatteringCoefficient_1: 13.558,
-    rayleighScatteringCoefficient_2: 33.100,
+    rayleighScatteringCoefficient_2: 33.1,
     mieScatteringCoefficient: 3.996,
-    mieExtinctionCoefficient: 4.440,
-    ozoneAbsorptionCoefficient_0: 0.650,
+    mieExtinctionCoefficient: 4.44,
+    ozoneAbsorptionCoefficient_0: 0.65,
     ozoneAbsorptionCoefficient_1: 1.881,
     ozoneAbsorptionCoefficient_2: 0.085,
     SUN_ANGULAR_RADIUS: 0.004685,
@@ -50,7 +50,7 @@ export const DEFAULT_PARAMS: AtmosphereParameters = {
     ozoneDensityHeight: 25e3,
     ozoneDensityWide: 15e3,
     disableSunDisk: false
-}
+};
 
 export const MARS_PARAMS: AtmosphereParameters = {
     ATMOS_HEIGHT: 60000.0,
@@ -64,17 +64,15 @@ export const MARS_PARAMS: AtmosphereParameters = {
     rayleighScatteringCoefficient_2: 1.4,
     mieScatteringCoefficient: 10.0,
     mieExtinctionCoefficient: 20.0,
-    ozoneAbsorptionCoefficient_0: 0.10,
+    ozoneAbsorptionCoefficient_0: 0.1,
     ozoneAbsorptionCoefficient_1: 0.15,
-    ozoneAbsorptionCoefficient_2: 0.80,
+    ozoneAbsorptionCoefficient_2: 0.8,
     SUN_ANGULAR_RADIUS: 0.004685,
     SUN_INTENSITY: 1.0,
     ozoneDensityHeight: 10e3,
     ozoneDensityWide: 30e3,
     disableSunDisk: false
 };
-
-type EllipsoidLike = { getEquatorialSize(): number; getPolarSize(): number };
 
 export function transmittance(atmosParams?: AtmosphereParameters): Program {
     return new Program("transmittance", {

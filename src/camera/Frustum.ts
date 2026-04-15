@@ -1,9 +1,9 @@
-import {Box} from "../bv/Box";
-import {Mat4, type NumberArray16} from "../math/Mat4";
-import type {NumberArray4} from "../math/Vec4";
-import {Sphere} from "../bv/Sphere";
-import {Vec3} from "../math/Vec3";
-import {RADIANS_HALF} from "../math";
+import { Box } from "../bv/Box";
+import { Mat4, type NumberArray16 } from "../math/Mat4";
+import type { NumberArray4 } from "../math/Vec4";
+import { Sphere } from "../bv/Sphere";
+import { Vec3 } from "../math/Vec3";
+import { RADIANS_HALF } from "../math";
 
 function planeNormalize(plane: NumberArray4) {
     let t = 1.0 / Math.sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
@@ -16,7 +16,7 @@ function planeNormalize(plane: NumberArray4) {
 interface IFrustumParams {
     cameraFrustumIndex?: number;
     fov?: number;
-    aspect?: number,
+    aspect?: number;
     near?: number;
     far?: number;
     reverseDepth?: boolean;
@@ -29,7 +29,6 @@ interface IFrustumParams {
  * @param {*} options
  */
 class Frustum {
-
     protected _f: [NumberArray4, NumberArray4, NumberArray4, NumberArray4, NumberArray4, NumberArray4];
     protected _isOrthographic: boolean;
     protected _aspect: number;
@@ -114,8 +113,14 @@ class Frustum {
     public _pickingColorU: Float32Array = new Float32Array([0, 0, 0]);
 
     constructor(options: IFrustumParams = {}) {
-
-        this._f = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+        this._f = [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0]
+        ];
 
         this.projectionMatrix = new Mat4();
 
@@ -265,7 +270,16 @@ class Frustum {
      * @param {boolean} [reverseDepth=false] - Enables reverse-Z infinite perspective projection.
      * @param {boolean} [depthZeroToOne=false] - Uses `[0, 1]` NDC depth range for reverse-Z projection.
      */
-    public setProjectionMatrix(viewAngle: number, aspect: number, near: number, far: number, isOrthographic: boolean = false, focusDistance: number = 10, reverseDepth: boolean = false, depthZeroToOne: boolean = false) {
+    public setProjectionMatrix(
+        viewAngle: number,
+        aspect: number,
+        near: number,
+        far: number,
+        isOrthographic: boolean = false,
+        focusDistance: number = 10,
+        reverseDepth: boolean = false,
+        depthZeroToOne: boolean = false
+    ) {
         this._isOrthographic = isOrthographic;
         this._reverseDepth = reverseDepth;
         this._depthZeroToOne = depthZeroToOne;
@@ -433,8 +447,7 @@ class Frustum {
         if (sphere.center.dotArr(f[1]) + f[1][3] <= r) return false;
         if (sphere.center.dotArr(f[3]) + f[3][3] <= r) return false;
         if (sphere.center.dotArr(f[4]) + f[4][3] <= r) return false;
-        if (sphere.center.dotArr(f[5]) + f[5][3] <= r) return false;
-        return true;
+        return sphere.center.dotArr(f[5]) + f[5][3] > r;
     }
 
     /**
@@ -446,9 +459,7 @@ class Frustum {
     public containsSphereButtom(sphere: Sphere): boolean {
         let r = -sphere.radius,
             f = this._f;
-        if (sphere.center.dotArr(f[2]) + f[2][3] <= r)
-            return false;
-        return true;
+        return sphere.center.dotArr(f[2]) + f[2][3] > r;
     }
 
     /**
@@ -465,8 +476,7 @@ class Frustum {
         if (sphere.center.dotArr(f[2]) + f[2][3] <= r) return false;
         if (sphere.center.dotArr(f[3]) + f[3][3] <= r) return false;
         if (sphere.center.dotArr(f[4]) + f[4][3] <= r) return false;
-        if (sphere.center.dotArr(f[5]) + f[5][3] <= r) return false;
-        return true;
+        return sphere.center.dotArr(f[5]) + f[5][3] > r;
     }
 
     /**
@@ -483,8 +493,7 @@ class Frustum {
         if (center.dotArr(this._f[2]) + this._f[2][3] <= r) return false;
         if (center.dotArr(this._f[3]) + this._f[3][3] <= r) return false;
         if (center.dotArr(this._f[4]) + this._f[4][3] <= r) return false;
-        if (center.dotArr(this._f[5]) + this._f[5][3] <= r) return false;
-        return true;
+        return center.dotArr(this._f[5]) + this._f[5][3] > r;
     }
 
     /**
@@ -521,4 +530,4 @@ class Frustum {
     }
 }
 
-export {Frustum};
+export { Frustum };

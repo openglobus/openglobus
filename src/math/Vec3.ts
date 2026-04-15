@@ -1,7 +1,7 @@
-import {Quat} from "./Quat";
-import {Vec4} from "./Vec4";
-import type {NumberArray4} from "./Vec4";
-import type {NumberArray2} from "./Vec2";
+import { Quat } from "./Quat";
+import { Vec4 } from "./Vec4";
+import type { NumberArray4 } from "./Vec4";
+import type { NumberArray2 } from "./Vec2";
 
 export type NumberArray3 = [number, number, number];
 
@@ -13,7 +13,6 @@ export type NumberArray3 = [number, number, number];
  * @param {number} [z] - Third value.
  */
 export class Vec3 {
-
     /**
      * @public
      * @type {number}
@@ -474,10 +473,11 @@ export class Vec3 {
     }
 
     /**
-     * Gets two vectors summarization.
+     * Computes the componentwise sum of two vectors.
      * @public
      * @param {Vec3} p - Vector to add.
-     * @returns {Vec3} Returns a sum vector.
+     * @param {Vec3} res - Output vector.
+     * @returns {Vec3} Sum vector.
      */
     public addRes(p: Vec3, res: Vec3): Vec3 {
         return res.set(this.x + p.x, this.y + p.y, this.z + p.z);
@@ -553,10 +553,11 @@ export class Vec3 {
     }
 
     /**
-     * Multiply current vector object to another and returns new vector instance.
+     * Computes the componentwise product of two vectors.
      * @public
-     * @param {Vec3} vec - Multiply vector.
-     * @returns {Vec3} -
+     * @param {Vec3} vec - Vector multiplier.
+     * @param {Vec3} res - Output vector.
+     * @returns {Vec3} Product vector.
      */
     public mulRes(vec: Vec3, res: Vec3): Vec3 {
         return res.set(this.x * vec.x, this.y * vec.y, this.z * vec.z);
@@ -845,11 +846,7 @@ export class Vec3 {
      * @returns {Vec3} -
      */
     public lerp(v2: Vec3, l: number) {
-        return new Vec3(
-            this.x + (v2.x - this.x) * l,
-            this.y + (v2.y - this.y) * l,
-            this.z + (v2.z - this.z) * l
-        );
+        return new Vec3(this.x + (v2.x - this.x) * l, this.y + (v2.y - this.y) * l, this.z + (v2.z - this.z) * l);
     }
 
     /**
@@ -861,11 +858,7 @@ export class Vec3 {
      */
     public smerp(v2: Vec3, t: number): Vec3 {
         let one_d = 1 - t;
-        return new Vec3(
-            this.x * t + v2.x * one_d,
-            this.y * t + v2.y * one_d,
-            this.z * t + v2.z * one_d
-        );
+        return new Vec3(this.x * t + v2.x * one_d, this.y * t + v2.y * one_d, this.z * t + v2.z * one_d);
     }
 
     static get LERP_DELTA(): number {

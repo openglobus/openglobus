@@ -1,5 +1,5 @@
-import {Vec3} from "../math/Vec3";
-import {RenderNode} from "../scene/RenderNode";
+import { Vec3 } from "../math/Vec3";
+import { RenderNode } from "../scene/RenderNode";
 
 export interface ILightSourceParams {
     position?: Vec3;
@@ -10,7 +10,6 @@ export interface ILightSourceParams {
 }
 
 class LightSource {
-
     protected _renderNode: RenderNode | null;
 
     public _position: Vec3;
@@ -26,7 +25,6 @@ class LightSource {
     protected _tempShininess: number;
 
     constructor(params: ILightSourceParams) {
-
         this._renderNode = null;
         this._position = params.position || new Vec3();
         this._ambient = params.ambient || new Vec3();
@@ -119,4 +117,4 @@ class LightSource {
     }
 }
 
-export {LightSource};
+export { LightSource };

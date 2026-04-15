@@ -1,9 +1,9 @@
-import {cons} from "../cons";
-import type {ProgramVariable} from "./variableHandlers";
-import {variableHandlers} from "./variableHandlers";
-import {types, typeStr} from "./types";
-import type {WebGLBufferExt} from "./Handler";
-import {ProgramController} from "./ProgramController";
+import { cons } from "../cons";
+import type { ProgramVariable } from "./variableHandlers";
+import { variableHandlers } from "./variableHandlers";
+import { types, typeStr } from "./types";
+import type { WebGLBufferExt } from "./Handler";
+import { ProgramController } from "./ProgramController";
 
 const itemTypes: string[] = ["BYTE", "SHORT", "UNSIGNED_BYTE", "UNSIGNED_SHORT", "FLOAT", "HALF_FLOAT"];
 
@@ -11,20 +11,20 @@ type WebGLProgramExt = WebGLProgram & { [id: string]: WebGLUniformLocation };
 
 type ProgramMaterial = {
     attributes: Record<string, any>;
-    uniforms: Record<string, any>,
+    uniforms: Record<string, any>;
     vertexShader: string;
-    fragmentShader: string
+    fragmentShader: string;
 };
 
 function injectWebGL2Define(src: string, isWebGL2: boolean): string {
     if (!isWebGL2) return src;
 
-    const lines = src.split('\n');
-    const versionIndex = lines.findIndex(line => line.startsWith('#version'));
+    const lines = src.split("\n");
+    const versionIndex = lines.findIndex((line) => line.startsWith("#version"));
 
     if (versionIndex !== -1) {
-        lines.splice(versionIndex + 1, 0, '#define WEBGL2');
-        return lines.join('\n');
+        lines.splice(versionIndex + 1, 0, "#define WEBGL2");
+        return lines.join("\n");
     } else {
         return src;
     }
@@ -108,18 +108,14 @@ class Program {
     protected _attribDivisor: number[];
 
     constructor(name: string, material: ProgramMaterial) {
-
         this.name = name;
 
         this._programController = null;
 
         this._attributes = {};
         for (let t in material.attributes) {
-            if (
-                typeof material.attributes[t] === "string" ||
-                typeof material.attributes[t] === "number"
-            ) {
-                this._attributes[t] = {type: material.attributes[t]} as ProgramVariable;
+            if (typeof material.attributes[t] === "string" || typeof material.attributes[t] === "number") {
+                this._attributes[t] = { type: material.attributes[t] } as ProgramVariable;
             } else {
                 this._attributes[t] = material.attributes[t];
             }
@@ -127,11 +123,8 @@ class Program {
 
         this._uniforms = {};
         for (let t in material.uniforms) {
-            if (
-                typeof material.uniforms[t] === "string" ||
-                typeof material.uniforms[t] === "number"
-            ) {
-                this._uniforms[t] = {type: material.uniforms[t]} as ProgramVariable;
+            if (typeof material.uniforms[t] === "string" || typeof material.uniforms[t] === "number") {
+                this._uniforms[t] = { type: material.uniforms[t] } as ProgramVariable;
             } else {
                 this._uniforms[t] = material.uniforms[t];
             }
@@ -245,16 +238,13 @@ class Program {
      * @returns {boolean} -
      */
     protected _getShaderCompileStatus(shader: WebGLShader, src: string): boolean {
-
         if (!this.gl) return false;
 
         const isWebGL2 = this.gl instanceof WebGL2RenderingContext;
         this.gl.shaderSource(shader, injectWebGL2Define(src, isWebGL2));
         this.gl.compileShader(shader);
         if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-            cons.logErr(
-                `Shader program "${this.name}":${this.gl.getShaderInfoLog(shader)}.`
-            );
+            cons.logErr(`Shader program "${this.name}":${this.gl.getShaderInfoLog(shader)}.`);
             return false;
         }
         return true;
@@ -352,12 +342,11 @@ class Program {
 
         gl.linkProgram(this._p);
 
-
         if (!this.drawElementsInstanced) {
             if (gl.drawElementsInstanced) {
                 this.drawElementsInstanced = gl.drawElementsInstanced.bind(gl);
             } else {
-                let ext = gl.getExtension('ANGLE_instanced_arrays');
+                let ext = gl.getExtension("ANGLE_instanced_arrays");
                 if (ext) {
                     this.drawElementsInstanced = ext.drawElementsInstancedANGLE.bind(ext);
                 }
@@ -368,13 +357,12 @@ class Program {
             if (gl.vertexAttribDivisor) {
                 this.vertexAttribDivisor = gl.vertexAttribDivisor.bind(gl);
             } else {
-                let ext = gl.getExtension('ANGLE_instanced_arrays');
+                let ext = gl.getExtension("ANGLE_instanced_arrays");
                 if (ext) {
                     this.vertexAttribDivisor = ext.vertexAttribDivisorANGLE.bind(ext);
                 }
             }
         }
-
 
         if (!gl.getProgramParameter(this._p, gl.LINK_STATUS)) {
             cons.logErr(`Shader program "${this.name}": initialization failed. ${gl.getProgramInfoLog(this._p)}.`);
@@ -393,7 +381,9 @@ class Program {
             let itemTypeStr: string = t ? t.trim().toUpperCase() : "FLOAT";
 
             if (itemTypes.indexOf(itemTypeStr) == -1) {
-                cons.logErr(`Shader program "${this.name}": attribute '${a}', item type '${this._attributes[a].itemType}' not exists.`);
+                cons.logErr(
+                    `Shader program "${this.name}": attribute '${a}', item type '${this._attributes[a].itemType}' not exists.`
+                );
                 this._attributes[a].itemType = gl.FLOAT;
             } else {
                 this._attributes[a].itemType = (gl as any)[itemTypeStr];
@@ -432,7 +422,6 @@ class Program {
         }
 
         for (let u in this._uniforms) {
-
             if (typeof this._uniforms[u].type === "string") {
                 let t: string = this._uniforms[u].type as string;
                 this._uniforms[u].func = variableHandlers.u[typeStr[t.trim().toLowerCase()]];
@@ -460,4 +449,4 @@ class Program {
     }
 }
 
-export {Program};
+export { Program };

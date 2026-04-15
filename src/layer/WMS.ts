@@ -1,9 +1,9 @@
 import * as mercator from "../mercator";
-import {Extent} from "../Extent";
-import {LonLat} from "../LonLat";
-import {Segment} from "../segment/Segment";
-import {XYZ} from "./XYZ";
-import type {IXYZParams} from "./XYZ";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
+import { Segment } from "../segment/Segment";
+import { XYZ } from "./XYZ";
+import type { IXYZParams } from "./XYZ";
 
 interface IWMSParams extends IXYZParams {
     extra?: any;
@@ -46,7 +46,6 @@ interface IWMSParams extends IXYZParams {
  * );
  */
 class WMS extends XYZ {
-
     protected _extra: string;
 
     /**
@@ -118,7 +117,10 @@ class WMS extends XYZ {
         height: number = 256,
         extra?: string
     ): string {
-        return `${url}?LAYERS=${layers}&FORMAT=${format}&SERVICE=WMS&VERSION=${version}&REQUEST=${request}&SRS=${srs}&BBOX=${bbox}&WIDTH=${width}&HEIGHT=${height}` + (extra ? `&${extra}` : "");
+        return (
+            `${url}?LAYERS=${layers}&FORMAT=${format}&SERVICE=WMS&VERSION=${version}&REQUEST=${request}&SRS=${srs}&BBOX=${bbox}&WIDTH=${width}&HEIGHT=${height}` +
+            (extra ? `&${extra}` : "")
+        );
     }
 
     static get_bbox_v1_1_1(extent: Extent): string {
@@ -128,8 +130,8 @@ class WMS extends XYZ {
     static get_bbox_v1_3_0(extent: Extent, srs: string): string {
         if (srs === "epsg:4326") {
             return `${extent.getSouth()},${extent.getWest()},${extent.getNorth()},${extent.getEast()}`;
-    }
-    return `${extent.getWest()},${extent.getSouth()},${extent.getEast()},${extent.getNorth()}`;
+        }
+        return `${extent.getWest()},${extent.getSouth()},${extent.getEast()},${extent.getNorth()}`;
     }
 
     public override _checkSegment(segment: Segment) {
@@ -194,5 +196,4 @@ class WMS extends XYZ {
     }
 }
 
-export {WMS};
-
+export { WMS };

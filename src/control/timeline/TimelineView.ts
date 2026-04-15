@@ -1,9 +1,9 @@
-import type {EventsHandler} from "../../Events";
-import {ButtonGroup} from "../../ui/ButtonGroup";
-import {View} from '../../ui/View';
-import type {IViewParams, ViewEventsList} from '../../ui/View';
-import {ToggleButton} from "../../ui/ToggleButton";
-import {TimelineModel} from './TimelineModel';
+import type { EventsHandler } from "../../Events";
+import { ButtonGroup } from "../../ui/ButtonGroup";
+import { View } from "../../ui/View";
+import type { IViewParams, ViewEventsList } from "../../ui/View";
+import { ToggleButton } from "../../ui/ToggleButton";
+import { TimelineModel } from "./TimelineModel";
 import {
     addSeconds,
     createCanvasHTML,
@@ -12,8 +12,8 @@ import {
     drawText,
     getNearestTimeLeft,
     getScale
-} from './timelineUtils';
-import type {MouseEventExt} from "../../input/MouseHandler";
+} from "./timelineUtils";
+import type { MouseEventExt } from "../../input/MouseHandler";
 
 interface ITimelineViewParams extends IViewParams {
     currentDate?: Date;
@@ -21,47 +21,48 @@ interface ITimelineViewParams extends IViewParams {
     rangeEnd?: Date;
     minDate?: Date;
     maxDate?: Date;
-    fillStyle?: string
+    fillStyle?: string;
 }
 
 const SECONDS_TO_MILLISECONDS = 1000.0;
 const MILLISECONDS_TO_SECONDS = 1.0 / SECONDS_TO_MILLISECONDS;
 
 type TimelineViewEventsList = [
-    'startdrag',
-    'stopdrag',
-    'startdragcurrent',
-    'stopdragcurrent',
-    'setcurrent',
-    'reset',
-    'play',
-    'playback',
-    'pause',
-    'visibility'
+    "startdrag",
+    "stopdrag",
+    "startdragcurrent",
+    "stopdragcurrent",
+    "setcurrent",
+    "reset",
+    "play",
+    "playback",
+    "pause",
+    "visibility"
 ];
 
 const TIMELINEVIEW_EVENTS: TimelineViewEventsList = [
-    'startdrag',
-    'stopdrag',
-    'startdragcurrent',
-    'stopdragcurrent',
-    'setcurrent',
-    'reset',
-    'play',
-    'playback',
-    'pause',
-    'visibility'
+    "startdrag",
+    "stopdrag",
+    "startdragcurrent",
+    "stopdragcurrent",
+    "setcurrent",
+    "reset",
+    "play",
+    "playback",
+    "pause",
+    "visibility"
 ];
 
-const ICON_PLAY_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" style="fill: black;"/></svg>';
-const ICON_PAUSE_SVG = '<?xml version="1.0" ?><!DOCTYPE svg  PUBLIC \'-//W3C//DTD SVG 1.1//EN\'  \'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\'><svg enable-background="new 0 0 512 512" height="512px" version="1.1" viewBox="0 0 512 512" width="512px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Layer_6"><rect fill="#252525" height="320" width="60" x="153" y="96"/><rect fill="#252525" height="320" width="60" x="299" y="96"/></g></svg>';
+const ICON_PLAY_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" style="fill: black;"/></svg>';
+const ICON_PAUSE_SVG =
+    '<?xml version="1.0" ?><!DOCTYPE svg  PUBLIC \'-//W3C//DTD SVG 1.1//EN\'  \'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\'><svg enable-background="new 0 0 512 512" height="512px" version="1.1" viewBox="0 0 512 512" width="512px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Layer_6"><rect fill="#252525" height="320" width="60" x="153" y="96"/><rect fill="#252525" height="320" width="60" x="299" y="96"/></g></svg>';
 
 const SCALE_FILL_COLOR = "rgba(64, 59, 59, 1.0)";
 const SCALE_NOTCH_COLOR = "#bfbfbf";
 const SCALE_TIME_COLOR = "#bfbfbf";
 
-const TEMPLATE =
-    `<div class="og-timeline">
+const TEMPLATE = `<div class="og-timeline">
 
   <div class="og-timeline-top">
   </div>
@@ -82,9 +83,7 @@ const TEMPLATE =
 
 </div>`;
 
-
 class TimelineView extends View<TimelineModel> {
-
     public override events: EventsHandler<TimelineViewEventsList> & EventsHandler<ViewEventsList>;
     public fillStyle: string;
     public $controls: HTMLElement | null;
@@ -134,7 +133,7 @@ class TimelineView extends View<TimelineModel> {
         this._frameEl = null;
         this._currentEl = null;
         this._canvasEl = createCanvasHTML();
-        this._ctx = this._canvasEl.getContext('2d')!;
+        this._ctx = this._canvasEl.getContext("2d")!;
 
         this._isMouseOver = false;
         this._isDragging = false;
@@ -171,7 +170,7 @@ class TimelineView extends View<TimelineModel> {
 
         this._buttons = new ButtonGroup({
             buttons: [this._pauseBtn, this._playBtn]
-        })
+        });
 
         this._visibility = false;
     }
@@ -212,7 +211,7 @@ class TimelineView extends View<TimelineModel> {
         this._resizeObserver.observe(this.el!);
 
         this.model.events.on("change", () => {
-            this.draw()
+            this.draw();
         });
 
         this.model.events.on("current", (d: Date) => {
@@ -324,14 +323,17 @@ class TimelineView extends View<TimelineModel> {
             let pointerTime = this.model.rangeStartTime + this._millisecondsInPixel * pointerPosX;
             this._zoom(pointerTime, pointerCenterOffsetX, Math.sign(e.wheelDelta!));
         } else if (this._isCurrentMouseOver) {
-            let pointerCenterOffsetX = -((this.model.currentTime - this.model.rangeStartTime) / this._millisecondsInPixel - this.clientWidth * 0.5);
+            let pointerCenterOffsetX = -(
+                (this.model.currentTime - this.model.rangeStartTime) / this._millisecondsInPixel -
+                this.clientWidth * 0.5
+            );
             this._zoom(this.model.currentTime, pointerCenterOffsetX, Math.sign(e.wheelDelta!));
         }
-    }
+    };
 
     protected _onMouseWheelFF = (e: MouseEventExt) => {
         this._onMouseWheel(e);
-    }
+    };
 
     protected _zoom(pointerTime: number, pointerCenterOffsetX: number, dir: number) {
         let centerTime = this.model.rangeStartTime + 0.5 * this.model.range;
@@ -350,10 +352,7 @@ class TimelineView extends View<TimelineModel> {
         if (msPx < 31536000000 && msPx > 0.1) {
             let timeOffset = msPx * pointerCenterOffsetX * MILLISECONDS_TO_SECONDS;
 
-            this.model.set(
-                addSeconds(newRangeStart, timeOffset),
-                addSeconds(newRangeEnd, timeOffset)
-            );
+            this.model.set(addSeconds(newRangeStart, timeOffset), addSeconds(newRangeEnd, timeOffset));
         }
     }
 
@@ -379,13 +378,13 @@ class TimelineView extends View<TimelineModel> {
 
             this.events.dispatch(this.events.startdragcurrent, e);
         }
-    }
+    };
 
     protected _onMouseUp = (e: MouseEvent) => {
         if (this._isDragging) {
             this._isDragging = false;
             document.body.classList.remove("og-timeline-unselectable");
-            if (this._clickPosX === e.clientX && (Date.now() - this._clickTime) < this._clickDelay) {
+            if (this._clickPosX === e.clientX && Date.now() - this._clickTime < this._clickDelay) {
                 let rect = this._canvasEl.getBoundingClientRect();
                 let current = new Date(this.model.rangeStartTime + (e.clientX - rect.left) * this._millisecondsInPixel);
                 this.model.current = current;
@@ -399,28 +398,28 @@ class TimelineView extends View<TimelineModel> {
             document.body.classList.remove("og-timeline-unselectable");
             this.events.dispatch(this.events.stopdragcurrent, this.model.current);
         }
-    }
+    };
 
     protected _onMouseEnter = () => {
         this._isMouseOver = true;
-    }
+    };
 
     protected _onMouseOut = () => {
         this._isMouseOver = false;
-    }
+    };
 
     protected _onCurrentMouseEnter = () => {
         this._isCurrentMouseOver = true;
-    }
+    };
 
     protected _onCurrentMouseOut = () => {
         this._isCurrentMouseOver = false;
-    }
+    };
 
     protected _onMouseMove = (e: MouseEvent) => {
         if (this._isDragging) {
             let offsetSec = (this._clickPosX - e.clientX) * this._millisecondsInPixel * MILLISECONDS_TO_SECONDS;
-            this.model.set(addSeconds(this._clickRangeStart, offsetSec), addSeconds(this._clickRangeEnd, offsetSec))
+            this.model.set(addSeconds(this._clickRangeStart, offsetSec), addSeconds(this._clickRangeEnd, offsetSec));
         } else if (this._isCurrentDragging) {
             let offsetSec = (this._clickPosX - e.clientX) * this._millisecondsInPixel * MILLISECONDS_TO_SECONDS;
             let newCurrent = addSeconds(this._clickCurrentDate, -offsetSec);
@@ -428,7 +427,7 @@ class TimelineView extends View<TimelineModel> {
                 this.model.current = addSeconds(this._clickCurrentDate, -offsetSec);
             }
         }
-    }
+    };
 
     public get clientWidth(): number {
         return this._canvasEl ? this._canvasEl.width / this._canvasScale : 0;
@@ -472,11 +471,10 @@ class TimelineView extends View<TimelineModel> {
     }
 
     public draw() {
-        this._millisecondsInPixel = (this.model.range / this.clientWidth);
+        this._millisecondsInPixel = this.model.range / this.clientWidth;
         let minWidthMs = this._minWidth * this._millisecondsInPixel;
         let scaleData = getScale(minWidthMs * MILLISECONDS_TO_SECONDS);
         if (scaleData) {
-
             this._clearCanvas();
 
             let scaleMs = scaleData[0] * SECONDS_TO_MILLISECONDS,
@@ -491,15 +489,35 @@ class TimelineView extends View<TimelineModel> {
             for (let i = originTime, rangeEnd = this.model.rangeEndTime + scaleMs; i < rangeEnd; i += scaleMs) {
                 let x = this.getOffsetByTime(i);
                 if (x >= 0 && x <= this.clientWidth * this._canvasScale) {
-                    drawNotch(this._ctx, x * this._canvasScale, 10 * this._canvasScale, 2 * this._canvasScale, SCALE_NOTCH_COLOR);
+                    drawNotch(
+                        this._ctx,
+                        x * this._canvasScale,
+                        10 * this._canvasScale,
+                        2 * this._canvasScale,
+                        SCALE_NOTCH_COLOR
+                    );
                 }
                 for (let j = 1; j < segCount; j++) {
                     let xx = x + j * (scalePx / segCount);
                     if (xx >= 0 && xx <= this.clientWidth * this._canvasScale) {
-                        drawNotch(this._ctx, xx * this._canvasScale, 5 * this._canvasScale, 1 * this._canvasScale, SCALE_NOTCH_COLOR);
+                        drawNotch(
+                            this._ctx,
+                            xx * this._canvasScale,
+                            5 * this._canvasScale,
+                            this._canvasScale,
+                            SCALE_NOTCH_COLOR
+                        );
                     }
                 }
-                drawText(this._ctx, dateToStr(new Date(i), showTime, showMilliseconds), x * this._canvasScale, 26 * this._canvasScale, "24px monospace", SCALE_TIME_COLOR, "center");
+                drawText(
+                    this._ctx,
+                    dateToStr(new Date(i), showTime, showMilliseconds),
+                    x * this._canvasScale,
+                    26 * this._canvasScale,
+                    "24px monospace",
+                    SCALE_TIME_COLOR,
+                    "center"
+                );
             }
 
             this._drawCurrent();
@@ -507,5 +525,4 @@ class TimelineView extends View<TimelineModel> {
     }
 }
 
-export {TimelineView};
-
+export { TimelineView };

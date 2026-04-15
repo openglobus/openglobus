@@ -1,9 +1,9 @@
-import {GeoObject} from "./GeoObject";
-import type {WebGLBufferExt, WebGLTextureExt} from "../../webgl/Handler";
-import {loadImage, makeArrayTyped} from "../../utils/shared";
-import type {TypedArray} from "../../utils/shared";
-import {Program} from "../../webgl/Program";
-import {GeoObjectHandler} from "./GeoObjectHandler";
+import { GeoObject } from "./GeoObject";
+import type { WebGLBufferExt, WebGLTextureExt } from "../../webgl/Handler";
+import { loadImage, makeArrayTyped } from "../../utils/shared";
+import type { TypedArray } from "../../utils/shared";
+import { Program } from "../../webgl/Program";
+import { GeoObjectHandler } from "./GeoObjectHandler";
 import {
     VERTEX_BUFFER,
     RTC_POSITION_BUFFER,
@@ -24,7 +24,6 @@ const ROUGHNESS = 1;
 const AMBIENT_OCCLUSION = 2;
 
 export class InstanceData {
-
     public isFree: boolean;
 
     public _geoObjectHandler: GeoObjectHandler;
@@ -85,7 +84,6 @@ export class InstanceData {
     public _materialProperties: Float32Array;
 
     constructor(geoObjectHandler: GeoObjectHandler) {
-
         this.isFree = true;
 
         this._geoObjectHandler = geoObjectHandler;
@@ -331,7 +329,6 @@ export class InstanceData {
     // Instance common data(could be in VAO)
     //
     protected _drawElementsInstanced(p: Program, startInstance: number, instanceCount: number) {
-
         let gl = p.gl!,
             u = p.uniforms,
             a = p.attributes;
@@ -424,7 +421,6 @@ export class InstanceData {
     }
 
     public clear() {
-
         this.numInstances = 0;
         this._opaqueInstanceCount = 0;
 
@@ -452,9 +448,7 @@ export class InstanceData {
     }
 
     public _deleteBuffers() {
-
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-
             let h = this._geoObjectHandler._renderer.handler;
 
             if (h) {
@@ -508,7 +502,6 @@ export class InstanceData {
     }
 
     public createVisibleBuffer() {
-
         const h = this._geoObjectHandler._renderer!.handler,
             numItems = this._visibleArr.length;
 
@@ -588,7 +581,6 @@ export class InstanceData {
         h.setStreamArrayBuffer(this._rtcPositionLowBuffer!, this._rtcPositionLowArr as Float32Array);
     }
 
-
     public createRgbaBuffer() {
         let h = this._geoObjectHandler._renderer!.handler,
             numItems = this._rgbaArr.length / 4;
@@ -635,7 +627,11 @@ export class InstanceData {
         const h = this._geoObjectHandler._renderer!.handler;
         h.gl!.deleteBuffer(this._pickingColorBuffer!);
         this._pickingColorArr = makeArrayTyped(this._pickingColorArr);
-        this._pickingColorBuffer = h.createArrayBuffer(this._pickingColorArr as Uint8Array, 3, this._pickingColorArr.length / 3);
+        this._pickingColorBuffer = h.createArrayBuffer(
+            this._pickingColorArr as Uint8Array,
+            3,
+            this._pickingColorArr.length / 3
+        );
     }
 
     public refresh() {

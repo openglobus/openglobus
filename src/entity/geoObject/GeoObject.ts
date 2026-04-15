@@ -1,11 +1,11 @@
 import * as utils from "../../utils/shared";
-import {Entity} from "../Entity";
-import {Quat} from "../../math/Quat";
-import {Vec3, type NumberArray3} from "../../math/Vec3";
-import {Vec4, type NumberArray4} from "../../math/Vec4";
-import {GeoObjectHandler} from "./GeoObjectHandler";
-import {InstanceData} from "./InstanceData";
-import {Object3d} from "../../Object3d";
+import { Entity } from "../Entity";
+import { Quat } from "../../math/Quat";
+import { Vec3, type NumberArray3 } from "../../math/Vec3";
+import { Vec4, type NumberArray4 } from "../../math/Vec4";
+import { GeoObjectHandler } from "./GeoObjectHandler";
+import { InstanceData } from "./InstanceData";
+import { Object3d } from "../../Object3d";
 
 export const LOCAL_FORWARD = new Vec3(0.0, 0.0, -1.0);
 
@@ -98,7 +98,6 @@ class GeoObject {
     protected _children: GeoObject[];
 
     constructor(options: IGeoObjectParams) {
-
         this._tag = options.tag || `tag_${GeoObject.__counter__++}`;
 
         this._entity = null;
@@ -106,7 +105,7 @@ class GeoObject {
         this._position = utils.createVec3(options.position);
 
         this._rtcPositionHigh = new Vec3();
-        ``
+        ``;
         this._rtcPositionLow = new Vec3();
 
         this._scale = utils.createVec3(options.scale, new Vec3(1, 1, 1));
@@ -126,11 +125,11 @@ class GeoObject {
         this._tagData = null;
         this._tagDataIndex = -1;
         let object3d = options.object3d;
-        if ((!options.object3d || options.object3d?.vertices.length === 0)) {
+        if (!options.object3d || options.object3d?.vertices.length === 0) {
             object3d = new Object3d();
         }
         if (options.objSrc) {
-            this.setObjectSrc(options.objSrc)
+            this.setObjectSrc(options.objSrc);
             this._objectSrc = options.objSrc;
         }
 
@@ -140,7 +139,7 @@ class GeoObject {
         //     this.setColorTexture(options.colorTexture)
         // }
 
-        this._visibility = (options.visibility != undefined ? options.visibility : true);
+        this._visibility = options.visibility != undefined ? options.visibility : true;
 
         this._children = [];
 
@@ -296,7 +295,12 @@ class GeoObject {
         //Vec3.doubleToTwoFloats(this._position, this._rtcPositionHigh, this._rtcPositionLow);
         if (this._handler) {
             this._handler.getRTCPosition(this._position, this._rtcPositionHigh, this._rtcPositionLow);
-            this._handler.setRTCPositionArr(this._tagData!, this._tagDataIndex, this._rtcPositionHigh, this._rtcPositionLow);
+            this._handler.setRTCPositionArr(
+                this._tagData!,
+                this._tagDataIndex,
+                this._rtcPositionHigh,
+                this._rtcPositionLow
+            );
         }
     }
 
@@ -445,4 +449,4 @@ class GeoObject {
     }
 }
 
-export {GeoObject};
+export { GeoObject };

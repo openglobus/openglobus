@@ -1,18 +1,18 @@
 import * as shaders from "../../shaders/geo_object/geo_object";
-import {concatArrays, loadImage, spliceArray} from "../../utils/shared";
-import type {TypedArray} from "../../utils/shared";
-import type {EntityCollection} from "../EntityCollection";
-import {GeoObject} from "./GeoObject";
-import {Vec3} from "../../math/Vec3";
-import {Vec4} from "../../math/Vec4";
-import {Quat} from "../../math/Quat";
-import {Object3d} from "../../Object3d";
-import {InstanceData} from "./InstanceData";
-import type {Renderer} from "../../renderer/Renderer";
-import type {Atmosphere} from "../../control/atmosphere/Atmosphere";
-import type {Planet} from "../../scene/Planet";
-import type {RenderNode} from "../../scene/RenderNode";
-import type {Program} from "../../webgl/Program";
+import { concatArrays, spliceArray } from "../../utils/shared";
+import type { TypedArray } from "../../utils/shared";
+import type { EntityCollection } from "../EntityCollection";
+import { GeoObject } from "./GeoObject";
+import { Vec3 } from "../../math/Vec3";
+import { Vec4 } from "../../math/Vec4";
+import { Quat } from "../../math/Quat";
+import { Object3d } from "../../Object3d";
+import { InstanceData } from "./InstanceData";
+import type { Renderer } from "../../renderer/Renderer";
+import type { Atmosphere } from "../../control/atmosphere/Atmosphere";
+import type { Planet } from "../../scene/Planet";
+import type { RenderNode } from "../../scene/RenderNode";
+import type { Program } from "../../webgl/Program";
 
 export const VERTEX_BUFFER = 0;
 export const RTC_POSITION_BUFFER = 1;
@@ -29,7 +29,13 @@ export const LOCALPOSITION_BUFFER = 11;
 
 const OPAQUE_ALPHA_THRESHOLD = 0.999999;
 
-function setParametersToArray(arr: number[] | TypedArray, index: number = 0, length: number = 0, itemSize: number = 1, ...params: number[]): number[] | TypedArray {
+function setParametersToArray(
+    arr: number[] | TypedArray,
+    index: number = 0,
+    length: number = 0,
+    itemSize: number = 1,
+    ...params: number[]
+): number[] | TypedArray {
     const currIndex = index * length;
     for (let i = currIndex, len = currIndex + length; i < len; i++) {
         arr[i] = params[i % itemSize];
@@ -66,7 +72,6 @@ export class GeoObjectHandler {
     protected _rtcEyePositionLow: Float32Array;
 
     constructor(entityCollection: EntityCollection) {
-
         this.__id = GeoObjectHandler.__counter__++;
 
         this.pickingEnabled = true;
@@ -180,18 +185,16 @@ export class GeoObjectHandler {
                 shaders.geo_object_picking(),
                 shaders.geo_object_depth()
             ];
-            const atmosphereControl = (this._renderNode as RenderNode & { atmosphereControl?: Atmosphere }).atmosphereControl;
+            const atmosphereControl = (this._renderNode as RenderNode & { atmosphereControl?: Atmosphere })
+                .atmosphereControl;
             if (atmosphereControl) {
-                programs.push(
-                    shaders.geo_object_woit_atmos(atmosphereControl.parameters)
-                );
+                programs.push(shaders.geo_object_woit_atmos(atmosphereControl.parameters));
             }
             this._renderer.addPrograms(programs);
         }
     }
 
     public setRenderNode(renderNode: RenderNode) {
-
         this._renderNode = renderNode;
 
         this._renderer = renderNode.renderer;
@@ -216,7 +219,7 @@ export class GeoObjectHandler {
     public setColorTextureTag(src: string | HTMLImageElement, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
-            if (typeof src === 'string') {
+            if (typeof src === "string") {
                 tagData._colorTextureSrc = src;
                 tagData._colorTextureImage = null;
             }
@@ -232,7 +235,7 @@ export class GeoObjectHandler {
     public setNormalTextureTag(src: string | HTMLImageElement, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
-            if (typeof src === 'string') {
+            if (typeof src === "string") {
                 tagData._normalTextureSrc = src;
                 tagData._normalTextureImage = null;
             }
@@ -248,7 +251,7 @@ export class GeoObjectHandler {
     public setMetallicRoughnessTextureTag(src: string | HTMLImageElement, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
-            if (typeof src === 'string') {
+            if (typeof src === "string") {
                 tagData._metallicRoughnessTextureSrc = src;
                 tagData._metallicRoughnessTextureImage = null;
             }
@@ -269,7 +272,7 @@ export class GeoObjectHandler {
 
                 Object3d.loadObj(src).then((object3d) => {
                     this._updateInstanceData(object3d[0], tag);
-                })
+                });
             }
         }
     }
@@ -322,7 +325,7 @@ export class GeoObjectHandler {
 
             //
             // Setting instanced data
-            tagData._vertexArr = geoObject.vertices
+            tagData._vertexArr = geoObject.vertices;
             tagData._normalsArr = geoObject.normals;
             tagData._indicesArr = geoObject.indices;
             tagData._texCoordArr = geoObject.texCoords;
@@ -351,7 +354,10 @@ export class GeoObjectHandler {
 
         let itemSize = 3;
 
-        tagData._visibleArr = concatArrays(tagData._visibleArr, setParametersToArray([], 0, 1, 1, geoObject.getVisibility() ? 1 : 0));
+        tagData._visibleArr = concatArrays(
+            tagData._visibleArr,
+            setParametersToArray([], 0, 1, 1, geoObject.getVisibility() ? 1 : 0)
+        );
 
         //
         // Global coordinates
@@ -362,18 +368,26 @@ export class GeoObjectHandler {
             z = geoObject._rtcPositionHigh.z,
             w;
 
-        tagData._rtcPositionHighArr = concatArrays(tagData._rtcPositionHighArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
+        tagData._rtcPositionHighArr = concatArrays(
+            tagData._rtcPositionHighArr,
+            setParametersToArray([], 0, itemSize, itemSize, x, y, z)
+        );
 
         x = geoObject._rtcPositionLow.x;
         y = geoObject._rtcPositionLow.y;
         z = geoObject._rtcPositionLow.z;
-        tagData._rtcPositionLowArr = concatArrays(tagData._rtcPositionLowArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
-
+        tagData._rtcPositionLowArr = concatArrays(
+            tagData._rtcPositionLowArr,
+            setParametersToArray([], 0, itemSize, itemSize, x, y, z)
+        );
 
         x = geoObject._entity!._pickingColor.x / 255;
         y = geoObject._entity!._pickingColor.y / 255;
         z = geoObject._entity!._pickingColor.z / 255;
-        tagData._pickingColorArr = concatArrays(tagData._pickingColorArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
+        tagData._pickingColorArr = concatArrays(
+            tagData._pickingColorArr,
+            setParametersToArray([], 0, itemSize, itemSize, x, y, z)
+        );
 
         itemSize = 4;
 
@@ -400,13 +414,19 @@ export class GeoObjectHandler {
         x = translate.x;
         y = translate.y;
         z = translate.z;
-        tagData._translateArr = concatArrays(tagData._translateArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
+        tagData._translateArr = concatArrays(
+            tagData._translateArr,
+            setParametersToArray([], 0, itemSize, itemSize, x, y, z)
+        );
 
         let localPosition = geoObject.getLocalPosition();
         x = localPosition.x;
         y = localPosition.y;
         z = localPosition.z;
-        tagData._localPositionArr = concatArrays(tagData._localPositionArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
+        tagData._localPositionArr = concatArrays(
+            tagData._localPositionArr,
+            setParametersToArray([], 0, itemSize, itemSize, x, y, z)
+        );
 
         this._insertInstanceByOpacity(tagData, geoObject._tagDataIndex, this._isOpaqueAlpha(geoObject._color.w));
     }
@@ -415,7 +435,6 @@ export class GeoObjectHandler {
     // Could be in VAO
     //
     protected _bindCommon(p: Program) {
-
         let r = this._renderer!,
             u = p.uniforms,
             gl = r.handler.gl!,
@@ -435,7 +454,6 @@ export class GeoObjectHandler {
     }
 
     protected _bindForwardParams(p: Program) {
-
         let r = this._renderer!,
             u = p.uniforms,
             gl = r.handler.gl!;
@@ -468,7 +486,6 @@ export class GeoObjectHandler {
     }
 
     public _displayOpaquePASS() {
-
         let r = this._renderer!,
             sh = r.handler.programs.geo_object_deferred,
             p = sh._program;
@@ -594,7 +611,13 @@ export class GeoObjectHandler {
             gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer!);
-            p.drawElementsInstanced!(gl.TRIANGLES, tagData._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, tagData.numInstances);
+            p.drawElementsInstanced!(
+                gl.TRIANGLES,
+                tagData._indicesBuffer!.numItems,
+                gl.UNSIGNED_INT,
+                0,
+                tagData.numInstances
+            );
         }
     }
 
@@ -667,7 +690,13 @@ export class GeoObjectHandler {
             gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer!);
-            p.drawElementsInstanced!(gl.TRIANGLES, tagData._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, tagData.numInstances);
+            p.drawElementsInstanced!(
+                gl.TRIANGLES,
+                tagData._indicesBuffer!.numItems,
+                gl.UNSIGNED_INT,
+                0,
+                tagData.numInstances
+            );
         }
     }
 
@@ -684,8 +713,24 @@ export class GeoObjectHandler {
     }
 
     public setRTCPositionArr(tagData: InstanceData, tagDataIndex: number, rtcPositionHigh: Vec3, rtcPositionLow: Vec3) {
-        setParametersToArray(tagData._rtcPositionHighArr, tagDataIndex, 3, 3, rtcPositionHigh.x, rtcPositionHigh.y, rtcPositionHigh.z);
-        setParametersToArray(tagData._rtcPositionLowArr, tagDataIndex, 3, 3, rtcPositionLow.x, rtcPositionLow.y, rtcPositionLow.z);
+        setParametersToArray(
+            tagData._rtcPositionHighArr,
+            tagDataIndex,
+            3,
+            3,
+            rtcPositionHigh.x,
+            rtcPositionHigh.y,
+            rtcPositionHigh.z
+        );
+        setParametersToArray(
+            tagData._rtcPositionLowArr,
+            tagDataIndex,
+            3,
+            3,
+            rtcPositionLow.x,
+            rtcPositionLow.y,
+            rtcPositionLow.z
+        );
         tagData._changedBuffers[RTC_POSITION_BUFFER] = true;
         this._updateTag(tagData);
     }
@@ -726,7 +771,15 @@ export class GeoObjectHandler {
     }
 
     public setLocalPositionArr(tagData: InstanceData, tagDataIndex: number, localPosition: Vec3) {
-        setParametersToArray(tagData._localPositionArr, tagDataIndex, 3, 3, localPosition.x, localPosition.y, localPosition.z);
+        setParametersToArray(
+            tagData._localPositionArr,
+            tagDataIndex,
+            3,
+            3,
+            localPosition.x,
+            localPosition.y,
+            localPosition.z
+        );
         tagData._changedBuffers[LOCALPOSITION_BUFFER] = true;
         this._updateTag(tagData);
     }
@@ -824,9 +877,7 @@ export class GeoObjectHandler {
     }
 
     public add(geoObject: GeoObject) {
-
         if (geoObject._handlerIndex === -1) {
-
             geoObject._handler = this;
             geoObject._handlerIndex = this._geoObjects.length;
 
@@ -852,9 +903,7 @@ export class GeoObjectHandler {
         this._dataTagUpdateQueue = [];
     }
 
-
     public _removeGeoObject(geoObject: GeoObject) {
-
         let tagData = geoObject._tagData!;
         let tag = geoObject.tag;
 

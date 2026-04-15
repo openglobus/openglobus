@@ -1,21 +1,21 @@
-import {Entity} from '../../entity/Entity';
-import {createEvents, type EventsHandler} from '../../Events';
-import {LonLat} from "../../LonLat";
-import {Extent} from "../../Extent";
-import {Object3d} from '../../Object3d';
-import {Planet} from "../../scene/Planet";
-import {RenderNode} from '../../scene/RenderNode';
-import {Vector} from '../../layer/Vector';
-import {Vec2} from '../../math/Vec2';
-import {Vec3} from '../../math/Vec3';
-import type {IMouseState} from "../../renderer/RendererEvents";
-import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
-import type {ILabelParams} from "../../entity/label/Label";
-import type {IRayParams} from "../../entity/ray/Ray";
-import type {IBillboardParams} from "../../entity/billboard/Billboard";
-import {Ray} from "../../math/Ray";
-import {Plane} from "../../math/Plane";
-import {SHADE_MODE_UNLIT} from "../../shadeModeConstants";
+import { Entity } from "../../entity/Entity";
+import { createEvents, type EventsHandler } from "../../Events";
+import { LonLat } from "../../LonLat";
+import { Extent } from "../../Extent";
+import { Object3d } from "../../Object3d";
+import { Planet } from "../../scene/Planet";
+import { RenderNode } from "../../scene/RenderNode";
+import { Vector } from "../../layer/Vector";
+import { Vec2 } from "../../math/Vec2";
+import { Vec3 } from "../../math/Vec3";
+import type { IMouseState } from "../../renderer/RendererEvents";
+import { Ellipsoid } from "../../ellipsoid/Ellipsoid";
+import type { ILabelParams } from "../../entity/label/Label";
+import type { IRayParams } from "../../entity/ray/Ray";
+import type { IBillboardParams } from "../../entity/billboard/Billboard";
+import { Ray } from "../../math/Ray";
+import { Plane } from "../../math/Plane";
+import { SHADE_MODE_UNLIT } from "../../shadeModeConstants";
 
 export interface IElevationProfileSceneParams {
     name?: string;
@@ -31,13 +31,13 @@ const POINTER_RAY_OPTIONS: IRayParams = {
     startColor: "rgba(255,131,0,0.2)",
     endColor: "rgba(255,131,0,1.0)",
     thickness: 2.7
-}
+};
 
 const POINTER_BILLBOARD_OPTIONS: IBillboardParams = {
     src: "data:image/png;base64,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",
     color: "rgb(255,131,0)",
     size: [8, 8]
-}
+};
 
 const POINTER_LABEL_OPTIONS: ILabelParams = {
     text: "",
@@ -76,7 +76,6 @@ const HEAD_POINTER_OPTIONS = {
 };
 
 class ElevationProfileScene extends RenderNode {
-
     public events: EventsHandler<ElevationProfileSceneEventsList>;
 
     protected _planet: Planet | null;
@@ -88,7 +87,6 @@ class ElevationProfileScene extends RenderNode {
     protected _trackEntity: Entity;
     protected _pickedGroundEntity: Entity | null;
     protected _pickedHeadEntity: Entity | null;
-
 
     protected _pointerLayer: Vector;
     protected _pointerHeadEntity: Entity;
@@ -189,7 +187,11 @@ class ElevationProfileScene extends RenderNode {
 
     public flyExtent() {
         let entities = this._headPointersLayer.getEntities();
-        let minLon = 180, minLat = 180, maxLon = -180, maxLat = -180, maxHeight = -1000000;
+        let minLon = 180,
+            minLat = 180,
+            maxLon = -180,
+            maxLat = -180,
+            maxHeight = -1000000;
         if (entities.length > 1) {
             for (let i = 0; i < entities.length; i++) {
                 let ll = entities[i].getLonLat();
@@ -200,9 +202,13 @@ class ElevationProfileScene extends RenderNode {
                 if (ll.height > maxHeight) maxHeight = ll.height;
             }
 
-            this._planet!.camera.flyExtent(new Extent(new LonLat(minLon, minLat), new LonLat(maxLon, maxLat)), maxHeight, {
-                amplitude: 0
-            });
+            this._planet!.camera.flyExtent(
+                new Extent(new LonLat(minLon, minLat), new LonLat(maxLon, maxLat)),
+                maxHeight,
+                {
+                    amplitude: 0
+                }
+            );
         }
     }
 
@@ -210,13 +216,15 @@ class ElevationProfileScene extends RenderNode {
         return this._planet;
     }
 
-    protected _createGroundPointer(groundCart: Vec3, altitude: number = 10): {
-        headEntity: Entity,
-        groundEntity: Entity,
-        columnEntity: Entity,
-        heightLabelEntity: Entity
+    protected _createGroundPointer(
+        groundCart: Vec3,
+        altitude: number = 10
+    ): {
+        headEntity: Entity;
+        groundEntity: Entity;
+        columnEntity: Entity;
+        heightLabelEntity: Entity;
     } {
-
         let surfaceNormal = this.ellipsoid!.getSurfaceNormal3v(groundCart);
         let headCart = groundCart.add(surfaceNormal.scale(altitude));
 
@@ -232,7 +240,7 @@ class ElevationProfileScene extends RenderNode {
 
         let groundEntity = new Entity({
             cartesian: groundCart,
-            geoObject: GROUND_POINTER_OPTIONS,
+            geoObject: GROUND_POINTER_OPTIONS
         });
 
         let headEntity = new Entity({
@@ -248,7 +256,7 @@ class ElevationProfileScene extends RenderNode {
 
         let altitudeLabelEntity = new Entity({
             cartesian: headCart,
-            label: {...LABEL_OPTIONS, offset: [-47, 45]}
+            label: { ...LABEL_OPTIONS, offset: [-47, 45] }
         });
         heightLabelEntity.appendChild(altitudeLabelEntity);
         altitudeLabelEntity.relativePosition = true;
@@ -257,7 +265,8 @@ class ElevationProfileScene extends RenderNode {
 
         columnEntity.properties =
             groundEntity.properties =
-                headEntity.properties = {
+            headEntity.properties =
+                {
                     index,
                     altitude: altitude,
                     lonLatEll: new LonLat(),
@@ -267,7 +276,7 @@ class ElevationProfileScene extends RenderNode {
                     heightLabelEntity
                 };
 
-        return {headEntity, groundEntity, columnEntity, heightLabelEntity};
+        return { headEntity, groundEntity, columnEntity, heightLabelEntity };
     }
 
     public setPointerCartesian3v(p: Vec3, height: number) {
@@ -294,7 +303,6 @@ class ElevationProfileScene extends RenderNode {
     }
 
     public _activate() {
-
         this._planet!.addLayer(this._trackLayer);
         this._planet!.addLayer(this._groundPointersLayer);
         this._planet!.addLayer(this._columnPointersLayer);
@@ -357,7 +365,6 @@ class ElevationProfileScene extends RenderNode {
     }
 
     public addPointLonLatArrayAsync(lonLatArr: LonLat[], stopPropagation: boolean = false): Promise<Entity>[] {
-
         if (!this._planet) {
             throw new Error("Planet is not defined");
         }
@@ -388,14 +395,13 @@ class ElevationProfileScene extends RenderNode {
     }
 
     public addPointLonLatAsync(lonLat: LonLat, stopPropagation: boolean = false): Promise<Entity> {
-
         let headPos = this._planet!.ellipsoid.lonLatToCartesian(lonLat);
         let n = this._planet!.ellipsoid.getSurfaceNormal3v(headPos);
 
         let ellLonLat = new LonLat(lonLat.lon, lonLat.lat);
         let ellPos = this._planet!.ellipsoid.lonLatToCartesian(ellLonLat);
 
-        let {headEntity, groundEntity, columnEntity, heightLabelEntity} = this._createGroundPointer(ellPos);
+        let { headEntity, groundEntity, columnEntity, heightLabelEntity } = this._createGroundPointer(ellPos);
 
         this._groundPointersLayer.add(groundEntity);
         this._columnPointersLayer.add(columnEntity);
@@ -409,7 +415,6 @@ class ElevationProfileScene extends RenderNode {
 
         return new Promise((resolve) => {
             this.getHeightELLAsync(lonLat).then((hEll: number) => {
-
                 groundEntity.properties.lonLatEll.height = hEll;
 
                 let altitude = 10,
@@ -444,24 +449,35 @@ class ElevationProfileScene extends RenderNode {
         });
     }
 
-    public addGroundPointLonLatAsync(lonLat: LonLat, altitude: number = 10, stopPropagation: boolean = false): Promise<Entity> {
+    public addGroundPointLonLatAsync(
+        lonLat: LonLat,
+        altitude: number = 10,
+        stopPropagation: boolean = false
+    ): Promise<Entity> {
         let groundPos = this._planet!.ellipsoid.lonLatToCartesian(lonLat)!;
         return this._addPoint(groundPos, lonLat, altitude, stopPropagation);
     }
 
-    public addGroundPoint3vAsync(groundPos: Vec3, altitude: number = 10, stopPropagation: boolean = false): Promise<Entity> {
+    public addGroundPoint3vAsync(
+        groundPos: Vec3,
+        altitude: number = 10,
+        stopPropagation: boolean = false
+    ): Promise<Entity> {
         let lonLat = this._planet!.ellipsoid.cartesianToLonLat(groundPos)!;
         return this._addPoint(groundPos, lonLat, altitude, stopPropagation);
     }
 
-    protected _addPoint(groundPos: Vec3, lonLat: LonLat, altitude: number, stopPropagation: boolean = false): Promise<Entity> {
+    protected _addPoint(
+        groundPos: Vec3,
+        lonLat: LonLat,
+        altitude: number,
+        stopPropagation: boolean = false
+    ): Promise<Entity> {
         return new Promise((resolve, reject) => {
-            let {
-                headEntity,
-                groundEntity,
-                columnEntity,
-                heightLabelEntity
-            } = this._createGroundPointer(groundPos, altitude);
+            let { headEntity, groundEntity, columnEntity, heightLabelEntity } = this._createGroundPointer(
+                groundPos,
+                altitude
+            );
             this._groundPointersLayer.add(groundEntity);
             this._columnPointersLayer.add(columnEntity);
             this._headPointersLayer.add(headEntity);
@@ -498,10 +514,9 @@ class ElevationProfileScene extends RenderNode {
         if (groundPos) {
             this.addGroundPoint3vAsync(groundPos);
         }
-    }
+    };
 
     protected _onMouseMove = (e: IMouseState) => {
-        let mouseCart = this._planet!.getCartesianFromMouseTerrain();
         if (this._pickedGroundEntity) {
             let d = new Vec2(e.x, e.y).sub(this._startClickPos),
                 p = this._startEntityPos.add(d);
@@ -510,7 +525,6 @@ class ElevationProfileScene extends RenderNode {
                 this.setGroundPointCartesian3v(this._pickedGroundEntity!.properties.index, groundCart);
             }
         } else if (this._pickedHeadEntity) {
-
             let cam = this._planet!.camera;
             let p0 = this._pickedHeadEntity.properties.groundEntity.getCartesian();
             let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(p0);
@@ -525,10 +539,9 @@ class ElevationProfileScene extends RenderNode {
                 this.setHeadPointCartesian3v(this._pickedHeadEntity.properties.index, headPos);
             }
         }
-    }
+    };
 
     public setHeadPointCartesian3v(entityIndex: number, headPos: Vec3) {
-
         const headEntity = this._headPointersLayer.getEntities()[entityIndex];
 
         if (headEntity) {
@@ -554,11 +567,9 @@ class ElevationProfileScene extends RenderNode {
     }
 
     public setGroundPointCartesian3v(entityIndex: number, groundPos: Vec3) {
-
         let groundEntity = this._groundPointersLayer.getEntities()[entityIndex];
 
         if (groundEntity) {
-
             let lonLat = this._planet!.ellipsoid.cartesianToLonLat(groundPos);
 
             groundEntity.properties.lonLatEll.lon = lonLat.lon;
@@ -587,17 +598,15 @@ class ElevationProfileScene extends RenderNode {
         }
     }
 
-    protected _onLUp = (e: IMouseState) => {
-
-    }
+    protected _onLUp = (e: IMouseState) => {};
 
     protected _onGroundPointerEnter = (e: IMouseState) => {
         e.renderer.handler.canvas!.style.cursor = "pointer";
-    }
+    };
 
     protected _onGroundPointerLeave = (e: IMouseState) => {
         e.renderer.handler.canvas!.style.cursor = "default";
-    }
+    };
 
     protected _onGroundPointerLDown = (e: IMouseState) => {
         this._clampToGround = false;
@@ -606,34 +615,33 @@ class ElevationProfileScene extends RenderNode {
         const coords = this._pickedGroundEntity!.getCartesian();
         this._startClickPos.set(e.x, e.y);
         this._startEntityPos = this._planet!.getPixelFromCartesian(coords);
-    }
+    };
 
     protected _onGroundPointerLUp = (e: IMouseState) => {
         this._clampToGround = true;
         this.renderer!.controls.navigation.activate();
         this._pickedGroundEntity = null;
-    }
+    };
 
     protected _onHeadPointerEnter = (e: IMouseState) => {
         e.renderer.handler.canvas!.style.cursor = "pointer";
-    }
+    };
 
     protected _onHeadPointerLeave = (e: IMouseState) => {
         e.renderer.handler.canvas!.style.cursor = "default";
-    }
+    };
 
     protected _onHeadPointerLDown = (e: IMouseState) => {
         this.renderer!.controls.navigation.deactivate();
         this._pickedHeadEntity = e.pickingObject;
-    }
+    };
 
     protected _onHeadPointerLUp = (e: IMouseState) => {
         this.renderer!.controls.navigation.activate();
         this._pickedHeadEntity = null;
-    }
+    };
 
     protected _deactivate() {
-
         this.renderer!.events.off("ldblclick", this._onLClick);
         this.renderer!.events.off("mousemove", this._onMouseMove);
         this.renderer!.events.off("lup", this._onLUp);
@@ -673,7 +681,6 @@ class ElevationProfileScene extends RenderNode {
         this._pointerLayer.setVisibility(visibility);
     }
 
-
     public clear() {
         this._headPointersLayer.setEntities([]);
         this._groundPointersLayer.setEntities([]);
@@ -707,12 +714,8 @@ class ElevationProfileScene extends RenderNode {
     }
 }
 
-type ElevationProfileSceneEventsList = [
-    "change", "addpoint"
-];
+type ElevationProfileSceneEventsList = ["change", "addpoint"];
 
-const ELEVATIONPROFILESCENE_EVENTS: ElevationProfileSceneEventsList = [
-    "change", "addpoint"
-];
+const ELEVATIONPROFILESCENE_EVENTS: ElevationProfileSceneEventsList = ["change", "addpoint"];
 
-export {ElevationProfileScene};
+export { ElevationProfileScene };

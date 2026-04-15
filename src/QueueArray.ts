@@ -73,4 +73,4 @@ class QueueArray<T> {
     }
 }
 
-export {QueueArray};
+export { QueueArray };

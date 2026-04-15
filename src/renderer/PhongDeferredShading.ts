@@ -1,11 +1,10 @@
-import {Framebuffer} from "../webgl/Framebuffer";
-import {deferredShading} from "../shaders/deferredShading/deferredShading";
-import {applyDeferredDepth} from "../shaders/applyDeferredDepth";
-import type {IDeferredShadingPass} from "./IDeferredShadingPass";
-import type {Renderer} from "./Renderer";
+import { Framebuffer } from "../webgl/Framebuffer";
+import { deferredShading } from "../shaders/deferredShading/deferredShading";
+import { applyDeferredDepth } from "../shaders/applyDeferredDepth";
+import type { IDeferredShadingPass } from "./IDeferredShadingPass";
+import type { Renderer } from "./Renderer";
 
 export class PhongDeferredShading implements IDeferredShadingPass {
-
     protected _renderer: Renderer;
     protected _framebuffer: Framebuffer | null = null;
 
@@ -21,23 +20,29 @@ export class PhongDeferredShading implements IDeferredShadingPass {
 
         this._framebuffer = new Framebuffer(h, {
             useDepth: false,
-            targets: [{
-                internalFormat: this._renderer.internalFormat,
-                filter: "NEAREST"
-            }, {
-                internalFormat: this._renderer.internalFormat,
-                filter: "NEAREST"
-            }, {
-                internalFormat: this._renderer.internalFormat,
-                filter: "NEAREST"
-            }, {
-                internalFormat: "RGBA32F",
-                filter: "NEAREST"
-            }, {
-                attachment: "DEPTH_ATTACHMENT",
-                internalFormat: this._renderer.depthComponent,
-                filter: "NEAREST"
-            }]
+            targets: [
+                {
+                    internalFormat: this._renderer.internalFormat,
+                    filter: "NEAREST"
+                },
+                {
+                    internalFormat: this._renderer.internalFormat,
+                    filter: "NEAREST"
+                },
+                {
+                    internalFormat: this._renderer.internalFormat,
+                    filter: "NEAREST"
+                },
+                {
+                    internalFormat: "RGBA32F",
+                    filter: "NEAREST"
+                },
+                {
+                    attachment: "DEPTH_ATTACHMENT",
+                    internalFormat: this._renderer.depthComponent,
+                    filter: "NEAREST"
+                }
+            ]
         });
 
         this._framebuffer.init();

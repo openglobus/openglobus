@@ -1,5 +1,5 @@
-import {frac} from "../math";
-import {Vec3} from "./Vec3";
+import { frac } from "../math";
+import { Vec3 } from "./Vec3";
 
 export type NumberArray4 = [number, number, number, number];
 
@@ -12,7 +12,6 @@ export type NumberArray4 = [number, number, number, number];
  * @param {number} [w] - Fourth value.
  */
 export class Vec4 {
-
     /**
      * @public
      * @type {number}
@@ -36,7 +35,6 @@ export class Vec4 {
      * @type {number}
      */
     public w: number;
-
 
     constructor(x: number = 0.0, y: number = 0.0, z: number = 0.0, w: number = 0.0) {
         this.x = x;
@@ -188,7 +186,6 @@ export class Vec4 {
      * @returns {Vec4}
      */
     public affinity(): Vec4 {
-
         let iw = 1.0 / this.w;
 
         this.x *= iw;

@@ -1,12 +1,10 @@
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import {htmlColorToRgb, rgbToStringHTML} from "../utils/shared";
-import {Program} from '../webgl/Program';
-import type {NumberArray3} from "../math/Vec3";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
+import { htmlColorToRgb, rgbToStringHTML } from "../utils/shared";
+import { Program } from "../webgl/Program";
+import type { NumberArray3 } from "../math/Vec3";
 
-interface ISimpleSkyBackgroundParams extends IControlParams {
-
-}
+interface ISimpleSkyBackgroundParams extends IControlParams {}
 
 export class SimpleSkyBackground extends Control {
     protected _colorOne: Float32Array;
@@ -95,17 +93,18 @@ export class SimpleSkyBackground extends Control {
 function simpleSkyBackgroundShader(): Program {
     return new Program("simpleSkyBackground", {
         uniforms: {
-            iResolution: "vec2", fov: "float",
+            iResolution: "vec2",
+            fov: "float",
             camPos: "vec3",
             earthRadius: "float",
             viewMatrix: "mat4",
             colorOne: "vec3",
             colorTwo: "vec3"
-        }, attributes: {
+        },
+        attributes: {
             corners: "vec3"
         },
-        vertexShader:
-            `attribute vec2 corners;
+        vertexShader: `attribute vec2 corners;
                         
             varying vec2 tc;
             
@@ -113,8 +112,7 @@ function simpleSkyBackgroundShader(): Program {
                 gl_Position = vec4(corners, 0.0, 1.0);
                 tc = corners * 0.5 + 0.5;
             }`,
-        fragmentShader:
-            `precision highp float;
+        fragmentShader: `precision highp float;
             
             #define MAX 10e10
             #define PI 3.14159265359

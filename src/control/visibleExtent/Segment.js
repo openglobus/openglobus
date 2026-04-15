@@ -257,7 +257,7 @@ class Segment {
      * @returns {boolean} -
      */
     acceptForRendering(camera) {
-        return camera.projectedSize(this.bsphere.center, this._plainRadius) < (256 / this.planet._lodRatio);
+        return camera.projectedSize(this.bsphere.center, this._plainRadius) < 256 / this.planet._lodRatio;
     }
 
     /**
@@ -699,10 +699,7 @@ class Segment {
 
             if (!this.normalMapTexturePtr) {
                 var nmc = this.planet._normalMapCreator;
-                this.normalMapTexturePtr = this.planet.renderer.handler.createEmptyTexture_l(
-                    nmc._width,
-                    nmc._height
-                );
+                this.normalMapTexturePtr = this.planet.renderer.handler.createEmptyTexture_l(nmc._width, nmc._height);
             }
 
             if (this.planet.lightEnabled) {
@@ -1004,14 +1001,8 @@ class Segment {
 
         // check for zoom
         if (this.tileZoom <= MAX_NORMAL_ZOOM) {
-            var coord_nw = ellipsoid.geodeticToCartesian(
-                extent.southWest.lon,
-                extent.northEast.lat
-            );
-            var coord_se = ellipsoid.geodeticToCartesian(
-                extent.northEast.lon,
-                extent.southWest.lat
-            );
+            var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
+            var coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
 
             this._swNorm = coord_sw.normal();
             this._nwNorm = coord_nw.normal();
@@ -1092,26 +1083,10 @@ class Segment {
                 let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-                let vn = new Vec3(
-                        bigOne[3] - bigOne[0],
-                        bigOne[4] - bigOne[1],
-                        bigOne[5] - bigOne[2]
-                    ),
-                    vw = new Vec3(
-                        bigOne[6] - bigOne[0],
-                        bigOne[7] - bigOne[1],
-                        bigOne[8] - bigOne[2]
-                    ),
-                    ve = new Vec3(
-                        bigOne[3] - bigOne[9],
-                        bigOne[4] - bigOne[10],
-                        bigOne[5] - bigOne[11]
-                    ),
-                    vs = new Vec3(
-                        bigOne[6] - bigOne[9],
-                        bigOne[7] - bigOne[10],
-                        bigOne[8] - bigOne[11]
-                    );
+                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                    ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                    vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
 
                 let vi_y = t_i0,
                     vi_x = t_j0;
@@ -1119,30 +1094,22 @@ class Segment {
                 let coords_lt, coords_rb;
 
                 if (vi_y + vi_x < insideSize) {
-                    coords_lt = Vec3.add(
-                        vn.scaleTo(vi_x / insideSize),
-                        vw.scaleTo(vi_y / insideSize)
-                    ).addA(v_lt);
+                    coords_lt = Vec3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
                 } else {
-                    coords_lt = Vec3.add(
-                        vs.scaleTo(1 - vi_x / insideSize),
-                        ve.scaleTo(1 - vi_y / insideSize)
-                    ).addA(v_rb);
+                    coords_lt = Vec3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(
+                        v_rb
+                    );
                 }
 
                 vi_y = t_i0 + 1;
                 vi_x = t_j0 + 1;
 
                 if (vi_y + vi_x < insideSize) {
-                    coords_rb = Vec3.add(
-                        vn.scaleTo(vi_x / insideSize),
-                        vw.scaleTo(vi_y / insideSize)
-                    ).addA(v_lt);
+                    coords_rb = Vec3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
                 } else {
-                    coords_rb = Vec3.add(
-                        vs.scaleTo(1 - vi_x / insideSize),
-                        ve.scaleTo(1 - vi_y / insideSize)
-                    ).addA(v_rb);
+                    coords_rb = Vec3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(
+                        v_rb
+                    );
                 }
 
                 this.setBoundingVolume3v(coords_lt, coords_rb);
@@ -1189,9 +1156,7 @@ class Segment {
             z = bounds[2] + (bounds[5] - bounds[2]) * 0.5;
 
         this.bsphere.center.set(x, y, z);
-        this.bsphere.radius = this.bsphere.center.distance(
-            new Vec3(bounds[0], bounds[1], bounds[2])
-        );
+        this.bsphere.radius = this.bsphere.center.distance(new Vec3(bounds[0], bounds[1], bounds[2]));
     }
 
     createCoordsBuffers(verticesHigh, verticesLow, gridSize) {
@@ -1205,8 +1170,7 @@ class Segment {
             h.gl.deleteBuffer(this.vertexPositionBufferHigh);
             h.gl.deleteBuffer(this.vertexPositionBufferLow);
 
-            this.vertexTextureCoordBuffer =
-                this.planet._textureCoordsBufferCache[Math.log2(gridSize)];
+            this.vertexTextureCoordBuffer = this.planet._textureCoordsBufferCache[Math.log2(gridSize)];
 
             //this.vertexPositionBufferHigh = h.createStreamArrayBuffer(3, gsgs);
             //h.setStreamArrayBuffer(this.vertexPositionBufferHigh, verticesHigh);
@@ -1254,12 +1218,8 @@ class Segment {
         var tileZoom = this.tileZoom;
         var extent = this._extent;
         var pole = mercator.POLE;
-        this.tileX = Math.round(
-            Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon)
-        );
-        this.tileY = Math.round(
-            Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat)
-        );
+        this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
+        this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
         var p2 = Math.pow(2, tileZoom);
         this.tileXE = (this.tileX + 1) % p2;
         this.tileXW = (p2 + this.tileX - 1) % p2;
@@ -1290,10 +1250,7 @@ class Segment {
 
         if (this.tileZoom <= p.terrain.maxZoom) {
             var nmc = this.planet._normalMapCreator;
-            this.normalMapTexturePtr = p.renderer.handler.createEmptyTexture_l(
-                nmc._width,
-                nmc._height
-            );
+            this.normalMapTexturePtr = p.renderer.handler.createEmptyTexture_l(nmc._width, nmc._height);
         }
 
         this.normalMapTexture = this.planet.transparentTexture;
@@ -1305,14 +1262,10 @@ class Segment {
 
     _assignGlobalTextureCoordinates() {
         var e = this._extent;
-        this._globalTextureCoordinates[0] =
-            (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-        this._globalTextureCoordinates[1] =
-            (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
-        this._globalTextureCoordinates[2] =
-            (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-        this._globalTextureCoordinates[3] =
-            (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
+        this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+        this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
+        this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+        this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
     }
 
     createPlainSegmentAsync() {

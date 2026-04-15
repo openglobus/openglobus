@@ -1,6 +1,6 @@
-import {BaseGeoImage} from "./BaseGeoImage";
-import type {IBaseGeoImageParams} from "./BaseGeoImage";
-import {Material} from "./Material";
+import { BaseGeoImage } from "./BaseGeoImage";
+import type { IBaseGeoImageParams } from "./BaseGeoImage";
+import { Material } from "./Material";
 
 export interface IGeoVideoParams extends IBaseGeoImageParams {
     videoElement?: HTMLVideoElement;
@@ -13,7 +13,6 @@ export interface IGeoVideoParams extends IBaseGeoImageParams {
  * @extends {BaseGeoImage}
  */
 class GeoVideo extends BaseGeoImage {
-
     /**
      * HTML5 video element object.
      * @protected
@@ -185,4 +184,4 @@ class GeoVideo extends BaseGeoImage {
     }
 }
 
-export {GeoVideo};
+export { GeoVideo };

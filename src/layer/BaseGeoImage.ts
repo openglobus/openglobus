@@ -1,24 +1,22 @@
 import * as mercator from "../mercator";
-import {doubleToTwoFloats2} from "../math/coder";
-import {Extent} from "../Extent";
-import type {EventCallback, EventsHandler} from "../Events";
-import {Layer} from "./Layer";
-import type {LayerEventsList, ILayerParams} from "./Layer";
-import {LonLat} from "../LonLat";
-import {Material} from "./Material";
-import type {NumberArray2} from "../math/Vec2";
-import type {NumberArray4} from "../math/Vec4";
-import {Planet} from "../scene/Planet";
-import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import { doubleToTwoFloats2 } from "../math/coder";
+import { Extent } from "../Extent";
+import type { EventCallback, EventsHandler } from "../Events";
+import { Layer } from "./Layer";
+import type { LayerEventsList, ILayerParams } from "./Layer";
+import { LonLat } from "../LonLat";
+import { Material } from "./Material";
+import type { NumberArray2 } from "../math/Vec2";
+import type { NumberArray4 } from "../math/Vec4";
+import { Planet } from "../scene/Planet";
+import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 
 export interface IBaseGeoImageParams extends ILayerParams {
     fullExtent?: boolean;
     corners?: NumberArray2[];
 }
 
-type BaseGeoImageEventsList = [
-    "loadend"
-];
+type BaseGeoImageEventsList = ["loadend"];
 
 const BASEGEOIMAGE_EVENTS: BaseGeoImageEventsList = [
     /**
@@ -37,7 +35,6 @@ export type BaseGeoImageEventsType = EventsHandler<BaseGeoImageEventsList> & Eve
  * @extends {Layer}
  */
 class BaseGeoImage extends Layer {
-
     public override events: BaseGeoImageEventsType;
 
     protected _projType: number;
@@ -205,12 +202,7 @@ class BaseGeoImage extends Layer {
      */
     public setCornersLonLat(corners: LonLat[]) {
         this._refreshFrame = true;
-        this._cornersWgs84 = [
-            corners[0].clone(),
-            corners[1].clone(),
-            corners[2].clone(),
-            corners[3].clone()
-        ];
+        this._cornersWgs84 = [corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone()];
 
         for (let i = 0; i < this._cornersWgs84.length; i++) {
             if (this._cornersWgs84[i].lat >= 89.9) {
@@ -258,7 +250,6 @@ class BaseGeoImage extends Layer {
         let tempArr = new Float32Array(2);
 
         if (this._projType === 0) {
-
             doubleToTwoFloats2(this._extentWgs84.southWest.lon, tempArr);
             this._extentWgs84ParamsHigh[0] = tempArr[0];
             this._extentWgs84ParamsLow[0] = tempArr[1];
@@ -269,9 +260,7 @@ class BaseGeoImage extends Layer {
 
             this._extentWgs84ParamsHigh[2] = 2.0 / this._extentWgs84.getWidth();
             this._extentWgs84ParamsHigh[3] = 2.0 / this._extentWgs84.getHeight();
-
         } else {
-
             doubleToTwoFloats2(this._extentMerc.southWest.lon, tempArr);
             this._extentMercParamsHigh[0] = tempArr[0];
             this._extentMercParamsLow[0] = tempArr[1];
@@ -293,7 +282,10 @@ class BaseGeoImage extends Layer {
             gl.deleteTexture(this._materialTexture as WebGLTexture);
             this._materialTexture = h.createEmptyTexture_l(this._frameWidth, this._frameHeight);
 
-            let gridBufferArr = this._planet._geoImageCreator.createGridBuffer(this._cornersWgs84, this._projType === 1);
+            let gridBufferArr = this._planet._geoImageCreator.createGridBuffer(
+                this._cornersWgs84,
+                this._projType === 1
+            );
 
             this._gridBufferHigh = gridBufferArr[0];
             this._gridBufferLow = gridBufferArr[1];
@@ -543,4 +535,4 @@ class BaseGeoImage extends Layer {
     }
 }
 
-export {BaseGeoImage};
+export { BaseGeoImage };

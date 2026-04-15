@@ -1,8 +1,8 @@
-import {clamp} from '../math';
-import type {EventsHandler} from "../Events";
-import {View} from './View';
-import type {IViewParams, ViewEventsList} from './View';
-import {stringTemplate} from '../utils/shared';
+import { clamp } from "../math";
+import type { EventsHandler } from "../Events";
+import { View } from "./View";
+import type { IViewParams, ViewEventsList } from "./View";
+import { stringTemplate } from "../utils/shared";
 
 interface ISliderParams extends IViewParams {
     label?: string;
@@ -25,7 +25,6 @@ const TEMPLATE = `<div class="og-slider">
     </div>`;
 
 class Slider extends View<null> {
-
     public override events: EventsHandler<SliderEventsList> & EventsHandler<ViewEventsList>;
 
     protected _value: number;
@@ -69,7 +68,6 @@ class Slider extends View<null> {
     }
 
     public override render(params: any): this {
-
         super.render(params);
 
         this.$label = this.select(".og-slider-label")!;
@@ -89,14 +87,14 @@ class Slider extends View<null> {
     }
 
     protected _onResize = () => {
-        this._setOffset((this._value - this._min) * this.$panel!.clientWidth / (this._max - this._min));
-    }
+        this._setOffset(((this._value - this._min) * this.$panel!.clientWidth) / (this._max - this._min));
+    };
 
     public set value(val: number) {
         if (val !== this._value) {
             this._value = clamp(val, this._min, this._max);
             this.$input!.value = this._value.toString();
-            this._setOffset((this._value - this._min) * this.$panel!.clientWidth / (this._max - this._min));
+            this._setOffset(((this._value - this._min) * this.$panel!.clientWidth) / (this._max - this._min));
             this.events.dispatch(this.events.change, this._value, this);
         }
     }
@@ -127,12 +125,12 @@ class Slider extends View<null> {
         e.preventDefault();
         e.stopPropagation();
         //@ts-ignore
-        this.value = this._value + Math.sign(e.wheelDelta) * (this._max - this._min) / 100.0;
-    }
+        this.value = this._value + (Math.sign(e.wheelDelta) * (this._max - this._min)) / 100.0;
+    };
 
     protected _onMouseWheelFF = (e: WheelEvent) => {
         this._onMouseWheel(e);
-    }
+    };
 
     protected _onInput = (e: Event) => {
         //@ts-ignore
@@ -141,7 +139,7 @@ class Slider extends View<null> {
         e.stopPropagation();
         //@ts-ignore
         this.value = parseFloat(e.target.value);
-    }
+    };
 
     protected _onMouseDown = (e: MouseEvent) => {
         //@ts-ignore
@@ -154,11 +152,11 @@ class Slider extends View<null> {
 
         document.addEventListener("mousemove", this._onMouseMove);
         document.addEventListener("mouseup", this._onMouseUp);
-    }
+    };
 
     protected _setOffset(x: number) {
         if (x >= 0 && x <= this.$panel!.clientWidth) {
-            this.$pointer!.style.left = this.$progress!.style.width = `${x * 100 / this.$panel!.clientWidth}%`;
+            this.$pointer!.style.left = this.$progress!.style.width = `${(x * 100) / this.$panel!.clientWidth}%`;
         }
     }
 
@@ -172,13 +170,13 @@ class Slider extends View<null> {
         let clientX = clamp(e.clientX, rect.left, rect.right);
         let dx = this._startPosX - clientX;
         this._startPosX = clientX;
-        this.value = this._value - dx * (this._max - this._min) / this.$panel!.clientWidth;
-    }
+        this.value = this._value - (dx * (this._max - this._min)) / this.$panel!.clientWidth;
+    };
 
     protected _onMouseUp = () => {
         document.removeEventListener("mouseup", this._onMouseUp);
         document.removeEventListener("mousemove", this._onMouseMove);
-    }
+    };
 
     public override remove() {
         this._clearEvents();
@@ -189,7 +187,7 @@ class Slider extends View<null> {
         this._max = value;
         this.events.stopPropagation();
         //@ts-ignore
-        this.value = this._value + Math.sign(e.wheelDelta) * (this._max - this._min) / 100.0;
+        this.value = this._value + (Math.sign(e.wheelDelta) * (this._max - this._min)) / 100.0;
     }
 
     public get max(): number {
@@ -197,4 +195,4 @@ class Slider extends View<null> {
     }
 }
 
-export {Slider}
+export { Slider };

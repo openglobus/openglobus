@@ -1,10 +1,10 @@
-import {Entity} from "../Entity";
-import {PointCloudHandler} from "./PointCloudHandler";
-import {RenderNode} from "../../scene/RenderNode";
-import {Vec3} from "../../math/Vec3";
-import {Vec4} from "../../math/Vec4";
-import type {WebGLBufferExt} from "../../webgl/Handler";
-import {EntityCollection} from "../EntityCollection";
+import { Entity } from "../Entity";
+import { PointCloudHandler } from "./PointCloudHandler";
+import { RenderNode } from "../../scene/RenderNode";
+import { Vec3 } from "../../math/Vec3";
+import { Vec4 } from "../../math/Vec4";
+import type { WebGLBufferExt } from "../../webgl/Handler";
+import { EntityCollection } from "../EntityCollection";
 
 export interface IPointCloudParams {
     visibility?: boolean;
@@ -23,7 +23,7 @@ interface IPoint {
     position: Vec3;
     color: Vec4;
     pointCloud: PointCloud;
-    properties: any
+    properties: any;
 }
 
 const COORDINATES_BUFFER = 0;
@@ -133,7 +133,6 @@ class PointCloud {
     protected _changedBuffers: boolean[];
 
     constructor(options: IPointCloudParams = {}) {
-
         this.__id = PointCloud.__counter__++;
 
         /**
@@ -478,11 +477,7 @@ class PointCloud {
     protected _createColorBuffer() {
         let h = this._renderNode!.renderer!.handler;
         h.gl!.deleteBuffer(this._colorBuffer as WebGLBuffer);
-        this._colorBuffer = h.createArrayBuffer(
-            new Float32Array(this._colorData),
-            4,
-            this._colorData.length / 4
-        );
+        this._colorBuffer = h.createArrayBuffer(new Float32Array(this._colorData), 4, this._colorData.length / 4);
     }
 
     protected _createPickingColorBuffer() {
@@ -514,4 +509,4 @@ class PointCloud {
     }
 }
 
-export {PointCloud};
+export { PointCloud };

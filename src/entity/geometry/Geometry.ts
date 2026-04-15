@@ -1,19 +1,19 @@
 import * as utils from "../../utils/shared";
-import {Entity} from "../Entity";
-import {Extent} from "../../Extent";
-import {GeometryHandler} from "./GeometryHandler";
-import {LonLat} from "../../LonLat";
-import {Vec4} from "../../math/Vec4";
-import type {NumberArray4} from "../../math/Vec4";
-import type {NumberArray2} from "../../math/Vec2";
-import type {NumberArray3} from "../../math/Vec3";
+import { Entity } from "../Entity";
+import { Extent } from "../../Extent";
+import { GeometryHandler } from "./GeometryHandler";
+import { LonLat } from "../../LonLat";
+import { Vec4 } from "../../math/Vec4";
+import type { NumberArray4 } from "../../math/Vec4";
+import type { NumberArray2 } from "../../math/Vec2";
+import type { NumberArray3 } from "../../math/Vec3";
 
 export enum GeometryTypeEnum {
     POINT = 1,
     LINESTRING = 2,
     POLYGON = 3,
     MULTIPOLYGON = 4,
-    MULTILINESTRING = 5,
+    MULTILINESTRING = 5
 }
 
 const GeometryType: Record<string, number> = {
@@ -124,11 +124,11 @@ export type IMultiLineStringCoordinates = ILineStringCoordinates[];
 export type IMultiPolygonCoordinates = IPolygonCoordinates[];
 
 export type IGeometryCoordinates =
-    IPointCoordinates |
-    IPolygonCoordinates |
-    IMultiPolygonCoordinates |
-    ILineStringCoordinates |
-    IMultiLineStringCoordinates;
+    | IPointCoordinates
+    | IPolygonCoordinates
+    | IMultiPolygonCoordinates
+    | ILineStringCoordinates
+    | IMultiLineStringCoordinates;
 
 export type GeometryTypeToCoordinates = {
     POINT: IPointCoordinates;
@@ -210,7 +210,6 @@ class Geometry {
     public _pickingReady: boolean;
 
     constructor(options: IGeometryParams = {}) {
-
         this.__id = Geometry.__counter__++;
 
         this._entity = null;
@@ -240,7 +239,8 @@ class Geometry {
 
         this._type = (options.type && Geometry.getType(options.type)) || GeometryTypeEnum.POINT;
         this._coordinates = options.coordinates || [];
-        this._extent = Geometry.getExtent({
+        this._extent = Geometry.getExtent(
+            {
                 type: options.type || "POINT",
                 coordinates: options.coordinates || []
             },
@@ -500,4 +500,4 @@ class Geometry {
     }
 }
 
-export {Geometry};
+export { Geometry };

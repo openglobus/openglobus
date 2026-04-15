@@ -1,13 +1,25 @@
-import {Mat3} from "./Mat3";
-import {Quat} from "./Quat";
-import {Vec3} from "./Vec3";
-import {Vec4} from "./Vec4";
+import { Mat3 } from "./Mat3";
+import { Quat } from "./Quat";
+import { Vec3 } from "./Vec3";
+import { Vec4 } from "./Vec4";
 
 export type NumberArray16 = [
-    number, number, number, number,
-    number, number, number, number,
-    number, number, number, number,
-    number, number, number, number
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number
 ];
 
 /**
@@ -15,21 +27,14 @@ export type NumberArray16 = [
  * @class
  */
 export class Mat4 {
-
     /**
      * A 4x4 matrix, index-able as a column-major order array.
      * @public
      * @type {Array.<number>}
      */
-    public _m: NumberArray16 = [
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0
-    ];
+    public _m: NumberArray16 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    constructor() {
-    }
+    constructor() {}
 
     /**
      * Returns identity matrix instance.
@@ -145,7 +150,6 @@ export class Mat4 {
         }
         return new Quat(...out);
     }
-
 
     /**
      * Sets column-major order array matrix.
@@ -406,7 +410,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public mul(mx: Mat4): Mat4 {
-
         let d = this._m[0],
             e = this._m[1],
             g = this._m[2],
@@ -470,7 +473,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public translate(v: Vec3): Mat4 {
-
         let d = v.x,
             e = v.y,
             b = v.z;
@@ -507,7 +509,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public rotate(u: Vec3, angle: number): Mat4 {
-
         let c = Math.cos(angle),
             s = Math.sin(angle);
 
@@ -542,7 +543,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public setRotation(u: Vec3, angle: number): Mat4 {
-
         let c = Math.cos(angle),
             s = Math.sin(angle);
 
@@ -615,7 +615,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public setPerspective(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4 {
-
         let h = right - left,
             i = top - bottom,
             j = near - far,
@@ -699,7 +698,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public setOrthographic(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4 {
-
         let lr = 1.0 / (left - right),
             bt = 1.0 / (bottom - top),
             nf = 1.0 / (near - far),
@@ -734,7 +732,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public eulerToMatrix(ax: number, ay: number, az: number): Mat4 {
-
         let a = Math.cos(ax),
             b = Math.sin(ax),
             c = Math.cos(ay),

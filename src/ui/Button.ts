@@ -1,10 +1,9 @@
-import {stringTemplate} from '../utils/shared';
-import {View} from './View';
-import type {IViewParams, ViewEventsList} from './View';
-import type {EventsHandler} from "../Events";
+import { stringTemplate } from "../utils/shared";
+import { View } from "./View";
+import type { IViewParams, ViewEventsList } from "./View";
+import type { EventsHandler } from "../Events";
 
-const TEMPLATE =
-    `<div class="og-button" title="{title}">
+const TEMPLATE = `<div class="og-button" title="{title}">
        <div class="og-button-icon">{icon}</div>
        <div class="og-button-text">{text}</div>
     </div>`;
@@ -25,7 +24,6 @@ export interface IButtonParams extends IViewParams {
 }
 
 class Button extends View<null> {
-
     public override events: EventsHandler<ButtonEventsList> & EventsHandler<ViewEventsList>;
 
     public override el: HTMLElementExt | null;
@@ -78,27 +76,27 @@ class Button extends View<null> {
     protected _onMouseDown = (e: MouseEvent) => {
         e.preventDefault();
         this.events.dispatch(this.events.mousedown, this, e);
-    }
+    };
 
     protected _onMouseUp = (e: MouseEvent) => {
         e.preventDefault();
         this.events.dispatch(this.events.mouseup, this, e);
-    }
+    };
 
     protected _onTouchStart = (e: TouchEvent) => {
         e.preventDefault();
         this.events.dispatch(this.events.touchstart, this, e);
-    }
+    };
 
     protected _onTouchEnd = (e: TouchEvent) => {
         e.preventDefault();
         this.events.dispatch(this.events.touchend, this, e);
-    }
+    };
 
     protected _onTouchCancel = (e: TouchEvent) => {
         e.preventDefault();
         this.events.dispatch(this.events.touchcancel, this, e);
-    }
+    };
 
     protected _mouseClickHandler(e: MouseEvent) {
         e.preventDefault();
@@ -106,8 +104,8 @@ class Button extends View<null> {
     }
 
     protected _onMouseClick = (e: MouseEvent) => {
-        this._mouseClickHandler(e)
-    }
+        this._mouseClickHandler(e);
+    };
 
     public override remove() {
         this._clearEvents();
@@ -119,4 +117,4 @@ class Button extends View<null> {
     }
 }
 
-export {Button};
+export { Button };

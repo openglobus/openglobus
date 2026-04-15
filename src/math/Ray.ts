@@ -1,8 +1,8 @@
-import {EPS10} from "../math";
-import {Box} from "../bv/Box";
-import {Sphere} from "../bv/Sphere";
-import {Vec3} from "./Vec3";
-import {Plane} from "./Plane";
+import { EPS10 } from "../math";
+import { Box } from "../bv/Box";
+import { Sphere } from "../bv/Sphere";
+import { Vec3 } from "./Vec3";
+import { Plane } from "./Plane";
 
 /**
  * Represents a ray that extends infinitely from the provided origin in the provided direction.
@@ -26,7 +26,6 @@ export class Ray {
     public direction: Vec3;
 
     constructor(origin: Vec3 = Vec3.ZERO, direction: Vec3 = Vec3.ZERO) {
-
         this.origin = origin;
 
         this.direction = direction;
@@ -181,7 +180,8 @@ export class Ray {
     /**
      * Finds the intersection of the ray with a plane.
      * @param {Plane} plane - The plane to intersect with.
-     * @returns {Vec3 | null} The intersection point or null if no intersection.
+     * @param {Vec3} res - Output intersection point when result is `Ray.INSIDE`.
+     * @returns {number} Intersection status: `Ray.INSIDE`, `Ray.OUTSIDE`, or `Ray.AWAY`.
      */
     public hitPlaneRes(plane: Plane, res: Vec3): number {
         const d = this.direction.dot(plane.n);

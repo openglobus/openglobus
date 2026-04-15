@@ -1,15 +1,15 @@
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import {Key} from "../Lock";
-import {LonLat} from "../LonLat";
-import {math} from "../index";
-import {Quat} from "../math/Quat";
-import {Ray} from "../math/Ray";
-import {Sphere} from "../bv/Sphere";
-import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
-import type {ITouchState} from "../renderer/RendererEvents";
-import {Plane} from "../math/Plane";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
+import { Key } from "../Lock";
+import { LonLat } from "../LonLat";
+import { math } from "../index";
+import { Quat } from "../math/Quat";
+import { Ray } from "../math/Ray";
+import { Sphere } from "../bv/Sphere";
+import { Vec2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
+import type { ITouchState } from "../renderer/RendererEvents";
+import { Plane } from "../math/Plane";
 import { createEvents, EventsHandler } from "../Events";
 
 interface ITouchNavigationParams extends IControlParams {
@@ -30,11 +30,7 @@ interface ITouchNavigationParams extends IControlParams {
     jerkLimit?: number;
 }
 
-export type TouchNavigationEventsList = [
-    "inertiamove",
-    "drag",
-    "doubletapzoom",
-];
+export type TouchNavigationEventsList = ["inertiamove", "drag", "doubletapzoom"];
 
 const TOUCH_NAVIGATION_EVENTS: TouchNavigationEventsList = [
     /**
@@ -53,7 +49,7 @@ const TOUCH_NAVIGATION_EVENTS: TouchNavigationEventsList = [
      * Triggered on double tap zoom.
      * @event og.TouchNavigation#doubletapzoom
      */
-    "doubletapzoom",
+    "doubletapzoom"
 ];
 const DEFAULT_INERTIA = 0.007;
 const DEFAULT_MIN_SLOPE = 0.1;
@@ -69,7 +65,6 @@ class TouchExt {
 
     protected _vec: Vec2;
     protected _vecPrev: Vec2;
-
 
     constructor() {
         this.x = 0;
@@ -112,7 +107,6 @@ class TouchExt {
  * @fires doubletapzoom
  */
 export class TouchNavigation extends Control {
-
     public grabbedPoint: Vec3;
     public inertia: number;
     public minSlope: number;
@@ -129,7 +123,6 @@ export class TouchNavigation extends Control {
     protected touches: TouchExt[];
     protected _keyLock: Key;
     protected _touching: boolean;
-
 
     constructor(options: ITouchNavigationParams = {}) {
         super(options);
@@ -206,9 +199,7 @@ export class TouchNavigation extends Control {
 
             t1.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(new Vec2(t1.x, t1.y)) || null;
 
-            this.pointOnEarth = this.planet!.getCartesianFromPixelTerrain(
-                this.renderer!.handler.getCenter()
-            ) || null;
+            this.pointOnEarth = this.planet!.getCartesianFromPixelTerrain(this.renderer!.handler.getCenter()) || null;
 
             if (this.pointOnEarth) {
                 this.earthUp = this.pointOnEarth.normal();
@@ -251,16 +242,13 @@ export class TouchNavigation extends Control {
     }
 
     protected onDoubleTouch(e: ITouchState) {
-
         this.planet!.stopFlying();
         this.stopRotation();
 
         const p = this.planet!.getCartesianFromPixelTerrain(e);
         if (p) {
             const g = this.planet!.ellipsoid.cartesianToLonLat(p);
-            this.planet!.flyLonLat(
-                new LonLat(g.lon, g.lat, this.planet!.camera.eye.distance(p) * 0.57)
-            );
+            this.planet!.flyLonLat(new LonLat(g.lon, g.lat, this.planet!.camera.eye.distance(p) * 0.57));
             this.events.dispatch(this.events.doubletapzoom, this);
         }
     }
@@ -282,8 +270,7 @@ export class TouchNavigation extends Control {
         }
     }
 
-    protected onTouchCancel(e: ITouchState) {
-    }
+    protected onTouchCancel(e: ITouchState) {}
 
     protected onTouchMove(e: ITouchState) {
         let cam = this.planet!.camera;
@@ -311,9 +298,7 @@ export class TouchNavigation extends Control {
             t1.y = (e.sys!.pointers[1].clientY - e.sys!.offsetTop) * handler.pixelRatio;
 
             const middle = t0.vec.add(t1.vec).scale(0.5);
-            const earthMiddlePoint = this.planet!.getCartesianFromPixelEllipsoid(
-                middle
-            );
+            const earthMiddlePoint = this.planet!.getCartesianFromPixelEllipsoid(middle);
             if (earthMiddlePoint) {
                 this.pointOnEarth = earthMiddlePoint;
 
@@ -336,7 +321,7 @@ export class TouchNavigation extends Control {
                 const panCur = t0.vec.add(t1.vec).scale(0.5);
                 const panPrev = t0.vecPrev.add(t1.vecPrev).scale(0.5);
                 const panOffset = panCur.sub(panPrev).scale(-1);
-                var l = 0.5 / distanceToPointOnEarth * cam._lonLat.height * math.RADIANS;
+                var l = (0.5 / distanceToPointOnEarth) * cam._lonLat.height * math.RADIANS;
                 if (l > 0.003) l = 0.003;
                 cam.rotateHorizontal(l * -panOffset.x, false, this.pointOnEarth, this.earthUp!);
                 cam.rotateVertical(l * -panOffset.y, this.pointOnEarth, this.minSlope);
@@ -360,15 +345,12 @@ export class TouchNavigation extends Control {
 
             this.planet!.stopFlying();
 
-            let direction = e.direction
+            let direction = e.direction;
             let targetPoint = new Ray(cam.eye, direction).hitSphere(t.grabbedSpheroid);
 
             if (targetPoint) {
                 if (cam.slope > 0.2) {
-                    this.qRot = Quat.getRotationBetweenVectors(
-                        targetPoint.normal(),
-                        t.grabbedPoint.normal()
-                    );
+                    this.qRot = Quat.getRotationBetweenVectors(targetPoint.normal(), t.grabbedPoint.normal());
                     let rot = this.qRot;
                     cam.eye = rot.mulVec3(cam.eye);
                     cam.rotate(rot);
@@ -398,7 +380,6 @@ export class TouchNavigation extends Control {
     }
 
     protected onDraw() {
-
         const r = this.renderer!;
 
         r.controlsBag.scaleRot = this.scaleRot;
@@ -419,9 +400,7 @@ export class TouchNavigation extends Control {
             this.scaleRot = 0;
         } else {
             r.controlsBag.scaleRot = this.scaleRot;
-            let rot = this.qRot
-                .slerp(Quat.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot)
-                .normalize();
+            let rot = this.qRot.slerp(Quat.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
             if (!(rot.x || rot.y || rot.z)) {
                 this.scaleRot = 0;
             }

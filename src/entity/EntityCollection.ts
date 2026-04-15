@@ -1,23 +1,23 @@
 import * as math from "../math";
-import {BillboardHandler} from "./billboard/BillboardHandler";
-import {createEvents} from "../Events";
-import type {EventsHandler} from "../Events";
-import type {Entity} from "./Entity";
-import {Ellipsoid} from "../ellipsoid/Ellipsoid";
-import {Extent} from "../Extent";
-import type {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
-import {GeoObjectHandler} from "./geoObject/GeoObjectHandler";
-import {LabelHandler} from "./label/LabelHandler";
-import {Vec3} from "../math/Vec3";
-import type {NumberArray3} from "../math/Vec3";
-import type {Planet} from "../scene/Planet";
-import {PointCloudHandler} from "./pointCloud/PointCloudHandler";
-import {PolylineHandler} from "./polyline/PolylineHandler";
-import {RayHandler} from "./ray/RayHandler";
-import {RenderNode} from "../scene/RenderNode";
-import type {Node} from "../quadTree/Node";
-import {StripHandler} from "./strip/StripHandler";
-import type {Vector} from "../layer/Vector";
+import { BillboardHandler } from "./billboard/BillboardHandler";
+import { createEvents } from "../Events";
+import type { EventsHandler } from "../Events";
+import type { Entity } from "./Entity";
+import { Ellipsoid } from "../ellipsoid/Ellipsoid";
+import { Extent } from "../Extent";
+import type { EntityCollectionNode } from "../quadTree/EntityCollectionNode";
+import { GeoObjectHandler } from "./geoObject/GeoObjectHandler";
+import { LabelHandler } from "./label/LabelHandler";
+import { Vec3 } from "../math/Vec3";
+import type { NumberArray3 } from "../math/Vec3";
+import type { Planet } from "../scene/Planet";
+import { PointCloudHandler } from "./pointCloud/PointCloudHandler";
+import { PolylineHandler } from "./polyline/PolylineHandler";
+import { RayHandler } from "./ray/RayHandler";
+import { RenderNode } from "../scene/RenderNode";
+import type { Node } from "../quadTree/Node";
+import { StripHandler } from "./strip/StripHandler";
+import type { Vector } from "../layer/Vector";
 
 export type EntityCollectionEvents = EventsHandler<EntityCollectionEventList>;
 
@@ -85,7 +85,6 @@ interface IEntityCollectionParams {
  * @fires touchenter
  */
 class EntityCollection {
-
     static __counter__: number = 0;
 
     /**
@@ -219,7 +218,6 @@ class EntityCollection {
     protected _depthOrder: number;
 
     constructor(options: IEntityCollectionParams = {}) {
-
         this.__id = EntityCollection.__counter__++;
 
         this.renderNode = null;
@@ -256,7 +254,7 @@ class EntityCollection {
                 pickingScale[0] = options.pickingScale[0] || pickingScale[0];
                 pickingScale[1] = options.pickingScale[1] || pickingScale[1];
                 pickingScale[2] = options.pickingScale[2] || pickingScale[2];
-            } else if (typeof options.pickingScale === 'number') {
+            } else if (typeof options.pickingScale === "number") {
                 pickingScale[0] = options.pickingScale;
                 pickingScale[1] = options.pickingScale;
                 pickingScale[2] = options.pickingScale;
@@ -273,8 +271,7 @@ class EntityCollection {
 
         this.events = this.rendererEvents = createEvents<EntityCollectionEventList>(ENTITYCOLLECTION_EVENTS, this);
 
-        this._shadeMode =
-            options.shadeMode !== undefined ? EntityCollection._clampShadeMode(options.shadeMode) : 1.0;
+        this._shadeMode = options.shadeMode !== undefined ? EntityCollection._clampShadeMode(options.shadeMode) : 1.0;
 
         // initialize current entities
         if (options.entities) {
@@ -317,7 +314,7 @@ class EntityCollection {
     }
 
     public isEqual(ec: EntityCollection | null): boolean {
-        return ec !== null && (this.__id === ec.__id);
+        return ec !== null && this.__id === ec.__id;
     }
 
     /**
@@ -412,9 +409,7 @@ class EntityCollection {
             if (!p) continue;
 
             const ext = p._extent;
-            const hasValidExtent =
-                ext.southWest.lon <= ext.northEast.lon &&
-                ext.southWest.lat <= ext.northEast.lat;
+            const hasValidExtent = ext.southWest.lon <= ext.northEast.lon && ext.southWest.lat <= ext.northEast.lat;
 
             if (hasValidExtent && !visibleExtent.overlaps(ext)) continue;
 
@@ -669,7 +664,6 @@ class EntityCollection {
      */
     public bindRenderNode(renderNode: RenderNode) {
         if (renderNode.renderer && renderNode.renderer.isInitialized()) {
-
             this.billboardHandler.setRenderer(renderNode.renderer);
             this.labelHandler.setRenderer(renderNode.renderer);
             this.rayHandler.setRenderer(renderNode.renderer);
@@ -692,7 +686,7 @@ class EntityCollection {
     protected _onChangeRelativeCenter = (c: Vec3) => {
         this.geoObjectHandler.setRelativeCenter(c);
         this.polylineHandler.setRelativeCenter(c);
-    }
+    };
 
     /**
      * Updates coordinates all lonLat entities in collection after collection attached to the planet node.
@@ -739,7 +733,6 @@ class EntityCollection {
      * @public
      */
     public updateStrokeTextureAtlas() {
-
         // Rays
         this.rayHandler.reloadTextures();
 
@@ -825,8 +818,6 @@ class EntityCollection {
             this._clearEntity(entity.childEntities[i]);
         }
     }
-
-
 }
 
 type EntityCollectionEventList = [
@@ -863,7 +854,7 @@ type EntityCollectionEventList = [
     "doubletouch",
     "touchleave",
     "touchenter"
-]
+];
 
 const ENTITYCOLLECTION_EVENTS: EntityCollectionEventList = [
     // /**
@@ -1065,4 +1056,4 @@ const ENTITYCOLLECTION_EVENTS: EntityCollectionEventList = [
     "touchenter"
 ];
 
-export {EntityCollection};
+export { EntityCollection };

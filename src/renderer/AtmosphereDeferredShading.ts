@@ -1,11 +1,10 @@
-import {deferredShadingAtmos} from "../shaders/deferredShading/deferredShadingAtmos";
-import {PhongDeferredShading} from "./PhongDeferredShading";
-import type {Renderer} from "./Renderer";
-import type {Atmosphere} from "../control/atmosphere/Atmosphere";
-import type {AtmosphereParameters} from "../shaders/atmos/atmos";
+import { deferredShadingAtmos } from "../shaders/deferredShading/deferredShadingAtmos";
+import { PhongDeferredShading } from "./PhongDeferredShading";
+import type { Renderer } from "./Renderer";
+import type { Atmosphere } from "../control/atmosphere/Atmosphere";
+import type { AtmosphereParameters } from "../shaders/atmos/atmos";
 
 export class AtmosphereDeferredShading extends PhongDeferredShading {
-
     protected _atmosphere: Atmosphere;
     protected _atmosParams: AtmosphereParameters;
 

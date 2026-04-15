@@ -1,6 +1,6 @@
-import {Handler} from "./Handler";
-import type {WebGLBufferExt} from "./Handler";
-import {Program} from "./Program";
+import { Handler } from "./Handler";
+import type { WebGLBufferExt } from "./Handler";
+import { Program } from "./Program";
 
 /**
  * This is shader program controller that used by handler object to access the shader
@@ -11,7 +11,6 @@ import {Program} from "./Program";
  * @param {Program} program - Shader program.
  */
 export class ProgramController {
-
     /**
      * Handler.
      * @protected

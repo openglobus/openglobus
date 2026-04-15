@@ -1,80 +1,80 @@
 {
-  "name": "@openglobus/og",
-  "version": "1.0.0",
-  "description": "[openglobus](https://www.openglobus.org/) is a javascript/typescript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers, and 3D objects. It uses the WebGL technology, open source, and completely free.",
-  "main": "lib/og.es.js",
-  "types": "lib/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./lib/og.es.js",
-      "types": "./lib/index.d.ts"
+    "name": "@openglobus/og",
+    "version": "1.0.0",
+    "description": "[openglobus](https://www.openglobus.org/) is a javascript/typescript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers, and 3D objects. It uses the WebGL technology, open source, and completely free.",
+    "main": "lib/og.es.js",
+    "types": "lib/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./lib/og.es.js",
+            "types": "./lib/index.d.ts"
+        },
+        "./styles": {
+            "import": "./lib/og.css"
+        }
     },
-    "./styles": {
-      "import": "./lib/og.css"
-    }
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "files": [
-    "lib/"
-  ],
-  "scripts": {
-    "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
-    "serve_docs": "cd docs; ws -p 8088",
-    "serve": "ws -p 3000",
-    "build": "vite build --mode production && npm run dts",
-    "clean": "rm -rf ./lib ./docs",
-    "dev": "vite build --watch --mode development",
-    "test:watch": "vitest",
-    "test": "vitest run --reporter=verbose",
-    "lint": "eslint src/",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "dts": "tsc --build tsconfig.json",
-    "dev_serve": "npm-run-all --parallel --continue-on-error --race dev serve"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/openglobus/openglobus.git"
-  },
-  "author": "Michael Gevlich(Zemledelec)",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/openglobus/openglobus/issues",
-    "email": "mgevlich@gmail.com"
-  },
-  "homepage": "https://www.openglobus.org",
-  "devDependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.18.6",
-    "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
-    "@babel/preset-env": "^7.26.9",
-    "@babel/preset-typescript": "^7.27.0",
-    "@eslint-community/eslint-utils": "^4.6.1",
-    "@rollup/plugin-terser": "^1.0.0",
-    "@types/draco3d": "^1.4.10",
-    "@types/node": "^22.15.3",
-    "@typescript-eslint/eslint-plugin": "^8.31.1",
-    "clean-jsdoc-theme": "^4.3.0",
-    "eslint": "^9.25.1",
-    "jsdoc": "^4.0.4",
-    "jsdoc-babel": "^0.5.0",
-    "jsdom": "^26.1.0",
-    "local-web-server": "^5.4.0",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^3.6.2",
-    "terser": "^5.39.0",
-    "typescript": "^5.8.3",
-    "vite": "^6.3.6",
-    "vite-plugin-glsl": "^1.4.1",
-    "vite-plugin-static-copy": "^2.3.1",
-    "vitest": "^3.1.2"
-  },
-  "keywords": [
-    "map",
-    "3D",
-    "webgl",
-    "globe",
-    "og"
-  ]
+    "publishConfig": {
+        "access": "public"
+    },
+    "files": [
+        "lib/"
+    ],
+    "scripts": {
+        "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
+        "serve_docs": "cd docs; ws -p 8088",
+        "serve": "ws -p 3000",
+        "build": "vite build --mode production && npm run dts",
+        "clean": "rm -rf ./lib ./docs",
+        "dev": "vite build --watch --mode development",
+        "test:watch": "vitest",
+        "test": "vitest run --reporter=verbose",
+        "lint": "eslint src/",
+    "format": "prettier --write src css",
+    "format:check": "prettier --check src css",
+        "dts": "tsc --build tsconfig.json",
+        "dev_serve": "npm-run-all --parallel --continue-on-error --race dev serve"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/openglobus/openglobus.git"
+    },
+    "author": "Michael Gevlich(Zemledelec)",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/openglobus/openglobus/issues",
+        "email": "mgevlich@gmail.com"
+    },
+    "homepage": "https://www.openglobus.org",
+    "devDependencies": {
+        "@babel/plugin-proposal-class-properties": "^7.18.6",
+        "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
+        "@babel/preset-env": "^7.26.9",
+        "@babel/preset-typescript": "^7.27.0",
+        "@eslint-community/eslint-utils": "^4.6.1",
+        "@rollup/plugin-terser": "^1.0.0",
+        "@types/draco3d": "^1.4.10",
+        "@types/node": "^22.15.3",
+        "@typescript-eslint/eslint-plugin": "^8.31.1",
+        "clean-jsdoc-theme": "^4.3.0",
+        "eslint": "^9.25.1",
+        "jsdoc": "^4.0.4",
+        "jsdoc-babel": "^0.5.0",
+        "jsdom": "^26.1.0",
+        "local-web-server": "^5.4.0",
+        "npm-run-all": "^4.1.5",
+        "prettier": "^3.6.2",
+        "terser": "^5.39.0",
+        "typescript": "^5.8.3",
+        "vite": "^6.3.6",
+        "vite-plugin-glsl": "^1.4.1",
+        "vite-plugin-static-copy": "^2.3.1",
+        "vitest": "^3.1.2"
+    },
+    "keywords": [
+        "map",
+        "3D",
+        "webgl",
+        "globe",
+        "og"
+    ]
 }

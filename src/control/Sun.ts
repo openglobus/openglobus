@@ -1,10 +1,10 @@
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import {Clock} from "../Clock";
-import {getSunPosition} from "../astro/earth";
-import {LightSource} from "../light/LightSource";
-import {Quat} from "../math/Quat";
-import {Vec3} from "../math/Vec3";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
+import { Clock } from "../Clock";
+import { getSunPosition } from "../astro/earth";
+import { LightSource } from "../light/LightSource";
+import { Quat } from "../math/Quat";
+import { Vec3 } from "../math/Vec3";
 
 interface ISunParams extends IControlParams {
     activationHeight?: number;
@@ -31,7 +31,7 @@ export class Sun extends Control {
     protected _k: number;
 
     constructor(options: ISunParams = {}) {
-        super({autoActivate: true, ...options});
+        super({ autoActivate: true, ...options });
 
         this._name = "sun";
 
@@ -129,10 +129,7 @@ export class Sun extends Control {
 
                 if (this._k > 0) {
                     this._k -= 0.001;
-                    let rot = Quat.getRotationBetweenVectors(
-                        this.sunlight._position.normal(),
-                        pos.normal()
-                    );
+                    let rot = Quat.getRotationBetweenVectors(this.sunlight._position.normal(), pos.normal());
                     let r = rot.slerp(Quat.IDENTITY, this._k).normalize();
                     this.sunlight.setPosition3v(r.mulVec3(this.sunlight._position));
                 } else {
@@ -149,10 +146,7 @@ export class Sun extends Control {
                     let r = rot.slerp(Quat.IDENTITY, this._f).normalize();
                     this.sunlight.setPosition3v(r.mulVec3(this.sunlight._position));
                 } else {
-                    if (
-                        (Math.abs(this._currDate - this._prevDate) > 0.00034 && this._active) ||
-                        this._lightOn
-                    ) {
+                    if ((Math.abs(this._currDate - this._prevDate) > 0.00034 && this._active) || this._lightOn) {
                         this._lightOn = false;
                         this._prevDate = this._currDate;
                         this.sunlight.setPosition3v(getSunPosition(this._currDate));

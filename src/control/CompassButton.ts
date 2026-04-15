@@ -1,5 +1,5 @@
-﻿import {Button} from "../ui/Button";
-import {Control, type IControlParams} from "./Control";
+﻿import { Button } from "../ui/Button";
+import { Control, type IControlParams } from "./Control";
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
@@ -77,9 +77,7 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
   </g>
 </svg>`;
 
-interface ICompasButtonParams extends IControlParams {
-
-}
+interface ICompasButtonParams extends IControlParams {}
 
 /**
  * Planet compass button
@@ -95,7 +93,6 @@ export class CompassButton extends Control {
     }
 
     public override oninit() {
-
         let btn = new Button({
             classList: ["og-map-button", "og-compass-button"],
             icon: ICON_BUTTON_SVG
@@ -114,23 +111,20 @@ export class CompassButton extends Control {
         const planet = this.planet!;
         let c = planet.getCartesianFromPixelTerrain(this.renderer!.handler!.getCenter());
         if (c) {
-            planet.flyCartesian(
-                c.normal().scaleTo(c.length() + c.distance(planet.camera.eye)),
-                {
-                    amplitude: 0,
-                    completeCallback: () => {
-                        planet.camera.look(c!);
-                    }
+            planet.flyCartesian(c.normal().scaleTo(c.length() + c.distance(planet.camera.eye)), {
+                amplitude: 0,
+                completeCallback: () => {
+                    planet.camera.look(c!);
                 }
-            );
+            });
         } else {
             planet.flyCartesian(planet.camera.eye);
         }
     }
 
-    protected _draw = ()=> {
+    protected _draw = () => {
         this.setHeading(this.planet!.camera.getHeading());
-    }
+    };
 
     public setHeading(heading: number) {
         if (this._heading !== heading) {

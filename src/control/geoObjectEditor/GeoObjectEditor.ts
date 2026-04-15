@@ -1,10 +1,9 @@
-import {Control, type IControlParams} from "../Control";
-import {GeoObjectEditorScene} from "./GeoObjectEditorScene";
-import {GeoObjectPropertiesDialog} from "./GeoObjectEditorDialog";
-import {CameraLock} from "../CameraLock";
+import { Control, type IControlParams } from "../Control";
+import { GeoObjectEditorScene } from "./GeoObjectEditorScene";
+import { GeoObjectPropertiesDialog } from "./GeoObjectEditorDialog";
+import { CameraLock } from "../CameraLock";
 
-export interface IGeoObjectEditorParams extends IControlParams {
-}
+export interface IGeoObjectEditorParams extends IControlParams {}
 
 export class GeoObjectEditor extends Control {
     protected _geoObjectEditopScene: GeoObjectEditorScene;
@@ -24,7 +23,7 @@ export class GeoObjectEditor extends Control {
 
     public override oninit() {
         if (this.renderer) {
-            this.renderer.addControl(new CameraLock({planet: this.planet}));
+            this.renderer.addControl(new CameraLock({ planet: this.planet }));
             this._geoObjectEditopScene.bindPlanet(this.planet!);
             this._dialog.appendTo(this.renderer.div || document.body);
             this.activate();

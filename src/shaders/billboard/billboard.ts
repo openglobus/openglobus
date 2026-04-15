@@ -1,11 +1,11 @@
-import {Program} from '../../webgl/Program';
+import { Program } from "../../webgl/Program";
 
-import billboard_picking_vert from './billboard_picking.vert.glsl';
-import billboard_picking_frag from './billboard_picking.frag.glsl';
+import billboard_picking_vert from "./billboard_picking.vert.glsl";
+import billboard_picking_frag from "./billboard_picking.frag.glsl";
 
-import billboard_screen_vert from './billboard_screen.vert.glsl';
-import billboard_screen_frag from './billboard_screen.frag.glsl';
-import billboard_screen_woit_frag from './billboard_screen_woit.frag.glsl';
+import billboard_screen_vert from "./billboard_screen.vert.glsl";
+import billboard_screen_frag from "./billboard_screen.frag.glsl";
+import billboard_screen_woit_frag from "./billboard_screen_woit.frag.glsl";
 
 export function billboardPicking(): Program {
     return new Program("billboardPicking", {
@@ -58,7 +58,7 @@ export function billboard_screen(): Program {
             a_offset: "vec2",
             a_size: "vec2",
             a_rotation: "float",
-            a_rgba: "vec4",
+            a_rgba: "vec4"
         },
         vertexShader: billboard_screen_vert,
         fragmentShader: billboard_screen_frag
@@ -89,7 +89,7 @@ export function billboard_screen_woit(): Program {
             a_offset: "vec2",
             a_size: "vec2",
             a_rotation: "float",
-            a_rgba: "vec4",
+            a_rgba: "vec4"
         },
         vertexShader: billboard_screen_vert,
         fragmentShader: billboard_screen_woit_frag

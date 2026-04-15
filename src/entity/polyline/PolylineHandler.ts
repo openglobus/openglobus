@@ -1,10 +1,10 @@
-import * as shaders from '../../shaders/polyline/polyline';
-import {EntityCollection} from "../EntityCollection";
-import {Polyline} from "./Polyline";
-import {Renderer} from "../../renderer/Renderer";
-import {RenderNode} from "../../scene/RenderNode";
-import {Vec3} from "../../math/Vec3";
-import {PolylineBatchRenderer} from "./PolylineBatchRenderer";
+import * as shaders from "../../shaders/polyline/polyline";
+import { EntityCollection } from "../EntityCollection";
+import { Polyline } from "./Polyline";
+import { Renderer } from "../../renderer/Renderer";
+import { RenderNode } from "../../scene/RenderNode";
+import { Vec3 } from "../../math/Vec3";
+import { PolylineBatchRenderer } from "./PolylineBatchRenderer";
 
 class PolylineHandler {
     static __counter__: number = 0;
@@ -24,7 +24,6 @@ class PolylineHandler {
     protected _polylines: Polyline[] = [];
 
     constructor(entityCollection: EntityCollection) {
-
         this.__id = PolylineHandler.__counter__++;
 
         this._entityCollection = entityCollection;
@@ -34,23 +33,23 @@ class PolylineHandler {
         this._polylines = [];
 
         this._opaqueRenderer = new PolylineBatchRenderer(this, {
-            path3v: [],
+            path3v: []
             //isTextured: true,
         });
 
         this._transparentRenderer = new PolylineBatchRenderer(this, {
-            path3v: [],
+            path3v: []
             //isTextured: true,
         });
 
         this._opaqueTexRenderer = new PolylineBatchRenderer(this, {
             path3v: [],
-            isTextured: true,
+            isTextured: true
         });
 
         this._transparentTexRenderer = new PolylineBatchRenderer(this, {
             path3v: [],
-            isTextured: true,
+            isTextured: true
         });
 
         this.pickingEnabled = true;
@@ -69,10 +68,10 @@ class PolylineHandler {
     }
 
     public setVisibleSphere(p: Vec3, r: number) {
-        this._opaqueRenderer.setVisibleSphere(p,r);
-        this._transparentRenderer.setVisibleSphere(p,r);
-        this._opaqueTexRenderer.setVisibleSphere(p,r);
-        this._transparentTexRenderer.setVisibleSphere(p,r);
+        this._opaqueRenderer.setVisibleSphere(p, r);
+        this._transparentRenderer.setVisibleSphere(p, r);
+        this._opaqueTexRenderer.setVisibleSphere(p, r);
+        this._transparentTexRenderer.setVisibleSphere(p, r);
     }
 
     protected _initProgram() {
@@ -260,4 +259,4 @@ class PolylineHandler {
     }
 }
 
-export {PolylineHandler};
+export { PolylineHandler };

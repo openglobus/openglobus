@@ -1,28 +1,25 @@
-import {Control, type IControlParams} from "../Control";
-import {Dialog} from "../../ui/Dialog";
-import {View} from "../../ui/View";
-import {ToggleButton} from "../../ui/ToggleButton";
-import {ElevationProfileView} from "./ElevationProfileView";
-import {ElevationProfileScene} from "./ElevationProfileScene";
-import {throttle} from "../../utils/shared";
-import {ElevationProfileButtonsView} from "./ElevationProfileButtonsView";
-import {PointListDialog} from "./PointListDialog";
-import type {GroundItem, TrackItem} from "./ElevationProfile";
-import {ElevationProfileLegend} from "./ElevationProfileLegend";
+import { Control, type IControlParams } from "../Control";
+import { Dialog } from "../../ui/Dialog";
+import { View } from "../../ui/View";
+import { ToggleButton } from "../../ui/ToggleButton";
+import { ElevationProfileView } from "./ElevationProfileView";
+import { ElevationProfileScene } from "./ElevationProfileScene";
+import { throttle } from "../../utils/shared";
+import { ElevationProfileButtonsView } from "./ElevationProfileButtonsView";
+import { PointListDialog } from "./PointListDialog";
+import type { GroundItem, TrackItem } from "./ElevationProfile";
+import { ElevationProfileLegend } from "./ElevationProfileLegend";
 
-const TEMPLATE =
-    `<div class="og-elevationprofile__container">
+const TEMPLATE = `<div class="og-elevationprofile__container">
       <div class="og-elevationprofile__menu"></div>
       <div class="og-elevationprofile__graph"></div>
     </div>`;
 
-interface IElevationProfileGraphParams extends IControlParams {
-}
+interface IElevationProfileGraphParams extends IControlParams {}
 
-const ICON_BUTTON_SVG = `<svg style="width: 2em; height: 2em;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M128 896v-158.293333l331.946667-191.573334 160.853333 93.866667L896 480V896H128M896 381.44l-275.2 159.146667-160.853333-92.586667L128 640v-94.293333l331.946667-191.573334 160.853333 93.866667L896 288v93.44z" fill="" /></svg>`;
+const ICON_BUTTON_SVG = `<svg style="width: 2em; height: 2em;" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M128 896v-158.293333l331.946667-191.573334 160.853333 93.866667L896 480V896H128M896 381.44l-275.2 159.146667-160.853333-92.586667L128 640v-94.293333l331.946667-191.573334 160.853333 93.866667L896 288v93.44z" fill="" /></svg>`;
 
 export class ElevationProfileControl extends Control {
-
     protected _toggleBtn: ToggleButton;
     protected _dialog: Dialog<null>;
     protected _graphView: View<null>;
@@ -51,7 +48,6 @@ export class ElevationProfileControl extends Control {
         this._elevationProfileView.events.on("dblclick", this._onElevationProfileDblClick);
         this._elevationProfileView.events.on("mouseenter", this._onElevationProfileMouseEnter);
         this._elevationProfileView.events.on("mouseleave", this._onElevationProfileMouseLeave);
-
 
         this._dialog = new Dialog({
             title: "Elevation Profile",
@@ -86,7 +82,6 @@ export class ElevationProfileControl extends Control {
     }
 
     override oninit() {
-
         this._dialog.appendTo(this.planet!.renderer!.div!);
         this._graphView.appendTo(this._dialog.container!);
 
@@ -126,7 +121,6 @@ export class ElevationProfileControl extends Control {
             this._elevationProfileLegend.setCollisionLength(length);
         });
 
-
         this._poiListDialog.appendTo(this.planet!.renderer!.div!);
         this._poiListDialog.events.on("visibility", (isVisible: boolean) => {
             this._elevationProfileButtonsView.pointListBtn.setActive(isVisible, true);
@@ -145,13 +139,12 @@ export class ElevationProfileControl extends Control {
             this._elevationProfileScene.setPointerVisibility(false);
         });
 
-
         this._elevationProfileScene.events.on("change", this._onSceneChange);
     }
 
     protected _onSceneChange = () => {
         this._collectProfileThrottled();
-    }
+    };
 
     override onactivate() {
         this.planet && this._elevationProfileScene.bindPlanet(this.planet);
@@ -165,8 +158,16 @@ export class ElevationProfileControl extends Control {
         this._dialog.hide();
     }
 
-    protected _onElevationProfilePointer = (pointerDistance: number, tp0: TrackItem, tp1: TrackItem, gp0: GroundItem, gp1: GroundItem, trackPoiIndex: number, groundPoiIndex: number, elevation: number) => {
-
+    protected _onElevationProfilePointer = (
+        pointerDistance: number,
+        tp0: TrackItem,
+        tp1: TrackItem,
+        gp0: GroundItem,
+        gp1: GroundItem,
+        trackPoiIndex: number,
+        groundPoiIndex: number,
+        elevation: number
+    ) => {
         let lonLat0 = this._elevationProfileScene.getPointLonLat(trackPoiIndex)!;
         let lonLat1 = this._elevationProfileScene.getPointLonLat(trackPoiIndex + 1)!;
 
@@ -178,9 +179,18 @@ export class ElevationProfileControl extends Control {
         let dir = cart1.sub(cart0);
 
         this._elevationProfileScene.setPointerCartesian3v(cart0.add(dir.scale(d)), elevation);
-    }
+    };
 
-    protected _onElevationProfileDblClick = (pointerDistance: number, tp0: TrackItem, tp1: TrackItem, gp0: GroundItem, gp1: GroundItem, trackPoiIndex: number, groundPoiIndex: number, elevation: number) => {
+    protected _onElevationProfileDblClick = (
+        pointerDistance: number,
+        tp0: TrackItem,
+        tp1: TrackItem,
+        gp0: GroundItem,
+        gp1: GroundItem,
+        trackPoiIndex: number,
+        groundPoiIndex: number,
+        elevation: number
+    ) => {
         let lonLat0 = this._elevationProfileScene.getPointLonLat(trackPoiIndex)!;
         let lonLat1 = this._elevationProfileScene.getPointLonLat(trackPoiIndex + 1)!;
 
@@ -194,15 +204,13 @@ export class ElevationProfileControl extends Control {
         let poi = cart0.add(dir.scale(d));
 
         this.planet!.camera.flyDistance(poi, this.planet!.camera.eye.distance(poi));
-    }
+    };
 
     protected _onElevationProfileMouseEnter = () => {
         if (this._elevationProfileView.model.pointsReady) {
             this._elevationProfileScene.setPointerVisibility(true);
         }
-    }
+    };
 
-    protected _onElevationProfileMouseLeave = () => {
-
-    }
+    protected _onElevationProfileMouseLeave = () => {};
 }

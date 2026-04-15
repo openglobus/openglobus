@@ -1,30 +1,29 @@
-import * as units from '../utils/units';
-import {Control, type IControlParams} from './Control';
-import {heightMode} from '../utils/units';
-import {LonLat} from '../LonLat';
-import {throttle} from '../utils/shared';
-import type {IMouseState} from "../renderer/RendererEvents";
+import * as units from "../utils/units";
+import { Control, type IControlParams } from "./Control";
+import { heightMode } from "../utils/units";
+import { LonLat } from "../LonLat";
+import { throttle } from "../utils/shared";
+import type { IMouseState } from "../renderer/RendererEvents";
 
 interface IEarthCoordinatesParams extends IControlParams {
     heightMode?: string;
     centerMode?: boolean;
     altitudeUnit?: string;
-    type?: number
+    type?: number;
 }
 
-const DECIMAL_TEMPLATE =
-    `<div class="og-lat-side"></div><div class="og-lat-val"></div>
+const DECIMAL_TEMPLATE = `<div class="og-lat-side"></div><div class="og-lat-val"></div>
     <div class="og-lon-side"></div><div class="og-lon-val"></div>
     <div class="og-height"></div>
     <div class="og-units-height"></div>`;
 
-const DEGREE_TEMPLATE =
-    `<div class="og-lat-side"></div><div class="og-lat-val"></div>
+const DEGREE_TEMPLATE = `<div class="og-lat-side"></div><div class="og-lat-val"></div>
     <div class="og-lon-side"></div><div class="og-lon-val"></div>
     <div class="og-height"></div>
     <div class="og-units-height"></div>`;
 
-const CENTER_SVG = '<svg width="12" height="12"><g><path stroke-width="1" stroke-opacity="1" d="M6 0L6 12M0 6L12 6" stroke="#337ab7"></path></g></svg>';
+const CENTER_SVG =
+    '<svg width="12" height="12"><g><path stroke-width="1" stroke-opacity="1" d="M6 0L6 12M0 6L12 6" stroke="#337ab7"></path></g></svg>';
 
 const TYPE_HTML = [DECIMAL_TEMPLATE, DEGREE_TEMPLATE];
 
@@ -74,7 +73,7 @@ export class EarthCoordinates extends Control {
 
         this._lonLat = null;
 
-        this._centerMode = true;//options.centerMode != undefined ? options.centerMode : true;
+        this._centerMode = true; //options.centerMode != undefined ? options.centerMode : true;
     }
 
     protected _SHOW_DECIMAL(ll?: LonLat | null) {
@@ -83,19 +82,19 @@ export class EarthCoordinates extends Control {
                 lon = ll.lon;
 
             if (lat >= 0) {
-                this._latSideEl!.innerHTML = 'N';
+                this._latSideEl!.innerHTML = "N";
             } else {
-                this._latSideEl!.innerHTML = 'S';
+                this._latSideEl!.innerHTML = "S";
             }
 
             if (lon >= 0) {
-                this._lonSideEl!.innerHTML = 'E';
+                this._lonSideEl!.innerHTML = "E";
             } else {
-                this._lonSideEl!.innerHTML = 'W';
+                this._lonSideEl!.innerHTML = "W";
             }
 
-            this._latValEl!.innerHTML = Math.abs(lat).toFixed(7) + '°';
-            this._lonValEl!.innerHTML = Math.abs(lon).toFixed(7) + '°';
+            this._latValEl!.innerHTML = Math.abs(lat).toFixed(7) + "°";
+            this._lonValEl!.innerHTML = Math.abs(lon).toFixed(7) + "°";
         }
     }
 
@@ -105,34 +104,34 @@ export class EarthCoordinates extends Control {
                 lon = ll.lon;
 
             if (lat >= 0) {
-                this._latSideEl!.innerHTML = 'N';
+                this._latSideEl!.innerHTML = "N";
             } else {
-                this._latSideEl!.innerHTML = 'S';
+                this._latSideEl!.innerHTML = "S";
             }
 
             if (lon >= 0) {
-                this._lonSideEl!.innerHTML = 'E';
+                this._lonSideEl!.innerHTML = "E";
             } else {
-                this._lonSideEl!.innerHTML = 'W';
+                this._lonSideEl!.innerHTML = "W";
             }
 
             let t = 0;
 
             let deg = lat < 0 ? Math.ceil(lat) : Math.floor(lat);
-            let min = Math.floor(t = Math.abs((lat - deg)) * 60);
+            let min = Math.floor((t = Math.abs(lat - deg) * 60));
             let sec = Math.floor((t - min) * 6000) / 100.0;
-            this._latValEl!.innerHTML = Math.abs(deg) + '°' + min + "'" + sec.toFixed(0) + '"';
+            this._latValEl!.innerHTML = Math.abs(deg) + "°" + min + "'" + sec.toFixed(0) + '"';
 
             deg = lon < 0 ? Math.ceil(lon) : Math.floor(lon);
-            min = Math.floor(t = Math.abs((lon - deg)) * 60);
+            min = Math.floor((t = Math.abs(lon - deg) * 60));
             sec = Math.floor((t - min) * 6000) / 100.0;
-            this._lonValEl!.innerHTML = Math.abs(deg) + '°' + min + "'" + sec.toFixed(0) + '"';
+            this._lonValEl!.innerHTML = Math.abs(deg) + "°" + min + "'" + sec.toFixed(0) + '"';
         }
     }
 
     protected _createCenterEl(): HTMLElement {
-        let el = document.createElement('div');
-        el.className = 'og-center-icon';
+        let el = document.createElement("div");
+        el.className = "og-center-icon";
         el.innerHTML = CENTER_SVG;
         return el;
     }
@@ -145,7 +144,6 @@ export class EarthCoordinates extends Control {
     }
 
     protected _refreshCoordinates() {
-
         if (this._type >= this._TYPE_FUNC.length) {
             this._type = 0;
         }
@@ -165,7 +163,7 @@ export class EarthCoordinates extends Control {
     }
 
     public override oninit() {
-        this._el = document.createElement('div');
+        this._el = document.createElement("div");
         this._el.classList.add("og-coordinates");
 
         this.renderer!.div!.appendChild(this._el);
@@ -180,10 +178,18 @@ export class EarthCoordinates extends Control {
         if (this._centerMode) {
             this.renderer!.div!.appendChild(this._createCenterEl());
             this.planet!.camera.events.on("moveend", this._grabCoordinates, this);
-            this.planet!.camera.events.on("moveend", throttle(() => this._showHeight(), 400, true), this);
+            this.planet!.camera.events.on(
+                "moveend",
+                throttle(() => this._showHeight(), 400, true),
+                this
+            );
         } else {
             this.renderer!.events.on("mousemove", this._grabCoordinates, this);
-            this.renderer!.events.on("mousestop", throttle(() => this._showHeight(), 400, true), this);
+            this.renderer!.events.on(
+                "mousestop",
+                throttle(() => this._showHeight(), 400, true),
+                this
+            );
         }
 
         this._refreshCoordinates();

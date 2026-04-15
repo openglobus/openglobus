@@ -1,10 +1,9 @@
-import {Framebuffer} from "../webgl/Framebuffer";
-import {weightedOITResolve} from "../shaders/weightedOITResolve";
-import type {ITransparencyPass} from "./ITransparencyPass";
-import type {Renderer} from "./Renderer";
+import { Framebuffer } from "../webgl/Framebuffer";
+import { weightedOITResolve } from "../shaders/weightedOITResolve";
+import type { ITransparencyPass } from "./ITransparencyPass";
+import type { Renderer } from "./Renderer";
 
 export class WOITPass implements ITransparencyPass {
-
     protected _renderer: Renderer;
     protected _framebuffer: Framebuffer | null = null;
 
@@ -18,15 +17,18 @@ export class WOITPass implements ITransparencyPass {
         h.addProgram(weightedOITResolve());
 
         this._framebuffer = new Framebuffer(h, {
-            targets: [{
-                internalFormat: "RGBA16F",
-                attachment: "COLOR_ATTACHMENT",
-                filter: "NEAREST"
-            }, {
-                internalFormat: "R16F",
-                attachment: "COLOR_ATTACHMENT",
-                filter: "NEAREST"
-            }],
+            targets: [
+                {
+                    internalFormat: "RGBA16F",
+                    attachment: "COLOR_ATTACHMENT",
+                    filter: "NEAREST"
+                },
+                {
+                    internalFormat: "R16F",
+                    attachment: "COLOR_ATTACHMENT",
+                    filter: "NEAREST"
+                }
+            ],
             depthComponent: this._renderer.depthComponent,
             sharedDepthFramebuffer: this._renderer.getMSAA() == 0 ? this._renderer.forwardFramebuffer : null,
             useDepth: true

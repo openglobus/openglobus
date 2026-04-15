@@ -1,6 +1,6 @@
-import {createEvents} from '../Events';
-import type {EventCallback, EventsHandler} from '../Events';
-import {parseHTML, stringTemplate} from '../utils/shared';
+import { createEvents } from "../Events";
+import type { EventCallback, EventsHandler } from "../Events";
+import { parseHTML, stringTemplate } from "../utils/shared";
 
 export interface IViewParams {
     model?: any;
@@ -14,7 +14,6 @@ export type ViewEventsList = ["render"];
 const VIEW_EVENTS: ViewEventsList = ["render"];
 
 class View<M> {
-
     static __counter__: number = 0;
 
     protected __id: number;
@@ -148,11 +147,9 @@ class View<M> {
         return this;
     }
 
-    public afterRender(parentNode: HTMLElement) {
-    }
+    public afterRender(parentNode: HTMLElement) {}
 
-    public beforeRender(parentNode: HTMLElement) {
-    }
+    public beforeRender(parentNode: HTMLElement) {}
 
     public stopPropagation() {
         this.events.stopPropagation();
@@ -207,4 +204,4 @@ class View<M> {
     }
 }
 
-export {View};
+export { View };

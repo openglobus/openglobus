@@ -1,11 +1,10 @@
-import {Button} from "../../ui/Button";
-import {View} from "../../ui/View";
-import {type IDialogParams, Dialog} from "../../ui/Dialog";
-import {ElevationProfileScene} from "./ElevationProfileScene";
-import {LonLat} from "../../LonLat";
+import { Button } from "../../ui/Button";
+import { View } from "../../ui/View";
+import { type IDialogParams, Dialog } from "../../ui/Dialog";
+import { ElevationProfileScene } from "./ElevationProfileScene";
+import { LonLat } from "../../LonLat";
 
-const LIST_TEMPLATE =
-    `<div class="og-elevationprofile-list">
+const LIST_TEMPLATE = `<div class="og-elevationprofile-list">
         <textarea placeholder="[[lon, lat, height], [lon, lat, height], ..., [lon, lat, height]]"></textarea>
         <div class="og-elevationprofile-list-buttons"></div>
     </div>`;
@@ -15,7 +14,6 @@ interface IPointListDialog extends IDialogParams {
 }
 
 class PointListDialog extends Dialog<ElevationProfileScene> {
-
     public $textarea: HTMLTextAreaElement | null;
 
     constructor(params: IPointListDialog) {
@@ -41,7 +39,7 @@ class PointListDialog extends Dialog<ElevationProfileScene> {
 
         let view = new View({
             template: LIST_TEMPLATE
-        })
+        });
         view.appendTo(this.container!);
 
         let applyBtn = new Button({
@@ -70,7 +68,7 @@ class PointListDialog extends Dialog<ElevationProfileScene> {
         } catch (err) {
             console.error(err);
         }
-    }
+    };
 }
 
-export {PointListDialog};
+export { PointListDialog };

@@ -1,7 +1,7 @@
-import {Dialog} from "../../ui/Dialog";
-import {ToggleButton} from "../../ui/ToggleButton";
-import {Control, type IControlParams} from '../Control';
-import {TimelineView} from './TimelineView';
+import { Dialog } from "../../ui/Dialog";
+import { ToggleButton } from "../../ui/ToggleButton";
+import { Control, type IControlParams } from "../Control";
+import { TimelineView } from "./TimelineView";
 
 interface ITimelineControlParams extends IControlParams {
     name?: string;
@@ -69,7 +69,6 @@ class TimelineControl extends Control {
     }
 
     public override oninit() {
-
         let $container = this.renderer!.div!;
 
         this._toggleBtn.appendTo($container);
@@ -108,4 +107,4 @@ class TimelineControl extends Control {
     }
 }
 
-export {TimelineControl};
+export { TimelineControl };

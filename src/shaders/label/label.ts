@@ -1,11 +1,11 @@
-import {Program} from '../../webgl/Program';
+import { Program } from "../../webgl/Program";
 
-import label_webgl2_vert from './label_webgl2.vert.glsl';
-import label_webgl2_frag from './label_webgl2.frag.glsl';
-import label_woit_frag from './label_woit.frag.glsl';
+import label_webgl2_vert from "./label_webgl2.vert.glsl";
+import label_webgl2_frag from "./label_webgl2.frag.glsl";
+import label_woit_frag from "./label_woit.frag.glsl";
 
-import label_picking_vert from './label_picking.vert.glsl';
-import label_picking_frag from './label_picking.frag.glsl';
+import label_picking_vert from "./label_picking.vert.glsl";
+import label_picking_frag from "./label_picking.frag.glsl";
 
 export function label_webgl2(): Program {
     return new Program("label", {
@@ -74,7 +74,7 @@ export function label_woit(): Program {
             a_fontIndex: "float"
         },
         vertexShader: label_webgl2_vert,
-        fragmentShader: label_woit_frag,
+        fragmentShader: label_woit_frag
     });
 }
 
@@ -104,6 +104,6 @@ export function labelPicking(): Program {
             a_rgba: "vec4"
         },
         vertexShader: label_picking_vert,
-        fragmentShader: label_picking_frag,
+        fragmentShader: label_picking_frag
     });
 }

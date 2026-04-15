@@ -1,24 +1,24 @@
-import {createEvents, type EventsHandler} from '../../Events';
-import {MAX32} from "../../math";
-import {Plane} from "../../math/Plane";
-import {Planet} from "../../scene/Planet";
-import {RenderNode} from '../../scene/RenderNode';
-import {Vec2} from '../../math/Vec2';
-import {Vec3} from '../../math/Vec3';
-import {Quat} from '../../math/Quat';
-import type {IMouseState} from "../../renderer/RendererEvents";
-import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
-import {LonLat} from "../../LonLat";
-import {Entity} from "../../entity/Entity";
-import {MoveAxisEntity} from "./MoveAxisEntity";
-import {MovePlaneEntity} from "./MovePlaneEntity";
-import {RotateEntity} from "./RotateEntity";
-import {Ray} from "../../math/Ray";
-import {Sphere} from "../../bv/Sphere";
-import {AxisTrackEntity} from "./AxisTrackEntity";
-import {CameraLock} from "../CameraLock";
-import {EntityCollection} from "../../entity/EntityCollection";
-import {SHADE_MODE_UNLIT} from "../../shadeModeConstants";
+import { createEvents, type EventsHandler } from "../../Events";
+import { MAX32 } from "../../math";
+import { Plane } from "../../math/Plane";
+import { Planet } from "../../scene/Planet";
+import { RenderNode } from "../../scene/RenderNode";
+import { Vec2 } from "../../math/Vec2";
+import { Vec3 } from "../../math/Vec3";
+import { Quat } from "../../math/Quat";
+import type { IMouseState } from "../../renderer/RendererEvents";
+import { Ellipsoid } from "../../ellipsoid/Ellipsoid";
+import { LonLat } from "../../LonLat";
+import { Entity } from "../../entity/Entity";
+import { MoveAxisEntity } from "./MoveAxisEntity";
+import { MovePlaneEntity } from "./MovePlaneEntity";
+import { RotateEntity } from "./RotateEntity";
+import { Ray } from "../../math/Ray";
+import { Sphere } from "../../bv/Sphere";
+import { AxisTrackEntity } from "./AxisTrackEntity";
+import { CameraLock } from "../CameraLock";
+import { EntityCollection } from "../../entity/EntityCollection";
+import { SHADE_MODE_UNLIT } from "../../shadeModeConstants";
 
 export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
@@ -106,7 +106,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _axisTrackVisibility: boolean;
 
     constructor(options: IGeoObjectEditorSceneParams = {}) {
-        super(options.name || 'GeoObjectEditorScene');
+        super(options.name || "GeoObjectEditorScene");
 
         this.events = createEvents(GEOOBJECTEDITORCENE_EVENTS);
 
@@ -125,21 +125,21 @@ class GeoObjectEditorScene extends RenderNode {
             shadeMode: SHADE_MODE_UNLIT,
             pickingScale: [5, 1.1, 5],
             visibility: false,
-            depthOrder: 1000,
+            depthOrder: 1000
         });
 
         this._planeLayer = new EntityCollection({
             scaleByDistance: [0.1, MAX32, 0.1],
             shadeMode: SHADE_MODE_UNLIT,
             visibility: false,
-            depthOrder: 1000,
+            depthOrder: 1000
         });
 
         this._rotateLayer = new EntityCollection({
             shadeMode: SHADE_MODE_UNLIT,
             visibility: false,
             depthOrder: 1000,
-            pickingScale: 5,
+            pickingScale: 5
         });
 
         this._selectedEntity = null;
@@ -173,8 +173,8 @@ class GeoObjectEditorScene extends RenderNode {
             scale: this._scale,
             scale_x: this._scaleX,
             scale_y: this._scaleY,
-            scale_z: this._scaleZ,
-        }
+            scale_z: this._scaleZ
+        };
     }
 
     get ellipsoid(): Ellipsoid | undefined {
@@ -229,12 +229,12 @@ class GeoObjectEditorScene extends RenderNode {
     protected _onAxisLayerMouseEnter = (e: IMouseState) => {
         this.renderer!.handler!.canvas!.style.cursor = "pointer";
         e.pickingObject.setColorHTML(e.pickingObject.properties.style.selectColor);
-    }
+    };
 
     protected _onAxisLayerMouseLeave = (e: IMouseState) => {
         this.renderer!.handler!.canvas!.style.cursor = "default";
         e.pickingObject.setColorHTML(e.pickingObject.properties.style.color);
-    }
+    };
 
     protected _navActivate() {
         if (this.renderer) {
@@ -262,7 +262,7 @@ class GeoObjectEditorScene extends RenderNode {
         this._selectedMove = null;
         this._navActivate();
         this._setAxisTrackVisibility(false);
-    }
+    };
 
     protected _onAxisLayerLDown = (e: IMouseState) => {
         this._clickPos = e.pos.clone();
@@ -274,23 +274,23 @@ class GeoObjectEditorScene extends RenderNode {
 
         this._selectedMove = e.pickingObject.properties.opName;
         this._navDeactivate();
-    }
+    };
 
     protected _onPlaneLayerMouseEnter = (e: IMouseState) => {
         this.renderer!.handler!.canvas!.style.cursor = "pointer";
         e.pickingObject.geoObject.setColorHTML(e.pickingObject.properties.style.selectColor);
-    }
+    };
 
     protected _onPlaneLayerMouseLeave = (e: IMouseState) => {
         this.renderer!.handler!.canvas!.style.cursor = "default";
         e.pickingObject.geoObject.setColorHTML(e.pickingObject.properties.style.color);
-    }
+    };
 
     protected _onPlaneLayerLUp = (e: IMouseState) => {
         this._selectedMove = null;
         this._navActivate();
         this._setAxisTrackVisibility(false);
-    }
+    };
 
     protected _onPlaneLayerLDown = (e: IMouseState) => {
         this._clickPos = e.pos.clone();
@@ -302,22 +302,22 @@ class GeoObjectEditorScene extends RenderNode {
 
         this._selectedMove = e.pickingObject.properties.opName;
         this._navDeactivate();
-    }
+    };
 
     protected _onRotateLayerMouseEnter = (e: IMouseState) => {
         this.renderer!.handler!.canvas!.style.cursor = "pointer";
         e.pickingObject.polyline!.setColorHTML(e.pickingObject.properties.style.selectColor);
-    }
+    };
 
     protected _onRotateLayerMouseLeave = (e: IMouseState) => {
         this.renderer!.handler!.canvas!.style.cursor = "default";
         e.pickingObject.polyline!.setColorHTML(e.pickingObject.properties.style.color);
-    }
+    };
 
     protected _onRotateLayerLUp = (e: IMouseState) => {
         this._selectedMove = null;
         this._navActivate();
-    }
+    };
 
     protected _onRotateLayerLDown = (e: IMouseState) => {
         this._clickPos = e.pos.clone();
@@ -333,18 +333,18 @@ class GeoObjectEditorScene extends RenderNode {
 
         this._selectedMove = e.pickingObject.properties.opName;
         this._navDeactivate();
-    }
+    };
 
     protected _onMouseMove = (e: IMouseState) => {
         if (this._selectedEntity && this._selectedMove && this._ops[this._selectedMove]) {
             this._ops[this._selectedMove](e);
         }
-    }
+    };
 
     protected _removeAxisLayers() {
         this._moveLayer.remove();
         this._planeLayer.remove();
-        this._rotateLayer.remove()
+        this._rotateLayer.remove();
     }
 
     public activate() {
@@ -375,11 +375,14 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     public readyToEdit(entity: Entity): boolean {
-        return !entity.properties || !entity.properties.noEdit
+        return !entity.properties || !entity.properties.noEdit;
     }
 
     public select(entity: Entity) {
-        if ((!this._selectedEntity || this._selectedEntity && !entity.isEqual(this._selectedEntity)) && this.readyToEdit(entity)) {
+        if (
+            (!this._selectedEntity || (this._selectedEntity && !entity.isEqual(this._selectedEntity))) &&
+            this.readyToEdit(entity)
+        ) {
             if (this._selectedEntity) {
                 this.unselect();
             }
@@ -400,10 +403,10 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     protected _onLclick = (e: IMouseState) => {
-        if (e.pickingObject && (e.pickingObject instanceof Entity)) {
+        if (e.pickingObject && e.pickingObject instanceof Entity) {
             this.select(e.pickingObject);
         }
-    }
+    };
 
     public clear() {
         this.removeEntityCollection(this._moveLayer);
@@ -437,10 +440,7 @@ class GeoObjectEditorScene extends RenderNode {
 
             if (!currCart) return;
 
-            let rot = Quat.getRotationBetweenVectors(
-                clickCart.normal(),
-                currCart.normal()
-            );
+            let rot = Quat.getRotationBetweenVectors(clickCart.normal(), currCart.normal());
 
             px = rot.mulVec3(p0);
 
@@ -458,10 +458,9 @@ class GeoObjectEditorScene extends RenderNode {
 
         this.events.dispatch(this.events.position, px, this._selectedEntity);
         this.events.dispatch(this.events.change, this._selectedEntity);
-    }
+    };
 
     protected _moveY = (e: IMouseState) => {
-
         if (!this._selectedEntity) return;
 
         let cam = this.renderer!.activeCamera;
@@ -487,7 +486,7 @@ class GeoObjectEditorScene extends RenderNode {
                 this.events.dispatch(this.events.change, this._selectedEntity);
             }
         }
-    }
+    };
 
     protected _moveZ = (e: IMouseState) => {
         if (!this._selectedEntity) return;
@@ -500,16 +499,12 @@ class GeoObjectEditorScene extends RenderNode {
         let px = new Vec3();
 
         if (this.planet) {
-
             let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
             let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
 
             if (!currCart) return;
 
-            let rot = Quat.getRotationBetweenVectors(
-                clickCart.normal(),
-                currCart.normal()
-            );
+            let rot = Quat.getRotationBetweenVectors(clickCart.normal(), currCart.normal());
 
             px = rot.mulVec3(p0);
 
@@ -527,7 +522,7 @@ class GeoObjectEditorScene extends RenderNode {
 
         this.events.dispatch(this.events.position, px, this._selectedEntity);
         this.events.dispatch(this.events.change, this._selectedEntity);
-    }
+    };
 
     protected _moveXZ = (e: IMouseState) => {
         if (!this._selectedEntity) return;
@@ -540,16 +535,12 @@ class GeoObjectEditorScene extends RenderNode {
         let px = new Vec3();
 
         if (this.planet) {
-
             let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
             let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
 
             if (!currCart) return;
 
-            let rot = Quat.getRotationBetweenVectors(
-                clickCart.normal(),
-                currCart.normal()
-            );
+            let rot = Quat.getRotationBetweenVectors(clickCart.normal(), currCart.normal());
 
             px = rot.mulVec3(p0);
 
@@ -576,15 +567,15 @@ class GeoObjectEditorScene extends RenderNode {
 
         this.events.dispatch(this.events.position, px, this._selectedEntity);
         this.events.dispatch(this.events.change, this._selectedEntity);
-    }
+    };
 
     protected _moveXY = (e: IMouseState) => {
         console.log("moveXY");
-    }
+    };
 
     protected _moveZY = (e: IMouseState) => {
         console.log("moveZY");
-    }
+    };
 
     public override getFrameRotation(cartesian: Vec3): Quat {
         return this._planet ? this._planet.getFrameRotation(cartesian) : super.getFrameRotation(cartesian);
@@ -614,7 +605,6 @@ class GeoObjectEditorScene extends RenderNode {
 
         if (new Ray(cam.eye, clickDir).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
             if (new Ray(cam.eye, e.direction).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
-
                 let c0 = clickCart.sub(p0).normalize(),
                     c1 = dragCart.sub(p0).normalize();
 
@@ -627,7 +617,7 @@ class GeoObjectEditorScene extends RenderNode {
                 this.events.dispatch(this.events.change, this._selectedEntity);
             }
         }
-    }
+    };
 
     protected _rotateYaw = (e: IMouseState) => {
         if (!this._selectedEntity) return;
@@ -646,7 +636,6 @@ class GeoObjectEditorScene extends RenderNode {
 
         if (new Ray(cam.eye, clickDir).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
             if (new Ray(cam.eye, e.direction).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
-
                 let c0 = clickCart.sub(p0).normalize(),
                     c1 = dragCart.sub(p0).normalize();
 
@@ -659,14 +648,14 @@ class GeoObjectEditorScene extends RenderNode {
                 this.events.dispatch(this.events.change, this._selectedEntity);
             }
         }
-    }
+    };
 
     protected _rotateRoll = (e: IMouseState) => {
         if (!this._selectedEntity) return;
 
         let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
-        let qNorthFrame = this.getFrameRotation(p0).conjugate();
+        //let qNorthFrame = this.getFrameRotation(p0).conjugate();
 
         let qp = Quat.xRotation(0);
         let qy = Quat.yRotation(this._selectedEntity.getYaw());
@@ -686,7 +675,6 @@ class GeoObjectEditorScene extends RenderNode {
 
         if (new Ray(cam.eye, clickDir).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
             if (new Ray(cam.eye, e.direction).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
-
                 let c0 = clickCart.sub(p0).normalize(),
                     c1 = dragCart.sub(p0).normalize();
 
@@ -699,22 +687,19 @@ class GeoObjectEditorScene extends RenderNode {
                 this.events.dispatch(this.events.change, this._selectedEntity);
             }
         }
-    }
+    };
 
     protected _scale = (e: IMouseState) => {
         let scale = 1;
         this.events.dispatch(this.events.scale, scale, this._selectedEntity);
         this.events.dispatch(this.events.change, this._selectedEntity);
-    }
+    };
 
-    protected _scaleX = (e: IMouseState) => {
-    }
+    protected _scaleX = (e: IMouseState) => {};
 
-    protected _scaleY = (e: IMouseState) => {
-    }
+    protected _scaleY = (e: IMouseState) => {};
 
-    protected _scaleZ = (e: IMouseState) => {
-    }
+    protected _scaleZ = (e: IMouseState) => {};
 
     public getSelectedEntity(): Entity | null {
         return this._selectedEntity;
@@ -773,4 +758,4 @@ const GEOOBJECTEDITORCENE_EVENTS: GeoObjectSceneEventsList = [
     "scale"
 ];
 
-export {GeoObjectEditorScene};
+export { GeoObjectEditorScene };

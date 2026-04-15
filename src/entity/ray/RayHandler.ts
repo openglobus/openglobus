@@ -1,13 +1,13 @@
 import * as shaders from "../../shaders/ray/ray";
-import {concatArrays, concatTypedArrays, makeArrayTyped, spliceArray, spliceTypedArray} from "../../utils/shared";
-import type {TypedArray} from "../../utils/shared";
-import {EntityCollection} from "../EntityCollection";
-import {Ray} from "./Ray";
-import {Renderer} from "../../renderer/Renderer";
-import {Vec3} from "../../math/Vec3";
-import {Vec4} from "../../math/Vec4";
-import type {WebGLBufferExt} from "../../webgl/Handler";
-import type {ProgramController} from "../../webgl/ProgramController";
+import { concatArrays, concatTypedArrays, makeArrayTyped, spliceArray, spliceTypedArray } from "../../utils/shared";
+import type { TypedArray } from "../../utils/shared";
+import { EntityCollection } from "../EntityCollection";
+import { Ray } from "./Ray";
+import { Renderer } from "../../renderer/Renderer";
+import { Vec3 } from "../../math/Vec3";
+import { Vec4 } from "../../math/Vec4";
+import type { WebGLBufferExt } from "../../webgl/Handler";
+import type { ProgramController } from "../../webgl/ProgramController";
 
 const PICKINGCOLOR_BUFFER = 0;
 const START_POSITION_BUFFER = 1;
@@ -27,7 +27,6 @@ const RAY_VERTICES_COUNT = 6;
  *
  */
 class RayHandler {
-
     static __counter__: number = 0;
 
     protected __id: number;
@@ -74,7 +73,6 @@ class RayHandler {
     protected _changedBuffers: boolean[];
 
     constructor(entityCollection: EntityCollection) {
-
         this.__id = RayHandler.__counter__++;
 
         /**
@@ -125,7 +123,6 @@ class RayHandler {
         this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this.createTexCoordBuffer;
         this._buffersUpdateCallbacks[TEXOFFSET_BUFFER] = this.createTexOffsetBuffer;
         this._buffersUpdateCallbacks[STROKESIZE_BUFFER] = this.createStrokeSizeBuffer;
-
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
@@ -222,10 +219,7 @@ class RayHandler {
 
     public initProgram() {
         if (this._renderer) {
-            this._renderer.addShaders(
-                shaders.rayScreen(),
-                shaders.rayScreenWoit()
-            );
+            this._renderer.addShaders(shaders.rayScreen(), shaders.rayScreenWoit());
 
             // @todo: ray picking
             // if (!this._renderer.handler.programs.billboardPicking) {
@@ -368,27 +362,106 @@ class RayHandler {
         x = ray.strokeSize;
         this._strokeSizeArr = concatTypedArrays(this._strokeSizeArr, [x, x, x, x, x, x]);
 
-        this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        this._texCoordArr = concatTypedArrays(
+            this._texCoordArr,
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        );
 
         x = ray._startPositionHigh.x;
         let y = ray._startPositionHigh.y,
             z = ray._startPositionHigh.z;
-        this._startPositionHighArr = concatArrays(this._startPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        this._startPositionHighArr = concatArrays(this._startPositionHighArr, [
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z
+        ]);
 
         x = ray._startPositionLow.x;
         y = ray._startPositionLow.y;
         z = ray._startPositionLow.z;
-        this._startPositionLowArr = concatArrays(this._startPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        this._startPositionLowArr = concatArrays(this._startPositionLowArr, [
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z
+        ]);
 
         x = ray._endPositionHigh.x;
         y = ray._endPositionHigh.y;
         z = ray._endPositionHigh.z;
-        this._endPositionHighArr = concatArrays(this._endPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        this._endPositionHighArr = concatArrays(this._endPositionHighArr, [
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z
+        ]);
 
         x = ray._endPositionLow.x;
         y = ray._endPositionLow.y;
         z = ray._endPositionLow.z;
-        this._endPositionLowArr = concatArrays(this._endPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        this._endPositionLowArr = concatArrays(this._endPositionLowArr, [
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z
+        ]);
 
         x = ray._thickness;
         this._thicknessArr = concatArrays(this._thicknessArr, [x, x, x, x, x, x]);
@@ -402,18 +475,55 @@ class RayHandler {
             b1 = ray._endColor.z,
             a1 = ray._endColor.w;
         this._rgbaArr = concatArrays(this._rgbaArr, [
-            r1, g1, b1, a1,
-            r0, g0, b0, a0,
-            r0, g0, b0, a0,
-            r0, g0, b0, a0,
-            r1, g1, b1, a1,
-            r1, g1, b1, a1
+            r1,
+            g1,
+            b1,
+            a1,
+            r0,
+            g0,
+            b0,
+            a0,
+            r0,
+            g0,
+            b0,
+            a0,
+            r0,
+            g0,
+            b0,
+            a0,
+            r1,
+            g1,
+            b1,
+            a1,
+            r1,
+            g1,
+            b1,
+            a1
         ]);
 
         x = ray._entity!._pickingColor.x / 255;
         y = ray._entity!._pickingColor.y / 255;
         z = ray._entity!._pickingColor.z / 255;
-        this._pickingColorArr = concatArrays(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        this._pickingColorArr = concatArrays(this._pickingColorArr, [
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z
+        ]);
     }
 
     protected _displayPASS(startRayIndex: number, endRayIndex: number, rayProgram: ProgramController) {
@@ -501,7 +611,11 @@ class RayHandler {
 
     public drawTransparent() {
         if (this._opaqueCounterIndex < this._rays.length) {
-            this._displayPASS(this._opaqueCounterIndex, this._rays.length, this._renderer!.handler.programs.rayScreenWoit);
+            this._displayPASS(
+                this._opaqueCounterIndex,
+                this._rays.length,
+                this._renderer!.handler.programs.rayScreenWoit
+            );
         }
     }
 
@@ -525,7 +639,6 @@ class RayHandler {
     }
 
     protected _removeRay(ray: Ray) {
-
         let removeIndex = ray._handlerIndex;
 
         if (removeIndex < this._opaqueCounterIndex) {
@@ -934,7 +1047,6 @@ class RayHandler {
     }
 
     public setTexCoordArr(index: number, tcoordArr: number[] | TypedArray) {
-
         let minY = tcoordArr[1],
             imgHeight = tcoordArr[3] - minY;
 
@@ -1016,7 +1128,6 @@ class RayHandler {
         this._changedBuffers[STROKESIZE_BUFFER] = true;
     }
 
-
     public refreshTexCoordsArr() {
         let bc = this._entityCollection;
         if (bc && this._renderer) {
@@ -1035,4 +1146,4 @@ class RayHandler {
     }
 }
 
-export {RayHandler};
+export { RayHandler };

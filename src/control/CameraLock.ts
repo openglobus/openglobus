@@ -1,32 +1,26 @@
-import {Control, type IControlParams} from "./Control";
-import {LonLat} from "../LonLat";
-import {Quat} from "../math/Quat";
-import {Vec3} from "../math/Vec3";
-import {createEvents, type EventsHandler} from "../Events";
-import {Entity} from "../entity/Entity";
-import type {IMouseState} from "../renderer/RendererEvents";
-import {Navigation} from "./Navigation";
-import {Planet} from "../scene/Planet";
-import {input} from "../input/input";
-import {RADIANS} from "../math";
+import { Control, type IControlParams } from "./Control";
+import { LonLat } from "../LonLat";
+import { Vec3 } from "../math/Vec3";
+import { createEvents, type EventsHandler } from "../Events";
+import { Entity } from "../entity/Entity";
+import type { IMouseState } from "../renderer/RendererEvents";
+import { Navigation } from "./Navigation";
+import { Planet } from "../scene/Planet";
+import { input } from "../input/input";
+import { RADIANS } from "../math";
 
 const MIN_LOCK_DISTANCE = 0.001;
 const MIN_VIEW_DISTANCE = 120.0;
-
-let qOrientationRot = new Quat();
-const t: number = 0.08;
 
 type CameraLockEventsList = ["lockview", "unlockview"];
 
 const CameraLockEvents: CameraLockEventsList = ["lockview", "unlockview"];
 
-
 interface ICameraLockParams extends IControlParams {
-    planet?: Planet | null
+    planet?: Planet | null;
 }
 
 export class CameraLock extends Control {
-
     public events: EventsHandler<CameraLockEventsList>;
 
     protected _lockDistance: number;
@@ -63,7 +57,6 @@ export class CameraLock extends Control {
     public override oninit() {
         this.activate();
         if (this.renderer) {
-
         }
     }
 
@@ -88,7 +81,6 @@ export class CameraLock extends Control {
     }
 
     public lockView(entity: Entity, fromTheBack = false) {
-
         if (!this.renderer) return;
 
         this._lockDistance = this._getDistance(entity, this._lockEntity);
@@ -152,7 +144,6 @@ export class CameraLock extends Control {
 
     protected _getDistance(entity: Entity, prevEntity?: Entity | null): number {
         if (this.renderer) {
-
             let cartesian = entity.getAbsoluteCartesian();
             let cam = this.renderer.activeCamera;
 
@@ -234,7 +225,7 @@ export class CameraLock extends Control {
                 this.renderer.activeCamera.viewDistance(this._lockEntity.getAbsoluteCartesian(), this._lockDistance);
             }
         }
-    }
+    };
 
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.renderer && this._lockEntity) {
@@ -249,12 +240,11 @@ export class CameraLock extends Control {
                 this.renderer.activeCamera.viewDistance(this._lockEntity.getAbsoluteCartesian(), this._lockDistance);
             }
         }
-    }
+    };
 
     protected _onMouseMove = (ms: IMouseState) => {
         if (this._lockEntity && this.renderer) {
             if (ms.rightButtonDown || this.renderer.events.isKeyPressed(input.KEY_ALT)) {
-
                 let p = this._lockEntity.getAbsoluteCartesian(),
                     cam = this.renderer.activeCamera,
                     l = 0.5 / RADIANS;
@@ -271,6 +261,5 @@ export class CameraLock extends Control {
                 this._viewDir = p.sub(cam.eye).normalize();
             }
         }
-    }
-
+    };
 }

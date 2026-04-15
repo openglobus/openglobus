@@ -1,20 +1,26 @@
-import type {EarthEntityCollectionsTreeStrategy} from "./EarthEntityCollectionsTreeStrategy";
-import {Extent} from "../../Extent";
-import type {Planet} from "../../scene/Planet";
-import {LonLat} from "../../LonLat";
-import {NE, NW, SE, SW} from "../quadTree";
-import type {Entity} from "../../entity/Entity";
-import type {EntityCollection} from "../../entity/EntityCollection";
-import {EntityCollectionNode} from "../EntityCollectionNode";
-import type {NodesDict} from "../EntityCollectionNode";
+import type { EarthEntityCollectionsTreeStrategy } from "./EarthEntityCollectionsTreeStrategy";
+import { Extent } from "../../Extent";
+import type { Planet } from "../../scene/Planet";
+import { LonLat } from "../../LonLat";
+import { NE, NW, SE, SW } from "../quadTree";
+import type { Entity } from "../../entity/Entity";
+import type { EntityCollection } from "../../entity/EntityCollection";
+import { EntityCollectionNode } from "../EntityCollectionNode";
+import type { NodesDict } from "../EntityCollectionNode";
 
 export class EarthEntityCollectionNodeLonLat extends EntityCollectionNode {
-
     public isNorth: boolean;
 
     public override strategy: EarthEntityCollectionsTreeStrategy;
 
-    constructor(strategy: EarthEntityCollectionsTreeStrategy, partId: number, parent: EarthEntityCollectionNodeLonLat | null, extent: Extent, planet: Planet, zoom: number) {
+    constructor(
+        strategy: EarthEntityCollectionsTreeStrategy,
+        partId: number,
+        parent: EarthEntityCollectionNodeLonLat | null,
+        extent: Extent,
+        planet: Planet,
+        zoom: number
+    ) {
         super(strategy, partId, parent, extent, planet, zoom);
         this.strategy = strategy;
         this.isNorth = false;
@@ -32,10 +38,24 @@ export class EarthEntityCollectionNodeLonLat extends EntityCollectionNode {
         const p = this.layer._planet!;
         const z = this.zoom + 1;
 
-        nd[NW] = new EarthEntityCollectionNodeLonLat(s, NW, this, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
+        nd[NW] = new EarthEntityCollectionNodeLonLat(
+            s,
+            NW,
+            this,
+            new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)),
+            p,
+            z
+        );
         nd[NE] = new EarthEntityCollectionNodeLonLat(s, NE, this, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
         nd[SW] = new EarthEntityCollectionNodeLonLat(s, SW, this, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
-        nd[SE] = new EarthEntityCollectionNodeLonLat(s, SE, this, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
+        nd[SE] = new EarthEntityCollectionNodeLonLat(
+            s,
+            SE,
+            this,
+            new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)),
+            p,
+            z
+        );
     }
 
     protected override _setExtentBounds() {
@@ -66,7 +86,6 @@ export class EarthEntityCollectionNodeLonLat extends EntityCollectionNode {
     }
 
     public override renderCollection(outArr: EntityCollection[], visibleNodes: NodesDict, renderingNode: number) {
-
         if (this.isNorth) {
             this.strategy._renderingNodesNorth[this.nodeId] = true;
         } else {

@@ -1,17 +1,16 @@
-import {EntityCollectionNode} from "../EntityCollectionNode";
-import {EarthEntityCollectionNodeLonLat} from "./EarthEntityCollectionNodeLonLat";
-import type {Vector} from "../../layer/Vector";
+import { EntityCollectionNode } from "../EntityCollectionNode";
+import { EarthEntityCollectionNodeLonLat } from "./EarthEntityCollectionNodeLonLat";
+import type { Vector } from "../../layer/Vector";
 import * as quadTree from "../quadTree";
-import {Extent} from "../../Extent";
+import { Extent } from "../../Extent";
 import * as mercator from "../../mercator";
-import type {Entity} from "../../entity/Entity";
-import type {EntityCollection} from "../../entity/EntityCollection";
-import type {EarthQuadTreeStrategy} from "./EarthQuadTreeStrategy";
-import {EntityCollectionsTreeStrategy} from "../EntityCollectionsTreeStrategy";
-import type {QuadTreeStrategy} from "../QuadTreeStrategy";
+import type { Entity } from "../../entity/Entity";
+import type { EntityCollection } from "../../entity/EntityCollection";
+import type { EarthQuadTreeStrategy } from "./EarthQuadTreeStrategy";
+import { EntityCollectionsTreeStrategy } from "../EntityCollectionsTreeStrategy";
+import type { QuadTreeStrategy } from "../QuadTreeStrategy";
 
 export class EarthEntityCollectionsTreeStrategy extends EntityCollectionsTreeStrategy {
-
     protected _entityCollectionsTree: EntityCollectionNode;
     protected _entityCollectionsTreeNorth: EarthEntityCollectionNodeLonLat;
     protected _entityCollectionsTreeSouth: EarthEntityCollectionNodeLonLat;
@@ -70,17 +69,20 @@ export class EarthEntityCollectionsTreeStrategy extends EntityCollectionsTreeStr
     }
 
     public override setPickingEnabled(pickingEnabled: boolean) {
-        this._entityCollectionsTree && this._entityCollectionsTree.traverseTree((node: EntityCollectionNode) => {
-            node.entityCollection!.setPickingEnabled(pickingEnabled);
-        });
+        this._entityCollectionsTree &&
+            this._entityCollectionsTree.traverseTree((node: EntityCollectionNode) => {
+                node.entityCollection!.setPickingEnabled(pickingEnabled);
+            });
 
-        this._entityCollectionsTreeNorth && this._entityCollectionsTreeNorth.traverseTree((node: EarthEntityCollectionNodeLonLat) => {
-            node.entityCollection!.setPickingEnabled(pickingEnabled);
-        });
+        this._entityCollectionsTreeNorth &&
+            this._entityCollectionsTreeNorth.traverseTree((node: EarthEntityCollectionNodeLonLat) => {
+                node.entityCollection!.setPickingEnabled(pickingEnabled);
+            });
 
-        this._entityCollectionsTreeSouth && this._entityCollectionsTreeSouth.traverseTree((node: EarthEntityCollectionNodeLonLat) => {
-            node.entityCollection!.setPickingEnabled(pickingEnabled);
-        });
+        this._entityCollectionsTreeSouth &&
+            this._entityCollectionsTreeSouth.traverseTree((node: EarthEntityCollectionNodeLonLat) => {
+                node.entityCollection!.setPickingEnabled(pickingEnabled);
+            });
     }
 
     public override dispose() {
@@ -140,7 +142,11 @@ export class EarthEntityCollectionsTreeStrategy extends EntityCollectionsTreeStr
         this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(pqs._visibleNodesNorth, outArr);
         i = this._secondPASS.length;
         while (i--) {
-            this._secondPASS[i].collectRenderCollectionsPASS2(pqs._visibleNodesNorth, outArr, this._secondPASS[i].nodeId);
+            this._secondPASS[i].collectRenderCollectionsPASS2(
+                pqs._visibleNodesNorth,
+                outArr,
+                this._secondPASS[i].nodeId
+            );
         }
 
         // South nodes
@@ -148,7 +154,11 @@ export class EarthEntityCollectionsTreeStrategy extends EntityCollectionsTreeStr
         this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(pqs._visibleNodesSouth, outArr);
         i = this._secondPASS.length;
         while (i--) {
-            this._secondPASS[i].collectRenderCollectionsPASS2(pqs._visibleNodesSouth, outArr, this._secondPASS[i].nodeId);
+            this._secondPASS[i].collectRenderCollectionsPASS2(
+                pqs._visibleNodesSouth,
+                outArr,
+                this._secondPASS[i].nodeId
+            );
         }
     }
 }

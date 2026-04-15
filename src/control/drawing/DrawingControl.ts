@@ -1,6 +1,6 @@
-import {Control, type IControlParams} from "../Control";
-import {LineStringDrawingScene} from "./LineStringDrawingScene";
-import {PolygonDrawingScene} from "./PolygonDrawingScene";
+import { Control, type IControlParams } from "../Control";
+import { LineStringDrawingScene } from "./LineStringDrawingScene";
+import { PolygonDrawingScene } from "./PolygonDrawingScene";
 
 export interface IDrawingControlParams extends IControlParams {
     cornerStyle?: any;
@@ -20,7 +20,7 @@ class DrawingControl extends Control {
             cornerStyle: options.cornerStyle || {},
             centerStyle: options.centerStyle || {},
             outlineStyle: options.outlineStyle || {},
-            fillStyle: options.fillStyle || {},
+            fillStyle: options.fillStyle || {}
         });
     }
 
@@ -31,7 +31,7 @@ class DrawingControl extends Control {
             cornerStyle: this._drawingScene._cornerStyle,
             centerStyle: this._drawingScene._centerStyle,
             outlineStyle: this._drawingScene._outlineStyle,
-            fillStyle: this._drawingScene._fillStyle,
+            fillStyle: this._drawingScene._fillStyle
         });
         this.activate();
     }
@@ -43,13 +43,12 @@ class DrawingControl extends Control {
             cornerStyle: this._drawingScene._cornerStyle,
             centerStyle: this._drawingScene._centerStyle,
             outlineStyle: this._drawingScene._outlineStyle,
-            fillStyle: this._drawingScene._fillStyle,
+            fillStyle: this._drawingScene._fillStyle
         });
         this.activate();
     }
 
-    public override oninit() {
-    }
+    public override oninit() {}
 
     public override onactivate() {
         this.planet && this._drawingScene.bindPlanet(this.planet);
@@ -61,4 +60,4 @@ class DrawingControl extends Control {
     }
 }
 
-export {DrawingControl};
+export { DrawingControl };

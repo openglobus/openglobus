@@ -1,8 +1,8 @@
 import * as shaders from "../../shaders/pointCloud";
-import {EntityCollection} from "../EntityCollection";
-import {PointCloud} from "./PointCloud";
-import {Renderer} from "../../renderer/Renderer";
-import {RenderNode} from "../../scene/RenderNode";
+import { EntityCollection } from "../EntityCollection";
+import { PointCloud } from "./PointCloud";
+import { Renderer } from "../../renderer/Renderer";
+import { RenderNode } from "../../scene/RenderNode";
 
 class PointCloudHandler {
     static __counter__: number = 0;
@@ -37,7 +37,6 @@ class PointCloudHandler {
     protected _pointClouds: PointCloud[];
 
     constructor(entityCollection: EntityCollection) {
-
         this.__id = PointCloudHandler.__counter__++;
 
         this.pickingEnabled = true;
@@ -68,16 +67,14 @@ class PointCloudHandler {
             pointCloud._handlerIndex = this._pointClouds.length;
             this._pointClouds.push(pointCloud);
             this._entityCollection &&
-            this._entityCollection.renderNode &&
-            pointCloud.setRenderNode(this._entityCollection.renderNode);
+                this._entityCollection.renderNode &&
+                pointCloud.setRenderNode(this._entityCollection.renderNode);
         }
     }
 
     public remove(pointCloud: PointCloud) {
-
         let index = pointCloud._handlerIndex;
         if (index !== -1) {
-
             pointCloud._deleteBuffers();
 
             pointCloud._handlerIndex = -1;
@@ -122,4 +119,4 @@ class PointCloudHandler {
     }
 }
 
-export {PointCloudHandler};
+export { PointCloudHandler };

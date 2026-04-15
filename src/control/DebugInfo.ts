@@ -1,9 +1,9 @@
-import {Control, type IControlParams} from "./Control";
-import {Dialog} from "../ui/Dialog";
-import {ToggleButton} from "../ui/ToggleButton";
-import {GlobusTerrain} from "../terrain/GlobusTerrain";
-import {CanvasTiles} from "../layer/CanvasTiles";
-import {DEGREES} from "../math";
+import { Control, type IControlParams } from "./Control";
+import { Dialog } from "../ui/Dialog";
+import { ToggleButton } from "../ui/ToggleButton";
+import { GlobusTerrain } from "../terrain/GlobusTerrain";
+import { CanvasTiles } from "../layer/CanvasTiles";
+import { DEGREES } from "../math";
 
 const ICON_LOCK_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
@@ -107,7 +107,6 @@ export class DebugInfo extends Control {
             isBaseLayer: false,
             hideInLayerSwitcher: true,
             drawTile: function (material: any, applyCanvas: any) {
-
                 //
                 // This is important create canvas here!
                 //
@@ -123,7 +122,7 @@ export class DebugInfo extends Control {
                 ctx.beginPath();
                 ctx.rect(0, 0, cnv.width, cnv.height);
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = 'black';
+                ctx.strokeStyle = "black";
                 ctx.stroke();
 
                 let size;
@@ -144,10 +143,14 @@ export class DebugInfo extends Control {
                 } else {
                     size = "32";
                 }
-                ctx.fillStyle = 'black';
-                ctx.font = 'normal ' + size + 'px Verdana';
-                ctx.textAlign = 'center';
-                ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+                ctx.fillStyle = "black";
+                ctx.font = "normal " + size + "px Verdana";
+                ctx.textAlign = "center";
+                ctx.fillText(
+                    material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom,
+                    cnv.width / 2,
+                    cnv.height / 2
+                );
                 //}
 
                 //Draw canvas tile
@@ -172,7 +175,6 @@ export class DebugInfo extends Control {
     }
 
     public override oninit() {
-
         this._toggleBtn.appendTo(this.renderer!.div!);
         this._dialog.appendTo(this.renderer!.div!);
         this._toggleBtn.events.on("change", (isActive: boolean) => {
@@ -267,14 +269,14 @@ export class DebugInfo extends Control {
                 {
                     label: "Lon, Lat",
                     frame: () =>
-                        `<div style="width:190px">${(p.camera._lonLat.lon).toFixed(7)}, ${(p.camera._lonLat.lon).toFixed(7)}</div>`
+                        `<div style="width:190px">${p.camera._lonLat.lon.toFixed(7)}, ${p.camera._lonLat.lon.toFixed(7)}</div>`
                 },
                 {
                     label: "height/alt, m",
                     frame: () =>
-                        `<div style="width:190px">${(p.camera._lonLat.height).toFixed(2) +
-                        " / " +
-                        (p.camera.getAltitude()).toFixed(2)}</div>`
+                        `<div style="width:190px">${
+                            p.camera._lonLat.height.toFixed(2) + " / " + p.camera.getAltitude().toFixed(2)
+                        }</div>`
                 },
                 {
                     label: "cam.slope",
@@ -285,11 +287,13 @@ export class DebugInfo extends Control {
                 },
                 {
                     label: "_renderCompleted / renderCompletedActivated",
-                    frame: () => `${p.quadTreeStrategy._renderCompleted} / ${p.quadTreeStrategy._renderCompletedActivated}`
+                    frame: () =>
+                        `${p.quadTreeStrategy._renderCompleted} / ${p.quadTreeStrategy._renderCompletedActivated}`
                 },
                 {
                     label: "_terrainCompleted / terrainCompletedActivated",
-                    frame: () => `${p.quadTreeStrategy._terrainCompleted} / ${p.quadTreeStrategy._terrainCompletedActivated}`
+                    frame: () =>
+                        `${p.quadTreeStrategy._terrainCompleted} / ${p.quadTreeStrategy._terrainCompletedActivated}`
                 },
                 {
                     label: "PlainWorker",
@@ -303,7 +307,7 @@ export class DebugInfo extends Control {
                     label: "TerrainLoader",
                     frame: () => {
                         if (p.terrain && !p.terrain.isEmpty) {
-                            return `${(p.terrain as GlobusTerrain).loader.loading}  ${(p.terrain as GlobusTerrain).loader.queue.length}`
+                            return `${(p.terrain as GlobusTerrain).loader.loading}  ${(p.terrain as GlobusTerrain).loader.queue.length}`;
                         }
                         return "";
                     }

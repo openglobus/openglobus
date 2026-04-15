@@ -1,14 +1,14 @@
 import * as mercator from "../mercator";
-import {EPSG4326} from "../proj/EPSG4326";
-import {Extent} from "../Extent";
-import {Layer} from "../layer/Layer";
-import {Node} from "../quadTree/Node";
-import {getTileCellIndex, Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH} from "./Segment";
-import {LonLat} from "../LonLat";
-import {Entity} from "../entity/Entity";
-import {PlanetCamera} from "../camera/PlanetCamera";
-import type {WebGLTextureExt} from "../webgl/Handler";
-import {QuadTreeStrategy} from "../quadTree";
+import { EPSG4326 } from "../proj/EPSG4326";
+import { Extent } from "../Extent";
+import { Layer } from "../layer/Layer";
+import { Node } from "../quadTree/Node";
+import { getTileCellIndex, Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "./Segment";
+import { LonLat } from "../LonLat";
+import { Entity } from "../entity/Entity";
+import { PlanetCamera } from "../camera/PlanetCamera";
+import type { WebGLTextureExt } from "../webgl/Handler";
+import { QuadTreeStrategy } from "../quadTree";
 
 const MAX_POLE_ZOOM = 7;
 export const POLE_PIECE_SIZE = (90.0 - mercator.MAX_LAT) / Math.pow(2, MAX_POLE_ZOOM);
@@ -26,10 +26,7 @@ class SegmentLonLat extends Segment {
 
         this._extentLonLat = this._extent;
 
-        this._extentMerc = new Extent(
-            extent.southWest.forwardMercatorEPS01(),
-            extent.northEast.forwardMercatorEPS01()
-        );
+        this._extentMerc = new Extent(extent.southWest.forwardMercatorEPS01(), extent.northEast.forwardMercatorEPS01());
 
         this._isNorth = this._extent.northEast.lat > 0;
 
@@ -80,7 +77,7 @@ class SegmentLonLat extends Segment {
     }
 
     protected _assignTileYIndexes(extent: Extent) {
-        const lat = extent.getCenter().lat;//extent.northEast.lat;
+        const lat = extent.getCenter().lat; //extent.northEast.lat;
         if (lat > 0) {
             this._tileGroup = TILEGROUP_NORTH;
             this.tileY = getTileCellIndex(lat, extent.getHeight(), 90.0);
@@ -134,7 +131,6 @@ class SegmentLonLat extends Segment {
     public override getExtentLonLat(): Extent {
         return this._extent;
     }
-
 }
 
-export {SegmentLonLat};
+export { SegmentLonLat };

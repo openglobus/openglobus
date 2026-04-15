@@ -1,7 +1,7 @@
-import {BaseBillboard} from "./BaseBillboard";
-import type {IBaseBillboardParams} from "./BaseBillboard";
-import {BillboardHandler} from "./BillboardHandler";
-import type {HTMLImageElementExt} from "../../utils/ImagesCacheManager";
+import { BaseBillboard } from "./BaseBillboard";
+import type { IBaseBillboardParams } from "./BaseBillboard";
+import { BillboardHandler } from "./BillboardHandler";
+import type { HTMLImageElementExt } from "../../utils/ImagesCacheManager";
 
 export interface IBillboardParams extends IBaseBillboardParams {
     src?: string;
@@ -29,7 +29,6 @@ export interface IBillboardParams extends IBaseBillboardParams {
  * @param {number} [options.scale] - Billboard scale.
  */
 class Billboard extends BaseBillboard {
-
     public override _handler: BillboardHandler | null;
 
     /**
@@ -44,7 +43,7 @@ class Billboard extends BaseBillboard {
      * @protected
      * @type {Object}
      */
-    protected _image: HTMLImageElement & { __nodeIndex?: number } | null;
+    protected _image: (HTMLImageElement & { __nodeIndex?: number }) | null;
 
     protected _scale: number;
 
@@ -63,7 +62,6 @@ class Billboard extends BaseBillboard {
     public _height: number;
 
     constructor(options: IBillboardParams = {}) {
-
         super(options);
 
         this._handler = null;
@@ -95,10 +93,7 @@ class Billboard extends BaseBillboard {
                 ta.loadImage(src, function (img: HTMLImageElementExt) {
                     if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
                         that._image = img;
-                        bh!.setTexCoordArr(
-                            that._handlerIndex,
-                            ta.get(that._image!.__nodeIndex!)!.texCoords
-                        );
+                        bh!.setTexCoordArr(that._handlerIndex, ta.get(that._image!.__nodeIndex!)!.texCoords);
                     } else {
                         ta.addImage(img);
                         ta.createTexture();
@@ -136,8 +131,7 @@ class Billboard extends BaseBillboard {
     public setSize(width: number, height: number) {
         this._width = width;
         this._height = height;
-        this._handler &&
-        this._handler.setSizeArr(this._handlerIndex, width * this._scale, height * this._scale);
+        this._handler && this._handler.setSizeArr(this._handlerIndex, width * this._scale, height * this._scale);
     }
 
     /**
@@ -145,7 +139,7 @@ class Billboard extends BaseBillboard {
      * @public
      * @returns {Object}
      */
-    public getSize(): { width: number, height: number } {
+    public getSize(): { width: number; height: number } {
         return {
             width: this._width,
             height: this._height
@@ -189,4 +183,4 @@ class Billboard extends BaseBillboard {
     }
 }
 
-export {Billboard};
+export { Billboard };

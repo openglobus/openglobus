@@ -1,6 +1,6 @@
-import {ToggleButton} from "./ToggleButton";
-import {createEvents} from '../Events';
-import type {EventsHandler} from '../Events';
+import { ToggleButton } from "./ToggleButton";
+import { createEvents } from "../Events";
+import type { EventsHandler } from "../Events";
 
 interface IButtonGroupParams {
     buttons?: ToggleButton[];
@@ -11,13 +11,11 @@ type ButtonGroupEventsList = ["change"];
 const BUTTONGROUP_EVENTS: ButtonGroupEventsList = ["change"];
 
 class ButtonGroup {
-
     public events: EventsHandler<ButtonGroupEventsList>;
 
     protected _buttons: ToggleButton[];
 
     constructor(options: IButtonGroupParams = {}) {
-
         this.events = createEvents<ButtonGroupEventsList>(BUTTONGROUP_EVENTS);
 
         this._buttons = options.buttons || [];
@@ -48,7 +46,7 @@ class ButtonGroup {
             }
             this.events.dispatch(this.events.change, btn);
         }
-    }
+    };
 
     public remove(button: ToggleButton) {
         for (let i = 0; i < this._buttons.length; i++) {
@@ -61,4 +59,4 @@ class ButtonGroup {
     }
 }
 
-export {ButtonGroup}
+export { ButtonGroup };

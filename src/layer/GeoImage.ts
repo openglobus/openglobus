@@ -1,8 +1,8 @@
-import {nextHighestPowerOfTwo} from "../math";
-import {BaseGeoImage} from "./BaseGeoImage";
-import type {IBaseGeoImageParams} from "./BaseGeoImage";
-import {isImageLoaded} from "../utils/shared";
-import {Material} from "./Material";
+import { nextHighestPowerOfTwo } from "../math";
+import { BaseGeoImage } from "./BaseGeoImage";
+import type { IBaseGeoImageParams } from "./BaseGeoImage";
+import { isImageLoaded } from "../utils/shared";
+import { Material } from "./Material";
 
 export interface IGeoImageParams extends IBaseGeoImageParams {
     image?: HTMLImageElement | HTMLCanvasElement | ImageBitmap;
@@ -51,7 +51,7 @@ class GeoImage extends BaseGeoImage {
     /**
      * Sets image source url path.
      * @public
-     * @param {string} srs - Image url path.
+     * @param {string} src - Image url path.
      */
     public setSrc(src: string) {
         this._planet && this._planet._geoImageCreator.remove(this);
@@ -116,7 +116,6 @@ class GeoImage extends BaseGeoImage {
         }
     }
 
-
     /**
      * Loads planet segment material. In this case - GeoImage source image.
      * @public
@@ -161,4 +160,4 @@ class GeoImage extends BaseGeoImage {
     }
 }
 
-export {GeoImage};
+export { GeoImage };

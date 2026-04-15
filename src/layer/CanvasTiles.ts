@@ -1,10 +1,10 @@
 import * as quadTree from "../quadTree/quadTree";
-import type {EventCallback, EventsHandler} from "../Events";
-import {Layer} from "./Layer";
-import type {ILayerParams, LayerEventsList} from "./Layer";
-import {Material} from "../layer/Material";
-import type {NumberArray4} from "../math/Vec4";
-import {Planet} from "../scene/Planet";
+import type { EventCallback, EventsHandler } from "../Events";
+import { Layer } from "./Layer";
+import type { ILayerParams, LayerEventsList } from "./Layer";
+import { Material } from "../layer/Material";
+import type { NumberArray4 } from "../math/Vec4";
+import { Planet } from "../scene/Planet";
 
 type ApplyImageFunc = (material: HTMLCanvasElement | ImageBitmap | HTMLImageElement) => void;
 type DrawTileCallback = (material: Material, applyImage: ApplyImageFunc) => void;
@@ -16,10 +16,7 @@ export interface ICanvasTilesParams extends ILayerParams {
     maxNativeZoom?: number;
 }
 
-type CanvasTilesEventsList = [
-    "load",
-    "loadend"
-];
+type CanvasTilesEventsList = ["load", "loadend"];
 
 type CanvasTilesEventsType = EventsHandler<CanvasTilesEventsList> & EventsHandler<LayerEventsList>;
 
@@ -54,9 +51,8 @@ const CANVASTILES_EVENTS: CanvasTilesEventsList = [
  * @fires loadend
  */
 class CanvasTiles extends Layer {
-
     static MAX_REQUESTS: number = 20;
-    static __requestsCounter: number = 0
+    static __requestsCounter: number = 0;
 
     public override events: CanvasTilesEventsType;
 
@@ -87,7 +83,6 @@ class CanvasTiles extends Layer {
     public drawTile: DrawTileCallback;
 
     protected _onLoadend_: EventCallback | null;
-
 
     constructor(name: string | null, options: ICanvasTilesParams) {
         super(name, options);
@@ -142,7 +137,7 @@ class CanvasTiles extends Layer {
     public override abortLoading() {
         this._pendingsQueue.forEach((qi: Material) => {
             this.abortMaterialLoading(qi);
-        })
+        });
         this._pendingsQueue = [];
     }
 
@@ -261,7 +256,6 @@ class CanvasTiles extends Layer {
 
     public override applyMaterial(material: Material): NumberArray4 {
         if (material.isReady) {
-
             // IMPORTANT!
             // Animated doesn't work withMaxNativeZoom
             // It could be fixed with call drawTile method only for parent
@@ -276,11 +270,9 @@ class CanvasTiles extends Layer {
             }
 
             return material.texOffset;
-
         } else if (material.segment.tileZoom < this.minNativeZoom) {
             material.textureNotExists();
         } else {
-
             let segment = material.segment;
             let pn = segment.node,
                 parentTextureExists = false;
@@ -307,7 +299,6 @@ class CanvasTiles extends Layer {
                         material.textureNotExists();
                     }
                 } else if (pn.segment.tileZoom < maxNativeZoom) {
-
                     let pn = segment.node;
                     while (pn.segment.tileZoom > maxNativeZoom) {
                         pn = pn.parentNode!;
@@ -317,16 +308,13 @@ class CanvasTiles extends Layer {
                     if (pnm) {
                         !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm);
                     } else {
-                        pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(
-                            pn.segment
-                        );
+                        pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(pn.segment);
                         this.loadMaterial(pnm);
                     }
                 }
             }
 
             if (parentTextureExists) {
-
                 //
                 // Animated doesn't work withMaxNativeZoom
                 //
@@ -384,4 +372,4 @@ class CanvasTiles extends Layer {
     }
 }
 
-export {CanvasTiles};
+export { CanvasTiles };

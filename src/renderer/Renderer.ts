@@ -1,31 +1,30 @@
-import {Camera} from "../camera/Camera";
-import {Control} from "../control/Control";
-import {cons} from "../cons";
-import {createRendererEvents} from "./RendererEvents";
-import type {IBaseInputState, RendererEventsHandler} from "./RendererEvents";
-import {depth} from "../shaders/depth";
-import {EntityCollection} from "../entity/EntityCollection";
-import {Framebuffer, Multisample, Program} from "../webgl/index";
-import {FontAtlas} from "../utils/FontAtlas";
-import {Handler} from "../webgl/Handler";
-import type {WebGLBufferExt} from "../webgl/Handler";
-import {input} from "../input/input";
-import {isEmpty} from "../utils/shared";
-import {LabelWorker} from "../entity/label/LabelWorker";
-import {MAX_FLOAT, randomi} from "../math";
-import {RenderNode} from "../scene/RenderNode";
-import {screenFrame} from "../shaders/screenFrame";
-import {toneMapping} from "../shaders/tone_mapping/toneMapping";
-import type {IDeferredShadingPass} from "./IDeferredShadingPass";
-import type {ITransparencyPass} from "./ITransparencyPass";
-import {PhongDeferredShading} from "./PhongDeferredShading";
-import {WOITPass} from "./WOITPass";
-import {TextureAtlas} from "../utils/TextureAtlas";
-import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
-import type {NumberArray3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
-import * as shaders from "../shaders/polyline/polyline";
+import { Camera } from "../camera/Camera";
+import { Control } from "../control/Control";
+import { cons } from "../cons";
+import { createRendererEvents } from "./RendererEvents";
+import type { IBaseInputState, RendererEventsHandler } from "./RendererEvents";
+import { depth } from "../shaders/depth";
+import { EntityCollection } from "../entity/EntityCollection";
+import { Framebuffer, Multisample, Program } from "../webgl/index";
+import { FontAtlas } from "../utils/FontAtlas";
+import { Handler } from "../webgl/Handler";
+import type { WebGLBufferExt } from "../webgl/Handler";
+import { input } from "../input/input";
+import { isEmpty } from "../utils/shared";
+import { LabelWorker } from "../entity/label/LabelWorker";
+import { MAX_FLOAT, randomi } from "../math";
+import { RenderNode } from "../scene/RenderNode";
+import { screenFrame } from "../shaders/screenFrame";
+import { toneMapping } from "../shaders/tone_mapping/toneMapping";
+import type { IDeferredShadingPass } from "./IDeferredShadingPass";
+import type { ITransparencyPass } from "./ITransparencyPass";
+import { PhongDeferredShading } from "./PhongDeferredShading";
+import { WOITPass } from "./WOITPass";
+import { TextureAtlas } from "../utils/TextureAtlas";
+import { Vec2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
+import type { NumberArray3 } from "../math/Vec3";
+import { Vec4 } from "../math/Vec4";
 
 export interface IRendererParams {
     controls?: Control[];
@@ -35,7 +34,7 @@ export interface IRendererParams {
     gamma?: number;
     exposure?: number;
     dpi?: number;
-    clearColor?: [number, number, number, number]
+    clearColor?: [number, number, number, number];
 }
 
 interface IPickingObject {
@@ -104,7 +103,6 @@ export interface HTMLDivElementExt extends HTMLDivElement {
 }
 
 class Renderer {
-
     /**
      * Div element with WebGL canvas. Assigned in Globe class.
      * @public
@@ -257,14 +255,13 @@ class Renderer {
     //public lightIntensity: number;
 
     constructor(handler: Handler | string | HTMLCanvasElement, params: IRendererParams = {}) {
-
         this.div = null;
 
         if (handler instanceof Handler) {
             this.handler = handler;
         } else {
             this.handler = new Handler(handler, {
-                pixelRatio: params.dpi || (window.devicePixelRatio + 0.15),
+                pixelRatio: params.dpi || window.devicePixelRatio + 0.15,
                 autoActivate: true
             });
         }
@@ -323,9 +320,9 @@ class Renderer {
         this._depthRefreshRequired = false;
 
         let urlParams = new URLSearchParams(location.search);
-        let msaaParam = urlParams.get('og_msaa');
+        let msaaParam = urlParams.get("og_msaa");
         if (msaaParam) {
-            this._msaa = Number(urlParams.get('og_msaa'));
+            this._msaa = Number(urlParams.get("og_msaa"));
         } else {
             this._msaa = params.msaa != undefined ? params.msaa : MSAA_DEFAULT;
         }
@@ -441,7 +438,9 @@ class Renderer {
     public addDepthCallback(sender: any, callback: Function) {
         let id = __depthCallbackCounter__++;
         this._depthCallbacks.push({
-            id: id, callback: callback, sender: sender
+            id: id,
+            callback: callback,
+            sender: sender
         });
         return id;
     }
@@ -465,7 +464,9 @@ class Renderer {
     public addPickingCallback(sender: any, callback: Function) {
         let id = __pickingCallbackCounter__++;
         this._pickingCallbacks.push({
-            id: id, callback: callback, sender: sender
+            id: id,
+            callback: callback,
+            sender: sender
         });
         return id;
     }
@@ -503,7 +504,9 @@ class Renderer {
      */
     public assignPickingColor<T>(obj: T & IPickingObject) {
         if (!obj._pickingColor || obj._pickingColor.isZero()) {
-            let r = 0, g = 0, b = 0;
+            let r = 0,
+                g = 0,
+                b = 0;
             let str = "0_0_0";
             while (!(r || g || b) || this.colorObjects.has(str)) {
                 r = randomi(1, 255);
@@ -631,7 +634,6 @@ class Renderer {
      * @public
      */
     public initialize() {
-
         if (this._initialized) {
             return;
         } else {
@@ -660,24 +662,29 @@ class Renderer {
         this.pickingFramebuffer = new Framebuffer(this.handler, {
             width: 640,
             height: 480,
-            targets: [{
-                readAsync: true
-            }]
+            targets: [
+                {
+                    readAsync: true
+                }
+            ]
         });
         this.pickingFramebuffer.init();
 
         this.depthFramebuffer = new Framebuffer(this.handler, {
             width: 640,
             height: 480,
-            targets: [{
-                internalFormat: "RGBA8",
-                attachment: "COLOR_ATTACHMENT",
-                readAsync: true
-            }, {
-                internalFormat: "RGBA16F",
-                attachment: "COLOR_ATTACHMENT",
-                readAsync: true
-            }],
+            targets: [
+                {
+                    internalFormat: "RGBA8",
+                    attachment: "COLOR_ATTACHMENT",
+                    readAsync: true
+                },
+                {
+                    internalFormat: "RGBA16F",
+                    attachment: "COLOR_ATTACHMENT",
+                    readAsync: true
+                }
+            ],
             useDepth: true
         });
 
@@ -694,10 +701,7 @@ class Renderer {
             this._msaa = _maxMSAA;
         }
 
-        this.handler.addPrograms([
-            toneMapping(),
-            depth()
-        ]);
+        this.handler.addPrograms([toneMapping(), depth()]);
 
         this.forwardFramebuffer = new Multisample(this.handler, {
             size: 1,
@@ -714,10 +718,12 @@ class Renderer {
 
         this.hdrFramebuffer = new Framebuffer(this.handler, {
             useDepth: false,
-            targets: [{
-                internalFormat: this._internalFormat,
-                filter: "NEAREST"
-            }]
+            targets: [
+                {
+                    internalFormat: this._internalFormat,
+                    filter: "NEAREST"
+                }
+            ]
         });
 
         this.hdrFramebuffer.init();
@@ -742,7 +748,11 @@ class Renderer {
             this.events.dispatch(this.events.resizeend, this.handler.canvas);
         };
 
-        this.screenFramePositionBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
+        this.screenFramePositionBuffer = this.handler.createArrayBuffer(
+            new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]),
+            2,
+            4
+        );
 
         this.outputTexture = this.screenTexture.screen;
 
@@ -771,7 +781,6 @@ class Renderer {
     }
 
     public _resizeStart() {
-
         let w = this.viewportWidth,
             h = this.viewportHeight;
 
@@ -783,7 +792,6 @@ class Renderer {
     }
 
     public _resizeEnd() {
-
         let w = this.viewportWidth,
             h = this.viewportHeight;
 
@@ -794,14 +802,18 @@ class Renderer {
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w, h, true);
 
         this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(w, h, true);
-        this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(this.handler.canvas!.clientWidth, this.handler.canvas!.clientHeight, true);
+        this.screenDepthFramebuffer &&
+            this.screenDepthFramebuffer.setSize(
+                this.handler.canvas!.clientWidth,
+                this.handler.canvas!.clientHeight,
+                true
+            );
         //this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         this.screenTexture.screen = this.toneMappingFramebuffer!.textures[0];
         this.screenTexture.picking = this.pickingFramebuffer!.textures[0];
         this.screenTexture.depth = this.screenDepthFramebuffer!.textures[0];
         this.screenTexture.frustum = this.depthFramebuffer!.textures[0];
-
 
         this.setCurrentScreen(this._currentOutput);
     }
@@ -878,7 +890,9 @@ class Renderer {
                 return 0;
             }
 
-            const samples = gl.getInternalformatParameter(gl.RENDERBUFFER, glInternalFormat, gl.SAMPLES) as number[] | Int32Array;
+            const samples = gl.getInternalformatParameter(gl.RENDERBUFFER, glInternalFormat, gl.SAMPLES) as
+                | number[]
+                | Int32Array;
 
             if (!samples || samples.length === 0) {
                 return 0;
@@ -1004,7 +1018,6 @@ class Renderer {
         let ec = this._entityCollections[depthOrder];
 
         if (ec.length) {
-
             let gl = this.handler.gl!;
 
             this.enableBlendWoit();
@@ -1016,8 +1029,8 @@ class Renderer {
             i = ec.length;
             while (i--) {
                 let eci = ec[i];
-                if (ec[i]._fadingOpacity) {
-                    ec[i].geoObjectHandler.drawTransparent();
+                if (eci._fadingOpacity) {
+                    eci.geoObjectHandler.drawTransparent();
                 }
             }
 
@@ -1063,7 +1076,6 @@ class Renderer {
         let ec = this._entityCollections[depthOrder];
 
         if (ec.length) {
-
             let gl = this.handler.gl!;
 
             this.enableBlendDefault();
@@ -1202,7 +1214,8 @@ class Renderer {
         let pointerFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown;
         let touchTrigger = e.touchState.touchStart || e.touchState.touchEnd;
         const refreshPicking = (pointerEvent && pointerFree) || touchTrigger || this._depthRefreshRequired;
-        let h = this.handler, gl = h.gl!;
+        let h = this.handler,
+            gl = h.gl!;
 
         this._depthRefreshRequired = false;
 
@@ -1510,7 +1523,6 @@ class Renderer {
     }
 
     public readDepth(x: number, y: number, outDepth: NumberArray3 | Float32Array) {
-
         let ddd = new Float32Array(4);
         let fff = new Uint8Array(4);
 
@@ -1535,7 +1547,6 @@ class Renderer {
      * @returns {number | undefined} -
      */
     public getDistanceFromPixel(px: Vec2 | IBaseInputState): number | undefined {
-
         let camera = this.activeCamera!;
 
         let cnv = this.handler!.canvas!;
@@ -1607,7 +1618,7 @@ class Renderer {
             p.x = i % w;
             p.y = Math.floor(i / w);
             let d = this.getDistanceFromPixel(p);
-            if (d && (d < min)) {
+            if (d && d < min) {
                 min = d;
             }
         }
@@ -1723,4 +1734,4 @@ class Renderer {
     }
 }
 
-export {Renderer};
+export { Renderer };

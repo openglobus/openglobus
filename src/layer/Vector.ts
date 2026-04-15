@@ -1,17 +1,17 @@
 import * as math from "../math";
-import {Entity} from "../entity/Entity";
-import type {IEntityParams} from "../entity/Entity";
-import {EntityCollection} from "../entity/EntityCollection";
-import {EntityCollectionsTreeStrategy} from "../quadTree/EntityCollectionsTreeStrategy";
-import type {EventsHandler} from "../Events";
-import {GeometryHandler} from "../entity/geometry/GeometryHandler";
-import type {IMouseState, ITouchState} from "../renderer/RendererEvents";
-import {Layer} from "./Layer";
-import type {ILayerParams, LayerEventsList} from "./Layer";
-import type {NumberArray3} from "../math/Vec3";
-import {Planet} from "../scene/Planet";
-import {Material} from "./Material";
-import type {NumberArray4} from "../math/Vec4";
+import { Entity } from "../entity/Entity";
+import type { IEntityParams } from "../entity/Entity";
+import { EntityCollection } from "../entity/EntityCollection";
+import { EntityCollectionsTreeStrategy } from "../quadTree/EntityCollectionsTreeStrategy";
+import type { EventsHandler } from "../Events";
+import { GeometryHandler } from "../entity/geometry/GeometryHandler";
+import type { IMouseState, ITouchState } from "../renderer/RendererEvents";
+import { Layer } from "./Layer";
+import type { ILayerParams, LayerEventsList } from "./Layer";
+import type { NumberArray3 } from "../math/Vec3";
+import { Planet } from "../scene/Planet";
+import { Material } from "./Material";
+import type { NumberArray4 } from "../math/Vec4";
 import * as mercator from "../mercator";
 
 export interface IVectorParams extends ILayerParams {
@@ -34,7 +34,7 @@ type VectorEventsList = [
     "draw",
     "entityadd",
     "entityremove"
-]
+];
 
 export type VectorEventsType = EventsHandler<VectorEventsList> & EventsHandler<LayerEventsList>;
 
@@ -92,7 +92,6 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * @fires visibilitychange
  */
 class Vector extends Layer {
-
     public override events: VectorEventsType;
 
     protected _depthOrder: number;
@@ -177,9 +176,7 @@ class Vector extends Layer {
 
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 
-        this._shadeMode =
-            options.shadeMode !== undefined ? Vector._clampShadeMode(options.shadeMode) : 1;
-
+        this._shadeMode = options.shadeMode !== undefined ? Vector._clampShadeMode(options.shadeMode) : 1;
 
         let pickingScale: Float32Array = new Float32Array([1.0, 1.0, 1.0]);
         if (options.pickingScale !== undefined) {
@@ -187,7 +184,7 @@ class Vector extends Layer {
                 pickingScale[0] = options.pickingScale[0] || pickingScale[0];
                 pickingScale[1] = options.pickingScale[1] || pickingScale[1];
                 pickingScale[2] = options.pickingScale[2] || pickingScale[2];
-            } else if (typeof options.pickingScale === 'number') {
+            } else if (typeof options.pickingScale === "number") {
                 pickingScale[0] = options.pickingScale;
                 pickingScale[1] = options.pickingScale;
                 pickingScale[2] = options.pickingScale;
@@ -388,9 +385,7 @@ class Vector extends Layer {
         if (this._planet) {
             if (entity.billboard || entity.label || entity.geoObject || entity.isEmpty) {
                 if (entity._cartesian.isZero() && !entity._lonLat.isZero()) {
-                    entity._setCartesian3vSilent(
-                        this._planet.ellipsoid.lonLatToCartesian(entity._lonLat)
-                    );
+                    entity._setCartesian3vSilent(this._planet.ellipsoid.lonLatToCartesian(entity._lonLat));
                 } else {
                     entity._lonLat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
 
@@ -437,9 +432,7 @@ class Vector extends Layer {
      * @returns {Vector} - Returns this layer.
      */
     public removeEntity(entity: Entity): this {
-
         if (entity._layer && this.isEqual(entity._layer)) {
-
             if (!entity.parent) {
                 this._entities.splice(entity._layerIndex, 1);
                 this._reindexEntitiesArray(entity._layerIndex);
@@ -449,7 +442,6 @@ class Vector extends Layer {
             entity._layerIndex = -1;
 
             if (entity._entityCollection) {
-
                 entity._entityCollection._removeEntitySilent(entity);
 
                 let node = entity._nodePtr;
@@ -459,11 +451,7 @@ class Vector extends Layer {
                     node = node.parentNode!;
                 }
 
-                if (
-                    entity._nodePtr &&
-                    entity._nodePtr.count === 0 &&
-                    entity._nodePtr.deferredEntities.length === 0
-                ) {
+                if (entity._nodePtr && entity._nodePtr.count === 0 && entity._nodePtr.deferredEntities.length === 0) {
                     entity._nodePtr.entityCollection = null;
                     //
                     // ...
@@ -562,7 +550,7 @@ class Vector extends Layer {
 
         this._entityCollectionsTreeStrategy?.dispose();
         this._entityCollectionsTreeStrategy = null;
-        this._geometryHandler.clear()
+        this._geometryHandler.clear();
     }
 
     /**
@@ -585,7 +573,6 @@ class Vector extends Layer {
      * @returns {Vector} - Returns layer instance.
      */
     public setEntities(entities: Entity[]): this {
-
         let temp: Entity[] = new Array(entities.length);
 
         for (let i = 0, len = entities.length; i < len; i++) {
@@ -634,7 +621,10 @@ class Vector extends Layer {
 
     protected _createEntityCollectionsTree(entitiesForTree: Entity[]) {
         if (this._planet) {
-            this._entityCollectionsTreeStrategy = this._planet.quadTreeStrategy.createEntityCollectionsTreeStrategy(this, this._nodeCapacity);
+            this._entityCollectionsTreeStrategy = this._planet.quadTreeStrategy.createEntityCollectionsTreeStrategy(
+                this,
+                this._nodeCapacity
+            );
             this._entityCollectionsTreeStrategy.insertEntities(entitiesForTree);
         }
     }
@@ -644,7 +634,6 @@ class Vector extends Layer {
      * @param entityCollection
      */
     public _bindEventsDefault(entityCollection: EntityCollection) {
-
         let ve = this.events;
 
         //
@@ -888,12 +877,7 @@ class Vector extends Layer {
                 material.texture = psegm.texture;
                 material.pickingMask = psegm.pickingMask;
                 const dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
-                return [
-                    segment.tileX * dZ2 - pn.segment.tileX,
-                    segment.tileY * dZ2 - pn.segment.tileY,
-                    dZ2,
-                    dZ2
-                ];
+                return [segment.tileX * dZ2 - pn.segment.tileX, segment.tileY * dZ2 - pn.segment.tileY, dZ2, dZ2];
             } else {
                 if (material.textureExists && material._updateTexture) {
                     material.texture = material._updateTexture;
@@ -970,4 +954,4 @@ const VECTOR_EVENTS: VectorEventsList = [
     "entityremove"
 ];
 
-export {Vector};
+export { Vector };

@@ -1,7 +1,7 @@
-import {Dialog} from "../ui/Dialog";
-import {Framebuffer} from "../webgl/Framebuffer";
-import {Control, IControlParams} from "./Control";
-import {Program} from "../webgl/Program";
+import { Dialog } from "../ui/Dialog";
+import { Framebuffer } from "../webgl/Framebuffer";
+import { Control, IControlParams } from "./Control";
+import { Program } from "../webgl/Program";
 
 function creteCanvas(width: number, height: number) {
     let canvas = document.createElement("canvas") as HTMLCanvasElement;
@@ -22,7 +22,6 @@ export interface IFramebufferDialogParams extends IControlParams {
 }
 
 export class FramebufferPreview extends Control {
-
     protected _dialog: Dialog<null>;
     public $canvas: HTMLCanvasElement;
     protected _framebuffer: Framebuffer | null;
@@ -43,7 +42,7 @@ export class FramebufferPreview extends Control {
             width: 580,
             height: 340,
             left: 100,
-            top: 100,
+            top: 100
         });
         this.$canvas = creteCanvas(this._dialog.width, this._dialog.height);
         this._framebuffer = params.framebuffer || null;
@@ -62,18 +61,19 @@ export class FramebufferPreview extends Control {
     public override oninit() {
         super.oninit();
         if (this.renderer) {
-
             this.renderer.handler.addProgram(this._program);
 
             this._screenFramebuffer = new Framebuffer(this.renderer.handler, {
                 width: this._framebuffer?.width,
                 height: this._framebuffer?.height,
                 useDepth: false,
-                targets: [{
-                    internalFormat: "RGBA8",
-                    attachment: "COLOR_ATTACHMENT",
-                    readAsync: true
-                }],
+                targets: [
+                    {
+                        internalFormat: "RGBA8",
+                        attachment: "COLOR_ATTACHMENT",
+                        readAsync: true
+                    }
+                ]
             });
             this._screenFramebuffer.init();
         }
@@ -94,14 +94,13 @@ export class FramebufferPreview extends Control {
 
     protected _onDraw = () => {
         if (this._framebuffer && this._screenFramebuffer) {
-
             let r = this.renderer!;
             let h = r.handler;
             let gl = h.gl!;
 
             gl.disable(gl.BLEND);
             this._screenFramebuffer.activate();
-            let sh = this._program._programController!,//h.programs.framebuffer_dialog_screen,
+            let sh = this._program._programController!, //h.programs.framebuffer_dialog_screen,
                 p = sh._program;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer!);
@@ -128,17 +127,22 @@ export class FramebufferPreview extends Control {
                     let clamped = new Uint8ClampedArray(pixels.buffer, pixels.byteOffset, pixels.byteLength);
                     let imageData = new ImageData(clamped, width, height);
 
-                    createImageBitmap(imageData).then(bitmap => {
+                    createImageBitmap(imageData).then((bitmap) => {
                         ctx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
                         ctx.drawImage(bitmap, 0, 0, this.$canvas.width, this.$canvas.height);
                     });
                 }
             });
         }
-    }
+    };
 }
 
-function framebuffer_dialog_screen(id: number = 0, common?: string | null, mainImage?: string | null, flippedY?: boolean): Program {
+function framebuffer_dialog_screen(
+    id: number = 0,
+    common?: string | null,
+    mainImage?: string | null,
+    flippedY?: boolean
+): Program {
     return new Program(`framebuffer_dialog_screen:${id.toString()}`, {
         uniforms: {
             inputTexture: "sampler2D"
@@ -146,8 +150,7 @@ function framebuffer_dialog_screen(id: number = 0, common?: string | null, mainI
         attributes: {
             corners: "vec2"
         },
-        vertexShader:
-            `#version 300 es
+        vertexShader: `#version 300 es
             
             in vec2 corners;
             
@@ -158,8 +161,7 @@ function framebuffer_dialog_screen(id: number = 0, common?: string | null, mainI
                 tc = corners * 0.5 + 0.5;
                 ${flippedY ? `tc.y = 1.0 - tc.y;` : ``}               
             }`,
-        fragmentShader:
-            `#version 300 es
+        fragmentShader: `#version 300 es
 
             precision highp float;
 
@@ -171,10 +173,12 @@ function framebuffer_dialog_screen(id: number = 0, common?: string | null, mainI
 
             ${common || ""}
             
-            ${mainImage ||
-            `void mainImage(out vec4 fragColor, in vec2 fragCoord) { 
+            ${
+                mainImage ||
+                `void mainImage(out vec4 fragColor, in vec2 fragCoord) { 
                 fragColor = texture(inputTexture, fragCoord);
-            }`}
+            }`
+            }
             
             void main(void) {                              
                mainImage(fragColor, tc);

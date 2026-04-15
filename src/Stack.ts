@@ -1,5 +1,4 @@
 class Node<T> {
-
     public next: Node<T> | null;
     public prev: Node<T> | null;
     public data: T | null;
@@ -16,7 +15,6 @@ class Node<T> {
  * @param {number} [size=256] - Stack size
  */
 class Stack<T> {
-
     protected _current: Node<T>;
     protected _head: Node<T>;
 
@@ -55,4 +53,4 @@ class Stack<T> {
     }
 }
 
-export {Stack};
+export { Stack };

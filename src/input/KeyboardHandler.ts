@@ -1,13 +1,13 @@
-import {input} from './input';
-import {stamp} from "../utils/shared";
-import type {EventCallback, EventCallbackStamp} from "../Events";
+import { input } from "./input";
+import { stamp } from "../utils/shared";
+import type { EventCallback, EventCallbackStamp } from "../Events";
 
 const STAMP_SPACER = "_";
 
 interface ICallbackHandler {
-    callback: EventCallbackStamp,
-    sender: any,
-    priority: number
+    callback: EventCallbackStamp;
+    sender: any;
+    priority: number;
 }
 
 const _sortByPriority = function (a: ICallbackHandler, b: ICallbackHandler): number {
@@ -108,7 +108,6 @@ class KeyboardHandler {
     }
 
     public addEvent(event: string, keyCode: number, callback: EventCallback, sender?: any, priority?: number) {
-
         // Event is already bound with the callback
         if (!this._stamp(event, keyCode, callback)) return;
 
@@ -120,18 +119,22 @@ class KeyboardHandler {
                 if (!this._unpressedKeysCallbacks[keyCode]) {
                     this._unpressedKeysCallbacks[keyCode] = [];
                 }
-                this._unpressedKeysCallbacks[keyCode].push({callback: callback, sender: sender, priority: priority});
+                this._unpressedKeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
                 this._unpressedKeysCallbacks[keyCode].sort(_sortByPriority);
                 break;
 
             case "keypress":
                 if (keyCode == null) {
-                    this._anykeyCallback = {callback: callback, sender: sender || this};
+                    this._anykeyCallback = { callback: callback, sender: sender || this };
                 } else {
                     if (!this._pressedKeysCallbacks[keyCode]) {
                         this._pressedKeysCallbacks[keyCode] = [];
                     }
-                    this._pressedKeysCallbacks[keyCode].push({callback: callback, sender: sender, priority: priority});
+                    this._pressedKeysCallbacks[keyCode].push({
+                        callback: callback,
+                        sender: sender,
+                        priority: priority
+                    });
                     this._pressedKeysCallbacks[keyCode].sort(_sortByPriority);
                 }
                 break;
@@ -140,7 +143,7 @@ class KeyboardHandler {
                 if (!this._charkeysCallbacks[keyCode]) {
                     this._charkeysCallbacks[keyCode] = [];
                 }
-                this._charkeysCallbacks[keyCode].push({callback: callback, sender: sender, priority: priority});
+                this._charkeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
                 this._charkeysCallbacks[keyCode].sort(_sortByPriority);
                 break;
         }
@@ -172,7 +175,10 @@ class KeyboardHandler {
     public handleKeyUp() {
         if (this._currentlyPressedKeys[this._event!.keyCode] || this._event!.keyCode === input.KEY_PRINTSCREEN) {
             for (let pk in this._unpressedKeysCallbacks) {
-                if (this._currentlyPressedKeys[pk] || this._event!.keyCode === input.KEY_PRINTSCREEN && Number(pk) === input.KEY_PRINTSCREEN) {
+                if (
+                    this._currentlyPressedKeys[pk] ||
+                    (this._event!.keyCode === input.KEY_PRINTSCREEN && Number(pk) === input.KEY_PRINTSCREEN)
+                ) {
                     let cpk = this._unpressedKeysCallbacks[pk];
                     for (let i = 0; i < cpk.length; i++) {
                         (cpk[i].callback as Function).call(cpk[i].sender, this._event);
@@ -195,4 +201,4 @@ class KeyboardHandler {
     }
 }
 
-export {KeyboardHandler};
+export { KeyboardHandler };
