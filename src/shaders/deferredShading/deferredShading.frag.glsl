@@ -38,7 +38,7 @@ void main(void) {
     }
 
     vec3 cameraRelWorld = transpose(mat3(viewMatrix)) * viewPos;
-    float specularMask = materials.r;
+    float specularMask = materials.b;
 
     vec4 lightWeighting;
     vec3 specularWeighting;

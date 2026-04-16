@@ -170,6 +170,21 @@ export class Gltf {
         }
     }
 
+    private _getTextureImage(textureIndex?: number): TextureImage | undefined {
+        if (textureIndex === undefined) {
+            return;
+        }
+        const texture = this.gltf.gltf.textures?.[textureIndex];
+        if (!texture) {
+            return;
+        }
+        const source = texture.source;
+        if (source === undefined) {
+            return;
+        }
+        return this._images[source];
+    }
+
     private _initMaterials() {
         if (!this.gltf.gltf.materials) {
             return;
@@ -186,51 +201,87 @@ export class Gltf {
                 if (material.pbrMetallicRoughness.baseColorFactor) {
                     mat.baseColorFactor = material.pbrMetallicRoughness.baseColorFactor;
                 }
+                if (material.pbrMetallicRoughness.metallicFactor !== undefined) {
+                    mat.metallicFactor = material.pbrMetallicRoughness.metallicFactor;
+                }
+                if (material.pbrMetallicRoughness.roughnessFactor !== undefined) {
+                    mat.roughnessFactor = material.pbrMetallicRoughness.roughnessFactor;
+                }
                 if (material.pbrMetallicRoughness.baseColorTexture) {
-                    const source = this.gltf.gltf.textures[material.pbrMetallicRoughness.baseColorTexture.index].source;
-                    if (source !== undefined) {
+                    const image = this._getTextureImage(material.pbrMetallicRoughness.baseColorTexture.index);
+                    if (image) {
                         mat.baseColorTexture = {
-                            image: this._images[source],
+                            image,
                             texCoord: material.pbrMetallicRoughness.baseColorTexture.texCoord
                         };
                     }
                 }
                 if (material.pbrMetallicRoughness.metallicRoughnessTexture) {
-                    const source =
-                        this.gltf.gltf.textures[material.pbrMetallicRoughness.metallicRoughnessTexture.index].source;
-                    if (source !== undefined) {
+                    const image = this._getTextureImage(material.pbrMetallicRoughness.metallicRoughnessTexture.index);
+                    if (image) {
                         mat.metallicRoughnessTexture = {
-                            image: this._images[source],
+                            image,
                             texCoord: material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord
                         };
                     }
                 }
             }
+            const specGloss = material.extensions?.KHR_materials_pbrSpecularGlossiness;
+            if (specGloss) {
+                if (!mat.baseColorFactor && specGloss.diffuseFactor) {
+                    mat.baseColorFactor = specGloss.diffuseFactor;
+                }
+                if (!mat.baseColorTexture && specGloss.diffuseTexture) {
+                    const image = this._getTextureImage(specGloss.diffuseTexture.index);
+                    if (image) {
+                        mat.baseColorTexture = {
+                            image,
+                            texCoord: specGloss.diffuseTexture.texCoord
+                        };
+                    }
+                }
+                if (mat.roughnessFactor === undefined && specGloss.glossinessFactor !== undefined) {
+                    mat.roughnessFactor = Math.min(Math.max(1 - specGloss.glossinessFactor, 0), 1);
+                }
+                if (specGloss.specularGlossinessTexture) {
+                    const image = this._getTextureImage(specGloss.specularGlossinessTexture.index);
+                    if (image) {
+                        mat.specularGlossinessTexture = {
+                            image,
+                            texCoord: specGloss.specularGlossinessTexture.texCoord
+                        };
+                        // Fallback: this renderer currently works with metallicRoughnessTexture only.
+                        if (!mat.metallicRoughnessTexture) {
+                            mat.metallicRoughnessTexture = mat.specularGlossinessTexture;
+                        }
+                    }
+                }
+            }
             if (material.normalTexture) {
-                const source = this.gltf.gltf.textures[material.normalTexture.index].source;
-                if (source !== undefined) {
+                const image = this._getTextureImage(material.normalTexture.index);
+                if (image) {
                     mat.normalTexture = {
-                        image: this._images[source],
+                        image,
                         texCoord: material.normalTexture.texCoord,
                         scale: material.normalTexture.scale
                     };
                 }
             }
             if (material.occlusionTexture) {
-                const source = this.gltf.gltf.textures[material.occlusionTexture.index].source;
-                if (source !== undefined) {
+                const image = this._getTextureImage(material.occlusionTexture.index);
+                if (image) {
                     mat.occlusionTexture = {
-                        image: this._images[source],
+                        image,
                         texCoord: material.occlusionTexture.texCoord,
                         strength: material.occlusionTexture.strength
                     };
                 }
             }
             if (material.emissiveTexture) {
-                const source = this.gltf.gltf.textures[material.emissiveTexture.index].source;
-                if (source !== undefined) {
+                const image = this._getTextureImage(material.emissiveTexture.index);
+                if (image) {
                     mat.emissiveTexture = {
-                        image: this._images[source],
+                        image,
                         texCoord: material.emissiveTexture.texCoord
                     };
                 }
@@ -366,8 +417,11 @@ export class Gltf {
             normalTextureSrc: primitive.material?.normalTexture?.image.src,
             colorTextureImage: primitive.material?.baseColorTexture?.image.element,
             colorTextureSrc: primitive.material?.baseColorTexture?.image.src,
-            metallicRoughnessTextureImage: primitive.material?.occlusionTexture?.image.element,
-            metallicRoughnessTextureSrc: primitive.material?.occlusionTexture?.image.src,
+            metallicRoughnessTextureImage: primitive.material?.metallicRoughnessTexture?.image.element,
+            metallicRoughnessTextureSrc: primitive.material?.metallicRoughnessTexture?.image.src,
+            metallic: primitive.material?.metallicFactor,
+            roughness: primitive.material?.roughnessFactor,
+            ambientOcclusion: primitive.material?.occlusionTexture?.strength,
             color: primitive.material?.baseColorFactor
         });
     }

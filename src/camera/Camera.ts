@@ -309,7 +309,7 @@ class Camera {
         this._reverseDepth = options.reverseDepth ?? true;
         this._depthZeroToOne = false;
 
-        let initFrustums = options.frustums || [[1, 500]];
+        let initFrustums = options.frustums || [[0.01, 10000]];
         if (this.reverseDepthActive) {
             const [near = 1, far = MAX_FLOAT] = initFrustums[0] ?? [];
             initFrustums = [[near, far]];

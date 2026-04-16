@@ -24,6 +24,21 @@ export interface GltfMetadata {
                 texCoord?: number;
             };
         };
+        extensions?: {
+            KHR_materials_pbrSpecularGlossiness?: {
+                diffuseFactor?: number[];
+                diffuseTexture?: {
+                    index: number;
+                    texCoord?: number;
+                };
+                specularFactor?: number[];
+                glossinessFactor?: number;
+                specularGlossinessTexture?: {
+                    index: number;
+                    texCoord?: number;
+                };
+            };
+        };
         normalTexture?: {
             index: number;
             texCoord?: number;
@@ -168,7 +183,10 @@ export interface Material {
     name: string;
     baseColorFactor?: number[];
     baseColorTexture?: Texture;
+    metallicFactor?: number;
+    roughnessFactor?: number;
     metallicRoughnessTexture?: Texture;
+    specularGlossinessTexture?: Texture;
     normalTexture?: NormalTexture;
     occlusionTexture?: OcclusionTexture;
     emissiveTexture?: Texture;

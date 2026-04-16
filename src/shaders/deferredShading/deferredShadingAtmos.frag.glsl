@@ -49,7 +49,7 @@ void main(void) {
 
     vec3 cameraRelWorld = transpose(mat3(viewMatrix)) * viewPos;
     vec3 worldVertex = cameraRelWorld + cameraPosition;
-    float specularMask = materials.r;
+    float specularMask = materials.b;
 
     vec3 sunPos = lightPosition;
     vec3 lightDir = normalize(sunPos);

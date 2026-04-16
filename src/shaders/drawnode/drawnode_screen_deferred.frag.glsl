@@ -65,7 +65,8 @@ void main(void) {
         emission *= emissionImageColor.a;
     }
 
-    materials = vec4(specularMask, 0.0, 0.0, 1.0);
+    // R = ambient occlusion, G = roughness, B = metallic(specular mask proxy)
+    materials = vec4(1.0, 0.0, specularMask, 1.0);
     positionColor = vec4(v_viewPosition, packEmissionColor(emission));
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
     normalColor = vec4(normal * 0.5 + 0.5, encodeShadeModeUint(shadeEnc));

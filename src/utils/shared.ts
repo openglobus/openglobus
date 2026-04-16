@@ -1128,6 +1128,69 @@ export async function loadImage(url: string): Promise<HTMLImageElement> {
     });
 }
 
+const MAX_TEXTURE_SIZE = 4096;
+
+export async function ensureImageReady(image: HTMLImageElement): Promise<boolean> {
+    if (typeof image.decode === "function") {
+        try {
+            await image.decode();
+            return true;
+        } catch (e) {
+            // Fallback below for browsers/images where decode rejects.
+        }
+    }
+
+    if (image.complete && image.naturalWidth > 0 && image.naturalHeight > 0) {
+        return true;
+    }
+
+    if (!image.src) {
+        return false;
+    }
+
+    return new Promise<boolean>((resolve) => {
+        const onLoad = () => {
+            cleanup();
+            resolve(true);
+        };
+        const onError = () => {
+            cleanup();
+            resolve(false);
+        };
+        const cleanup = () => {
+            image.removeEventListener("load", onLoad);
+            image.removeEventListener("error", onError);
+        };
+        image.addEventListener("load", onLoad, { once: true });
+        image.addEventListener("error", onError, { once: true });
+    });
+}
+
+export async function prepareTextureImage(image: HTMLImageElement): Promise<HTMLImageElement | HTMLCanvasElement | null> {
+    const isReady = await ensureImageReady(image);
+    if (!isReady) {
+        return null;
+    }
+
+    const imageWidth = image.naturalWidth || image.width;
+    const imageHeight = image.naturalHeight || image.height;
+
+    if (imageWidth <= MAX_TEXTURE_SIZE && imageHeight <= MAX_TEXTURE_SIZE) {
+        return image;
+    }
+
+    const scale = Math.min(MAX_TEXTURE_SIZE / imageWidth, MAX_TEXTURE_SIZE / imageHeight);
+    const width = Math.max(1, Math.floor(imageWidth * scale));
+    const height = Math.max(1, Math.floor(imageHeight * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx!.drawImage(image, 0, 0, width, height);
+    return canvas;
+}
+
 /**
  * Gets image is loaded
  * @param {HTMLImageElement} image
