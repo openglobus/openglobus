@@ -73,7 +73,7 @@ let pointLayer = new Vector("points", {
 let globe = new Globe({
     target: "earth",
     name: "Earth",
-    frustums: [[1, 1e12]],
+    //frustums: [[1, 1e12]],
     terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer],
     msaa: 0
