@@ -311,6 +311,8 @@ input {
     margin: 3px;
     border: 2px solid rgba(0, 0, 0, 0);
     padding: 0;
+    display: flex;
+    flex-direction: column-reverse;
 }
 
 .og-layerSwitcher__layerButton.og-layerSwitcher__visible {
@@ -345,12 +347,10 @@ input {
     text-overflow: ellipsis;
     padding: 3px;
     background-color: rgba(0, 0, 0, 0.5);
-    position: absolute;
     bottom: 0;
-    width: 100%;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
-    max-height: 25px;
+    /* max-height: 25px; */
 }
 
 /* =============================== */
