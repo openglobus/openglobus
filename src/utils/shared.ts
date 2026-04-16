@@ -1128,7 +1128,7 @@ export async function loadImage(url: string): Promise<HTMLImageElement> {
     });
 }
 
-const MAX_TEXTURE_SIZE = 4096;
+const MAX_TEXTURE_SIZE = 2048;
 
 export async function ensureImageReady(image: HTMLImageElement): Promise<boolean> {
     if (typeof image.decode === "function") {
