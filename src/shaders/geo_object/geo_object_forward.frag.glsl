@@ -14,7 +14,7 @@ uniform sampler2D uNormalTexture;
 uniform float uUseColorTexture;
 uniform float uUseNormalTexture;
 uniform float shadeMode;
-uniform mat4 viewMatrix;
+uniform mat3 normalMatrix;
 
 in vec3 cameraPosition;
 in vec3 v_vertex;
@@ -39,7 +39,13 @@ void main(void) {
     vec3 normal = normalize(vNormal);
 
     if (uUseNormalTexture > 0.0) {
-        normal = getNormalWorldFromTexture(uNormalTexture, vTexCoords, normal, v_viewPosition, viewMatrix);
+        normal = getNormalWorldFromTexture(
+            uNormalTexture,
+            vTexCoords,
+            normal,
+            v_viewPosition,
+            normalMatrix
+        );
     }
 
     if (shadeMode < 0.5) {

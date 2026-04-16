@@ -10,7 +10,7 @@ uniform float uUseColorTexture;
 uniform float uUseNormalTexture;
 uniform vec3 materialProperties;
 uniform float shadeMode;
-uniform mat4 viewMatrix;
+uniform mat3 normalMatrix;
 
 in vec3 v_viewPosition;
 in vec4 vColor;
@@ -29,7 +29,13 @@ void main(void) {
     vec3 normal = normalize(vNormal);
 
     if (uUseNormalTexture > 0.0) {
-        normal = getNormalWorldFromTexture(uNormalTexture, vTexCoords, normal, v_viewPosition, viewMatrix);
+        normal = getNormalWorldFromTexture(
+            uNormalTexture,
+            vTexCoords,
+            normal,
+            v_viewPosition,
+            normalMatrix
+        );
     }
 
     normalColor = vec4(normal * 0.5 + 0.5, encodeShadeModeUint(shadeModeToUint(shadeMode)));

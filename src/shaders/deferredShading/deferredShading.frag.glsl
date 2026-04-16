@@ -10,7 +10,7 @@ uniform sampler2D materialsTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D viewPositionTexture;
 
-uniform mat4 viewMatrix;
+uniform mat3 normalMatrix;
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
 uniform vec3 lightDiffuse;
@@ -37,7 +37,7 @@ void main(void) {
         return;
     }
 
-    vec3 cameraRelWorld = transpose(mat3(viewMatrix)) * viewPos;
+    vec3 cameraRelWorld = normalMatrix * viewPos;
     float specularMask = materials.b;
 
     vec4 lightWeighting;

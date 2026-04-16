@@ -260,7 +260,7 @@ export class Mat4 {
      * @public
      * @returns {Mat3} -
      */
-    public toInverseMatrix3(): Mat3 | undefined {
+    public toInverseMatrix3(res: Mat3): Mat3 {
         let a = this._m;
         let c = a[0],
             d = a[1],
@@ -276,13 +276,10 @@ export class Mat4 {
             m = j * g - f * i,
             n = c * l + d * o + e * m;
 
-        if (!n) {
-            return;
-        }
-
         n = 1.0 / n;
 
-        let res = new Mat3();
+        res = res || new Mat3();
+
         res._m[0] = l * n;
         res._m[1] = (-k * d + e * j) * n;
         res._m[2] = (h * d - e * f) * n;

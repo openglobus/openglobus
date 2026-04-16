@@ -16,7 +16,7 @@ uniform sampler2D uNormalTexture;
 uniform float uUseColorTexture;
 uniform float uUseNormalTexture;
 uniform float shadeMode;
-uniform mat4 viewMatrix;
+uniform mat3 normalMatrix;
 
 uniform sampler2D transmittanceTexture;
 uniform sampler2D scatteringTexture;
@@ -49,7 +49,13 @@ void main(void) {
     vec3 normal = normalize(vNormal);
 
     if (uUseNormalTexture > 0.0) {
-        normal = getNormalWorldFromTexture(uNormalTexture, vTexCoords, normal, v_viewPosition, viewMatrix);
+        normal = getNormalWorldFromTexture(
+            uNormalTexture,
+            vTexCoords,
+            normal,
+            v_viewPosition,
+            normalMatrix
+        );
     }
 
     vec3 vertex = v_vertex;

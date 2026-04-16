@@ -36,12 +36,15 @@ in sampler2D normalTexture,
 in vec2 texCoords,
 in vec3 worldNormal,
 in vec3 viewPosition,
-in mat4 viewMatrix
+in mat3 normalMatrix
 ) {
-    mat3 viewRotation = mat3(viewMatrix);
-    vec3 viewNormal = normalize(viewRotation * worldNormal);
+    vec3 viewNormal = normalize(vec3(
+        dot(normalMatrix[0], worldNormal),
+        dot(normalMatrix[1], worldNormal),
+        dot(normalMatrix[2], worldNormal)
+    ));
     vec3 mappedViewNormal = applyNormalTextureInViewSpace(normalTexture, texCoords, viewNormal, viewPosition);
-    return normalize(transpose(viewRotation) * mappedViewNormal);
+    return normalize(normalMatrix * mappedViewNormal);
 }
 
 #endif

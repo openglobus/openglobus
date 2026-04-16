@@ -16,6 +16,7 @@ export const geo_object_deferred = (): Program =>
     new Program("geo_object_deferred", {
         uniforms: {
             viewMatrix: "mat4",
+            normalMatrix: "mat3",
             projectionMatrix: "mat4",
             uScaleByDistance: "vec3",
             rtcEyePositionHigh: "vec3",
@@ -48,6 +49,7 @@ export const geo_object_forward = (): Program =>
     new Program("geo_object_forward", {
         uniforms: {
             viewMatrix: "mat4",
+            normalMatrix: "mat3",
             projectionMatrix: "mat4",
             uScaleByDistance: "vec3",
             eyePositionHigh: "vec3",
@@ -86,6 +88,7 @@ export const geo_object_woit = (): Program =>
     new Program("geo_object_woit", {
         uniforms: {
             viewMatrix: "mat4",
+            normalMatrix: "mat3",
             projectionMatrix: "mat4",
             uScaleByDistance: "vec3",
             eyePositionHigh: "vec3",
@@ -125,6 +128,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
     return new Program("geo_object_woit_atmos", {
         uniforms: {
             viewMatrix: "mat4",
+            normalMatrix: "mat3",
             projectionMatrix: "mat4",
             uScaleByDistance: "vec3",
             eyePositionHigh: "vec3",

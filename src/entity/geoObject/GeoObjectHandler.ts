@@ -453,6 +453,7 @@ export class GeoObjectHandler {
 
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
+        gl.uniformMatrix3fv(u.normalMatrix, false, r.activeCamera.getNormalMatrix());
     }
 
     protected _bindForwardParams(p: Program) {
