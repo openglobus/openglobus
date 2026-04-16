@@ -1,11 +1,11 @@
 import * as utils from "../utils/shared";
-import {Vec3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
-import type {NumberArray3} from "../math/Vec3";
-import type {NumberArray4} from "../math/Vec4";
-import {Entity} from "./Entity";
-import {RayHandler} from "./RayHandler";
-import type {HTMLImageElementExt} from "../utils/ImagesCacheManager";
+import { Vec3 } from "../math/Vec3";
+import { Vec4 } from "../math/Vec4";
+import type { NumberArray3 } from "../math/Vec3";
+import type { NumberArray4 } from "../math/Vec4";
+import { Entity } from "./Entity";
+import { RayHandler } from "./RayHandler";
+import type { HTMLImageElementExt } from "../utils/ImagesCacheManager";
 
 export interface IRayParams {
     thickness?: number;
@@ -31,7 +31,6 @@ export interface IRayParams {
  * @param {boolean} [options.visibility] - Visibility.
  */
 class Ray {
-
     static __counter__: number = 0;
     /**
      * Object uniq identifier.
@@ -95,14 +94,13 @@ class Ray {
      * @protected
      * @type {Object}
      */
-    protected _image: HTMLImageElement & { __nodeIndex?: number } | null;
+    protected _image: (HTMLImageElement & { __nodeIndex?: number }) | null;
 
     protected _texOffset: number;
 
     protected _strokeSize: number;
 
     constructor(options: IRayParams = {}) {
-
         this.__id = Ray.__counter__++;
 
         this._thickness = options.thickness || 2.0;
@@ -158,11 +156,11 @@ class Ray {
             this._startPositionLow
         );
         this._handler &&
-        this._handler.setStartPositionArr(
-            this._handlerIndex,
-            this._startPositionHigh,
-            this._startPositionLow
-        );
+            this._handler.setStartPositionArr(
+                this._handlerIndex,
+                this._startPositionHigh,
+                this._startPositionLow
+            );
     }
 
     public getLength(): number {
@@ -176,33 +174,8 @@ class Ray {
      */
     public setSrc(src: string | null) {
         this._src = src;
-        let bh = this._handler;
-        if (bh) {
-            let rn = bh._entityCollection.renderNode;
-            if (rn && rn.renderer) {
-                let ta = rn.renderer.strokeTextureAtlas;
-                if (src && src.length) {
-                    ta.loadImage(src, (img: HTMLImageElementExt) => {
-                        if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
-                            this._image = img;
-                            let taData = ta.get(img!.__nodeIndex!)!;
-                            bh!.setTexCoordArr(
-                                this._handlerIndex,
-                                taData.texCoords
-                            );
-                        } else {
-                            ta.addImage(img);
-                            ta.createTexture();
-                            this._image = img;
-                            rn!.updateStrokeTexCoords();
-                        }
-                    });
-                } else {
-                    bh!.setTextureDisabled(this._handlerIndex);
-                    rn!.updateStrokeTexCoords();
-                }
-            }
-        }
+        this._image = null;
+        this.reloadTexture();
     }
 
     public getSrc(): string | null {
@@ -215,11 +188,44 @@ class Ray {
      * @param {Object} image - JavaScript image object.
      */
     public setImage(image: HTMLImageElement) {
-        this.setSrc(image.src);
+        this._src = image.src;
+        this._image = image;
+        this.reloadTexture();
     }
 
     public getImage(): HTMLImageElementExt | null {
         return this._image;
+    }
+
+    public reloadTexture(): void {
+        let bh = this._handler;
+        if (bh) {
+            let rn = bh._entityCollection.renderNode;
+            if (rn && rn.renderer) {
+                let ta = rn.renderer.strokeTextureAtlas;
+                if (this._image) {
+                    if (this._image.__nodeIndex != undefined && ta.get(this._image.__nodeIndex)) {
+                        let taData = ta.get(this._image!.__nodeIndex!)!;
+                        bh!.setTexCoordArr(this._handlerIndex, taData.texCoords);
+                    } else {
+                        ta.addImage(this._image);
+                        ta.createTexture();
+                        this._image = this._image;
+                        rn!.updateStrokeTexCoords();
+                    }
+                } else {
+                    if (this._src && this._src.length) {
+                        ta.loadImage(this._src, (img: HTMLImageElementExt) => {
+                            this._image = img;
+                            this.reloadTexture();
+                        });
+                    } else {
+                        bh!.setTextureDisabled(this._handlerIndex);
+                        rn!.updateStrokeTexCoords();
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -237,11 +243,11 @@ class Ray {
             this._startPositionLow
         );
         this._handler &&
-        this._handler.setStartPositionArr(
-            this._handlerIndex,
-            this._startPositionHigh,
-            this._startPositionLow
-        );
+            this._handler.setStartPositionArr(
+                this._handlerIndex,
+                this._startPositionHigh,
+                this._startPositionLow
+            );
     }
 
     /**
@@ -257,11 +263,11 @@ class Ray {
         this._endPosition.z = z;
         Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
         this._handler &&
-        this._handler.setEndPositionArr(
-            this._handlerIndex,
-            this._endPositionHigh,
-            this._endPositionLow
-        );
+            this._handler.setEndPositionArr(
+                this._handlerIndex,
+                this._endPositionHigh,
+                this._endPositionLow
+            );
     }
 
     /**
@@ -275,11 +281,11 @@ class Ray {
         this._endPosition.z = position.z;
         Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
         this._handler &&
-        this._handler.setEndPositionArr(
-            this._handlerIndex,
-            this._endPositionHigh,
-            this._endPositionLow
-        );
+            this._handler.setEndPositionArr(
+                this._handlerIndex,
+                this._endPositionHigh,
+                this._endPositionLow
+            );
     }
 
     public setThickness(thickness: number) {
@@ -303,7 +309,7 @@ class Ray {
         }
 
         this._handler &&
-        this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
+            this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
     }
 
     public setColorsHTML(startColor?: string, endColor?: string) {
@@ -315,7 +321,8 @@ class Ray {
             this._endColor = utils.htmlColorToRgba(endColor);
         }
 
-        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
+        this._handler &&
+            this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
     }
 
     public get texOffset(): number {
@@ -392,4 +399,4 @@ class Ray {
     }
 }
 
-export {Ray};
+export { Ray };
