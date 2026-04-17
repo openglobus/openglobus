@@ -32,3 +32,6 @@ export * from "./CameraFrameComposer";
 export * from "./CameraFrameHandler";
 export * from "./cameraDepthHandler/CameraDepthHandler";
 export * from "./FramebufferPreview";
+export * from "./SimpleTouchNavigation";
+export * from "./entityTreeList/EntityTree";
+export * from "./entityTreeList/EntityTreeView";

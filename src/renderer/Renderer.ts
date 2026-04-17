@@ -25,6 +25,7 @@ import { Vec2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
 import type { NumberArray3 } from "../math/Vec3";
 import { Vec4 } from "../math/Vec4";
+import type { NumberArray4 } from "../math/Vec4";
 
 export interface IRendererParams {
     controls?: Control[];
@@ -35,6 +36,10 @@ export interface IRendererParams {
     exposure?: number;
     dpi?: number;
     clearColor?: [number, number, number, number];
+    lightPosition?: NumberArray3;
+    lightAmbient?: NumberArray3;
+    lightDiffuse?: NumberArray3;
+    lightSpecular?: NumberArray4;
 }
 
 interface IPickingObject {
@@ -69,6 +74,10 @@ let _tempDepth_ = new Float32Array(2);
  *     - exposure: HDR exposure value
  *     - dpi: Device pixel ratio
  *     - clearColor: RGBA clear color array
+ *     - lightPosition: Light position `[x, y, z]`
+ *     - lightAmbient: Light ambient color `[r, g, b]`
+ *     - lightDiffuse: Light diffuse color `[r, g, b]`
+ *     - lightSpecular: Light specular `[r, g, b, shininess]`
  * @fires draw - Triggered before each frame is rendered.
  * @fires resize - Triggered when the canvas is resized.
  * @fires mousemove - Triggered when the mouse moves over the canvas.
@@ -268,12 +277,10 @@ class Renderer {
 
         this.clearColor = new Float32Array(params.clearColor || [0, 0, 0, 1]);
 
-        this.lightPosition = new Float32Array([1, 1, 1]);
-        this.lightAmbient = new Float32Array([0.2, 0.2, 0.3]);
-        this.lightDiffuse = new Float32Array([0.9, 0.9, 0.7]);
-        this.lightSpecular = new Float32Array([0.00063, 0.00055, 0.00032, 18.0]);
-        //this.lightColor = new Float32Array([1.0, 1.0, 1.0]);
-        //this.lightIntensity = 1.0;
+        this.lightPosition = new Float32Array(params.lightPosition || [1, 1, 1]);
+        this.lightAmbient = new Float32Array(params.lightAmbient || [0.2, 0.2, 0.3]);
+        this.lightDiffuse = new Float32Array(params.lightDiffuse || [0.9, 0.9, 0.7]);
+        this.lightSpecular = new Float32Array(params.lightSpecular || [0.00063, 0.00055, 0.00032, 18.0]);
 
         this.exposure = params.exposure || 3.01;
 
@@ -586,16 +593,6 @@ class Renderer {
         return new Vec2(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
     }
 
-    // /**
-    //  * Get center of the screen viewport
-    //  * @public
-    //  * @returns {Vec2} -
-    //  */
-    // public getClientCenter(): Vec2 {
-    //     let cnv = this.handler.canvas!;
-    //     return new Vec2(Math.round(cnv.clientWidth * 0.5), Math.round(cnv.clientHeight * 0.5));
-    // }
-
     /**
      * Adds a control to the renderer.
      * @public
@@ -703,7 +700,12 @@ class Renderer {
 
         this.handler.addPrograms([toneMapping(), depth()]);
 
+        let initWidth = this.handler.getWidth(),
+            initHeight = this.handler.getHeight();
+
         this.forwardFramebuffer = new Multisample(this.handler, {
+            width: initWidth,
+            height: initHeight,
             size: 1,
             msaa: this._msaa,
             internalFormat: this._internalFormat,
@@ -717,6 +719,8 @@ class Renderer {
         this.transparencyPass.init();
 
         this.hdrFramebuffer = new Framebuffer(this.handler, {
+            width: initWidth,
+            height: initHeight,
             useDepth: false,
             targets: [
                 {
@@ -729,6 +733,8 @@ class Renderer {
         this.hdrFramebuffer.init();
 
         this.toneMappingFramebuffer = new Framebuffer(this.handler, {
+            width: initWidth,
+            height: initHeight,
             useDepth: false
         });
 
@@ -1714,11 +1720,22 @@ class Renderer {
         this._initialized = false;
     }
 
+    /**
+     * Adds a shader program to the renderer if it has not been added yet.
+     * @public
+     * @param {Program} program - Program instance.
+     */
     public addProgram(program: Program) {
         if (this.handler.programs[program.name]) return;
         this.handler.addProgram(program);
     }
 
+    /**
+     * Adds one or more programs to the renderer.
+     * Supports both individual programs and nested program arrays.
+     * @public
+     * @param {...(Program | Program[])} programs - Program list.
+     */
     public addPrograms(...programs: (Program | Program[])[]) {
         for (const p of programs) {
             if (Array.isArray(p)) {
@@ -1729,6 +1746,11 @@ class Renderer {
         }
     }
 
+    /**
+     * Alias for {@link Renderer.addPrograms}.
+     * @public
+     * @param {...(Program | Program[])} programs - Program list.
+     */
     public addShaders(...programs: (Program | Program[])[]) {
         this.addPrograms(...programs);
     }
