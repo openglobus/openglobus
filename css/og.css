@@ -249,6 +249,18 @@ input {
     user-select: none;
 }
 
+.og-ddialog .og-ddialog-resize-handle {
+    display: block;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    touch-action: none;
+    z-index: 2;
+}
+
 .og-button {
     display: flex;
     align-items: center;
@@ -336,7 +348,7 @@ input {
 }
 
 .og-layerSwitcher__layerButton.og-layerSwitcher__visible {
-    border: 2px solid #00ff14;
+    border: 2px solid #56ff64;
 }
 
 .og-layerSwitcher__layerButton.og-layerSwitcher__visible img {
@@ -370,7 +382,7 @@ input {
     bottom: 0;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
-    /* max-height: 25px; */
+    z-index: 10;
 }
 
 .og-entityTree {
@@ -879,6 +891,7 @@ TIMELINE
     overflow: hidden;
     width: 100%;
     height: 100%;
+    touch-action: none;
 }
 
 .og-timeline-current {
@@ -889,6 +902,7 @@ TIMELINE
     margin-left: -5px;
     cursor: pointer;
     margin-top: -7px;
+    touch-action: none;
 }
 
 .og-timeline-current-spin {

@@ -31,6 +31,7 @@ class Button extends View<null> {
     public name: string;
     public $icon: HTMLElement | null;
     public $text: HTMLElement | null;
+    protected _skipMouseClickOnce: boolean;
 
     constructor(options: IButtonParams = {}) {
         super({
@@ -51,6 +52,7 @@ class Button extends View<null> {
 
         this.$icon = null;
         this.$text = null;
+        this._skipMouseClickOnce = false;
     }
 
     public override render(params: any): this {
@@ -64,12 +66,12 @@ class Button extends View<null> {
 
     protected _initEvents() {
         if (this.el) {
-            this.el.addEventListener("click", this._onMouseClick);
+            this.el.addEventListener("click", this._onClick);
             this.el.addEventListener("mousedown", this._onMouseDown);
             this.el.addEventListener("mouseup", this._onMouseUp);
-            this.el.addEventListener("touchstart", this._onTouchStart);
-            this.el.addEventListener("touchend", this._onTouchEnd);
-            this.el.addEventListener("touchcancel", this._onTouchCancel);
+            this.el.addEventListener("pointerdown", this._onPointerDown);
+            this.el.addEventListener("pointerup", this._onPointerUp);
+            this.el.addEventListener("pointercancel", this._onPointerCancel);
         }
     }
 
@@ -83,18 +85,36 @@ class Button extends View<null> {
         this.events.dispatch(this.events.mouseup, this, e);
     };
 
-    protected _onTouchStart = (e: TouchEvent) => {
+    protected _onPointerDown = (e: PointerEvent) => {
+        if (e.pointerType !== "touch") {
+            return;
+        }
         e.preventDefault();
+        this.el?.setPointerCapture(e.pointerId);
         this.events.dispatch(this.events.touchstart, this, e);
     };
 
-    protected _onTouchEnd = (e: TouchEvent) => {
+    protected _onPointerUp = (e: PointerEvent) => {
+        if (e.pointerType !== "touch") {
+            return;
+        }
         e.preventDefault();
+        if (this.el?.hasPointerCapture(e.pointerId)) {
+            this.el.releasePointerCapture(e.pointerId);
+        }
         this.events.dispatch(this.events.touchend, this, e);
+        this._skipMouseClickOnce = true;
+        this._onMouseClick(e as unknown as MouseEvent);
     };
 
-    protected _onTouchCancel = (e: TouchEvent) => {
+    protected _onPointerCancel = (e: PointerEvent) => {
+        if (e.pointerType !== "touch") {
+            return;
+        }
         e.preventDefault();
+        if (this.el?.hasPointerCapture(e.pointerId)) {
+            this.el.releasePointerCapture(e.pointerId);
+        }
         this.events.dispatch(this.events.touchcancel, this, e);
     };
 
@@ -102,6 +122,15 @@ class Button extends View<null> {
         e.preventDefault();
         this.events.dispatch(this.events.click, this, e);
     }
+
+    protected _onClick = (e: MouseEvent) => {
+        if (this._skipMouseClickOnce) {
+            this._skipMouseClickOnce = false;
+            e.preventDefault();
+            return;
+        }
+        this._onMouseClick(e);
+    };
 
     protected _onMouseClick = (e: MouseEvent) => {
         this._mouseClickHandler(e);
@@ -113,7 +142,14 @@ class Button extends View<null> {
     }
 
     protected _clearEvents() {
-        this.el && this.el.removeEventListener("click", this._onMouseClick);
+        if (this.el) {
+            this.el.removeEventListener("click", this._onClick);
+            this.el.removeEventListener("mousedown", this._onMouseDown);
+            this.el.removeEventListener("mouseup", this._onMouseUp);
+            this.el.removeEventListener("pointerdown", this._onPointerDown);
+            this.el.removeEventListener("pointerup", this._onPointerUp);
+            this.el.removeEventListener("pointercancel", this._onPointerCancel);
+        }
     }
 }
 

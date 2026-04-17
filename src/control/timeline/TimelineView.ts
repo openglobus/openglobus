@@ -26,6 +26,13 @@ interface ITimelineViewParams extends IViewParams {
 
 const SECONDS_TO_MILLISECONDS = 1000.0;
 const MILLISECONDS_TO_SECONDS = 1.0 / SECONDS_TO_MILLISECONDS;
+const CLICK_MOVE_TOLERANCE_PX = 4;
+const PINCH_SCALE_MIN = 0.5;
+const PINCH_SCALE_MAX = 2.0;
+const TOUCH_MODE_NONE = 0;
+const TOUCH_MODE_CURRENT = 1;
+const TOUCH_MODE_PINCH = 2;
+const TOUCH_MODE_SCALE = 3;
 
 type TimelineViewEventsList = [
     "startdrag",
@@ -83,6 +90,18 @@ const TEMPLATE = `<div class="og-timeline">
 
 </div>`;
 
+type TimelineTouchMode =
+    | typeof TOUCH_MODE_NONE
+    | typeof TOUCH_MODE_CURRENT
+    | typeof TOUCH_MODE_PINCH
+    | typeof TOUCH_MODE_SCALE;
+
+interface ITimelineTouchPointer {
+    pointerId: number;
+    clientX: number;
+    clientY: number;
+}
+
 class TimelineView extends View<TimelineModel> {
     public override events: EventsHandler<TimelineViewEventsList> & EventsHandler<ViewEventsList>;
     public fillStyle: string;
@@ -104,6 +123,12 @@ class TimelineView extends View<TimelineModel> {
     protected _clickCurrentDate: Date;
     protected _clickTime: number;
     protected _clickDelay: number;
+    protected _clickMoveTolerance: number;
+    protected _touchMode: TimelineTouchMode;
+    protected _touchPinchDistance: number;
+    protected _touchPointers: Map<number, ITimelineTouchPointer>;
+    protected _touchScalePointerId: number | null;
+    protected _touchCurrentPointerId: number | null;
     protected _onResizeObserver_: () => void;
     protected _resizeObserver: ResizeObserver;
     protected _pauseBtn: ToggleButton;
@@ -152,6 +177,12 @@ class TimelineView extends View<TimelineModel> {
 
         this._clickTime = 0;
         this._clickDelay = 450;
+        this._clickMoveTolerance = CLICK_MOVE_TOLERANCE_PX;
+        this._touchMode = TOUCH_MODE_NONE;
+        this._touchPinchDistance = 0;
+        this._touchPointers = new Map();
+        this._touchScalePointerId = null;
+        this._touchCurrentPointerId = null;
 
         this._onResizeObserver_ = this._onResizeObserver.bind(this);
         this._resizeObserver = new ResizeObserver(this._onResizeObserver_);
@@ -221,14 +252,21 @@ class TimelineView extends View<TimelineModel> {
 
         this._canvasEl.addEventListener("mouseenter", this._onMouseEnter);
         this._canvasEl.addEventListener("mouseout", this._onMouseOut);
+        this._canvasEl.addEventListener("pointerdown", this._onScalePointerDown);
+        this._canvasEl.style.touchAction = "none";
 
         this._currentEl!.addEventListener("mouseenter", this._onCurrentMouseEnter);
         this._currentEl!.addEventListener("mouseout", this._onCurrentMouseOut);
+        this._currentEl!.addEventListener("pointerdown", this._onCurrentPointerDown);
+        this._currentEl!.style.touchAction = "none";
 
         document.body.addEventListener("mousemove", this._onMouseMove);
         document.body.addEventListener("mousedown", this._onMouseDown);
         document.body.addEventListener("mouseup", this._onMouseUp);
         document.body.addEventListener("wheel", this._onMouseWheelFF);
+        document.addEventListener("pointermove", this._onPointerMove);
+        document.addEventListener("pointerup", this._onPointerUp);
+        document.addEventListener("pointercancel", this._onPointerUp);
 
         this._playBtn.appendTo(this.$controls!);
         this._pauseBtn.appendTo(this.$controls!);
@@ -336,6 +374,13 @@ class TimelineView extends View<TimelineModel> {
     };
 
     protected _zoom(pointerTime: number, pointerCenterOffsetX: number, dir: number) {
+        this._zoomByScale(pointerTime, pointerCenterOffsetX, 1 - dir * 0.1);
+    }
+
+    protected _zoomByScale(pointerTime: number, pointerCenterOffsetX: number, scale: number) {
+        if (!isFinite(scale) || scale <= 0) {
+            return;
+        }
         let centerTime = this.model.rangeStartTime + 0.5 * this.model.range;
 
         let centerTimeOffset = (pointerTime - centerTime) * MILLISECONDS_TO_SECONDS;
@@ -343,11 +388,12 @@ class TimelineView extends View<TimelineModel> {
         let rangeStart = addSeconds(this.model.rangeStart, centerTimeOffset),
             rangeEnd = addSeconds(this.model.rangeEnd, centerTimeOffset);
 
-        let delta = ((rangeEnd.getTime() - rangeStart.getTime()) / 20) * MILLISECONDS_TO_SECONDS;
-
-        let newRangeStart = addSeconds(rangeStart, delta * dir);
-        let newRangeEnd = addSeconds(rangeEnd, -delta * dir);
-        let msPx = (newRangeEnd.getTime() - newRangeStart.getTime()) / this.clientWidth;
+        let shiftedRange = rangeEnd.getTime() - rangeStart.getTime();
+        let scaledRange = shiftedRange * scale;
+        let shiftedCenter = rangeStart.getTime() + shiftedRange * 0.5;
+        let newRangeStart = new Date(shiftedCenter - scaledRange * 0.5);
+        let newRangeEnd = new Date(shiftedCenter + scaledRange * 0.5);
+        let msPx = scaledRange / this.clientWidth;
 
         if (msPx < 31536000000 && msPx > 0.1) {
             let timeOffset = msPx * pointerCenterOffsetX * MILLISECONDS_TO_SECONDS;
@@ -356,47 +402,194 @@ class TimelineView extends View<TimelineModel> {
         }
     }
 
-    protected _onMouseDown = (e: MouseEvent) => {
-        if (this._isMouseOver) {
+    protected _startScaleDrag(
+        clientX: number,
+        sourceEvent: Event,
+        allowClick: boolean = true,
+        pointerId: number | null = this._touchScalePointerId
+    ) {
+        if (!this._isDragging) {
             this._isDragging = true;
             document.body.classList.add("og-timeline-unselectable");
+            this.events.dispatch(this.events.startdrag, sourceEvent);
+        }
 
-            this._clickPosX = e.clientX;
-            this._clickTime = Date.now();
+        this._clickPosX = clientX;
+        this._clickRangeStart = this.model.rangeStart;
+        this._clickRangeEnd = this.model.rangeEnd;
+        this._clickTime = allowClick ? Date.now() : 0;
+        this._touchScalePointerId = pointerId;
+    }
 
-            this._clickRangeStart = this.model.rangeStart;
-            this._clickRangeEnd = this.model.rangeEnd;
+    protected _moveScaleDrag(clientX: number) {
+        let offsetSec = (this._clickPosX - clientX) * this._millisecondsInPixel * MILLISECONDS_TO_SECONDS;
+        this.model.set(addSeconds(this._clickRangeStart, offsetSec), addSeconds(this._clickRangeEnd, offsetSec));
+    }
 
-            this.events.dispatch(this.events.startdrag, e);
-        } else if (this._isCurrentMouseOver) {
+    protected _stopScaleDrag(clientX: number | null, allowClick: boolean = true) {
+        if (!this._isDragging) {
+            return;
+        }
+
+        this._isDragging = false;
+        this._touchScalePointerId = null;
+        document.body.classList.remove("og-timeline-unselectable");
+
+        if (allowClick && clientX != null && this._isClickGesture(clientX)) {
+            let current = this._setCurrentByClientX(clientX);
+            this.events.dispatch(this.events.stopdrag, current);
+            this.events.dispatch(this.events.setcurrent, current);
+        } else {
+            this.events.dispatch(this.events.stopdrag, this.model.current);
+        }
+    }
+
+    protected _startCurrentDrag(
+        clientX: number,
+        sourceEvent: Event,
+        pointerId: number | null = this._touchCurrentPointerId
+    ) {
+        if (!this._isCurrentDragging) {
             this._isCurrentDragging = true;
             document.body.classList.add("og-timeline-unselectable");
+            this.events.dispatch(this.events.startdragcurrent, sourceEvent);
+        }
 
-            this._clickPosX = e.clientX;
+        this._clickPosX = clientX;
+        this._clickCurrentDate = this.model.current;
+        this._touchCurrentPointerId = pointerId;
+    }
 
-            this._clickCurrentDate = this.model.current;
+    protected _moveCurrentDrag(clientX: number) {
+        let offsetSec = (this._clickPosX - clientX) * this._millisecondsInPixel * MILLISECONDS_TO_SECONDS;
+        let newCurrent = addSeconds(this._clickCurrentDate, -offsetSec);
+        if (newCurrent >= this.model.rangeStart && newCurrent <= this.model.rangeEnd) {
+            this.model.current = newCurrent;
+        }
+    }
 
-            this.events.dispatch(this.events.startdragcurrent, e);
+    protected _stopCurrentDrag() {
+        if (!this._isCurrentDragging) {
+            return;
+        }
+
+        this._isCurrentDragging = false;
+        this._touchCurrentPointerId = null;
+        document.body.classList.remove("og-timeline-unselectable");
+        this.events.dispatch(this.events.stopdragcurrent, this.model.current);
+    }
+
+    protected _isClickGesture(clientX: number): boolean {
+        return (
+            this._clickTime > 0 &&
+            Math.abs(this._clickPosX - clientX) <= this._clickMoveTolerance &&
+            Date.now() - this._clickTime < this._clickDelay
+        );
+    }
+
+    protected _setCurrentByClientX(clientX: number): Date {
+        let rect = this._canvasEl.getBoundingClientRect();
+        let posX = Math.max(0, Math.min(clientX - rect.left, this.clientWidth));
+        let current = new Date(this.model.rangeStartTime + posX * this._millisecondsInPixel);
+        this.model.current = current;
+        return current;
+    }
+
+    protected _captureTouchPointer(e: PointerEvent) {
+        this._touchPointers.set(e.pointerId, {
+            pointerId: e.pointerId,
+            clientX: e.clientX,
+            clientY: e.clientY
+        });
+        (e.currentTarget as Element | null)?.setPointerCapture?.(e.pointerId);
+    }
+
+    protected _updateTouchPointer(e: PointerEvent) {
+        this._touchPointers.set(e.pointerId, {
+            pointerId: e.pointerId,
+            clientX: e.clientX,
+            clientY: e.clientY
+        });
+    }
+
+    protected _releaseTouchPointerCapture(pointerId: number) {
+        if (this._canvasEl.hasPointerCapture(pointerId)) {
+            this._canvasEl.releasePointerCapture(pointerId);
+        }
+        if (this._currentEl?.hasPointerCapture(pointerId)) {
+            this._currentEl.releasePointerCapture(pointerId);
+        }
+    }
+
+    protected _getFirstTouchPointer(): ITimelineTouchPointer | null {
+        const iter = this._touchPointers.values();
+        const first = iter.next();
+        return first.done ? null : first.value;
+    }
+
+    protected _getTwoTouchPointers(): [ITimelineTouchPointer, ITimelineTouchPointer] | null {
+        const iter = this._touchPointers.values();
+        const first = iter.next();
+        const second = iter.next();
+        if (first.done || second.done) {
+            return null;
+        }
+        return [first.value, second.value];
+    }
+
+    protected _getTouchPointer(pointerId: number | null): ITimelineTouchPointer | null {
+        if (pointerId == null) {
+            return null;
+        }
+        return this._touchPointers.get(pointerId) || null;
+    }
+
+    protected _getTouchDistance(t0: ITimelineTouchPointer, t1: ITimelineTouchPointer): number {
+        return Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+    }
+
+    protected _startPinchGesture(t0: ITimelineTouchPointer, t1: ITimelineTouchPointer, sourceEvent: Event) {
+        this._startScaleDrag((t0.clientX + t1.clientX) * 0.5, sourceEvent, false, null);
+        this._touchMode = TOUCH_MODE_PINCH;
+        this._touchPinchDistance = this._getTouchDistance(t0, t1);
+    }
+
+    protected _movePinchGesture(t0: ITimelineTouchPointer, t1: ITimelineTouchPointer) {
+        let distance = this._getTouchDistance(t0, t1);
+        if (distance <= 0 || this._touchPinchDistance <= 0) {
+            return;
+        }
+
+        let scale = this._touchPinchDistance / distance;
+        if (scale < PINCH_SCALE_MIN) {
+            scale = PINCH_SCALE_MIN;
+        } else if (scale > PINCH_SCALE_MAX) {
+            scale = PINCH_SCALE_MAX;
+        }
+
+        let centerX = (t0.clientX + t1.clientX) * 0.5;
+        let rect = this._canvasEl.getBoundingClientRect();
+        let pointerPosX = centerX - rect.left;
+        let pointerCenterOffsetX = -(pointerPosX - this.clientWidth * 0.5);
+        let pointerTime = this.model.rangeStartTime + this._millisecondsInPixel * pointerPosX;
+        this._zoomByScale(pointerTime, pointerCenterOffsetX, scale);
+
+        this._touchPinchDistance = distance;
+    }
+
+    protected _onMouseDown = (e: MouseEvent) => {
+        if (this._isMouseOver) {
+            this._startScaleDrag(e.clientX, e);
+        } else if (this._isCurrentMouseOver) {
+            this._startCurrentDrag(e.clientX, e);
         }
     };
 
     protected _onMouseUp = (e: MouseEvent) => {
         if (this._isDragging) {
-            this._isDragging = false;
-            document.body.classList.remove("og-timeline-unselectable");
-            if (this._clickPosX === e.clientX && Date.now() - this._clickTime < this._clickDelay) {
-                let rect = this._canvasEl.getBoundingClientRect();
-                let current = new Date(this.model.rangeStartTime + (e.clientX - rect.left) * this._millisecondsInPixel);
-                this.model.current = current;
-                this.events.dispatch(this.events.stopdrag, current);
-                this.events.dispatch(this.events.setcurrent, current);
-            } else {
-                this.events.dispatch(this.events.stopdrag, this.model.current);
-            }
+            this._stopScaleDrag(e.clientX);
         } else if (this._isCurrentDragging) {
-            this._isCurrentDragging = false;
-            document.body.classList.remove("og-timeline-unselectable");
-            this.events.dispatch(this.events.stopdragcurrent, this.model.current);
+            this._stopCurrentDrag();
         }
     };
 
@@ -416,16 +609,166 @@ class TimelineView extends View<TimelineModel> {
         this._isCurrentMouseOver = false;
     };
 
+    protected _onScalePointerDown = (e: PointerEvent) => {
+        if (e.pointerType !== "touch") {
+            return;
+        }
+
+        this._captureTouchPointer(e);
+
+        if (this._isCurrentDragging) {
+            return;
+        }
+
+        const pointersCount = this._touchPointers.size;
+        if (pointersCount === 1) {
+            this._touchMode = TOUCH_MODE_SCALE;
+            this._startScaleDrag(e.clientX, e, true, e.pointerId);
+            e.preventDefault();
+        } else if (pointersCount >= 2) {
+            const pair = this._getTwoTouchPointers();
+            if (pair) {
+                this._startPinchGesture(pair[0], pair[1], e);
+            }
+            e.preventDefault();
+        }
+    };
+
+    protected _onCurrentPointerDown = (e: PointerEvent) => {
+        if (e.pointerType !== "touch") {
+            return;
+        }
+
+        this._captureTouchPointer(e);
+
+        if (this._touchPointers.size !== 1) {
+            return;
+        }
+
+        this._touchMode = TOUCH_MODE_CURRENT;
+        this._startCurrentDrag(e.clientX, e, e.pointerId);
+        e.preventDefault();
+    };
+
+    protected _onPointerMove = (e: PointerEvent) => {
+        if (e.pointerType !== "touch" || !this._touchPointers.has(e.pointerId)) {
+            return;
+        }
+
+        this._updateTouchPointer(e);
+
+        if (this._touchMode === TOUCH_MODE_NONE) {
+            return;
+        }
+
+        if (this._touchMode === TOUCH_MODE_CURRENT) {
+            if (this._touchPointers.size === 1 && this._touchCurrentPointerId === e.pointerId) {
+                this._moveCurrentDrag(e.clientX);
+                e.preventDefault();
+            }
+            return;
+        }
+
+        if (this._touchPointers.size >= 2) {
+            const pair = this._getTwoTouchPointers();
+            if (!pair) {
+                return;
+            }
+            if (this._touchMode !== TOUCH_MODE_PINCH) {
+                this._startPinchGesture(pair[0], pair[1], e);
+            }
+            this._movePinchGesture(pair[0], pair[1]);
+            e.preventDefault();
+            return;
+        }
+
+        if (this._touchPointers.size === 1) {
+            const pointer = this._getTouchPointer(this._touchScalePointerId) || this._getFirstTouchPointer();
+            if (!pointer) {
+                return;
+            }
+            if (this._touchMode === TOUCH_MODE_PINCH) {
+                this._touchMode = TOUCH_MODE_SCALE;
+                this._startScaleDrag(pointer.clientX, e, false, pointer.pointerId);
+            }
+            if (this._touchMode === TOUCH_MODE_SCALE) {
+                this._moveScaleDrag(pointer.clientX);
+                e.preventDefault();
+            }
+        }
+    };
+
+    protected _onPointerUp = (e: PointerEvent) => {
+        if (e.pointerType !== "touch") {
+            return;
+        }
+
+        const endedPointer = this._touchPointers.get(e.pointerId) || {
+            pointerId: e.pointerId,
+            clientX: e.clientX,
+            clientY: e.clientY
+        };
+        this._touchPointers.delete(e.pointerId);
+        this._releaseTouchPointerCapture(e.pointerId);
+
+        if (this._touchMode === TOUCH_MODE_NONE) {
+            return;
+        }
+
+        if (this._touchMode === TOUCH_MODE_CURRENT) {
+            if (this._touchPointers.size === 0) {
+                this._stopCurrentDrag();
+                this._touchMode = TOUCH_MODE_NONE;
+                e.preventDefault();
+            } else if (this._touchCurrentPointerId === e.pointerId) {
+                const nextPointer = this._getFirstTouchPointer();
+                if (nextPointer) {
+                    this._startCurrentDrag(nextPointer.clientX, e, nextPointer.pointerId);
+                }
+            }
+            return;
+        }
+
+        if (this._touchPointers.size >= 2) {
+            const pair = this._getTwoTouchPointers();
+            if (!pair) {
+                return;
+            }
+            if (this._touchMode !== TOUCH_MODE_PINCH) {
+                this._startPinchGesture(pair[0], pair[1], e);
+            }
+            return;
+        }
+
+        if (this._touchPointers.size === 1) {
+            const pointer = this._getFirstTouchPointer();
+            if (!pointer) {
+                return;
+            }
+            if (this._touchMode === TOUCH_MODE_PINCH) {
+                this._touchMode = TOUCH_MODE_SCALE;
+                this._startScaleDrag(pointer.clientX, e, false, pointer.pointerId);
+                e.preventDefault();
+            } else if (this._touchMode === TOUCH_MODE_SCALE && this._touchScalePointerId === e.pointerId) {
+                this._startScaleDrag(pointer.clientX, e, false, pointer.pointerId);
+            }
+            return;
+        }
+
+        if (this._touchMode === TOUCH_MODE_PINCH) {
+            this._stopScaleDrag(null, false);
+        } else {
+            this._stopScaleDrag(endedPointer.clientX, true);
+        }
+        this._touchMode = TOUCH_MODE_NONE;
+        e.preventDefault();
+    };
+
     protected _onMouseMove = (e: MouseEvent) => {
         if (this._isDragging) {
-            let offsetSec = (this._clickPosX - e.clientX) * this._millisecondsInPixel * MILLISECONDS_TO_SECONDS;
-            this.model.set(addSeconds(this._clickRangeStart, offsetSec), addSeconds(this._clickRangeEnd, offsetSec));
+            this._moveScaleDrag(e.clientX);
         } else if (this._isCurrentDragging) {
-            let offsetSec = (this._clickPosX - e.clientX) * this._millisecondsInPixel * MILLISECONDS_TO_SECONDS;
-            let newCurrent = addSeconds(this._clickCurrentDate, -offsetSec);
-            if (newCurrent >= this.model.rangeStart && newCurrent <= this.model.rangeEnd) {
-                this.model.current = addSeconds(this._clickCurrentDate, -offsetSec);
-            }
+            this._moveCurrentDrag(e.clientX);
         }
     };
 
@@ -450,7 +793,38 @@ class TimelineView extends View<TimelineModel> {
         return (milliseconds - this.model.rangeStartTime) / this._millisecondsInPixel;
     }
 
+    protected _clearEvents() {
+        this._canvasEl.removeEventListener("mouseenter", this._onMouseEnter);
+        this._canvasEl.removeEventListener("mouseout", this._onMouseOut);
+        this._canvasEl.removeEventListener("pointerdown", this._onScalePointerDown);
+
+        if (this._currentEl) {
+            this._currentEl.removeEventListener("mouseenter", this._onCurrentMouseEnter);
+            this._currentEl.removeEventListener("mouseout", this._onCurrentMouseOut);
+            this._currentEl.removeEventListener("pointerdown", this._onCurrentPointerDown);
+        }
+
+        document.body.removeEventListener("mousemove", this._onMouseMove);
+        document.body.removeEventListener("mousedown", this._onMouseDown);
+        document.body.removeEventListener("mouseup", this._onMouseUp);
+        document.body.removeEventListener("wheel", this._onMouseWheelFF);
+        document.removeEventListener("pointermove", this._onPointerMove);
+        document.removeEventListener("pointerup", this._onPointerUp);
+        document.removeEventListener("pointercancel", this._onPointerUp);
+
+        for (const pointerId of this._touchPointers.keys()) {
+            this._releaseTouchPointerCapture(pointerId);
+        }
+        this._touchPointers.clear();
+        this._touchScalePointerId = null;
+        this._touchCurrentPointerId = null;
+        this._touchMode = TOUCH_MODE_NONE;
+        document.body.classList.remove("og-timeline-unselectable");
+    }
+
     public override remove() {
+        this._clearEvents();
+        this._resizeObserver.disconnect();
         super.remove();
         this.model.stop();
     }
