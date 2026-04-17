@@ -296,8 +296,9 @@ input {
 .og-layerSwitcher__list {
     position: relative;
     width: 100%;
-    display: inline-block;
-    flex-direction: column;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
     padding: 2px;
 }
 
