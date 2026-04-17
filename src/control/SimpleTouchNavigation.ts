@@ -26,6 +26,9 @@ export class SimpleTouchNavigation extends Control {
     protected _twoFingerTiltMinMove: number = 2.0;
     protected _twoFingerTiltAlignDot: number = 0.85;
     protected _twoFingerTiltVerticalRatio: number = 0.7;
+    protected _twoFingerTiltHorizontalLineRatio: number = 0.35;
+    protected _twoFingerTiltStrength: number = 0.75;
+    protected _twoFingerTiltActive: boolean = false;
 
     constructor(options: IControlParams = {}) {
         super({
@@ -144,6 +147,8 @@ export class SimpleTouchNavigation extends Control {
         if (!skipPointGrabbing) {
             this._grabbedPoint = this._getGrabbedPoint(middle_t);
         }
+
+        this._twoFingerTiltActive = false;
     }
 
     protected _getPerspectiveDragPlane(anchor: Vec3): Plane {
@@ -259,10 +264,19 @@ export class SimpleTouchNavigation extends Control {
         cam.rotateHorizontal(-rotAngle, false, this._grabbedPoint!, Vec3.UP);
     }
 
-    protected _isTwoFingerTiltGesture(d0: Vec2, d1: Vec2): boolean {
+    protected _isTwoFingerTiltGesture(d0: Vec2, d1: Vec2, touchLine: Vec2): boolean {
         const len0 = Math.hypot(d0.x, d0.y);
         const len1 = Math.hypot(d1.x, d1.y);
         if (len0 < this._twoFingerTiltMinMove || len1 < this._twoFingerTiltMinMove) {
+            return false;
+        }
+
+        // Tilt is allowed only if fingers are roughly on the same horizontal line.
+        const lineDx = Math.abs(touchLine.x);
+        const lineDy = Math.abs(touchLine.y);
+        const horizontalLine =
+            lineDx > this._twoFingerTiltMinMove && lineDy <= lineDx * this._twoFingerTiltHorizontalLineRatio;
+        if (!horizontalLine) {
             return false;
         }
 
@@ -276,14 +290,14 @@ export class SimpleTouchNavigation extends Control {
         return sameDirection && mostlyVertical;
     }
 
-    protected _applyTwoFingerTilt(d0: Vec2, d1: Vec2): boolean {
+    protected _applyTwoFingerTilt(d0: Vec2, d1: Vec2, touchLine: Vec2): boolean {
         const cam = this.renderer!.activeCamera;
         if (cam.isOrthographic || !this._grabbedPoint) {
             return false;
         }
 
         // Gesture recognition: two fingers move in one vertical direction.
-        if (!this._isTwoFingerTiltGesture(d0, d1)) {
+        if (!this._isTwoFingerTiltGesture(d0, d1, touchLine)) {
             return false;
         }
 
@@ -297,8 +311,36 @@ export class SimpleTouchNavigation extends Control {
             sensitivity = 0.003;
         }
 
-        cam.rotateVertical(sensitivity * averageDy, this._grabbedPoint);
+        cam.rotateVertical(sensitivity * averageDy * this._twoFingerTiltStrength, this._grabbedPoint);
         return true;
+    }
+
+    protected _isTwoFingerTiltHoldGesture(d0: Vec2, d1: Vec2, touchLine: Vec2): boolean {
+        const holdMove = this._twoFingerTiltMinMove * 0.5;
+        const holdAlignDot = this._twoFingerTiltAlignDot - 0.2;
+        const holdVerticalRatio = this._twoFingerTiltVerticalRatio - 0.15;
+        const holdHorizontalRatio = this._twoFingerTiltHorizontalLineRatio * 1.6;
+
+        const len0 = Math.hypot(d0.x, d0.y);
+        const len1 = Math.hypot(d1.x, d1.y);
+        if (len0 < holdMove || len1 < holdMove) {
+            return false;
+        }
+
+        const lineDx = Math.abs(touchLine.x);
+        const lineDy = Math.abs(touchLine.y);
+        if (!(lineDx > holdMove && lineDy <= lineDx * holdHorizontalRatio)) {
+            return false;
+        }
+
+        const dir0 = new Vec2(d0.x / len0, d0.y / len0);
+        const dir1 = new Vec2(d1.x / len1, d1.y / len1);
+
+        return (
+            dir0.dot(dir1) > holdAlignDot &&
+            Math.abs(dir0.y) > holdVerticalRatio &&
+            Math.abs(dir1.y) > holdVerticalRatio
+        );
     }
 
     protected _moveTwoFingerGesture(
@@ -316,8 +358,22 @@ export class SimpleTouchNavigation extends Control {
         const vPrev = this._prev_t1.sub(this._prev_t0);
         const vCurr = t1.sub(t0);
 
+        // Keep tilt mode stable to prevent jitter between tilt and drag/zoom.
+        if (this._twoFingerTiltActive) {
+            if (this._isTwoFingerTiltHoldGesture(d0, d1, vCurr)) {
+                this._applyTwoFingerTilt(d0, d1, vCurr);
+            } else {
+                // Re-anchor two-finger gesture before leaving tilt mode.
+                this._startTwoFingerGesture(pointer0, pointer1, sys, false);
+            }
+            this._prev_t0.copy(t0);
+            this._prev_t1.copy(t1);
+            return;
+        }
+
         // Gesture recognition: if both fingers move vertically in one direction, use tilt.
-        if (this._applyTwoFingerTilt(d0, d1)) {
+        if (this._applyTwoFingerTilt(d0, d1, vCurr)) {
+            this._twoFingerTiltActive = true;
             this._prev_t0.copy(t0);
             this._prev_t1.copy(t1);
             return;
@@ -342,6 +398,7 @@ export class SimpleTouchNavigation extends Control {
         const pointers = sys.pointers;
 
         if (pointers.length === 1) {
+            this._twoFingerTiltActive = false;
             this._startSingleFingerGesture(pointers[0], sys);
         } else if (pointers.length === 2) {
             this._startTwoFingerGesture(
@@ -351,6 +408,7 @@ export class SimpleTouchNavigation extends Control {
                 !!skipPointGrabbing,
             );
         } else {
+            this._twoFingerTiltActive = false;
             this._grabbedPoint = undefined;
             return;
         }
@@ -367,6 +425,7 @@ export class SimpleTouchNavigation extends Control {
         const pointers = sys.pointers;
 
         if (pointers.length === 1) {
+            this._twoFingerTiltActive = false;
             this._moveSingleFingerGesture(pointers[0], sys);
         } else if (pointers.length === 2) {
             this._moveTwoFingerGesture(
@@ -375,6 +434,8 @@ export class SimpleTouchNavigation extends Control {
                 pointers[1],
                 sys,
             );
+        } else {
+            this._twoFingerTiltActive = false;
         }
 
         this.renderer.activeCamera.update();
