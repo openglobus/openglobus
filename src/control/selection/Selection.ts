@@ -74,7 +74,7 @@ export class Selection extends Control {
     }
 
     public override oninit() {
-        this._toggleBtn.appendTo(this.renderer!.div!);
+        this._toggleBtn.appendTo(this.renderer!.topRightContainer());
 
         this._toggleBtn.events.on("change", (isActive: boolean) => {
             if (isActive) {

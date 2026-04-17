@@ -75,7 +75,7 @@ export class EntityTree extends Control {
 
         const rootContainer = this.renderer.div || this.renderer.handler.canvas?.parentElement || document.body;
 
-        this._toggleBtn.appendTo(rootContainer);
+        this._toggleBtn.appendTo(this.renderer.topRightContainer());
         this._dialog.appendTo(rootContainer);
 
         if (!this._dialog.container) return;
@@ -183,6 +183,9 @@ export class EntityTree extends Control {
 
     protected _onDialogVisibility = (isVisible: boolean): void => {
         this._toggleBtn.setActive(isVisible);
+        if (isVisible) {
+            this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer?.div || undefined);
+        }
     };
 
     protected _onToggleButtonChange = (isActive: boolean): void => {

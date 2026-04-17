@@ -17,7 +17,6 @@ export * from "./SimpleSkyBackground";
 export * from "./Sun";
 export * from "./ToggleWireframe";
 export * from "./TouchNavigation";
-export * from "./ZoomControl";
 export * from "./drawing/DrawingControl";
 export * from "./heightRuler/HeightRuler";
 export * from "./ruler/Ruler";

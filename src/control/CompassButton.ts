@@ -84,12 +84,12 @@ interface ICompasButtonParams extends IControlParams {}
  */
 export class CompassButton extends Control {
     protected _heading: number;
-    protected _svg: HTMLElement | null;
+    protected _icon: HTMLElement | null;
 
     constructor(options: ICompasButtonParams = {}) {
         super(options);
         this._heading = 0;
-        this._svg = null;
+        this._icon = null;
     }
 
     public override oninit() {
@@ -98,11 +98,11 @@ export class CompassButton extends Control {
             icon: ICON_BUTTON_SVG
         });
 
-        btn.appendTo(this.renderer!.div!);
+        btn.appendTo(this.renderer!.topRightContainer());
         btn.events.on("click", this._onClick, this);
         btn.events.on("touchstart", this._onClick, this);
 
-        this._svg = btn.select("svg");
+        this._icon = btn.select(".og-button-icon");
 
         this.renderer!.events!.on("draw", this._draw);
     }
@@ -129,7 +129,7 @@ export class CompassButton extends Control {
     public setHeading(heading: number) {
         if (this._heading !== heading) {
             this._heading = heading;
-            this._svg!.style.transform = `rotateZ(${-heading}deg)`;
+            this._icon!.style.transform = `rotateZ(${-heading}deg)`;
         }
     }
 }

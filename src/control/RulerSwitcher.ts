@@ -59,7 +59,7 @@ export class RulerSwitcher extends Control {
             icon: ICON_BUTTON_SVG
         });
 
-        btn.appendTo(this.renderer!.div!);
+        btn.appendTo(this.renderer!.topRightContainer());
 
         btn.events.on("change", (isActive: boolean) => {
             if (isActive) {

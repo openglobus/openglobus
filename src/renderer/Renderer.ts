@@ -119,6 +119,10 @@ class Renderer {
      */
     public div: HTMLDivElementExt | null;
 
+    protected _topLeftContainer: HTMLDivElement;
+
+    protected _topRightContainer: HTMLDivElement;
+
     /**
      * WebGL handler context.
      * @public
@@ -265,6 +269,10 @@ class Renderer {
 
     constructor(handler: Handler | string | HTMLCanvasElement, params: IRendererParams = {}) {
         this.div = null;
+        this._topLeftContainer = document.createElement("div");
+        this._topRightContainer = document.createElement("div");
+        this._topLeftContainer.classList.add("og-control-container", "og-control-container__top-left");
+        this._topRightContainer.classList.add("og-control-container", "og-control-container__top-right");
 
         if (handler instanceof Handler) {
             this.handler = handler;
@@ -626,6 +634,26 @@ class Renderer {
         return this._initialized;
     }
 
+    protected _appendControlContainers() {
+        const rootContainer = this.div || this.handler.canvas?.parentElement || document.body;
+
+        if (this._topLeftContainer.parentElement !== rootContainer) {
+            rootContainer.appendChild(this._topLeftContainer);
+        }
+
+        if (this._topRightContainer.parentElement !== rootContainer) {
+            rootContainer.appendChild(this._topRightContainer);
+        }
+    }
+
+    public topLeftContainer(): HTMLDivElement {
+        return this._topLeftContainer;
+    }
+
+    public topRightContainer(): HTMLDivElement {
+        return this._topRightContainer;
+    }
+
     /**
      * Renderer initialization.
      * @public
@@ -761,6 +789,8 @@ class Renderer {
         );
 
         this.outputTexture = this.screenTexture.screen;
+
+        this._appendControlContainers();
 
         this._initializeRenderNodes();
 
@@ -1670,6 +1700,14 @@ class Renderer {
 
         for (let i = 0; i < this._renderNodesArr.length; i++) {
             this._renderNodesArr[i].remove();
+        }
+
+        if (this._topLeftContainer.parentElement) {
+            this._topLeftContainer.parentElement.removeChild(this._topLeftContainer);
+        }
+
+        if (this._topRightContainer.parentElement) {
+            this._topRightContainer.parentElement.removeChild(this._topRightContainer);
         }
 
         this.div = null;

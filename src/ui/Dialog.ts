@@ -60,6 +60,7 @@ class Dialog<M> extends View<M> {
 
     protected _width: number;
     protected _height: number;
+    protected _firstOpenPositioned: boolean;
 
     constructor(options: IDialogParams = {}) {
         super({
@@ -103,6 +104,7 @@ class Dialog<M> extends View<M> {
         this._visibility = getDefault(options.visible, true);
 
         this._right = options.right != undefined ? options.right : null;
+        this._firstOpenPositioned = false;
     }
 
     public setContainer(htmlStr: string) {
@@ -195,6 +197,40 @@ class Dialog<M> extends View<M> {
         return this._visibility;
     }
 
+    public positionNearElementOnFirstOpen(anchorEl: HTMLElement | null, rootEl?: HTMLElement | null, gap: number = 8) {
+        if (this._firstOpenPositioned || !this.el || !anchorEl) return;
+
+        const root = rootEl || this.el.parentElement || document.body;
+        const rootRect = root.getBoundingClientRect();
+        const anchorRect = anchorEl.getBoundingClientRect();
+
+        const dialogWidth = this.el.offsetWidth || this.width || DEFAULT_WIDTH;
+        const styleHeight = parseFloat(this.el.style.height || "0");
+        const dialogHeight = this.el.offsetHeight || (isNaN(styleHeight) ? 0 : styleHeight) || DEFAULT_HEIGHT;
+
+        const rootWidth = root.clientWidth || rootRect.width || window.innerWidth;
+        const rootHeight = root.clientHeight || rootRect.height || window.innerHeight;
+
+        const anchorCenterX = anchorRect.left + anchorRect.width * 0.5 - rootRect.left;
+        const anchorTop = anchorRect.top - rootRect.top;
+        const openToRight = anchorCenterX <= rootWidth * 0.5;
+
+        let left = openToRight
+            ? anchorRect.right - rootRect.left + gap
+            : anchorRect.left - rootRect.left - dialogWidth - gap;
+        let top = anchorTop;
+
+        left = Math.max(0, Math.min(left, rootWidth - dialogWidth));
+        if (rootHeight > dialogHeight) {
+            top = Math.max(0, Math.min(top, rootHeight - dialogHeight));
+        } else {
+            top = Math.max(0, top);
+        }
+
+        this.setPosition(left, top);
+        this._firstOpenPositioned = true;
+    }
+
     protected _initButtons() {
         this._closeBtn.events.on("click", this._onCloseBtnClick);
         this._closeBtn.appendTo(this.$buttons!);
@@ -266,6 +302,7 @@ class Dialog<M> extends View<M> {
     public override remove() {
         this._clearDragging();
         this._clearEvents();
+        this._firstOpenPositioned = false;
         super.remove();
     }
 

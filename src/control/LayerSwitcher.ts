@@ -122,7 +122,7 @@ export class LayerSwitcher extends Control {
     }
 
     override oninit() {
-        this._toggleBtn.appendTo(this.renderer!.div!);
+        this._toggleBtn.appendTo(this.renderer!.topRightContainer());
         this._dialog.appendTo(this.planet!.renderer!.div!);
         this._panel.appendTo(this._dialog.container!);
 
@@ -133,6 +133,9 @@ export class LayerSwitcher extends Control {
 
         this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
+            if (v) {
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
+            }
         });
 
         this._toggleBtn.events.on("change", (isActive: boolean) => {

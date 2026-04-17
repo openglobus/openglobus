@@ -101,8 +101,10 @@ export class DrawingSwitcher extends Control {
             }
         });
 
-        defaultBtn.appendTo(this.renderer!.div!);
-        polyBtn.appendTo(this.renderer!.div!);
-        lineBtn.appendTo(this.renderer!.div!);
+        const topRightContainer = this.renderer!.topRightContainer();
+
+        defaultBtn.appendTo(topRightContainer);
+        polyBtn.appendTo(topRightContainer);
+        lineBtn.appendTo(topRightContainer);
     }
 }
