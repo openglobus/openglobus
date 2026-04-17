@@ -273,10 +273,20 @@ input {
     border-radius: 4px;
 }
 
-.og-button svg,
-.og-button svg path {
+.og-button .og-button-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.og-button svg {
     width: 24px;
     height: 24px;
+    display: block;
+}
+
+.og-button svg path {
     fill: var(--grey6);
 }
 
@@ -704,6 +714,13 @@ input {
     display: block;
 }
 
+.og-orthoswitcher_button .og-button-icon svg {
+    width: 45px !important;
+    height: 45px !important;
+    display: block;
+    transform: translateY(3px);
+}
+
 /*
     Lighting control
 */
@@ -858,12 +875,6 @@ TIMELINE
     margin-right: 3px;
     background: var(--grey7);
     border-radius: 1px;
-}
-
-.og-button svg,
-.og-button svg path {
-    width: 24px;
-    height: 24px;
 }
 
 .og-timeline-control_button.og-button__active {
