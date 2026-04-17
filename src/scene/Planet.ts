@@ -495,39 +495,82 @@ export class Planet extends RenderNode {
 
     /**
      * Returns true if current terrain data set is loaded
+     * @public
      */
     public get terrainReady(): boolean {
         return this.quadTreeStrategy.terrainReady;
     }
 
+    /**
+     * Returns max segment grid size used by the quadtree.
+     * @public
+     * @returns {number} - Max grid size.
+     */
     public get maxGridSize(): number {
         return this._maxGridSize;
     }
 
+    /**
+     * Returns local north frame rotation for a cartesian point.
+     * @public
+     * @param {Vec3} cartesian - Cartesian point.
+     * @returns {Quat} - Rotation from world frame to local north frame.
+     */
     public getNorthFrameRotation(cartesian: Vec3): Quat {
         return this.getFrameRotation(cartesian);
     }
 
+    /**
+     * Returns local frame rotation for a cartesian point.
+     * @public
+     * @param {Vec3} cartesian - Cartesian point.
+     * @returns {Quat} - Rotation from world frame to local frame.
+     */
     public override getFrameRotation(cartesian: Vec3): Quat {
         return this.ellipsoid.getNorthFrameRotation(cartesian);
     }
 
+    /**
+     * Sets maximum atmosphere opacity.
+     * @public
+     * @param {number} opacity - Opacity value in range `[0..1]`.
+     */
     public set atmosphereMaxOpacity(opacity: number) {
         this._atmosphereMaxMinOpacity[0] = opacity;
     }
 
+    /**
+     * Gets maximum atmosphere opacity.
+     * @public
+     * @returns {number} - Max opacity.
+     */
     public get atmosphereMaxOpacity(): number {
         return this._atmosphereMaxMinOpacity[0];
     }
 
+    /**
+     * Sets minimum atmosphere opacity.
+     * @public
+     * @param {number} opacity - Opacity value in range `[0..1]`.
+     */
     public set atmosphereMinOpacity(opacity: number) {
         this._atmosphereMaxMinOpacity[1] = opacity;
     }
 
+    /**
+     * Gets minimum atmosphere opacity.
+     * @public
+     * @returns {number} - Min opacity.
+     */
     public get atmosphereMinOpacity(): number {
         return this._atmosphereMaxMinOpacity[1];
     }
 
+    /**
+     * Gets atmosphere opacity range `[max, min]`.
+     * @public
+     * @returns {Float32Array} - Opacity range.
+     */
     public get atmosphereMaxMinOpacity(): Float32Array {
         return this._atmosphereMaxMinOpacity;
     }
@@ -544,6 +587,11 @@ export class Planet extends RenderNode {
         this.atmosphereFadeDist[1] = distRange > 0.0 ? 1.0 / distRange : 0.0;
     }
 
+    /**
+     * Enables or disables atmosphere rendering and related programs.
+     * @public
+     * @param {boolean} enabled - Atmosphere activity flag.
+     */
     public set atmosphereEnabled(enabled: boolean) {
         if (enabled != this._atmosphereEnabled) {
             this._atmosphereEnabled = enabled;
@@ -551,14 +599,29 @@ export class Planet extends RenderNode {
         }
     }
 
+    /**
+     * Returns atmosphere activity flag.
+     * @public
+     * @returns {boolean} - `true` when atmosphere is enabled.
+     */
     public get atmosphereEnabled(): boolean {
         return this._atmosphereEnabled;
     }
 
+    /**
+     * Returns active terrain shade mode.
+     * @public
+     * @returns {number} - Shade mode id.
+     */
     public get shadeMode(): number {
         return this._shadeMode;
     }
 
+    /**
+     * Sets terrain shade mode.
+     * @public
+     * @param {number} m - Shade mode id.
+     */
     public set shadeMode(m: number) {
         this._shadeMode = Planet._clampShadeMode(m);
     }
@@ -601,24 +664,45 @@ export class Planet extends RenderNode {
     //     }
     // }
 
+    /**
+     * Returns normal-map generator used by the planet.
+     * @public
+     * @returns {NormalMapCreator} - Normal map creator.
+     */
     public get normalMapCreator(): NormalMapCreator {
         return this._normalMapCreator;
     }
 
+    /**
+     * Returns current layers snapshot.
+     * @public
+     * @returns {Layer[]} - Layer array copy.
+     */
     public get layers(): Layer[] {
         return [...this._layers];
     }
 
+    /**
+     * Returns Sun control instance if attached to the renderer.
+     * @public
+     * @returns {Sun | undefined} - Sun control.
+     */
     public get sun(): Sun | undefined {
         if (this.renderer && this.renderer.controls.sun) return this.renderer.controls.sun as Sun;
     }
 
+    /**
+     * Returns current sun world position.
+     * @public
+     * @returns {Vec3} - Sun position.
+     */
     public get sunPos(): Vec3 {
         return this.sun!.sunlight.getPosition();
     }
 
     /**
      * Add the given control to the renderer of the planet scene.
+     * @public
      * @param {Control} control - Control.
      */
     public addControl(control: Control) {
@@ -628,6 +712,7 @@ export class Planet extends RenderNode {
 
     /**
      * Add the given controls array to the renderer of the planet.
+     * @public
      * @param {Array.<Control>} cArr - Control array.
      */
     public addControls(cArr: Control[]) {
@@ -637,10 +722,10 @@ export class Planet extends RenderNode {
     }
 
     /**
-     * Return layer by it name
-     * @param {string} name - Name of the layer. og.Layer.prototype.name
+     * Returns a layer by name.
+     * @param {string} name - Layer name.
      * @public
-     * @returns {Layer} -
+     * @returns {Layer | undefined} -
      */
     public getLayerByName(name: string): Layer | undefined {
         for (let i = 0, len = this._layers.length; i < len; i++) {
@@ -689,7 +774,7 @@ export class Planet extends RenderNode {
     }
 
     /**
-     *
+     * Clears material resources related to a layer in quadtree segments.
      * @public
      * @param {Layer} layer - Material layer.
      */
@@ -740,6 +825,7 @@ export class Planet extends RenderNode {
 
     /**
      * Sets elevation scale. 1.0 is default.
+     * @public
      * @param {number} factor - Elevation scale.
      */
     public setHeightFactor(factor: number) {
@@ -752,6 +838,7 @@ export class Planet extends RenderNode {
 
     /**
      * Gets elevation scale.
+     * @public
      * @returns {number} Terrain elevation scale
      */
     public getHeightFactor(): number {
@@ -761,6 +848,7 @@ export class Planet extends RenderNode {
     /**
      * Sets LOD thresholds for quadtree terrain rendering.
      * Proxy to {@link QuadTreeStrategy.setLodSize}.
+     * @public
      * @param {number} currentLodSize - Current LOD size target.
      * @param {number} [minLodSize] - Minimum LOD size.
      * @param {number} [maxLodSize] - Maximum LOD size.
@@ -806,6 +894,11 @@ export class Planet extends RenderNode {
         }
     }
 
+    /**
+     * Reinitializes terrain forward/deferred shaders for atmosphere mode.
+     * @public
+     * @param {AtmosphereParameters} [atmosParams] - Optional atmosphere shader parameters.
+     */
     public initAtmosphereShader(atmosParams?: AtmosphereParameters) {
         if (this.renderer && this.renderer.handler && this._atmosphereEnabled) {
             this._atmosphereBottomRadius = atmosParams?.BOTTOM_RADIUS ?? this._atmosphere.parameters.BOTTOM_RADIUS;
@@ -817,6 +910,11 @@ export class Planet extends RenderNode {
         }
     }
 
+    /**
+     * Returns atmosphere control instance bound to the planet.
+     * @public
+     * @returns {Atmosphere} - Atmosphere control.
+     */
     public get atmosphereControl(): Atmosphere {
         return this._atmosphere;
     }
@@ -908,6 +1006,10 @@ export class Planet extends RenderNode {
         this.events.dispatch(this.events.layerloadend, layer);
     }
 
+    /**
+     * Initializes render resources, workers, shaders, and layer state.
+     * @public
+     */
     public override init() {
         this._tileLoader.events.on("layerloadend", this._onLayerLoadend, this);
 
@@ -1061,6 +1163,10 @@ export class Planet extends RenderNode {
         });
     }
 
+    /**
+     * Reattaches already registered layers to apply initialization logic.
+     * @public
+     */
     public initLayers() {
         let temp = [...this._layers];
         for (let i = 0; i < temp.length; i++) {
@@ -1083,8 +1189,8 @@ export class Planet extends RenderNode {
     /**
      * Creates default textures first for the North Pole and whole globe and second for the South Pole.
      * @public
-     * @param{IDefaultTextureParams} param0 -
-     * @param{IDefaultTextureParams} param1 -
+     * @param {IDefaultTextureParams} param0 - Default texture params for the first texture.
+     * @param {IDefaultTextureParams} param1 - Default texture params for the second texture.
      */
     public createDefaultTextures(param0: IDefaultTextureParams, param1: IDefaultTextureParams) {
         this.renderer!.handler.gl!.deleteTexture(this.solidTextureOne!);
@@ -1118,6 +1224,10 @@ export class Planet extends RenderNode {
         this._applyAttribution(html);
     }
 
+    /**
+     * Schedules visible layers list refresh for the next frame.
+     * @public
+     */
     public updateVisibleLayers() {
         this._updateLayers = true;
     }
@@ -1346,11 +1456,19 @@ export class Planet extends RenderNode {
         }
     }
 
+    /**
+     * Pauses quadtree render-node collection and disables camera terrain collision checks.
+     * @public
+     */
     public lockQuadTree() {
         this._collectRenderNodesIsActive = false;
         this.camera.setTerrainCollisionActivity(false);
     }
 
+    /**
+     * Resumes quadtree render-node collection and enables camera terrain collision checks.
+     * @public
+     */
     public unlockQuadTree() {
         this._collectRenderNodesIsActive = true;
         this.camera.setTerrainCollisionActivity(true);
@@ -1820,6 +1938,12 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
+    /**
+     * Renders terrain depth and frustum id into the depth framebuffer.
+     * @public
+     * @param {PlanetCamera} cam - Camera used for rendering.
+     * @param {QuadTreeStrategy} quadTreeStrategy - Quadtree strategy with rendered node lists.
+     */
     public renderDepthFramebuffer(cam: PlanetCamera, quadTreeStrategy: QuadTreeStrategy) {
         let sh;
         let renderer = this.renderer!;
@@ -1935,7 +2059,7 @@ export class Planet extends RenderNode {
     /**
      * Project screen coordinates to the planet ellipsoid.
      * @public
-     * @param {Vec2 | IBaseInputState} px - Screen coordinates.
+     * @param {Vec2} px - Screen coordinates.
      * @returns {LonLat | undefined} - Geodetic coordinates.
      */
     public getLonLatFromPixelEllipsoid(px: Vec2): LonLat | undefined {
@@ -1962,14 +2086,23 @@ export class Planet extends RenderNode {
      * Returns screen coordinates cartesian coordinates on the current terrain.
      * position or null if input coordinates is outside the planet.
      * @public
-     * @param {Vec2} px - Pixel screen 2d coordinates.
+     * @param {Vec2 | IBaseInputState} px - Pixel screen 2d coordinates.
      * @returns {Vec3 | undefined} -
      */
     public getCartesianFromPixelTerrain(px: Vec2 | IBaseInputState): Vec3 | undefined {
         let distance = this.getDistanceFromPixel(px);
         if (distance) {
-            let direction = (px as IBaseInputState).direction || this.renderer!.activeCamera!.unproject(px.x, px.y);
-            return direction.scaleTo(distance).addA(this.renderer!.activeCamera!.eye);
+            let cam = this.camera;
+            let dir = (px as IBaseInputState).direction || cam.unproject(px.x, px.y);
+            let cart = dir.scaleTo(distance).addA(cam.eye);
+
+            // Reject points behind the geometric horizon.
+            const norm = this.ellipsoid.getSurfaceNormal3v(cart);
+            if (cam.eye.sub(cart).dot(norm) <= 0.0) {
+                return;
+            }
+
+            return cart;
         }
     }
 
@@ -2013,8 +2146,8 @@ export class Planet extends RenderNode {
     /**
      * Returns distance from an active (screen) camera to the planet ellipsoid.
      * @public
-     * @param {Vec2} px - Screen coordinates.
-     * @returns {number} -
+     * @param {Vec2 | IBaseInputState} px - Screen coordinates.
+     * @returns {number | undefined} -
      */
     public getDistanceFromPixelEllipsoid(px: Vec2 | IBaseInputState): number | undefined {
         let coords = this.getCartesianFromPixelEllipsoid(px);
@@ -2027,14 +2160,10 @@ export class Planet extends RenderNode {
      * Returns distance from active (screen) camera to the planet terrain by screen coordinates.
      * @public
      * @param {Vec2 | IBaseInputState} px - Screen coordinates.
-     * @returns {number | undefined} -
+     * @returns {number} -
      */
     public getDistanceFromPixel(px: Vec2 | IBaseInputState): number {
-        // if (this.terrain!.isEmpty) {
-        //     return this.getDistanceFromPixelEllipsoid(px) || 0;
-        // } else {
         return this.renderer!.getDistanceFromPixel(px) || this.getDistanceFromPixelEllipsoid(px) || 0;
-        //}
     }
 
     /**
@@ -2097,6 +2226,11 @@ export class Planet extends RenderNode {
         return this.quadTreeStrategy._viewExtent;
     }
 
+    /**
+     * Returns currently cached quadtree view extent.
+     * @public
+     * @returns {Extent} - Cached view extent.
+     */
     public getViewExtent(): Extent {
         return this.quadTreeStrategy._viewExtent;
     }
@@ -2151,6 +2285,10 @@ export class Planet extends RenderNode {
         this.camera.stopFlying();
     }
 
+    /**
+     * Refreshes billboard texture coordinates for all visible entity collections.
+     * @public
+     */
     public override updateBillboardsTexCoords() {
         for (let i = 0; i < this.entityCollections.length; i++) {
             this.entityCollections[i].billboardHandler.refreshTexCoordsArr();
@@ -2170,6 +2308,13 @@ export class Planet extends RenderNode {
         }
     }
 
+    /**
+     * Finds terrain point under an entity in currently rendered segments.
+     * @public
+     * @param {Entity} entity - Entity to test.
+     * @param {Vec3} res - Output vector for terrain point.
+     * @returns {Vec3 | undefined} - Terrain point if found.
+     */
     public getEntityTerrainPoint(entity: Entity, res: Vec3) {
         let n = this.quadTreeStrategy._renderedNodes,
             i = n.length;
@@ -2180,6 +2325,12 @@ export class Planet extends RenderNode {
         }
     }
 
+    /**
+     * Returns terrain height at the given coordinates in default terrain datum.
+     * @public
+     * @param {LonLat} lonLat - Geodetic coordinates.
+     * @returns {Promise<number>} - Height value.
+     */
     public async getHeightDefault(lonLat: LonLat): Promise<number> {
         return new Promise<number>((resolve: (alt: number) => void) => {
             if (this.terrain) {
@@ -2192,6 +2343,12 @@ export class Planet extends RenderNode {
         });
     }
 
+    /**
+     * Returns terrain height above ellipsoid at the given coordinates.
+     * @public
+     * @param {LonLat} lonLat - Geodetic coordinates.
+     * @returns {Promise<number>} - Height above ellipsoid.
+     */
     public async getHeightAboveELL(lonLat: LonLat): Promise<number> {
         return new Promise<number>((resolve: (alt: number) => void) => {
             if (this.terrain) {
@@ -2204,6 +2361,10 @@ export class Planet extends RenderNode {
         });
     }
 
+    /**
+     * Handles node detachment and frees runtime terrain data.
+     * @public
+     */
     public override onremove() {
         this.memClear();
         this.quadTreeStrategy.destroyBranches();
@@ -2239,49 +2400,49 @@ export class Planet extends RenderNode {
 const PLANET_EVENTS: PlanetEventsList = [
     /**
      * Triggered before globe frame begins to render.
-     * @event og.scene.Planet#draw
+     * @event draw
      */
     "draw",
 
     /**
      * Triggered when a layer is added to the planet.
-     * @event og.scene.Planet#layeradd
+     * @event layeradd
      */
     "layeradd",
 
     /**
      * Triggered when the base layer changes.
-     * @event og.scene.Planet#baselayerchange
+     * @event baselayerchange
      */
     "baselayerchange",
 
     /**
      * Triggered when a layer is removed from the planet.
-     * @event og.scene.Planet#layerremove
+     * @event layerremove
      */
     "layerremove",
 
     /**
      * Triggered when layer visibility changes.
-     * @event og.scene.Planet#layervisibilitychange
+     * @event layervisibilitychange
      */
     "layervisibilitychange",
 
     /**
      * Triggered when all data is loaded.
-     * @event og.scene.Planet#rendercompleted
+     * @event rendercompleted
      */
     "rendercompleted",
 
     /**
      * Triggered when all terrain data is loaded.
-     * @event og.scene.Planet#terraincompleted
+     * @event terraincompleted
      */
     "terraincompleted",
 
     /**
      * Triggered when layer data finishes loading.
-     * @event og.scene.Planet#layerloadend
+     * @event layerloadend
      */
     "layerloadend"
 ];
