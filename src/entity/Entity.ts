@@ -51,7 +51,6 @@ import { clamp } from "../math";
  * @property {number} [yaw] - Rotation around local Y-axis.
  * @property {number} [roll] - Rotation around local Z-axis.
  * @property {number | Vec3 | NumberArray3} [scale] - Scaling factor.
- * @property {number} [opacity=1.0] - Entity opacity.
  * @property {boolean} [forceGlobalPosition] - Forces the entity to use the same world position as its parent.
  * @property {boolean} [forceGlobalRotation] - Forces the entity to use the same world rotation as its parent.
  * @property {boolean} [forceGlobalScale] - Forces the entity to use the same world scale as its parent.
@@ -78,7 +77,6 @@ export interface IEntityParams {
     yaw?: number;
     roll?: number;
     scale?: number | Vec3 | NumberArray3;
-    opacity?: number;
     forceGlobalPosition?: boolean;
     forceGlobalRotation?: boolean;
     forceGlobalScale?: boolean;
@@ -111,7 +109,6 @@ export interface IEntityParams {
  * @param {number} [options.yaw] - Rotation around local Y-axis in radians.
  * @param {number} [options.roll] - Rotation around local Z-axis in radians.
  * @param {number | Vec3 | NumberArray3} [options.scale] - Scaling factor.
- * @param {number} [options.opacity=1.0] - Entity opacity.
  * @param {boolean} [options.forceGlobalPosition] - Forces the entity to use the same world position as its parent.
  * @param {boolean} [options.forceGlobalRotation] - Forces the entity to use the same world rotation as its parent.
  * @param {boolean} [options.forceGlobalScale] - Forces the entity to use the same world scale as its parent.
@@ -308,7 +305,7 @@ class Entity {
     protected _qRot: Quat;
     public _absoluteQRot: Quat;
     protected _useDirectQuaternion: boolean;
-    protected _opacity: number;
+    protected _opacity: number | null;
 
     constructor(options: IEntityParams = {}) {
         options.properties = options.properties || {};
@@ -371,7 +368,7 @@ class Entity {
         this._qRot = Quat.IDENTITY;
         this._absoluteQRot = Quat.IDENTITY;
         this._useDirectQuaternion = false;
-        this._opacity = clamp(options.opacity != undefined ? options.opacity : 1.0, 0.0, 1.0);
+        this._opacity = null;
 
         this._featureConstructorArray = {
             billboard: [Billboard, this.setBillboard],
@@ -399,8 +396,6 @@ class Entity {
         this.geoObject = this._createOptionFeature<GeoObject, IGeoObjectParams>("geoObject", options.geoObject);
 
         this.strip = this._createOptionFeature<Strip, IStripParams>("strip", options.strip);
-
-        this.setOpacity(this._opacity);
     }
 
     public get name(): string {
@@ -601,17 +596,26 @@ class Entity {
      * @param {number} opacity - Entity opacity.
      */
     public setOpacity(opacity: number) {
-        if (opacity !== this._opacity) {
-            this._opacity = opacity;
-            this.billboard && this.billboard.setOpacity(opacity);
-            this.geoObject && this.geoObject.setOpacity(opacity);
-            this.label && this.label.setOpacity(opacity);
-            this.polyline && this.polyline.setOpacity(opacity);
-            this.ray && this.ray.setOpacity(opacity);
-            this.geometry && this.geometry.setFillOpacity(opacity).setLineOpacity(opacity).setStrokeOpacity(opacity);
-            this.pointCloud && this.pointCloud.setOpacity(opacity);
-            this.strip && this.strip.setOpacity(opacity);
+        const clampedOpacity = clamp(opacity, 0.0, 1.0);
+        const shouldApply = this._opacity == null || clampedOpacity !== this._opacity;
+
+        if (!shouldApply) {
+            return;
         }
+
+        this._opacity = clampedOpacity;
+        this.billboard && this.billboard.setOpacity(clampedOpacity);
+        this.geoObject && this.geoObject.setOpacity(clampedOpacity);
+        this.label && this.label.setOpacity(clampedOpacity);
+        this.polyline && this.polyline.setOpacity(clampedOpacity);
+        this.ray && this.ray.setOpacity(clampedOpacity);
+        this.geometry &&
+            this.geometry
+                .setFillOpacity(clampedOpacity)
+                .setLineOpacity(clampedOpacity)
+                .setStrokeOpacity(clampedOpacity);
+        this.pointCloud && this.pointCloud.setOpacity(clampedOpacity);
+        this.strip && this.strip.setOpacity(clampedOpacity);
     }
 
     /**
@@ -620,7 +624,7 @@ class Entity {
      * @returns {number} Entity opacity.
      */
     public getOpacity(): number {
-        return this._opacity;
+        return this._opacity == null ? 1.0 : this._opacity;
     }
 
     /**
@@ -1212,7 +1216,7 @@ class Entity {
         this.billboard._entity = this;
         this.billboard.setPosition3v(this._cartesian);
         this.billboard.setVisibility(this._visibility);
-        this.billboard.setOpacity(this._opacity);
+        this._opacity != null && this.billboard.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.billboardHandler.add(billboard);
         return billboard;
     }
@@ -1231,7 +1235,7 @@ class Entity {
         this.label._entity = this;
         this.label.setPosition3v(this._cartesian);
         this.label.setVisibility(this._visibility);
-        this.label.setOpacity(this._opacity);
+        this._opacity != null && this.label.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.labelHandler.add(label);
         return label;
     }
@@ -1249,7 +1253,7 @@ class Entity {
         this.ray = ray;
         this.ray._entity = this;
         this.ray.setVisibility(this._visibility);
-        this.ray.setOpacity(this._opacity);
+        this._opacity != null && this.ray.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.rayHandler.add(ray);
         return ray;
     }
@@ -1267,7 +1271,7 @@ class Entity {
         this.polyline = polyline;
         this.polyline._entity = this;
         this.polyline.setVisibility(this._visibility);
-        this.polyline.setOpacity(this._opacity);
+        this._opacity != null && this.polyline.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.polylineHandler.add(polyline);
         return polyline;
     }
@@ -1285,7 +1289,7 @@ class Entity {
         this.pointCloud = pointCloud;
         this.pointCloud._entity = this;
         this.pointCloud.setVisibility(this._visibility);
-        this.pointCloud.setOpacity(this._opacity);
+        this._opacity != null && this.pointCloud.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.pointCloudHandler.add(pointCloud);
         return pointCloud;
     }
@@ -1303,7 +1307,8 @@ class Entity {
         this.geometry = geometry;
         this.geometry._entity = this;
         this.geometry.setVisibility(this._visibility);
-        this.geometry.setFillOpacity(this._opacity).setLineOpacity(this._opacity).setStrokeOpacity(this._opacity);
+        this._opacity != null &&
+            this.geometry.setFillOpacity(this._opacity).setLineOpacity(this._opacity).setStrokeOpacity(this._opacity);
         let layer = this._layer;
         if (this._layer) {
             this._layer.removeEntity(this);
@@ -1326,7 +1331,7 @@ class Entity {
         this.geoObject._entity = this;
         this.geoObject.setPosition3v(this._cartesian);
         this.geoObject.setVisibility(this._visibility);
-        this.geoObject.setOpacity(this._opacity);
+        this._opacity != null && this.geoObject.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.geoObjectHandler.add(geoObject);
         return geoObject;
     }
@@ -1344,7 +1349,7 @@ class Entity {
         this.strip = strip;
         this.strip._entity = this;
         this.strip.setVisibility(this._visibility);
-        this.strip.setOpacity(this._opacity);
+        this._opacity != null && this.strip.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.stripHandler.add(strip);
         return strip;
     }

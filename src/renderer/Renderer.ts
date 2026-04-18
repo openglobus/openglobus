@@ -1415,6 +1415,7 @@ class Renderer {
         this.forwardFramebuffer!.blitTo(this.hdrFramebuffer!);
 
         gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.BLEND);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -1447,6 +1448,7 @@ class Renderer {
         gl.uniform1i(p.uniforms.texture, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
+        gl.enable(gl.BLEND);
         gl.enable(gl.DEPTH_TEST);
     }
 
