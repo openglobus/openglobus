@@ -9,11 +9,6 @@ interface IAtmosphereConfigParams extends IControlParams {}
 
 const TEMPLATE = `<div class="og-atmosphere og-options-container">
 
-         <div class="og-option og-atmosphere-maxOpacity"></div>
-         <div class="og-option og-atmosphere-minOpacity"></div>
-
-       <div class="og-emptyline-2"></div>
-
          <div class="og-option og-atmosphere-rayleight"></div>
          <div class="og-option og-atmosphere-mie"></div>
 
@@ -63,8 +58,6 @@ export class AtmosphereConfig extends Control {
     protected _dialog: Dialog<null>;
     protected _panel: View<null>;
 
-    public $maxOpacity: HTMLElement | null;
-    public $minOpacity: HTMLElement | null;
     public $rayleight: HTMLElement | null;
     public $mie: HTMLElement | null;
     public $height: HTMLElement | null;
@@ -83,8 +76,6 @@ export class AtmosphereConfig extends Control {
     public $ozoneDensityHeight: HTMLElement | null;
     public $ozoneDensityWide: HTMLElement | null;
 
-    protected _maxOpacity: Slider;
-    protected _minOpacity: Slider;
     protected _rayleight: Slider;
     protected _mie: Slider;
     protected _height: Slider;
@@ -109,8 +100,6 @@ export class AtmosphereConfig extends Control {
     constructor(options: IAtmosphereConfigParams = {}) {
         super(options);
 
-        this.$maxOpacity = null;
-        this.$minOpacity = null;
         this.$rayleight = null;
         this.$mie = null;
         this.$height = null;
@@ -149,16 +138,6 @@ export class AtmosphereConfig extends Control {
 
         this._panel = new View({
             template: TEMPLATE
-        });
-
-        this._maxOpacity = new Slider({
-            label: "Max.opacity",
-            max: 5
-        });
-
-        this._minOpacity = new Slider({
-            label: "Min.opacity",
-            max: 5
         });
 
         this._rayleight = new Slider({
@@ -296,8 +275,6 @@ export class AtmosphereConfig extends Control {
 
         if (this._panel.el) {
             this.$height = this._panel.el.querySelector(".og-option.og-atmosphere-height");
-            this.$maxOpacity = this._panel.el.querySelector(".og-option.og-atmosphere-maxOpacity");
-            this.$minOpacity = this._panel.el.querySelector(".og-option.og-atmosphere-minOpacity");
             this.$rayleight = this._panel.el.querySelector(".og-option.og-atmosphere-rayleight");
             this.$mie = this._panel.el.querySelector(".og-option.og-atmosphere-mie");
             this.$bottomRadius = this._panel.el.querySelector(".og-option.og-atmosphere-bottomRadius");
@@ -336,8 +313,6 @@ export class AtmosphereConfig extends Control {
             this._dialog.setVisibility(isActive);
         });
 
-        this._maxOpacity.appendTo(this.$maxOpacity!);
-        this._minOpacity.appendTo(this.$minOpacity!);
         this._height.appendTo(this.$height!);
         this._rayleight.appendTo(this.$rayleight!);
         this._mie.appendTo(this.$mie!);
@@ -383,18 +358,6 @@ export class AtmosphereConfig extends Control {
             this._ozoneDensityHeight.value = this._parameters.ozoneDensityHeight;
             this._ozoneDensityWide.value = this._parameters.ozoneDensityWide;
         }
-
-        this._minOpacity.value = this.planet!.atmosphereMinOpacity;
-        this._minOpacity.events.on("change", (val: number) => {
-            this.planet!.atmosphereMinOpacity = val;
-        });
-
-        this._maxOpacity.value = this.planet!.atmosphereMaxOpacity;
-        this._maxOpacity.events.on("change", (val: number) => {
-            this.planet!.atmosphereMaxOpacity = val;
-            //let atmos = this.planet!.renderer!.controls.Atmosphere as Atmosphere;
-            //atmos.opacity = val;
-        });
 
         this._rayleight.events.on("change", (val: number) => {
             this._parameters.RAYLEIGH_SCALE = val;

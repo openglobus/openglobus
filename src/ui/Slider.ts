@@ -186,8 +186,7 @@ class Slider extends View<null> {
     public set max(value: number) {
         this._max = value;
         this.events.stopPropagation();
-        //@ts-ignore
-        this.value = this._value + (Math.sign(e.wheelDelta) * (this._max - this._min)) / 100.0;
+        this.value = this._value;
     }
 
     public get max(): number {

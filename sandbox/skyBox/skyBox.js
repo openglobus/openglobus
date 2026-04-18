@@ -325,3 +325,6 @@ let ruler = new control.RulerSwitcher({
 });
 
 globe.planet.addControl(ruler);
+
+globe.planet.addControl(new control.AtmosphereConfig());
+globe.planet.addControl(new control.Lighting());
