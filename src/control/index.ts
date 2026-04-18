@@ -25,7 +25,7 @@ export * from "./selection/Selection";
 export * from "./timeline/TimelineControl";
 export * from "./elevationProfile/ElevationProfileControl";
 export * from "./atmosphere/AtmosphereConfig";
-export * from "./geoObjectEditor/GeoObjectEditor";
+export * from "./entityEditor/EntityEditor";
 export * from "./CameraLock";
 export * from "./object3dManager/Object3dManager";
 export * from "./CameraFrameComposer";

@@ -65,7 +65,7 @@ import { Handler, Program, Framebuffer, Multisample } from "./webgl/index";
 
 import { EmptyTerrain, GlobusTerrain, RgbTerrain, BilTerrain, GlobusRgbTerrain } from "./terrain/index";
 
-import { MoveAxisEntity } from "./control/geoObjectEditor/MoveAxisEntity";
+import { MoveAxisEntity } from "./control/entityEditor/MoveAxisEntity";
 import { Gltf } from "./utils/gltf/gltfParser";
 import { Easing } from "./utils/easing";
 import type { EasingFunction } from "./utils/easing";

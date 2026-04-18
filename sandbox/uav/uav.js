@@ -29,7 +29,7 @@ globus.planet.addControl(new control.TimelineControl());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.LayerSwitcher());
 globus.planet.addControl(new control.DrawingSwitcher());
-globus.planet.addControl(new control.GeoObjectEditor());
+globus.planet.addControl(new control.EntityEditor());
 
 const uavGltfPromise = Gltf.loadGlb("./uav.glb");
 const cameraFrustumObject3d = Object3d.createFrustum();

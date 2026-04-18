@@ -82,7 +82,7 @@ let globe = new Globe({
 });
 
 const controlsList = [
-    new control.GeoObjectEditor(),
+    new control.EntityEditor(),
     new control.LayerSwitcher(),
     new control.ToggleWireframe(),
     new control.TimelineControl()

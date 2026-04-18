@@ -14,7 +14,7 @@ let renderer = new Renderer("frame", {
     msaa: 8,
     controls: [
         new control.SimpleNavigation({ speed: 0.01 }),
-        new control.GeoObjectEditor()
+        new control.EntityEditor()
     ],
     autoActivate: true
 });

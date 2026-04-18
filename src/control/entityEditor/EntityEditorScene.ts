@@ -20,7 +20,7 @@ import { CameraLock } from "../CameraLock";
 import { EntityCollection } from "../../entity/EntityCollection";
 import { SHADE_MODE_UNLIT } from "../../shadeModeConstants";
 
-export interface IGeoObjectEditorSceneParams {
+export interface IEntityEditorSceneParams {
     planet?: Planet;
     name?: string;
 }
@@ -41,7 +41,7 @@ function dragSimpleRes(unit: Vec3, eye: Vec3, clickDir: Vec3, direction: Vec3, p
     }
 }
 
-type GeoObjectSceneEventsList = [
+type EntityEditorSceneEventsList = [
     "mousemove",
     "mouseenter",
     "mouseleave",
@@ -77,8 +77,8 @@ type GeoObjectSceneEventsList = [
     "scale"
 ];
 
-class GeoObjectEditorScene extends RenderNode {
-    public events: EventsHandler<GeoObjectSceneEventsList>;
+class EntityEditorScene extends RenderNode {
+    public events: EventsHandler<EntityEditorSceneEventsList>;
     protected _planet: Planet | null;
     protected _startPos: Vec2 | null;
     protected _startClick: Vec2;
@@ -105,10 +105,10 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _axisTrackVisibility: boolean;
 
-    constructor(options: IGeoObjectEditorSceneParams = {}) {
-        super(options.name || "GeoObjectEditorScene");
+    constructor(options: IEntityEditorSceneParams = {}) {
+        super(options.name || "EntityEditorScene");
 
-        this.events = createEvents(GEOOBJECTEDITORCENE_EVENTS);
+        this.events = createEvents(ENTITY_EDITOR_SCENE_EVENTS);
 
         this._planet = options.planet || null;
 
@@ -722,7 +722,7 @@ class GeoObjectEditorScene extends RenderNode {
     }
 }
 
-const GEOOBJECTEDITORCENE_EVENTS: GeoObjectSceneEventsList = [
+const ENTITY_EDITOR_SCENE_EVENTS: EntityEditorSceneEventsList = [
     "mousemove",
     "mouseenter",
     "mouseleave",
@@ -758,4 +758,4 @@ const GEOOBJECTEDITORCENE_EVENTS: GeoObjectSceneEventsList = [
     "scale"
 ];
 
-export { GeoObjectEditorScene };
+export { EntityEditorScene };
