@@ -3,7 +3,6 @@ import { EntityEditorScene } from "./EntityEditorScene";
 import { Entity } from "../../entity/Entity";
 import { Input } from "../../ui/Input";
 import { Checkbox } from "../../ui/Checkbox";
-import { Button } from "../../ui/Button";
 import { Vec3 } from "../../math/Vec3";
 import { ToggleButton } from "../../ui/ToggleButton";
 import { DEGREES, RADIANS } from "../../math";
@@ -43,8 +42,6 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
     protected _scaleXView: Input;
     protected _scaleYView: Input;
     protected _scaleZView: Input;
-
-    protected _groundBtn: Button;
 
     constructor(params: IEntityEditorDialog) {
         super({
@@ -178,13 +175,6 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
             type: "number",
             maxFixed: 2
         });
-
-        this._groundBtn = new Button({
-            text: "Ground",
-            title: "Put on the ground",
-            name: "ground",
-            classList: ["og-editor-ground_button"]
-        });
     }
 
     public override render(params: any): this {
@@ -248,10 +238,6 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
         this._scaleYView.appendTo(this.container!);
         this._scaleZView.appendTo(this.container!);
 
-        if (this.model.planet) {
-            this._groundBtn.appendTo(this.container!);
-        }
-
         this._relativePositionView.events.on("change", this._onChangeRelativePosition);
 
         this._lonView.events.on("change", this._onChangeLon);
@@ -278,10 +264,6 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
         this._scaleXView.events.on("change", this._onChangeScaleX);
         this._scaleYView.events.on("change", this._onChangeScaleY);
         this._scaleZView.events.on("change", this._onChangeScaleZ);
-
-        this._groundBtn.appendTo(this.container!);
-
-        this._groundBtn.events.on("click", this._onGround);
 
         return this;
     }
@@ -314,11 +296,13 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
     }
 
     protected _onSelect = (entity: Entity) => {
+        this._setDialogTitle(entity);
         this.show();
         this._refresh(entity);
     };
 
     protected _refresh(entity: Entity) {
+        this._setDialogTitle(entity);
         this._relativePositionView.disabled = !entity.parent;
         //this._relativePositionView.stopPropagation();
         this._relativePositionView.checked = entity.relativePosition;
@@ -375,6 +359,12 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
         this._scaleXView.value = scl.x;
         this._scaleYView.value = scl.y;
         this._scaleZView.value = scl.z;
+    }
+
+    protected _setDialogTitle(entity: Entity): void {
+        const entityName = entity.name?.trim();
+        const title = entityName && entityName.length > 0 ? entityName : `entity:${entity.id.toString()}`;
+        this.setTitle(title);
     }
 
     public override hide() {
@@ -584,19 +574,6 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
         if (entity) {
             let s = entity.getScale();
             entity.setScale3v(new Vec3(s.x, s.y, parseFloat(val)));
-        }
-    };
-
-    protected _onGround = () => {
-        let entity = this.model.getSelectedEntity();
-        if (entity && this.model.planet) {
-            if (this.model.planet.terrain) {
-                this.model.planet.terrain.getHeightAsync(entity.getLonLat(), (height: number) => {
-                    this._heightView.value = height;
-                });
-            } else {
-                this._heightView.value = 0;
-            }
         }
     };
 }

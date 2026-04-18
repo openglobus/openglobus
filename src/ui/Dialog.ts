@@ -28,11 +28,11 @@ const DEFAULT_HEIGHT = 200;
 
 const DIALOG_EVENTS: DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
 
-const TEMPLATE = `<div class="og-ddialog" 
+const TEMPLATE = `<div class="og-ddialog"
         style="display:{display}; resize:{resize}; width: {width}px; {height}; top: {top}px; left: {left}px; min-height: {minHeight}; max-height: {maxHeight}; min-width: {minWidth}; max-width: {maxWidth};">
        <div class="og-ddialog-header">
-         <div class="og-ddialog-header__title">{title}</div>      
-         <div class="og-ddialog-header__buttons"></div>      
+         <div class="og-ddialog-header__title">{title}</div>
+         <div class="og-ddialog-header__buttons"></div>
         </div>
        <div class="og-ddialog-container"></div>
        <div class="og-ddialog-resize-handle" style="display:{resizeHandleDisplay};"></div>
@@ -69,11 +69,14 @@ class Dialog<M> extends View<M> {
     protected _isResizing: boolean;
     protected _touchDragPointerId: number | null;
     protected _touchResizePointerId: number | null;
+    protected _titleText: string;
 
     constructor(options: IDialogParams = {}) {
+        const title = options.title || "";
+
         super({
             template: stringTemplate(TEMPLATE, {
-                title: options.title || "",
+                title,
                 display: getDefault(options.visible, true) ? "flex" : "none",
                 resize: getDefault(options.resizable, true) ? "both" : "none",
                 width: options.width || DEFAULT_WIDTH,
@@ -121,6 +124,7 @@ class Dialog<M> extends View<M> {
         this._isResizing = false;
         this._touchDragPointerId = null;
         this._touchResizePointerId = null;
+        this._titleText = title;
     }
 
     public setContainer(htmlStr: string) {
@@ -139,6 +143,13 @@ class Dialog<M> extends View<M> {
         return this.el ? parseFloat(this.el.style.height) : this._height;
     }
 
+    public setTitle(title: string): void {
+        this._titleText = title;
+        if (this.$title) {
+            this.$title.textContent = title;
+        }
+    }
+
     public bringToFront() {
         this.el!.style.zIndex = String(Dialog.__zIndex__++);
     }
@@ -151,6 +162,7 @@ class Dialog<M> extends View<M> {
         this.$container = this.select(".og-ddialog-container");
         this.$buttons = this.select(".og-ddialog-header__buttons");
         this.$resizeHandle = this.select(".og-ddialog-resize-handle");
+        this.setTitle(this._titleText);
         this._initEvents();
         this._initButtons();
 
@@ -160,13 +172,14 @@ class Dialog<M> extends View<M> {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         this.el!.style.visibility = "visible";
+                        const right = this._right;
                         //@ts-ignore
-                        if (this.el!.parentNode) {
+                        if (this.el!.parentNode && right != null) {
                             this.setPosition(
-                                (this.el!.parentNode as HTMLElement).clientWidth - this.el!.clientWidth - this._right!
+                                (this.el!.parentNode as HTMLElement).clientWidth - this.el!.clientWidth - right
                             );
-                            obs.disconnect();
                         }
+                        obs.disconnect();
                     }
                 });
             });
@@ -318,12 +331,28 @@ class Dialog<M> extends View<M> {
     };
 
     public setPosition(x?: number, y?: number) {
+        if (!this.el) return;
         if (x != undefined) {
-            this.el!.style.left = `${x}px`;
+            this._right = null;
+            this.el.style.left = `${x}px`;
         }
         if (y != undefined) {
-            this.el!.style.top = `${y}px`;
+            this.el.style.top = `${y}px`;
         }
+    }
+
+    public getLeft(): number {
+        if (!this.el) {
+            return 0;
+        }
+        return parseFloat(this.el.style.left) || 0;
+    }
+
+    public getTop(): number {
+        if (!this.el) {
+            return 0;
+        }
+        return parseFloat(this.el.style.top) || 0;
     }
 
     protected _onMouseMove = (e: MouseEvent) => {

@@ -5,6 +5,7 @@ import { Entity } from "../../entity/Entity";
 import { ToggleButton } from "../../ui/ToggleButton";
 import { View } from "../../ui/View";
 import { EntityTreeView } from "./EntityTreeView";
+import { EntityEditor } from "../entityEditor/EntityEditor";
 
 export interface IEntityTreeParams extends IControlParams {
     entities?: Entity[];
@@ -14,6 +15,7 @@ export interface IEntityTreeParams extends IControlParams {
     width?: number;
     maxHeight?: number;
     expandedByDefault?: boolean;
+    entityEditor?: EntityEditor;
 }
 
 const ICON_BUTTON_SVG = `<svg width="1200pt" height="1200pt" version="1.1" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
@@ -35,6 +37,7 @@ export class EntityTree extends Control {
     protected _expandedEntityIds: Set<number>;
     protected _expandedByDefault: boolean;
     protected _$tree: HTMLElement | null;
+    protected _entityEditor: EntityEditor | null;
 
     constructor(options: IEntityTreeParams = {}) {
         super({
@@ -45,6 +48,7 @@ export class EntityTree extends Control {
         this._entities = options.entities ? [...options.entities] : [];
         this._expandedEntityIds = new Set<number>();
         this._expandedByDefault = options.expandedByDefault ?? false;
+        this._entityEditor = options.entityEditor || null;
 
         this._dialog = new Dialog({
             title: options.title || "Entity Tree",
@@ -89,6 +93,7 @@ export class EntityTree extends Control {
         this._dialog.events.on("visibility", this._onDialogVisibility);
         this._toggleBtn.events.on("change", this._onToggleButtonChange);
 
+        this._resolveEntityEditor();
         this._renderEntityTree();
     }
 
@@ -193,8 +198,21 @@ export class EntityTree extends Control {
     };
 
     protected _onEntitySelect = (entity: Entity): void => {
-        console.log(entity);
+        this._resolveEntityEditor();
+        if (this._entityEditor) {
+            this._entityEditor.selectEntity(entity);
+            this._entityEditor.positionDialogLeftOf(this._dialog);
+        }
     };
+
+    protected _resolveEntityEditor(): void {
+        if (this._entityEditor || !this.renderer) return;
+
+        const control = this.renderer.controls.EntityEditor;
+        if (control instanceof EntityEditor) {
+            this._entityEditor = control;
+        }
+    }
 
     protected _clearTreeView(): void {
         if (this._treeView) {
