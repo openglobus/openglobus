@@ -66,7 +66,7 @@ export class ScaleControl extends Control {
 
         this._scaleLabelEl = this.el.querySelector<HTMLElement>(".og-scale-label")!;
 
-        this.renderer!.div!.appendChild(this.el);
+        this.renderer!.bottomRightContainer().appendChild(this.el);
 
         if (this._isCenter) {
             this.planet!.camera.events.on("moveend", () => {

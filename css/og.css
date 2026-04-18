@@ -60,6 +60,35 @@
     justify-content: flex-end;
 }
 
+.og-control-container__bottom-right {
+    top: auto;
+    bottom: 12px;
+    right: 12px;
+    width: auto;
+    max-width: calc(100% - 24px);
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.og-control-container .og-scale-container,
+.og-control-container .og-coordinates {
+    position: relative;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    margin: 0;
+}
+
+.og-control-container__bottom-right .og-scale-container {
+    order: 0;
+}
+
+.og-control-container__bottom-right .og-coordinates {
+    order: 1;
+}
+
 .ogCenterIcon {
     height: 12px;
     width: 12px;
@@ -105,7 +134,7 @@
     background: rgb(206 206 206);
     text-align: right;
     bottom: 0;
-    right: 0;
+    left: 0;
     position: absolute;
     font-size: 0.7rem;
     padding: 1px 0 1px 0;
@@ -805,6 +834,30 @@ input {
 
 .og-coordinates div {
     float: left;
+}
+
+.og-coordinates .og-coordinates-copy-btn {
+    float: left;
+    margin-right: 6px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--grey8);
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.og-coordinates .og-coordinates-copy-btn:hover {
+    opacity: 1;
+}
+
+.og-coordinates .og-coordinates-copy-btn svg {
+    display: block;
+    transform: translateY(1px);
+}
+
+.og-coordinates .og-coordinates-copy-btn svg path {
+    fill: currentColor;
 }
 
 .og-lat-side,

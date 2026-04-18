@@ -123,6 +123,8 @@ class Renderer {
 
     protected _topRightContainer: HTMLDivElement;
 
+    protected _bottomRightContainer: HTMLDivElement;
+
     /**
      * WebGL handler context.
      * @public
@@ -271,8 +273,10 @@ class Renderer {
         this.div = null;
         this._topLeftContainer = document.createElement("div");
         this._topRightContainer = document.createElement("div");
+        this._bottomRightContainer = document.createElement("div");
         this._topLeftContainer.classList.add("og-control-container", "og-control-container__top-left");
         this._topRightContainer.classList.add("og-control-container", "og-control-container__top-right");
+        this._bottomRightContainer.classList.add("og-control-container", "og-control-container__bottom-right");
 
         if (handler instanceof Handler) {
             this.handler = handler;
@@ -644,6 +648,10 @@ class Renderer {
         if (this._topRightContainer.parentElement !== rootContainer) {
             rootContainer.appendChild(this._topRightContainer);
         }
+
+        if (this._bottomRightContainer.parentElement !== rootContainer) {
+            rootContainer.appendChild(this._bottomRightContainer);
+        }
     }
 
     public topLeftContainer(): HTMLDivElement {
@@ -652,6 +660,10 @@ class Renderer {
 
     public topRightContainer(): HTMLDivElement {
         return this._topRightContainer;
+    }
+
+    public bottomRightContainer(): HTMLDivElement {
+        return this._bottomRightContainer;
     }
 
     /**
@@ -1708,6 +1720,10 @@ class Renderer {
 
         if (this._topRightContainer.parentElement) {
             this._topRightContainer.parentElement.removeChild(this._topRightContainer);
+        }
+
+        if (this._bottomRightContainer.parentElement) {
+            this._bottomRightContainer.parentElement.removeChild(this._bottomRightContainer);
         }
 
         this.div = null;
