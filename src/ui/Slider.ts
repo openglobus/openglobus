@@ -79,6 +79,8 @@ class Slider extends View<null> {
         this.$panel = this.select(".og-slider-panel");
         this.$input = this.select<HTMLInputElement>("input");
 
+        this._syncUiFromValue();
+
         this._resizeObserver.observe(this.el!);
 
         this._initEvents();
@@ -87,14 +89,28 @@ class Slider extends View<null> {
     }
 
     protected _onResize = () => {
-        this._setOffset(((this._value - this._min) * this.$panel!.clientWidth) / (this._max - this._min));
+        this._syncUiFromValue();
     };
 
+    protected _syncUiFromValue() {
+        if (!this.$panel || !this.$input) return;
+
+        this.$input.value = this._value.toString();
+
+        const range = this._max - this._min;
+        if (range === 0) {
+            this._setOffset(0);
+            return;
+        }
+
+        this._setOffset(((this._value - this._min) * this.$panel.clientWidth) / range);
+    }
+
     public set value(val: number) {
-        if (val !== this._value) {
-            this._value = clamp(val, this._min, this._max);
-            this.$input!.value = this._value.toString();
-            this._setOffset(((this._value - this._min) * this.$panel!.clientWidth) / (this._max - this._min));
+        const clamped = clamp(val, this._min, this._max);
+        if (clamped !== this._value) {
+            this._value = clamped;
+            this._syncUiFromValue();
             this.events.dispatch(this.events.change, this._value, this);
         }
     }
@@ -187,6 +203,7 @@ class Slider extends View<null> {
         this._max = value;
         this.events.stopPropagation();
         this.value = this._value;
+        this._syncUiFromValue();
     }
 
     public get max(): number {

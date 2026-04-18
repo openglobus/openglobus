@@ -6,6 +6,7 @@ import type { NumberArray4 } from "../../math/Vec4";
 import { Entity } from "../Entity";
 import { RayHandler } from "./RayHandler";
 import type { HTMLImageElementExt } from "../../utils/ImagesCacheManager";
+import { clamp } from "../../math";
 
 export interface IRayParams {
     thickness?: number;
@@ -18,6 +19,7 @@ export interface IRayParams {
     image?: HTMLImageElement;
     texOffset?: number;
     strokeSize?: number;
+    opacity?: number;
 }
 
 /**
@@ -28,6 +30,7 @@ export interface IRayParams {
  * @param {Vec3|Array.<number>} [options.endPosition] - Ray end point position.
  * @param {Vec3|Array.<number>} [options.startColor] - Ray start point color.
  * @param {Vec3|Array.<number>} [options.endColor] - Ray end point color.
+ * @param {number} [options.opacity=1.0] - Ray opacity multiplier.
  * @param {boolean} [options.visibility] - Visibility.
  */
 class Ray {
@@ -99,6 +102,9 @@ class Ray {
     protected _texOffset: number;
 
     protected _strokeSize: number;
+    protected _opacity: number;
+    protected _effectiveStartColor: Vec4;
+    protected _effectiveEndColor: Vec4;
 
     constructor(options: IRayParams = {}) {
         this.__id = Ray.__counter__++;
@@ -133,6 +139,21 @@ class Ray {
         this._texOffset = options.texOffset || 0;
 
         this._strokeSize = options.strokeSize != undefined ? options.strokeSize : 32;
+        this._opacity = clamp(options.opacity != undefined ? options.opacity : 1.0, 0.0, 1.0);
+        this._effectiveStartColor = new Vec4();
+        this._effectiveEndColor = new Vec4();
+    }
+
+    protected _updateEffectiveColors() {
+        this._effectiveStartColor.x = this._startColor.x;
+        this._effectiveStartColor.y = this._startColor.y;
+        this._effectiveStartColor.z = this._startColor.z;
+        this._effectiveStartColor.w = this._startColor.w * this._opacity;
+
+        this._effectiveEndColor.x = this._endColor.x;
+        this._effectiveEndColor.y = this._endColor.y;
+        this._effectiveEndColor.z = this._endColor.z;
+        this._effectiveEndColor.w = this._endColor.w * this._opacity;
     }
 
     /**
@@ -269,7 +290,8 @@ class Ray {
             this._endColor.w = endColor.w;
         }
 
-        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
+        this._updateEffectiveColors();
+        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._effectiveStartColor, this._effectiveEndColor);
     }
 
     public setColorsHTML(startColor?: string, endColor?: string) {
@@ -281,7 +303,8 @@ class Ray {
             this._endColor = utils.htmlColorToRgba(endColor);
         }
 
-        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
+        this._updateEffectiveColors();
+        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._effectiveStartColor, this._effectiveEndColor);
     }
 
     public get texOffset(): number {
@@ -328,6 +351,26 @@ class Ray {
     public setVisibility(visibility: boolean) {
         this._visibility = visibility;
         this._handler && this._handler.setVisibility(this._handlerIndex, visibility);
+    }
+
+    /**
+     * Sets ray opacity.
+     * @public
+     * @param {number} opacity - Opacity value in range [0..1].
+     */
+    public setOpacity(opacity: number) {
+        this._opacity = clamp(opacity, 0.0, 1.0);
+        this._updateEffectiveColors();
+        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._effectiveStartColor, this._effectiveEndColor);
+    }
+
+    /**
+     * Returns ray opacity multiplier.
+     * @public
+     * @returns {number}
+     */
+    public getOpacity(): number {
+        return this._opacity;
     }
 
     /**

@@ -252,6 +252,25 @@ class PointCloud {
     }
 
     /**
+     * Sets opacity for all points in the cloud.
+     * @public
+     * @param {number} opacity - Opacity value in range [0..1].
+     */
+    public setOpacity(opacity: number) {
+        const clampedOpacity = Math.max(0.0, Math.min(1.0, opacity));
+
+        for (let i = 3; i < this._colorData.length; i += 4) {
+            this._colorData[i] = clampedOpacity;
+        }
+
+        for (let i = 0; i < this._points.length; i++) {
+            this._points[i].color.w = clampedOpacity * 255.0;
+        }
+
+        this._changedBuffers[COLOR_BUFFER] = true;
+    }
+
+    /**
      * @returns {boolean} Point cloud visibility.
      */
     public getVisibility(): boolean {

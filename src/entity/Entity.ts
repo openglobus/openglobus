@@ -30,8 +30,7 @@ import { Quat } from "../math/Quat";
 import { clamp } from "../math";
 
 /**
- * Interface for Entity parameters.
- * @typedef {Object} IEntityParams
+ * Options for creating an {@link Entity}.
  * @property {string} [name] - Name of the entity.
  * @property {any} [properties] - Additional properties of the entity.
  * @property {Vec3 | NumberArray3} [cartesian] - Cartesian position.
@@ -47,13 +46,16 @@ import { clamp } from "../math";
  * @property {GeoObject | IGeoObjectParams} [geoObject] - Geo object or parameters.
  * @property {Strip | IStripParams} [strip] - Strip object or parameters.
  * @property {boolean} [independentPicking] - Independent picking flag.
- * @property {boolean} [relativePosition] - Parent relative position flag, otherwise position is absolute.
+ * @property {boolean} [relativePosition] - When `true`, the entity position is relative to its parent.
  * @property {number} [pitch] - Rotation around local X-axis.
  * @property {number} [yaw] - Rotation around local Y-axis.
  * @property {number} [roll] - Rotation around local Z-axis.
  * @property {number | Vec3 | NumberArray3} [scale] - Scaling factor.
- * @property {boolean} [forceGlobalPosition] - Forces global position for entity make the same position as its parent.
- * @property {boolean} [forceGlobalRotation] - Forces global rotation for the entity make the same rotation as its parent.
+ * @property {number} [opacity=1.0] - Entity opacity.
+ * @property {boolean} [forceGlobalPosition] - Forces the entity to use the same world position as its parent.
+ * @property {boolean} [forceGlobalRotation] - Forces the entity to use the same world rotation as its parent.
+ * @property {boolean} [forceGlobalScale] - Forces the entity to use the same world scale as its parent.
+ * @property {Vec3 | NumberArray3} [localPosition] - Local position offset.
  */
 export interface IEntityParams {
     name?: string;
@@ -76,6 +78,7 @@ export interface IEntityParams {
     yaw?: number;
     roll?: number;
     scale?: number | Vec3 | NumberArray3;
+    opacity?: number;
     forceGlobalPosition?: boolean;
     forceGlobalRotation?: boolean;
     forceGlobalScale?: boolean;
@@ -83,11 +86,11 @@ export interface IEntityParams {
 }
 
 /**
- * Entity instances aggregate multiple forms of visualization into a single high-level object.
- * They can be created manually and added to entity collection.
+ * Entity combines multiple visual features into one object.
+ * You can create it manually and add it to an entity collection.
  *
  * @class
- * @param {IEntityParams} [options] - Entity options:
+ * @param {IEntityParams} [options] - Entity options.
  * @param {string} [options.name] - Name of the entity.
  * @param {any} [options.properties] - Additional properties of the entity.
  * @param {Vec3 | NumberArray3} [options.cartesian] - Cartesian position.
@@ -103,14 +106,16 @@ export interface IEntityParams {
  * @param {GeoObject | IGeoObjectParams} [options.geoObject] - Geo object or parameters.
  * @param {Strip | IStripParams} [options.strip] - Strip object or parameters.
  * @param {boolean} [options.independentPicking] - Independent picking flag.
- * @param {boolean} [options.relativePosition] - Parent relative position flag, otherwise position is absolute.
+ * @param {boolean} [options.relativePosition] - When `true`, the entity position is relative to its parent.
  * @param {number} [options.pitch] - Rotation around local X-axis in radians.
  * @param {number} [options.yaw] - Rotation around local Y-axis in radians.
  * @param {number} [options.roll] - Rotation around local Z-axis in radians.
  * @param {number | Vec3 | NumberArray3} [options.scale] - Scaling factor.
- * @param {boolean} [options.forceGlobalPosition] - Forces global position for the entity make the same position as its parent.
- * @param {boolean} [options.forceGlobalRotation] - Forces global rotation for the entity make the same rotation as its parent.
- * @param {boolean} [options.forceGlobalScale] - Forces global scale for the entity make the same scale as its parent.
+ * @param {number} [options.opacity=1.0] - Entity opacity.
+ * @param {boolean} [options.forceGlobalPosition] - Forces the entity to use the same world position as its parent.
+ * @param {boolean} [options.forceGlobalRotation] - Forces the entity to use the same world rotation as its parent.
+ * @param {boolean} [options.forceGlobalScale] - Forces the entity to use the same world scale as its parent.
+ * @param {Vec3 | NumberArray3} [options.localPosition] - Local position offset.
  */
 class Entity {
     static __counter__: number = 0;
@@ -118,14 +123,14 @@ class Entity {
     protected _name: string;
 
     /**
-     * Uniq identifier.
+     * Unique identifier.
      * @public
      * @readonly
      */
     protected __id: number;
 
     /**
-     * Entity user defined properties.
+     * User-defined entity properties.
      * @public
      * @type {Object}
      */
@@ -159,7 +164,7 @@ class Entity {
     public _cartesian: Vec3;
 
     /**
-     * Entity cartesian is equal root entity absolute cartesian.
+     * Absolute cartesian position of the root entity.
      * @protected
      * @type {Vec3}
      */
@@ -183,7 +188,7 @@ class Entity {
     public _lonLatMerc: LonLat;
 
     /**
-     * Entity visible terrain altitude.
+     * Entity altitude.
      * @public
      * @type {number}
      */
@@ -204,21 +209,21 @@ class Entity {
     public _entityCollection: EntityCollection | null;
 
     /**
-     * Entity collection array store index.
+     * Index of this entity in the collection array.
      * @public
      * @type {number}
      */
     public _entityCollectionIndex: number;
 
     /**
-     * Assigned vector layer pointer.
+     * Assigned vector layer.
      * @public
      * @type {Vector}
      */
     public _layer: Vector | null;
 
     /**
-     * Assigned vector layer entity array index.
+     * Index of this entity in the layer array.
      * @public
      * @type {number}
      */
@@ -264,23 +269,23 @@ class Entity {
     public ray: Ray | null;
 
     /**
-     * PointCloud entity.
+     * Point cloud entity.
      * @public
      * @type {PointCloud | null}
      */
     public pointCloud: PointCloud | null;
 
     /**
-     * Geometry entity(available for vector layer only).
+     * Geometry entity (available only in vector layers).
      * @public
      * @type {Geometry | null}
      */
     public geometry: Geometry | null;
 
     /**
-     * Geo object entity
+     * Geo object entity.
      * @public
-     * @type {Geometry | null}
+     * @type {GeoObject | null}
      */
     public geoObject: GeoObject | null;
 
@@ -303,6 +308,7 @@ class Entity {
     protected _qRot: Quat;
     public _absoluteQRot: Quat;
     protected _useDirectQuaternion: boolean;
+    protected _opacity: number;
 
     constructor(options: IEntityParams = {}) {
         options.properties = options.properties || {};
@@ -365,6 +371,7 @@ class Entity {
         this._qRot = Quat.IDENTITY;
         this._absoluteQRot = Quat.IDENTITY;
         this._useDirectQuaternion = false;
+        this._opacity = clamp(options.opacity != undefined ? options.opacity : 1.0, 0.0, 1.0);
 
         this._featureConstructorArray = {
             billboard: [Billboard, this.setBillboard],
@@ -392,6 +399,8 @@ class Entity {
         this.geoObject = this._createOptionFeature<GeoObject, IGeoObjectParams>("geoObject", options.geoObject);
 
         this.strip = this._createOptionFeature<Strip, IStripParams>("strip", options.strip);
+
+        this.setOpacity(this._opacity);
     }
 
     public get name(): string {
@@ -419,9 +428,9 @@ class Entity {
     }
 
     /**
-     * Returns root entity object.
+     * Returns the root entity.
      * @public
-     * @returns {Entity} Root entity object.
+     * @returns {Entity} Root entity.
      */
     public get rootEntity(): Entity {
         let pn: Entity | null = this;
@@ -435,8 +444,8 @@ class Entity {
     }
 
     /**
-     * Sets relative position property
-     * @param isRelative
+     * Sets whether the entity position is relative to its parent.
+     * @param {boolean} isRelative - Relative-position flag.
      */
     public set relativePosition(isRelative: boolean) {
         if (isRelative !== this._relativePosition) {
@@ -447,7 +456,7 @@ class Entity {
 
             this._relativePosition = isRelative;
 
-            // probably need to take root this.rootEntity
+            // TODO: probably should use this.rootEntity here.
             if (this.parent) {
                 this._rootCartesian.copy(this.parent._rootCartesian);
             }
@@ -467,9 +476,9 @@ class Entity {
     }
 
     /**
-     * Gets relative position property
+     * Returns whether the entity position is relative to its parent.
      * @public
-     * @returns{boolean}
+     * @returns {boolean}
      */
     public get relativePosition(): boolean {
         return this._relativePosition;
@@ -485,7 +494,7 @@ class Entity {
     }
 
     /**
-     * Gets entity uniq id
+     * Returns the entity id.
      * @public
      * @returns {number}
      */
@@ -511,8 +520,8 @@ class Entity {
     }
 
     /**
-     * Gets the instance class name of the entity.
-     * @returns {string} The instance name "Entity".
+     * Returns the instance class name.
+     * @returns {string} Always `"Entity"`.
      */
     public get instanceName(): string {
         return "Entity";
@@ -535,9 +544,9 @@ class Entity {
     }
 
     /**
-     * Adds current entity into the specified entity collection.
+     * Adds the entity to a collection or vector layer.
      * @public
-     * @param {EntityCollection | Vector} collection - Specified entity collection or vector layer.
+     * @param {EntityCollection | Vector} collection - Target collection or vector layer.
      * @returns {Entity} This object.
      */
     public addTo(collection: EntityCollection | Vector): Entity {
@@ -546,7 +555,7 @@ class Entity {
     }
 
     /**
-     * Removes current entity from its collection or layer.
+     * Removes the entity from its collection or layer.
      * @public
      */
     public remove() {
@@ -587,6 +596,38 @@ class Entity {
     }
 
     /**
+     * Sets entity opacity for all available features.
+     * @public
+     * @param {number} opacity - Entity opacity.
+     */
+    public setOpacity(opacity: number) {
+        if(opacity !== this._opacity) {
+            this._opacity = opacity;
+            this.billboard && this.billboard.setOpacity(opacity);
+            this.geoObject && this.geoObject.setOpacity(opacity);
+            this.label && this.label.setOpacity(opacity);
+            this.polyline && this.polyline.setOpacity(opacity);
+            this.ray && this.ray.setOpacity(opacity);
+            this.geometry &&
+                this.geometry
+                    .setFillOpacity(opacity)
+                    .setLineOpacity(opacity)
+                    .setStrokeOpacity(opacity);
+            this.pointCloud && this.pointCloud.setOpacity(opacity);
+            this.strip && this.strip.setOpacity(opacity);
+        }
+    }
+
+    /**
+     * Returns entity opacity.
+     * @public
+     * @returns {number} Entity opacity.
+     */
+    public getOpacity(): number {
+        return this._opacity;
+    }
+
+    /**
      * Returns entity visibility.
      * @public
      * @returns {boolean} Entity visibility flag.
@@ -598,14 +639,14 @@ class Entity {
     /**
      * Sets entity cartesian position.
      * @public
-     * @param {Vec3} cartesian - Cartesian position in 3d space.
+     * @param {Vec3} cartesian - Cartesian position in 3D space.
      */
     public setCartesian3v(cartesian: Vec3) {
         this.setCartesian(cartesian.x, cartesian.y, cartesian.z);
     }
 
     /**
-     * Gets scale factor
+     * Returns the local scale.
      * @public
      * @returns {Vec3}
      */
@@ -614,9 +655,9 @@ class Entity {
     }
 
     /**
-     * Sets XYZ axis scale for the inner object such as GeoObject
+     * Sets per-axis local scale.
      * @public
-     * @param {Vec3} scale - Scale factor
+     * @param {Vec3} scale - Scale vector.
      */
     public setScale3v(scale: Vec3) {
         this._scale.copy(scale);
@@ -632,9 +673,9 @@ class Entity {
     }
 
     /**
-     * Sets scale for the inner object such as GeoObject
+     * Sets uniform local scale.
      * @public
-     * @param {number} val - Scale factor
+     * @param {number} val - Scale value.
      */
     public setScale(val: number) {
         this.setScale3v(new Vec3(val, val, val));
@@ -714,9 +755,9 @@ class Entity {
 
     /**
      * Sets rotation directly from glTF quaternion with common coordinate system conversion.
-     * This method avoids current pitch/yaw/roll airplane like conversion.
+     * This method avoids the current pitch/yaw/roll conversion.
      * @public
-     * @param {Quat} rot - Quaternion from glTF
+     * @param {Quat} rot - Quaternion from glTF.
      */
     public setDirectQuaternionRotation(rot: Quat) {
         this._qRot.copy(rot);
@@ -895,9 +936,9 @@ class Entity {
     }
 
     /**
-     * Sets the absolute cartesian position of the entity using a Vec3.
+     * Sets absolute cartesian position using a vector.
      * @public
-     * @param {Vec3} absolutCartesian - The absolute cartesian position.
+     * @param {Vec3} absolutCartesian - Absolute cartesian position.
      */
     public setAbsoluteCartesian3v(absolutCartesian: Vec3) {
         let pos = absolutCartesian;
@@ -928,11 +969,11 @@ class Entity {
     }
 
     /**
-     * Sets entity cartesian position.
+     * Sets local cartesian position.
      * @public
-     * @param {number} x - 3d space X - position.
-     * @param {number} y - 3d space Y - position.
-     * @param {number} z - 3d space Z - position.
+     * @param {number} x - X coordinate in 3D space.
+     * @param {number} y - Y coordinate in 3D space.
+     * @param {number} z - Z coordinate in 3D space.
      */
     public setCartesian(x: number, y: number, z: number) {
         this._cartesian.set(x, y, z);
@@ -1035,10 +1076,10 @@ class Entity {
     }
 
     /**
-     * Sets entity cartesian position without event dispatching.
+     * Sets local cartesian position without dispatching events.
      * @public
-     * @param {Vec3} cartesian - Cartesian position in 3d space.
-     * @param {boolean} skipLonLat - skip geodetic calculation.
+     * @param {Vec3} cartesian - Cartesian position in 3D space.
+     * @param {boolean} skipLonLat - Skip geodetic conversion.
      */
     public _setCartesian3vSilent(cartesian: Vec3, skipLonLat: boolean = false) {
         this._cartesian.copy(cartesian);
@@ -1070,7 +1111,7 @@ class Entity {
     }
 
     /**
-     * Gets entity geodetic coordinates.
+     * Returns geodetic coordinates.
      * @public
      * @returns {LonLat} Entity geodetic coordinates.
      */
@@ -1079,9 +1120,9 @@ class Entity {
     }
 
     /**
-     * Sets geodetic coordinates of the entity point object.
+     * Sets geodetic coordinates.
      * @public
-     * @param {LonLat} lonlat - coordinates.
+     * @param {LonLat} lonlat - Geodetic coordinates.
      */
     public setLonLat(lonlat: LonLat) {
         let l = this._lonLat;
@@ -1106,11 +1147,11 @@ class Entity {
     }
 
     /**
-     * Sets geodetic coordinates of the entity point object.
+     * Sets geodetic coordinates.
      * @public
      * @param {number} lon - Longitude.
-     * @param {number} lat - Latitude
-     * @param {number} [height] - Height
+     * @param {number} lat - Latitude.
+     * @param {number} [height] - Height.
      */
     public setLonLat2(lon: number, lat: number, height?: number) {
         let l = this._lonLat;
@@ -1175,6 +1216,7 @@ class Entity {
         this.billboard._entity = this;
         this.billboard.setPosition3v(this._cartesian);
         this.billboard.setVisibility(this._visibility);
+        this.billboard.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.billboardHandler.add(billboard);
         return billboard;
     }
@@ -1193,6 +1235,7 @@ class Entity {
         this.label._entity = this;
         this.label.setPosition3v(this._cartesian);
         this.label.setVisibility(this._visibility);
+        this.label.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.labelHandler.add(label);
         return label;
     }
@@ -1210,6 +1253,7 @@ class Entity {
         this.ray = ray;
         this.ray._entity = this;
         this.ray.setVisibility(this._visibility);
+        this.ray.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.rayHandler.add(ray);
         return ray;
     }
@@ -1227,6 +1271,7 @@ class Entity {
         this.polyline = polyline;
         this.polyline._entity = this;
         this.polyline.setVisibility(this._visibility);
+        this.polyline.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.polylineHandler.add(polyline);
         return polyline;
     }
@@ -1244,6 +1289,7 @@ class Entity {
         this.pointCloud = pointCloud;
         this.pointCloud._entity = this;
         this.pointCloud.setVisibility(this._visibility);
+        this.pointCloud.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.pointCloudHandler.add(pointCloud);
         return pointCloud;
     }
@@ -1261,6 +1307,7 @@ class Entity {
         this.geometry = geometry;
         this.geometry._entity = this;
         this.geometry.setVisibility(this._visibility);
+        this.geometry.setFillOpacity(this._opacity).setLineOpacity(this._opacity).setStrokeOpacity(this._opacity);
         let layer = this._layer;
         if (this._layer) {
             this._layer.removeEntity(this);
@@ -1283,6 +1330,7 @@ class Entity {
         this.geoObject._entity = this;
         this.geoObject.setPosition3v(this._cartesian);
         this.geoObject.setVisibility(this._visibility);
+        this.geoObject.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.geoObjectHandler.add(geoObject);
         return geoObject;
     }
@@ -1300,12 +1348,13 @@ class Entity {
         this.strip = strip;
         this.strip._entity = this;
         this.strip.setVisibility(this._visibility);
+        this.strip.setOpacity(this._opacity);
         this._entityCollection && this._entityCollection.stripHandler.add(strip);
         return strip;
     }
 
     /**
-     * Gets layer container
+     * Returns the assigned vector layer.
      * @public
      * @returns {Vector | null}
      */
@@ -1323,10 +1372,10 @@ class Entity {
     }
 
     /**
-     * Append child entity.
+     * Appends child entities.
      * @public
      * @param {Entity[]} entities - Child entities.
-     * @param {boolean} [forceRelativePosition] - Force relative position property.
+     * @param {boolean} [forceRelativePosition] - If defined, sets `relativePosition` for each child.
      */
     public appendChildren(entities: Entity[], forceRelativePosition?: boolean) {
         for (let i = 0; i < entities.length; i++) {
@@ -1338,7 +1387,7 @@ class Entity {
     }
 
     /**
-     * Append child entity.
+     * Appends a child entity.
      * @public
      * @param {Entity} entity - Child entity.
      */
@@ -1353,7 +1402,7 @@ class Entity {
     }
 
     /**
-     * Appends entity items(billboard, label etc.) picking color.
+     * Applies entity picking color to all supported features.
      * @public
      */
     public setPickingColor() {

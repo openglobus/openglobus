@@ -1025,9 +1025,9 @@ TIMELINE
 .og-slider {
     display: flex;
     flex-direction: row;
-    width: 200px;
     /*height: 20px;*/
     gap: 5px;
+    margin: 5px;
 }
 
 .og-slider .og-slider-label {
