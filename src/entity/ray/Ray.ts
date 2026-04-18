@@ -291,7 +291,8 @@ class Ray {
         }
 
         this._updateEffectiveColors();
-        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._effectiveStartColor, this._effectiveEndColor);
+        this._handler &&
+            this._handler.setRgbaArr(this._handlerIndex, this._effectiveStartColor, this._effectiveEndColor);
     }
 
     public setColorsHTML(startColor?: string, endColor?: string) {
@@ -304,7 +305,8 @@ class Ray {
         }
 
         this._updateEffectiveColors();
-        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._effectiveStartColor, this._effectiveEndColor);
+        this._handler &&
+            this._handler.setRgbaArr(this._handlerIndex, this._effectiveStartColor, this._effectiveEndColor);
     }
 
     public get texOffset(): number {
@@ -361,7 +363,8 @@ class Ray {
     public setOpacity(opacity: number) {
         this._opacity = clamp(opacity, 0.0, 1.0);
         this._updateEffectiveColors();
-        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._effectiveStartColor, this._effectiveEndColor);
+        this._handler &&
+            this._handler.setRgbaArr(this._handlerIndex, this._effectiveStartColor, this._effectiveEndColor);
     }
 
     /**

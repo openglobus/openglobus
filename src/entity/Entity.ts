@@ -601,18 +601,14 @@ class Entity {
      * @param {number} opacity - Entity opacity.
      */
     public setOpacity(opacity: number) {
-        if(opacity !== this._opacity) {
+        if (opacity !== this._opacity) {
             this._opacity = opacity;
             this.billboard && this.billboard.setOpacity(opacity);
             this.geoObject && this.geoObject.setOpacity(opacity);
             this.label && this.label.setOpacity(opacity);
             this.polyline && this.polyline.setOpacity(opacity);
             this.ray && this.ray.setOpacity(opacity);
-            this.geometry &&
-                this.geometry
-                    .setFillOpacity(opacity)
-                    .setLineOpacity(opacity)
-                    .setStrokeOpacity(opacity);
+            this.geometry && this.geometry.setFillOpacity(opacity).setLineOpacity(opacity).setStrokeOpacity(opacity);
             this.pointCloud && this.pointCloud.setOpacity(opacity);
             this.strip && this.strip.setOpacity(opacity);
         }

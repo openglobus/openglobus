@@ -740,8 +740,10 @@ class Renderer {
 
         this.handler.addPrograms([toneMapping(), depth()]);
 
-        let initWidth = this.handler.getWidth(),
-            initHeight = this.handler.getHeight();
+        let initWidth = this.handler.getWidth() * 0.5,
+            initHeight = this.handler.getHeight() * 0.5;
+
+        this.activeCamera.setViewportSize(initWidth, initHeight);
 
         this.forwardFramebuffer = new Multisample(this.handler, {
             width: initWidth,
@@ -1700,6 +1702,7 @@ class Renderer {
         if (!this._initialized) {
             this.initialize();
         }
+        this.activeCamera.setViewportSize(this.handler.getWidth(), this.handler.getHeight());
         this.handler.start();
     }
 
