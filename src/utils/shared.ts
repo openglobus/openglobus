@@ -1166,7 +1166,9 @@ export async function ensureImageReady(image: HTMLImageElement): Promise<boolean
     });
 }
 
-export async function prepareTextureImage(image: HTMLImageElement): Promise<HTMLImageElement | HTMLCanvasElement | null> {
+export async function prepareTextureImage(
+    image: HTMLImageElement
+): Promise<HTMLImageElement | HTMLCanvasElement | null> {
     const isReady = await ensureImageReady(image);
     if (!isReady) {
         return null;

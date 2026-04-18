@@ -71,7 +71,9 @@ export class EntityTreeView extends View<Entity[]> {
         const toggleBtn = document.createElement("button");
         toggleBtn.type = "button";
         toggleBtn.classList.add("og-entityTree__toggleBtn");
-        toggleBtn.classList.add(hasChildren ? "og-entityTree__toggleBtn_hasChildren" : "og-entityTree__toggleBtn_empty");
+        toggleBtn.classList.add(
+            hasChildren ? "og-entityTree__toggleBtn_hasChildren" : "og-entityTree__toggleBtn_empty"
+        );
         toggleBtn.disabled = entity.childEntities.length === 0;
         toggleBtn.textContent = hasChildren ? this._getToggleText(expanded) : "";
         rowEl.appendChild(toggleBtn);

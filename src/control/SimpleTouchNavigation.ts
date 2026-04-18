@@ -1,16 +1,12 @@
-import { Control, type IControlParams } from '../control/Control';
-import type { ITouchState } from '../renderer/RendererEvents';
-import { Vec2 } from '../math/Vec2';
-import { Vec3 } from '../math/Vec3';
-import { Ray } from '../math/Ray';
-import { Plane } from '../math/Plane';
-import * as math from '../math';
+import { Control, type IControlParams } from "../control/Control";
+import type { ITouchState } from "../renderer/RendererEvents";
+import { Vec2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
+import { Ray } from "../math/Ray";
+import { Plane } from "../math/Plane";
+import * as math from "../math";
 
-const PLANE_Y = Plane.fromPoints(
-    new Vec3(0, 0, 0),
-    new Vec3(1, 0, 0),
-    new Vec3(0, 0, 1),
-);
+const PLANE_Y = Plane.fromPoints(new Vec3(0, 0, 0), new Vec3(1, 0, 0), new Vec3(0, 0, 1));
 
 export class SimpleTouchNavigation extends Control {
     protected _grabbedPoint: Vec3 | undefined;
@@ -32,9 +28,9 @@ export class SimpleTouchNavigation extends Control {
 
     constructor(options: IControlParams = {}) {
         super({
-            name: 'SimpleTouchNavigation',
+            name: "SimpleTouchNavigation",
             autoActivate: true,
-            ...options,
+            ...options
         });
 
         this._grabbedPoint = undefined;
@@ -55,24 +51,24 @@ export class SimpleTouchNavigation extends Control {
             });
         }
 
-        r.events.on('touchstart', this.onTouchStart);
-        r.events.on('touchend', this.onTouchEnd);
+        r.events.on("touchstart", this.onTouchStart);
+        r.events.on("touchend", this.onTouchEnd);
         //r.events.on('touchcancel', this.onTouchCancel);
-        r.events.on('touchmove', this.onTouchMove);
+        r.events.on("touchmove", this.onTouchMove);
 
-        r.events.on('draw', this.onDraw, this, -1000);
+        r.events.on("draw", this.onDraw, this, -1000);
     }
 
     public override ondeactivate() {
         super.ondeactivate();
         let r = this.renderer!;
 
-        r.events.off('touchstart', this.onTouchStart);
-        r.events.off('touchend', this.onTouchEnd);
+        r.events.off("touchstart", this.onTouchStart);
+        r.events.off("touchend", this.onTouchEnd);
         //r.events.off('touchcancel', this.onTouchCancel);
-        r.events.off('touchmove', this.onTouchMove);
+        r.events.off("touchmove", this.onTouchMove);
 
-        r.events.off('draw', this.onDraw);
+        r.events.off("draw", this.onDraw);
     }
 
     protected onTouchEnd = (e: ITouchState) => {
@@ -83,14 +79,11 @@ export class SimpleTouchNavigation extends Control {
     //   //noop
     // };
 
-    protected _pointerToScreenPoint(
-        pointer: PointerEvent,
-        sys: NonNullable<ITouchState['sys']>,
-    ): Vec2 {
+    protected _pointerToScreenPoint(pointer: PointerEvent, sys: NonNullable<ITouchState["sys"]>): Vec2 {
         const handler = this.renderer!.handler;
         return new Vec2(
             (pointer.clientX - sys.offsetLeft) * handler.pixelRatio,
-            (pointer.clientY - sys.offsetTop) * handler.pixelRatio,
+            (pointer.clientY - sys.offsetTop) * handler.pixelRatio
         );
     }
 
@@ -114,16 +107,10 @@ export class SimpleTouchNavigation extends Control {
 
     protected _updateGrabbedScreenPoint(screenPoint: Vec2) {
         const handler = this.renderer!.handler;
-        this._grabbedScreenPoint.set(
-            screenPoint.x / handler.getWidth(),
-            screenPoint.y / handler.getHeight(),
-        );
+        this._grabbedScreenPoint.set(screenPoint.x / handler.getWidth(), screenPoint.y / handler.getHeight());
     }
 
-    protected _startSingleFingerGesture(
-        pointer: PointerEvent,
-        sys: NonNullable<ITouchState['sys']>,
-    ) {
+    protected _startSingleFingerGesture(pointer: PointerEvent, sys: NonNullable<ITouchState["sys"]>) {
         const t0 = this._pointerToScreenPoint(pointer, sys);
         this._grabbedPoint = this._getGrabbedPoint(t0);
         this._updateGrabbedScreenPoint(t0);
@@ -132,8 +119,8 @@ export class SimpleTouchNavigation extends Control {
     protected _startTwoFingerGesture(
         pointer0: PointerEvent,
         pointer1: PointerEvent,
-        sys: NonNullable<ITouchState['sys']>,
-        skipPointGrabbing: boolean,
+        sys: NonNullable<ITouchState["sys"]>,
+        skipPointGrabbing: boolean
     ) {
         const t0 = this._pointerToScreenPoint(pointer0, sys);
         const t1 = this._pointerToScreenPoint(pointer1, sys);
@@ -179,12 +166,7 @@ export class SimpleTouchNavigation extends Control {
         const cam = this.renderer!.activeCamera;
         const px = new Vec3();
         const direction = cam.unproject(screenPoint.x, screenPoint.y);
-        if (
-            new Ray(cam.eye, direction).hitPlaneRes(
-                this._getPerspectiveDragPlane(anchor),
-                px,
-            ) === Ray.INSIDE
-        ) {
+        if (new Ray(cam.eye, direction).hitPlaneRes(this._getPerspectiveDragPlane(anchor), px) === Ray.INSIDE) {
             cam.eye = cam.eye.add(anchor.sub(px));
         }
     }
@@ -198,10 +180,7 @@ export class SimpleTouchNavigation extends Control {
         }
     }
 
-    protected _moveSingleFingerGesture(
-        pointer: PointerEvent,
-        sys: NonNullable<ITouchState['sys']>,
-    ) {
+    protected _moveSingleFingerGesture(pointer: PointerEvent, sys: NonNullable<ITouchState["sys"]>) {
         const t0 = this._pointerToScreenPoint(pointer, sys);
         this._prev_t0.copy(t0);
         this._prev_t1.copy(t0);
@@ -229,14 +208,9 @@ export class SimpleTouchNavigation extends Control {
             const heightBefore = fBefore.top - fBefore.bottom;
             const dxBefore = -widthBefore * (0.5 - this._grabbedScreenPoint.x);
             const dyBefore = heightBefore * (0.5 - this._grabbedScreenPoint.y);
-            const worldBefore = cam.eye
-                .add(cam.getRight().scale(dxBefore))
-                .add(cam.getUp().scale(dyBefore));
+            const worldBefore = cam.eye.add(cam.getRight().scale(dxBefore)).add(cam.getUp().scale(dyBefore));
 
-            cam.focusDistance = Math.max(
-                this._orthoMinFocusDistance,
-                cam.focusDistance * scale,
-            );
+            cam.focusDistance = Math.max(this._orthoMinFocusDistance, cam.focusDistance * scale);
             cam.update();
 
             const fAfter = cam.frustum;
@@ -244,9 +218,7 @@ export class SimpleTouchNavigation extends Control {
             const heightAfter = fAfter.top - fAfter.bottom;
             const dxAfter = -widthAfter * (0.5 - this._grabbedScreenPoint.x);
             const dyAfter = heightAfter * (0.5 - this._grabbedScreenPoint.y);
-            const worldAfter = cam.eye
-                .add(cam.getRight().scale(dxAfter))
-                .add(cam.getUp().scale(dyAfter));
+            const worldAfter = cam.eye.add(cam.getRight().scale(dxAfter)).add(cam.getUp().scale(dyAfter));
 
             cam.eye = cam.eye.add(worldBefore.sub(worldAfter));
             this._eye0.copy(cam.eye);
@@ -275,8 +247,7 @@ export class SimpleTouchNavigation extends Control {
         const lineDx = Math.abs(touchLine.x);
         const lineDy = Math.abs(touchLine.y);
         const horizontalLine =
-            lineDx > this._twoFingerTiltMinMove &&
-            lineDy <= lineDx * this._twoFingerTiltHorizontalLineRatio;
+            lineDx > this._twoFingerTiltMinMove && lineDy <= lineDx * this._twoFingerTiltHorizontalLineRatio;
         if (!horizontalLine) {
             return false;
         }
@@ -285,8 +256,7 @@ export class SimpleTouchNavigation extends Control {
         const dir1 = new Vec2(d1.x / len1, d1.y / len1);
         const sameDirection = dir0.dot(dir1) > this._twoFingerTiltAlignDot;
         const movementOnTiltAxis =
-            Math.abs(dir0.y) > this._twoFingerTiltVerticalRatio &&
-            Math.abs(dir1.y) > this._twoFingerTiltVerticalRatio;
+            Math.abs(dir0.y) > this._twoFingerTiltVerticalRatio && Math.abs(dir1.y) > this._twoFingerTiltVerticalRatio;
 
         return sameDirection && movementOnTiltAxis;
     }
@@ -337,21 +307,16 @@ export class SimpleTouchNavigation extends Control {
 
         const dir0 = new Vec2(d0.x / len0, d0.y / len0);
         const dir1 = new Vec2(d1.x / len1, d1.y / len1);
-        const movementOnTiltAxis =
-            Math.abs(dir0.y) > holdTiltAxisRatio &&
-            Math.abs(dir1.y) > holdTiltAxisRatio;
+        const movementOnTiltAxis = Math.abs(dir0.y) > holdTiltAxisRatio && Math.abs(dir1.y) > holdTiltAxisRatio;
 
-        return (
-            dir0.dot(dir1) > holdAlignDot &&
-            movementOnTiltAxis
-        );
+        return dir0.dot(dir1) > holdAlignDot && movementOnTiltAxis;
     }
 
     protected _moveTwoFingerGesture(
         e: ITouchState,
         pointer0: PointerEvent,
         pointer1: PointerEvent,
-        sys: NonNullable<ITouchState['sys']>,
+        sys: NonNullable<ITouchState["sys"]>
     ) {
         const cam = this.renderer!.activeCamera;
         const t0 = this._pointerToScreenPoint(pointer0, sys);
@@ -411,12 +376,7 @@ export class SimpleTouchNavigation extends Control {
             this._twoFingerTiltActive = false;
             this._startSingleFingerGesture(pointers[0], sys);
         } else if (pointers.length === 2) {
-            this._startTwoFingerGesture(
-                pointers[0],
-                pointers[1],
-                sys,
-                !!skipPointGrabbing,
-            );
+            this._startTwoFingerGesture(pointers[0], pointers[1], sys, !!skipPointGrabbing);
         } else {
             this._twoFingerTiltActive = false;
             this._grabbedPoint = undefined;
@@ -438,12 +398,7 @@ export class SimpleTouchNavigation extends Control {
             this._twoFingerTiltActive = false;
             this._moveSingleFingerGesture(pointers[0], sys);
         } else if (pointers.length === 2) {
-            this._moveTwoFingerGesture(
-                e,
-                pointers[0],
-                pointers[1],
-                sys,
-            );
+            this._moveTwoFingerGesture(e, pointers[0], pointers[1], sys);
         } else {
             this._twoFingerTiltActive = false;
         }
