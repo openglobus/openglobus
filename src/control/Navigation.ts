@@ -674,24 +674,18 @@ export class Navigation extends Control {
         velocity: Vec3,
         fromEyeNorm: Vec3,
         toEyeNorm: Vec3,
-        dt: number,
         fallbackAxis: Vec3
     ): Vec3 | null {
-        if (dt <= 0) {
-            return null;
-        }
-
         const fromAxes = this._getSurfaceDragAxes(fromEyeNorm, fallbackAxis);
         const toAxes = this._getSurfaceDragAxes(toEyeNorm, fallbackAxis);
         if (!fromAxes || !toAxes) {
             return null;
         }
 
-        const tangentStep = Vec3.proj_b_to_plane(velocity.scaleTo(dt), fromEyeNorm);
-        const northStep = tangentStep.dot(fromAxes.north);
-        const eastStep = tangentStep.dot(fromAxes.east);
+        const northVel = velocity.dot(fromAxes.north);
+        const eastVel = velocity.dot(fromAxes.east);
 
-        return toAxes.north.scaleTo(northStep / dt).addA(toAxes.east.scaleTo(eastStep / dt));
+        return toAxes.north.scaleTo(northVel).addA(toAxes.east.scaleTo(eastVel));
     }
 
     protected _handleDrag() {
@@ -717,16 +711,17 @@ export class Navigation extends Control {
                 let d_v = this.vel.scaleTo(dt);
                 let d_s = Vec3.proj_b_to_plane(d_v, startEyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
+                const newEyeNorm = newEye.getNormal();
 
                 if (this.freeMode) {
-                    let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
+                    let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEyeNorm);
                     cam.rotate(rot);
                     cam.eye.copy(newEye);
                 } else {
                     let inertiaDamping = 1.0;
 
                     // Check if newEye exceeds pole threshold
-                    let newNorthProximity = newEye.getNormal().dot(Vec3.NORTH);
+                    let newNorthProximity = newEyeNorm.dot(Vec3.NORTH);
                     let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
                     if (
                         (newNorthProximity > northProximity && newNorthProximity >= this.poleThreshold) ||
@@ -742,8 +737,7 @@ export class Navigation extends Control {
                     const transportedVel = this._transportDragInertiaVelocity(
                         this.vel,
                         startEyeNorm,
-                        newEye.getNormal(),
-                        dt,
+                        newEyeNorm,
                         cam.getUp()
                     );
                     if (transportedVel) {
