@@ -10,7 +10,7 @@ import { input } from "../input/input";
 import { Plane } from "../math/Plane";
 import { createEvents, type EventsHandler } from "../Events";
 
-export type NavigationMode = "lockNorth" | "adaptive" | "free";
+export type NavigationMode = "north" | "adaptive" | "free";
 
 export interface INavigationParams extends IControlParams {
     inertia?: number;
@@ -57,7 +57,7 @@ const MIN_SLOPE = 0.35;
 const DEFAULT_POLE_THRESHOLD = 0.999;
 
 const MODE_FREE = 0;
-const MODE_LOCK_NORTH = 1;
+const MODE_NORTH = 1;
 const MODE_ADAPTIVE = 2;
 
 /**
@@ -65,7 +65,7 @@ const MODE_ADAPTIVE = 2;
  * @class
  * @extends {Control}
  * @param {INavigationParams} [options] - Navigation options:
- * @param {NavigationMode} [options.mode] - Navigation mode: "lockNorth" (keeps north fixed), "adaptive" (default, auto-detects arc mode), "free" (arc rotation mode)
+ * @param {NavigationMode} [options.mode] - Navigation mode: "north" (keeps north fixed), "adaptive" (default, auto-detects arc mode), "free" (arc rotation mode)
  * @param {number} [options.inertia] - inertia factor
  * @param {number} [options.dragInertia] - drag inertia
  * @param {number} [options.mass] - camera mass, affects velocity. Default is 1
@@ -623,7 +623,7 @@ export class Navigation extends Control {
     };
 
     public get freeMode(): boolean {
-        if (this.mode === MODE_LOCK_NORTH) {
+        if (this.mode === MODE_NORTH) {
             return false;
         }
         if (this.mode === MODE_FREE) {
@@ -638,14 +638,60 @@ export class Navigation extends Control {
 
     protected _modeToNumber(mode: NavigationMode): number {
         switch (mode) {
-            case "lockNorth":
-                return MODE_LOCK_NORTH;
+            case "north":
+                return MODE_NORTH;
             case "free":
                 return MODE_FREE;
             case "adaptive":
             default:
                 return MODE_ADAPTIVE;
         }
+    }
+
+    protected _getSurfaceDragAxes(eyeNorm: Vec3, fallbackAxis: Vec3): { north: Vec3; east: Vec3 } | null {
+        const eps = 1e-12;
+
+        let north = Vec3.proj_b_to_plane(Vec3.NORTH, eyeNorm);
+        if (north.length2() < eps) {
+            north = Vec3.proj_b_to_plane(fallbackAxis, eyeNorm);
+            if (north.length2() < eps) {
+                return null;
+            }
+        }
+        north.normalize();
+
+        let east = north.cross(eyeNorm);
+        if (east.length2() < eps) {
+            return null;
+        }
+        east.normalize();
+        north = eyeNorm.cross(east).normalize();
+
+        return { north, east };
+    }
+
+    protected _transportDragInertiaVelocity(
+        velocity: Vec3,
+        fromEyeNorm: Vec3,
+        toEyeNorm: Vec3,
+        dt: number,
+        fallbackAxis: Vec3
+    ): Vec3 | null {
+        if (dt <= 0) {
+            return null;
+        }
+
+        const fromAxes = this._getSurfaceDragAxes(fromEyeNorm, fallbackAxis);
+        const toAxes = this._getSurfaceDragAxes(toEyeNorm, fallbackAxis);
+        if (!fromAxes || !toAxes) {
+            return null;
+        }
+
+        const tangentStep = Vec3.proj_b_to_plane(velocity.scaleTo(dt), fromEyeNorm);
+        const northStep = tangentStep.dot(fromAxes.north);
+        const eastStep = tangentStep.dot(fromAxes.east);
+
+        return toAxes.north.scaleTo(northStep / dt).addA(toAxes.east.scaleTo(eastStep / dt));
     }
 
     protected _handleDrag() {
@@ -666,8 +712,10 @@ export class Navigation extends Control {
             // this._prevVel.copy(this.vel);
 
             if (cam.slope > this.minSlope) {
-                let d_v = this.vel.scaleTo(this.dt);
-                let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
+                const dt = this.dt;
+                const startEyeNorm = cam.eyeNorm;
+                let d_v = this.vel.scaleTo(dt);
+                let d_s = Vec3.proj_b_to_plane(d_v, startEyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
 
                 if (this.freeMode) {
@@ -675,6 +723,8 @@ export class Navigation extends Control {
                     cam.rotate(rot);
                     cam.eye.copy(newEye);
                 } else {
+                    let inertiaDamping = 1.0;
+
                     // Check if newEye exceeds pole threshold
                     let newNorthProximity = newEye.getNormal().dot(Vec3.NORTH);
                     let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
@@ -682,12 +732,26 @@ export class Navigation extends Control {
                         (newNorthProximity > northProximity && newNorthProximity >= this.poleThreshold) ||
                         (newNorthProximity < northProximity && newNorthProximity <= -this.poleThreshold)
                     ) {
-                        this.vel.scale(0.8);
+                        inertiaDamping = 0.8;
                     }
 
                     cam.eye.copy(newEye);
                     this._corrRoll();
                     cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+
+                    const transportedVel = this._transportDragInertiaVelocity(
+                        this.vel,
+                        startEyeNorm,
+                        newEye.getNormal(),
+                        dt,
+                        cam.getUp()
+                    );
+                    if (transportedVel) {
+                        this.vel.copy(transportedVel);
+                    }
+                    if (inertiaDamping !== 1.0) {
+                        this.vel.scale(inertiaDamping);
+                    }
                 }
             } else {
                 let d_v = this.vel.scaleTo(this.dt);
