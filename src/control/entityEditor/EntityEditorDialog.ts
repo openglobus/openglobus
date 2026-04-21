@@ -1,22 +1,22 @@
 import { Dialog, type IDialogParams } from "../../ui/Dialog";
-import { GeoObjectEditorScene } from "./GeoObjectEditorScene";
+import { EntityEditorScene } from "./EntityEditorScene";
 import { Entity } from "../../entity/Entity";
 import { Input } from "../../ui/Input";
 import { Checkbox } from "../../ui/Checkbox";
-import { Button } from "../../ui/Button";
 import { Vec3 } from "../../math/Vec3";
 import { ToggleButton } from "../../ui/ToggleButton";
 import { DEGREES, RADIANS } from "../../math";
+import { Slider } from "../../ui/Slider";
 
 const ICON_LOCK_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" id="filter-center-focus">
   <path d="M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
 </svg>`;
 
-interface IGeoObjectPropertiesDialog extends IDialogParams {
-    model: GeoObjectEditorScene;
+interface IEntityEditorDialog extends IDialogParams {
+    model: EntityEditorScene;
 }
 
-export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
+export class EntityEditorDialog extends Dialog<EntityEditorScene> {
     protected _relativePositionView: Checkbox;
 
     protected _lonView: Input;
@@ -43,12 +43,11 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _scaleXView: Input;
     protected _scaleYView: Input;
     protected _scaleZView: Input;
+    protected _opacityView: Slider;
 
-    protected _groundBtn: Button;
-
-    constructor(params: IGeoObjectPropertiesDialog) {
+    constructor(params: IEntityEditorDialog) {
         super({
-            title: "GeoObject Properties",
+            title: "Entity Properties",
             visible: false,
             resizable: true,
             useHide: true,
@@ -179,11 +178,11 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             maxFixed: 2
         });
 
-        this._groundBtn = new Button({
-            text: "Ground",
-            title: "Put on the ground",
-            name: "ground",
-            classList: ["og-editor-ground_button"]
+        this._opacityView = new Slider({
+            label: "Opacity",
+            min: 0,
+            max: 1,
+            value: 1
         });
     }
 
@@ -247,10 +246,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._scaleXView.appendTo(this.container!);
         this._scaleYView.appendTo(this.container!);
         this._scaleZView.appendTo(this.container!);
-
-        if (this.model.planet) {
-            this._groundBtn.appendTo(this.container!);
-        }
+        this._opacityView.appendTo(this.container!);
 
         this._relativePositionView.events.on("change", this._onChangeRelativePosition);
 
@@ -278,10 +274,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._scaleXView.events.on("change", this._onChangeScaleX);
         this._scaleYView.events.on("change", this._onChangeScaleY);
         this._scaleZView.events.on("change", this._onChangeScaleZ);
-
-        this._groundBtn.appendTo(this.container!);
-
-        this._groundBtn.events.on("click", this._onGround);
+        this._opacityView.events.on("change", this._onChangeOpacity);
 
         return this;
     }
@@ -314,11 +307,13 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     }
 
     protected _onSelect = (entity: Entity) => {
+        this._setDialogTitle(entity);
         this.show();
         this._refresh(entity);
     };
 
     protected _refresh(entity: Entity) {
+        this._setDialogTitle(entity);
         this._relativePositionView.disabled = !entity.parent;
         //this._relativePositionView.stopPropagation();
         this._relativePositionView.checked = entity.relativePosition;
@@ -375,6 +370,15 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._scaleXView.value = scl.x;
         this._scaleYView.value = scl.y;
         this._scaleZView.value = scl.z;
+
+        this._opacityView.events.stopPropagation();
+        this._opacityView.value = entity.getOpacity();
+    }
+
+    protected _setDialogTitle(entity: Entity): void {
+        const entityName = entity.name?.trim();
+        const title = entityName && entityName.length > 0 ? entityName : `entity:${entity.id.toString()}`;
+        this.setTitle(title);
     }
 
     public override hide() {
@@ -587,16 +591,10 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         }
     };
 
-    protected _onGround = () => {
+    protected _onChangeOpacity = (val: number) => {
         let entity = this.model.getSelectedEntity();
-        if (entity && this.model.planet) {
-            if (this.model.planet.terrain) {
-                this.model.planet.terrain.getHeightAsync(entity.getLonLat(), (height: number) => {
-                    this._heightView.value = height;
-                });
-            } else {
-                this._heightView.value = 0;
-            }
+        if (entity) {
+            entity.setOpacity(val);
         }
     };
 }

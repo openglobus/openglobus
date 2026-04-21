@@ -45,7 +45,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         sh.activate();
 
         // Common uniforms (same as Phong)
-        gl.uniformMatrix4fv(p.uniforms.viewMatrix, false, r.activeCamera.getViewMatrix());
+        gl.uniformMatrix3fv(p.uniforms.normalMatrix, false, r.activeCamera.getNormalMatrix());
         gl.uniform3fv(p.uniforms.lightPosition, r.lightPosition);
         gl.uniform3fv(p.uniforms.lightAmbient, r.lightAmbient);
         gl.uniform3fv(p.uniforms.lightDiffuse, r.lightDiffuse);

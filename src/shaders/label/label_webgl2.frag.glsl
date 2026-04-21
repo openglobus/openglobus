@@ -1,7 +1,5 @@
 #version 300 es
 
-uniform int isOutlinePass;
-
 precision highp float;
 
 const int MAX_SIZE = 11;
@@ -13,6 +11,7 @@ const int MAX_SIZE = 11;
 
 uniform highp sampler2DArray fontTextureArr;
 uniform vec4 sdfParamsArr[MAX_SIZE];
+uniform int isOutlinePass;
 
 flat in int v_fontIndex;
 in vec2 v_uv;

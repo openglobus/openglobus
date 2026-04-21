@@ -85,10 +85,11 @@ export class ElevationProfileControl extends Control {
         this._dialog.appendTo(this.planet!.renderer!.div!);
         this._graphView.appendTo(this._dialog.container!);
 
-        this._toggleBtn.appendTo(this.renderer!.div!);
+        this._toggleBtn.appendTo(this.renderer!.topLeftContainer());
         this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
             if (v) {
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
                 this.activate();
                 this._elevationProfileView.resize();
             } else {

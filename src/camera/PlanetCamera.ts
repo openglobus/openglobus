@@ -126,7 +126,7 @@ class PlanetCamera extends Camera {
         const frustums =
             options.frustums ||
             (useSingleReverseFrustum
-                ? [[1, 1e12]]
+                ? [[150, 1e12]]
                 : [
                       [1, 100.075],
                       [100, 1000.075],

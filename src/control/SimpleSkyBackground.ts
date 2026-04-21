@@ -81,8 +81,7 @@ export class SimpleSkyBackground extends Control {
         gl.uniform1f(shu.earthRadius, this.planet!.ellipsoid.getPolarSize() + 1);
         gl.uniform3fv(shu.colorOne, this._colorOne);
         gl.uniform3fv(shu.colorTwo, this._colorTwo);
-
-        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        gl.uniformMatrix3fv(shu.normalMatrix, false, cam.getNormalMatrix());
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -97,7 +96,7 @@ function simpleSkyBackgroundShader(): Program {
             fov: "float",
             camPos: "vec3",
             earthRadius: "float",
-            viewMatrix: "mat4",
+            normalMatrix: "mat3",
             colorOne: "vec3",
             colorTwo: "vec3"
         },
@@ -126,7 +125,7 @@ function simpleSkyBackgroundShader(): Program {
             uniform vec2 iResolution;
             uniform float fov;
             uniform float earthRadius;
-            uniform mat4 viewMatrix;
+            uniform mat3 normalMatrix;
             
             uniform vec3 colorOne;
             uniform vec3 colorTwo;
@@ -152,52 +151,10 @@ function simpleSkyBackgroundShader(): Program {
                 return vec2( -b-h, -b+h );
             }
             
-            mat3 transpose(mat3 matrix) {
-                vec3 row0 = matrix[0];
-                vec3 row1 = matrix[1];
-                vec3 row2 = matrix[2];
-                mat3 result = mat3(
-                    vec3(row0.x, row1.x, row2.x),
-                    vec3(row0.y, row1.y, row2.y),
-                    vec3(row0.z, row1.z, row2.z)
-                );
-                return result;
-            }
-            
-            float det(mat2 matrix) {
-                return matrix[0].x * matrix[1].y - matrix[0].y * matrix[1].x;
-            }
-            
-            mat3 inverse(mat3 matrix) {
-                vec3 row0 = matrix[0];
-                vec3 row1 = matrix[1];
-                vec3 row2 = matrix[2];
-            
-                vec3 minors0 = vec3(
-                    det(mat2(row1.y, row1.z, row2.y, row2.z)),
-                    det(mat2(row1.z, row1.x, row2.z, row2.x)),
-                    det(mat2(row1.x, row1.y, row2.x, row2.y))
-                );
-                vec3 minors1 = vec3(
-                    det(mat2(row2.y, row2.z, row0.y, row0.z)),
-                    det(mat2(row2.z, row2.x, row0.z, row0.x)),
-                    det(mat2(row2.x, row2.y, row0.x, row0.y))
-                );
-                vec3 minors2 = vec3(
-                    det(mat2(row0.y, row0.z, row1.y, row1.z)),
-                    det(mat2(row0.z, row0.x, row1.z, row1.x)),
-                    det(mat2(row0.x, row0.y, row1.x, row1.y))
-                );
-            
-                mat3 adj = transpose(mat3(minors0, minors1, minors2));
-            
-                return (1.0 / dot(row0, minors0)) * adj;
-            }
-            
             void main(void) {
             
                 vec3 dir = computeView(tc);
-                dir = inverse(mat3(viewMatrix)) * dir;
+                dir = normalMatrix * dir;
                 
                 vec2 ER = sphIntersect(camPos, dir, vec3(0.0), earthRadius);
                 

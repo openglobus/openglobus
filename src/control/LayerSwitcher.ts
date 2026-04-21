@@ -122,7 +122,7 @@ export class LayerSwitcher extends Control {
     }
 
     override oninit() {
-        this._toggleBtn.appendTo(this.renderer!.div!);
+        this._toggleBtn.appendTo(this.renderer!.topRightContainer());
         this._dialog.appendTo(this.planet!.renderer!.div!);
         this._panel.appendTo(this._dialog.container!);
 
@@ -133,6 +133,9 @@ export class LayerSwitcher extends Control {
 
         this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
+            if (v) {
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
+            }
         });
 
         this._toggleBtn.events.on("change", (isActive: boolean) => {
@@ -158,15 +161,36 @@ export class LayerSwitcher extends Control {
         });
     }
 
+    protected _findLayerView(layer: Layer): LayerButtonView | null {
+        for (let i = 0; i < this._layerViews.length; i++) {
+            if (this._layerViews[i].model.isEqual(layer)) {
+                return this._layerViews[i];
+            }
+        }
+        return null;
+    }
+
+    protected _placeLayerView(layerView: LayerButtonView) {
+        if (layerView.model.isBaseLayer()) {
+            this.$baseLayers && layerView.appendTo(this.$baseLayers);
+        } else {
+            this.$overlays && layerView.appendTo(this.$overlays);
+        }
+    }
+
+    protected _onLayerBaseLayerChange = (layer: Layer) => {
+        let layerView = this._findLayerView(layer);
+        if (layerView) {
+            this._placeLayerView(layerView);
+        }
+    };
+
     public addLayer = (layer: Layer) => {
         if (!layer.hideInLayerSwitcher) {
             let layerView = this._createLayerButton(layer);
             this._layerViews.push(layerView);
-            if (layer.isBaseLayer()) {
-                layerView.appendTo(this.$baseLayers!);
-            } else {
-                layerView.appendTo(this.$overlays!);
-            }
+            layer.events.on("baselayerchange", this._onLayerBaseLayerChange);
+            this._placeLayerView(layerView);
         }
     };
 
@@ -174,6 +198,7 @@ export class LayerSwitcher extends Control {
         for (let i = 0; i < this._layerViews.length; i++) {
             let li = this._layerViews[i];
             if (li.model.isEqual(layer)) {
+                layer.events.off("baselayerchange", this._onLayerBaseLayerChange);
                 li.remove();
                 this._layerViews.splice(i, 1);
                 break;

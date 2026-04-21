@@ -26,7 +26,7 @@ export class GeoImageDragControl extends Control {
     }
 
     override oninit() {
-        this._toggleBtn.appendTo(this.renderer!.div!);
+        this._toggleBtn.appendTo(this.renderer!.topRightContainer());
 
         this.planet!.events.on(
             "layeradd",

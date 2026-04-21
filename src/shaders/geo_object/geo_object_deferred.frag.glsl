@@ -2,10 +2,15 @@
 precision highp float;
 
 #include "../common/shadeMode.glsl"
+#include "../common/normals.glsl"
 
-uniform sampler2D uTexture;
-uniform float uUseTexture;
+uniform sampler2D uColorTexture;
+uniform sampler2D uNormalTexture;
+uniform float uUseColorTexture;
+uniform float uUseNormalTexture;
+uniform vec3 materialProperties;
 uniform float shadeMode;
+uniform mat3 normalMatrix;
 
 in vec3 v_viewPosition;
 in vec4 vColor;
@@ -18,13 +23,25 @@ layout (location = 2) out vec4 normalColor;
 layout (location = 3) out vec4 positionColor;
 
 void main(void) {
-
-    materials = vec4(0.0, 0.0, 0.0, 1.0);
+    // R = ambient occlusion, G = roughness, B = metallic
+    materials = vec4(materialProperties, 1.0);
     positionColor = vec4(v_viewPosition, 0.0);
-    normalColor = vec4(normalize(vNormal) * 0.5 + 0.5, encodeShadeModeUint(shadeModeToUint(shadeMode)));
+    vec3 normal = normalize(vNormal);
 
-    if (uUseTexture > 0.0) {
-        diffuseColor = texture(uTexture, vTexCoords);
+    if (uUseNormalTexture > 0.0) {
+        normal = getNormalWorldFromTexture(
+            uNormalTexture,
+            vTexCoords,
+            normal,
+            v_viewPosition,
+            normalMatrix
+        );
+    }
+
+    normalColor = vec4(normal * 0.5 + 0.5, encodeShadeModeUint(shadeModeToUint(shadeMode)));
+
+    if (uUseColorTexture > 0.0) {
+        diffuseColor = texture(uColorTexture, vTexCoords);
     } else {
         diffuseColor = vColor;
     }

@@ -309,7 +309,7 @@ class Camera {
         this._reverseDepth = options.reverseDepth ?? true;
         this._depthZeroToOne = false;
 
-        let initFrustums = options.frustums || [[1, 500]];
+        let initFrustums = options.frustums || [[0.01, 10000]];
         if (this.reverseDepthActive) {
             const [near = 1, far = MAX_FLOAT] = initFrustums[0] ?? [];
             initFrustums = [[near, far]];
@@ -688,8 +688,7 @@ class Camera {
 
         this._viewMatrixRTE.set([u.x, v.x, n.x, 0.0, u.y, v.y, n.y, 0.0, u.z, v.z, n.z, 0.0, 0, 0, 0, 1.0]);
 
-        // do not clean up, someday it will be using
-        //this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
+        this._normalMatrix.set([u.x, u.y, u.z, v.x, v.y, v.z, n.x, n.y, n.z]);
 
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setViewMatrix(this._viewMatrix);
@@ -1243,9 +1242,9 @@ class Camera {
     }
 
     /**
-     * Returns normal matrix.
+     * Returns camera normal matrix.
      * @public
-     * @returns {NumberArray9} - Normal matrix.
+     * @returns {NumberArray9}
      */
     public getNormalMatrix(): NumberArray9 {
         return this._normalMatrix._m;

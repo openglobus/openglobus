@@ -12,6 +12,11 @@ uniform float whitepoint;
 uniform float exposure;
 uniform float gamma;
 
+// Interleaved gradient noise for temporal-stable dithering in 8-bit targets.
+float interleavedGradientNoise(vec2 uv) {
+    return fract(52.9829189 * fract(dot(uv, vec2(0.06711056, 0.00583715))));
+}
+
 vec3 LinearToneMapping(vec3 color) {
     return exposure * color;
 }
@@ -55,6 +60,10 @@ void main(void) {
     //vec3 mapped = ACESFilmicToneMapping(hdrColor.rgb) * oneByGamma * oneByWhitePoint;
 
     mapped = pow(mapped, vec3(1.0 / gamma));
+
+    // Remove visible color banding in dark gradients when writing to RGBA8 buffers.
+    float dither = interleavedGradientNoise(gl_FragCoord.xy) - 0.5;
+    mapped = clamp(mapped + dither / 255.0, 0.0, 1.0);
 
     fragColor = vec4(mapped, hdrColor.a);
 }

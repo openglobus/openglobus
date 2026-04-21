@@ -18,7 +18,7 @@ uniform sampler2D scatteringTexture;
 #include "../atmos/lut_helpers.glsl"
 #include "../atmos/atmosGroundColor.glsl"
 
-uniform mat4 viewMatrix;
+uniform mat3 normalMatrix;
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
 uniform vec3 lightDiffuse;
@@ -47,9 +47,9 @@ void main(void) {
         return;
     }
 
-    vec3 cameraRelWorld = transpose(mat3(viewMatrix)) * viewPos;
+    vec3 cameraRelWorld = normalMatrix * viewPos;
     vec3 worldVertex = cameraRelWorld + cameraPosition;
-    float specularMask = materials.r;
+    float specularMask = materials.b;
 
     vec3 sunPos = lightPosition;
     vec3 lightDir = normalize(sunPos);

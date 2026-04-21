@@ -90,9 +90,9 @@ class Object3d {
 
         this.color = getColor(data.color);
 
-        this.metallic = data.metallic || 0;
+        this.metallic = data.metallic || 1;
         this.roughness = data.roughness || 0;
-        this.ambientOcclusion = data.ambientOcclusion || 0;
+        this.ambientOcclusion = data.ambientOcclusion || 1;
 
         this.colorTextureSrc = data.colorTextureSrc || null;
         this.colorTextureImage = data.colorTextureImage || null;

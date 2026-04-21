@@ -6,7 +6,16 @@ import { Vec3 } from "../math/Vec3";
 import { RADIANS_HALF } from "../math";
 
 function planeNormalize(plane: NumberArray4) {
-    let t = 1.0 / Math.sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
+    const lenSq = plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2];
+    if (lenSq <= Number.EPSILON) {
+        // Infinite far plane for reverseDepth
+        plane[0] = 0;
+        plane[1] = 0;
+        plane[2] = 0;
+        plane[3] = 1;
+        return;
+    }
+    let t = 1.0 / Math.sqrt(lenSq || 1);
     plane[0] *= t;
     plane[1] *= t;
     plane[2] *= t;

@@ -1,6 +1,6 @@
 import { GeoObject } from "./GeoObject";
 import type { WebGLBufferExt, WebGLTextureExt } from "../../webgl/Handler";
-import { loadImage, makeArrayTyped } from "../../utils/shared";
+import { loadImage, makeArrayTyped, prepareTextureImage } from "../../utils/shared";
 import type { TypedArray } from "../../utils/shared";
 import { Program } from "../../webgl/Program";
 import { GeoObjectHandler } from "./GeoObjectHandler";
@@ -19,9 +19,9 @@ import {
     LOCALPOSITION_BUFFER
 } from "./GeoObjectHandler";
 
-const METALLIC = 0;
+const AMBIENT_OCCLUSION = 0;
 const ROUGHNESS = 1;
-const AMBIENT_OCCLUSION = 2;
+const METALLIC = 2;
 
 export class InstanceData {
     public isFree: boolean;
@@ -164,10 +164,10 @@ export class InstanceData {
         this._materialProperties[AMBIENT_OCCLUSION] = ambientOcclusion;
     }
 
-    public setMaterialProperties(metallic: number, roughness: number, ambientOcclusion: number) {
-        this.setMetallic(metallic);
-        this.setRoughness(roughness);
+    public setMaterialProperties(ambientOcclusion: number, roughness: number, metallic: number) {
         this.setAmbientOcclusion(ambientOcclusion);
+        this.setRoughness(roughness);
+        this.setMetallic(metallic);
     }
 
     //
@@ -198,10 +198,12 @@ export class InstanceData {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
         gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(u.uUseTexture, this._colorTexture ? 1 : 0);
+        gl.uniform1f(u.uUseColorTexture, this._colorTexture ? 1 : 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.uniform3fv(u.materialProperties, this._materialProperties);
 
         this._drawElementsInstanced(p, 0, instanceCount);
     }
@@ -234,7 +236,7 @@ export class InstanceData {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
         gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(u.uUseTexture, this._colorTexture ? 1 : 0);
+        gl.uniform1f(u.uUseColorTexture, this._colorTexture ? 1 : 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -308,7 +310,7 @@ export class InstanceData {
             startInstance * this._visibleBuffer!.itemSize * Float32Array.BYTES_PER_ELEMENT
         );
 
-        gl.uniform1f(u.uUseTexture, this._colorTexture ? 1 : 0);
+        gl.uniform1f(u.uUseColorTexture, this._colorTexture ? 1 : 0);
 
         gl.uniform3fv(u.materialProperties, this._materialProperties);
 
@@ -363,7 +365,12 @@ export class InstanceData {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._colorTexture || r.handler.defaultTexture);
-        gl.uniform1i(u.uTexture, 0);
+        gl.uniform1i(u.uColorTexture, 0);
+
+        gl.uniform1f(u.uUseNormalTexture, this._normalTexture ? 1 : 0);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this._normalTexture || r.handler.defaultTexture);
+        gl.uniform1i(u.uNormalTexture, 1);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
         gl.vertexAttribPointer(a.aTexCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -378,12 +385,17 @@ export class InstanceData {
         }
         if (this._colorTextureSrc) {
             const image = await loadImage(this._colorTextureSrc);
-            this._createColorTexture(image);
+            const textureImage = await prepareTextureImage(image);
+            if (textureImage) {
+                this._createColorTexture(textureImage);
+            }
             return;
         }
         if (this._colorTextureImage) {
-            await this._colorTextureImage.decode();
-            this._createColorTexture(this._colorTextureImage);
+            const textureImage = await prepareTextureImage(this._colorTextureImage);
+            if (textureImage) {
+                this._createColorTexture(textureImage);
+            }
             return;
         }
     }
@@ -394,12 +406,17 @@ export class InstanceData {
         }
         if (this._normalTextureSrc) {
             const image = await loadImage(this._normalTextureSrc);
-            this._createNormalTexture(image);
+            const textureImage = await prepareTextureImage(image);
+            if (textureImage) {
+                this._createNormalTexture(textureImage);
+            }
             return;
         }
         if (this._normalTextureImage) {
-            await this._normalTextureImage.decode();
-            this._createNormalTexture(this._normalTextureImage);
+            const textureImage = await prepareTextureImage(this._normalTextureImage);
+            if (textureImage) {
+                this._createNormalTexture(textureImage);
+            }
             return;
         }
     }
@@ -410,12 +427,17 @@ export class InstanceData {
         }
         if (this._metallicRoughnessTextureSrc) {
             const image = await loadImage(this._metallicRoughnessTextureSrc);
-            this._createMetallicRoughnessTexture(image);
+            const textureImage = await prepareTextureImage(image);
+            if (textureImage) {
+                this._createMetallicRoughnessTexture(textureImage);
+            }
             return;
         }
         if (this._metallicRoughnessTextureImage) {
-            await this._metallicRoughnessTextureImage.decode();
-            this._createMetallicRoughnessTexture(this._metallicRoughnessTextureImage);
+            const textureImage = await prepareTextureImage(this._metallicRoughnessTextureImage);
+            if (textureImage) {
+                this._createMetallicRoughnessTexture(textureImage);
+            }
             return;
         }
     }

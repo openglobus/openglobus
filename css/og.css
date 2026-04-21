@@ -22,6 +22,73 @@
     background-color: var(--grey5);
 }
 
+.og-control-container {
+    position: absolute;
+    top: 12px;
+    z-index: 2;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 8px;
+    width: min(136px, calc(100% - 24px));
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+.og-control-container > * {
+    pointer-events: auto;
+}
+
+.og-control-container .og-map-button {
+    position: relative;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.og-control-container__top-left {
+    left: 10px;
+    justify-content: flex-start;
+}
+
+.og-control-container__top-right {
+    right: 12px;
+    justify-content: flex-end;
+}
+
+.og-control-container__bottom-right {
+    top: auto;
+    bottom: 12px;
+    right: 12px;
+    width: auto;
+    max-width: calc(100% - 24px);
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.og-control-container .og-scale-container,
+.og-control-container .og-coordinates {
+    position: relative;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    margin: 0;
+}
+
+.og-control-container__bottom-right .og-scale-container {
+    order: 0;
+}
+
+.og-control-container__bottom-right .og-coordinates {
+    order: 1;
+}
+
 .ogCenterIcon {
     height: 12px;
     width: 12px;
@@ -67,7 +134,7 @@
     background: rgb(206 206 206);
     text-align: right;
     bottom: 0;
-    right: 0;
+    left: 0;
     position: absolute;
     font-size: 0.7rem;
     padding: 1px 0 1px 0;
@@ -90,20 +157,6 @@
 
 .og-attribution img {
     max-height: 1.3em;
-}
-
-.og-zoomin-button {
-    bottom: 102px;
-    right: 12px;
-    border-bottom-left-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
-}
-
-.og-zoomout-button {
-    bottom: 58px;
-    right: 12px;
-    border-top-left-radius: 0 !important;
-    border-top-right-radius: 0 !important;
 }
 
 /* =============================== */
@@ -225,6 +278,18 @@ input {
     user-select: none;
 }
 
+.og-ddialog .og-ddialog-resize-handle {
+    display: block;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    touch-action: none;
+    z-index: 2;
+}
+
 .og-button {
     display: flex;
     align-items: center;
@@ -234,13 +299,23 @@ input {
     cursor: default;
     justify-content: center;
     color: var(--grey6);
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
-.og-button svg,
-.og-button svg path {
+.og-button .og-button-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.og-button svg {
     width: 24px;
     height: 24px;
+    display: block;
+}
+
+.og-button svg path {
     fill: var(--grey6);
 }
 
@@ -271,11 +346,6 @@ input {
 /* =============================== */
 /* 1 - LAYER SWITCHER */
 
-.og-layerSwitcher_button {
-    top: 12px;
-    right: 12px;
-}
-
 .og-layerSwitcher {
     position: relative;
     color: #b6b6b6;
@@ -296,25 +366,28 @@ input {
 .og-layerSwitcher__list {
     position: relative;
     width: 100%;
-    display: inline-block;
-    flex-direction: column;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
     padding: 2px;
 }
 
 .og-layerSwitcher__layerButton {
-    width: 75px;
-    height: 75px;
+    width: 70px;
+    height: 70px;
     position: relative;
     background-color: #7a7a7a;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 7px;
     margin: 3px;
     border: 2px solid rgba(0, 0, 0, 0);
     padding: 0;
+    display: flex;
+    flex-direction: column-reverse;
 }
 
 .og-layerSwitcher__layerButton.og-layerSwitcher__visible {
-    border: 2px solid #00ff14;
+    border: 2px solid #56ff64;
 }
 
 .og-layerSwitcher__layerButton.og-layerSwitcher__visible img {
@@ -324,7 +397,7 @@ input {
 .og-layerSwitcher__layerButton img {
     width: 100%;
     height: 100%;
-    border-radius: 5px;
+    border-radius: 7px;
     position: absolute;
     left: 0;
     top: 0;
@@ -345,12 +418,113 @@ input {
     text-overflow: ellipsis;
     padding: 3px;
     background-color: rgba(0, 0, 0, 0.5);
-    position: absolute;
     bottom: 0;
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+    z-index: 10;
+}
+
+.og-entityTree {
     width: 100%;
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
-    max-height: 25px;
+}
+
+.og-entityTree__node {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.og-entityTree__row {
+    display: flex;
+    align-items: center;
+    min-height: 22px;
+}
+
+.og-entityTree__toggleBtn {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    color: var(--grey3);
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0;
+    font-size: 14px;
+}
+
+.og-entityTree__toggleBtn_hasChildren:hover {
+    background-color: var(--grey1);
+}
+
+.og-entityTree__toggleBtn_empty {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.og-entityTree__entityBtn {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    color: var(--grey6);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 3px 6px 3px 4px;
+    font-size: 12px;
+}
+
+.og-entityTree__entityBtn:hover,
+.og-entityTree__entityBtn:focus-visible {
+    background-color: var(--grey1);
+}
+
+.og-entityTree__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.og-entityTree__type {
+    color: var(--grey9);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.og-entityTree__children_hidden {
+    display: none;
+}
+
+.og-entityTree__children {
+    padding-left: 17px;
+}
+
+/* =============================== */
+/* ENTITY TREE CONTROL */
+
+.og-entityTreeControl {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    color: var(--grey4);
+}
+
+.og-entityTreeControl__tree {
+    width: 100%;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+.og-entityTreeControl__empty {
+    padding: 10px 8px;
+    color: var(--grey3);
+    font-size: 13px;
 }
 
 /* =============================== */
@@ -362,32 +536,12 @@ input {
     display: block;
 }
 
-.og-drawing-default_button {
-    top: 12px;
-    right: 166px;
-}
-
 .og-drawing-default_button .og-button-icon {
     transform: scale(0.73);
 }
 
-.og-drawing-polygon_button {
-    top: 12px;
-    right: 115px;
-}
-
-.og-drawing-linestring_button {
-    top: 12px;
-    right: 66px;
-}
-
 /* =============================== */
 /* RULER */
-
-.og-ruler_button {
-    top: 65px;
-    right: 12px;
-}
 
 /* =============================== */
 
@@ -443,12 +597,6 @@ input {
 /**
  *DebugInfo
  */
-
-.og-debuginfo_button {
-    position: absolute;
-    left: 10px;
-    top: 120px;
-}
 
 .og-debuginfo_controls {
     padding-bottom: 8px;
@@ -582,14 +730,24 @@ input {
     border-right: 1px solid white;
 }
 
-.og-compass-button {
-    bottom: 153px;
-    right: 12px;
+.og-compass-button .og-button-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center center;
 }
 
-.og-compass-button svg {
-    width: 40px !important;
-    height: 40px !important;
+.og-compass-button .og-button-icon svg {
+    width: 48px !important;
+    height: 48px !important;
+    display: block;
+}
+
+.og-orthoswitcher_button .og-button-icon svg {
+    width: 45px !important;
+    height: 45px !important;
+    display: block;
+    transform: translateY(3px);
 }
 
 /*
@@ -604,12 +762,6 @@ input {
     height: 25px;
     float: left;
     margin: 3px;
-}
-
-.og-lighting_button {
-    position: absolute;
-    left: 10px;
-    top: 65px;
 }
 
 .og-lighing {
@@ -684,6 +836,30 @@ input {
     float: left;
 }
 
+.og-coordinates .og-coordinates-copy-btn {
+    float: left;
+    margin-right: 6px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--grey8);
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.og-coordinates .og-coordinates-copy-btn:hover {
+    opacity: 1;
+}
+
+.og-coordinates .og-coordinates-copy-btn svg {
+    display: block;
+    transform: translateY(1px);
+}
+
+.og-coordinates .og-coordinates-copy-btn svg path {
+    fill: currentColor;
+}
+
 .og-lat-side,
 .og-lon-side {
     width: 10px;
@@ -729,12 +905,6 @@ input {
     Atmosphere Config
 ==========================
  */
-.og-atmosphere_button {
-    position: absolute;
-    left: 10px;
-    top: 230px;
-}
-
 .og-atmosphere.og-options-container .og-slider-label {
     width: 300px;
     overflow: hidden;
@@ -751,12 +921,6 @@ TIMELINE
 ==========================
 */
 
-.og-timeline_button {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-}
-
 .og-timeline-control_button {
     width: 25px;
     height: 20px;
@@ -764,12 +928,6 @@ TIMELINE
     margin-right: 3px;
     background: var(--grey7);
     border-radius: 1px;
-}
-
-.og-button svg,
-.og-button svg path {
-    width: 24px;
-    height: 24px;
 }
 
 .og-timeline-control_button.og-button__active {
@@ -797,6 +955,7 @@ TIMELINE
     overflow: hidden;
     width: 100%;
     height: 100%;
+    touch-action: none;
 }
 
 .og-timeline-current {
@@ -807,6 +966,7 @@ TIMELINE
     margin-left: -5px;
     cursor: pointer;
     margin-top: -7px;
+    touch-action: none;
 }
 
 .og-timeline-current-spin {
@@ -865,9 +1025,9 @@ TIMELINE
 .og-slider {
     display: flex;
     flex-direction: row;
-    width: 200px;
     /*height: 20px;*/
     gap: 5px;
+    margin: 5px;
 }
 
 .og-slider .og-slider-label {
@@ -888,7 +1048,7 @@ TIMELINE
     height: 20px;
     background-color: var(--grey1);
     z-index: 1;
-    border-radius: 5px;
+    border-radius: 2px;
 }
 
 .og-slider .og-slider-panel .og-slider-progress {
@@ -896,8 +1056,8 @@ TIMELINE
     height: 100%;
     background-color: var(--grey7);
     pointer-events: none;
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
+    border-top-left-radius: 2px;
+    border-bottom-left-radius: 2px;
 }
 
 .og-slider .og-slider-panel .og-slider-pointer {
@@ -920,7 +1080,7 @@ TIMELINE
     color: var(--grey3);
     padding-left: 5px;
     width: 60px;
-    border-radius: 5px;
+    border-radius: 2px;
 }
 
 .og-slider input:focus-visible {
@@ -1047,16 +1207,6 @@ TIMELINE
     -moz-appearance: textfield;
 }
 
-.og-selection_button {
-    top: 117px;
-    right: 12px;
-}
-
-.og-geoimagegrag_button {
-    top: 169px;
-    right: 12px;
-}
-
 .og-elevationprofile {
     width: 100%;
     height: 100%;
@@ -1084,11 +1234,6 @@ TIMELINE
     position: relative;
     width: 100%;
     height: 100%;
-}
-
-.og-elevationprofile_button {
-    top: 175px;
-    left: 10px;
 }
 
 .og-elevationprofile-legend {

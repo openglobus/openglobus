@@ -831,6 +831,7 @@ class Handler {
         gl.frontFace(gl.CCW);
         gl.cullFace(gl.BACK);
         gl.enable(gl.CULL_FACE);
+        gl.enable(gl.DITHER);
         gl.disable(gl.BLEND);
         this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, (t: WebGLTextureExt) => {
             this.transparentTexture = t;

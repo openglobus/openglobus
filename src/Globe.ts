@@ -31,7 +31,6 @@ import { TouchNavigation } from "./control/TouchNavigation";
 import { Renderer } from "./renderer/Renderer";
 import type { HTMLDivElementExt } from "./renderer/Renderer";
 import { RenderNode } from "./scene/RenderNode";
-import { ZoomControl } from "./control/ZoomControl";
 import { Extent } from "./Extent";
 import type { IAtmosphereParams } from "./control/atmosphere/Atmosphere";
 import { CameraFrameComposer } from "./control/CameraFrameComposer";
@@ -119,7 +118,6 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  *          new control.KeyboardNavigation(),
  *          new control.EarthCoordinates(),
  *          new control.LayerSwitcher({),
- *          new control.ZoomControl(),
  *          new control.TouchNavigation(),
  *          new control.Sun()
  *      ],
@@ -321,7 +319,6 @@ class Globe {
             this.planet.addControls(options.controls);
         } else {
             this.planet.addControls([
-                new ZoomControl(),
                 new Navigation(),
                 new TouchNavigation(),
                 new EarthCoordinates(),

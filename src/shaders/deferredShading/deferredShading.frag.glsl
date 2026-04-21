@@ -1,6 +1,7 @@
 #version 300 es
 
 precision highp float;
+precision highp sampler2D;
 
 #include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
@@ -10,7 +11,7 @@ uniform sampler2D materialsTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D viewPositionTexture;
 
-uniform mat4 viewMatrix;
+uniform mat3 normalMatrix;
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
 uniform vec3 lightDiffuse;
@@ -37,8 +38,8 @@ void main(void) {
         return;
     }
 
-    vec3 cameraRelWorld = transpose(mat3(viewMatrix)) * viewPos;
-    float specularMask = materials.r;
+    vec3 cameraRelWorld = normalMatrix * viewPos;
+    float specularMask = materials.b;
 
     vec4 lightWeighting;
     vec3 specularWeighting;

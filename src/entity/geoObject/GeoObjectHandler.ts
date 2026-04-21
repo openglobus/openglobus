@@ -299,10 +299,12 @@ export class GeoObjectHandler {
 
             tagData._colorTextureSrc = object.colorTextureSrc;
             tagData._normalTextureSrc = object.normalTextureSrc;
-            tagData._metallicRoughnessTexture = object.metallicRoughnessTextureSrc;
+            tagData._metallicRoughnessTextureSrc = object.metallicRoughnessTextureSrc;
             tagData._colorTextureImage = object.colorTextureImage;
             tagData._normalTextureImage = object.normalTextureImage;
             tagData._metallicRoughnessTextureImage = object.metallicRoughnessTextureImage;
+
+            tagData.setMaterialProperties(object.ambientOcclusion, object.roughness, object.metallic);
 
             tagData.loadColorTexture();
             tagData.loadNormalTexture();
@@ -338,9 +340,9 @@ export class GeoObjectHandler {
             tagData._metallicRoughnessTextureImage = geoObject.object3d.metallicRoughnessTextureImage;
 
             tagData.setMaterialProperties(
-                geoObject.object3d.metallic,
+                geoObject.object3d.ambientOcclusion,
                 geoObject.object3d.roughness,
-                geoObject.object3d.ambientOcclusion
+                geoObject.object3d.metallic
             );
 
             tagData.loadColorTexture();
@@ -451,6 +453,7 @@ export class GeoObjectHandler {
 
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
+        gl.uniformMatrix3fv(u.normalMatrix, false, r.activeCamera.getNormalMatrix());
     }
 
     protected _bindForwardParams(p: Program) {

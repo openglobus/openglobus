@@ -13,7 +13,6 @@ import {
     Entity
 } from "../../lib/og.es.js";
 
-
 //
 // Geodetic grid
 //
@@ -38,15 +37,16 @@ for (let i = -90; i < 90; i += 10) {
 
 var collection = new Vector("Collection", {
     pickingEnabled: true,
-    'entities':
-        [{
-            'polyline': {
-                'pathLonLat': grid,
-                'thickness': [12.5],
-                'opacity': 0.8,
-                'color': ["rgba(205,68,203,1)"]
+    entities: [
+        {
+            polyline: {
+                pathLonLat: grid,
+                thickness: [12.5],
+                opacity: 0.8,
+                color: ["rgba(205,68,203,1)"]
             }
-        }]
+        }
+    ]
 });
 
 let objLayer = new Vector("Obj.Layer", {
@@ -58,33 +58,41 @@ const markerSrc = "../billboardsDragging/marker.png";
 let pointLayer = new Vector("points", {
     clampToGround: true,
     async: false,
-    entities: [{
-        name: "Blue Marker",
-        lonlat: [-105.6182, 39.6149],
-        billboard: {
-            src: markerSrc,
-            size: [29, 48],
-            offset: [0, 24],
-            color: "rgba(255,255,255,0.7)"
+    entities: [
+        {
+            name: "Blue Marker",
+            lonlat: [-105.6182, 39.6149],
+            billboard: {
+                src: markerSrc,
+                size: [29, 48],
+                offset: [0, 24],
+                color: "rgba(255,255,255,0.7)"
+            }
         }
-    }]
+    ]
 });
 
 let globe = new Globe({
     target: "earth",
     name: "Earth",
-    frustums: [[1, 1e12]],
+    //frustums: [[1, 1e12]],
     terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer],
     msaa: 0
 });
 
-globe.planet.addControls([
-    new control.GeoObjectEditor(),
+const controlsList = [
+    new control.EntityEditor(),
     new control.LayerSwitcher(),
     new control.ToggleWireframe(),
-    new control.TimelineControl(),
-]);
+    new control.TimelineControl()
+];
+
+if (control.OrthoSwitcher) {
+    controlsList.unshift(new control.OrthoSwitcher());
+}
+
+globe.planet.addControls(controlsList);
 
 //globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "#555555";
 //globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "#555555";
@@ -129,17 +137,21 @@ pointLayer.events.on("lup", function (e) {
     dragStartPos = null;
 });
 
-globe.planet.renderer.events.on("mousemove", function (e) {
-    if (!draggableObject || !dragStartPos) {
-        return;
-    }
-    const d = new Vec2(e.x, e.y).sub(dragStartClick);
-    const endPos = dragStartPos.add(d);
-    const coords = this.getCartesianFromPixelTerrain(endPos);
-    if (coords) {
-        draggableObject.setCartesian3v(coords);
-    }
-}, globe.planet);
+globe.planet.renderer.events.on(
+    "mousemove",
+    function (e) {
+        if (!draggableObject || !dragStartPos) {
+            return;
+        }
+        const d = new Vec2(e.x, e.y).sub(dragStartClick);
+        const endPos = dragStartPos.add(d);
+        const coords = this.getCartesianFromPixelTerrain(endPos);
+        if (coords) {
+            draggableObject.setCartesian3v(coords);
+        }
+    },
+    globe.planet
+);
 
 globe.renderer.events.on("lclick", function (e) {
     const pickingObject = e.pickingObject;
@@ -159,30 +171,34 @@ globe.renderer.events.on("lclick", function (e) {
 
     const isCtrlPressed = !!(e.sys && e.sys.ctrlKey);
     if (isCtrlPressed) {
-        pointLayer.add(new Entity({
-            name: "New Label",
-            lonlat: ll,
-            label: {
-                align: "center",
-                text: "Hello world",
-                size: 30,
-                offset: [0, 50, 0],
-                color: "rgba(255,255,255,1)",
-                outlineColor: "rgba(255,0,0,1)",
-                outline: 0.2
-            }
-        }));
+        pointLayer.add(
+            new Entity({
+                name: "New Label",
+                lonlat: ll,
+                label: {
+                    align: "center",
+                    text: "Hello world",
+                    size: 30,
+                    offset: [0, 50, 0],
+                    color: "rgba(255,255,255,1)",
+                    outlineColor: "rgba(255,0,0,1)",
+                    outline: 0.2
+                }
+            })
+        );
     } else {
-        pointLayer.add(new Entity({
-            name: "New Marker",
-            lonlat: ll,
-            billboard: {
-                src: markerSrc,
-                size: [29, 48],
-                offset: [0, 24],
-                color: "rgba(255,255,255,1)"
-            }
-        }));
+        pointLayer.add(
+            new Entity({
+                name: "New Marker",
+                lonlat: ll,
+                billboard: {
+                    src: markerSrc,
+                    size: [29, 48],
+                    offset: [0, 24],
+                    color: "rgba(255,255,255,1)"
+                }
+            })
+        );
     }
 });
 
@@ -190,16 +206,13 @@ pointLayer.events.on("rclick", function (e) {
     e.pickingObject && e.pickingObject.remove();
 });
 
-
 const baseObj = Object3d.createCube(0.4, 2, 0.4)
     .translate(new Vec3(0, 1, 0))
     .setColor("white");
 
-const viewObj = Object3d.createFrustum(3, 2, 1)
-    .setColor("#1cdd23");
+const viewObj = Object3d.createFrustum(3, 2, 1).setColor("#1cdd23");
 
-const viewObj2 = Object3d.createFrustum(3, 2, 1)
-    .setColor("#ef00ff");
+const viewObj2 = Object3d.createFrustum(3, 2, 1).setColor("#ef00ff");
 
 const pos = new LonLat(-105.6173319876, 39.615583413, 4057.9466);
 
@@ -209,7 +222,7 @@ let parentEntity = new Entity({
     geoObject: {
         instanced: true,
         tag: `baseObj`,
-        object3d: baseObj,
+        object3d: baseObj
     }
 });
 
@@ -220,7 +233,7 @@ let childEntity = new Entity({
     geoObject: {
         instanced: true,
         tag: `viewObj`,
-        object3d: viewObj,
+        object3d: viewObj
     }
 });
 
@@ -231,7 +244,7 @@ let childChildEntity = new Entity({
     geoObject: {
         instanced: true,
         tag: `viewObj2`,
-        object3d: viewObj2,
+        object3d: viewObj2
     }
 });
 
@@ -244,7 +257,6 @@ objLayer.add(parentEntity);
 //     new LonLat(-105.61717175714179, 39.61567256262465, 4064.033358156039),
 //     pos, // look point
 // );
-
 
 let ell = globe.planet.ellipsoid;
 
@@ -261,7 +273,7 @@ let s0 = new Entity({
             [a0, a1],
             [b0, b1]
         ],
-        color: "rgba(8,216,0,1)",
+        color: "rgba(8,216,0,1)"
     }
 });
 
@@ -278,7 +290,7 @@ let s1 = new Entity({
             [a0, a1],
             [b0, b1]
         ],
-        color: "rgba(220,0,0,0.5)",
+        color: "rgba(220,0,0,0.5)"
     }
 });
 
@@ -294,14 +306,8 @@ let z = (t, s) => [Vec3.lerp(a0, b0, t).add(d.scaleTo(s)), Vec3.lerp(a1, b1, t).
 let s2 = new Entity({
     strip: {
         gridSize: 10,
-        path: [
-            [a0, a1],
-            z(0.25, 1),
-            z(0.5, -1),
-            z(0.75, 1),
-            [b0, b1]
-        ],
-        color: "rgba(0,75,255,0.5)",
+        path: [[a0, a1], z(0.25, 1), z(0.5, -1), z(0.75, 1), [b0, b1]],
+        color: "rgba(0,75,255,0.5)"
     }
 });
 
@@ -319,3 +325,6 @@ let ruler = new control.RulerSwitcher({
 });
 
 globe.planet.addControl(ruler);
+
+globe.planet.addControl(new control.AtmosphereConfig());
+globe.planet.addControl(new control.Lighting());

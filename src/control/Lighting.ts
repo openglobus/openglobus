@@ -284,8 +284,13 @@ export class Lighting extends Control {
     }
 
     public override oninit() {
-        this._toggleBtn.appendTo(this.renderer!.div!);
+        this._toggleBtn.appendTo(this.renderer!.topLeftContainer());
         this._dialog.appendTo(this.renderer!.div!);
+        this._dialog.events.on("visibility", (v: boolean) => {
+            if (v) {
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
+            }
+        });
         this._panel.appendTo(this._dialog.container!);
 
         if (this._panel.el) {
@@ -468,6 +473,7 @@ export class Lighting extends Control {
         this._night.events.on("change", (val: number) => {
             if (this._selectedLayer) {
                 this._selectedLayer.nightTextureCoefficient = val;
+                this._syncSelectedBaseLayerLighting();
             }
         });
 
@@ -476,43 +482,103 @@ export class Lighting extends Control {
         });
 
         this._ambient_r.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._ambient) this._selectedLayer._ambient[0] = val;
+            if (this._selectedLayer) {
+                if (!this._selectedLayer._ambient) {
+                    this._selectedLayer._ambient = new Float32Array(this.renderer!.lightAmbient);
+                }
+                this._selectedLayer._ambient[0] = val;
+                this._syncSelectedBaseLayerLighting();
+            }
         });
 
         this._ambient_g.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._ambient) this._selectedLayer._ambient[1] = val;
+            if (this._selectedLayer) {
+                if (!this._selectedLayer._ambient) {
+                    this._selectedLayer._ambient = new Float32Array(this.renderer!.lightAmbient);
+                }
+                this._selectedLayer._ambient[1] = val;
+                this._syncSelectedBaseLayerLighting();
+            }
         });
 
         this._ambient_b.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._ambient) this._selectedLayer._ambient[2] = val;
+            if (this._selectedLayer) {
+                if (!this._selectedLayer._ambient) {
+                    this._selectedLayer._ambient = new Float32Array(this.renderer!.lightAmbient);
+                }
+                this._selectedLayer._ambient[2] = val;
+                this._syncSelectedBaseLayerLighting();
+            }
         });
 
         this._diffuse_r.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._diffuse) this._selectedLayer._diffuse[0] = val;
+            if (this._selectedLayer) {
+                if (!this._selectedLayer._diffuse) {
+                    this._selectedLayer._diffuse = new Float32Array(this.renderer!.lightDiffuse);
+                }
+                this._selectedLayer._diffuse[0] = val;
+                this._syncSelectedBaseLayerLighting();
+            }
         });
 
         this._diffuse_g.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._diffuse) this._selectedLayer._diffuse[1] = val;
+            if (this._selectedLayer) {
+                if (!this._selectedLayer._diffuse) {
+                    this._selectedLayer._diffuse = new Float32Array(this.renderer!.lightDiffuse);
+                }
+                this._selectedLayer._diffuse[1] = val;
+                this._syncSelectedBaseLayerLighting();
+            }
         });
 
         this._diffuse_b.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._diffuse) this._selectedLayer._diffuse[2] = val;
+            if (this._selectedLayer) {
+                if (!this._selectedLayer._diffuse) {
+                    this._selectedLayer._diffuse = new Float32Array(this.renderer!.lightDiffuse);
+                }
+                this._selectedLayer._diffuse[2] = val;
+                this._syncSelectedBaseLayerLighting();
+            }
         });
 
         this._specular_r.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._specular) this._selectedLayer._specular[0] = val;
+            if (this._selectedLayer) {
+                if (!this._selectedLayer._specular) {
+                    this._selectedLayer._specular = new Float32Array(this.renderer!.lightSpecular);
+                }
+                this._selectedLayer._specular[0] = val;
+                this._syncSelectedBaseLayerLighting();
+            }
         });
 
         this._specular_g.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._specular) this._selectedLayer._specular[1] = val;
+            if (this._selectedLayer) {
+                if (!this._selectedLayer._specular) {
+                    this._selectedLayer._specular = new Float32Array(this.renderer!.lightSpecular);
+                }
+                this._selectedLayer._specular[1] = val;
+                this._syncSelectedBaseLayerLighting();
+            }
         });
 
         this._specular_b.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._specular) this._selectedLayer._specular[2] = val;
+            if (this._selectedLayer) {
+                if (!this._selectedLayer._specular) {
+                    this._selectedLayer._specular = new Float32Array(this.renderer!.lightSpecular);
+                }
+                this._selectedLayer._specular[2] = val;
+                this._syncSelectedBaseLayerLighting();
+            }
         });
 
         this._shininess.events.on("change", (val: number) => {
-            if (this._selectedLayer && this._selectedLayer._specular) this._selectedLayer._specular[3] = val;
+            if (this._selectedLayer) {
+                if (!this._selectedLayer._specular) {
+                    this._selectedLayer._specular = new Float32Array(this.renderer!.lightSpecular);
+                }
+                this._selectedLayer._specular[3] = val;
+                this._syncSelectedBaseLayerLighting();
+            }
         });
 
         if (this.planet) {
@@ -525,8 +591,50 @@ export class Lighting extends Control {
 
     protected _update() {
         let l = this._selectedLayer;
-        this._opacity.value = l && l.opacity ? l.opacity : 0.0;
-        this._night.value = l?.nightTextureCoefficient ?? this.planet!.nightTextureCoefficient;
+        this._setSliderValue(this._opacity, l ? l.opacity : 0.0);
+        this._setSliderValue(this._night, l?.nightTextureCoefficient ?? this.planet!.nightTextureCoefficient);
+
+        const ambient = l?._ambient || this.renderer!.lightAmbient;
+        this._setSliderValue(this._ambient_r, ambient[0]);
+        this._setSliderValue(this._ambient_g, ambient[1]);
+        this._setSliderValue(this._ambient_b, ambient[2]);
+
+        const diffuse = l?._diffuse || this.renderer!.lightDiffuse;
+        this._setSliderValue(this._diffuse_r, diffuse[0]);
+        this._setSliderValue(this._diffuse_g, diffuse[1]);
+        this._setSliderValue(this._diffuse_b, diffuse[2]);
+
+        const specular = l?._specular || this.renderer!.lightSpecular;
+        this._setSliderValue(this._specular_r, specular[0]);
+        this._setSliderValue(this._specular_g, specular[1]);
+        this._setSliderValue(this._specular_b, specular[2]);
+        this._setSliderValue(this._shininess, specular[3]);
+    }
+
+    protected _setSliderValue(slider: Slider, value: number) {
+        slider.events.stopPropagation();
+        slider.value = value;
+    }
+
+    protected _syncSelectedBaseLayerLighting() {
+        const layer = this._selectedLayer;
+        const planet = this.planet;
+        const renderer = this.renderer;
+        if (!layer || !planet || !renderer || !planet.baseLayer || !planet.baseLayer.isEqual(layer)) return;
+
+        if (layer._ambient) {
+            renderer.lightAmbient.set(layer._ambient);
+        }
+
+        if (layer._diffuse) {
+            renderer.lightDiffuse.set(layer._diffuse);
+        }
+
+        if (layer._specular) {
+            renderer.lightSpecular.set(layer._specular);
+        }
+
+        planet.nightTextureCoefficient = layer.nightTextureCoefficient;
     }
 
     protected _fetchLayers() {

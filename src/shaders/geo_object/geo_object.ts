@@ -16,12 +16,16 @@ export const geo_object_deferred = (): Program =>
     new Program("geo_object_deferred", {
         uniforms: {
             viewMatrix: "mat4",
+            normalMatrix: "mat3",
             projectionMatrix: "mat4",
             uScaleByDistance: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
-            uTexture: "sampler2d",
-            uUseTexture: "float",
+            uColorTexture: "sampler2d",
+            uNormalTexture: "sampler2d",
+            uUseColorTexture: "float",
+            uUseNormalTexture: "float",
+            materialProperties: "vec3",
             shadeMode: "float"
         },
         attributes: {
@@ -45,6 +49,7 @@ export const geo_object_forward = (): Program =>
     new Program("geo_object_forward", {
         uniforms: {
             viewMatrix: "mat4",
+            normalMatrix: "mat3",
             projectionMatrix: "mat4",
             uScaleByDistance: "vec3",
             eyePositionHigh: "vec3",
@@ -56,8 +61,10 @@ export const geo_object_forward = (): Program =>
             lightDiffuse: "vec3",
             lightSpecular: "vec4",
             materialProperties: "vec3",
-            uTexture: "sampler2d",
-            uUseTexture: "float",
+            uColorTexture: "sampler2d",
+            uNormalTexture: "sampler2d",
+            uUseColorTexture: "float",
+            uUseNormalTexture: "float",
             shadeMode: "float"
         },
         attributes: {
@@ -81,6 +88,7 @@ export const geo_object_woit = (): Program =>
     new Program("geo_object_woit", {
         uniforms: {
             viewMatrix: "mat4",
+            normalMatrix: "mat3",
             projectionMatrix: "mat4",
             uScaleByDistance: "vec3",
             eyePositionHigh: "vec3",
@@ -92,8 +100,10 @@ export const geo_object_woit = (): Program =>
             lightDiffuse: "vec3",
             lightSpecular: "vec4",
             materialProperties: "vec3",
-            uTexture: "sampler2d",
-            uUseTexture: "float",
+            uColorTexture: "sampler2d",
+            uNormalTexture: "sampler2d",
+            uUseColorTexture: "float",
+            uUseNormalTexture: "float",
             shadeMode: "float",
             useReverseDepth: "float"
         },
@@ -118,6 +128,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
     return new Program("geo_object_woit_atmos", {
         uniforms: {
             viewMatrix: "mat4",
+            normalMatrix: "mat3",
             projectionMatrix: "mat4",
             uScaleByDistance: "vec3",
             eyePositionHigh: "vec3",
@@ -129,8 +140,10 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             lightDiffuse: "vec3",
             lightSpecular: "vec4",
             materialProperties: "vec3",
-            uTexture: "sampler2d",
-            uUseTexture: "float",
+            uColorTexture: "sampler2d",
+            uNormalTexture: "sampler2d",
+            uUseColorTexture: "float",
+            uUseNormalTexture: "float",
             shadeMode: "float",
             useReverseDepth: "float",
             transmittanceTexture: "sampler2D",

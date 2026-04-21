@@ -134,7 +134,8 @@ class RayHandler {
     }
 
     protected _isRayOpaque(ray: Ray): boolean {
-        return ray._startColor.w >= 1.0 || ray._endColor.w >= 1.0;
+        const opacity = ray.getOpacity();
+        return ray._startColor.w * opacity >= 1.0 || ray._endColor.w * opacity >= 1.0;
     }
 
     protected _swapArrayItems(arr: number[] | TypedArray, itemSize: number, firstIndex: number, secondIndex: number) {
@@ -466,14 +467,15 @@ class RayHandler {
         x = ray._thickness;
         this._thicknessArr = concatArrays(this._thicknessArr, [x, x, x, x, x, x]);
 
+        const opacity = ray.getOpacity();
         let r0 = ray._startColor.x,
             g0 = ray._startColor.y,
             b0 = ray._startColor.z,
-            a0 = ray._startColor.w,
+            a0 = ray._startColor.w * opacity,
             r1 = ray._endColor.x,
             g1 = ray._endColor.y,
             b1 = ray._endColor.z,
-            a1 = ray._endColor.w;
+            a1 = ray._endColor.w * opacity;
         this._rgbaArr = concatArrays(this._rgbaArr, [
             r1,
             g1,

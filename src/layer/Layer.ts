@@ -62,6 +62,7 @@ export interface ILayerParams {
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
  * @param {string} [options.icon] - Icon for LayerSwitcher
  * @fires visibilitychange
+ * @fires baselayerchange
  * @fires add
  * @fires remove
  * @fires mousemove
@@ -649,17 +650,21 @@ class Layer {
     }
 
     /**
-     * Sets base layer type true.
+     * Sets base layer type flag.
      * @public
      * @param {boolean} isBaseLayer -
      */
     public setBaseLayer(isBaseLayer: boolean) {
+        let isChanged = this._isBaseLayer !== isBaseLayer;
         this._isBaseLayer = isBaseLayer;
         if (this._planet) {
             if (!isBaseLayer && this._planet.baseLayer && this.isEqual(this._planet.baseLayer)) {
                 this._planet.baseLayer = null;
             }
             this._planet.updateVisibleLayers();
+        }
+        if (isChanged) {
+            this.events.dispatch(this.events.baselayerchange, this);
         }
     }
 
@@ -879,6 +884,7 @@ class Layer {
 
 export type LayerEventsList = [
     "visibilitychange",
+    "baselayerchange",
     "add",
     "remove",
     "mousemove",
@@ -914,6 +920,12 @@ export const LAYER_EVENTS: LayerEventsList = [
      * @event og.Layer#visibilitychange
      */
     "visibilitychange",
+
+    /**
+     * Triggered when layer base layer flag changes.
+     * @event og.Layer#baselayerchange
+     */
+    "baselayerchange",
 
     /**
      * Triggered when the layer is added to the planet.
