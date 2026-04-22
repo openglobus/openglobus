@@ -9,7 +9,7 @@ import { View } from "../ui/View";
 import { Atmosphere } from "./atmosphere/Atmosphere";
 import { Color } from "../ui/Color";
 import { SimpleSkyBackground } from "../control/SimpleSkyBackground";
-import { SHADE_MODE_PHONG, SHADE_MODE_UNLIT } from "../shadeModeConstants";
+import { SHADE_PHONG, SHADE_UNLIT } from "../shadeModeConstants";
 
 interface ILightingParams extends IControlParams {}
 
@@ -347,14 +347,14 @@ export class Lighting extends Control {
 
         let lightingEnabledBtn = new ToggleButton({
             classList: ["og-suncontrol-button"],
-            isActive: this.planet!.shadeMode !== SHADE_MODE_UNLIT,
+            isActive: this.planet!.shadeMode !== SHADE_UNLIT,
             icon: LIGHTING_ENABLED_SVG_ICON,
             title: "Enable/disable planet lighting"
         });
         lightingEnabledBtn.appendTo($suncontrol);
 
         lightingEnabledBtn.events.on("change", (isActive: boolean) => {
-            this.planet!.shadeMode = isActive ? SHADE_MODE_PHONG : SHADE_MODE_UNLIT;
+            this.planet!.shadeMode = isActive ? SHADE_PHONG : SHADE_UNLIT;
         });
 
         let atmosphereEnabledBtn = new ToggleButton({

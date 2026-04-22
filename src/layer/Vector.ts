@@ -13,6 +13,12 @@ import { Planet } from "../scene/Planet";
 import { Material } from "./Material";
 import type { NumberArray4 } from "../math/Vec4";
 import * as mercator from "../mercator";
+import {
+    normalizeShadeMode,
+    SHADE_PBR,
+    type ShadeMode,
+    type ShadeModeInput
+} from "../shadeModeConstants";
 
 export interface IVectorParams extends ILayerParams {
     entities?: Entity[] | IEntityParams[];
@@ -24,8 +30,7 @@ export interface IVectorParams extends ILayerParams {
     pickingScale?: number | NumberArray3;
     scaleByDistance?: NumberArray3;
     labelMaxLetters?: number;
-    /** 0 unlit, 1 Phong, 2 PBR for geo objects in this layer. */
-    shadeMode?: number;
+    shadeMode?: ShadeModeInput;
     depthOrder?: number;
 }
 
@@ -63,25 +68,32 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * @extends {Layer}
  * @param {string} [name="noname"] - Layer name.
  * @param {IVectorParams} [options] - Layer options:
- * @param {number} [options.minZoom=0] - Minimal visible zoom. 0 is default
- * @param {number} [options.maxZoom=50] - Maximal visible zoom. 50 is default.
+ * @param {number} [options.minZoom=0] - Minimal visible zoom.
+ * @param {number} [options.maxZoom=50] - Maximal visible zoom.
  * @param {string} [options.attribution] - Layer attribution.
- * @param {string} [options.zIndex=0] - Layer Z-order index. 0 is default.
- * @param {boolean} [options.visibility=true] - Layer visibility. True is default.
- * @param {boolean} [options.isBaseLayer=false] - Layer base layer. False is default.
- * @param {Array.<Entity>} [options.entities] - Entities array.
+ * @param {number} [options.zIndex=0] - Layer Z-order index.
+ * @param {boolean} [options.visibility=true] - Layer visibility.
+ * @param {boolean} [options.isBaseLayer=false] - Layer base layer.
+ * @param {number} [options.opacity=1.0] - Layer opacity.
+ * @param {boolean} [options.pickingEnabled=true] - Enables/disables picking.
+ * @param {boolean} [options.fading=false] - Enables layer fade-in/fade-out transition logic.
+ * @param {number} [options.height=0] - Layer height level used for rendering order.
+ * @param {Array.<Entity|IEntityParams>} [options.entities] - Entities array or entity init params.
  * @param {Array.<number>} [options.scaleByDistance] - Scale by distance parameters. (exactly 3 entries)
  *      First index - near distance to the entity, after entity becomes full scale.
  *      Second index - far distance to the entity, when entity becomes zero scale.
  *      Third index - far distance to the entity, when entity becomes invisible.
- *      Use [1.0, 1.0, 1.0] for real sized objects
- * @param {number} [options.nodeCapacity=30] - Maximum entities quantity in the tree node. Rendering optimization parameter. 30 is default.
- * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering. True for optimization huge data.
- * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
- * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
+ *      Default is `[MAX32, MAX32, MAX32]` (no distance scaling).
+ * @param {number|Array.<number>} [options.pickingScale=[1,1,1]] - Picking scale value or xyz scale array.
+ * @param {number} [options.nodeCapacity=60] - Maximum entities quantity in a quadtree node.
+ * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering.
+ * @param {boolean} [options.clampToGround=false] - Clamp vector data to the ground.
+ * @param {boolean} [options.relativeToGround=false] - Place vector data relative to the ground relief.
+ * @param {number} [options.labelMaxLetters=24] - Maximum label letters per line for label entities.
  * @param {Number} [options.depthOffset=0.0] - Signed world-space depth offset along the camera ray.
  * Negative values move geometry closer to the camera, positive values move it farther.
- * @param {number} [options.shadeMode=1] - Geo object shading: 0 unlit, 1 Phong, 2 PBR.
+ * @param {number|string} [options.shadeMode=1] - Geo object shading: 0/none unlit, 0.5/phong, 1/pbr.
+ * @param {number} [options.depthOrder=0] - Rendering order group for vector collections.
  *
  * //@fires entitymove
  * @fires draw
@@ -162,7 +174,7 @@ class Vector extends Layer {
 
     protected _labelMaxLetters: number;
 
-    protected _shadeMode: number;
+    protected _shadeMode: ShadeMode;
 
     constructor(name?: string | null, options: IVectorParams = {}) {
         super(name, options);
@@ -176,7 +188,7 @@ class Vector extends Layer {
 
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 
-        this._shadeMode = options.shadeMode !== undefined ? Vector._clampShadeMode(options.shadeMode) : 1;
+        this._shadeMode = normalizeShadeMode(options.shadeMode ?? SHADE_PBR);
 
         let pickingScale: Float32Array = new Float32Array([1.0, 1.0, 1.0]);
         if (options.pickingScale !== undefined) {
@@ -245,23 +257,14 @@ class Vector extends Layer {
         }
     }
 
-    public get shadeMode(): number {
+    public get shadeMode(): ShadeMode {
         return this._shadeMode;
     }
 
-    public set shadeMode(m: number) {
-        let v = Vector._clampShadeMode(m);
-        if (v !== this._shadeMode) {
-            this._shadeMode = v;
-            this._geoObjectEntityCollection.shadeMode = v;
-        }
-    }
-
-    protected static _clampShadeMode(m: number): number {
-        let v = Math.round(Number(m));
-        if (v < 0) v = 0;
-        if (v > 2) v = 2;
-        return v;
+    public set shadeMode(m: ShadeModeInput) {
+        let v = normalizeShadeMode(m);
+        this._shadeMode = v;
+        this._geoObjectEntityCollection.shadeMode = v;
     }
 
     public get labelMaxLetters(): number {

@@ -2,6 +2,7 @@
 precision highp float;
 
 #include "../common/weightedOIT.glsl"
+#include "../common/shadeMode.glsl"
 #include "../atmos/common.glsl"
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
@@ -62,20 +63,42 @@ void main(void) {
     vec3 sunPos = lightPosition;
     vec4 color;
 
-    if (shadeMode < 0.5) {
+    float shade = shadeMode;
+
+    if (shade == SHADE_UNLIT) {
         color = baseColor;
+    } else if (shade < SHADE_PBR) {
+        float metallic = clamp(materialProperties.b, 0.0, 1.0);
+        float specularMask = metallic;
+        vec4 lightWeighting;
+        vec3 specularWeighting;
+
+        // PHONG mode in atmosphere pass: apply only Phong lighting without atmospheric contribution.
+        getPhongLighting(
+            vertex,
+            normal,
+            cameraPosition,
+            sunPos,
+            lightAmbient,
+            lightDiffuse,
+            lightSpecular,
+            specularMask,
+            specularWeighting,
+            lightWeighting
+        );
+
+        color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
     } else {
         float metallic = clamp(materialProperties.b, 0.0, 1.0);
         float specularMask = metallic;
         vec3 lightDir = normalize(sunPos);
         vec3 viewDir = normalize(cameraPosition - vertex);
         vec3 sunIlluminance;
-        getSunIlluminance(vertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
-
         vec4 lightWeighting;
         vec3 specularWeighting;
 
-        // shadeMode 1 Phong, 2 PBR — PBR forward not implemented yet
+        // TODO: Real PBR lighting is not implemented yet. Keep Phong + atmosphere for PBR mode.
+        getSunIlluminance(vertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
         getPhongLighting(
             vertex,
             normal,

@@ -24,7 +24,13 @@ export type { ITransparencyPass } from "./renderer/ITransparencyPass";
 export { PhongDeferredShading } from "./renderer/PhongDeferredShading";
 export { AtmosphereDeferredShading } from "./renderer/AtmosphereDeferredShading";
 export { WOITPass } from "./renderer/WOITPass";
-export { SHADE_MODE_UNLIT, SHADE_MODE_PHONG, SHADE_MODE_PBR } from "./shadeModeConstants";
+export {
+    SHADE_UNLIT,
+    SHADE_PHONG,
+    SHADE_PBR,
+    type ShadeMode,
+    type ShadeModeInput,
+} from "./shadeModeConstants";
 
 declare const __OG_VERSION__: string;
 export const version = __OG_VERSION__;

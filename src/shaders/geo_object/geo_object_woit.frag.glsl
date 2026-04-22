@@ -2,6 +2,7 @@
 precision highp float;
 
 #include "../common/weightedOIT.glsl"
+#include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
 
@@ -52,8 +53,34 @@ void main(void) {
 
     vec4 color;
 
-    if (shadeMode < 0.5) {
+    float shade = shadeMode;
+
+    if (shade == SHADE_UNLIT) {
         color = baseColor;
+    } else if (shade < SHADE_PBR) {
+        float metallic = clamp(materialProperties.b, 0.0, 1.0);
+
+        vec3 vertex = v_vertex;
+        float specularMask = metallic;
+
+        vec4 lightWeighting;
+        vec3 specularWeighting;
+
+        // PHONG mode in no-atmos WOIT pass.
+        getPhongLighting(
+        vertex,
+        normal,
+        cameraPosition,
+        lightPosition,
+        lightAmbient,
+        lightDiffuse,
+        lightSpecular,
+        specularMask,
+        specularWeighting,
+        lightWeighting
+        );
+
+        color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
     } else {
         float metallic = clamp(materialProperties.b, 0.0, 1.0);
 
@@ -63,6 +90,7 @@ void main(void) {
         vec4 lightWeighting;
         vec3 specularWeighting;
 
+        // TODO: Real PBR WOIT(no-atmos) is not implemented yet. Keep PBR as Phong for now.
         getPhongLighting(
         vertex,
         normal,

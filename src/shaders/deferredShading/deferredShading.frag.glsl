@@ -25,18 +25,19 @@ void main(void) {
 
     if (baseColor.a <= 1e-4) discard;
 
-    vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
     vec4 normalColor = texelFetch(normalTexture, fragCoord, 0);
+    float shadeMode = normalColor.a;
+
+    if (shadeMode == SHADE_UNLIT) {
+        fragColor = baseColor;
+        return;
+    }
+
+    vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
     vec4 viewPositionData = texelFetch(viewPositionTexture, fragCoord, 0);
     vec3 viewPos = viewPositionData.xyz;
     vec3 emission = unpackEmissionColor(viewPositionData.a);
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
-    uint shade = decodeShadeMode(normalColor.a);
-
-    if (shade == SHADE_MODE_UNLIT) {
-        fragColor = baseColor;
-        return;
-    }
 
     vec3 cameraRelWorld = normalMatrix * viewPos;
     float specularMask = materials.b;
@@ -44,19 +45,37 @@ void main(void) {
     vec4 lightWeighting;
     vec3 specularWeighting;
 
-    // SHADE_MODE_PHONG and SHADE_MODE_PBR: PBR deferred not implemented yet
-    getPhongLighting(
-    cameraRelWorld,
-    normal,
-    vec3(0.0),
-    lightPosition,
-    lightAmbient,
-    lightDiffuse,
-    lightSpecular,
-    specularMask,
-    specularWeighting,
-    lightWeighting
-    );
+    if (shadeMode < SHADE_PBR) {
+        // PHONG mode in deferred no-atmos pass.
+        getPhongLighting(
+        cameraRelWorld,
+        normal,
+        vec3(0.0),
+        lightPosition,
+        lightAmbient,
+        lightDiffuse,
+        lightSpecular,
+        specularMask,
+        specularWeighting,
+        lightWeighting
+        );
 
-    fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
+    } else {
+        // TODO: Real PBR deferred(no-atmos) is not implemented yet. Keep PBR as Phong for now.
+        getPhongLighting(
+        cameraRelWorld,
+        normal,
+        vec3(0.0),
+        lightPosition,
+        lightAmbient,
+        lightDiffuse,
+        lightSpecular,
+        specularMask,
+        specularWeighting,
+        lightWeighting
+        );
+
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
+    }
 }

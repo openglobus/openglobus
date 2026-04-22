@@ -38,7 +38,7 @@ void main(void) {
         );
     }
 
-    normalColor = vec4(normal * 0.5 + 0.5, encodeShadeModeUint(shadeModeToUint(shadeMode)));
+    normalColor = vec4(normal * 0.5 + 0.5, shadeMode);
 
     if (uUseColorTexture > 0.0) {
         diffuseColor = texture(uColorTexture, vTexCoords);

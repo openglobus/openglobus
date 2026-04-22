@@ -15,7 +15,7 @@ import type { IRayParams } from "../../entity/ray/Ray";
 import type { IBillboardParams } from "../../entity/billboard/Billboard";
 import { Ray } from "../../math/Ray";
 import { Plane } from "../../math/Plane";
-import { SHADE_MODE_UNLIT } from "../../shadeModeConstants";
+import { SHADE_UNLIT } from "../../shadeModeConstants";
 
 export interface IElevationProfileSceneParams {
     name?: string;
@@ -125,7 +125,7 @@ class ElevationProfileScene extends RenderNode {
             hideInLayerSwitcher: true,
             scaleByDistance: [1, 5000, 0.02],
             pickingScale: 1,
-            shadeMode: SHADE_MODE_UNLIT
+            shadeMode: SHADE_UNLIT
         });
 
         this._headPointersLayer = new Vector("head-pointers", {
@@ -134,7 +134,7 @@ class ElevationProfileScene extends RenderNode {
             hideInLayerSwitcher: true,
             scaleByDistance: [1, 10000, 0.02],
             pickingScale: 1,
-            shadeMode: SHADE_MODE_UNLIT
+            shadeMode: SHADE_UNLIT
         });
 
         this._columnPointersLayer = new Vector("column-pointers", {

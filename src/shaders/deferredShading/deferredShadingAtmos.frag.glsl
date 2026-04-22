@@ -34,58 +34,78 @@ void main(void) {
 
     if (baseColor.a <= 1e-4) discard;
 
-    vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
     vec4 normalColor = texelFetch(normalTexture, fragCoord, 0);
+    float shadeMode = normalColor.a;
+
+    if (shadeMode == SHADE_UNLIT) {
+        fragColor = baseColor;
+        return;
+    }
+
+    vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
     vec4 viewPositionData = texelFetch(viewPositionTexture, fragCoord, 0);
     vec3 viewPos = viewPositionData.xyz;
     vec3 emission = unpackEmissionColor(viewPositionData.a);
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
-    uint shade = decodeShadeMode(normalColor.a);
-
-    if (shade == SHADE_MODE_UNLIT) {
-        fragColor = baseColor;
-        return;
-    }
 
     vec3 cameraRelWorld = normalMatrix * viewPos;
     vec3 worldVertex = cameraRelWorld + cameraPosition;
     float specularMask = materials.b;
 
     vec3 sunPos = lightPosition;
-    vec3 lightDir = normalize(sunPos);
-    vec3 viewDir = normalize(-cameraRelWorld);
-    vec3 sunIlluminance;
-    getSunIlluminance(worldVertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
 
     vec4 lightWeighting;
     vec3 specularWeighting;
 
-    // SHADE_MODE_PHONG and SHADE_MODE_PBR: PBR deferred not implemented yet
-    getPhongLighting(
-    cameraRelWorld,
-    normal,
-    vec3(0.0),
-    sunPos,
-    lightAmbient,
-    lightDiffuse,
-    lightSpecular,
-    specularMask,
-    sunIlluminance,
-    specularWeighting,
-    lightWeighting
-    );
+    if (shadeMode < SHADE_PBR) {
+        // PHONG mode in atmosphere pass: apply only Phong lighting without atmospheric contribution.
+        getPhongLighting(
+        cameraRelWorld,
+        normal,
+        vec3(0.0),
+        sunPos,
+        lightAmbient,
+        lightDiffuse,
+        lightSpecular,
+        specularMask,
+        specularWeighting,
+        lightWeighting
+        );
 
-    vec4 atmosColor;
-    atmosGroundColor(worldVertex, normal, cameraPosition, sunPos, atmosColor);
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
+    } else {
+        vec3 lightDir = normalize(sunPos);
+        vec3 viewDir = normalize(-cameraRelWorld);
+        vec3 sunIlluminance;
+        getSunIlluminance(worldVertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
 
-    getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
-    specularWeighting *= sunIlluminance;
+        // TODO: Real PBR deferred is not implemented yet. Keep Phong + atmosphere for PBR mode.
+        getPhongLighting(
+        cameraRelWorld,
+        normal,
+        vec3(0.0),
+        sunPos,
+        lightAmbient,
+        lightDiffuse,
+        lightSpecular,
+        specularMask,
+        sunIlluminance,
+        specularWeighting,
+        lightWeighting
+        );
 
-    float fadingOpacity;
-    getAtmosFadingOpacity(worldVertex, cameraPosition, atmosFadeDist, fadingOpacity);
+        vec4 atmosColor;
+        atmosGroundColor(worldVertex, normal, cameraPosition, sunPos, atmosColor);
 
-    fragColor = vec4(
-    mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
-    baseColor.a
-    );
+        getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+        specularWeighting *= sunIlluminance;
+
+        float fadingOpacity;
+        getAtmosFadingOpacity(worldVertex, cameraPosition, atmosFadeDist, fadingOpacity);
+
+        fragColor = vec4(
+        mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+        baseColor.a
+        );
+    }
 }

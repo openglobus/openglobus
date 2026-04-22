@@ -18,6 +18,12 @@ import { RenderNode } from "../scene/RenderNode";
 import type { Node } from "../quadTree/Node";
 import { StripHandler } from "./strip/StripHandler";
 import type { Vector } from "../layer/Vector";
+import {
+    normalizeShadeMode,
+    SHADE_PBR,
+    type ShadeMode,
+    type ShadeModeInput
+} from "../shadeModeConstants";
 
 export type EntityCollectionEvents = EventsHandler<EntityCollectionEventList>;
 
@@ -29,25 +35,28 @@ interface IEntityCollectionParams {
     scaleByDistance?: NumberArray3;
     pickingScale?: number | NumberArray3;
     opacity?: number;
-    /** 0 unlit, 1 Phong, 2 PBR (geo objects). */
-    shadeMode?: number;
+    shadeMode?: ShadeModeInput;
     entities?: Entity[];
     depthOrder?: number;
 }
 
 /**
  * An observable collection of og.Entity instances where each entity has a unique id.
- * Entity collection provide handlers for each type of entity like billboard, label or 3ds object.
+ * Entity collection provides handlers for each type of entity like billboard, label or 3ds object.
  * @constructor
  * @param {Object} [options] - Entity options:
  * @param {Array.<Entity>} [options.entities] - Entities array.
  * @param {boolean} [options.visibility=true] - Entity visibility.
+ * @param {number} [options.labelMaxLetters] - Maximum label letters per line used by the label handler.
+ * @param {boolean} [options.pickingEnabled] - Enables/disables picking for all entity handlers.
  * @param {Array.<number>} [options.scaleByDistance] - Entity scale by distance parameters. (exactly 3 entries)
  * First index - near distance to the entity, after entity becomes full scale.
  * Second index - far distance to the entity, when entity becomes zero scale.
  * Third index - far distance to the entity, when entity becomes invisible.
+ * @param {number|Array.<number>} [options.pickingScale] - Picking scale value or xyz scale array.
  * @param {number} [options.opacity] - Entity global opacity.
- * @param {boolean} [options.pickingEnabled=true] - Entity picking enable.
+ * @param {number|string} [options.shadeMode=1] - Geo object shading mode: `0|none|unlit`, `0.5|phong`, `1|pbr`.
+ * @param {number} [options.depthOrder=0] - Rendering order for grouped vector layer collections.
  * @param {Number} [options.depthOffset=0.0] - Signed world-space depth offset along the camera ray.
  * Negative values move geometry closer to the camera, positive values move it farther.
  * //@fires entitymove
@@ -213,7 +222,7 @@ class EntityCollection {
     public _layer?: Vector;
     public _quadNode?: EntityCollectionNode;
 
-    public _shadeMode: number;
+    public _shadeMode: ShadeMode;
 
     protected _depthOrder: number;
 
@@ -271,7 +280,7 @@ class EntityCollection {
 
         this.events = this.rendererEvents = createEvents<EntityCollectionEventList>(ENTITYCOLLECTION_EVENTS, this);
 
-        this._shadeMode = options.shadeMode !== undefined ? EntityCollection._clampShadeMode(options.shadeMode) : 1.0;
+        this._shadeMode = normalizeShadeMode(options.shadeMode ?? SHADE_PBR);
 
         // initialize current entities
         if (options.entities) {
@@ -298,19 +307,12 @@ class EntityCollection {
         return this.__id;
     }
 
-    public get shadeMode(): number {
+    public get shadeMode(): ShadeMode {
         return this._shadeMode;
     }
 
-    public set shadeMode(m: number) {
-        this._shadeMode = EntityCollection._clampShadeMode(m);
-    }
-
-    protected static _clampShadeMode(m: number): number {
-        let v = Math.round(Number(m));
-        if (v < 0) v = 0;
-        if (v > 2) v = 2;
-        return v;
+    public set shadeMode(m: ShadeModeInput) {
+        this._shadeMode = normalizeShadeMode(m);
     }
 
     public isEqual(ec: EntityCollection | null): boolean {

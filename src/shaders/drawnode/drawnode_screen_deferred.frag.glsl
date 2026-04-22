@@ -44,14 +44,11 @@ void main(void) {
 
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal;
-    uint shadeEnc;
 
-    if (shadeMode < 0.5) {
+    if (shadeMode == SHADE_UNLIT) {
         normal = normalize(v_vertex);
-        shadeEnc = SHADE_MODE_PHONG;
     } else {
         normal = normalize((texNormal - 0.5) * 2.0);
-        shadeEnc = shadeModeToUint(shadeMode);
     }
 
     float specularMask = 0.0;
@@ -69,7 +66,7 @@ void main(void) {
     materials = vec4(1.0, 0.0, specularMask, 1.0);
     positionColor = vec4(v_viewPosition, packEmissionColor(emission));
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
-    normalColor = vec4(normal * 0.5 + 0.5, encodeShadeModeUint(shadeEnc));
+    normalColor = vec4(normal * 0.5 + 0.5, shadeMode);
 
     if (samplerCount == 0) return;
 

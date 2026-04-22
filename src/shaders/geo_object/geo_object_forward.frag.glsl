@@ -1,6 +1,7 @@
 #version 300 es
 precision highp float;
 
+#include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
 
@@ -48,8 +49,34 @@ void main(void) {
         );
     }
 
-    if (shadeMode < 0.5) {
+    float shade = shadeMode;
+
+    if (shade == SHADE_UNLIT) {
         fragColor = baseColor;
+    } else if (shade < SHADE_PBR) {
+        float metallic = clamp(materialProperties.b, 0.0, 1.0);
+
+        vec3 vertex = v_vertex;
+        float specularMask = metallic;
+
+        vec4 lightWeighting;
+        vec3 specularWeighting;
+
+        // PHONG mode in no-atmos pass.
+        getPhongLighting(
+        vertex,
+        normal,
+        cameraPosition,
+        lightPosition,
+        lightAmbient,
+        lightDiffuse,
+        lightSpecular,
+        specularMask,
+        specularWeighting,
+        lightWeighting
+        );
+
+        fragColor = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
     } else {
         float metallic = clamp(materialProperties.b, 0.0, 1.0);
 
@@ -59,7 +86,7 @@ void main(void) {
         vec4 lightWeighting;
         vec3 specularWeighting;
 
-        // shadeMode 1 Phong, 2 PBR — PBR forward not implemented yet
+        // TODO: Real PBR forward(no-atmos) is not implemented yet. Keep PBR as Phong for now.
         getPhongLighting(
         vertex,
         normal,

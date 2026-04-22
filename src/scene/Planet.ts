@@ -59,7 +59,13 @@ import type { AtmosphereParameters } from "../shaders/atmos/atmos";
 import { ProgramController } from "../webgl/ProgramController";
 import { AtmosphereDeferredShading } from "../renderer/AtmosphereDeferredShading";
 import { PhongDeferredShading } from "../renderer/PhongDeferredShading";
-import { SHADE_MODE_PHONG } from "../shadeModeConstants";
+import {
+    normalizeShadeMode,
+    SHADE_PHONG,
+    SHADE_PBR,
+    type ShadeMode,
+    type ShadeModeInput
+} from "../shadeModeConstants";
 
 export interface IPlanetParams {
     name?: string;
@@ -83,8 +89,7 @@ export interface IPlanetParams {
     maxNodesCount?: number;
     transparentBackground?: boolean;
     nearPlaneStrategy?: INearPlaneStrategy;
-    /** Terrain drawnode + deferred G-buffer: 0 unlit, 1 Phong, 2 PBR (PBR uses Phong until implemented). */
-    shadeMode?: number;
+    shadeMode?: ShadeModeInput;
 }
 
 export type PlanetEventsList = [
@@ -115,13 +120,27 @@ type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
  * @extends {RenderNode}
  * @param {IPlanetParams} [options={}] - Planet configuration parameters.
  * @param {string} [options.name] - Planet name.
- * @param {Ellipsoid} [options.ellipsoid] - Planet ellipsoid (WGS84 by default).
- * @param {Number} [options.maxGridSize=256] - Maximum segment grid size.
- * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximum altitude where visible segments stay at the same zoom level.
- * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimum altitude where visible segments stay at the same zoom level.
- * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimum camera slope above the globe where visible segments stay at the same zoom level.
- * @param {Number} [options.maxLoadingRequests=12] - Maximum concurrent tile loading requests.
- * @param {Number} [options.maxNodesCount=400] - Maximum number of created nodes.
+ * @param {Ellipsoid} [options.ellipsoid=wgs84] - Planet ellipsoid.
+ * @param {number} [options.minAltitude] - Minimum camera altitude above terrain.
+ * @param {number} [options.maxAltitude] - Maximum camera altitude above terrain.
+ * @param {Array.<Array.<number>>} [options.frustums] - Planet camera frustum configuration.
+ * @param {number} [options.maxGridSize=256] - Maximum terrain segment grid size.
+ * @param {number} [options.maxLoadingRequests=12] - Maximum concurrent tile loading requests.
+ * @param {number} [options.maxNodesCount=400] - Maximum number of created quadtree nodes.
+ * @param {number} [options.maxEqualZoomAltitude=15000000.0] - Max altitude where visible segments keep the same zoom.
+ * @param {number} [options.minEqualZoomAltitude=10000.0] - Min altitude where visible segments keep the same zoom.
+ * @param {number} [options.minEqualZoomCameraSlope=0.8] - Min camera slope for equal-zoom segment strategy.
+ * @param {typeof QuadTreeStrategy} [options.quadTreeStrategyPrototype=EarthQuadTreeStrategy] - Quadtree strategy class.
+ * @param {string|null} [options.nightTextureSrc] - Night lights texture URL (`null` disables texture loading).
+ * @param {string|null} [options.specularTextureSrc] - Water/specular mask texture URL (`null` disables texture loading).
+ * @param {boolean} [options.atmosphereEnabled=false] - Enables atmosphere rendering.
+ * @param {boolean} [options.transitionOpacityEnabled] - Enables terrain transition opacity blending.
+ * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
+ * @param {number} [options.minDistanceBeforeMemClear] - Camera travel distance threshold before automatic memory cleanup.
+ * @param {number} [options.vectorTileSize] - Vector tile texture size for vector layer baking.
+ * @param {boolean} [options.transparentBackground=false] - Enables transparent renderer background.
+ * @param {INearPlaneStrategy} [options.nearPlaneStrategy] - Near-plane strategy implementation.
+ * @param {number|string} [options.shadeMode=0.5] - Terrain shading mode: `0|none|unlit`, `0.5|phong`, `1|pbr`.
  *
  * @fires draw - Triggered before globe frame begins to render.
  * @fires layeradd - Triggered when a layer is added to the planet.
@@ -335,10 +354,10 @@ export class Planet extends RenderNode {
     public nightTextureCoefficient: number;
 
     /**
-     * Global terrain shading for drawnode (forward + deferred): 0 unlit, 1 Phong, 2 PBR.
+     * Global terrain shading for drawnode (forward + deferred): 0 unlit, 0.5 Phong, 1 PBR.
      * @public
      */
-    protected _shadeMode: number;
+    protected _shadeMode: ShadeMode;
 
     //protected _renderOpaqueScreenNodesPASS: () => void;
     //protected _renderTransparentScreenNodesPASS: () => void;
@@ -374,8 +393,7 @@ export class Planet extends RenderNode {
 
         this._atmosphere = new Atmosphere(options.atmosphereParameters);
 
-        this._shadeMode =
-            options.shadeMode !== undefined ? Planet._clampShadeMode(options.shadeMode) : SHADE_MODE_PHONG;
+        this._shadeMode = normalizeShadeMode(options.shadeMode ?? SHADE_PHONG);
 
         this._planetRadius2 = (this.ellipsoid.getPolarSize() - 10000.0) * (this.ellipsoid.getPolarSize() - 10000.0);
 
@@ -618,24 +636,17 @@ export class Planet extends RenderNode {
      * @public
      * @returns {number} - Shade mode id.
      */
-    public get shadeMode(): number {
+    public get shadeMode(): ShadeMode {
         return this._shadeMode;
     }
 
     /**
      * Sets terrain shade mode.
      * @public
-     * @param {number} m - Shade mode id.
+     * @param {number|string} m - Shade mode id (`0|0.5|1` or `none|phong|pbr`).
      */
-    public set shadeMode(m: number) {
-        this._shadeMode = Planet._clampShadeMode(m);
-    }
-
-    protected static _clampShadeMode(m: number): number {
-        let v = Math.round(Number(m));
-        if (v < 0) v = 0;
-        if (v > 2) v = 2;
-        return v;
+    public set shadeMode(m: ShadeModeInput) {
+        this._shadeMode = normalizeShadeMode(m);
     }
 
     // public set diffuse(rgb: string | NumberArray3 | Vec3) {
@@ -944,7 +955,6 @@ export class Planet extends RenderNode {
             this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
             h.addProgram(shaders.drawnode_screen_wl_forward_atmos(this._atmosphere.parameters));
-
             this._swapDeferredShadingPass(this._atmosphere.parameters);
 
             if (!this._transparentBackground) {
@@ -1498,7 +1508,7 @@ export class Planet extends RenderNode {
         sh = program._program;
         shu = sh.uniforms;
 
-        gl.uniform1f(shu.shadeMode, this._shadeMode);
+        gl.uniform1f(shu.shadeMode, this._atmosphereEnabled ? SHADE_PBR : this._shadeMode);
         gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
@@ -1591,7 +1601,7 @@ export class Planet extends RenderNode {
         sh = program._program;
         shu = sh.uniforms;
 
-        gl.uniform1f(shu.shadeMode, this._shadeMode);
+        gl.uniform1f(shu.shadeMode, SHADE_PBR);
 
         if (!atmosphereControl.isReady) return program._program;
 

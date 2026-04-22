@@ -35,6 +35,7 @@ import { Extent } from "./Extent";
 import type { IAtmosphereParams } from "./control/atmosphere/Atmosphere";
 import { CameraFrameComposer } from "./control/CameraFrameComposer";
 import { QuadTreeStrategy } from "./quadTree";
+import type { ShadeModeInput } from "./shadeModeConstants";
 
 export interface IGlobeParams {
     attributionContainer?: HTMLElement;
@@ -89,7 +90,7 @@ export interface IGlobeParams {
     exposure?: number;
     maxNodesCount?: number;
     transparentBackground?: boolean;
-    shadeMode?: number;
+    shadeMode?: ShadeModeInput;
 }
 
 const DEFAULT_NIGHT_SRC = `/night.png`;

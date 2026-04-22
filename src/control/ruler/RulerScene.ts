@@ -11,7 +11,7 @@ import { Vec3 } from "../../math/Vec3";
 import type { IMouseState } from "../../renderer/RendererEvents";
 import { Ellipsoid } from "../../ellipsoid/Ellipsoid";
 import type { ILabelParams } from "../../entity/label/Label";
-import { SHADE_MODE_UNLIT } from "../../shadeModeConstants";
+import { SHADE_UNLIT } from "../../shadeModeConstants";
 
 const OUTLINE_COUNT = 120;
 
@@ -144,7 +144,7 @@ class RulerScene extends RenderNode {
             hideInLayerSwitcher: true,
             scaleByDistance: [1, 5000, 0.023],
             pickingScale: 2,
-            shadeMode: SHADE_MODE_UNLIT
+            shadeMode: SHADE_UNLIT
         });
 
         this._propsLabel = new Entity({
