@@ -78,6 +78,7 @@ let globe = new Globe({
     //frustums: [[1, 1e12]],
     terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer],
+    reverseDepth: false,
     msaa: 0
 });
 
@@ -100,14 +101,14 @@ globe.planet.addControls(controlsList);
 //const EPSILON_NEAR = 1e-3;
 //const planetDiameter = globe.planet.ellipsoid.equatorialSize * 2.0;
 
-function updateSkyBoxFrustum() {
-    const camera = globe.planet.camera;
-    const alt = camera.getAltitude();
-    camera.setNearFar(alt - alt * 0.9);
-}
-
-globe.planet.camera.events.on("viewchange", updateSkyBoxFrustum);
-updateSkyBoxFrustum();
+// function updateSkyBoxFrustum() {
+//     const camera = globe.planet.camera;
+//     const alt = camera.getAltitude();
+//     camera.setNearFar(alt - alt * 0.9);
+// }
+//
+// globe.planet.camera.events.on("viewchange", updateSkyBoxFrustum);
+// updateSkyBoxFrustum();
 
 let draggableObject = null;
 let dragStartClick = new Vec2();

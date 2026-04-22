@@ -45,6 +45,7 @@ export interface IPlanetFlyDistanceParams extends IPlanetFlyCartesianParams {
  * @param {number} [options.far] - Camera far plane distance. Default is og.math.MAX
  * @param {number} [options.minAltitude] - Minimal altitude for the camera. Default is 5
  * @param {number} [options.maxAltitude] - Maximal altitude for the camera. Default is 20000000
+ * @param {boolean} [options.reverseDepth=true] - Enables reverse-Z depth in perspective mode.
  * @param {Vec3} [options.eye] - Camera eye position. Default (0,0,0)
  * @param {Vec3} [options.look] - Camera look position. Default (0,0,0)
  * @param {Vec3} [options.up] - Camera eye position. Default (0,1,0)

@@ -90,6 +90,7 @@ export interface IPlanetParams {
     transparentBackground?: boolean;
     nearPlaneStrategy?: INearPlaneStrategy;
     shadeMode?: ShadeModeInput;
+    reverseDepth?: boolean;
 }
 
 export type PlanetEventsList = [
@@ -141,6 +142,7 @@ type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
  * @param {boolean} [options.transparentBackground=false] - Enables transparent renderer background.
  * @param {INearPlaneStrategy} [options.nearPlaneStrategy] - Near-plane strategy implementation.
  * @param {number|string} [options.shadeMode=0.5] - Terrain shading mode: `0|none|unlit`, `0.5|phong`, `1|pbr`.
+ * @param {boolean} [options.reverseDepth=true] - Enables reverse-Z depth for the default planet camera in perspective mode.
  *
  * @fires draw - Triggered before globe frame begins to render.
  * @fires layeradd - Triggered when a layer is added to the planet.
@@ -228,13 +230,6 @@ export class Planet extends RenderNode {
      */
     public camera: PlanetCamera;
     public nearPlaneStrategy: INearPlaneStrategy;
-
-    /**
-     * Screen mouse pointer projected to planet cartesian position.
-     * @public
-     * @type {Vec3}
-     */
-    public mousePositionOnEarth: Vec3;
 
     public emptyTexture: WebGLTextureExt | null;
     public transparentTexture: WebGLTextureExt | null;
@@ -420,11 +415,10 @@ export class Planet extends RenderNode {
             look: Vec3.ZERO,
             up: Vec3.NORTH,
             minAltitude: options.minAltitude,
-            maxAltitude: options.maxAltitude
+            maxAltitude: options.maxAltitude,
+            reverseDepth: options.reverseDepth
         });
         this.nearPlaneStrategy = options.nearPlaneStrategy ?? new AltitudeNearPlaneStrategy();
-
-        this.mousePositionOnEarth = new Vec3();
 
         this.emptyTexture = null;
         this.transparentTexture = null;

@@ -91,6 +91,7 @@ export interface IGlobeParams {
     maxNodesCount?: number;
     transparentBackground?: boolean;
     shadeMode?: ShadeModeInput;
+    reverseDepth?: boolean;
 }
 
 const DEFAULT_NIGHT_SRC = `/night.png`;
@@ -155,6 +156,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
  * @param {number} [options.gamma] - Gamma
  * @param {number} [options.exposure] - Exposure
+ * @param {boolean} [options.reverseDepth=true] - Enables reverse-Z depth for the planet camera perspective mode.
  */
 
 class Globe {
@@ -298,7 +300,8 @@ class Globe {
             vectorTileSize: options.vectorTileSize,
             maxNodesCount: options.maxNodesCount,
             transparentBackground: options.transparentBackground,
-            shadeMode: options.shadeMode
+            shadeMode: options.shadeMode,
+            reverseDepth: options.reverseDepth
         });
 
         // Attach terrain provider (can be one object or array)
