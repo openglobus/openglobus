@@ -1,7 +1,7 @@
-import type { Camera } from "../camera/Camera";
+import type { PlanetCamera } from "../camera/PlanetCamera";
 
 export interface INearPlaneStrategy {
-    applyNear(camera: Camera): void;
+    applyNear(camera: PlanetCamera): void;
 }
 
 export interface IAltitudeNearPlaneRule {
@@ -28,7 +28,7 @@ export class AltitudeNearPlaneStrategy implements INearPlaneStrategy {
         this._rules = (params.rules || DEFAULT_RULES).slice().sort((a, b) => a.maxAltitude - b.maxAltitude);
     }
 
-    public applyNear(camera: Camera): void {
+    public applyNear(camera: PlanetCamera): void {
         if (camera.frustums.length !== 1) {
             return;
         }
@@ -36,12 +36,17 @@ export class AltitudeNearPlaneStrategy implements INearPlaneStrategy {
         const firstFrustum = camera.frustums[0];
         const altitude = Math.max(0.0, camera.getAltitude());
         const targetNear = this._resolveNear(altitude);
+        let targetFar = firstFrustum.far;
 
-        if (firstFrustum.near === targetNear) {
+        if (camera.isOrthographic) {
+            targetFar = altitude + camera.planet.ellipsoid.getEquatorialSize() * 2.0;
+        }
+
+        if (firstFrustum.near === targetNear && firstFrustum.far === targetFar) {
             return;
         }
 
-        camera.setNearFar(targetNear);
+        camera.setNearFar(targetNear, targetFar);
     }
 
     protected _resolveNear(altitude: number): number {
@@ -50,7 +55,6 @@ export class AltitudeNearPlaneStrategy implements INearPlaneStrategy {
                 return this._rules[i].near;
             }
         }
-
         return this._rules[this._rules.length - 1].near;
     }
 }

@@ -78,7 +78,7 @@ let globe = new Globe({
     //frustums: [[1, 1e12]],
     terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer],
-    reverseDepth: false,
+    //reverseDepth: false,
     msaa: 0
 });
 

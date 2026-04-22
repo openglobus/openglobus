@@ -37,7 +37,6 @@ import { LonLat } from "../LonLat";
 import { Node } from "../quadTree/Node";
 import { NormalMapCreator } from "../utils/NormalMapCreator";
 import { PlainSegmentWorker } from "../utils/PlainSegmentWorker";
-import type { Camera } from "../camera/Camera";
 import { IPlanetFlyCartesianParams, PlanetCamera } from "../camera/PlanetCamera";
 import { Quat } from "../math/Quat";
 import { QuadTreeStrategy } from "../quadTree/QuadTreeStrategy";
@@ -1475,7 +1474,7 @@ export class Planet extends RenderNode {
         this.camera.setTerrainCollisionActivity(false);
     }
 
-    public applyNear(camera: Camera = this.camera) {
+    public applyNear(camera: PlanetCamera = this.camera) {
         this.nearPlaneStrategy.applyNear(camera);
     }
 
