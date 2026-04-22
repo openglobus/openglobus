@@ -37,10 +37,12 @@ import { LonLat } from "../LonLat";
 import { Node } from "../quadTree/Node";
 import { NormalMapCreator } from "../utils/NormalMapCreator";
 import { PlainSegmentWorker } from "../utils/PlainSegmentWorker";
+import type { Camera } from "../camera/Camera";
 import { IPlanetFlyCartesianParams, PlanetCamera } from "../camera/PlanetCamera";
 import { Quat } from "../math/Quat";
 import { QuadTreeStrategy } from "../quadTree/QuadTreeStrategy";
 import { Ray } from "../math/Ray";
+import { AltitudeNearPlaneStrategy, type INearPlaneStrategy } from "./AltitudeNearPlaneStrategy";
 import { RenderNode } from "./RenderNode";
 import { SimpleSkyBackground } from "../control/SimpleSkyBackground";
 import { Sun } from "../control/Sun";
@@ -80,6 +82,7 @@ export interface IPlanetParams {
     vectorTileSize?: number;
     maxNodesCount?: number;
     transparentBackground?: boolean;
+    nearPlaneStrategy?: INearPlaneStrategy;
     /** Terrain drawnode + deferred G-buffer: 0 unlit, 1 Phong, 2 PBR (PBR uses Phong until implemented). */
     shadeMode?: number;
 }
@@ -205,6 +208,7 @@ export class Planet extends RenderNode {
      * @type {PlanetCamera}
      */
     public camera: PlanetCamera;
+    public nearPlaneStrategy: INearPlaneStrategy;
 
     /**
      * Screen mouse pointer projected to planet cartesian position.
@@ -400,6 +404,7 @@ export class Planet extends RenderNode {
             minAltitude: options.minAltitude,
             maxAltitude: options.maxAltitude
         });
+        this.nearPlaneStrategy = options.nearPlaneStrategy ?? new AltitudeNearPlaneStrategy();
 
         this.mousePositionOnEarth = new Vec3();
 
@@ -1441,6 +1446,7 @@ export class Planet extends RenderNode {
             this._vectorTileCreator.frame();
 
             this.camera.checkTerrainCollision();
+            this.applyNear(this.camera);
             this.camera.update();
 
             // Here is the planet node dispatches a draw event before
@@ -1463,6 +1469,10 @@ export class Planet extends RenderNode {
     public lockQuadTree() {
         this._collectRenderNodesIsActive = false;
         this.camera.setTerrainCollisionActivity(false);
+    }
+
+    public applyNear(camera: Camera = this.camera) {
+        this.nearPlaneStrategy.applyNear(camera);
     }
 
     /**

@@ -71,7 +71,7 @@ export interface IGlobeParams {
         minSlope?: number;
         mass?: number;
         zoomSpeed?: number;
-        mode?: "lockNorth" | "adaptive" | "free";
+        mode?: "north" | "adaptive" | "free";
         poleThreshold?: number;
         disableRotation?: boolean;
         disableTilt?: boolean;
