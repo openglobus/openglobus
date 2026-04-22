@@ -18,7 +18,7 @@ export const geo_object_deferred = (): Program =>
             viewMatrix: "mat4",
             normalMatrix: "mat3",
             projectionMatrix: "mat4",
-            uScaleByDistance: "vec3",
+            uScaleByDistance: "vec4",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             uColorTexture: "sampler2d",
@@ -51,7 +51,7 @@ export const geo_object_forward = (): Program =>
             viewMatrix: "mat4",
             normalMatrix: "mat3",
             projectionMatrix: "mat4",
-            uScaleByDistance: "vec3",
+            uScaleByDistance: "vec4",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             rtcEyePositionHigh: "vec3",
@@ -90,7 +90,7 @@ export const geo_object_woit = (): Program =>
             viewMatrix: "mat4",
             normalMatrix: "mat3",
             projectionMatrix: "mat4",
-            uScaleByDistance: "vec3",
+            uScaleByDistance: "vec4",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             rtcEyePositionHigh: "vec3",
@@ -130,7 +130,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             viewMatrix: "mat4",
             normalMatrix: "mat3",
             projectionMatrix: "mat4",
-            uScaleByDistance: "vec3",
+            uScaleByDistance: "vec4",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             rtcEyePositionHigh: "vec3",
@@ -175,7 +175,7 @@ export const geo_object_picking = (): Program =>
         uniforms: {
             viewMatrix: "mat4",
             projectionMatrix: "mat4",
-            uScaleByDistance: "vec3",
+            uScaleByDistance: "vec4",
             pickingScale: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3"
@@ -200,7 +200,7 @@ export const geo_object_depth = (): Program =>
         uniforms: {
             viewMatrix: "mat4",
             projectionMatrix: "mat4",
-            uScaleByDistance: "vec3",
+            uScaleByDistance: "vec4",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             frustumPickingColor: "float"

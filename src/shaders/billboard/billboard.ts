@@ -16,7 +16,7 @@ export function billboardPicking(): Program {
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             planetRadius: "float",
-            uScaleByDistance: "vec3",
+            uScaleByDistance: "vec4",
             opacity: "float",
             depthOffset: "float",
             depthOffsetNear: "float"
@@ -45,7 +45,7 @@ export function billboard_screen(): Program {
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             planetRadius: "float",
-            uScaleByDistance: "vec3",
+            uScaleByDistance: "vec4",
             opacity: "float",
             depthOffset: "float",
             depthOffsetNear: "float"
@@ -75,7 +75,7 @@ export function billboard_screen_woit(): Program {
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             planetRadius: "float",
-            uScaleByDistance: "vec3",
+            uScaleByDistance: "vec4",
             opacity: "float",
             depthOffset: "float",
             depthOffsetNear: "float",

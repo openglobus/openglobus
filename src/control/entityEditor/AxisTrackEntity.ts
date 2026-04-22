@@ -79,7 +79,8 @@ export class AxisTrackEntity extends Entity {
         if (this._entityCollection && this._entityCollection.renderNode) {
             let rn = this._entityCollection.renderNode as EntityEditorScene;
             let cam = rn.renderer!.activeCamera;
-            let r = cam.eye.distance(cart) * 0.05;
+            let radiusDist = cam.isOrthographic ? cam.focusDistance : cam.eye.distance(cart);
+            let r = radiusDist * 0.05;
 
             if (rn.planet) {
                 let yCoords: Vec3[] = [],

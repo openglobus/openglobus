@@ -442,7 +442,13 @@ export class GeoObjectHandler {
             gl = r.handler.gl!,
             ec = this._entityCollection;
 
-        gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
+        gl.uniform4f(
+            u.uScaleByDistance,
+            ec.scaleByDistance[0],
+            ec.scaleByDistance[1],
+            ec.scaleByDistance[2],
+            r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
+        );
         gl.uniform1f(u.shadeMode, ec._shadeMode);
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
@@ -570,7 +576,13 @@ export class GeoObjectHandler {
 
         sh.activate();
 
-        gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
+        gl.uniform4f(
+            u.uScaleByDistance,
+            ec.scaleByDistance[0],
+            ec.scaleByDistance[1],
+            ec.scaleByDistance[2],
+            cam.isOrthographic ? cam.focusDistance : 0.0
+        );
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
@@ -647,7 +659,13 @@ export class GeoObjectHandler {
 
         sh.activate();
 
-        gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
+        gl.uniform4f(
+            u.uScaleByDistance,
+            ec.scaleByDistance[0],
+            ec.scaleByDistance[1],
+            ec.scaleByDistance[2],
+            r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
+        );
         gl.uniform3fv(u.pickingScale, ec.pickingScale);
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);

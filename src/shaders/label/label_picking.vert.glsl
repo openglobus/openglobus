@@ -21,7 +21,7 @@ uniform mat4 projectionMatrix;
 uniform vec3 eyePositionHigh;
 uniform vec3 eyePositionLow;
 uniform float planetRadius;
-uniform vec3 scaleByDistance;
+uniform vec4 scaleByDistance;
 uniform float opacity;
 uniform float depthOffset;
 uniform float depthOffsetNear;
@@ -44,7 +44,8 @@ void main() {
     float horizonDist = sqrt(dot(cameraPos, cameraPos) - planetRadius) + sqrt(dot(a_positions, a_positions) - planetRadius);
     float visibilityMask = step(1e-6, opacity) * step(lookDist, horizonDist);
 
-    float scd = (1.0 - smoothstep(scaleByDistance[0], scaleByDistance[1], lookDist)) * (1.0 - step(scaleByDistance[2], lookDist));
+    float distMetric = scaleByDistance[3] > 0.0 ? scaleByDistance[3] : lookDist;
+    float scd = (1.0 - smoothstep(scaleByDistance[0], scaleByDistance[1], distMetric)) * (1.0 - step(scaleByDistance[2], distMetric));
 
     v_rgba.a *= opacity * visibilityMask;
 

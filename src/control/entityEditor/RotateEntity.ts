@@ -89,7 +89,8 @@ export class RotateEntity extends Entity {
             let cam = rn.renderer!.activeCamera;
 
             let qNorthFrame = rn.getFrameRotation(cart).conjugate();
-            let r = cam.eye.distance(cart) * 0.15;
+            let radiusDist = cam.isOrthographic ? cam.focusDistance : cam.eye.distance(cart);
+            let r = radiusDist * 0.15;
 
             let qp = Quat.xRotation(0);
             let qy = Quat.yRotation(yaw);

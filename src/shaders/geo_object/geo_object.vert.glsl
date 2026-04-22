@@ -18,7 +18,7 @@ in vec2 aTexCoord;
 in vec4 qRot;
 in vec3 aLocalPosition;
 
-uniform vec3 uScaleByDistance;
+uniform vec4 uScaleByDistance;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 
@@ -61,7 +61,8 @@ void main(void) {
 
     vNormal = normalize(qRotate(qRot, aVertexNormal));
 
-    float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
+    float distMetric = uScaleByDistance[3] > 0.0 ? uScaleByDistance[3] : lookLength;
+    float scd = uScaleByDistance[2] * clamp(distMetric, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
     vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate)) + scd * aLocalPosition;
 
     vec4 viewPos = viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
