@@ -35,7 +35,9 @@ export class CameraFrameComposer extends Control {
 
     public add(handler: CameraFrameHandler) {
         handler.addTo(this);
-        this._cameraLayer.add(handler.cameraEntity);
+        if (handler.cameraEntity) {
+            this._cameraLayer.add(handler.cameraEntity);
+        }
     }
 
     public override oninit() {

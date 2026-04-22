@@ -23,7 +23,7 @@ export class CameraFrameHandler {
     protected _composer: CameraFrameComposer | null;
     protected _composerIndex: number;
 
-    public readonly cameraEntity: Entity;
+    public readonly cameraEntity: Entity | null;
     public showFrustum: boolean;
 
     constructor(params: ICameraFrameHadler) {
@@ -34,16 +34,18 @@ export class CameraFrameHandler {
         this._composerIndex = -1;
         this.showFrustum = params.showFrustum != undefined ? params.showFrustum : true;
 
-        this.cameraEntity = new Entity({
-            visibility: true,
-            scale: this.frustumScale,
-            geoObject: {
-                //visibility: false,
-                tag: "frustum",
-                color: "rgba(0,255,0,0.20)",
-                object3d: cameraFrustumObj
-            }
-        });
+        this.cameraEntity = this.showFrustum
+            ? new Entity({
+                  visibility: true,
+                  scale: this.frustumScale,
+                  geoObject: {
+                      //visibility: false,
+                      tag: "frustum",
+                      color: "rgba(0,255,0,0.20)",
+                      object3d: cameraFrustumObj
+                  }
+              })
+            : null;
 
         this.frameBuffer.init();
     }
@@ -76,7 +78,7 @@ export class CameraFrameHandler {
         if (this.frameHandler && this.frameBuffer.handler.gl) {
             this.frameHandler(this);
 
-            if (this.showFrustum) {
+            if (this.showFrustum && this.cameraEntity) {
                 let cam = this.camera;
                 let frustumScale = Object3d.getFrustumScaleByCameraAngles(
                     100,
