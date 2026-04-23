@@ -14,7 +14,7 @@
  */
 
 import * as segmentHelper from "../segment/segmentHelper";
-import * as shaders from "../shaders/drawnode/drawnode";
+import * as shaders from "../shaders/segment/segment";
 import { Atmosphere } from "../control/atmosphere/Atmosphere";
 import type { IAtmosphereParams } from "../control/atmosphere/Atmosphere";
 import { Control } from "../control/Control";
@@ -341,7 +341,7 @@ export class Planet extends RenderNode {
     public nightTextureCoefficient: number;
 
     /**
-     * Global terrain shading for drawnode (forward + deferred): 0 unlit, 0.5 Phong, 1 PBR.
+     * Global terrain shading for segment (forward + deferred): 0 unlit, 0.5 Phong, 1 PBR.
      * @public
      */
     protected _shadeMode: ShadeMode;
@@ -905,8 +905,8 @@ export class Planet extends RenderNode {
         if (this.renderer && this.renderer.handler && this._atmosphereEnabled) {
             this._atmosphereBottomRadius = atmosParams?.BOTTOM_RADIUS ?? this._atmosphere.parameters.BOTTOM_RADIUS;
             let h = this.renderer.handler;
-            h.removeProgram("drawnode_screen_wl_forward");
-            h.addProgram(shaders.drawnode_screen_wl_forward_atmos(atmosParams));
+            h.removeProgram("segment_screen_wl_forward");
+            h.addProgram(shaders.segment_screen_wl_forward_atmos(atmosParams));
 
             this._swapDeferredShadingPass(atmosParams);
         }
@@ -926,7 +926,7 @@ export class Planet extends RenderNode {
 
         let h = this.renderer.handler;
 
-        h.removeProgram("drawnode_screen_wl_forward");
+        h.removeProgram("segment_screen_wl_forward");
 
         if (this._atmosphereEnabled) {
             //this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSAtmos;
@@ -940,7 +940,7 @@ export class Planet extends RenderNode {
             this._atmosphere.activate();
             this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
-            h.addProgram(shaders.drawnode_screen_wl_forward_atmos(this._atmosphere.parameters));
+            h.addProgram(shaders.segment_screen_wl_forward_atmos(this._atmosphere.parameters));
             this._swapDeferredShadingPass(this._atmosphere.parameters);
 
             if (!this._transparentBackground) {
@@ -965,7 +965,7 @@ export class Planet extends RenderNode {
                 }
             }
 
-            h.addProgram(shaders.drawnode_screen_wl_forward_noatmos());
+            h.addProgram(shaders.segment_screen_wl_forward_noatmos());
         }
     }
 
@@ -993,9 +993,9 @@ export class Planet extends RenderNode {
         let r = this.renderer,
             h = r.handler;
 
-        h.addProgram(shaders.drawnode_screen_deferred());
-        h.addProgram(shaders.drawnode_colorPicking());
-        h.addProgram(shaders.drawnode_depth());
+        h.addProgram(shaders.segment_screen_deferred());
+        h.addProgram(shaders.segment_colorPicking());
+        h.addProgram(shaders.segment_depth());
 
         r.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
         r.addDepthCallback(this, () => {
@@ -1345,7 +1345,7 @@ export class Planet extends RenderNode {
         this._renderingOpaqueScreenNodes(
             cam,
             this.quadTreeStrategy,
-            this._setUniformsDeferred(cam, this.renderer!.handler.programs.drawnode_screen_deferred),
+            this._setUniformsDeferred(cam, this.renderer!.handler.programs.segment_screen_deferred),
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
     }
@@ -1355,7 +1355,7 @@ export class Planet extends RenderNode {
         this._renderingTransparentScreenNodes(
             this.camera,
             this.quadTreeStrategy,
-            this._setUniformsNoAtmos(this.camera, this.renderer!.handler.programs.drawnode_screen_wl_forward, false)
+            this._setUniformsNoAtmos(this.camera, this.renderer!.handler.programs.segment_screen_wl_forward, false)
         );
     }
 
@@ -1366,7 +1366,7 @@ export class Planet extends RenderNode {
         this._renderingScreenNodesWithHeight(
             cam,
             this.quadTreeStrategy,
-            this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_forward, false),
+            this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.segment_screen_wl_forward, false),
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
     }
@@ -1376,7 +1376,7 @@ export class Planet extends RenderNode {
         this._renderingTransparentScreenNodes(
             this.camera,
             this.quadTreeStrategy,
-            this._setUniformsAtmos(this.camera, this.renderer!.handler.programs.drawnode_screen_wl_forward, false)
+            this._setUniformsAtmos(this.camera, this.renderer!.handler.programs.segment_screen_wl_forward, false)
         );
     }
 
@@ -1387,7 +1387,7 @@ export class Planet extends RenderNode {
         this._renderingScreenNodesWithHeight(
             cam,
             this.quadTreeStrategy,
-            this._setUniformsAtmos(cam, this.renderer!.handler.programs.drawnode_screen_wl_forward, false),
+            this._setUniformsAtmos(cam, this.renderer!.handler.programs.segment_screen_wl_forward, false),
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
     }
@@ -1907,8 +1907,8 @@ export class Planet extends RenderNode {
         let renderer = this.renderer!;
         let h = renderer.handler;
         let gl = h.gl!;
-        h.programs.drawnode_colorPicking.activate();
-        sh = h.programs.drawnode_colorPicking;
+        h.programs.segment_colorPicking.activate();
+        sh = h.programs.segment_colorPicking;
         let shu = sh.uniforms;
         let cam = renderer.activeCamera!;
 
@@ -1959,8 +1959,8 @@ export class Planet extends RenderNode {
         let renderer = this.renderer!;
         let h = renderer.handler;
         let gl = h.gl!;
-        h.programs.drawnode_depth.activate();
-        sh = h.programs.drawnode_depth;
+        h.programs.segment_depth.activate();
+        sh = h.programs.segment_depth;
         let shu = sh.uniforms;
 
         gl.disable(gl.BLEND);

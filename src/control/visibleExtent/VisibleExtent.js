@@ -1,6 +1,6 @@
 import { Slice } from "../../segment/Slice";
 import { Control } from "../Control";
-import * as shaders from "./drawnode";
+import * as shaders from "./segment";
 
 function rewriteSlice() {
     Slice.prototype.init = function (segment) {
@@ -49,18 +49,18 @@ export class VisibleExtent extends Control {
 
         h.stop();
 
-        h.removeProgram("drawnode_screen_nl");
-        h.removeProgram("drawnode_screen_wl");
-        h.removeProgram("drawnode_colorPicking");
-        h.removeProgram("drawnode_depth");
-        h.removeProgram("drawnode_heightPicking");
+        h.removeProgram("segment_screen_nl");
+        h.removeProgram("segment_screen_wl");
+        h.removeProgram("segment_colorPicking");
+        h.removeProgram("segment_depth");
+        h.removeProgram("segment_heightPicking");
 
-        h.addProgram(shaders.drawnode_screen_nl(), true);
-        //h.addProgram(shaders.drawnode_screen_wl(), true);
-        h.addProgram(shaders.drawnode_screen_wl_webgl2(), true);
-        h.addProgram(shaders.drawnode_colorPicking(), true);
-        h.addProgram(shaders.drawnode_depth(), true);
-        h.addProgram(shaders.drawnode_heightPicking(), true);
+        h.addProgram(shaders.segment_screen_nl(), true);
+        //h.addProgram(shaders.segment_screen_wl(), true);
+        h.addProgram(shaders.segment_screen_wl_webgl2(), true);
+        h.addProgram(shaders.segment_colorPicking(), true);
+        h.addProgram(shaders.segment_depth(), true);
+        h.addProgram(shaders.segment_heightPicking(), true);
 
         h.start();
     }
