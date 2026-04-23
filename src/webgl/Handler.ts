@@ -23,8 +23,7 @@ import type { TypedArray } from "../utils/shared";
 import { ImageCanvas } from "../ImageCanvas";
 import { Vec2 } from "../math/Vec2";
 import type { NumberArray2 } from "../math/Vec2";
-import { ProgramController } from "./ProgramController";
-import { Program } from "./Program";
+import { ShaderProgram } from "./ShaderProgram";
 import { Stack } from "../Stack";
 import { throttle } from "../utils/shared";
 
@@ -137,18 +136,18 @@ class Handler {
     public gl: WebGLContextExt | null;
 
     /**
-     * Shader program controller list.
+     * Shader program list.
      * @public
-     * @type {Record<string, ProgramController>}
+     * @type {Record<string, ShaderProgram>}
      */
-    public programs: Record<string, ProgramController>;
+    public programs: Record<string, ShaderProgram>;
 
     /**
-     * Current active shader program controller.
+     * Current active shader program.
      * @public
-     * @type {ProgramController}
+     * @type {ShaderProgram}
      */
-    public activeProgram: ProgramController | null;
+    public activeProgram: ShaderProgram | null;
 
     /**
      * Handler parameters.
@@ -652,17 +651,17 @@ class Handler {
     /**
      * Adds shader program to the handler.
      * @public
-     * @param {Program} program - Shader program.
+     * @param {ShaderProgram} program - Shader program.
      * @param {boolean} [activate] - If false program will not compile.
-     * @return {Program} -
+     * @return {ShaderProgram} -
      */
-    public addProgram(program: Program, activate: boolean = false): Program {
+    public addProgram(program: ShaderProgram, activate: boolean = false): ShaderProgram {
         if (!this.programs[program.name]) {
-            let sc = new ProgramController(this, program);
-            this.programs[program.name] = sc;
-            this._initProgramController(sc);
+            program.attach(this);
+            this.programs[program.name] = program;
+            this._initProgram(program);
             if (!activate) {
-                sc._activated = false;
+                program._activated = false;
             }
         } else {
             console.warn(`Shader program: "${program.name}" already exists.`);
@@ -682,9 +681,9 @@ class Handler {
     /**
      * Adds shader programs to the handler.
      * @public
-     * @param {Array.<Program>} programsArr - Shader program array.
+     * @param {Array.<ShaderProgram>} programsArr - Shader program array.
      */
-    public addPrograms(programsArr: Program[]) {
+    public addPrograms(programsArr: ShaderProgram[]) {
         for (let i = 0; i < programsArr.length; i++) {
             this.addProgram(programsArr[i]);
         }
@@ -693,18 +692,18 @@ class Handler {
     /**
      * Used in addProgram
      * @protected
-     * @param {ProgramController} sc - Program controller
+     * @param {ShaderProgram} program - ShaderProgram
      */
-    protected _initProgramController(sc: ProgramController) {
+    protected _initProgram(program: ShaderProgram) {
         if (this._initialized) {
-            sc.initialize();
+            program.initialize();
             if (!this.activeProgram) {
-                this.activeProgram = sc;
-                sc.activate();
+                this.activeProgram = program;
+                program.activate();
             } else {
-                sc.deactivate();
-                this.activeProgram._program.enableAttribArrays();
-                this.activeProgram._program.use();
+                program.deactivate();
+                this.activeProgram.enableAttribArrays();
+                this.activeProgram.use();
             }
         }
     }
@@ -715,7 +714,7 @@ class Handler {
      */
     protected _initPrograms() {
         for (let p in this.programs) {
-            this._initProgramController(this.programs[p]);
+            this._initProgram(this.programs[p]);
         }
     }
 

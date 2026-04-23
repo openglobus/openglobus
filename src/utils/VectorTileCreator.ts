@@ -2,7 +2,7 @@ import { doubleToTwoFloats2 } from "../math/coder";
 import { Framebuffer } from "../webgl/Framebuffer";
 import { Handler } from "../webgl/Handler";
 import { Material } from "../layer/Material";
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Planet } from "../scene/Planet";
 import { RENDERING } from "../quadTree/quadTree";
 import { Vector } from "../layer/Vector";
@@ -34,7 +34,7 @@ export class VectorTileCreator {
         //Line
         if (!this._handler.programs.vectorTileLineRasterization) {
             this._handler.addProgram(
-                new Program("vectorTileLineRasterization", {
+                new ShaderProgram("vectorTileLineRasterization", {
                     uniforms: {
                         viewport: "vec2",
                         thicknessOutline: "float",
@@ -182,7 +182,7 @@ export class VectorTileCreator {
         //Polygon
         if (!this._handler.programs.vectorTilePolygonRasterization) {
             this._handler.addProgram(
-                new Program("vectorTilePolygonRasterization", {
+                new ShaderProgram("vectorTilePolygonRasterization", {
                     uniforms: {
                         extentParamsHigh: "vec4",
                         extentParamsLow: "vec4"
@@ -296,7 +296,7 @@ export class VectorTileCreator {
                     extentParamsHigh[3] = 2.0 / extent.getHeight();
 
                     hPoly.activate();
-                    let sh = hPoly._program;
+                    let sh = hPoly;
                     let sha = sh.attributes,
                         shu = sh.uniforms;
 
@@ -361,7 +361,7 @@ export class VectorTileCreator {
                     f.bindOutputTexture(texture!);
 
                     hLine.activate();
-                    sh = hLine._program;
+                    sh = hLine;
                     sha = sh.attributes;
                     shu = sh.uniforms;
 

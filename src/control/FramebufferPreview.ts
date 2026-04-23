@@ -1,7 +1,7 @@
 import { Dialog } from "../ui/Dialog";
 import { Framebuffer } from "../webgl/Framebuffer";
 import { Control, IControlParams } from "./Control";
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 
 function creteCanvas(width: number, height: number) {
     let canvas = document.createElement("canvas") as HTMLCanvasElement;
@@ -29,7 +29,7 @@ export class FramebufferPreview extends Control {
 
     public framebufferCurrentTexture: number;
 
-    protected _program: Program;
+    protected _program: ShaderProgram;
 
     constructor(params: IFramebufferDialogParams) {
         super({
@@ -100,17 +100,16 @@ export class FramebufferPreview extends Control {
 
             gl.disable(gl.BLEND);
             this._screenFramebuffer.activate();
-            let sh = this._program._programController!, //h.programs.framebuffer_dialog_screen,
-                p = sh._program;
+            let p = this._program;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer!);
-            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(p.corners, 2, gl.FLOAT, false, 0, 0);
 
-            sh.activate();
+            p.activate();
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this._framebuffer.textures[this.framebufferCurrentTexture]);
-            gl.uniform1i(p.uniforms.inputTexture, 0);
+            gl.uniform1i(p.inputTexture, 0);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -142,8 +141,8 @@ function framebuffer_dialog_screen(
     common?: string | null,
     mainImage?: string | null,
     flippedY?: boolean
-): Program {
-    return new Program(`framebuffer_dialog_screen:${id.toString()}`, {
+): ShaderProgram {
+    return new ShaderProgram(`framebuffer_dialog_screen:${id.toString()}`, {
         uniforms: {
             inputTexture: "sampler2D"
         },

@@ -399,7 +399,7 @@ class PointCloud {
             let rn = this._renderNode!;
             let r = rn.renderer!;
             let sh = r.handler.programs.pointCloud;
-            let p = sh._program;
+            let p = sh;
             let gl = r.handler.gl!,
                 sha = p.attributes,
                 shu = p.uniforms;
@@ -426,7 +426,7 @@ class PointCloud {
             let rn = this._renderNode!;
             let r = rn.renderer!;
             let sh = r.handler.programs.pointCloud;
-            let p = sh._program;
+            let p = sh;
             let gl = r.handler.gl!,
                 sha = p.attributes,
                 shu = p.uniforms;

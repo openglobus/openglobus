@@ -213,7 +213,7 @@ export class CameraDepthHandler extends Control {
         gl.disable(gl.BLEND);
 
         h.programs.camera_depth.activate();
-        let sh = h.programs.camera_depth._program;
+        let sh = h.programs.camera_depth;
         let shu = sh.uniforms;
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());

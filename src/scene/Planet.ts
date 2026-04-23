@@ -52,19 +52,12 @@ import { Vector } from "../layer/Vector";
 import { VectorTileCreator } from "../utils/VectorTileCreator";
 import { wgs84 } from "../ellipsoid/wgs84";
 import type { WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams } from "../webgl/Handler";
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Segment } from "../segment/Segment";
 import type { AtmosphereParameters } from "../shaders/atmos/atmos";
-import { ProgramController } from "../webgl/ProgramController";
 import { AtmosphereDeferredShading } from "../renderer/AtmosphereDeferredShading";
 import { PhongDeferredShading } from "../renderer/PhongDeferredShading";
-import {
-    normalizeShadeMode,
-    SHADE_PHONG,
-    SHADE_PBR,
-    type ShadeMode,
-    type ShadeModeInput
-} from "../shadeModeConstants";
+import { normalizeShadeMode, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "../shadeModeConstants";
 
 export interface IPlanetParams {
     name?: string;
@@ -130,7 +123,7 @@ type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
  * @param {number} [options.maxEqualZoomAltitude=15000000.0] - Max altitude where visible segments keep the same zoom.
  * @param {number} [options.minEqualZoomAltitude=10000.0] - Min altitude where visible segments keep the same zoom.
  * @param {number} [options.minEqualZoomCameraSlope=0.8] - Min camera slope for equal-zoom segment strategy.
- * @param {typeof QuadTreeStrategy} [options.quadTreeStrategyPrototype=EarthQuadTreeStrategy] - Quadtree strategy class.
+ * @param {Function} [options.quadTreeStrategyPrototype=EarthQuadTreeStrategy] - Quadtree strategy class.
  * @param {string|null} [options.nightTextureSrc] - Night lights texture URL (`null` disables texture loading).
  * @param {string|null} [options.specularTextureSrc] - Water/specular mask texture URL (`null` disables texture loading).
  * @param {boolean} [options.atmosphereEnabled=false] - Enables atmosphere rendering.
@@ -1487,7 +1480,7 @@ export class Planet extends RenderNode {
         this.camera.setTerrainCollisionActivity(true);
     }
 
-    protected _setUniformsDeferred(cam: PlanetCamera, program: ProgramController): Program {
+    protected _setUniformsDeferred(cam: PlanetCamera, program: ShaderProgram): ShaderProgram {
         let sh, shu;
         let renderer = this.renderer!;
 
@@ -1498,7 +1491,7 @@ export class Planet extends RenderNode {
         gl.disable(gl.BLEND);
 
         program.activate();
-        sh = program._program;
+        sh = program;
         shu = sh.uniforms;
 
         gl.uniform1f(shu.shadeMode, this._atmosphereEnabled ? SHADE_PBR : this._shadeMode);
@@ -1526,7 +1519,7 @@ export class Planet extends RenderNode {
         return sh;
     }
 
-    protected _setUniformsNoAtmos(cam: PlanetCamera, program: ProgramController, disableBlend: boolean): Program {
+    protected _setUniformsNoAtmos(cam: PlanetCamera, program: ShaderProgram, disableBlend: boolean): ShaderProgram {
         let sh, shu;
         let renderer = this.renderer!;
 
@@ -1542,7 +1535,7 @@ export class Planet extends RenderNode {
         }
 
         program.activate();
-        sh = program._program;
+        sh = program;
         shu = sh.uniforms;
 
         gl.uniform1f(shu.shadeMode, this._shadeMode);
@@ -1574,7 +1567,7 @@ export class Planet extends RenderNode {
         return sh;
     }
 
-    protected _setUniformsAtmos(cam: PlanetCamera, program: ProgramController, disableBlend: boolean): Program {
+    protected _setUniformsAtmos(cam: PlanetCamera, program: ShaderProgram, disableBlend: boolean): ShaderProgram {
         let sh, shu;
         let renderer = this.renderer!;
         let h = renderer.handler;
@@ -1591,12 +1584,12 @@ export class Planet extends RenderNode {
         let atmosphereControl = renderer.controls.Atmosphere as Atmosphere;
 
         program.activate();
-        sh = program._program;
+        sh = program;
         shu = sh.uniforms;
 
         gl.uniform1f(shu.shadeMode, SHADE_PBR);
 
-        if (!atmosphereControl.isReady) return program._program;
+        if (!atmosphereControl.isReady) return program;
 
         gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
@@ -1641,7 +1634,7 @@ export class Planet extends RenderNode {
         camera: PlanetCamera,
         quadTreeStrategy: QuadTreeStrategy,
         nodes: Map<number, boolean>,
-        sh: Program,
+        sh: ShaderProgram,
         currentNode: Node,
         sl: Layer[],
         sliceIndex: number,
@@ -1679,7 +1672,7 @@ export class Planet extends RenderNode {
     // protected _renderingFadingNodesNoDepth = (
     //     quadTreeStrategy: QuadTreeStrategy,
     //     nodes: Map<number, boolean>,
-    //     sh: Program,
+    //     sh: ShaderProgram,
     //     currentNode: Node,
     //     sl: Layer[],
     //     sliceIndex: number,
@@ -1724,7 +1717,7 @@ export class Planet extends RenderNode {
      */
     // protected _renderingScreenNodes(
     //     quadTreeStrategy: QuadTreeStrategy,
-    //     sh: Program,
+    //     sh: ShaderProgram,
     //     cam: PlanetCamera,
     //     renderedNodes: Node[]
     // ) {
@@ -1795,7 +1788,7 @@ export class Planet extends RenderNode {
     protected _renderingOpaqueScreenNodes(
         cam: PlanetCamera,
         quadTreeStrategy: QuadTreeStrategy,
-        sh: Program,
+        sh: ShaderProgram,
         renderedNodes: Node[]
     ) {
         let sl = this._visibleTileLayerSlices;
@@ -1847,7 +1840,11 @@ export class Planet extends RenderNode {
         }
     }
 
-    protected _renderingTransparentScreenNodes(camera: PlanetCamera, quadTreeStrategy: QuadTreeStrategy, sh: Program) {
+    protected _renderingTransparentScreenNodes(
+        camera: PlanetCamera,
+        quadTreeStrategy: QuadTreeStrategy,
+        sh: ShaderProgram
+    ) {
         let isEq = this.terrain!.equalizeVertices;
         let sl = this._visibleTileLayerSlices;
 
@@ -1864,7 +1861,7 @@ export class Planet extends RenderNode {
     protected _renderingScreenNodesWithHeight(
         camera: PlanetCamera,
         quadTreeStrategy: QuadTreeStrategy,
-        sh: Program,
+        sh: ShaderProgram,
         renderedNodes: Node[]
     ) {
         let gl = this.renderer!.handler.gl!;
@@ -1911,7 +1908,7 @@ export class Planet extends RenderNode {
         let h = renderer.handler;
         let gl = h.gl!;
         h.programs.drawnode_colorPicking.activate();
-        sh = h.programs.drawnode_colorPicking._program;
+        sh = h.programs.drawnode_colorPicking;
         let shu = sh.uniforms;
         let cam = renderer.activeCamera!;
 
@@ -1963,7 +1960,7 @@ export class Planet extends RenderNode {
         let h = renderer.handler;
         let gl = h.gl!;
         h.programs.drawnode_depth.activate();
-        sh = h.programs.drawnode_depth._program;
+        sh = h.programs.drawnode_depth;
         let shu = sh.uniforms;
 
         gl.disable(gl.BLEND);

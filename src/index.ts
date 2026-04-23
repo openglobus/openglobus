@@ -24,13 +24,7 @@ export type { ITransparencyPass } from "./renderer/ITransparencyPass";
 export { PhongDeferredShading } from "./renderer/PhongDeferredShading";
 export { AtmosphereDeferredShading } from "./renderer/AtmosphereDeferredShading";
 export { WOITPass } from "./renderer/WOITPass";
-export {
-    SHADE_UNLIT,
-    SHADE_PHONG,
-    SHADE_PBR,
-    type ShadeMode,
-    type ShadeModeInput,
-} from "./shadeModeConstants";
+export { SHADE_UNLIT, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "./shadeModeConstants";
 
 declare const __OG_VERSION__: string;
 export const version = __OG_VERSION__;
@@ -67,7 +61,7 @@ import {
 
 import { Object3d } from "./Object3d";
 
-import { Handler, Program, Framebuffer, Multisample } from "./webgl/index";
+import { Handler, ShaderProgram, Framebuffer, Multisample } from "./webgl/index";
 
 import { EmptyTerrain, GlobusTerrain, RgbTerrain, BilTerrain, GlobusRgbTerrain } from "./terrain/index";
 
@@ -106,7 +100,7 @@ export {
     Planet,
     PlanetCamera,
     LightSource,
-    Program,
+    ShaderProgram,
     Handler,
     Multisample,
     Renderer,

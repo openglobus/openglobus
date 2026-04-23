@@ -5,7 +5,7 @@ import { createRendererEvents } from "./RendererEvents";
 import type { IBaseInputState, RendererEventsHandler } from "./RendererEvents";
 import { depth } from "../shaders/depth";
 import { EntityCollection } from "../entity/EntityCollection";
-import { Framebuffer, Multisample, Program } from "../webgl/index";
+import { Framebuffer, Multisample, ShaderProgram } from "../webgl/index";
 import { FontAtlas } from "../utils/FontAtlas";
 import { Handler } from "../webgl/Handler";
 import type { WebGLBufferExt } from "../webgl/Handler";
@@ -1409,7 +1409,7 @@ class Renderer {
         let h = this.handler;
 
         let sh = h.programs.toneMapping,
-            p = sh._program,
+            p = sh,
             gl = h.gl!;
 
         this.forwardFramebuffer!.blitTo(this.hdrFramebuffer!);
@@ -1441,7 +1441,7 @@ class Renderer {
 
         // SCREEN PASS
         sh = h.programs.screenFrame;
-        p = sh._program;
+        p = sh;
         sh.activate();
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
@@ -1530,7 +1530,7 @@ class Renderer {
             // PASS to depth visualization
             this.screenDepthFramebuffer!.activate();
             let sh = h.programs.depth,
-                p = sh._program;
+                p = sh;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
             gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -1782,9 +1782,9 @@ class Renderer {
     /**
      * Adds a shader program to the renderer if it has not been added yet.
      * @public
-     * @param {Program} program - Program instance.
+     * @param {ShaderProgram} program - ShaderProgram instance.
      */
-    public addProgram(program: Program) {
+    public addProgram(program: ShaderProgram) {
         if (this.handler.programs[program.name]) return;
         this.handler.addProgram(program);
     }
@@ -1793,9 +1793,9 @@ class Renderer {
      * Adds one or more programs to the renderer.
      * Supports both individual programs and nested program arrays.
      * @public
-     * @param {...(Program | Program[])} programs - Program list.
+     * @param {...(ShaderProgram | ShaderProgram[])} programs - ShaderProgram list.
      */
-    public addPrograms(...programs: (Program | Program[])[]) {
+    public addPrograms(...programs: (ShaderProgram | ShaderProgram[])[]) {
         for (const p of programs) {
             if (Array.isArray(p)) {
                 for (const program of p) this.addProgram(program);
@@ -1808,9 +1808,9 @@ class Renderer {
     /**
      * Alias for {@link Renderer.addPrograms}.
      * @public
-     * @param {...(Program | Program[])} programs - Program list.
+     * @param {...(ShaderProgram | ShaderProgram[])} programs - ShaderProgram list.
      */
-    public addShaders(...programs: (Program | Program[])[]) {
+    public addShaders(...programs: (ShaderProgram | ShaderProgram[])[]) {
         this.addPrograms(...programs);
     }
 }

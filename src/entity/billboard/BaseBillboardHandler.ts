@@ -9,7 +9,7 @@ import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
 import { Vec4 } from "../../math/Vec4";
 import type { WebGLBufferExt } from "../../webgl/Handler";
-import type { ProgramController } from "../../webgl/ProgramController";
+import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import { BaseBillboard } from "./BaseBillboard";
 
 const PICKINGCOLOR_BUFFER = 0;
@@ -336,13 +336,13 @@ class BaseBillboardHandler {
     protected _displayPASS(
         startBillboardIndex: number,
         endBillboardIndex: number,
-        billboardProgram: ProgramController,
+        billboardProgram: ShaderProgram,
         depthWrite?: boolean
     ) {
         let r = this._renderer!;
         let h = r.handler;
         billboardProgram.activate();
-        let sh = billboardProgram._program;
+        let sh = billboardProgram;
         let sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -420,7 +420,7 @@ class BaseBillboardHandler {
         let r = this._renderer!;
         let h = r.handler;
         h.programs.billboardPicking.activate();
-        let sh = h.programs.billboardPicking._program;
+        let sh = h.programs.billboardPicking;
         let sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -489,11 +489,11 @@ class BaseBillboardHandler {
         this.drawOpaque();
     }
 
-    protected _getOpaqueProgram(): ProgramController {
+    protected _getOpaqueProgram(): ShaderProgram {
         return this._renderer!.handler.programs.billboard;
     }
 
-    protected _getTransparentProgram(): ProgramController {
+    protected _getTransparentProgram(): ShaderProgram {
         return this._renderer!.handler.programs.billboardWoit;
     }
 

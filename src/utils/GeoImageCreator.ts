@@ -2,7 +2,7 @@ import * as utils from "../utils/shared";
 import { BaseGeoImage } from "../layer/BaseGeoImage";
 import { Framebuffer } from "../webgl/Framebuffer";
 import { LonLat } from "../LonLat";
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Planet } from "../scene/Planet";
 import { doubleToTwoFloats2 } from "../math/coder";
 import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
@@ -175,7 +175,7 @@ export class GeoImageCreator {
 
     protected _initShaders() {
         this._planet.renderer!.handler.addProgram(
-            new Program("geoImageTransform", {
+            new ShaderProgram("geoImageTransform", {
                 uniforms: {
                     sourceTexture: "sampler2d",
                     extentParamsHigh: "vec4",

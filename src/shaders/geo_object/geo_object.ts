@@ -1,4 +1,4 @@
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { stringTemplate2 } from "../../utils/shared";
 import type { AtmosphereParameters } from "../atmos/atmos";
 import { DEFAULT_PARAMS } from "../atmos/atmos";
@@ -12,8 +12,8 @@ import geo_object_picking_frag from "./geo_object_picking.frag.glsl";
 import geo_object_depth_vert from "./geo_object_depth.vert.glsl";
 import geo_object_depth_frag from "./geo_object_depth.frag.glsl";
 
-export const geo_object_deferred = (): Program =>
-    new Program("geo_object_deferred", {
+export const geo_object_deferred = (): ShaderProgram =>
+    new ShaderProgram("geo_object_deferred", {
         uniforms: {
             viewMatrix: "mat4",
             normalMatrix: "mat3",
@@ -45,8 +45,8 @@ export const geo_object_deferred = (): Program =>
         fragmentShader: geo_object_deferred_frag
     });
 
-export const geo_object_forward = (): Program =>
-    new Program("geo_object_forward", {
+export const geo_object_forward = (): ShaderProgram =>
+    new ShaderProgram("geo_object_forward", {
         uniforms: {
             viewMatrix: "mat4",
             normalMatrix: "mat3",
@@ -84,8 +84,8 @@ export const geo_object_forward = (): Program =>
         fragmentShader: geo_object_forward_frag
     });
 
-export const geo_object_woit = (): Program =>
-    new Program("geo_object_woit", {
+export const geo_object_woit = (): ShaderProgram =>
+    new ShaderProgram("geo_object_woit", {
         uniforms: {
             viewMatrix: "mat4",
             normalMatrix: "mat3",
@@ -124,8 +124,8 @@ export const geo_object_woit = (): Program =>
         fragmentShader: geo_object_woit_frag
     });
 
-export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): Program {
-    return new Program("geo_object_woit_atmos", {
+export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): ShaderProgram {
+    return new ShaderProgram("geo_object_woit_atmos", {
         uniforms: {
             viewMatrix: "mat4",
             normalMatrix: "mat3",
@@ -170,8 +170,8 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
     });
 }
 
-export const geo_object_picking = (): Program =>
-    new Program("geo_object_picking", {
+export const geo_object_picking = (): ShaderProgram =>
+    new ShaderProgram("geo_object_picking", {
         uniforms: {
             viewMatrix: "mat4",
             projectionMatrix: "mat4",
@@ -195,8 +195,8 @@ export const geo_object_picking = (): Program =>
         fragmentShader: geo_object_picking_frag
     });
 
-export const geo_object_depth = (): Program =>
-    new Program("geo_object_depth", {
+export const geo_object_depth = (): ShaderProgram =>
+    new ShaderProgram("geo_object_depth", {
         uniforms: {
             viewMatrix: "mat4",
             projectionMatrix: "mat4",

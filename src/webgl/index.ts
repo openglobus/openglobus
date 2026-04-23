@@ -2,7 +2,7 @@ import { Framebuffer } from "./Framebuffer";
 import { Handler } from "./Handler";
 import type { WebGLContextExt, WebGLBufferExt, WebGLTextureExt, ImageSource } from "./Handler";
 import { Multisample } from "./Multisample";
-import { Program } from "./Program";
+import { ShaderProgram } from "./ShaderProgram";
 import { types } from "./types";
 
 export {
@@ -10,7 +10,7 @@ export {
     Handler,
     Multisample,
     types,
-    Program,
+    ShaderProgram,
     WebGLContextExt,
     WebGLBufferExt,
     WebGLTextureExt,

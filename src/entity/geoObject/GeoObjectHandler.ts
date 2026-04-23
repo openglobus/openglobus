@@ -12,7 +12,7 @@ import type { Renderer } from "../../renderer/Renderer";
 import type { Atmosphere } from "../../control/atmosphere/Atmosphere";
 import type { Planet } from "../../scene/Planet";
 import type { RenderNode } from "../../scene/RenderNode";
-import type { Program } from "../../webgl/Program";
+import type { ShaderProgram } from "../../webgl/ShaderProgram";
 
 export const VERTEX_BUFFER = 0;
 export const RTC_POSITION_BUFFER = 1;
@@ -436,7 +436,7 @@ export class GeoObjectHandler {
     //
     // Could be in VAO
     //
-    protected _bindCommon(p: Program) {
+    protected _bindCommon(p: ShaderProgram) {
         let r = this._renderer!,
             u = p.uniforms,
             gl = r.handler.gl!,
@@ -462,7 +462,7 @@ export class GeoObjectHandler {
         gl.uniformMatrix3fv(u.normalMatrix, false, r.activeCamera.getNormalMatrix());
     }
 
-    protected _bindForwardParams(p: Program) {
+    protected _bindForwardParams(p: ShaderProgram) {
         let r = this._renderer!,
             u = p.uniforms,
             gl = r.handler.gl!;
@@ -475,7 +475,7 @@ export class GeoObjectHandler {
         gl.uniform4fv(u.lightSpecular, r.lightSpecular);
     }
 
-    protected _bindAtmosphereParams(p: Program) {
+    protected _bindAtmosphereParams(p: ShaderProgram) {
         let r = this._renderer!,
             gl = r.handler.gl!,
             u = p.uniforms,
@@ -497,7 +497,7 @@ export class GeoObjectHandler {
     public _displayOpaquePASS() {
         let r = this._renderer!,
             sh = r.handler.programs.geo_object_deferred,
-            p = sh._program;
+            p = sh;
 
         sh.activate();
 
@@ -514,7 +514,7 @@ export class GeoObjectHandler {
             //@ts-ignore
             useAtmos = rn.atmosphereEnabled,
             sh = useAtmos ? r.handler.programs.geo_object_woit_atmos : r.handler.programs.geo_object_woit,
-            p = sh._program;
+            p = sh;
 
         sh.activate();
 
@@ -536,7 +536,7 @@ export class GeoObjectHandler {
     public _displayTransparentForwardPASS() {
         let r = this._renderer!,
             sh = r.handler.programs.geo_object_forward,
-            p = sh._program;
+            p = sh;
 
         sh.activate();
 
@@ -551,7 +551,7 @@ export class GeoObjectHandler {
     public _displayForwardPASS() {
         let r = this._renderer!,
             sh = r.handler.programs.geo_object_forward,
-            p = sh._program;
+            p = sh;
 
         sh.activate();
 
@@ -566,7 +566,7 @@ export class GeoObjectHandler {
     protected _depthPASS() {
         let r = this._renderer!,
             sh = r.handler.programs.geo_object_depth,
-            p = sh._program,
+            p = sh,
             u = p.uniforms,
             a = p.attributes,
             gl = r.handler.gl!,
@@ -651,7 +651,7 @@ export class GeoObjectHandler {
     protected _pickingPASS() {
         let r = this._renderer!,
             sh = r.handler.programs.geo_object_picking,
-            p = sh._program,
+            p = sh,
             u = p.uniforms,
             a = p.attributes,
             gl = r.handler.gl!,

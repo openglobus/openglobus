@@ -4568,7 +4568,7 @@ class PolylineBatchRenderer {
 
             let r = this._renderNode!.renderer!;
             let sh = this.isTextured ? r.handler.programs.polylineTex : r.handler.programs.polylinePlain;
-            let p = sh._program;
+            let p = sh;
             let gl = r.handler.gl!,
                 sha = p.attributes,
                 shu = p.uniforms;
@@ -4641,7 +4641,7 @@ class PolylineBatchRenderer {
 
             let r = this._renderNode!.renderer!;
             let sh = this.isTextured ? r.handler.programs.polylineTexWoit : r.handler.programs.polylineWoitPlain;
-            let p = sh._program;
+            let p = sh;
             let gl = r.handler.gl!,
                 sha = p.attributes,
                 shu = p.uniforms;
@@ -4715,7 +4715,7 @@ class PolylineBatchRenderer {
             let rn = this._renderNode!;
             let r = rn.renderer!;
             let sh = r.handler.programs.polyline_picking;
-            let p = sh._program;
+            let p = sh;
             let gl = r.handler.gl!,
                 sha = p.attributes,
                 shu = p.uniforms;

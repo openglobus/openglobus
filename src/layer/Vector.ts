@@ -13,12 +13,7 @@ import { Planet } from "../scene/Planet";
 import { Material } from "./Material";
 import type { NumberArray4 } from "../math/Vec4";
 import * as mercator from "../mercator";
-import {
-    normalizeShadeMode,
-    SHADE_PBR,
-    type ShadeMode,
-    type ShadeModeInput
-} from "../shadeModeConstants";
+import { normalizeShadeMode, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "../shadeModeConstants";
 
 export interface IVectorParams extends ILayerParams {
     entities?: Entity[] | IEntityParams[];

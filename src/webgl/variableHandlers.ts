@@ -3,7 +3,7 @@
  */
 
 import { types } from "./types";
-import { Program } from "./Program";
+import { ShaderProgram } from "./ShaderProgram";
 import type { WebGLBufferExt } from "./Handler";
 import type { WebGLTextureExt } from "./Handler";
 
@@ -30,35 +30,35 @@ export const variableHandlers: VariableHandler = {
     a: []
 };
 
-variableHandlers.u[types.MAT4] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.MAT4] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.uniformMatrix4fv(variable._pName, false, variable.value as Float32Array);
 };
 
-variableHandlers.u[types.MAT3] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.MAT3] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.uniformMatrix3fv(variable._pName, false, variable.value as Float32Array);
 };
 
-variableHandlers.u[types.FLOAT] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.FLOAT] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.uniform1f(variable._pName, variable.value as number);
 };
 
-variableHandlers.u[types.INT] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.INT] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.uniform1i(variable._pName, variable.value as number);
 };
 
-variableHandlers.u[types.VEC2] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.VEC2] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.uniform2fv(variable._pName, variable.value as Float32Array);
 };
 
-variableHandlers.u[types.VEC3] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.VEC3] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.uniform3fv(variable._pName, variable.value as Float32Array);
 };
 
-variableHandlers.u[types.VEC4] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.VEC4] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.uniform4fv(variable._pName, variable.value as Float32Array);
 };
 
-variableHandlers.u[types.SAMPLER2D] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.SAMPLER2D] = function (program: ShaderProgram, variable: ProgramVariable) {
     let pgl = program.gl!;
     pgl.activeTexture(pgl.TEXTURE0 + program._textureID);
     pgl.bindTexture(pgl.TEXTURE_2D, variable.value);
@@ -66,7 +66,7 @@ variableHandlers.u[types.SAMPLER2D] = function (program: Program, variable: Prog
     program._textureID++;
 };
 
-variableHandlers.u[types.SAMPLERCUBE] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.SAMPLERCUBE] = function (program: ShaderProgram, variable: ProgramVariable) {
     let pgl = program.gl!;
     pgl.activeTexture(pgl.TEXTURE0 + program._textureID);
     pgl.bindTexture(pgl.TEXTURE_CUBE_MAP, variable.value);
@@ -74,7 +74,7 @@ variableHandlers.u[types.SAMPLERCUBE] = function (program: Program, variable: Pr
     program._textureID++;
 };
 
-variableHandlers.u[types.SAMPLER2DARRAY] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.SAMPLER2DARRAY] = function (program: ShaderProgram, variable: ProgramVariable) {
     const value = variable.value as any;
 
     // Legacy mode for array uniforms declared as sampler2D[N]
@@ -91,7 +91,7 @@ variableHandlers.u[types.SAMPLER2DARRAY] = function (program: Program, variable:
     program._textureID++;
 };
 
-variableHandlers.u[types.SAMPLER2DARRAYLEGACY] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.SAMPLER2DARRAYLEGACY] = function (program: ShaderProgram, variable: ProgramVariable) {
     let pgl = program.gl!;
     let value = variable.value as Int32Array | WebGLTextureExt[];
 
@@ -119,26 +119,26 @@ variableHandlers.u[types.SAMPLER2DARRAYLEGACY] = function (program: Program, var
     program._textureID += size;
 };
 
-variableHandlers.u[types.INTXX] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.INTXX] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.uniform1iv(variable._pName, variable.value as Int32Array);
 };
 
-variableHandlers.u[types.FLOATXX] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.u[types.FLOATXX] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.uniform1fv(variable._pName, variable.value as Float32Array);
 };
 
 /*========================
    Attributes callbacks
  ========================*/
-variableHandlers.a[types.FLOAT] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.a[types.FLOAT] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.vertexAttrib1f(variable._pName as number, variable.value as number);
 };
 
-variableHandlers.a[types.VEC2] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.a[types.VEC2] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.vertexAttrib2fv(variable._pName as number, variable.value as Float32Array);
 };
 
-variableHandlers.a[types.VEC3] = function (program: Program, variable: ProgramVariable) {
+variableHandlers.a[types.VEC3] = function (program: ShaderProgram, variable: ProgramVariable) {
     program.gl!.vertexAttrib3fv(variable._pName as number, variable.value as Float32Array);
 };
 

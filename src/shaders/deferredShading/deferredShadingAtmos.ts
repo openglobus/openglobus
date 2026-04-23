@@ -1,4 +1,4 @@
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { stringTemplate2 } from "../../utils/shared";
 import type { AtmosphereParameters } from "../atmos/atmos";
 import { DEFAULT_PARAMS } from "../atmos/atmos";
@@ -6,8 +6,8 @@ import { DEFAULT_PARAMS } from "../atmos/atmos";
 import deferred_vert from "./deferredShading.vert.glsl";
 import deferred_atmos_frag from "./deferredShadingAtmos.frag.glsl";
 
-export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): Program {
-    return new Program("deferredShadingAtmos", {
+export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): ShaderProgram {
+    return new ShaderProgram("deferredShadingAtmos", {
         uniforms: {
             normalMatrix: "mat3",
             baseTexture: "sampler2d",

@@ -1,8 +1,8 @@
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 import { types } from "../webgl/types";
 
-export function skybox(): Program {
-    return new Program("skybox", {
+export function skybox(): ShaderProgram {
+    return new ShaderProgram("skybox", {
         uniforms: {
             projectionViewMatrix: { type: types.MAT4 },
             uSampler: { type: types.SAMPLERCUBE },

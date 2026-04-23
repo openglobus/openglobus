@@ -8,7 +8,7 @@ import type { NumberArray3 } from "../../math/Vec3";
 import type { NumberArray4 } from "../../math/Vec4";
 import { StripHandler } from "./StripHandler";
 import type { WebGLBufferExt } from "../../webgl/Handler";
-import type { ProgramController } from "../../webgl/ProgramController";
+import type { ShaderProgram } from "../../webgl/ShaderProgram";
 
 type TPoiExt = Vec3 | NumberArray3;
 type TStripExt = [TPoiExt, TPoiExt];
@@ -254,13 +254,13 @@ class Strip {
         this._handler && this._handler.remove(this);
     }
 
-    protected _drawImpl(sh: ProgramController, color: Float32Array, opacity: number) {
+    protected _drawImpl(sh: ShaderProgram, color: Float32Array, opacity: number) {
         if (this.visibility && this._verticesHigh.length) {
             let r = this._renderNode!.renderer!;
 
             let gl = r.handler.gl!;
 
-            let p = sh._program,
+            let p = sh,
                 sha = p.attributes,
                 shu = p.uniforms;
 
@@ -315,7 +315,7 @@ class Strip {
             let gl = r.handler.gl!;
 
             let sh = r.handler.programs.stripForward,
-                p = sh._program,
+                p = sh,
                 sha = p.attributes,
                 shu = p.uniforms;
 

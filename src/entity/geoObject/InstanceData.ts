@@ -2,7 +2,7 @@ import { GeoObject } from "./GeoObject";
 import type { WebGLBufferExt, WebGLTextureExt } from "../../webgl/Handler";
 import { loadImage, makeArrayTyped, prepareTextureImage } from "../../utils/shared";
 import type { TypedArray } from "../../utils/shared";
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { GeoObjectHandler } from "./GeoObjectHandler";
 import {
     VERTEX_BUFFER,
@@ -173,7 +173,7 @@ export class InstanceData {
     //
     //  Instance individual data
     //
-    public drawOpaque(p: Program) {
+    public drawOpaque(p: ShaderProgram) {
         const instanceCount = this._opaqueInstanceCount;
         if (instanceCount <= 0) {
             return;
@@ -211,7 +211,7 @@ export class InstanceData {
     //
     //  All instances in forward pass(opaque + transparent)
     //
-    public drawForwardAll(p: Program) {
+    public drawForwardAll(p: ShaderProgram) {
         const instanceCount = this.numInstances;
         if (instanceCount <= 0) {
             return;
@@ -249,7 +249,7 @@ export class InstanceData {
     //
     //  Instance individual data
     //
-    public drawTransparent(p: Program) {
+    public drawTransparent(p: ShaderProgram) {
         const startInstance = this._opaqueInstanceCount;
         const instanceCount = this.numInstances - startInstance;
         if (instanceCount <= 0) {
@@ -330,7 +330,7 @@ export class InstanceData {
     //
     // Instance common data(could be in VAO)
     //
-    protected _drawElementsInstanced(p: Program, startInstance: number, instanceCount: number) {
+    protected _drawElementsInstanced(p: ShaderProgram, startInstance: number, instanceCount: number) {
         let gl = p.gl!,
             u = p.uniforms,
             a = p.attributes;

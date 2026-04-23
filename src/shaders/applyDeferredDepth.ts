@@ -1,7 +1,7 @@
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 
 export function applyDeferredDepth() {
-    return new Program("applyDeferredDepth", {
+    return new ShaderProgram("applyDeferredDepth", {
         uniforms: {
             depthTexture: "sampler2D"
         },

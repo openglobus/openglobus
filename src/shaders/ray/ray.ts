@@ -1,11 +1,11 @@
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 
 import ray_vert from "./ray.vert.glsl";
 import ray_frag from "./ray.frag.glsl";
 import ray_woit_frag from "./ray_woit.frag.glsl";
 
-export function rayScreen(): Program {
-    return new Program("rayScreen", {
+export function rayScreen(): ShaderProgram {
+    return new ShaderProgram("rayScreen", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -33,8 +33,8 @@ export function rayScreen(): Program {
     });
 }
 
-export function rayScreenWoit(): Program {
-    return new Program("rayScreenWoit", {
+export function rayScreenWoit(): ShaderProgram {
+    return new ShaderProgram("rayScreenWoit", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",

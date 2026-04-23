@@ -1,7 +1,7 @@
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 
-export function screenFrame(): Program {
-    return new Program("screenFrame", {
+export function screenFrame(): ShaderProgram {
+    return new ShaderProgram("screenFrame", {
         uniforms: {
             texture: "sampler2d"
         },

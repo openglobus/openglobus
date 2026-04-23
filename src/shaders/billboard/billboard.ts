@@ -1,4 +1,4 @@
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 
 import billboard_picking_vert from "./billboard_picking.vert.glsl";
 import billboard_picking_frag from "./billboard_picking.frag.glsl";
@@ -7,8 +7,8 @@ import billboard_screen_vert from "./billboard_screen.vert.glsl";
 import billboard_screen_frag from "./billboard_screen.frag.glsl";
 import billboard_screen_woit_frag from "./billboard_screen_woit.frag.glsl";
 
-export function billboardPicking(): Program {
-    return new Program("billboardPicking", {
+export function billboardPicking(): ShaderProgram {
+    return new ShaderProgram("billboardPicking", {
         uniforms: {
             viewport: "vec2",
             projectionMatrix: "mat4",
@@ -35,8 +35,8 @@ export function billboardPicking(): Program {
     });
 }
 
-export function billboard_screen(): Program {
-    return new Program("billboard", {
+export function billboard_screen(): ShaderProgram {
+    return new ShaderProgram("billboard", {
         uniforms: {
             viewport: "vec2",
             u_texture: "sampler2d",
@@ -65,8 +65,8 @@ export function billboard_screen(): Program {
     });
 }
 
-export function billboard_screen_woit(): Program {
-    return new Program("billboardWoit", {
+export function billboard_screen_woit(): ShaderProgram {
+    return new ShaderProgram("billboardWoit", {
         uniforms: {
             viewport: "vec2",
             u_texture: "sampler2d",

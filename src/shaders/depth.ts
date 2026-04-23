@@ -1,7 +1,7 @@
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 
 export function depth() {
-    return new Program("depth", {
+    return new ShaderProgram("depth", {
         uniforms: {
             depthTexture: "sampler2D"
         },

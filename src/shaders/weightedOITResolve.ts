@@ -1,7 +1,7 @@
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 
 export function weightedOITResolve() {
-    return new Program("weightedOITResolve", {
+    return new ShaderProgram("weightedOITResolve", {
         uniforms: {
             uAccumulate: "sampler2D",
             uAccumulateAlpha: "sampler2D"

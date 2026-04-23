@@ -41,7 +41,7 @@ class SkyBox extends RenderNode {
         gl.disable(gl.DEPTH_TEST);
 
         h.programs.skybox.activate();
-        let sh = h.programs.skybox._program;
+        let sh = h.programs.skybox;
         let shu = sh.uniforms;
         if (cam.isOrthographic) {
             const near = cam.frustum.near;

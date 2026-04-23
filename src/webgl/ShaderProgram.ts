@@ -2,12 +2,12 @@ import { cons } from "../cons";
 import type { ProgramVariable } from "./variableHandlers";
 import { variableHandlers } from "./variableHandlers";
 import { types, typeStr } from "./types";
-import type { WebGLBufferExt } from "./Handler";
-import { ProgramController } from "./ProgramController";
+import type { Handler, WebGLBufferExt } from "./Handler";
 
 const itemTypes: string[] = ["BYTE", "SHORT", "UNSIGNED_BYTE", "UNSIGNED_SHORT", "FLOAT", "HALF_FLOAT"];
 
-type WebGLProgramExt = WebGLProgram & { [id: string]: WebGLUniformLocation };
+type WebGLProgramExt = WebGLProgram & { [id: string]: WebGLUniformLocation | number | null };
+type ProgramBinding = WebGLUniformLocation | number;
 
 type ProgramMaterial = {
     attributes: Record<string, any>;
@@ -33,14 +33,15 @@ function injectWebGL2Define(src: string, isWebGL2: boolean): string {
 /**
  * Represents more comfortable using WebGL shader program.
  * @class
- * @param {string} name - Program name.
+ * @param {string} name - ShaderProgram name.
  * @param {ProgramMaterial} material - Object stores uniforms, attributes and program codes:
  * @param {Record<string, any>} material.uniforms - Uniforms definition section.
  * @param {Record<string, any>} material.attributes - Attributes definition section.
  * @param {string} material.vertexShader - Vertex glsl code.
  * @param {string} material.fragmentShader - Fragment glsl code.
  */
-class Program {
+class ShaderProgram {
+    [id: string]: any;
     /**
      * Shader program name.
      * @public
@@ -48,18 +49,17 @@ class Program {
      */
     public name: string;
 
-    public _programController: ProgramController | null;
+    protected _handler: Handler | null;
+
+    public _activated: boolean;
 
     public attributes: { [id: string]: number };
-
     public uniforms: { [id: string]: WebGLUniformLocation };
 
-    public _attributes: Record<string, ProgramVariable>;
-
-    public _uniforms: Record<string, ProgramVariable>;
+    protected _attributes: Record<string, ProgramVariable>;
+    protected _uniforms: Record<string, ProgramVariable>;
 
     public vertexShader: string;
-
     public fragmentShader: string;
 
     public drawElementsInstanced: Function | null;
@@ -74,43 +74,48 @@ class Program {
 
     /**
      * All program variables.
-     * @private
+     * @protected
      * @type {Record<string, ProgramVariable>}
      */
     protected _variables: Record<string, ProgramVariable>;
 
     /**
-     * Program pointer.
-     * @private
+     * ShaderProgram pointer.
+     * @protected
      * @type {WebGLProgramExt | null}
      */
-    public _p: WebGLProgramExt | null;
+    protected _p: WebGLProgramExt | null;
 
     /**
      * Texture counter.
-     * @protected
+     * @public
      * @type {number}
      */
     public _textureID: number;
 
     /**
-     * Program attributes array.
-     * @private
+     * ShaderProgram attributes array.
+     * @protected
      * @type {number[]}
      */
     protected _attribArrays: number[];
 
     /**
-     * Program attributes divisors.
+     * ShaderProgram attributes divisors.
      * @protected
      * @type {number[]}
      */
     protected _attribDivisor: number[];
 
+    protected _bindings: Record<string, ProgramBinding>;
+
+    protected _dynamicBindingNames: Set<string>;
+
     constructor(name: string, material: ProgramMaterial) {
         this.name = name;
 
-        this._programController = null;
+        this._handler = null;
+        this._activated = false;
 
         this._attributes = {};
         for (let t in material.attributes) {
@@ -152,15 +157,70 @@ class Program {
 
         this.vertexAttribDivisor = null;
         this.drawElementsInstanced = null;
+
+        this._bindings = {};
+        this._dynamicBindingNames = new Set();
     }
 
     /**
-     * Bind program buffer.
-     * @function
-     * @param {Program} program - Used program.
-     * @param {Object} variable - Variable represents buffer data.
+     * Attaches this shader program to a handler.
+     * @param {Handler} handler - WebGL handler.
+     * @returns {ShaderProgram}
      */
-    static bindBuffer(program: Program, variable: ProgramVariable) {
+    public attach(handler: Handler): this {
+        this._handler = handler;
+        return this;
+    }
+
+    /**
+     * Initializes this shader program using handler WebGL context.
+     * @returns {ShaderProgram}
+     */
+    public initialize(): this {
+        if (this._handler?.gl) {
+            this.createProgram(this._handler.gl);
+        }
+        return this;
+    }
+
+    protected _bindVariable(name: string, location: ProgramBinding) {
+        const hasBinding = Object.prototype.hasOwnProperty.call(this._bindings, name);
+        if (hasBinding && this._bindings[name] !== location) {
+            cons.logWrn(`Shader program "${this.name}": duplicate variable '${name}' found.`);
+        }
+
+        this._bindings[name] = location;
+
+        if (this._dynamicBindingNames.has(name)) {
+            (this as any)[name] = location;
+            return;
+        }
+
+        if (name in this) {
+            cons.logWrn(
+                `Shader program "${this.name}": variable '${name}' conflicts with ShaderProgram property and is available via maps only.`
+            );
+            return;
+        }
+
+        this._dynamicBindingNames.add(name);
+
+        Object.defineProperty(this, name, {
+            get: () => this._bindings[name],
+            set: (value: ProgramBinding) => {
+                this._bindings[name] = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+    }
+
+    /**
+     * Binds attribute buffer and sets its pointer.
+     * @param {ShaderProgram} program - Shader program instance.
+     * @param {ProgramVariable} variable - Attribute variable descriptor.
+     */
+    static bindBuffer(program: ShaderProgram, variable: ProgramVariable) {
         let gl = program.gl;
         if (gl) {
             gl.bindBuffer(gl.ARRAY_BUFFER, variable.value);
@@ -176,29 +236,88 @@ class Program {
     }
 
     /**
-     * Sets the current program frame.
-     * @public
+     * Makes this shader program current in WebGL context.
      */
     public use() {
         this.gl && this.gl.useProgram(this._p!);
     }
 
     /**
-     * Sets program variables.
-     * @public
-     * @param {Object} material - Variables and values object.
+     * Activates this shader program and disables previously active one.
+     * @returns {ShaderProgram}
      */
-    public set(material: Record<string, any>) {
+    public activate(): this {
+        if (!this._activated) {
+            const activeProgram = this._handler?.activeProgram;
+            if (activeProgram && activeProgram !== this) {
+                activeProgram.deactivate();
+            }
+            if (this._handler) {
+                this._handler.activeProgram = this;
+            }
+            this._activated = true;
+            this.enableAttribArrays();
+            this.use();
+        }
+        return this;
+    }
+
+    /**
+     * Deactivates this shader program.
+     * @returns {ShaderProgram}
+     */
+    public deactivate(): this {
+        this.disableAttribArrays();
+        this._activated = false;
+        return this;
+    }
+
+    /**
+     * Returns `true` if this shader program is active.
+     * @returns {boolean}
+     */
+    public isActive(): boolean {
+        return this._activated;
+    }
+
+    /**
+     * Removes this shader program from its handler and releases WebGL program.
+     */
+    public remove() {
+        const handler = this._handler;
+        if (!handler) return;
+
+        if (handler.programs[this.name]) {
+            const isActiveProgram = handler.activeProgram === this;
+            if (this._activated) {
+                this.deactivate();
+            }
+            this.delete();
+            delete handler.programs[this.name];
+            if (isActiveProgram) {
+                handler.activeProgram = null;
+            }
+        }
+    }
+
+    /**
+     * Sets provided shader variables and applies them.
+     * Automatically activates this shader program.
+     * @param {Record<string, any>} material - Variable values by variable name.
+     * @returns {ShaderProgram}
+     */
+    public set(material: Record<string, any>): this {
+        this.activate();
         this._textureID = 0;
         for (let i in material) {
             this._variables[i].value = material[i];
             this._variables[i].func(this, this._variables[i]);
         }
+        return this;
     }
 
     /**
-     * Apply current variables.
-     * @public
+     * Applies currently stored shader variable values.
      */
     public apply() {
         this._textureID = 0;
@@ -209,25 +328,27 @@ class Program {
     }
 
     /**
-     * Calls drawElements index buffer function.
-     * @public
-     * @param {number} mode - Draw mode(GL_TRIANGLES, GL_LINESTRING etc.).
-     * @param {Object} buffer - Index buffer.
+     * Draws indexed geometry from provided index buffer.
+     * @param {number} mode - WebGL draw mode.
+     * @param {WebGLBufferExt} buffer - Index buffer.
+     * @returns {ShaderProgram}
      */
-    public drawIndexBuffer(mode: number, buffer: WebGLBufferExt) {
+    public drawIndexBuffer(mode: number, buffer: WebGLBufferExt): this {
         let gl = this.gl!;
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
         gl.drawElements(mode, buffer.numItems, gl.UNSIGNED_SHORT, 0);
+        return this;
     }
 
     /**
-     * Calls drawArrays function.
-     * @public
-     * @param {number} mode - Draw mode GL_TRIANGLES, GL_LINESTRING, etc.
-     * @param {number} numItems - Items to draw
+     * Draws non-indexed geometry.
+     * @param {number} mode - WebGL draw mode.
+     * @param {number} numItems - Vertex count to draw.
+     * @returns {ShaderProgram}
      */
-    public drawArrays(mode: number, numItems: number) {
+    public drawArrays(mode: number, numItems: number): this {
         this.gl!.drawArrays(mode, 0, numItems);
+        return this;
     }
 
     /**
@@ -279,8 +400,7 @@ class Program {
     }
 
     /**
-     * Disable current program vertexAttribArrays.
-     * @public
+     * Disables all attribute arrays used by this shader program.
      */
     public disableAttribArrays() {
         let gl = this.gl!;
@@ -292,8 +412,7 @@ class Program {
     }
 
     /**
-     * Enable current program vertexAttribArrays.
-     * @public
+     * Enables all attribute arrays used by this shader program.
      */
     public enableAttribArrays() {
         let gl = this.gl!;
@@ -313,20 +432,24 @@ class Program {
     // }
 
     /**
-     * Delete program.
-     * @public
+     * Deletes underlying WebGL program.
      */
     public delete() {
         this.gl && this.gl.deleteProgram(this._p!);
     }
 
     /**
-     * Creates program.
-     * @public
-     * @param {Object} gl - WebGl context.
+     * Compiles shaders, links WebGL program and resolves variable locations.
+     * @param {WebGL2RenderingContext} gl - WebGL context.
      */
     public createProgram(gl: WebGL2RenderingContext) {
         this.gl = gl;
+        this._variables = {};
+        this._attribArrays = [];
+        this._attribDivisor = [];
+        this.attributes = {};
+        this.uniforms = {};
+        this._bindings = {};
 
         this._p = this.gl.createProgram() as WebGLProgramExt;
 
@@ -375,7 +498,7 @@ class Program {
         for (let a in this._attributes) {
             //this.attributes[a]._name = a;
             this._variables[a] = this._attributes[a];
-            this._attributes[a].func = Program.bindBuffer;
+            this._attributes[a].func = ShaderProgram.bindBuffer;
 
             let t = this._attributes[a].itemType as string;
             let itemTypeStr: string = t ? t.trim().toUpperCase() : "FLOAT";
@@ -419,6 +542,7 @@ class Program {
 
             this._attributes[a]._pName = this._p[a];
             this.attributes[a] = this._p[a] as number;
+            this._bindVariable(a, this.attributes[a]);
         }
 
         for (let u in this._uniforms) {
@@ -438,7 +562,8 @@ class Program {
             }
 
             this._uniforms[u]._pName = this._p[u];
-            this.uniforms[u] = this._p[u];
+            this.uniforms[u] = this._p[u] as WebGLUniformLocation;
+            this._bindVariable(u, this.uniforms[u]);
         }
 
         gl.detachShader(this._p as WebGLProgram, fs);
@@ -449,4 +574,4 @@ class Program {
     }
 }
 
-export { Program };
+export { ShaderProgram };

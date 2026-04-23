@@ -1,7 +1,7 @@
 import { Control } from "./Control";
 import type { IControlParams } from "./Control";
 import { htmlColorToRgb, rgbToStringHTML } from "../utils/shared";
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 import type { NumberArray3 } from "../math/Vec3";
 
 interface ISimpleSkyBackgroundParams extends IControlParams {}
@@ -64,7 +64,7 @@ export class SimpleSkyBackground extends Control {
     protected _drawBackground() {
         let h = this.renderer!.handler;
         let sh = h.programs.simpleSkyBackground,
-            p = sh._program,
+            p = sh,
             shu = p.uniforms,
             gl = h.gl!;
         let cam = this.planet!.camera;
@@ -89,8 +89,8 @@ export class SimpleSkyBackground extends Control {
     }
 }
 
-function simpleSkyBackgroundShader(): Program {
-    return new Program("simpleSkyBackground", {
+function simpleSkyBackgroundShader(): ShaderProgram {
+    return new ShaderProgram("simpleSkyBackground", {
         uniforms: {
             iResolution: "vec2",
             fov: "float",

@@ -83,7 +83,7 @@ export class PhongDeferredShading implements IDeferredShadingPass {
         let h = r.handler,
             gl = h.gl!,
             sh = h.programs.applyDeferredDepth,
-            p = sh._program;
+            p = sh;
 
         gl.disable(gl.BLEND);
         gl.colorMask(false, false, false, false);
@@ -113,7 +113,7 @@ export class PhongDeferredShading implements IDeferredShadingPass {
         let r = this._renderer;
         let h = r.handler;
         let sh = h.programs.deferredShading,
-            p = sh._program,
+            p = sh,
             gl = h.gl!;
 
         gl.disable(gl.DEPTH_TEST);

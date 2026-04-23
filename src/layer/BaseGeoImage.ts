@@ -444,7 +444,7 @@ class BaseGeoImage extends Layer {
         f.activate();
 
         h.programs.geoImageTransform.activate();
-        let sh = h.programs.geoImageTransform._program;
+        let sh = h.programs.geoImageTransform;
         let sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -497,7 +497,7 @@ class BaseGeoImage extends Layer {
         f.activate();
 
         h.programs.geoImageTransform.activate();
-        let sh = h.programs.geoImageTransform._program;
+        let sh = h.programs.geoImageTransform;
         let sha = sh.attributes,
             shu = sh.uniforms;
 

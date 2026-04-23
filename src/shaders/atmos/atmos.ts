@@ -1,4 +1,4 @@
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 
 import transmittance_vert from "./transmittance.vert.glsl";
 import transmittance_frag from "./transmittance.frag.glsl";
@@ -74,8 +74,8 @@ export const MARS_PARAMS: AtmosphereParameters = {
     disableSunDisk: false
 };
 
-export function transmittance(atmosParams?: AtmosphereParameters): Program {
-    return new Program("transmittance", {
+export function transmittance(atmosParams?: AtmosphereParameters): ShaderProgram {
+    return new ShaderProgram("transmittance", {
         uniforms: {
             iResolution: "vec2"
         },
@@ -87,8 +87,8 @@ export function transmittance(atmosParams?: AtmosphereParameters): Program {
     });
 }
 
-export function scattering(atmosParams?: AtmosphereParameters): Program {
-    return new Program("scattering", {
+export function scattering(atmosParams?: AtmosphereParameters): ShaderProgram {
+    return new ShaderProgram("scattering", {
         uniforms: {
             iResolution: "vec2",
             transmittanceTexture: "sampler2d"

@@ -18,12 +18,7 @@ import { RenderNode } from "../scene/RenderNode";
 import type { Node } from "../quadTree/Node";
 import { StripHandler } from "./strip/StripHandler";
 import type { Vector } from "../layer/Vector";
-import {
-    normalizeShadeMode,
-    SHADE_PBR,
-    type ShadeMode,
-    type ShadeModeInput
-} from "../shadeModeConstants";
+import { normalizeShadeMode, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "../shadeModeConstants";
 
 export type EntityCollectionEvents = EventsHandler<EntityCollectionEventList>;
 

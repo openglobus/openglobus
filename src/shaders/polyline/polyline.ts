@@ -1,4 +1,4 @@
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 
 import polyline_tex_vert from "./polyline.vert.glsl";
 import polyline_tex_frag from "./polyline_forward.frag.glsl";
@@ -36,8 +36,8 @@ const SHARED_ATTRIBUTES = {
     thickness: "float"
 };
 
-export function polylineTex(): Program {
-    return new Program("polylineTex", {
+export function polylineTex(): ShaderProgram {
+    return new ShaderProgram("polylineTex", {
         uniforms: {
             ...SHARED_UNIFORMS,
             time: "float",
@@ -55,8 +55,8 @@ export function polylineTex(): Program {
     });
 }
 
-export function polylinePlain(): Program {
-    return new Program("polylinePlain", {
+export function polylinePlain(): ShaderProgram {
+    return new ShaderProgram("polylinePlain", {
         uniforms: {
             ...SHARED_UNIFORMS
         },
@@ -68,8 +68,8 @@ export function polylinePlain(): Program {
     });
 }
 
-function createPolylineTexWoitProgram(name: string): Program {
-    return new Program(name, {
+function createPolylineTexWoitProgram(name: string): ShaderProgram {
+    return new ShaderProgram(name, {
         uniforms: {
             ...SHARED_UNIFORMS,
             useReverseDepth: "float",
@@ -88,16 +88,16 @@ function createPolylineTexWoitProgram(name: string): Program {
     });
 }
 
-export function polylineTexWoit(): Program {
+export function polylineTexWoit(): ShaderProgram {
     return createPolylineTexWoitProgram("polylineTexWoit");
 }
 
-export function polylineWoitTex(): Program {
+export function polylineWoitTex(): ShaderProgram {
     return createPolylineTexWoitProgram("polylineWoitTex");
 }
 
-export function polylineWoitPlain(): Program {
-    return new Program("polylineWoitPlain", {
+export function polylineWoitPlain(): ShaderProgram {
+    return new ShaderProgram("polylineWoitPlain", {
         uniforms: {
             ...SHARED_UNIFORMS,
             useReverseDepth: "float"
@@ -110,8 +110,8 @@ export function polylineWoitPlain(): Program {
     });
 }
 
-export function polyline_picking(): Program {
-    return new Program("polyline_picking", {
+export function polyline_picking(): ShaderProgram {
+    return new ShaderProgram("polyline_picking", {
         uniforms: {
             viewport: "vec2",
             proj: "mat4",

@@ -58,7 +58,7 @@ export class WOITPass implements ITransparencyPass {
         let h = r.handler,
             gl = h.gl!,
             sh = h.programs.weightedOITResolve,
-            p = sh._program;
+            p = sh;
 
         gl.disable(gl.DEPTH_TEST);
         gl.depthMask(false);

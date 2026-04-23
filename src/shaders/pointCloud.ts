@@ -1,8 +1,8 @@
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 
 //Picking is the same
-export function pointCloud(): Program {
-    return new Program("pointCloud", {
+export function pointCloud(): ShaderProgram {
+    return new ShaderProgram("pointCloud", {
         uniforms: {
             projectionViewMatrix: "mat4",
             opacity: "float",

@@ -2,7 +2,7 @@ import * as quadTree from "../quadTree/quadTree";
 import { Framebuffer } from "../webgl/Framebuffer";
 import { Lock, Key } from "../Lock";
 import { Planet } from "../scene/Planet";
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 import { QueueArray } from "../QueueArray";
 import { Segment } from "../segment/Segment";
 import { Handler } from "../webgl/Handler";
@@ -72,7 +72,7 @@ export class NormalMapCreator {
         /*==================================================================================
          * http://www.sunsetlakesoftware.com/2013/10/21/optimizing-gaussian-blurs-mobile-gpu
          *=================================================================================*/
-        const normalMapBlur = new Program("normalMapBlur", {
+        const normalMapBlur = new ShaderProgram("normalMapBlur", {
             attributes: {
                 a_position: "vec2"
             },
@@ -114,7 +114,7 @@ export class NormalMapCreator {
                         }`
         });
 
-        const normalMap = new Program("normalMap", {
+        const normalMap = new ShaderProgram("normalMap", {
             attributes: {
                 a_position: "vec2",
                 a_normal: "vec3"
@@ -206,7 +206,7 @@ export class NormalMapCreator {
 
                 const f = this._framebuffer!;
                 let p = h.programs.normalMap;
-                let sha = p._program.attributes;
+                let sha = p.attributes;
 
                 f.bindOutputTexture(this._normalMapVerticesTexture!);
 
@@ -232,17 +232,10 @@ export class NormalMapCreator {
 
                 p.activate();
                 gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer!);
-                gl.vertexAttribPointer(
-                    p._program.attributes.a_position,
-                    this._positionBuffer!.itemSize,
-                    gl.FLOAT,
-                    false,
-                    0,
-                    0
-                );
+                gl.vertexAttribPointer(p.attributes.a_position, this._positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture!);
-                gl.uniform1i(p._program.uniforms.s_texture, 0);
+                gl.uniform1i(p.uniforms.s_texture, 0);
                 gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer!.numItems);
                 return true;
             } else {
@@ -277,7 +270,7 @@ export class NormalMapCreator {
 
                 const f = this._framebuffer!;
                 const p = h.programs.normalMap;
-                const sha = p._program.attributes;
+                const sha = p.attributes;
 
                 f.bindOutputTexture(outTexture!);
 

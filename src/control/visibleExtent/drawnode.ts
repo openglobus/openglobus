@@ -1,4 +1,4 @@
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 
 // REMEMBER!
 // src*(1)+dest*(1-src.alpha)
@@ -18,7 +18,7 @@ const INSIDE_BOX = `/* return 1 if v inside the box, return 0 otherwise */
     }`;
 
 export function drawnode_screen_nl() {
-    return new Program("drawnode_screen_nl", {
+    return new ShaderProgram("drawnode_screen_nl", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -110,7 +110,7 @@ export function drawnode_screen_nl() {
 }
 
 export function drawnode_screen_wl() {
-    return new Program("drawnode_screen_wl", {
+    return new ShaderProgram("drawnode_screen_wl", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -271,7 +271,7 @@ export function drawnode_screen_wl() {
 }
 
 export function drawnode_screen_wl_webgl2() {
-    return new Program("drawnode_screen_wl", {
+    return new ShaderProgram("drawnode_screen_wl", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -451,7 +451,7 @@ export function drawnode_screen_wl_webgl2() {
 }
 
 export function drawnode_colorPicking() {
-    return new Program("drawnode_colorPicking", {
+    return new ShaderProgram("drawnode_colorPicking", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -551,7 +551,7 @@ export function drawnode_colorPicking() {
 }
 
 export function drawnode_heightPicking() {
-    return new Program("drawnode_heightPicking", {
+    return new ShaderProgram("drawnode_heightPicking", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -651,7 +651,7 @@ export function drawnode_heightPicking() {
 }
 
 export function drawnode_depth() {
-    return new Program("drawnode_depth", {
+    return new ShaderProgram("drawnode_depth", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",

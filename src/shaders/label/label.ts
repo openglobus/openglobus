@@ -1,4 +1,4 @@
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 
 import label_webgl2_vert from "./label_webgl2.vert.glsl";
 import label_webgl2_frag from "./label_webgl2.frag.glsl";
@@ -7,8 +7,8 @@ import label_woit_frag from "./label_woit.frag.glsl";
 import label_picking_vert from "./label_picking.vert.glsl";
 import label_picking_frag from "./label_picking.frag.glsl";
 
-export function label_webgl2(): Program {
-    return new Program("label", {
+export function label_webgl2(): ShaderProgram {
+    return new ShaderProgram("label", {
         uniforms: {
             viewport: "vec2",
             fontTextureArr: "sampler2darray",
@@ -42,8 +42,8 @@ export function label_webgl2(): Program {
     });
 }
 
-export function label_woit(): Program {
-    return new Program("labelWoit", {
+export function label_woit(): ShaderProgram {
+    return new ShaderProgram("labelWoit", {
         uniforms: {
             viewport: "vec2",
             fontTextureArr: "sampler2darray",
@@ -78,8 +78,8 @@ export function label_woit(): Program {
     });
 }
 
-export function labelPicking(): Program {
-    return new Program("labelPicking", {
+export function labelPicking(): ShaderProgram {
+    return new ShaderProgram("labelPicking", {
         uniforms: {
             viewport: "vec2",
             projectionMatrix: "mat4",

@@ -7,7 +7,7 @@ import { Renderer } from "../../renderer/Renderer";
 import { Vec3 } from "../../math/Vec3";
 import { Vec4 } from "../../math/Vec4";
 import type { WebGLBufferExt } from "../../webgl/Handler";
-import type { ProgramController } from "../../webgl/ProgramController";
+import type { ShaderProgram } from "../../webgl/ShaderProgram";
 
 const PICKINGCOLOR_BUFFER = 0;
 const START_POSITION_BUFFER = 1;
@@ -528,11 +528,11 @@ class RayHandler {
         ]);
     }
 
-    protected _displayPASS(startRayIndex: number, endRayIndex: number, rayProgram: ProgramController) {
+    protected _displayPASS(startRayIndex: number, endRayIndex: number, rayProgram: ShaderProgram) {
         let r = this._renderer!;
         let h = r.handler;
         rayProgram.activate();
-        let sh = rayProgram._program;
+        let sh = rayProgram;
         let sha = sh.attributes,
             shu = sh.uniforms;
 

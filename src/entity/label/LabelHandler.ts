@@ -6,7 +6,7 @@ import { EntityCollection } from "../EntityCollection";
 import { LOCK_FREE } from "./LabelWorker";
 import type { Planet } from "../../scene/Planet";
 import type { WebGLBufferExt } from "../../webgl/Handler";
-import type { ProgramController } from "../../webgl/ProgramController";
+import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
 import { Vec4 } from "../../math/Vec4";
@@ -295,11 +295,11 @@ class LabelHandler extends BaseBillboardHandler {
         }
     }
 
-    protected override _getOpaqueProgram(): ProgramController {
+    protected override _getOpaqueProgram(): ShaderProgram {
         return this._renderer!.handler.programs.label;
     }
 
-    protected override _getTransparentProgram(): ProgramController {
+    protected override _getTransparentProgram(): ShaderProgram {
         return this._renderer!.handler.programs.labelWoit;
     }
 
@@ -341,33 +341,25 @@ class LabelHandler extends BaseBillboardHandler {
         this._drawLabelPass(startBillboardIndex, endBillboardIndex, labelProgram, isOutlinePass, depthWrite);
     }
 
-    protected _displayOutlinePASS(
-        startBillboardIndex: number,
-        endBillboardIndex: number,
-        labelProgram: ProgramController
-    ) {
+    protected _displayOutlinePASS(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ShaderProgram) {
         this._drawLabelPass(startBillboardIndex, endBillboardIndex, labelProgram, true);
     }
 
-    protected _displayFillPASS(
-        startBillboardIndex: number,
-        endBillboardIndex: number,
-        labelProgram: ProgramController
-    ) {
+    protected _displayFillPASS(startBillboardIndex: number, endBillboardIndex: number, labelProgram: ShaderProgram) {
         this._drawLabelPass(startBillboardIndex, endBillboardIndex, labelProgram, false);
     }
 
     protected _drawLabelPass(
         startBillboardIndex: number,
         endBillboardIndex: number,
-        labelProgram: ProgramController,
+        labelProgram: ShaderProgram,
         isOutlinePass: boolean,
         depthWrite: boolean = true
     ) {
         let r = this._renderer!;
         let h = r.handler;
         labelProgram.activate();
-        let sh = labelProgram._program;
+        let sh = labelProgram;
         let sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -471,7 +463,7 @@ class LabelHandler extends BaseBillboardHandler {
     protected override _displayPASS(
         startBillboardIndex: number,
         endBillboardIndex: number,
-        labelProgram: ProgramController
+        labelProgram: ShaderProgram
     ) {
         this._displayOutlinePASS(startBillboardIndex, endBillboardIndex, labelProgram);
         this._displayFillPASS(startBillboardIndex, endBillboardIndex, labelProgram);
@@ -481,7 +473,7 @@ class LabelHandler extends BaseBillboardHandler {
         let r = this._renderer!;
         let h = r.handler;
         h.programs.labelPicking.activate();
-        let sh = h.programs.labelPicking._program;
+        let sh = h.programs.labelPicking;
         let sha = sh.attributes,
             shu = sh.uniforms;
 

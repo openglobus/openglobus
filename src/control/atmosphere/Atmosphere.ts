@@ -1,6 +1,6 @@
 import { DEFAULT_PARAMS, type AtmosphereParameters, transmittance, scattering } from "../../shaders/atmos/atmos";
 import { Framebuffer } from "../../webgl/Framebuffer";
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { Control, type IControlParams } from "../Control";
 
 import atmosphere_vert from "./atmosphere.vert.glsl";
@@ -190,8 +190,8 @@ export class Atmosphere extends Control {
             this._transmittanceBuffer.activate();
 
             let p = h.programs.transmittance;
-            let sha = p._program.attributes;
-            let shu = p._program.uniforms;
+            let sha = p.attributes;
+            let shu = p.uniforms;
             p.activate();
 
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -213,8 +213,8 @@ export class Atmosphere extends Control {
             this._scatteringBuffer.activate();
 
             let p = h.programs.scattering;
-            let sha = p._program.attributes;
-            let shu = p._program.uniforms;
+            let sha = p.attributes;
+            let shu = p.uniforms;
             p.activate();
 
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -245,7 +245,7 @@ export class Atmosphere extends Control {
 
         let h = this.renderer!.handler;
         let sh = h.programs.atmosphereBackground,
-            p = sh._program,
+            p = sh,
             shu = p.uniforms,
             gl = h.gl!;
         let r = this.renderer!;
@@ -289,8 +289,8 @@ export class Atmosphere extends Control {
     }
 }
 
-function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): Program {
-    return new Program("atmosphereBackground", {
+function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): ShaderProgram {
+    return new ShaderProgram("atmosphereBackground", {
         uniforms: {
             iResolution: "vec2",
             fov: "float",

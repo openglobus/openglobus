@@ -1,4 +1,4 @@
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 import { RenderNode } from "./RenderNode";
 import type { WebGLBufferExt } from "../webgl/Handler";
 
@@ -19,7 +19,7 @@ class Axes extends RenderNode {
         this.createAxesBuffer(this.size);
         this.drawMode = this.renderer!.handler.gl!.LINES;
         this.renderer!.handler.addProgram(
-            new Program("axesShader", {
+            new ShaderProgram("axesShader", {
                 uniforms: {
                     projectionViewMatrix: "mat4"
                 },

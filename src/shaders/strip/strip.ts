@@ -1,11 +1,11 @@
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 
 import strip_vert from "./strip.vert.glsl";
 import strip_woit_frag from "./strip_woit.frag.glsl";
 import strip_forward_frag from "./strip_forward.frag.glsl";
 
-export function stripTransparent(): Program {
-    return new Program("stripTransparent", {
+export function stripTransparent(): ShaderProgram {
+    return new ShaderProgram("stripTransparent", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -24,8 +24,8 @@ export function stripTransparent(): Program {
     });
 }
 
-export function stripForward(): Program {
-    return new Program("stripForward", {
+export function stripForward(): ShaderProgram {
+    return new ShaderProgram("stripForward", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",

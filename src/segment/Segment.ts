@@ -16,7 +16,7 @@ import { Material } from "../layer/Material";
 import { Node } from "../quadTree/Node";
 import { Planet } from "../scene/Planet";
 import { PlanetCamera } from "../camera/PlanetCamera";
-import { Program } from "../webgl/Program";
+import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Proj } from "../proj/Proj";
 import { Sphere } from "../bv/Sphere";
 import type { NumberArray6 } from "../bv/Sphere";
@@ -1782,7 +1782,7 @@ class Segment {
     }
 
     public screenRendering(
-        sh: Program,
+        sh: ShaderProgram,
         layerSlice: Layer[],
         sliceIndex: number,
         defaultTexture?: WebGLTextureExt | null,
@@ -1913,7 +1913,7 @@ class Segment {
         }
     }
 
-    // public heightPickingRendering(sh: Program, layerSlice: Layer[]) {
+    // public heightPickingRendering(sh: ShaderProgram, layerSlice: Layer[]) {
     //     const gl = this.handler.gl!;
     //     const sha = sh.attributes;
     //     const shu = sh.uniforms;
@@ -1976,7 +1976,7 @@ class Segment {
     }
 
     public colorPickingRendering(
-        sh: Program,
+        sh: ShaderProgram,
         layerSlice: Layer[],
         sliceIndex: number,
         defaultTexture?: WebGLTextureExt | null,
@@ -2073,7 +2073,7 @@ class Segment {
         }
     }
 
-    public depthRendering(sh: Program, layerSlice?: Layer[]) {
+    public depthRendering(sh: ShaderProgram, layerSlice?: Layer[]) {
         const gl = this.handler.gl!;
         const sha = sh.attributes;
         const shu = sh.uniforms;

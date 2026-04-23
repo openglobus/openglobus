@@ -1,5 +1,5 @@
 import { AtmosphereParameters, DEFAULT_PARAMS } from "../atmos/atmos";
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 
 import drawnode_screen_wl from "./drawnode_screen_wl.vert.glsl";
 
@@ -29,8 +29,8 @@ import { stringTemplate2 } from "../../utils/shared";
 //
 // const SLICE_SIZE = 4;
 
-export function drawnode_screen_deferred(): Program {
-    return new Program("drawnode_screen_deferred", {
+export function drawnode_screen_deferred(): ShaderProgram {
+    return new ShaderProgram("drawnode_screen_deferred", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -63,8 +63,8 @@ export function drawnode_screen_deferred(): Program {
     });
 }
 
-export function drawnode_screen_wl_forward_noatmos(): Program {
-    return new Program("drawnode_screen_wl_forward", {
+export function drawnode_screen_wl_forward_noatmos(): ShaderProgram {
+    return new ShaderProgram("drawnode_screen_wl_forward", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -101,8 +101,8 @@ export function drawnode_screen_wl_forward_noatmos(): Program {
     });
 }
 
-export function drawnode_screen_wl_forward_atmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): Program {
-    return new Program("drawnode_screen_wl_forward", {
+export function drawnode_screen_wl_forward_atmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): ShaderProgram {
+    return new ShaderProgram("drawnode_screen_wl_forward", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -142,8 +142,8 @@ export function drawnode_screen_wl_forward_atmos(atmosParams: AtmosphereParamete
     });
 }
 
-export function drawnode_colorPicking(): Program {
-    return new Program("drawnode_colorPicking", {
+export function drawnode_colorPicking(): ShaderProgram {
+    return new ShaderProgram("drawnode_colorPicking", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -167,8 +167,8 @@ export function drawnode_colorPicking(): Program {
     });
 }
 
-export function drawnode_depth(): Program {
-    return new Program("drawnode_depth", {
+export function drawnode_depth(): ShaderProgram {
+    return new ShaderProgram("drawnode_depth", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",

@@ -33,7 +33,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         let r = this._renderer;
         let h = r.handler;
         let sh = h.programs.deferredShadingAtmos,
-            p = sh._program,
+            p = sh,
             gl = h.gl!;
 
         gl.disable(gl.DEPTH_TEST);

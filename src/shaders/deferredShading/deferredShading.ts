@@ -1,10 +1,10 @@
-import { Program } from "../../webgl/Program";
+import { ShaderProgram } from "../../webgl/ShaderProgram";
 
 import deferred_vert from "./deferredShading.vert.glsl";
 import deferred_frag from "./deferredShading.frag.glsl";
 
-export function deferredShading(): Program {
-    return new Program("deferredShading", {
+export function deferredShading(): ShaderProgram {
+    return new ShaderProgram("deferredShading", {
         uniforms: {
             normalMatrix: "mat3",
             baseTexture: "sampler2d",
