@@ -142,6 +142,11 @@ export class Navigation extends Control {
 
     protected _velInertia: number;
 
+    // Ortho zoom: focusDistance = _orthoZoomScale * |forward·(a - eye)|.
+    // Captured on wheel event so the first frame does not snap focusDistance to an
+    // absolute value (which would cause a visible jerk on the very first wheel tick).
+    protected _orthoZoomScale: number = 1;
+
     protected _hold: boolean = false;
 
     //protected _prevVel: Vec3 = new Vec3();
@@ -408,29 +413,24 @@ export class Navigation extends Control {
             let cam = this.planet.camera;
 
             if (cam.isOrthographic) {
-                //
-                //@todo make map coordinates under the pointer
-                //
-
-                sx = this.renderer!.handler.getWidth() * 0.5;
-                sy = this.renderer!.handler.getHeight() * 0.5;
-
+                // Zoom anchored to the map point under the mouse cursor.
+                // `_getTargetPoint` uses depth buffer + unproject, so it returns the
+                // exact world point visible at (sx, sy). The previous refinement via
+                // `Ray(p0, dir).hitSphere(...)` was written for the center-case
+                // (offset=0, dir=forward) and produces a wrong point for off-center
+                // cursor — it was removed to fix zoom-anchor drift.
                 let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
                 if (!_targetZoomPoint) return;
 
                 this._targetZoomPoint = _targetZoomPoint;
                 this._grabbedSphere.radius = this._targetZoomPoint.length();
 
-                //this.renderer!.getDistanceFromPixel(new Vec2(sx, sy))!;
-                let dist = cam.eye.distance(_targetZoomPoint);
-                let p1 = new Vec3();
-                let dir = cam.unproject(sx, sy, dist, p1);
-
-                const p0 = p1.sub(dir.scaleTo(dist));
-                _targetZoomPoint = new Ray(p0, dir).hitSphere(this._grabbedSphere);
-                if (!_targetZoomPoint) return;
-
-                this._targetZoomPoint = _targetZoomPoint;
+                // Capture the ratio `focusDistance / |forward·(a - eye)|` at click time
+                // so the first zoom frame keeps focusDistance essentially unchanged
+                // (no visible jerk on the very first wheel tick).
+                const fwd0 = cam.getForward();
+                const fwdDepth0 = Math.abs(fwd0.dot(_targetZoomPoint.sub(cam.eye)));
+                this._orthoZoomScale = fwdDepth0 > 0 ? cam.focusDistance / fwdDepth0 : 1;
             } else {
                 let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
                 if (!_targetZoomPoint) return;
@@ -806,28 +806,39 @@ export class Navigation extends Control {
                 return;
             }
 
+            // Sphere-rotation: slide eye along the globe so the view's "forward" is
+            // pulled towards the target. This is what gives the perspective-like
+            // trajectory (and, together with `setPitchYawRoll` below, keeps north up).
             let rot = Quat.getRotationBetweenVectors(b.getNormal(), a.getNormal());
             cam.eye = rot.mulVec3(eye);
             cam.rotate(rot);
 
             if (!this.freeMode) {
                 this._corrRoll();
-                // restore camera direction
+                // restore camera direction — keeps north up at the NEW eye location
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
 
                 cam.update();
-                let dirCurr = cam.unproject2v(this._currScreenPos, cam.eye.distance(this._targetZoomPoint));
-                let dirNew = a.sub(cam.eye).normalize();
 
-                let px0 = new Vec3();
-                let px1 = new Vec3();
-                let pl = Plane.fromPoints(a, a.add(cam.getUp()), a.add(cam.getRight()));
+                // In orthographic the actual picking ray for `_currScreenPos` starts
+                // at `cam.eye + offset_cursor` and goes along forward, not from
+                // `cam.eye` along `dirCurr`. So the perspective ray-plane correction
+                // below is invalid for ortho — we use an explicit lateral compensation
+                // after `focusDistance` is updated (see the ortho block further down).
+                if (!cam.isOrthographic) {
+                    let dirCurr = cam.unproject2v(this._currScreenPos, cam.eye.distance(this._targetZoomPoint));
+                    let dirNew = a.sub(cam.eye).normalize();
 
-                new Ray(cam.eye, dirCurr).hitPlaneRes(pl, px0);
-                new Ray(cam.eye, dirNew).hitPlaneRes(pl, px1);
+                    let px0 = new Vec3();
+                    let px1 = new Vec3();
+                    let pl = Plane.fromPoints(a, a.add(cam.getUp()), a.add(cam.getRight()));
 
-                let dp = px1.sub(px0);
-                cam.eye = cam.eye.add(dp);
+                    new Ray(cam.eye, dirCurr).hitPlaneRes(pl, px0);
+                    new Ray(cam.eye, dirNew).hitPlaneRes(pl, px1);
+
+                    let dp = px1.sub(px0);
+                    cam.eye = cam.eye.add(dp);
+                }
 
                 // Looks like it helps to fix unpredictable camera loose focus wheb zoomOut
                 this._corrRoll();
@@ -841,12 +852,32 @@ export class Navigation extends Control {
             cam.checkTerrainCollision();
 
             if (cam.isOrthographic) {
-                //
-                //@todo make map coordinates under the pointer
-                //
-                let alt = cam.getAltitude();
-                if (alt) {
-                    cam.focusDistance = Math.abs(alt);
+                // `focusDistance = K · |forward·(a - eye)|` where K is captured in
+                // `_onMouseWheel`. This (a) is invariant under the lateral eye shift
+                // applied below (shift is perpendicular to forward) so focusDistance
+                // does not wobble frame-to-frame, and (b) matches the pre-zoom value
+                // exactly on the first frame — preventing a visible jerk on the very
+                // first wheel tick (when the absolute formula used to snap to a new
+                // value inconsistent with the previous focusDistance).
+                const fwd = cam.getForward();
+                const eyeToA = a.sub(cam.eye);
+                const fwdDepth = Math.abs(fwd.dot(eyeToA));
+                if (fwdDepth > 0) {
+                    cam.focusDistance = this._orthoZoomScale * fwdDepth;
+
+                    // Shift eye laterally so that `a` projects exactly to
+                    // `_currScreenPos` in the NEW frustum.
+                    const w2 = cam.width * 0.5;
+                    const h2 = cam.height * 0.5;
+                    const px = (this._currScreenPos.x - w2) / w2;
+                    const py = -(this._currScreenPos.y - h2) / h2;
+                    const f = cam.frustums[0];
+                    const Wx = 0.5 * (f.right - f.left);
+                    const Wy = 0.5 * (f.top - f.bottom);
+                    const offCursor = cam.getRight().scaleTo(Wx * px).addA(cam.getUp().scaleTo(Wy * py));
+                    const aLat = eyeToA.sub(fwd.scaleTo(fwd.dot(eyeToA)));
+                    cam.eye.addA(aLat.subA(offCursor));
+                    cam.update();
                 }
             }
         }
