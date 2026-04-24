@@ -367,6 +367,31 @@ export class Navigation extends Control {
                 let d_v_v = this.vel_v * this.dt;
                 cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
             }
+
+            // Ortho: keep `focusDistance = |altitude|` invariant during tilt.
+            // `rotateVertical` orbits eye around the pivot preserving
+            // `dist(eye, pivot)`, but altitude over terrain changes. Slide eye
+            // along the picking ray (`-forward` in ortho) so that altitude
+            // returns to `focusDistance`. This preserves scale and keeps the
+            // pivot under the same screen pixel (parallel rays).
+            if (cam.isOrthographic && this._targetRotationPoint) {
+                const preFocus = cam.focusDistance;
+                cam.checkTerrainCollision();
+                const alt = Math.abs(cam.getAltitude());
+                if (preFocus > 0 && alt > 0) {
+                    const fwd = cam.getForward();
+                    const n = cam.eye.getNormal();
+                    const cosT = -fwd.dot(n);
+                    if (cosT > 1e-3) {
+                        const s = (preFocus - alt) / cosT;
+                        if (Math.abs(s) > 1e-6) {
+                            cam.eye.addA(fwd.scaleTo(-s));
+                            cam.update();
+                        }
+                    }
+                }
+            }
+
             this.events.dispatch(this.events.rotate, this);
             this._curPitch = cam.getPitch();
             this._curYaw = cam.getYaw();
