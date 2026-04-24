@@ -25,15 +25,15 @@ export interface IEntityEditorSceneParams {
     name?: string;
 }
 
-function dragSimpleRes(unit: Vec3, eye: Vec3, clickDir: Vec3, direction: Vec3, p0: Vec3, res: Vec3) {
+function dragSimpleRes(unit: Vec3, clickRay: Ray, currRay: Ray, p0: Vec3, res: Vec3) {
     let p1 = p0.add(Vec3.UP),
         p2 = p0.add(unit);
 
     let px = new Vec3();
 
-    if (new Ray(eye, clickDir).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+    if (clickRay.hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
         let clickCart = Vec3.proj_b_to_a(px, unit);
-        if (new Ray(eye, direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+        if (currRay.hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
             let dragCart = Vec3.proj_b_to_a(px, unit);
             let dragVec = dragCart.sub(clickCart);
             res.copy(p0.add(dragVec));
@@ -430,13 +430,14 @@ class EntityEditorScene extends Scene {
         let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
 
-        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
+        let clickRay = cam.getRay2v(this._clickPos);
+        let currRay = cam.getRay2v(e.pos);
 
         let px = new Vec3();
 
         if (this.planet) {
-            let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
-            let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+            let clickCart = clickRay.hitSphere(new Sphere(p0.length(), new Vec3()))!;
+            let currCart = currRay.hitSphere(new Sphere(p0.length(), new Vec3()))!;
 
             if (!currCart) return;
 
@@ -451,7 +452,7 @@ class EntityEditorScene extends Scene {
                 this.ellipsoid.lonLatToCartesianRes(new LonLat(px_lonLat.lon, p0_lonLat.lat, p0_lonLat.height), px);
             }
         } else {
-            dragSimpleRes(Vec3.UNIT_X, cam.eye, clickDir, e.direction, p0, px);
+            dragSimpleRes(Vec3.UNIT_X, clickRay, currRay, p0, px);
         }
 
         this._selectedEntity.setAbsoluteCartesian3v(px);
@@ -473,11 +474,12 @@ class EntityEditorScene extends Scene {
         let p2 = p0.add(cam.getRight());
         let px = new Vec3();
 
-        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
+        let clickRay = cam.getRay2v(this._clickPos);
+        let currRay = cam.getRay2v(e.pos);
 
-        if (new Ray(cam.eye, clickDir).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+        if (clickRay.hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
             let clickCart = Vec3.proj_b_to_a(px, groundNormal);
-            if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+            if (currRay.hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                 let dragCart = Vec3.proj_b_to_a(px, groundNormal);
                 let dragVec = dragCart.sub(clickCart);
                 let pos = this._selectedEntityCart.add(dragVec);
@@ -494,13 +496,14 @@ class EntityEditorScene extends Scene {
         let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
 
-        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
+        let clickRay = cam.getRay2v(this._clickPos);
+        let currRay = cam.getRay2v(e.pos);
 
         let px = new Vec3();
 
         if (this.planet) {
-            let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
-            let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+            let clickCart = clickRay.hitSphere(new Sphere(p0.length(), new Vec3()))!;
+            let currCart = currRay.hitSphere(new Sphere(p0.length(), new Vec3()))!;
 
             if (!currCart) return;
 
@@ -515,7 +518,7 @@ class EntityEditorScene extends Scene {
                 this.ellipsoid.lonLatToCartesianRes(new LonLat(p0_lonLat.lon, px_lonLat.lat, p0_lonLat.height), px);
             }
         } else {
-            dragSimpleRes(Vec3.UNIT_Z, cam.eye, clickDir, e.direction, p0, px);
+            dragSimpleRes(Vec3.UNIT_Z, clickRay, currRay, p0, px);
         }
 
         this._selectedEntity.setAbsoluteCartesian3v(px);
@@ -530,13 +533,14 @@ class EntityEditorScene extends Scene {
         let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
 
-        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
+        let clickRay = cam.getRay2v(this._clickPos);
+        let currRay = cam.getRay2v(e.pos);
 
         let px = new Vec3();
 
         if (this.planet) {
-            let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
-            let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+            let clickCart = clickRay.hitSphere(new Sphere(p0.length(), new Vec3()))!;
+            let currCart = currRay.hitSphere(new Sphere(p0.length(), new Vec3()))!;
 
             if (!currCart) return;
 
@@ -555,8 +559,8 @@ class EntityEditorScene extends Scene {
                 p2 = p0.add(Vec3.UNIT_Z);
             let clickCart = new Vec3(),
                 dragCart = new Vec3();
-            if (new Ray(cam.eye, clickDir).hitPlaneRes(Plane.fromPoints(p0, p1, p2), clickCart) === Ray.INSIDE) {
-                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), dragCart) === Ray.INSIDE) {
+            if (clickRay.hitPlaneRes(Plane.fromPoints(p0, p1, p2), clickCart) === Ray.INSIDE) {
+                if (currRay.hitPlaneRes(Plane.fromPoints(p0, p1, p2), dragCart) === Ray.INSIDE) {
                     let dragVec = dragCart.sub(clickCart);
                     px = p0.add(dragVec);
                 }
@@ -596,15 +600,13 @@ class EntityEditorScene extends Scene {
         //let norm = qNorthFrame.mulVec3(new Vec3(1, 0, 0)).normalize();
         let norm = qRot.mulVec3(new Vec3(1, 0, 0)).normalize();
 
-        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
-
         let pl = new Plane(p0, norm);
 
         let clickCart = new Vec3(),
             dragCart = new Vec3();
 
-        if (new Ray(cam.eye, clickDir).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
-            if (new Ray(cam.eye, e.direction).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
+        if (cam.getRay2v(this._clickPos).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
+            if (cam.getRay2v(e.pos).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
                 let c0 = clickCart.sub(p0).normalize(),
                     c1 = dragCart.sub(p0).normalize();
 
@@ -627,15 +629,13 @@ class EntityEditorScene extends Scene {
         let qNorthFrame = this.getFrameRotation(p0).conjugate();
         let norm = qNorthFrame.mulVec3(new Vec3(0, 1, 0)).normalize();
 
-        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
-
         let pl = new Plane(p0, norm);
 
         let clickCart = new Vec3(),
             dragCart = new Vec3();
 
-        if (new Ray(cam.eye, clickDir).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
-            if (new Ray(cam.eye, e.direction).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
+        if (cam.getRay2v(this._clickPos).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
+            if (cam.getRay2v(e.pos).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
                 let c0 = clickCart.sub(p0).normalize(),
                     c1 = dragCart.sub(p0).normalize();
 
@@ -666,15 +666,13 @@ class EntityEditorScene extends Scene {
         //let norm = qNorthFrame.mulVec3(new Vec3(0, 0, 1)).normalize();
         let norm = qRot.mulVec3(new Vec3(0, 0, 1)).normalize();
 
-        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
-
         let pl = new Plane(p0, norm);
 
         let clickCart = new Vec3(),
             dragCart = new Vec3();
 
-        if (new Ray(cam.eye, clickDir).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
-            if (new Ray(cam.eye, e.direction).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
+        if (cam.getRay2v(this._clickPos).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
+            if (cam.getRay2v(e.pos).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
                 let c0 = clickCart.sub(p0).normalize(),
                     c1 = dragCart.sub(p0).normalize();
 

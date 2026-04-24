@@ -10,6 +10,7 @@ import type { NumberArray2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
 import { Vec4 } from "../math/Vec4";
 import { Sphere } from "../bv/Sphere";
+import { Ray } from "../math/Ray";
 import { Quat } from "../math/Quat";
 import { DEGREES_DOUBLE, MAX_FLOAT, RADIANS, RADIANS_HALF } from "../math";
 import { Easing, EasingFunction } from "../utils/easing";
@@ -1146,6 +1147,41 @@ class Camera {
             }
             return farPoint.subA(nearPoint).toVec3().normalize();
         }
+    }
+
+    /**
+     * Returns a world-space ray corresponding to the given screen point.
+     * For perspective camera the ray shares camera eye as origin.
+     * For orthographic camera the origin is offset across the view plane,
+     * and the direction equals the camera forward vector.
+     * @public
+     * @param {number} x - Screen X coordinate in pixels.
+     * @param {number} y - Screen Y coordinate in pixels.
+     * @returns {Ray}
+     */
+    public getRay(x: number, y: number): Ray {
+        if (this.isOrthographic) {
+            let w = this._width * 0.5,
+                h = this._height * 0.5;
+            let px = (x - w) / w,
+                py = -(y - h) / h;
+            let f = this.frustums[0];
+            let dx = 0.5 * (f.right - f.left) * px,
+                dy = 0.5 * (f.top - f.bottom) * py;
+            let origin = this.eye.add(this.getRight().scale(dx)).addA(this.getUp().scale(dy));
+            return new Ray(origin, this.getForward());
+        }
+        return new Ray(this.eye, this.unproject(x, y));
+    }
+
+    /**
+     * Returns a world-space ray corresponding to the given screen point.
+     * @public
+     * @param {Vec2} pos - Screen coordinates in pixels.
+     * @returns {Ray}
+     */
+    public getRay2v(pos: Vec2): Ray {
+        return this.getRay(pos.x, pos.y);
     }
 
     /**
