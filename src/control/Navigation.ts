@@ -142,11 +142,6 @@ export class Navigation extends Control {
 
     protected _velInertia: number;
 
-    // Ortho zoom: focusDistance = _orthoZoomScale * |forward·(a - eye)|.
-    // Captured on wheel event so the first frame does not snap focusDistance to an
-    // absolute value (which would cause a visible jerk on the very first wheel tick).
-    protected _orthoZoomScale: number = 1;
-
     protected _hold: boolean = false;
 
     //protected _prevVel: Vec3 = new Vec3();
@@ -424,13 +419,6 @@ export class Navigation extends Control {
 
                 this._targetZoomPoint = _targetZoomPoint;
                 this._grabbedSphere.radius = this._targetZoomPoint.length();
-
-                // Capture the ratio `focusDistance / |forward·(a - eye)|` at click time
-                // so the first zoom frame keeps focusDistance essentially unchanged
-                // (no visible jerk on the very first wheel tick).
-                const fwd0 = cam.getForward();
-                const fwdDepth0 = Math.abs(fwd0.dot(_targetZoomPoint.sub(cam.eye)));
-                this._orthoZoomScale = fwdDepth0 > 0 ? cam.focusDistance / fwdDepth0 : 1;
             } else {
                 let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
                 if (!_targetZoomPoint) return;
@@ -852,18 +840,21 @@ export class Navigation extends Control {
             cam.checkTerrainCollision();
 
             if (cam.isOrthographic) {
-                // `focusDistance = K · |forward·(a - eye)|` where K is captured in
-                // `_onMouseWheel`. This (a) is invariant under the lateral eye shift
-                // applied below (shift is perpendicular to forward) so focusDistance
-                // does not wobble frame-to-frame, and (b) matches the pre-zoom value
-                // exactly on the first frame — preventing a visible jerk on the very
-                // first wheel tick (when the absolute formula used to snap to a new
-                // value inconsistent with the previous focusDistance).
-                const fwd = cam.getForward();
-                const eyeToA = a.sub(cam.eye);
-                const fwdDepth = Math.abs(fwd.dot(eyeToA));
-                if (fwdDepth > 0) {
-                    cam.focusDistance = this._orthoZoomScale * fwdDepth;
+                // Scale-consistent with perspective: in perspective the visible world
+                // size at the surface is `2·altitude·tan(α/2)`, in orthographic it is
+                // `2·focusDistance·tan(α/2)`. Setting focusDistance to the altitude
+                // above the ellipsoid makes the two modes visually match, and mirrors
+                // what `setOrthographicProjection` does on mode switch (≈ depth_min).
+                //
+                // Using a direct geometric formula (|eye| - R) rather than the cached
+                // `_terrainAltitude` avoids wobble from stale terrain lookups. For a
+                // top-down view the lateral compensation below is tangent to the
+                // altitude sphere, so |eye| — and therefore focusDistance — is
+                // effectively unchanged by the shift.
+                const R = this.planet!.ellipsoid.equatorialSize;
+                const altitude = Math.max(0, cam.eye.length() - R);
+                if (altitude > 0) {
+                    cam.focusDistance = altitude;
 
                     // Shift eye laterally so that `a` projects exactly to
                     // `_currScreenPos` in the NEW frustum.
@@ -875,6 +866,8 @@ export class Navigation extends Control {
                     const Wx = 0.5 * (f.right - f.left);
                     const Wy = 0.5 * (f.top - f.bottom);
                     const offCursor = cam.getRight().scaleTo(Wx * px).addA(cam.getUp().scaleTo(Wy * py));
+                    const fwd = cam.getForward();
+                    const eyeToA = a.sub(cam.eye);
                     const aLat = eyeToA.sub(fwd.scaleTo(fwd.dot(eyeToA)));
                     cam.eye.addA(aLat.subA(offCursor));
                     cam.update();
