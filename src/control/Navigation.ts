@@ -9,7 +9,6 @@ import { Vec3 } from "../math/Vec3";
 import { input } from "../input/input";
 import { Plane } from "../math/Plane";
 import { createEvents, type EventsHandler } from "../Events";
-import type { PlanetCamera } from "../camera/PlanetCamera";
 
 export type NavigationMode = "north" | "adaptive" | "free";
 
@@ -47,9 +46,13 @@ const NAVIGATION_EVENTS: NavigationEventsList = [
     "rotate"
 ];
 
-const DEFAULT_VELINERTIA = 0.96;
+// Velocity inertia (0–1)
+// Lower value - camera stops faster after release
+const DEFAULT_VELINERTIA = 0.89;
 
-const DEFAULT_DRAG_INERTIA = 170;
+// Drag inertia approach smoothing
+// Lower value - camera approaches the grabbed point more slowly
+const DEFAULT_DRAG_INERTIA = 230;
 
 // Camera moves vertically (up/down) when slope is less than this threshold
 const MIN_SLOPE = 0.35;

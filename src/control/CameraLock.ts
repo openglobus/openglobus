@@ -8,6 +8,7 @@ import { Navigation } from "./Navigation";
 import { Planet } from "../scene/Planet";
 import { input } from "../input/input";
 import { RADIANS } from "../math";
+import {PlanetCamera} from "../camera";
 
 const MIN_LOCK_DISTANCE = 0.001;
 const MIN_VIEW_DISTANCE = 120.0;
@@ -265,10 +266,33 @@ export class CameraLock extends Control {
 
                 if (this.planet) {
                     cam.rotateHorizontal(l * (ms.x - ms.prev_x), false, p, p.isZero() ? Vec3.UP : p.normal());
+
+                    const pc = cam as PlanetCamera;
+                    const savedEye = cam.eye.clone();
+                    const savedU = cam._u.clone();
+                    const savedR = cam._r.clone();
+                    const savedB = cam._b.clone();
+                    const savedF = cam._f.clone();
+
+                    pc.rotateVertical(l * (ms.y - ms.prev_y), p);
+                    pc.update();
+
+                    pc.setTerrainCollisionActivity(false);
+                    pc.checkTerrainCollision();
+                    pc.setTerrainCollisionActivity(true);
+
+                    if (pc.getAltitude() < pc.minAltitude) {
+                        cam.eye.copy(savedEye);
+                        cam._u.copy(savedU);
+                        cam._r.copy(savedR);
+                        cam._b.copy(savedB);
+                        cam._f.copy(savedF);
+                        pc.update();
+                    }
                 } else {
                     cam.rotateHorizontal(l * (ms.x - ms.prev_x), false, p, Vec3.UP);
+                    cam.rotateVertical(l * (ms.y - ms.prev_y), p);
                 }
-                cam.rotateVertical(l * (ms.y - ms.prev_y), p);
 
                 this._viewDir = p.sub(cam.eye).normalize();
             }

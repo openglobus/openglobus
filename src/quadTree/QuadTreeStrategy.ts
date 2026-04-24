@@ -345,6 +345,14 @@ export class QuadTreeStrategy {
 
             this._collectRenderNodes(cam);
 
+            // No visible nodes collected (e.g. camera tilted strongly upward)
+            // — clamp to 0/0 so Vector layer visibility gate doesn't compare
+            // against sentinel values and reject all entities.
+            if (this.maxCurrZoom === math.MIN) {
+                this.minCurrZoom = 0;
+                this.maxCurrZoom = 0;
+            }
+
             this._collectRenderedNodesMaxZoom(cam);
 
             // main camera effect
