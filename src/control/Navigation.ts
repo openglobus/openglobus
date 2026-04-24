@@ -9,6 +9,7 @@ import { Vec3 } from "../math/Vec3";
 import { input } from "../input/input";
 import { Plane } from "../math/Plane";
 import { createEvents, type EventsHandler } from "../Events";
+import type { PlanetCamera } from "../camera/PlanetCamera";
 
 export type NavigationMode = "north" | "adaptive" | "free";
 
@@ -248,6 +249,7 @@ export class Navigation extends Control {
         r.events.on("mousemove", this._onMouseMove);
         r.events.on("mouseleave", this._onMouseLeave);
         r.events.on("mouseenter", this._onMouseEnter);
+        //r.events.on("projchanged", this._onProjChanged);
     }
 
     public override ondeactivate() {
@@ -263,6 +265,7 @@ export class Navigation extends Control {
         r.events.off("mousemove", this._onMouseMove);
         r.events.off("mouseleave", this._onMouseLeave);
         r.events.off("mouseenter", this._onMouseEnter);
+        //r.events.off("projchanged", this._onProjChanged);
     }
 
     protected onDraw() {
@@ -278,6 +281,15 @@ export class Navigation extends Control {
 
     private _onCameraFly = () => {
         this.stop();
+    };
+
+    private _onProjChanged = (cam: PlanetCamera) => {
+        if (cam.isOrthographic) {
+            let alt = Math.abs(cam.getAltitude());
+            if (alt) {
+                cam.focusDistance = alt;
+            }
+        }
     };
 
     protected _onMouseMove = (e: IMouseState) => {
