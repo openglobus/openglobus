@@ -532,7 +532,7 @@ class ElevationProfileScene extends Scene {
             let p2 = p0.add(cam.getRight());
             let px = new Vec3();
 
-            if (cam.getRay2v(e.pos).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+            if (e.ray.hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                 let h = Vec3.proj_b_to_a(px, p0);
                 let s = h.sub(p0).dot(p0);
                 let headPos = p0.add(groundNormal.scale(Math.sign(s) * h.distance(p0)));

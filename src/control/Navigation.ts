@@ -604,7 +604,7 @@ export class Navigation extends Control {
                     p2 = Vec3.add(p0, p0.getNormal());
 
                 let px = new Vec3();
-                new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px);
+                e.ray.hitPlaneRes(Plane.fromPoints(p0, p1, p2), px);
                 let newEye = cam.eye.add(px.subA(p0).negate());
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
                 this._targetDragPoint = px;

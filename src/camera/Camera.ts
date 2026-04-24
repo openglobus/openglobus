@@ -1159,7 +1159,7 @@ class Camera {
      * @param {number} y - Screen Y coordinate in pixels.
      * @returns {Ray}
      */
-    public getRay(x: number, y: number): Ray {
+    public getRay(x: number, y: number, res?: Ray): Ray {
         if (this.isOrthographic) {
             let w = this._width * 0.5,
                 h = this._height * 0.5;
@@ -1169,9 +1169,9 @@ class Camera {
             let dx = 0.5 * (f.right - f.left) * px,
                 dy = 0.5 * (f.top - f.bottom) * py;
             let origin = this.eye.add(this.getRight().scale(dx)).addA(this.getUp().scale(dy));
-            return new Ray(origin, this.getForward());
+            return res ? res.set(origin, this.getForward()) : new Ray(origin, this.getForward());
         }
-        return new Ray(this.eye, this.unproject(x, y));
+        return res ? res.set(this.eye, this.unproject(x, y)) : new Ray(this.eye, this.unproject(x, y));
     }
 
     /**

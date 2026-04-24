@@ -9,6 +9,7 @@ import { PointerHandler, type PointerEventExt } from "../input/PointerHandler";
 import { Vec2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
 import type { NumberArray3 } from "../math/Vec3";
+import { Ray } from "../math/Ray";
 
 export type RendererEventsHandler = RendererEvents & EventsHandler<RendererEventsType>;
 
@@ -77,6 +78,12 @@ export interface IBaseInputState {
     prev_y: number;
     /** Screen touch position world direction. */
     direction: Vec3;
+    /**
+     * World-space picking ray.
+     * Perspective: origin is camera.eye.
+     * Orthographic: origin is per-pixel on the view plane, direction is camera forward.
+     */
+    ray: Ray;
     /** Current touched(picking) object. */
     pickingObject: any | null;
     /** Renderer instance. */
@@ -266,6 +273,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             prev_x: 0,
             prev_y: 0,
             direction: new Vec3(),
+            ray: new Ray(),
             leftButtonUp: false,
             rightButtonUp: false,
             middleButtonUp: false,
@@ -311,6 +319,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             prev_x: 0,
             prev_y: 0,
             direction: new Vec3(),
+            ray: new Ray(),
             sys: null,
             pickingObject: null,
             renderer: renderer
@@ -357,11 +366,14 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
      */
     public handleEvents() {
         if (this._active) {
-            this.mouseState.direction = this.renderer.activeCamera!.unproject(this.mouseState.x, this.mouseState.y);
+            let cam = this.renderer.activeCamera!;
+            cam.getRay(this.mouseState.x, this.mouseState.y, this.mouseState.ray);
+            this.mouseState.direction = this.mouseState.ray.direction;
             //
             // TODO: Replace in some other place with a thought that we do
             // not need to make unproject when we do not make touching
-            this.touchState.direction = this.renderer.activeCamera!.unproject(this.touchState.x, this.touchState.y);
+            cam.getRay(this.touchState.x, this.touchState.y, this.touchState.ray);
+            this.touchState.direction = this.touchState.ray.direction;
 
             this._keyboardHandler.handleEvents();
             this.handleMouseEvents();

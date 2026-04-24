@@ -121,12 +121,11 @@ export class SimpleNavigation extends Control {
             // console.log(depth);
 
             if (!this._grabbedPoint) {
-                let cam = this.renderer.activeCamera;
                 let p0 = new Vec3(),
                     p1 = new Vec3(1, 0, 0),
                     p2 = new Vec3(0, 0, 1);
                 let px = new Vec3();
-                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+                if (e.ray.hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                     this._grabbedPoint = px;
                 }
             }
@@ -169,7 +168,7 @@ export class SimpleNavigation extends Control {
                     p2 = Vec3.add(p0, Vec3.UP);
                 }
                 let px = new Vec3();
-                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+                if (e.ray.hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                     cam.eye = cam.eye.add(p0.sub(px));
                 }
             }
@@ -202,9 +201,8 @@ export class SimpleNavigation extends Control {
             } else {
                 const cam = this.renderer.activeCamera;
                 let pl = new Plane(Vec3.ZERO, Vec3.UP);
-                let ray = new Ray(cam.eye, e.direction);
                 this._lookPos = new Vec3();
-                ray.hitPlaneRes(pl, this._lookPos);
+                e.ray.hitPlaneRes(pl, this._lookPos);
                 this._up = Vec3.UP;
             }
         }
@@ -231,8 +229,7 @@ export class SimpleNavigation extends Control {
                 if (!pos) {
                     pos = new Vec3();
                     let pl = new Plane(Vec3.ZERO, Vec3.UP);
-                    let ray = new Ray(cam.eye, e.direction);
-                    ray.hitPlaneRes(pl, pos);
+                    e.ray.hitPlaneRes(pl, pos);
                 }
                 let dir = pos.sub(cam.eye).normalize();
                 let dist = cam.eye.distance(pos) * 8;
