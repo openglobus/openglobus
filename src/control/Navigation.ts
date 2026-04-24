@@ -840,24 +840,20 @@ export class Navigation extends Control {
             cam.checkTerrainCollision();
 
             if (cam.isOrthographic) {
-                // Scale-consistent with perspective: in perspective the visible world
-                // size at the surface is `2·altitude·tan(α/2)`, in orthographic it is
-                // `2·focusDistance·tan(α/2)`. Setting focusDistance to the altitude
-                // above the ellipsoid makes the two modes visually match, and mirrors
-                // what `setOrthographicProjection` does on mode switch (≈ depth_min).
-                //
-                // Using a direct geometric formula (|eye| - R) rather than the cached
-                // `_terrainAltitude` avoids wobble from stale terrain lookups. For a
-                // top-down view the lateral compensation below is tangent to the
-                // altitude sphere, so |eye| — and therefore focusDistance — is
-                // effectively unchanged by the shift.
-                const R = this.planet!.ellipsoid.equatorialSize;
-                const altitude = Math.max(0, cam.eye.length() - R);
-                if (altitude > 0) {
-                    cam.focusDistance = altitude;
+                // Use the original altitude-based formula: it is scale-consistent
+                // with perspective (both modes produce the same visible world size
+                // at the surface, ~2·altitude·tan(α/2)). `cam.getAltitude()` returns
+                // the same `_terrainAltitude` that drives scale in perspective mode,
+                // so switching between modes preserves visual scale.
+                let alt = cam.getAltitude();
+                if (alt) {
+                    cam.focusDistance = Math.abs(alt);
 
-                    // Shift eye laterally so that `a` projects exactly to
-                    // `_currScreenPos` in the NEW frustum.
+                    // Lateral compensation: shift eye laterally so that `a`
+                    // projects exactly to `_currScreenPos` in the NEW frustum.
+                    // This is the essential cursor-anchor mechanism for ortho —
+                    // without it the target point would slide away from the cursor
+                    // as `focusDistance` rescales the frustum around `cam.eye`.
                     const w2 = cam.width * 0.5;
                     const h2 = cam.height * 0.5;
                     const px = (this._currScreenPos.x - w2) / w2;
