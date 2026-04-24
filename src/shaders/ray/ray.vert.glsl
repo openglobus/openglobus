@@ -42,7 +42,9 @@ void main() {
     vec3 right = normalize(cross(look, up));
 
     float dist = abs(dot(look, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2])));
-    float focalSize = 2.0 * dist * resolution;
+    float perspFocal = 2.0 * dist * resolution;
+    float orthoFocal = 2.0 / (projectionMatrix[1][1] * viewport.y);
+    float focalSize = mix(perspFocal, orthoFocal, projectionMatrix[3][3]);
     vec3 vert = right * a_thickness * focalSize * a_vertices.x;
 
     vec3 highDiff;
