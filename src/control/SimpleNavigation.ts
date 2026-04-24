@@ -63,12 +63,6 @@ export class SimpleNavigation extends Control {
 
         let r = this.renderer!;
 
-        if (r.activeCamera.isOrthographic) {
-            r.getDepthMinDistanceAsync().then((dist) => {
-                r.activeCamera.focusDistance = dist;
-            });
-        }
-
         r.events.on("mousewheel", this._onMouseWheel);
         r.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
         r.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this);
