@@ -145,10 +145,6 @@ export class Navigation extends Control {
 
     protected _hold: boolean = false;
 
-    //protected _prevVel: Vec3 = new Vec3();
-
-    //protected _screenPosIsChanged: boolean = true;
-
     protected _rotHDir: number;
     protected _rotVDir: number;
 
@@ -249,7 +245,6 @@ export class Navigation extends Control {
         r.events.on("mousemove", this._onMouseMove);
         r.events.on("mouseleave", this._onMouseLeave);
         r.events.on("mouseenter", this._onMouseEnter);
-        //r.events.on("projchanged", this._onProjChanged);
     }
 
     public override ondeactivate() {
@@ -265,7 +260,6 @@ export class Navigation extends Control {
         r.events.off("mousemove", this._onMouseMove);
         r.events.off("mouseleave", this._onMouseLeave);
         r.events.off("mouseenter", this._onMouseEnter);
-        //r.events.off("projchanged", this._onProjChanged);
     }
 
     protected onDraw() {
@@ -281,15 +275,6 @@ export class Navigation extends Control {
 
     private _onCameraFly = () => {
         this.stop();
-    };
-
-    private _onProjChanged = (cam: PlanetCamera) => {
-        if (cam.isOrthographic) {
-            let alt = Math.abs(cam.getAltitude());
-            if (alt) {
-                cam.focusDistance = alt;
-            }
-        }
     };
 
     protected _onMouseMove = (e: IMouseState) => {
@@ -445,12 +430,6 @@ export class Navigation extends Control {
             let cam = this.planet.camera;
 
             if (cam.isOrthographic) {
-                // Zoom anchored to the map point under the mouse cursor.
-                // `_getTargetPoint` uses depth buffer + unproject, so it returns the
-                // exact world point visible at (sx, sy). The previous refinement via
-                // `Ray(p0, dir).hitSphere(...)` was written for the center-case
-                // (offset=0, dir=forward) and produces a wrong point for off-center
-                // cursor — it was removed to fix zoom-anchor drift.
                 let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
                 if (!_targetZoomPoint) return;
 
@@ -634,7 +613,6 @@ export class Navigation extends Control {
             this.vel.set(0.0, 0.0, 0.0);
 
             if (!this._currScreenPos.equal(e.pos)) {
-                //this._screenPosIsChanged = true;
                 this._currScreenPos.copy(e.pos);
             }
 
@@ -717,18 +695,6 @@ export class Navigation extends Control {
         if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.1) {
             this._velInertia = DEFAULT_VELINERTIA;
             let cam = this.planet!.camera;
-
-            // if (Math.abs(cam.eyeNorm.dot(Vec3.NORTH)) > 0.9) {
-            //     this.fixedUp = false;
-            // }
-            //
-            // if (!this._screenPosIsChanged) {
-            //     if (this.vel.length() > this._prevVel.length()) {
-            //         this.fixedUp = false;
-            //     }
-            // }
-            // this._screenPosIsChanged = false;
-            // this._prevVel.copy(this.vel);
 
             if (cam.slope > this.minSlope) {
                 const dt = this.dt;
@@ -831,9 +797,6 @@ export class Navigation extends Control {
                 return;
             }
 
-            // Sphere-rotation: slide eye along the globe so the view's "forward" is
-            // pulled towards the target. This is what gives the perspective-like
-            // trajectory (and, together with `setPitchYawRoll` below, keeps north up).
             let rot = Quat.getRotationBetweenVectors(b.getNormal(), a.getNormal());
             cam.eye = rot.mulVec3(eye);
             cam.rotate(rot);
@@ -845,11 +808,6 @@ export class Navigation extends Control {
 
                 cam.update();
 
-                // In orthographic the actual picking ray for `_currScreenPos` starts
-                // at `cam.eye + offset_cursor` and goes along forward, not from
-                // `cam.eye` along `dirCurr`. So the perspective ray-plane correction
-                // below is invalid for ortho — we use an explicit lateral compensation
-                // after `focusDistance` is updated (see the ortho block further down).
                 if (!cam.isOrthographic) {
                     let dirCurr = cam.unproject2v(this._currScreenPos, cam.eye.distance(this._targetZoomPoint));
                     let dirNew = a.sub(cam.eye).normalize();
@@ -865,32 +823,17 @@ export class Navigation extends Control {
                     cam.eye = cam.eye.add(dp);
                 }
 
-                // Looks like it helps to fix unpredictable camera loose focus wheb zoomOut
+                // Looks like it helps to fix unpredictable camera loose focus when zoomOut
                 this._corrRoll();
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
-
-                // ver.2
-                // let px0 = new Ray(cam.eye, dirCurr).hitSphere(this._grabbedSphere)!;
-                // let px1 = new Ray(cam.eye, dirNew).hitSphere(this._grabbedSphere)!;
             }
 
             cam.checkTerrainCollision();
 
             if (cam.isOrthographic) {
-                // Use the original altitude-based formula: it is scale-consistent
-                // with perspective (both modes produce the same visible world size
-                // at the surface, ~2·altitude·tan(α/2)). `cam.getAltitude()` returns
-                // the same `_terrainAltitude` that drives scale in perspective mode,
-                // so switching between modes preserves visual scale.
                 let alt = cam.getAltitude();
                 if (alt) {
                     cam.focusDistance = Math.abs(alt);
-
-                    // Lateral compensation: shift eye laterally so that `a`
-                    // projects exactly to `_currScreenPos` in the NEW frustum.
-                    // This is the essential cursor-anchor mechanism for ortho —
-                    // without it the target point would slide away from the cursor
-                    // as `focusDistance` rescales the frustum around `cam.eye`.
                     const w2 = cam.width * 0.5;
                     const h2 = cam.height * 0.5;
                     const px = (this._currScreenPos.x - w2) / w2;
