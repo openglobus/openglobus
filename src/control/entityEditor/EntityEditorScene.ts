@@ -2,7 +2,7 @@ import { createEvents, type EventsHandler } from "../../Events";
 import { MAX32 } from "../../math";
 import { Plane } from "../../math/Plane";
 import { Planet } from "../../scene/Planet";
-import { RenderNode } from "../../scene/RenderNode";
+import { Scene } from "../../scene/Scene";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
 import { Quat } from "../../math/Quat";
@@ -77,7 +77,7 @@ type EntityEditorSceneEventsList = [
     "scale"
 ];
 
-class EntityEditorScene extends RenderNode {
+class EntityEditorScene extends Scene {
     public events: EventsHandler<EntityEditorSceneEventsList>;
     protected _planet: Planet | null;
     protected _startPos: Vec2 | null;

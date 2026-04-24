@@ -25,7 +25,7 @@ import {
     Renderer,
     Vec3,
     Mat4,
-    RenderNode,
+    Scene,
     EntityCollection,
     scene,
     Gltf,
@@ -256,7 +256,7 @@ let renderer = new Renderer("frame", {
     autoActivate: true
 });
 
-class MyScene extends RenderNode {
+class MyScene extends Scene {
     constructor() {
         super("MyScene");
     }

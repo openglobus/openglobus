@@ -42,7 +42,7 @@ import { Quat } from "../math/Quat";
 import { QuadTreeStrategy } from "../quadTree/QuadTreeStrategy";
 import { Ray } from "../math/Ray";
 import { AltitudeNearPlaneStrategy, type INearPlaneStrategy } from "./AltitudeNearPlaneStrategy";
-import { RenderNode } from "./RenderNode";
+import { Scene } from "./Scene";
 import { SimpleSkyBackground } from "../control/SimpleSkyBackground";
 import { Sun } from "../control/Sun";
 import { TerrainWorker } from "../utils/TerrainWorker";
@@ -110,7 +110,7 @@ type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
 /**
  * Main class for rendering a planet.
  * @class
- * @extends {RenderNode}
+ * @extends {Scene}
  * @param {IPlanetParams} [options={}] - Planet configuration parameters.
  * @param {string} [options.name] - Planet name.
  * @param {Ellipsoid} [options.ellipsoid=wgs84] - Planet ellipsoid.
@@ -145,7 +145,7 @@ type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
  * @fires terraincompleted - Triggered when terrain data is loaded.
  * @fires layerloadend - Triggered when layer data finishes loading.
  */
-export class Planet extends RenderNode {
+export class Planet extends Scene {
     public events: EventsHandler<PlanetEventsList>;
 
     public _createdNodesCount: number;
@@ -699,7 +699,7 @@ export class Planet extends RenderNode {
      * @returns {Vec3} - Sun position.
      */
     public get sunPos(): Vec3 {
-        return this.sun!.sunlight.getPosition();
+        return this.sun!.getPosition();
     }
 
     /**

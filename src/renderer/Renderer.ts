@@ -13,7 +13,7 @@ import { input } from "../input/input";
 import { isEmpty } from "../utils/shared";
 import { LabelWorker } from "../entity/label/LabelWorker";
 import { MAX_FLOAT, randomi } from "../math";
-import { RenderNode } from "../scene/RenderNode";
+import { Scene } from "../scene/Scene";
 import { screenFrame } from "../shaders/screenFrame";
 import { toneMapping } from "../shaders/tone_mapping/toneMapping";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
@@ -140,16 +140,16 @@ class Renderer {
     /**
      * Render nodes drawing queue.
      * @public
-     * @type {Array.<RenderNode>}
+     * @type {Array.<Scene>}
      */
-    public _renderNodesArr: RenderNode[];
+    public _scenesArr: Scene[];
 
     /**
      * Render nodes store for the comfortable access by the node name.
      * @public
-     * @type {Object.<RenderNode>}
+     * @type {Object.<Scene>}
      */
-    public renderNodes: Record<string, RenderNode>;
+    public scenes: Record<string, Scene>;
 
     /**
      * Current active camera.
@@ -302,9 +302,9 @@ class Renderer {
 
         this.brightThreshold = 0.9;
 
-        this._renderNodesArr = [];
+        this._scenesArr = [];
 
-        this.renderNodes = {};
+        this.scenes = {};
 
         this.activeCamera = new Camera({
             width: this.handler.canvas?.width,
@@ -806,7 +806,7 @@ class Renderer {
 
         this._appendControlContainers();
 
-        this._initializeRenderNodes();
+        this._initializeScenes();
 
         this._initializeControls();
     }
@@ -868,62 +868,62 @@ class Renderer {
         this.setCurrentScreen(this._currentOutput);
     }
 
-    public removeNode(renderNode: RenderNode) {
-        // TODO: replace from RenderNode to this method
-        renderNode.remove();
+    public removeNode(scene: Scene) {
+        // TODO: replace from Scene to this method
+        scene.remove();
     }
 
     /**
-     * Adds render node to the renderer.
+     * Adds scene to the renderer.
      * @public
-     * @param {RenderNode} renderNode - Render node.
+     * @param {Scene} scene - Scene.
      */
-    public addNode(renderNode: RenderNode) {
-        if (!this.renderNodes[renderNode.name]) {
-            renderNode.assign(this);
-            this._renderNodesArr.unshift(renderNode);
-            this.renderNodes[renderNode.name] = renderNode;
+    public addScene(scene: Scene) {
+        if (!this.scenes[scene.name]) {
+            scene.assign(this);
+            this._scenesArr.unshift(scene);
+            this.scenes[scene.name] = scene;
         } else {
-            cons.logWrn(`Node name ${renderNode.name} already exists.`);
+            cons.logWrn(`Scene name ${scene.name} already exists.`);
         }
     }
 
-    protected _initializeRenderNodes() {
-        for (let i = 0; i < this._renderNodesArr.length; i++) {
-            this._renderNodesArr[i].initialize();
+    protected _initializeScenes() {
+        for (let i = 0; i < this._scenesArr.length; i++) {
+            this._scenesArr[i].initialize();
         }
     }
 
     /**
-     * Adds render node to the renderer before specific node.
+     * Adds scene to the renderer before specific node.
      * @public
-     * @param {RenderNode} renderNode - Render node.
-     * @param {RenderNode} renderNodeBefore - Insert before the renderNodeBefore node.
+     * @param {Scene} scene - Render node.
+     * @param {Scene} sceneBefore - Insert before the sceneBefore node.
      */
-    public addNodeBefore(renderNode: RenderNode, renderNodeBefore: RenderNode) {
-        if (!this.renderNodes[renderNode.name]) {
-            renderNode.assign(this);
-            this.renderNodes[renderNode.name] = renderNode;
-            for (let i = 0; i < this._renderNodesArr.length; i++) {
-                if (this._renderNodesArr[i].isEqual(renderNodeBefore)) {
-                    this._renderNodesArr.splice(i, 0, renderNode);
+    public addSceneBefore(scene: Scene, sceneBefore: Scene) {
+        if (!this.scenes[scene.name]) {
+            scene.assign(this);
+            this.scenes[scene.name] = scene;
+            for (let i = 0; i < this._scenesArr.length; i++) {
+                if (this._scenesArr[i].isEqual(sceneBefore)) {
+                    this._scenesArr.splice(i, 0, scene);
                     break;
                 }
             }
-            this._renderNodesArr.unshift(renderNode);
+            this._scenesArr.unshift(scene);
         } else {
-            cons.logWrn(`Node name ${renderNode.name} already exists.`);
+            cons.logWrn(`Scene name ${scene.name} already exists.`);
         }
     }
 
     /**
-     * Adds render nodes array to the renderer.
+     * Adds scenes to the renderer.
      * @public
-     * @param {Array.<RenderNode>} nodesArr - Render nodes array.
+     * @param {Array.<Scene>} nodesArr - Render nodes array.
      */
-    public addNodes(nodesArr: RenderNode[]) {
+    public addScenes(nodesArr: Scene[]) {
         for (let i = 0; i < nodesArr.length; i++) {
-            this.addNode(nodesArr[i]);
+            this.addScene(nodesArr[i]);
         }
     }
 
@@ -1287,12 +1287,12 @@ class Renderer {
 
         let frustums = this.activeCamera.frustums;
 
-        // Rendering scene nodes and entityCollections
-        let rn = this._renderNodesArr;
+        // Rendering scenes and entityCollections
+        let rn = this._scenesArr;
         let k = frustums.length;
 
         //
-        // RenderNodes PASS
+        // Scenes PASS
         //
         while (k--) {
             this.activeCamera.setCurrentFrustum(k);
@@ -1300,7 +1300,7 @@ class Renderer {
 
             let i = rn.length;
             while (i--) {
-                rn[i].preDrawNode();
+                rn[i].preDraw();
             }
 
             //
@@ -1311,7 +1311,7 @@ class Renderer {
             //@todo need to remove it
             i = rn.length;
             while (i--) {
-                rn[i].drawNode();
+                rn[i].draw();
             }
 
             e.dispatch(e.gbufferpass, this);
@@ -1715,8 +1715,8 @@ class Renderer {
             this.controls[i].remove();
         }
 
-        for (let i = 0; i < this._renderNodesArr.length; i++) {
-            this._renderNodesArr[i].remove();
+        for (let i = 0; i < this._scenesArr.length; i++) {
+            this._scenesArr[i].remove();
         }
 
         if (this._topLeftContainer.parentElement) {
@@ -1733,9 +1733,9 @@ class Renderer {
 
         this.div = null;
 
-        this._renderNodesArr = [];
+        this._scenesArr = [];
 
-        this.renderNodes = {};
+        this.scenes = {};
 
         //@ts-ignore
         //this.activeCamera = null;

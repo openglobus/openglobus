@@ -79,7 +79,7 @@ let globe = new Globe({
     terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer],
     //reverseDepth: false,
-    msaa: 0
+    //msaa: 0
 });
 
 const controlsList = [

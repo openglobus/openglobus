@@ -185,7 +185,7 @@ class Ray {
         this._src = src;
         let bh = this._handler;
         if (bh) {
-            let rn = bh._entityCollection.renderNode;
+            let rn = bh._entityCollection.scene;
             if (rn && rn.renderer) {
                 let ta = rn.renderer.strokeTextureAtlas;
                 if (src && src.length) {

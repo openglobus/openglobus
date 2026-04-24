@@ -14,7 +14,7 @@ import type { Planet } from "../scene/Planet";
 import { PointCloudHandler } from "./pointCloud/PointCloudHandler";
 import { PolylineHandler } from "./polyline/PolylineHandler";
 import { RayHandler } from "./ray/RayHandler";
-import { RenderNode } from "../scene/RenderNode";
+import { Scene } from "../scene/Scene";
 import type { Node } from "../quadTree/Node";
 import { StripHandler } from "./strip/StripHandler";
 import type { Vector } from "../layer/Vector";
@@ -101,9 +101,9 @@ class EntityCollection {
     /**
      * Render node context.
      * @public
-     * @type {RenderNode}
+     * @type {Scene}
      */
-    public renderNode: RenderNode | null;
+    public scene: Scene | null;
 
     /**
      * Visibility option.
@@ -224,7 +224,7 @@ class EntityCollection {
     constructor(options: IEntityCollectionParams = {}) {
         this.__id = EntityCollection.__counter__++;
 
-        this.renderNode = null;
+        this.scene = null;
 
         this._visibility = options.visibility == undefined ? true : options.visibility;
 
@@ -289,8 +289,8 @@ class EntityCollection {
 
     public set depthOrder(depghOrder: number) {
         this._depthOrder = depghOrder;
-        if (this.renderNode) {
-            this.renderNode.updateEntityCollectionsDepthOrder();
+        if (this.scene) {
+            this.scene.updateEntityCollectionsDepthOrder();
         }
     }
 
@@ -322,7 +322,7 @@ class EntityCollection {
     public setVisibility(visibility: boolean) {
         this._visibility = visibility;
         this._fadingOpacity = this._opacity * (visibility ? 1 : 0);
-        this.renderNode?.updateEntityCollectionsDepthOrder();
+        this.scene?.updateEntityCollectionsDepthOrder();
         this.events.dispatch(this.events.visibilitychange, this);
     }
 
@@ -452,7 +452,7 @@ class EntityCollection {
     }
 
     protected _addRecursively(entity: Entity) {
-        let rn: RenderNode | null = this.renderNode;
+        let rn: Scene | null = this.scene;
         if (rn) {
             if ((rn as Planet).ellipsoid && entity._cartesian.isZero() && !entity.relativePosition) {
                 entity.setCartesian3v((rn as Planet).ellipsoid.lonLatToCartesian(entity._lonLat));
@@ -577,8 +577,8 @@ class EntityCollection {
         }
 
         // clear picking color
-        if (this.renderNode && this.renderNode.renderer) {
-            this.renderNode.renderer.clearPickingColor(entity);
+        if (this.scene && this.scene.renderer) {
+            this.scene.renderer.clearPickingColor(entity);
             entity._pickingColor.clear();
         }
 
@@ -608,7 +608,7 @@ class EntityCollection {
      * @public
      */
     public createPickingColors(entities: Entity[] = this._entities) {
-        if (!(this.renderNode && this.renderNode.renderer)) return;
+        if (!(this.scene && this.scene.renderer)) return;
         for (let i = 0; i < entities.length; i++) {
             let ei = entities[i];
             this._setPickingColor(ei);
@@ -617,13 +617,13 @@ class EntityCollection {
     }
 
     protected _setPickingColor(entity: Entity) {
-        if (this.renderNode && this.renderNode.renderer) {
+        if (this.scene && this.scene.renderer) {
             if (entity._independentPicking || !entity.parent) {
-                this.renderNode.renderer.assignPickingColor<Entity>(entity);
+                this.scene.renderer.assignPickingColor<Entity>(entity);
             } else {
                 entity._pickingColor = entity.parent._pickingColor;
             }
-            this.renderNode.renderer.assignPickingColor<Entity>(entity);
+            this.scene.renderer.assignPickingColor<Entity>(entity);
             entity.setPickingColor();
         }
     }
@@ -643,34 +643,34 @@ class EntityCollection {
     /**
      * Adds this collection to render node.
      * @public
-     * @param {RenderNode} renderNode - Render node.
+     * @param {Scene} scene - Render node.
      * @param {boolean} [isHidden] - Used in vector layers with planet-specific rendering.
      * @returns {EntityCollection} Current collection instance.
      */
-    public addTo(renderNode: RenderNode, isHidden: boolean = false) {
-        if (!this.renderNode) {
-            renderNode.addEntityCollection(this, isHidden);
+    public addTo(scene: Scene, isHidden: boolean = false) {
+        if (!this.scene) {
+            scene.addEntityCollection(this, isHidden);
         }
         return this;
     }
 
     /**
-     * This function is called in the RenderNode assign function.
+     * This function is called in the Scene assign function.
      * @public
-     * @param {RenderNode} renderNode
+     * @param {Scene} scene
      */
-    public bindRenderNode(renderNode: RenderNode) {
-        if (renderNode.renderer && renderNode.renderer.isInitialized()) {
-            this.billboardHandler.setRenderer(renderNode.renderer);
-            this.labelHandler.setRenderer(renderNode.renderer);
-            this.rayHandler.setRenderer(renderNode.renderer);
+    public bindScene(scene: Scene) {
+        if (scene.renderer && scene.renderer.isInitialized()) {
+            this.billboardHandler.setRenderer(scene.renderer);
+            this.labelHandler.setRenderer(scene.renderer);
+            this.rayHandler.setRenderer(scene.renderer);
 
-            this.geoObjectHandler.setRenderNode(renderNode);
-            this.polylineHandler.setRenderNode(renderNode);
-            this.pointCloudHandler.setRenderNode(renderNode);
-            this.stripHandler.setRenderNode(renderNode);
+            this.geoObjectHandler.bindScene(scene);
+            this.polylineHandler.bindScene(scene);
+            this.pointCloudHandler.bindScene(scene);
+            this.stripHandler.bindScene(scene);
 
-            renderNode.renderer.events.on("changerelativecenter", this._onChangeRelativeCenter);
+            scene.renderer.events.on("changerelativecenter", this._onChangeRelativeCenter);
 
             this.updateBillboardsTextureAtlas();
             this.updateLabelsFontAtlas();
@@ -715,7 +715,7 @@ class EntityCollection {
      * @public
      */
     public updateLabelsFontAtlas() {
-        if (this.renderNode) {
+        if (this.scene) {
             // let l = ([] as Label[]).concat(this.labelHandler.labels);
             // this.labelHandler._billboards = [];
             // for (let i = 0; i < l.length; i++) {
@@ -745,10 +745,10 @@ class EntityCollection {
      * @public
      */
     public remove() {
-        if (this.renderNode) {
-            this.renderNode.removeEntityCollection(this);
-            this.renderNode.renderer?.events.off("changerelativecenter", this._onChangeRelativeCenter);
-            this.renderNode = null;
+        if (this.scene) {
+            this.scene.removeEntityCollection(this);
+            this.scene.renderer?.events.off("changerelativecenter", this._onChangeRelativeCenter);
+            this.scene = null;
             this.events.dispatch(this.events.remove, this);
         }
     }
@@ -793,8 +793,8 @@ class EntityCollection {
         let i = this._entities.length;
         while (i--) {
             let ei = this._entities[i];
-            if (this.renderNode && this.renderNode.renderer) {
-                this.renderNode.renderer.clearPickingColor(ei);
+            if (this.scene && this.scene.renderer) {
+                this.scene.renderer.clearPickingColor(ei);
                 ei._pickingColor.clear();
             }
             this._clearEntity(ei);

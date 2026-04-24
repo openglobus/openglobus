@@ -41,12 +41,11 @@ import { Camera, PlanetCamera } from "./camera/index";
 import { Line2, Line3, Mat3, Mat4, Plane, Quat, Ray, Vec2, Vec3, Vec4 } from "./math/index";
 
 import { Renderer } from "./renderer/Renderer";
-import { LightSource } from "./light/LightSource";
 import { Clock } from "./Clock";
 import { Events, type EventsHandler, createEvents } from "./Events";
 import { Extent } from "./Extent";
 import { LonLat } from "./LonLat";
-import { RenderNode } from "./scene/RenderNode";
+import { Scene } from "./scene/Scene";
 import { Planet } from "./scene/Planet";
 import { Popup } from "./Popup";
 import { Loader, type IResponse } from "./utils/Loader";
@@ -99,7 +98,6 @@ export {
     Ellipsoid,
     Planet,
     PlanetCamera,
-    LightSource,
     ShaderProgram,
     Handler,
     Multisample,
@@ -110,7 +108,7 @@ export {
     createEvents,
     Extent,
     LonLat,
-    RenderNode,
+    Scene,
     Line2,
     Line3,
     Mat3,

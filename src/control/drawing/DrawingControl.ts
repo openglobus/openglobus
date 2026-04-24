@@ -52,7 +52,7 @@ class DrawingControl extends Control {
 
     public override onactivate() {
         this.planet && this._drawingScene.bindPlanet(this.planet);
-        this.renderer && this.renderer.addNode(this._drawingScene);
+        this.renderer && this.renderer.addScene(this._drawingScene);
     }
 
     public override ondeactivate() {

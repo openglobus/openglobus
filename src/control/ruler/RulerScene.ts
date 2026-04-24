@@ -4,7 +4,7 @@ import type { EventsHandler } from "../../Events";
 import { LonLat } from "../../LonLat";
 import { Object3d } from "../../Object3d";
 import { Planet } from "../../scene/Planet";
-import { RenderNode } from "../../scene/RenderNode";
+import { Scene } from "../../scene/Scene";
 import { Vector } from "../../layer/Vector";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
@@ -81,7 +81,7 @@ type RulerSceneEventsList = [
     "touchenter"
 ];
 
-class RulerScene extends RenderNode {
+class RulerScene extends Scene {
     public events: EventsHandler<RulerSceneEventsList>;
     protected _ignoreTerrain: boolean;
     protected _planet: Planet | null;

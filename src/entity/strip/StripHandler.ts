@@ -1,6 +1,6 @@
 import { EntityCollection } from "../EntityCollection";
 import { Renderer } from "../../renderer/Renderer";
-import { RenderNode } from "../../scene/RenderNode";
+import { Scene } from "../../scene/Scene";
 import { Strip } from "./Strip";
 import { stripForward, stripTransparent } from "../../shaders/strip/strip";
 
@@ -62,11 +62,11 @@ class StripHandler {
         }
     }
 
-    public setRenderNode(renderNode: RenderNode) {
-        this._renderer = renderNode.renderer;
+    public bindScene(scene: Scene) {
+        this._renderer = scene.renderer;
         this._initProgram();
         for (let i = 0; i < this._strips.length; i++) {
-            this._strips[i].setRenderNode(renderNode);
+            this._strips[i].bindScene(scene);
         }
     }
 
@@ -93,9 +93,7 @@ class StripHandler {
                 this._swap(index, this._opaqueCount);
                 this._opaqueCount++;
             }
-            this._entityCollection &&
-                this._entityCollection.renderNode &&
-                strip.setRenderNode(this._entityCollection.renderNode);
+            this._entityCollection && this._entityCollection.scene && strip.bindScene(this._entityCollection.scene);
         }
     }
 

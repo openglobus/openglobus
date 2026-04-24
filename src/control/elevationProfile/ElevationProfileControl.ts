@@ -149,7 +149,7 @@ export class ElevationProfileControl extends Control {
 
     override onactivate() {
         this.planet && this._elevationProfileScene.bindPlanet(this.planet);
-        this.renderer && this.renderer.addNode(this._elevationProfileScene);
+        this.renderer && this.renderer.addScene(this._elevationProfileScene);
     }
 
     override ondeactivate() {

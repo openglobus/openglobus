@@ -5,7 +5,7 @@ import {
     Renderer,
     Vec3,
     Mat4,
-    RenderNode,
+    Scene,
     EntityCollection,
     scene,
 } from "../../lib/og.es.js";
@@ -16,7 +16,7 @@ let renderer = new Renderer("frame", {
     autoActivate: true
 });
 
-class MyScene extends RenderNode {
+class MyScene extends Scene {
     constructor() {
         super("MyScene");
     }
@@ -72,7 +72,7 @@ class MyScene extends RenderNode {
     }
 }
 
-renderer.addNodes([
+renderer.addScenes([
     new scene.Axes(),
     new MyScene()
 ]);

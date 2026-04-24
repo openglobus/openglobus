@@ -9,7 +9,7 @@ import { LonLat } from "../../LonLat";
 import { Line3 } from "../../math/Line3";
 import { Object3d } from "../../Object3d";
 import { Planet } from "../../scene/Planet";
-import { RenderNode } from "../../scene/RenderNode";
+import { Scene } from "../../scene/Scene";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
 import { Vector } from "../../layer/Vector";
@@ -33,7 +33,7 @@ const POINTER_OBJ3D = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, 
 export const NUM_SEGMENTS = 300;
 export const OUTLINE_ALT = 0.0;
 
-class PolygonDrawingScene extends RenderNode {
+class PolygonDrawingScene extends Scene {
     public events: EventsHandler<PolygonDrawingSceneEventsList>;
     public _planet: Planet | null;
     public _cornerStyle: IGeoObjectParams;

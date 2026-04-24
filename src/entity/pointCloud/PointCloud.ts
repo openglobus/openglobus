@@ -1,6 +1,6 @@
 import { Entity } from "../Entity";
 import { PointCloudHandler } from "./PointCloudHandler";
-import { RenderNode } from "../../scene/RenderNode";
+import { Scene } from "../../scene/Scene";
 import { Vec3 } from "../../math/Vec3";
 import { Vec4 } from "../../math/Vec4";
 import type { WebGLBufferExt } from "../../webgl/Handler";
@@ -78,9 +78,9 @@ class PointCloud {
     /**
      * Parent collection render node.
      * @protected
-     * @type {RenderNode | null}
+     * @type {Scene | null}
      */
-    protected _renderNode: RenderNode | null;
+    protected _scene: Scene | null;
 
     /**
      * Entity instance that holds this point cloud.
@@ -159,9 +159,9 @@ class PointCloud {
         /**
          * Parent collection render node.
          * @private
-         * @type {RenderNode}
+         * @type {Scene}
          */
-        this._renderNode = null;
+        this._scene = null;
 
         /**
          * Entity instance that holds this point cloud.
@@ -280,10 +280,10 @@ class PointCloud {
     /**
      * Assign rendering scene node.
      * @public
-     * @param {RenderNode}  renderNode - Assigned render node.
+     * @param {Scene}  scene - Assigned render node.
      */
-    public setRenderNode(renderNode: RenderNode) {
-        this._renderNode = renderNode;
+    public bindScene(scene: Scene) {
+        this._scene = scene;
         this._setPickingColors();
     }
 
@@ -328,8 +328,8 @@ class PointCloud {
 
             this._points.push(p);
 
-            if (this._renderNode && this._renderNode.renderer) {
-                this._renderNode.renderer.assignPickingColor<IPoint>(p);
+            if (this._scene && this._scene.renderer) {
+                this._scene.renderer.assignPickingColor<IPoint>(p);
                 this._pickingColorData.push(
                     p._pickingColor.x / 255.0,
                     p._pickingColor.y / 255.0,
@@ -396,7 +396,7 @@ class PointCloud {
         if (this.visibility && this._coordinatesData.length) {
             this._update();
 
-            let rn = this._renderNode!;
+            let rn = this._scene!;
             let r = rn.renderer!;
             let sh = r.handler.programs.pointCloud;
             let p = sh;
@@ -423,7 +423,7 @@ class PointCloud {
 
     public drawPicking() {
         if (this.visibility && this._coordinatesData.length) {
-            let rn = this._renderNode!;
+            let rn = this._scene!;
             let r = rn.renderer!;
             let sh = r.handler.programs.pointCloud;
             let p = sh;
@@ -453,7 +453,7 @@ class PointCloud {
      * @protected
      */
     protected _update() {
-        if (this._renderNode) {
+        if (this._scene) {
             let i = this._changedBuffers.length;
             while (i--) {
                 if (this._changedBuffers[i]) {
@@ -469,8 +469,8 @@ class PointCloud {
      * @public
      */
     public _deleteBuffers() {
-        if (this._renderNode) {
-            let r = this._renderNode.renderer!,
+        if (this._scene) {
+            let r = this._scene.renderer!,
                 gl = r.handler.gl!;
 
             gl.deleteBuffer(this._coordinatesBuffer as WebGLBuffer);
@@ -484,7 +484,7 @@ class PointCloud {
     }
 
     protected _createCoordinatesBuffer() {
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
         h.gl!.deleteBuffer(this._coordinatesBuffer as WebGLBuffer);
         this._coordinatesBuffer = h.createArrayBuffer(
             new Float32Array(this._coordinatesData),
@@ -494,13 +494,13 @@ class PointCloud {
     }
 
     protected _createColorBuffer() {
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
         h.gl!.deleteBuffer(this._colorBuffer as WebGLBuffer);
         this._colorBuffer = h.createArrayBuffer(new Float32Array(this._colorData), 4, this._colorData.length / 4);
     }
 
     protected _createPickingColorBuffer() {
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
         h.gl!.deleteBuffer(this._pickingColorBuffer as WebGLBuffer);
         this._pickingColorBuffer = h.createArrayBuffer(
             new Float32Array(this._pickingColorData),
@@ -510,12 +510,12 @@ class PointCloud {
     }
 
     protected _setPickingColors() {
-        if (this._renderNode && this._renderNode.renderer) {
+        if (this._scene && this._scene.renderer) {
             for (let i = 0; i < this._points.length; i++) {
                 let p = this._points[i];
                 p._entity = this._entity;
                 p._entityCollection = this._entity!._entityCollection;
-                this._renderNode.renderer.assignPickingColor<IPoint>(p);
+                this._scene.renderer.assignPickingColor<IPoint>(p);
                 this._pickingColorData.push(
                     p._pickingColor.x / 255.0,
                     p._pickingColor.y / 255.0,

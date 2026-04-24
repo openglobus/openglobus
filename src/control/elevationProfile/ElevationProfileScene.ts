@@ -4,7 +4,7 @@ import { LonLat } from "../../LonLat";
 import { Extent } from "../../Extent";
 import { Object3d } from "../../Object3d";
 import { Planet } from "../../scene/Planet";
-import { RenderNode } from "../../scene/RenderNode";
+import { Scene } from "../../scene/Scene";
 import { Vector } from "../../layer/Vector";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
@@ -75,7 +75,7 @@ const HEAD_POINTER_OPTIONS = {
     object3d: headObj3d
 };
 
-class ElevationProfileScene extends RenderNode {
+class ElevationProfileScene extends Scene {
     public events: EventsHandler<ElevationProfileSceneEventsList>;
 
     protected _planet: Planet | null;

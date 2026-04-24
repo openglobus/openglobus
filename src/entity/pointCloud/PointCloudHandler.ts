@@ -2,7 +2,7 @@ import * as shaders from "../../shaders/pointCloud";
 import { EntityCollection } from "../EntityCollection";
 import { PointCloud } from "./PointCloud";
 import { Renderer } from "../../renderer/Renderer";
-import { RenderNode } from "../../scene/RenderNode";
+import { Scene } from "../../scene/Scene";
 
 class PointCloudHandler {
     static __counter__: number = 0;
@@ -53,11 +53,11 @@ class PointCloudHandler {
         }
     }
 
-    public setRenderNode(renderNode: RenderNode) {
-        this._renderer = renderNode.renderer;
+    public bindScene(scene: Scene) {
+        this._renderer = scene.renderer;
         this._initProgram();
         for (let i = 0; i < this._pointClouds.length; i++) {
-            this._pointClouds[i].setRenderNode(renderNode);
+            this._pointClouds[i].bindScene(scene);
         }
     }
 
@@ -67,8 +67,8 @@ class PointCloudHandler {
             pointCloud._handlerIndex = this._pointClouds.length;
             this._pointClouds.push(pointCloud);
             this._entityCollection &&
-                this._entityCollection.renderNode &&
-                pointCloud.setRenderNode(this._entityCollection.renderNode);
+                this._entityCollection.scene &&
+                pointCloud.bindScene(this._entityCollection.scene);
         }
     }
 

@@ -399,7 +399,7 @@ class BaseBillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer as WebGLBuffer);
         gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(shu.planetRadius, (ec.renderNode as Planet)._planetRadius2 || 0);
+        gl.uniform1f(shu.planetRadius, (ec.scene as Planet)._planetRadius2 || 0);
 
         gl.uniform2fv(shu.viewport, [h.canvas!.clientWidth, h.canvas!.clientHeight]);
 
@@ -470,7 +470,7 @@ class BaseBillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer as WebGLBuffer);
         gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(shu.planetRadius, (ec.renderNode as Planet)._planetRadius2 || 0);
+        gl.uniform1f(shu.planetRadius, (ec.scene as Planet)._planetRadius2 || 0);
 
         gl.uniform2fv(shu.viewport, [h.canvas!.clientWidth, h.canvas!.clientHeight]);
 

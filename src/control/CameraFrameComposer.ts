@@ -1,7 +1,7 @@
 import { Control, IControlParams } from "./Control";
 import { CameraFrameHandler } from "./CameraFrameHandler";
 import { EntityCollection } from "../entity";
-import { RenderNode } from "../scene/RenderNode";
+import { Scene } from "../scene/Scene";
 
 export interface ICameraFrameComposerParams extends IControlParams {
     frameHandlers?: CameraFrameHandler[];
@@ -10,7 +10,7 @@ export interface ICameraFrameComposerParams extends IControlParams {
 export class CameraFrameComposer extends Control {
     public readonly _frameHandlers: CameraFrameHandler[];
     protected _cameraLayer: EntityCollection;
-    protected _cameraScene: RenderNode;
+    protected _cameraScene: Scene;
 
     constructor(params: ICameraFrameComposerParams = {}) {
         super({
@@ -24,7 +24,7 @@ export class CameraFrameComposer extends Control {
             pickingEnabled: false
         });
 
-        this._cameraScene = new RenderNode("CameraScene");
+        this._cameraScene = new Scene("CameraScene");
 
         this._frameHandlers = params.frameHandlers || [];
     }
@@ -49,7 +49,7 @@ export class CameraFrameComposer extends Control {
         super.activate();
         if (this.renderer) {
             this.renderer.events.on("postdraw", this._onPostdraw);
-            this.renderer.addNode(this._cameraScene);
+            this.renderer.addScene(this._cameraScene);
         }
     }
 

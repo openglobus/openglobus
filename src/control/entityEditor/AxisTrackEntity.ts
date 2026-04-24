@@ -76,8 +76,8 @@ export class AxisTrackEntity extends Entity {
     public override setCartesian3v(cart: Vec3) {
         super.setCartesian3v(cart);
 
-        if (this._entityCollection && this._entityCollection.renderNode) {
-            let rn = this._entityCollection.renderNode as EntityEditorScene;
+        if (this._entityCollection && this._entityCollection.scene) {
+            let rn = this._entityCollection.scene as EntityEditorScene;
             let cam = rn.renderer!.activeCamera;
             let radiusDist = cam.isOrthographic ? cam.focusDistance : cam.eye.distance(cart);
             let r = radiusDist * 0.05;

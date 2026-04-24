@@ -3,7 +3,7 @@ import { Events } from "../../Events";
 import { Vector } from "../../layer/Vector";
 import { LonLat } from "../../LonLat";
 import { Object3d } from "../../Object3d";
-import { RenderNode } from "../../scene/RenderNode";
+import { Scene } from "../../scene/Scene";
 
 const OUTLINE_COUNT = 120;
 
@@ -17,7 +17,7 @@ function distanceFormat(v: number) {
     }
 }
 
-class SelectionScene extends RenderNode {
+class SelectionScene extends Scene {
     events: Events<string[]>;
     _ignoreTerrain = false;
     _onSelect: any;

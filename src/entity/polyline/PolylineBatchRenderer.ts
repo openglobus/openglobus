@@ -6,7 +6,7 @@ import type { NumberArray3 } from "../../math/Vec3";
 import type { NumberArray4 } from "../../math/Vec4";
 import type { Planet } from "../../scene/Planet";
 import { PolylineHandler } from "./PolylineHandler";
-import { RenderNode } from "../../scene/RenderNode";
+import { Scene } from "../../scene/Scene";
 import type { WebGLBufferExt } from "../../webgl/Handler";
 import {
     cloneArray,
@@ -361,7 +361,7 @@ class PolylineBatchRenderer {
     protected _boundingSphereBuffer: WebGLBufferExt | null;
     protected _pickingColorsBuffer: WebGLBufferExt | null;
 
-    protected _renderNode: RenderNode | null;
+    protected _scene: Scene | null;
 
     /**
      * Entity instance that holds this Polyline.
@@ -461,7 +461,7 @@ class PolylineBatchRenderer {
         this._boundingSphereBuffer = null;
         this._pickingColorsBuffer = null;
 
-        this._renderNode = null;
+        this._scene = null;
 
         this._entity = null;
 
@@ -627,7 +627,7 @@ class PolylineBatchRenderer {
         return this._image;
     }
 
-    protected _setSrcPerSegment(src: StrokeSource[], segCount: number, renderNode: RenderNode, textureAtlas: any) {
+    protected _setSrcPerSegment(src: StrokeSource[], segCount: number, scene: Scene, textureAtlas: any) {
         const pending = new Map<Exclude<StrokeSource, null>, number[]>();
 
         for (let j = 0; j < segCount; j++) {
@@ -653,7 +653,7 @@ class PolylineBatchRenderer {
                 this._image = segImages;
                 this._setTexCoordArr(segTexCoords);
                 this._updateAllTextureMetrics();
-                renderNode.updateStrokeTexCoords();
+                scene.updateStrokeTexCoords();
             }
         };
 
@@ -687,14 +687,14 @@ class PolylineBatchRenderer {
         });
     }
 
-    protected _setSrcDisabled(segCount: number, renderNode: RenderNode) {
+    protected _setSrcDisabled(segCount: number, scene: Scene) {
         this._image = new Array(segCount).fill(null);
         const empty: (number[] | null)[] = new Array(segCount).fill(null);
 
         this._setTexCoordArr(empty);
         this._updateAllTextureMetrics();
 
-        renderNode.updateStrokeTexCoords();
+        scene.updateStrokeTexCoords();
     }
 
     protected _setTextureEnabled(segCount: number) {
@@ -735,7 +735,7 @@ class PolylineBatchRenderer {
             return;
         }
 
-        const rn = bh._entityCollection.renderNode;
+        const rn = bh._entityCollection.scene;
 
         if (!rn || !rn.renderer) {
             return;
@@ -790,7 +790,7 @@ class PolylineBatchRenderer {
         }
         this._pathClosed[segmentIndex] = isClosed;
 
-        if (!this._renderNode) {
+        if (!this._scene) {
             return;
         }
 
@@ -800,7 +800,7 @@ class PolylineBatchRenderer {
         }
 
         if (path3v.length >= 2) {
-            const ellipsoid = (this._renderNode as Planet).ellipsoid;
+            const ellipsoid = (this._scene as Planet).ellipsoid;
             const pathLonLat = this._pathLonLat[segmentIndex];
 
             if (ellipsoid && pathLonLat && pathLonLat.length === path3v.length) {
@@ -853,7 +853,7 @@ class PolylineBatchRenderer {
 
         if (m == null) return null;
 
-        const rn = this._handler?._entityCollection?.renderNode;
+        const rn = this._handler?._entityCollection?.scene;
         const d = rn?.renderer && m.__nodeIndex != null ? rn.renderer.strokeTextureAtlas.get(m.__nodeIndex) : null;
 
         return d?.texCoords ?? null;
@@ -1795,7 +1795,7 @@ class PolylineBatchRenderer {
             m = this._pathLonLatMerc,
             k = 0;
 
-        var ellipsoid = (this._renderNode as Planet).ellipsoid;
+        var ellipsoid = (this._scene as Planet).ellipsoid;
 
         if (ellipsoid) {
             extent.southWest.set(180, 90);
@@ -2049,7 +2049,7 @@ class PolylineBatchRenderer {
         const vl = this._verticesLow;
         const l = this._pathLonLat;
         const m = this._pathLonLatMerc;
-        const ellipsoid = (this._renderNode as Planet).ellipsoid;
+        const ellipsoid = (this._scene as Planet).ellipsoid;
         const k0 = this._pathLengths[segmentIndex] * 12 + 24 * segmentIndex;
         const c = this._colors;
         const c0 = this._pathLengths[segmentIndex] * 16 + 32 * segmentIndex;
@@ -2250,7 +2250,7 @@ class PolylineBatchRenderer {
             c = this._path3v,
             k = 0;
 
-        const ellipsoid = (this._renderNode as Planet).ellipsoid;
+        const ellipsoid = (this._scene as Planet).ellipsoid;
         const colors = this._colors;
         let ck = 0;
         const pathColorsAny = pathColors as any;
@@ -2477,7 +2477,7 @@ class PolylineBatchRenderer {
             return;
         }
 
-        const ellipsoid = (this._renderNode as Planet).ellipsoid;
+        const ellipsoid = (this._scene as Planet).ellipsoid;
         const v_high = new Vec3();
         const v_low = new Vec3();
         const vh = this._verticesHigh;
@@ -2662,7 +2662,7 @@ class PolylineBatchRenderer {
     }
 
     public setPointLonLat(lonlat: LonLat, index: number, segmentIndex: number) {
-        if (this._renderNode && (this._renderNode as Planet).ellipsoid) {
+        if (this._scene && (this._scene as Planet).ellipsoid) {
             let l = this._pathLonLat,
                 m = this._pathLonLatMerc;
 
@@ -2671,12 +2671,7 @@ class PolylineBatchRenderer {
 
             this._recalculateExtentFromLonLatPaths();
 
-            this.setPoint3v(
-                (this._renderNode as Planet).ellipsoid.lonLatToCartesian(lonlat),
-                index,
-                segmentIndex,
-                true
-            );
+            this.setPoint3v((this._scene as Planet).ellipsoid.lonLatToCartesian(lonlat), index, segmentIndex, true);
         } else {
             let path = this._pathLonLat[segmentIndex] as LonLat[];
             path[index].lon = lonlat.lon;
@@ -2693,7 +2688,7 @@ class PolylineBatchRenderer {
      * @param {boolean} [skipLonLat=false] - Do not update geodetic coordinates
      */
     public setPoint3v(coordinates: Vec3, index: number = 0, segmentIndex: number = 0, skipLonLat: boolean = false) {
-        if (this._renderNode) {
+        if (this._scene) {
             let v_high = new Vec3(),
                 v_low = new Vec3();
 
@@ -2757,8 +2752,8 @@ class PolylineBatchRenderer {
                 vl[k + 11] = v_low.z;
             }
 
-            if (!skipLonLat && (this._renderNode as Planet).ellipsoid) {
-                let lonLat = (this._renderNode as Planet).ellipsoid.cartesianToLonLat(coordinates);
+            if (!skipLonLat && (this._scene as Planet).ellipsoid) {
+                let lonLat = (this._scene as Planet).ellipsoid.cartesianToLonLat(coordinates);
                 l[segmentIndex][index] = lonLat;
                 m[segmentIndex][index] = lonLat.forwardMercator();
 
@@ -2959,7 +2954,7 @@ class PolylineBatchRenderer {
         this._pathLengths.length = this._path3v.length + 1;
         this._resizePathLengths(index > 0 ? index - 1 : 0);
 
-        if (!this._renderNode || removedLen === 0) {
+        if (!this._scene || removedLen === 0) {
             return;
         }
 
@@ -3058,11 +3053,11 @@ class PolylineBatchRenderer {
         this._pathLengths.length = this._path3v.length + 1;
         this._pathLengths[segIndex + 1] = (this._pathLengths[segIndex] || 0) + path3v.length;
 
-        if (!this._renderNode) {
+        if (!this._scene) {
             return;
         }
 
-        const ellipsoid = (this._renderNode as Planet).ellipsoid;
+        const ellipsoid = (this._scene as Planet).ellipsoid;
 
         this._verticesHigh = makeArray(this._verticesHigh);
         this._verticesLow = makeArray(this._verticesLow);
@@ -3145,11 +3140,11 @@ class PolylineBatchRenderer {
         this._pathLengths.length = segIndex + 2;
         this._pathLengths[segIndex + 1] = (this._pathLengths[segIndex] || 0) + pathLonLat.length;
 
-        if (!this._renderNode) {
+        if (!this._scene) {
             return;
         }
 
-        const ellipsoid = (this._renderNode as Planet).ellipsoid;
+        const ellipsoid = (this._scene as Planet).ellipsoid;
         if (!ellipsoid) return;
 
         this._verticesHigh = makeArray(this._verticesHigh);
@@ -3281,7 +3276,7 @@ class PolylineBatchRenderer {
     public addPoint3v(point3v: Vec3, segmentIndex: number = 0, color?: NumberArray4, opacity: number = 1) {
         if (segmentIndex < 0) return;
 
-        if (!this._renderNode) {
+        if (!this._scene) {
             while (segmentIndex >= this._path3v.length) {
                 this._path3v.push([]);
             }
@@ -3331,7 +3326,7 @@ class PolylineBatchRenderer {
         const segPickingColors = this._pathPickingColors[segIndex] || (this._pathPickingColors[segIndex] = []);
         segPickingColors.push([this._pickingColor[R], this._pickingColor[G], this._pickingColor[B]]);
 
-        const ellipsoid = (this._renderNode as Planet).ellipsoid;
+        const ellipsoid = (this._scene as Planet).ellipsoid;
 
         if (ellipsoid) {
             const lonLat = ellipsoid.cartesianToLonLat(point3v);
@@ -3563,7 +3558,7 @@ class PolylineBatchRenderer {
             return;
         }
 
-        const ellipsoid = this._renderNode ? (this._renderNode as Planet).ellipsoid : null;
+        const ellipsoid = this._scene ? (this._scene as Planet).ellipsoid : null;
 
         if (!ellipsoid) {
             while (segmentIndex >= this._pathLonLat.length) {
@@ -3646,7 +3641,7 @@ class PolylineBatchRenderer {
      * @param {number} [opacity=1.0]
      */
     public setPointColor(color: NumberArray4, index: number = 0, segmentIndex: number = 0, opacity: number = 1.0) {
-        if (this._renderNode && index < this._path3v[segmentIndex].length) {
+        if (this._scene && index < this._path3v[segmentIndex].length) {
             let colors = this._pathColors[segmentIndex];
 
             if (!colors) {
@@ -3728,7 +3723,7 @@ class PolylineBatchRenderer {
 
         this._segmentThickness[segIndex] = thickness;
 
-        if (this._renderNode) {
+        if (this._scene) {
             const groupsBefore = segIndex === 0 ? 0 : this._pathLengths[segIndex] + 2 * segIndex - 1;
             const groupsCount = this._path3v[segIndex].length + 1 + (segIndex > 0 ? 1 : 0);
             const start = groupsBefore * 4;
@@ -3802,7 +3797,7 @@ class PolylineBatchRenderer {
         const resolvedStrokeSize = texParams.strokeSize;
         const resolvedTexOffsetSpeed = texParams.texOffsetSpeed;
 
-        if (!this._renderNode || resolvedSegmentIndex < 0 || resolvedSegmentIndex >= this._path3v.length) {
+        if (!this._scene || resolvedSegmentIndex < 0 || resolvedSegmentIndex >= this._path3v.length) {
             return;
         }
 
@@ -3867,11 +3862,11 @@ class PolylineBatchRenderer {
     /**
      * Assign with render node.
      * @public
-     * @param {RenderNode} renderNode -
+     * @param {Scene} scene -
      */
-    public setRenderNode(renderNode: RenderNode) {
-        if (renderNode) {
-            this._renderNode = renderNode;
+    public bindScene(scene: Scene) {
+        if (scene) {
+            this._scene = scene;
             const hasLonLatData = this._pathLonLat.some((segment) => segment.length > 0);
             if (hasLonLatData) {
                 this._createDataLonLat(([] as SegmentPathLonLatExt[]).concat(this._pathLonLat));
@@ -3879,7 +3874,7 @@ class PolylineBatchRenderer {
                 this._createData3v(([] as SegmentPath3vExt[]).concat(this._path3v));
             }
             this._refresh();
-            if (renderNode.renderer && renderNode.renderer.isInitialized()) {
+            if (scene.renderer && scene.renderer.isInitialized()) {
                 this._update();
             }
         }
@@ -3945,7 +3940,7 @@ class PolylineBatchRenderer {
             this._verticesLow as number[],
             this._orders as number[],
             this._indexes as number[],
-            (this._renderNode as Planet).ellipsoid,
+            (this._scene as Planet).ellipsoid,
             this._pathLonLat,
             this._path3v,
             this._pathLonLatMerc,
@@ -3980,7 +3975,7 @@ class PolylineBatchRenderer {
             this._orders as number[],
             this._indexes as number[],
             this._texCoordArr as number[],
-            (this._renderNode as Planet).ellipsoid,
+            (this._scene as Planet).ellipsoid,
             this._path3v,
             this._pathLonLat,
             this._pathLonLatMerc,
@@ -4085,7 +4080,7 @@ class PolylineBatchRenderer {
             }
         }
 
-        if (!this._renderNode) return;
+        if (!this._scene) return;
 
         const path = this._path3v[segmentIndex];
         if (!path || path.length === 0) return;
@@ -4153,7 +4148,7 @@ class PolylineBatchRenderer {
         this._segmentOpacity[segmentIndex] = opacity;
 
         const segPath = this._path3v[segmentIndex];
-        if (!segPath || segPath.length === 0 || !this._renderNode) {
+        if (!segPath || segPath.length === 0 || !this._scene) {
             return;
         }
 
@@ -4246,7 +4241,7 @@ class PolylineBatchRenderer {
         const lastInputColor = segInputCount > 0 ? segColorsInput[segInputCount - 1] : undefined;
         let currentColor = this._defaultColor as NumberArray4;
 
-        if (!this._renderNode) {
+        if (!this._scene) {
             for (let i = 0; i < segPath.length; i++) {
                 if (segColorsInput[i]) {
                     currentColor = segColorsInput[i];
@@ -4447,7 +4442,7 @@ class PolylineBatchRenderer {
         forceEqual: boolean = false,
         segmentIndex?: number
     ) {
-        if (this._renderNode) {
+        if (this._scene) {
             if (forceEqual) {
                 if (segmentIndex !== undefined) {
                     const segmentPath = path3v as SegmentPath3vExt;
@@ -4517,7 +4512,7 @@ class PolylineBatchRenderer {
         forceEqual: boolean = false,
         segmentIndex?: number
     ) {
-        if (this._renderNode && (this._renderNode as Planet).ellipsoid) {
+        if (this._scene && (this._scene as Planet).ellipsoid) {
             if (forceEqual) {
                 if (segmentIndex !== undefined) {
                     const segmentPath = pathLonLat as SegmentPathLonLatExt;
@@ -4566,7 +4561,7 @@ class PolylineBatchRenderer {
         if (this.visibility && this._path3v.length) {
             this._update();
 
-            let r = this._renderNode!.renderer!;
+            let r = this._scene!.renderer!;
             let sh = this.isTextured ? r.handler.programs.polylineTex : r.handler.programs.polylinePlain;
             let p = sh;
             let gl = r.handler.gl!,
@@ -4639,7 +4634,7 @@ class PolylineBatchRenderer {
         if (this.visibility && this._path3v.length) {
             this._update();
 
-            let r = this._renderNode!.renderer!;
+            let r = this._scene!.renderer!;
             let sh = this.isTextured ? r.handler.programs.polylineTexWoit : r.handler.programs.polylineWoitPlain;
             let p = sh;
             let gl = r.handler.gl!,
@@ -4712,7 +4707,7 @@ class PolylineBatchRenderer {
     public drawPicking() {
         if (this.visibility && this._path3v.length) {
             this._update();
-            let rn = this._renderNode!;
+            let rn = this._scene!;
             let r = rn.renderer!;
             let sh = r.handler.programs.polyline_picking;
             let p = sh;
@@ -4784,7 +4779,7 @@ class PolylineBatchRenderer {
      * @protected
      */
     protected _update() {
-        if (this._renderNode) {
+        if (this._scene) {
             let i = this._changedBuffers.length;
             while (i--) {
                 if (this._changedBuffers[i]) {
@@ -4800,8 +4795,8 @@ class PolylineBatchRenderer {
      * @public
      */
     public _deleteBuffers() {
-        if (this._renderNode) {
-            let r = this._renderNode.renderer!,
+        if (this._scene) {
+            let r = this._scene.renderer!,
                 gl = r.handler.gl!;
 
             gl.deleteBuffer(this._verticesHighBuffer!);
@@ -4835,7 +4830,7 @@ class PolylineBatchRenderer {
      * @protected
      */
     protected _createVerticesBuffer() {
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
 
         let numItems = this._verticesHigh.length / 3;
 
@@ -4858,7 +4853,7 @@ class PolylineBatchRenderer {
      * @protected
      */
     protected _createIndexBuffer() {
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
         h.gl!.deleteBuffer(this._ordersBuffer!);
         h.gl!.deleteBuffer(this._indexesBuffer!);
 
@@ -4870,7 +4865,7 @@ class PolylineBatchRenderer {
     }
 
     protected _createColorsBuffer() {
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
         this._colors = makeArrayTyped(this._colors);
 
         const ta = this._colors as TypedArray;
@@ -4883,7 +4878,7 @@ class PolylineBatchRenderer {
     }
 
     protected _createPickingColorsBuffer() {
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
         this._pickingColors = makeArrayTyped(this._pickingColors);
 
         const ta = this._pickingColors as TypedArray;
@@ -4896,7 +4891,7 @@ class PolylineBatchRenderer {
     }
 
     protected _createThicknessBuffer() {
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
         this._thicknessArr = makeArrayTyped(this._thicknessArr);
         const ta = this._thicknessArr as TypedArray;
 
@@ -4912,7 +4907,7 @@ class PolylineBatchRenderer {
         if (!this.isTextured) {
             return;
         }
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
         this._pathTexParamArr = makeArrayTyped(this._pathTexParamArr);
         const ta = this._pathTexParamArr as TypedArray;
         const numItems = ta.length / 3;
@@ -4929,7 +4924,7 @@ class PolylineBatchRenderer {
         if (!this.isTextured) {
             return;
         }
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
         this._pathPhaseArr = makeArrayTyped(this._pathPhaseArr);
         const ta = this._pathPhaseArr as TypedArray;
 
@@ -4945,7 +4940,7 @@ class PolylineBatchRenderer {
         if (!this.isTextured) {
             return;
         }
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
         this._boundingSphereArr = makeArrayTyped(this._boundingSphereArr);
         const ta = this._boundingSphereArr as TypedArray;
         const numItems = ta.length / 4;
@@ -4962,7 +4957,7 @@ class PolylineBatchRenderer {
         if (!this.isTextured) {
             return;
         }
-        let h = this._renderNode!.renderer!.handler;
+        let h = this._scene!.renderer!.handler;
         h.gl!.deleteBuffer(this._texCoordBuffer!);
         this._texCoordArr = makeArrayTyped(this._texCoordArr);
         this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr as TypedArray, 4, this._texCoordArr.length / 4);
@@ -4988,7 +4983,7 @@ class PolylineBatchRenderer {
     }
 
     public updateRTCPosition() {
-        if (this._handler && this._renderNode) {
+        if (this._handler && this._scene) {
             this._updateVisibleSphereRTC();
             this._setEqualPath3v(this._path3v);
             if (this.isTextured) {

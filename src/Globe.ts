@@ -30,7 +30,7 @@ import { Sun } from "./control/Sun";
 import { TouchNavigation } from "./control/TouchNavigation";
 import { Renderer } from "./renderer/Renderer";
 import type { HTMLDivElementExt } from "./renderer/Renderer";
-import { RenderNode } from "./scene/RenderNode";
+import { Scene } from "./scene/Scene";
 import { Extent } from "./Extent";
 import type { IAtmosphereParams } from "./control/atmosphere/Atmosphere";
 import { CameraFrameComposer } from "./control/CameraFrameComposer";
@@ -40,7 +40,7 @@ import type { ShadeModeInput } from "./shadeModeConstants";
 export interface IGlobeParams {
     attributionContainer?: HTMLElement;
     target?: string | HTMLElement;
-    skybox?: RenderNode;
+    skybox?: Scene;
     dpi?: number;
     msaa?: number;
     name?: string;
@@ -267,7 +267,7 @@ class Globe {
 
         // Skybox
         if (options.skybox) {
-            this.renderer.addNode(options.skybox);
+            this.renderer.addScene(options.skybox);
         }
 
         this._planetName = options.name ? options.name : PLANET_NAME_PREFIX + Globe.__counter__;
@@ -316,7 +316,7 @@ class Globe {
             this.planet.setTerrain(new EmptyTerrain());
         }
 
-        this.renderer.addNode(this.planet);
+        this.renderer.addScene(this.planet);
 
         // Add controls
         if (options.controls) {

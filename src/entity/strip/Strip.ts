@@ -1,7 +1,7 @@
 import * as utils from "../../utils/shared";
 import { Entity } from "../Entity";
 import { Line3 } from "../../math/Line3";
-import { RenderNode } from "../../scene/RenderNode";
+import { Scene } from "../../scene/Scene";
 import { Vec3 } from "../../math/Vec3";
 import { Vec4 } from "../../math/Vec4";
 import type { NumberArray3 } from "../../math/Vec3";
@@ -60,9 +60,9 @@ class Strip {
     /**
      * Parent collection render node.
      * @protected
-     * @type {RenderNode}
+     * @type {Scene}
      */
-    protected _renderNode: RenderNode | null;
+    protected _scene: Scene | null;
 
     /**
      * Entity instance that holds this strip.
@@ -109,9 +109,9 @@ class Strip {
         /**
          * Parent collection render node.
          * @protected
-         * @type {RenderNode}
+         * @type {Scene}
          */
-        this._renderNode = null;
+        this._scene = null;
 
         /**
          * Entity instance that holds this strip.
@@ -238,10 +238,10 @@ class Strip {
     /**
      * Assign rendering scene node.
      * @public
-     * @param {RenderNode}  renderNode - Assigned render node.
+     * @param {Scene}  scene - Assigned render node.
      */
-    public setRenderNode(renderNode: RenderNode) {
-        this._renderNode = renderNode;
+    public bindScene(scene: Scene) {
+        this._scene = scene;
         this._createBuffers();
     }
 
@@ -256,7 +256,7 @@ class Strip {
 
     protected _drawImpl(sh: ShaderProgram, color: Float32Array, opacity: number) {
         if (this.visibility && this._verticesHigh.length) {
-            let r = this._renderNode!.renderer!;
+            let r = this._scene!.renderer!;
 
             let gl = r.handler.gl!;
 
@@ -294,7 +294,7 @@ class Strip {
 
     public drawTransparent() {
         this._drawImpl(
-            this._renderNode!.renderer!.handler.programs.stripTransparent,
+            this._scene!.renderer!.handler.programs.stripTransparent,
             this.color,
             this._entity!._entityCollection!._fadingOpacity
         );
@@ -302,7 +302,7 @@ class Strip {
 
     public drawOpaque() {
         this._drawImpl(
-            this._renderNode!.renderer!.handler.programs.stripForward,
+            this._scene!.renderer!.handler.programs.stripForward,
             this.color,
             this._entity!._entityCollection!._fadingOpacity
         );
@@ -310,7 +310,7 @@ class Strip {
 
     drawPicking() {
         if (this.visibility && this._verticesHigh.length) {
-            let r = this._renderNode!.renderer!;
+            let r = this._scene!.renderer!;
 
             let gl = r.handler.gl!;
 
@@ -348,8 +348,8 @@ class Strip {
      * @public
      */
     public _deleteBuffers() {
-        if (this._renderNode && this._renderNode.renderer) {
-            let r = this._renderNode.renderer,
+        if (this._scene && this._scene.renderer) {
+            let r = this._scene.renderer,
                 gl = r.handler.gl!;
 
             gl.deleteBuffer(this._indexBuffer!);
@@ -362,24 +362,24 @@ class Strip {
     }
 
     protected _createBuffers() {
-        if (this._renderNode && this._renderNode.renderer && this._renderNode.renderer.isInitialized()) {
-            let gl = this._renderNode.renderer.handler.gl!;
+        if (this._scene && this._scene.renderer && this._scene.renderer.isInitialized()) {
+            let gl = this._scene.renderer.handler.gl!;
 
             gl.deleteBuffer(this._indexBuffer as WebGLBuffer);
             gl.deleteBuffer(this._verticesHighBuffer as WebGLBuffer);
             gl.deleteBuffer(this._verticesLowBuffer as WebGLBuffer);
 
-            this._verticesHighBuffer = this._renderNode.renderer.handler.createArrayBuffer(
+            this._verticesHighBuffer = this._scene.renderer.handler.createArrayBuffer(
                 new Float32Array(this._verticesHigh),
                 3,
                 this._verticesHigh.length / 3
             );
-            this._verticesLowBuffer = this._renderNode.renderer.handler.createArrayBuffer(
+            this._verticesLowBuffer = this._scene.renderer.handler.createArrayBuffer(
                 new Float32Array(this._verticesLow),
                 3,
                 this._verticesLow.length / 3
             );
-            this._indexBuffer = this._renderNode.renderer.handler.createElementArrayBuffer(
+            this._indexBuffer = this._scene.renderer.handler.createElementArrayBuffer(
                 new Uint32Array(this._indexes),
                 1,
                 this._indexes.length

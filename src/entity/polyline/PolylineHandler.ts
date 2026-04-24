@@ -2,7 +2,7 @@ import * as shaders from "../../shaders/polyline/polyline";
 import { EntityCollection } from "../EntityCollection";
 import { Polyline } from "./Polyline";
 import { Renderer } from "../../renderer/Renderer";
-import { RenderNode } from "../../scene/RenderNode";
+import { Scene } from "../../scene/Scene";
 import { Vec3 } from "../../math/Vec3";
 import { PolylineBatchRenderer } from "./PolylineBatchRenderer";
 
@@ -86,15 +86,15 @@ class PolylineHandler {
         );
     }
 
-    public setRenderNode(renderNode: RenderNode) {
-        this._renderer = renderNode.renderer;
+    public bindScene(scene: Scene) {
+        this._renderer = scene.renderer;
         this._initProgram();
 
-        this._opaqueRenderer.setRenderNode(renderNode);
-        this._transparentRenderer.setRenderNode(renderNode);
+        this._opaqueRenderer.bindScene(scene);
+        this._transparentRenderer.bindScene(scene);
 
-        this._opaqueTexRenderer.setRenderNode(renderNode);
-        this._transparentTexRenderer.setRenderNode(renderNode);
+        this._opaqueTexRenderer.bindScene(scene);
+        this._transparentTexRenderer.bindScene(scene);
     }
 
     public add(polyline: Polyline) {
@@ -107,7 +107,7 @@ class PolylineHandler {
 
             polyline._addToBatchRenderer();
 
-            if (this._entityCollection && this._entityCollection.renderNode) {
+            if (this._entityCollection && this._entityCollection.scene) {
                 batchRenderer.updateRTCPosition();
             }
         }

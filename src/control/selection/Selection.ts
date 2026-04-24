@@ -88,7 +88,7 @@ export class Selection extends Control {
     }
 
     public override onactivate() {
-        this.renderer!.addNode(this._selectorScene);
+        this.renderer!.addScene(this._selectorScene);
     }
 
     override ondeactivate() {

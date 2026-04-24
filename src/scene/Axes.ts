@@ -1,8 +1,8 @@
 import { ShaderProgram } from "../webgl/ShaderProgram";
-import { RenderNode } from "./RenderNode";
+import { Scene } from "./Scene";
 import type { WebGLBufferExt } from "../webgl/Handler";
 
-class Axes extends RenderNode {
+class Axes extends Scene {
     public size: number;
     public axesBuffer: WebGLBufferExt | null;
     public axesColorBuffer: WebGLBufferExt | null;

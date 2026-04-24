@@ -709,7 +709,7 @@ class Entity {
         let p0 = this.getAbsoluteCartesian();
         let rot;
         if (this._entityCollection) {
-            let up = (this._entityCollection.renderNode as Planet).ellipsoid.getSurfaceNormal3v(p0);
+            let up = (this._entityCollection.scene as Planet).ellipsoid.getSurfaceNormal3v(p0);
             rot = lq.setLookRotation(cart.sub(p0), up).conjugate();
         } else {
             rot = lq.setLookRotation(cart.sub(p0), Vec3.UP).conjugate();
@@ -724,7 +724,7 @@ class Entity {
      */
     public setLookLonLat(lonLat: LonLat) {
         if (this._entityCollection) {
-            let cart = (this._entityCollection.renderNode as Planet).ellipsoid.lonLatToCartesian(lonLat);
+            let cart = (this._entityCollection.scene as Planet).ellipsoid.lonLatToCartesian(lonLat);
             this.setLook3v(cart);
         }
     }
@@ -915,8 +915,8 @@ class Entity {
         if (this._entityCollection) {
             let scaleByDistance = this._entityCollection.scaleByDistance;
             let lookLength = 1;
-            if (this._entityCollection.renderNode && this._entityCollection.renderNode.renderer) {
-                lookLength = this._entityCollection.renderNode.renderer.activeCamera.eye.distance(this._rootCartesian);
+            if (this._entityCollection.scene && this._entityCollection.scene.renderer) {
+                lookLength = this._entityCollection.scene.renderer.activeCamera.eye.distance(this._rootCartesian);
             }
             //the same in the shader
             scd = (scaleByDistance[2] * clamp(lookLength, scaleByDistance[0], scaleByDistance[1])) / scaleByDistance[0];
@@ -1038,8 +1038,8 @@ class Entity {
             parent._absoluteLocalPosition.addRes(rotCart, this._absoluteLocalPosition);
         } else {
             this._qFrame = Quat.IDENTITY;
-            if (this._entityCollection && this._entityCollection.renderNode) {
-                this._qFrame = this._entityCollection.renderNode.getFrameRotation(this._cartesian);
+            if (this._entityCollection && this._entityCollection.scene) {
+                this._qFrame = this._entityCollection.scene.getFrameRotation(this._cartesian);
             }
 
             if (!this._useDirectQuaternion) {
@@ -1098,9 +1098,9 @@ class Entity {
     protected _updateLonLat() {
         let ec = this._entityCollection;
 
-        if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
+        if (ec && ec.scene && (ec.scene as Planet).ellipsoid) {
             //let cart = this._rootCartesian.add(this._absoluteLocalPosition);
-            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(this.getAbsoluteCartesian());
+            this._lonLat = (ec.scene as Planet).ellipsoid.cartesianToLonLat(this.getAbsoluteCartesian());
 
             if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = this._lonLat.forwardMercator();
@@ -1132,7 +1132,7 @@ class Entity {
         l.height = lonlat.height;
 
         let ec = this._entityCollection;
-        if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
+        if (ec && ec.scene && (ec.scene as Planet).ellipsoid) {
             if (Math.abs(l.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = l.forwardMercator();
             } else {
@@ -1140,7 +1140,7 @@ class Entity {
             }
 
             let temp = new Vec3();
-            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, temp);
+            (ec.scene as Planet).ellipsoid.lonLatToCartesianRes(l, temp);
 
             this.setAbsoluteCartesian3v(temp);
         }
@@ -1161,7 +1161,7 @@ class Entity {
         l.height = height != undefined ? height : l.height;
 
         let ec = this._entityCollection;
-        if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
+        if (ec && ec.scene && (ec.scene as Planet).ellipsoid) {
             if (Math.abs(l.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = l.forwardMercator();
             } else {
@@ -1169,7 +1169,7 @@ class Entity {
             }
 
             let temp = new Vec3();
-            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, temp);
+            (ec.scene as Planet).ellipsoid.lonLatToCartesianRes(l, temp);
 
             this.setAbsoluteCartesian3v(temp);
         }

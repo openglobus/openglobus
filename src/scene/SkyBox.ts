@@ -1,10 +1,10 @@
 import * as shaders from "../shaders/skybox";
-import { RenderNode } from "./RenderNode";
+import { Scene } from "./Scene";
 import type { WebGLBufferExt, WebGLTextureExt, Texture3DParams } from "../webgl/Handler";
 import { Mat4 } from "../math/Mat4";
 import { RADIANS_HALF } from "../math";
 
-class SkyBox extends RenderNode {
+class SkyBox extends Scene {
     public params: Texture3DParams;
     public vertexPositionBuffer: WebGLBufferExt | null;
     public texture: WebGLTextureExt | null;

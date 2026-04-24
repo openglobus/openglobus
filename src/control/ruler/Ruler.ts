@@ -27,7 +27,7 @@ export class Ruler extends Control {
     }
 
     public override onactivate() {
-        this.renderer && this.renderer.addNode(this._rulerScene);
+        this.renderer && this.renderer.addScene(this._rulerScene);
     }
 
     public override ondeactivate() {

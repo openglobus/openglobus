@@ -394,7 +394,7 @@ class LabelHandler extends BaseBillboardHandler {
             r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
         );
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
-        gl.uniform1f(shu.planetRadius, (ec.renderNode as Planet)._planetRadius2 || 0);
+        gl.uniform1f(shu.planetRadius, (ec.scene as Planet)._planetRadius2 || 0);
         gl.uniform2fv(shu.viewport, [h.canvas!.clientWidth, h.canvas!.clientHeight]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
@@ -480,7 +480,7 @@ class LabelHandler extends BaseBillboardHandler {
         let gl = h.gl!,
             ec = this._entityCollection;
 
-        let rn = ec.renderNode;
+        let rn = ec.scene;
 
         const disableDepthTest = (r.activeCamera as any).slope > 0.5;
         if (disableDepthTest) {

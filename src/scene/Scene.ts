@@ -1,6 +1,4 @@
-import { BaseNode } from "./BaseNode";
 import { Renderer } from "../renderer/Renderer";
-import { LightSource } from "../light/LightSource";
 import type { EntityCollection } from "../entity/EntityCollection";
 import { Quat } from "../math/Quat";
 import { Vec3 } from "../math/Vec3";
@@ -11,13 +9,44 @@ import type { Planet } from "./Planet";
  * For example one scene node for rendering the Earth, another one for rendering the Moon, another node for rendering stars etc.
  * Each render node has own model view space defined with matrices(scale, rotation, translation, transformation).
  * There are collections of light sources, entities and so on in the node.
- * Access to the node is renderer.renderNodes["Earth"]
+ * Access to the node is renderer.scenes["Earth"]
  * @class
- * @extends {BaseNode}
  * @param {string} name - Node name.
  */
 
-class RenderNode extends BaseNode {
+class Scene {
+    static __counter__: number = 0;
+
+    protected __id: number;
+
+    /**
+     * Node name.
+     * @protected
+     * @type {string}
+     */
+    protected _name: string;
+
+    /**
+     * Top scene tree node pointer.
+     * @public
+     * @type {Scene}
+     */
+    public topNode: Scene;
+
+    /**
+     * Children nodes.
+     * @public
+     * @type {Array.<Scene>}
+     */
+    public childNodes: Scene[];
+
+    /**
+     * Parent node pointer.
+     * @public
+     * @type {Scene}
+     */
+    public parentNode: Scene | null;
+
     /**
      * Renderer that calls frame() callback.
      * @public
@@ -34,16 +63,6 @@ class RenderNode extends BaseNode {
 
     protected _isActive: boolean;
 
-    public override childNodes: RenderNode[];
-
-    /**
-     * Point light array.
-     * @public
-     * @type {Array.<LightSource>}
-     */
-    public _lightParams: Float32Array;
-    public _lightShininess: number;
-
     /**
      * Entity collection array.
      * @public
@@ -56,9 +75,15 @@ class RenderNode extends BaseNode {
     protected _pickingId: number;
 
     constructor(name?: string) {
-        super(name);
+        this.__id = Scene.__counter__++;
+
+        this._name = name || `${this.__id}`;
+
+        this.topNode = this;
 
         this.childNodes = [];
+
+        this.parentNode = null;
 
         this.renderer = null;
 
@@ -68,14 +93,15 @@ class RenderNode extends BaseNode {
 
         this._isActive = true;
 
-        this._lightParams = new Float32Array(9);
-        this._lightShininess = 100.0;
-
         this.entityCollections = [];
 
         this._entityCollectionsByDepthOrder = [];
 
         this._pickingId = -1;
+    }
+
+    public get name(): string {
+        return this._name;
     }
 
     public getFrameRotation(cartesian: Vec3): Quat {
@@ -85,10 +111,16 @@ class RenderNode extends BaseNode {
     /**
      * Adds node to the current hierarchy.
      * @public
-     * @type {RenderNode}
+     * @type {Scene}
      */
-    public override addNode(node: RenderNode) {
-        super.addNode(node);
+    public addNode(node: Scene) {
+        if (this.parentNode == null) {
+            node.topNode = this;
+        } else {
+            node.topNode = this.topNode;
+        }
+        node.parentNode = this;
+        this.childNodes.push(node);
         this.renderer && node.assign(this.renderer);
     }
 
@@ -106,7 +138,7 @@ class RenderNode extends BaseNode {
     public initialize() {
         if (this.renderer && this.renderer.isInitialized()) {
             for (let i = 0; i < this.entityCollections.length; i++) {
-                this.entityCollections[i].bindRenderNode(this);
+                this.entityCollections[i].bindScene(this);
             }
             this.init();
         }
@@ -126,15 +158,15 @@ class RenderNode extends BaseNode {
 
         if (r) {
             // TODO: replace to renderer
-            if (r.renderNodes[n] && r.renderNodes[n].isEqual(this)) {
+            if (r.scenes[n] && r.scenes[n].isEqual(this)) {
                 // @ts-ignore
-                r.renderNodes[n] = null;
-                delete r.renderNodes[n];
+                r.scenes[n] = null;
+                delete r.scenes[n];
             }
 
-            for (let i = 0; i < r._renderNodesArr.length; i++) {
-                if (r._renderNodesArr[i].isEqual(this)) {
-                    r._renderNodesArr.splice(i, 1);
+            for (let i = 0; i < r._scenesArr.length; i++) {
+                if (r._scenesArr[i].isEqual(this)) {
+                    r._scenesArr.splice(i, 1);
                     break;
                 }
             }
@@ -145,15 +177,36 @@ class RenderNode extends BaseNode {
     }
 
     /**
+     * Destroy node.
+     * @public
+     */
+    public destroy() {
+        for (let i = 0; i < this.childNodes.length; i++) {
+            this.childNodes[i].destroy();
+        }
+        this._clear();
+    }
+
+    /**
+     * Clear current node.
+     * @protected
+     */
+    protected _clear() {
+        this.parentNode = null;
+        this.topNode = this;
+        this.childNodes.length = 0;
+    }
+
+    /**
      * Adds entity collection.
      * @public
      * @param {EntityCollection} entityCollection - Entity collection.
      * @param {boolean} [isHidden] - If it's true that this collection has specific rendering.
-     * @returns {RenderNode} -
+     * @returns {Scene} -
      */
     public addEntityCollection(entityCollection: EntityCollection, isHidden?: boolean): void {
-        if (!entityCollection.renderNode) {
-            entityCollection.renderNode = this;
+        if (!entityCollection.scene) {
+            entityCollection.scene = this;
 
             if (!isHidden) {
                 this.entityCollections.push(entityCollection);
@@ -163,7 +216,7 @@ class RenderNode extends BaseNode {
             //@ts-ignore
             (this as Planet).ellipsoid && entityCollection._updateGeodeticCoordinates((this as Planet).ellipsoid);
 
-            entityCollection.bindRenderNode(this);
+            entityCollection.bindScene(this);
 
             entityCollection.events.dispatch(entityCollection.events.add, this);
         }
@@ -203,30 +256,19 @@ class RenderNode extends BaseNode {
     }
 
     /**
-     * Adds point light source.
+     * Calls render frame node's callback. Used in renderer.
      * @public
-     * @param {LightSource} light - Light source.
-     * @returns {RenderNode}
      */
-    public addLight(light: LightSource): RenderNode {
-        light.addTo(this);
-        return this;
+    public preDraw() {
+        this._isActive && this._preDraw();
     }
 
     /**
      * Calls render frame node's callback. Used in renderer.
      * @public
      */
-    public preDrawNode() {
-        this._isActive && this._preDrawNodes();
-    }
-
-    /**
-     * Calls render frame node's callback. Used in renderer.
-     * @public
-     */
-    public drawNode() {
-        this._isActive && this._drawNodes();
+    public draw() {
+        this._isActive && this._draw();
     }
 
     /**
@@ -274,27 +316,6 @@ class RenderNode extends BaseNode {
         }
     }
 
-    // /**
-    //  * IMPORTANT: This function have to be called manually in each render node frame callback, before drawing scene geometry.
-    //  * @public
-    //  */
-    // public transformLights() {
-    //     // for (let i = 0; i < this._lights.length; i++) {
-    //     //     var ii = i * 4;
-    //     //     var tp;
-    //     //     if (this._lights[i].directional) {
-    //     //         tp = r.activeCamera._normalMatrix.mulVec(this._lights[i]._position);
-    //     //         this._lightsTransformedPositions[ii + 3] = 0;
-    //     //     } else {
-    //     //         tp = r.activeCamera._viewMatrix.mulVec3(this._lights[i]._position);
-    //     //         this._lightsTransformedPositions[ii + 3] = 1;
-    //     //     }
-    //     //     this._lightsTransformedPositions[ii] = tp.x;
-    //     //     this._lightsTransformedPositions[ii + 1] = tp.y;
-    //     //     this._lightsTransformedPositions[ii + 2] = tp.z;
-    //     // }
-    // }
-
     /*
         @todo: use one atlas for both handlers?
      */
@@ -322,10 +343,10 @@ class RenderNode extends BaseNode {
         // virtual
     }
 
-    protected _preDrawNodes() {
+    protected _preDraw() {
         for (let i = 0; i < this.childNodes.length; i++) {
             if (this.childNodes[i]._isActive) {
-                this.childNodes[i]._preDrawNodes();
+                this.childNodes[i]._preDraw();
             }
         }
 
@@ -337,10 +358,10 @@ class RenderNode extends BaseNode {
         }
     }
 
-    protected _drawNodes() {
+    protected _draw() {
         for (let i = 0; i < this.childNodes.length; i++) {
             if (this.childNodes[i]._isActive) {
-                this.childNodes[i]._drawNodes();
+                this.childNodes[i]._draw();
             }
         }
 
@@ -409,6 +430,10 @@ class RenderNode extends BaseNode {
         //     this.drawPickingEntityCollections(this._entityCollectionsByDepthOrder[i]);
         // }
     }
+
+    public isEqual(node: Scene): boolean {
+        return node.__id === this.__id;
+    }
 }
 
-export { RenderNode };
+export { Scene };

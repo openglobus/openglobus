@@ -36,7 +36,7 @@ export class EntityEditor extends Control {
     }
 
     public override onactivate() {
-        this.renderer && this.renderer.addNode(this._entityEditorScene);
+        this.renderer && this.renderer.addScene(this._entityEditorScene);
     }
 
     public override ondeactivate() {

@@ -84,8 +84,8 @@ export class RotateEntity extends Entity {
     public override setCartesian3v(cart: Vec3, yaw: number = 0) {
         super.setCartesian3v(cart);
 
-        if (this._entityCollection && this._entityCollection.renderNode) {
-            let rn = this._entityCollection.renderNode;
+        if (this._entityCollection && this._entityCollection.scene) {
+            let rn = this._entityCollection.scene;
             let cam = rn.renderer!.activeCamera;
 
             let qNorthFrame = rn.getFrameRotation(cart).conjugate();

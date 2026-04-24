@@ -11,7 +11,7 @@ import { InstanceData } from "./InstanceData";
 import type { Renderer } from "../../renderer/Renderer";
 import type { Atmosphere } from "../../control/atmosphere/Atmosphere";
 import type { Planet } from "../../scene/Planet";
-import type { RenderNode } from "../../scene/RenderNode";
+import type { Scene } from "../../scene/Scene";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 
 export const VERTEX_BUFFER = 0;
@@ -57,7 +57,7 @@ export class GeoObjectHandler {
 
     protected _entityCollection: EntityCollection;
 
-    public _renderNode: RenderNode | null;
+    public _scene: Scene | null;
     public _renderer: Renderer | null;
 
     protected _geoObjects: GeoObject[];
@@ -78,7 +78,7 @@ export class GeoObjectHandler {
 
         this._entityCollection = entityCollection;
 
-        this._renderNode = null;
+        this._scene = null;
         this._renderer = null;
 
         this._geoObjects = [];
@@ -177,7 +177,7 @@ export class GeoObjectHandler {
     }
 
     public initProgram() {
-        if (this._renderer && this._renderNode) {
+        if (this._renderer && this._scene) {
             let programs = [
                 shaders.geo_object_forward(),
                 shaders.geo_object_deferred(),
@@ -185,8 +185,7 @@ export class GeoObjectHandler {
                 shaders.geo_object_picking(),
                 shaders.geo_object_depth()
             ];
-            const atmosphereControl = (this._renderNode as RenderNode & { atmosphereControl?: Atmosphere })
-                .atmosphereControl;
+            const atmosphereControl = (this._scene as Scene & { atmosphereControl?: Atmosphere }).atmosphereControl;
             if (atmosphereControl) {
                 programs.push(shaders.geo_object_woit_atmos(atmosphereControl.parameters));
             }
@@ -194,10 +193,10 @@ export class GeoObjectHandler {
         }
     }
 
-    public setRenderNode(renderNode: RenderNode) {
-        this._renderNode = renderNode;
+    public bindScene(scene: Scene) {
+        this._scene = scene;
 
-        this._renderer = renderNode.renderer;
+        this._renderer = scene.renderer;
 
         this.initProgram();
 
@@ -480,7 +479,7 @@ export class GeoObjectHandler {
             gl = r.handler.gl!,
             u = p.uniforms,
             atmosphere = r.controls.Atmosphere as Atmosphere,
-            planet = this._renderNode as Planet;
+            planet = this._scene as Planet;
 
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, atmosphere._transmittanceBuffer!.textures[0]);
@@ -510,7 +509,7 @@ export class GeoObjectHandler {
 
     public _displayTransparentPASS() {
         let r = this._renderer!,
-            rn = this._renderNode,
+            rn = this._scene,
             //@ts-ignore
             useAtmos = rn.atmosphereEnabled,
             sh = useAtmos ? r.handler.programs.geo_object_woit_atmos : r.handler.programs.geo_object_woit,
