@@ -837,7 +837,7 @@ class Entity {
      * @param {number} val - The absolute pitch angle in radians.
      */
     public setAbsolutePitch(val: number) {
-        if (this._relativePosition) {
+        if (this.parent && this._relativePosition) {
             this._absoluteQRot.setPitchYawRoll(val, this.getAbsoluteYaw(), this.getAbsoluteRoll(), this._qFrame);
             this._updatePitchYawRoll();
         } else {
@@ -851,7 +851,7 @@ class Entity {
      * @param {number} val - The absolute yaw angle in radians.
      */
     public setAbsoluteYaw(val: number) {
-        if (this._relativePosition) {
+        if (this.parent && this._relativePosition) {
             this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch(), val, this.getAbsoluteRoll(), this._qFrame);
             this._updatePitchYawRoll();
         } else {
@@ -865,7 +865,7 @@ class Entity {
      * @param {number} val - The absolute roll angle in radians.
      */
     public setAbsoluteRoll(val: number) {
-        if (this._relativePosition) {
+        if (this.parent && this._relativePosition) {
             this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch(), this.getAbsoluteYaw(), val, this._qFrame);
             this._updatePitchYawRoll();
         } else {
