@@ -96,6 +96,10 @@ export class CameraLock extends Control {
         }
         cam.viewDistance(entity.getAbsoluteCartesian(), this._lockDistance);
 
+        if (cam.isOrthographic) {
+            cam.focusDistance = this._lockDistance;
+        }
+
         this._deactivateNav();
 
         this._activateLockViewEvents();
@@ -222,7 +226,11 @@ export class CameraLock extends Control {
                 // cam.set(newPos, vehPos, vehPos.normal());
                 // cam.update();
             } else {
-                this.renderer.activeCamera.viewDistance(this._lockEntity.getAbsoluteCartesian(), this._lockDistance);
+                const cam = this.renderer.activeCamera;
+                cam.viewDistance(this._lockEntity.getAbsoluteCartesian(), this._lockDistance);
+                if (cam.isOrthographic) {
+                    cam.focusDistance = this._lockDistance;
+                }
             }
         }
     };
@@ -232,12 +240,16 @@ export class CameraLock extends Control {
             if (this._isFromTheBack) {
                 //...
             } else {
-                let d = this.renderer.activeCamera.eye.distance(this._lockEntity.getAbsoluteCartesian());
+                const cam = this.renderer.activeCamera;
+                let d = cam.eye.distance(this._lockEntity.getAbsoluteCartesian());
                 this._lockDistance -= 0.33 * d * Math.sign(e.wheelDelta);
                 if (this._lockDistance < MIN_LOCK_DISTANCE) {
                     this._lockDistance = MIN_LOCK_DISTANCE;
                 }
-                this.renderer.activeCamera.viewDistance(this._lockEntity.getAbsoluteCartesian(), this._lockDistance);
+                cam.viewDistance(this._lockEntity.getAbsoluteCartesian(), this._lockDistance);
+                if (cam.isOrthographic) {
+                    cam.focusDistance = this._lockDistance;
+                }
             }
         }
     };
