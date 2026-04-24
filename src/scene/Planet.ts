@@ -2062,8 +2062,8 @@ export class Planet extends Scene {
      * @returns {Vec3 | undefined} - Cartesian coordinates.
      */
     public getCartesianFromPixelEllipsoid(px: Vec2 | IBaseInputState): Vec3 | undefined {
-        let cam = this.renderer!.activeCamera!;
-        return this.ellipsoid.hitRay(cam.eye, cam.unproject(px.x, px.y));
+        let ray = this.renderer!.activeCamera!.getRay(px.x, px.y);
+        return this.ellipsoid.hitRay(ray.origin, ray.direction);
     }
 
     /**
@@ -2088,7 +2088,8 @@ export class Planet extends Scene {
         let ms = this.renderer!.events.mouseState;
         let distance = this.getDistanceFromPixel(ms);
         if (distance) {
-            return ms.direction.scaleTo(distance).addA(this.renderer!.activeCamera!.eye);
+            let ray = this.renderer!.activeCamera!.getRay(ms.x, ms.y);
+            return ray.origin.add(ray.direction.scaleTo(distance));
         }
     }
 
@@ -2103,8 +2104,8 @@ export class Planet extends Scene {
         let distance = this.getDistanceFromPixel(px);
         if (distance) {
             let cam = this.camera;
-            let dir = (px as IBaseInputState).direction || cam.unproject(px.x, px.y);
-            let cart = dir.scaleTo(distance).addA(cam.eye);
+            let ray = cam.getRay(px.x, px.y);
+            let cart = ray.origin.add(ray.direction.scaleTo(distance));
 
             // Reject points behind the geometric horizon.
             const norm = this.ellipsoid.getSurfaceNormal3v(cart);
@@ -2162,7 +2163,10 @@ export class Planet extends Scene {
     public getDistanceFromPixelEllipsoid(px: Vec2 | IBaseInputState): number | undefined {
         let coords = this.getCartesianFromPixelEllipsoid(px);
         if (coords) {
-            return coords.distance(this.renderer!.activeCamera!.eye);
+            // Distance along the picking ray — correct for both perspective
+            // and orthographic modes (`ray.origin == eye` only in perspective).
+            let ray = this.renderer!.activeCamera!.getRay(px.x, px.y);
+            return coords.sub(ray.origin).dot(ray.direction);
         }
     }
 
