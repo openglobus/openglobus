@@ -14,6 +14,7 @@ export type NavigationMode = "north" | "adaptive" | "free";
 
 export interface INavigationParams extends IControlParams {
     inertia?: number;
+    velInertia?: number;
     dragInertia?: number;
     minSlope?: number;
     mass?: number;
@@ -71,6 +72,7 @@ const MODE_ADAPTIVE = 2;
  * @param {INavigationParams} [options] - Navigation options:
  * @param {NavigationMode} [options.mode] - Navigation mode: "north" (keeps north fixed), "adaptive" (default, auto-detects arc mode), "free" (arc rotation mode)
  * @param {number} [options.inertia] - inertia factor
+ * @param {number} [options.velInertia] - base velocity inertia factor. Default is 0.89
  * @param {number} [options.dragInertia] - drag inertia
  * @param {number} [options.mass] - camera mass, affects velocity. Default is 1
  * @param {number} [options.minSlope] - minimal slope for vertical camera movement. Default is 0.35
@@ -144,6 +146,7 @@ export class Navigation extends Control {
 
     protected _isTouchPad: boolean;
 
+    protected _defaultVelInertia: number;
     protected _velInertia: number;
 
     protected _hold: boolean = false;
@@ -171,15 +174,16 @@ export class Navigation extends Control {
         this.vel_roll = 0;
         this.force_roll = 0;
 
-        this.mass = options.mass != undefined ? options.mass : 1;
-        this.inertia = options.inertia != undefined ? options.inertia : 1;
-        this._velInertia = DEFAULT_VELINERTIA;
-        this.minSlope = options.minSlope != undefined ? options.minSlope : MIN_SLOPE;
-        this.dragInertia = options.dragInertia != undefined ? options.dragInertia : DEFAULT_DRAG_INERTIA;
-        this.zoomSpeed = options.zoomSpeed != undefined ? options.zoomSpeed : 1;
-        this.poleThreshold = options.poleThreshold != undefined ? options.poleThreshold : DEFAULT_POLE_THRESHOLD;
-        this.disableRotation = options.disableRotation != undefined ? options.disableRotation : false;
-        this.disableTilt = options.disableTilt != undefined ? options.disableTilt : false;
+        this.mass = options.mass ?? 1;
+        this.inertia = options.inertia ?? 1;
+        this._defaultVelInertia = options.velInertia ?? DEFAULT_VELINERTIA;
+        this._velInertia = this._defaultVelInertia;
+        this.minSlope = options.minSlope ?? MIN_SLOPE;
+        this.dragInertia = options.dragInertia ?? DEFAULT_DRAG_INERTIA;
+        this.zoomSpeed = options.zoomSpeed ?? 1;
+        this.poleThreshold = options.poleThreshold ?? DEFAULT_POLE_THRESHOLD;
+        this.disableRotation = options.disableRotation ?? false;
+        this.disableTilt = options.disableTilt ?? false;
 
         this._lookPos = undefined;
         this._grabbedPoint = null;
@@ -213,7 +217,7 @@ export class Navigation extends Control {
 
         this._freeMode = false;
 
-        this.mode = this._modeToNumber(options.mode || "adaptive");
+        this.mode = this._modeToNumber(options.mode ?? "adaptive");
     }
 
     override oninit() {
@@ -384,7 +388,7 @@ export class Navigation extends Control {
             this._curPitch = cam.getPitch();
             this._curYaw = cam.getYaw();
             this._curRoll = cam.getRoll();
-            this._velInertia = DEFAULT_VELINERTIA;
+            this._velInertia = this._defaultVelInertia;
         }
     }
 
@@ -696,7 +700,7 @@ export class Navigation extends Control {
 
     protected _handleDrag() {
         if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.1) {
-            this._velInertia = DEFAULT_VELINERTIA;
+            this._velInertia = this._defaultVelInertia;
             let cam = this.planet!.camera;
 
             if (cam.slope > this.minSlope) {
@@ -908,7 +912,7 @@ export class Navigation extends Control {
         this.vel.set(0, 0, 0);
         this.vel_h = 0;
         this.vel_v = 0;
-        this._velInertia = DEFAULT_VELINERTIA;
+        this._velInertia = this._defaultVelInertia;
         this._targetZoomPoint = null;
         this._grabbedPoint = null;
         this._targetRotationPoint = null;
