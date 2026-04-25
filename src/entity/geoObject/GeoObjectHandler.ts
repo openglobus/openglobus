@@ -496,15 +496,21 @@ export class GeoObjectHandler {
     public _displayOpaquePASS() {
         let r = this._renderer!,
             sh = r.handler.programs.geo_object_deferred,
-            p = sh;
+            p = sh,
+            gl = r.handler.gl!,
+            disableCull = this._entityCollection.disableCullFace;
 
         sh.activate();
 
         this._bindCommon(p);
 
+        if (disableCull) gl.disable(gl.CULL_FACE);
+
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawOpaque(p);
         }
+
+        if (disableCull) gl.enable(gl.CULL_FACE);
     }
 
     public _displayTransparentPASS() {
@@ -513,13 +519,15 @@ export class GeoObjectHandler {
             //@ts-ignore
             useAtmos = rn.atmosphereEnabled,
             sh = useAtmos ? r.handler.programs.geo_object_woit_atmos : r.handler.programs.geo_object_woit,
-            p = sh;
+            p = sh,
+            gl = r.handler.gl!,
+            disableCull = this._entityCollection.disableCullFace;
 
         sh.activate();
 
-        r.handler.gl!.uniform1f(p.uniforms.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
+        gl.uniform1f(p.uniforms.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
 
-        //gl.disable(gl.CULL_FACE);
+        if (disableCull) gl.disable(gl.CULL_FACE);
 
         this._bindCommon(p);
         this._bindForwardParams(p);
@@ -530,6 +538,8 @@ export class GeoObjectHandler {
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
         }
+
+        if (disableCull) gl.enable(gl.CULL_FACE);
     }
 
     public _displayTransparentForwardPASS() {

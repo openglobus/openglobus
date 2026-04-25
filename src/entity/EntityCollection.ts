@@ -33,6 +33,7 @@ interface IEntityCollectionParams {
     shadeMode?: ShadeModeInput;
     entities?: Entity[];
     depthOrder?: number;
+    disableCullFace?: boolean;
 }
 
 /**
@@ -219,6 +220,14 @@ class EntityCollection {
 
     public _shadeMode: ShadeMode;
 
+    /**
+     * Disables `gl.CULL_FACE` for geo objects rendering passes (opaque/transparent).
+     * Useful for rendering models with inverted/inconsistent triangle winding.
+     * @public
+     * @type {boolean}
+     */
+    public disableCullFace: boolean;
+
     protected _depthOrder: number;
 
     constructor(options: IEntityCollectionParams = {}) {
@@ -276,6 +285,8 @@ class EntityCollection {
         this.events = this.rendererEvents = createEvents<EntityCollectionEventList>(ENTITYCOLLECTION_EVENTS, this);
 
         this._shadeMode = normalizeShadeMode(options.shadeMode ?? SHADE_PBR);
+
+        this.disableCullFace = options.disableCullFace ?? false;
 
         // initialize current entities
         if (options.entities) {

@@ -27,6 +27,7 @@ export interface IVectorParams extends ILayerParams {
     labelMaxLetters?: number;
     shadeMode?: ShadeModeInput;
     depthOrder?: number;
+    disableCullFace?: boolean;
 }
 
 type VectorEventsList = [
@@ -171,6 +172,8 @@ class Vector extends Layer {
 
     protected _shadeMode: ShadeMode;
 
+    protected _disableCullFace: boolean;
+
     constructor(name?: string | null, options: IVectorParams = {}) {
         super(name, options);
 
@@ -220,9 +223,12 @@ class Vector extends Layer {
         });
         this._bindEventsDefault(this._polylineEntityCollection);
 
+        this._disableCullFace = options.disableCullFace ?? false;
+
         this._geoObjectEntityCollection = new EntityCollection({
             pickingEnabled: this.pickingEnabled,
-            shadeMode: this._shadeMode
+            shadeMode: this._shadeMode,
+            disableCullFace: this._disableCullFace
         });
         this._bindEventsDefault(this._geoObjectEntityCollection);
 
@@ -260,6 +266,15 @@ class Vector extends Layer {
         let v = normalizeShadeMode(m);
         this._shadeMode = v;
         this._geoObjectEntityCollection.shadeMode = v;
+    }
+
+    public get disableCullFace(): boolean {
+        return this._disableCullFace;
+    }
+
+    public set disableCullFace(v: boolean) {
+        this._disableCullFace = v;
+        this._geoObjectEntityCollection.disableCullFace = v;
     }
 
     public get labelMaxLetters(): number {
@@ -752,6 +767,7 @@ class Vector extends Layer {
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
         ec.depthOffset = this.depthOffset;
+        ec.disableCullFace = this._disableCullFace;
 
         outArr.push(ec);
 
