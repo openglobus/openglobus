@@ -71,6 +71,9 @@ export class GeoObjectHandler {
     protected _rtcEyePositionHigh: Float32Array;
     protected _rtcEyePositionLow: Float32Array;
 
+    /**
+     * @param {EntityCollection} entityCollection - Parent entity collection.
+     */
     constructor(entityCollection: EntityCollection) {
         this.__id = GeoObjectHandler.__counter__++;
 

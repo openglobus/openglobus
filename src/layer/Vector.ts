@@ -90,6 +90,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * Negative values move geometry closer to the camera, positive values move it farther.
  * @param {number|string} [options.shadeMode=1] - Geo object shading: 0/none unlit, 0.5/phong, 1/pbr.
  * @param {number} [options.depthOrder=0] - Rendering order group for vector collections.
+ * @param {boolean} [options.disableCullFace=false] - Disables back-face culling for geo object rendering.
  *
  * //@fires entitymove
  * @fires draw

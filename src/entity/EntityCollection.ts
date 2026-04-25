@@ -55,6 +55,7 @@ interface IEntityCollectionParams {
  * @param {number} [options.depthOrder=0] - Rendering order for grouped vector layer collections.
  * @param {Number} [options.depthOffset=0.0] - Signed world-space depth offset along the camera ray.
  * Negative values move geometry closer to the camera, positive values move it farther.
+ * @param {boolean} [options.disableCullFace=false] - Disables back-face culling for geo object rendering.
  * //@fires entitymove
  * @fires draw
  * @fires drawend
