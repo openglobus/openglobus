@@ -208,7 +208,8 @@ export class GeoObjectHandler {
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].loadColorTexture();
             this._instanceDataMapValues[i].loadNormalTexture();
-            this._instanceDataMapValues[i].loadMetallicRoughnessTexture();
+            this._instanceDataMapValues[i].loadMetallicTexture();
+            this._instanceDataMapValues[i].loadRoughnessTexture();
         }
 
         for (let i = 0; i < this._geoObjects.length; i++) {
@@ -250,19 +251,60 @@ export class GeoObjectHandler {
         }
     }
 
+    public setMetallicTextureTag(src: string | HTMLImageElement, tag: string) {
+        const tagData = this._instanceDataMap.get(tag);
+        if (tagData) {
+            if (typeof src === "string") {
+                tagData._metallicTextureSrc = src;
+                tagData._metallicTextureImage = null;
+            }
+            if (src instanceof HTMLImageElement) {
+                tagData._metallicTextureSrc = null;
+                tagData._metallicTextureImage = src;
+            }
+            this._instanceDataMap.set(tag, tagData);
+            tagData.loadMetallicTexture();
+        }
+    }
+
+    public setRoughnessTextureTag(src: string | HTMLImageElement, tag: string) {
+        const tagData = this._instanceDataMap.get(tag);
+        if (tagData) {
+            if (typeof src === "string") {
+                tagData._roughnessTextureSrc = src;
+                tagData._roughnessTextureImage = null;
+            }
+            if (src instanceof HTMLImageElement) {
+                tagData._roughnessTextureSrc = null;
+                tagData._roughnessTextureImage = src;
+            }
+            this._instanceDataMap.set(tag, tagData);
+            tagData.loadRoughnessTexture();
+        }
+    }
+
     public setMetallicRoughnessTextureTag(src: string | HTMLImageElement, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
             if (typeof src === "string") {
+                tagData._metallicTextureSrc = src;
+                tagData._roughnessTextureSrc = src;
                 tagData._metallicRoughnessTextureSrc = src;
+                tagData._metallicTextureImage = null;
+                tagData._roughnessTextureImage = null;
                 tagData._metallicRoughnessTextureImage = null;
             }
             if (src instanceof HTMLImageElement) {
+                tagData._metallicTextureSrc = null;
+                tagData._roughnessTextureSrc = null;
                 tagData._metallicRoughnessTextureSrc = null;
+                tagData._metallicTextureImage = src;
+                tagData._roughnessTextureImage = src;
                 tagData._metallicRoughnessTextureImage = src;
             }
             this._instanceDataMap.set(tag, tagData);
-            tagData.loadMetallicRoughnessTexture();
+            tagData.loadMetallicTexture();
+            tagData.loadRoughnessTexture();
         }
     }
 
@@ -301,16 +343,21 @@ export class GeoObjectHandler {
 
             tagData._colorTextureSrc = object.colorTextureSrc;
             tagData._normalTextureSrc = object.normalTextureSrc;
+            tagData._metallicTextureSrc = object.metallicTextureSrc || object.metallicRoughnessTextureSrc;
+            tagData._roughnessTextureSrc = object.roughnessTextureSrc || object.metallicRoughnessTextureSrc;
             tagData._metallicRoughnessTextureSrc = object.metallicRoughnessTextureSrc;
             tagData._colorTextureImage = object.colorTextureImage;
             tagData._normalTextureImage = object.normalTextureImage;
+            tagData._metallicTextureImage = object.metallicTextureImage || object.metallicRoughnessTextureImage;
+            tagData._roughnessTextureImage = object.roughnessTextureImage || object.metallicRoughnessTextureImage;
             tagData._metallicRoughnessTextureImage = object.metallicRoughnessTextureImage;
 
             tagData.setMaterialProperties(object.ambientOcclusion, object.roughness, object.metallic);
 
             tagData.loadColorTexture();
             tagData.loadNormalTexture();
-            tagData.loadMetallicRoughnessTexture();
+            tagData.loadMetallicTexture();
+            tagData.loadRoughnessTexture();
 
             this._updateTag(tagData);
             this._instanceDataMapValues = Array.from(this._instanceDataMap.values());
@@ -336,9 +383,15 @@ export class GeoObjectHandler {
 
             tagData._colorTextureSrc = geoObject.object3d.colorTextureSrc;
             tagData._normalTextureSrc = geoObject.object3d.normalTextureSrc;
+            tagData._metallicTextureSrc = geoObject.object3d.metallicTextureSrc || geoObject.object3d.metallicRoughnessTextureSrc;
+            tagData._roughnessTextureSrc = geoObject.object3d.roughnessTextureSrc || geoObject.object3d.metallicRoughnessTextureSrc;
             tagData._metallicRoughnessTextureSrc = geoObject.object3d.metallicRoughnessTextureSrc;
             tagData._colorTextureImage = geoObject.object3d.colorTextureImage;
             tagData._normalTextureImage = geoObject.object3d.normalTextureImage;
+            tagData._metallicTextureImage =
+                geoObject.object3d.metallicTextureImage || geoObject.object3d.metallicRoughnessTextureImage;
+            tagData._roughnessTextureImage =
+                geoObject.object3d.roughnessTextureImage || geoObject.object3d.metallicRoughnessTextureImage;
             tagData._metallicRoughnessTextureImage = geoObject.object3d.metallicRoughnessTextureImage;
 
             tagData.setMaterialProperties(
@@ -349,7 +402,8 @@ export class GeoObjectHandler {
 
             tagData.loadColorTexture();
             tagData.loadNormalTexture();
-            tagData.loadMetallicRoughnessTexture();
+            tagData.loadMetallicTexture();
+            tagData.loadRoughnessTexture();
         }
 
         geoObject._tagDataIndex = tagData.numInstances++;
@@ -484,13 +538,17 @@ export class GeoObjectHandler {
             atmosphere = r.controls.Atmosphere as Atmosphere,
             planet = this._scene as Planet;
 
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, atmosphere._transmittanceBuffer!.textures[0]);
-        gl.uniform1i(u.transmittanceTexture, 1);
+        const maxTextureUnits = r.handler.maxTextureUnits;
+        const transmittanceTextureUnit = maxTextureUnits - 2;
+        const scatteringTextureUnit = maxTextureUnits - 1;
 
-        gl.activeTexture(gl.TEXTURE2);
+        gl.activeTexture(gl.TEXTURE0 + transmittanceTextureUnit);
+        gl.bindTexture(gl.TEXTURE_2D, atmosphere._transmittanceBuffer!.textures[0]);
+        gl.uniform1i(u.transmittanceTexture, transmittanceTextureUnit);
+
+        gl.activeTexture(gl.TEXTURE0 + scatteringTextureUnit);
         gl.bindTexture(gl.TEXTURE_2D, atmosphere._scatteringBuffer!.textures[0]);
-        gl.uniform1i(u.scatteringTexture, 2);
+        gl.uniform1i(u.scatteringTexture, scatteringTextureUnit);
         gl.uniform2fv(u.atmosFadeDist, planet.atmosphereFadeDist);
 
         gl.activeTexture(gl.TEXTURE0);

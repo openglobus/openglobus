@@ -12,8 +12,12 @@ uniform vec4 lightSpecular;
 uniform vec3 materialProperties;
 uniform sampler2D uColorTexture;
 uniform sampler2D uNormalTexture;
+uniform sampler2D uMetallicTexture;
+uniform sampler2D uRoughnessTexture;
 uniform float uUseColorTexture;
 uniform float uUseNormalTexture;
+uniform float uUseMetallicTexture;
+uniform float uUseRoughnessTexture;
 uniform float shadeMode;
 uniform mat3 normalMatrix;
 
