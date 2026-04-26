@@ -136,6 +136,13 @@ class Handler {
     public gl: WebGLContextExt | null;
 
     /**
+     * Number of available texture image units in the current WebGL context.
+     * @public
+     * @type {number}
+     */
+    public maxTextureUnits: number;
+
+    /**
      * Shader program list.
      * @public
      * @type {Record<string, ShaderProgram>}
@@ -232,6 +239,8 @@ class Handler {
         this.canvas = null;
 
         this.gl = null;
+
+        this.maxTextureUnits = 0;
 
         this.programs = {};
 
@@ -751,6 +760,8 @@ class Handler {
         if (!this.gl) return;
 
         this._initialized = true;
+
+        this.maxTextureUnits = this.gl.getParameter(this.gl.MAX_TEXTURE_IMAGE_UNITS) as number;
 
         /** Sets default extensions */
         this._params.extensions.push("EXT_texture_filter_anisotropic");
@@ -1276,6 +1287,7 @@ class Handler {
         }
 
         this.gl = null;
+        this.maxTextureUnits = 0;
 
         this._initialized = false;
     }

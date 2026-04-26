@@ -45,9 +45,13 @@ interface IObject3dParams {
     ambientOcclusion?: number;
     colorTextureSrc?: string;
     normalTextureSrc?: string;
+    metallicTextureSrc?: string;
+    roughnessTextureSrc?: string;
     metallicRoughnessTextureSrc?: string;
     colorTextureImage?: HTMLImageElement;
     normalTextureImage?: HTMLImageElement;
+    metallicTextureImage?: HTMLImageElement;
+    roughnessTextureImage?: HTMLImageElement;
     metallicRoughnessTextureImage?: HTMLImageElement;
 }
 
@@ -72,6 +76,10 @@ class Object3d {
     public colorTextureImage: HTMLImageElement | null;
     public normalTextureSrc: string | null;
     public normalTextureImage: HTMLImageElement | null;
+    public metallicTextureSrc: string | null;
+    public metallicTextureImage: HTMLImageElement | null;
+    public roughnessTextureSrc: string | null;
+    public roughnessTextureImage: HTMLImageElement | null;
     public metallicRoughnessTextureSrc: string | null;
     public metallicRoughnessTextureImage: HTMLImageElement | null;
 
@@ -98,6 +106,10 @@ class Object3d {
         this.colorTextureImage = data.colorTextureImage || null;
         this.normalTextureSrc = data.normalTextureSrc || null;
         this.normalTextureImage = data.normalTextureImage || null;
+        this.metallicTextureSrc = data.metallicTextureSrc || data.metallicRoughnessTextureSrc || null;
+        this.metallicTextureImage = data.metallicTextureImage || data.metallicRoughnessTextureImage || null;
+        this.roughnessTextureSrc = data.roughnessTextureSrc || data.metallicRoughnessTextureSrc || null;
+        this.roughnessTextureImage = data.roughnessTextureImage || data.metallicRoughnessTextureImage || null;
         this.metallicRoughnessTextureSrc = data.metallicRoughnessTextureSrc || null;
         this.metallicRoughnessTextureImage = data.metallicRoughnessTextureImage || null;
 

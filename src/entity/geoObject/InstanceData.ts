@@ -35,13 +35,19 @@ export class InstanceData {
 
     public _colorTexture: WebGLTextureExt | null;
     public _normalTexture: WebGLTextureExt | null;
+    public _metallicTexture: WebGLTextureExt | null;
+    public _roughnessTexture: WebGLTextureExt | null;
     public _metallicRoughnessTexture: WebGLTextureExt | null;
 
     public _colorTextureSrc: string | null;
     public _normalTextureSrc: string | null;
+    public _metallicTextureSrc: string | null;
+    public _roughnessTextureSrc: string | null;
     public _metallicRoughnessTextureSrc: string | null;
     public _colorTextureImage: HTMLImageElement | null;
     public _normalTextureImage: HTMLImageElement | null;
+    public _metallicTextureImage: HTMLImageElement | null;
+    public _roughnessTextureImage: HTMLImageElement | null;
     public _metallicRoughnessTextureImage: HTMLImageElement | null;
 
     public _objectSrc?: string;
@@ -100,6 +106,14 @@ export class InstanceData {
         this._normalTexture = null;
         this._normalTextureSrc = null;
         this._normalTextureImage = null;
+
+        this._metallicTexture = null;
+        this._metallicTextureSrc = null;
+        this._metallicTextureImage = null;
+
+        this._roughnessTexture = null;
+        this._roughnessTextureSrc = null;
+        this._roughnessTextureImage = null;
 
         this._metallicRoughnessTexture = null;
         this._metallicRoughnessTextureSrc = null;
@@ -198,8 +212,6 @@ export class InstanceData {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
         gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(u.uUseColorTexture, this._colorTexture ? 1 : 0);
-
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -235,8 +247,6 @@ export class InstanceData {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
         gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.uniform1f(u.uUseColorTexture, this._colorTexture ? 1 : 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -310,8 +320,6 @@ export class InstanceData {
             startInstance * this._visibleBuffer!.itemSize * Float32Array.BYTES_PER_ELEMENT
         );
 
-        gl.uniform1f(u.uUseColorTexture, this._colorTexture ? 1 : 0);
-
         gl.uniform3fv(u.materialProperties, this._materialProperties);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
@@ -363,6 +371,7 @@ export class InstanceData {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer!);
         gl.vertexAttribPointer(a.aVertexPosition, this._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
+        gl.uniform1f(u.uUseColorTexture, this._colorTexture ? 1 : 0);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._colorTexture || r.handler.defaultTexture);
         gl.uniform1i(u.uColorTexture, 0);
@@ -372,8 +381,20 @@ export class InstanceData {
         gl.bindTexture(gl.TEXTURE_2D, this._normalTexture || r.handler.defaultTexture);
         gl.uniform1i(u.uNormalTexture, 1);
 
+        gl.uniform1f(u.uUseMetallicTexture, this._metallicTexture ? 1 : 0);
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, this._metallicTexture || r.handler.defaultTexture);
+        gl.uniform1i(u.uMetallicTexture, 2);
+
+        gl.uniform1f(u.uUseRoughnessTexture, this._roughnessTexture ? 1 : 0);
+        gl.activeTexture(gl.TEXTURE3);
+        gl.bindTexture(gl.TEXTURE_2D, this._roughnessTexture || r.handler.defaultTexture);
+        gl.uniform1i(u.uRoughnessTexture, 3);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
         gl.vertexAttribPointer(a.aTexCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer!);
         p.drawElementsInstanced!(gl.TRIANGLES, this._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, instanceCount);
@@ -421,6 +442,48 @@ export class InstanceData {
         }
     }
 
+    public async loadMetallicTexture() {
+        if (!this._geoObjectHandler._renderer) {
+            return;
+        }
+        if (this._metallicTextureSrc) {
+            const image = await loadImage(this._metallicTextureSrc);
+            const textureImage = await prepareTextureImage(image);
+            if (textureImage) {
+                this._createMetallicTexture(textureImage);
+            }
+            return;
+        }
+        if (this._metallicTextureImage) {
+            const textureImage = await prepareTextureImage(this._metallicTextureImage);
+            if (textureImage) {
+                this._createMetallicTexture(textureImage);
+            }
+            return;
+        }
+    }
+
+    public async loadRoughnessTexture() {
+        if (!this._geoObjectHandler._renderer) {
+            return;
+        }
+        if (this._roughnessTextureSrc) {
+            const image = await loadImage(this._roughnessTextureSrc);
+            const textureImage = await prepareTextureImage(image);
+            if (textureImage) {
+                this._createRoughnessTexture(textureImage);
+            }
+            return;
+        }
+        if (this._roughnessTextureImage) {
+            const textureImage = await prepareTextureImage(this._roughnessTextureImage);
+            if (textureImage) {
+                this._createRoughnessTexture(textureImage);
+            }
+            return;
+        }
+    }
+
     public async loadMetallicRoughnessTexture() {
         if (!this._geoObjectHandler._renderer) {
             return;
@@ -429,6 +492,8 @@ export class InstanceData {
             const image = await loadImage(this._metallicRoughnessTextureSrc);
             const textureImage = await prepareTextureImage(image);
             if (textureImage) {
+                this._createMetallicTexture(textureImage);
+                this._createRoughnessTexture(textureImage);
                 this._createMetallicRoughnessTexture(textureImage);
             }
             return;
@@ -436,6 +501,8 @@ export class InstanceData {
         if (this._metallicRoughnessTextureImage) {
             const textureImage = await prepareTextureImage(this._metallicRoughnessTextureImage);
             if (textureImage) {
+                this._createMetallicTexture(textureImage);
+                this._createRoughnessTexture(textureImage);
                 this._createMetallicRoughnessTexture(textureImage);
             }
             return;
@@ -476,6 +543,8 @@ export class InstanceData {
             if (h) {
                 h.deleteTexture(this._colorTexture);
                 h.deleteTexture(this._normalTexture);
+                h.deleteTexture(this._metallicTexture);
+                h.deleteTexture(this._roughnessTexture);
                 h.deleteTexture(this._metallicRoughnessTexture);
 
                 let gl = h.gl;
@@ -498,6 +567,8 @@ export class InstanceData {
 
             this._colorTexture = null;
             this._normalTexture = null;
+            this._metallicTexture = null;
+            this._roughnessTexture = null;
             this._metallicRoughnessTexture = null;
         }
 
@@ -687,6 +758,20 @@ export class InstanceData {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
             let h = this._geoObjectHandler._renderer.handler;
             this._normalTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+        }
+    }
+
+    private _createMetallicTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
+        if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
+            let h = this._geoObjectHandler._renderer.handler;
+            this._metallicTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+        }
+    }
+
+    private _createRoughnessTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
+        if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
+            let h = this._geoObjectHandler._renderer.handler;
+            this._roughnessTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
         }
     }
 
