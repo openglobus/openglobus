@@ -13,6 +13,7 @@ import type { Atmosphere } from "../../control/atmosphere/Atmosphere";
 import type { Planet } from "../../scene/Planet";
 import type { Scene } from "../../scene/Scene";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
+import { srgbToLinear } from "../../utils/colorSpace";
 
 export const VERTEX_BUFFER = 0;
 export const RTC_POSITION_BUFFER = 1;
@@ -401,9 +402,9 @@ export class GeoObjectHandler {
         w = geoObject._qRot.w;
         tagData._qRotArr = concatArrays(tagData._qRotArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z, w));
 
-        x = geoObject._color.x;
-        y = geoObject._color.y;
-        z = geoObject._color.z;
+        x = srgbToLinear(geoObject._color.x);
+        y = srgbToLinear(geoObject._color.y);
+        z = srgbToLinear(geoObject._color.z);
         w = geoObject._color.w;
         tagData._rgbaArr = concatArrays(tagData._rgbaArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z, w));
 
@@ -769,7 +770,16 @@ export class GeoObjectHandler {
     }
 
     public setRgbaArr(tagData: InstanceData, tagDataIndex: number, rgba: Vec4) {
-        setParametersToArray(tagData._rgbaArr, tagDataIndex, 4, 4, rgba.x, rgba.y, rgba.z, rgba.w);
+        setParametersToArray(
+            tagData._rgbaArr,
+            tagDataIndex,
+            4,
+            4,
+            srgbToLinear(rgba.x),
+            srgbToLinear(rgba.y),
+            srgbToLinear(rgba.z),
+            rgba.w
+        );
         const opacityChanged = this._updateInstanceOpacityState(tagData, tagDataIndex, this._isOpaqueAlpha(rgba.w));
         if (opacityChanged) {
             this._markPerInstanceBuffersChanged(tagData);
