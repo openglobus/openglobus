@@ -92,7 +92,7 @@ class GeoImage extends BaseGeoImage {
      */
     protected override _createSourceTexture() {
         if (!this._sourceCreated && this._image) {
-            this._sourceTexture = this._planet!.renderer!.handler.createTexture_l(this._image);
+            this._sourceTexture = this._planet!.renderer!.handler.createTexture_l(this._image, this._internalFormat);
             this._sourceCreated = true;
         }
     }

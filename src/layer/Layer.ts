@@ -16,6 +16,9 @@ import type { IDefaultTextureParams } from "../webgl/Handler";
 
 const FADING_RATIO = 30;
 
+const LINEAR = 0;
+const SRGB = 1;
+
 export interface ILayerParams {
     properties?: any;
     labelMaxLetters?: number;
@@ -31,7 +34,7 @@ export interface ILayerParams {
     fading?: boolean;
     height?: number;
     textureFilter?: string;
-    isSRGB?: boolean;
+    colorSpace?: string | number;
     pickingEnabled?: boolean;
     preLoadZoomLevels?: number[];
     extent?: Extent | [[number, number], [number, number]];
@@ -57,7 +60,7 @@ export interface ILayerParams {
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {boolean} [options.hideInLayerSwitcher=false] - Presence of layer in dialog window of LayerSwitcher control.
- * @param {boolean} [options.isSRGB=false] - Layer image WebGL internal format.
+ * @param {string|number} [options.colorSpace="srgb"] - Layer color space. Available values: "linear", "srgb", 0, 1.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
  * @param {string} [options.icon] - Icon for LayerSwitcher
@@ -91,6 +94,8 @@ export interface ILayerParams {
  */
 class Layer {
     static __counter__: number = 0;
+    static readonly LINEAR: number = LINEAR;
+    static readonly SRGB: number = SRGB;
 
     /**
      * Uniq identifier.
@@ -196,7 +201,7 @@ class Layer {
 
     protected _textureFilter: string;
 
-    protected _isSRGB: boolean;
+    protected _colorSpace: number;
 
     public _internalFormat: number | null;
 
@@ -288,8 +293,7 @@ class Layer {
 
         this._textureFilter = options.textureFilter ? options.textureFilter.trim().toUpperCase() : "MIPMAP";
 
-        this._isSRGB = options.isSRGB != undefined ? options.isSRGB : false;
-
+        this._colorSpace = Layer.getColorSpace(options.colorSpace);
         this._internalFormat = null;
 
         this._extentMerc = new Extent();
@@ -331,6 +335,24 @@ class Layer {
         }
 
         this.nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
+    }
+
+    public static getColorSpace(colorSpace?: string | number): number {
+        if (colorSpace === LINEAR || colorSpace === SRGB) {
+            return colorSpace;
+        }
+
+        if (typeof colorSpace === "string") {
+            const value = colorSpace.trim().toLowerCase();
+            if (value === "linear") {
+                return LINEAR;
+            }
+            if (value === "srgb") {
+                return SRGB;
+            }
+        }
+
+        return SRGB;
     }
 
     public get iconSrc(): string | null {
@@ -475,7 +497,7 @@ class Layer {
 
         if (planet.renderer && planet.renderer.isInitialized()) {
             // TODO: webgl1
-            if (this._isSRGB) {
+            if (this._colorSpace === SRGB) {
                 this._internalFormat = planet.renderer.handler.gl!.SRGB8_ALPHA8;
             } else {
                 this._internalFormat = planet.renderer.handler.gl!.RGBA8;
@@ -524,7 +546,7 @@ class Layer {
     }
 
     /**
-     * Removes from planet.
+     * Removes from a planet.
      * @public
      * @returns {Layer} This layer.
      */

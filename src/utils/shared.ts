@@ -1273,3 +1273,30 @@ export function toFixedMax(value: number, maxFixed: number = -1): string {
     const factor = Math.pow(10, maxFixed);
     return (Math.round(value * factor) / factor).toString();
 }
+
+// const srgbToLinearLUT = new Float32Array(256);
+//
+// for(let i=0; i<256; i++){
+//     srgbToLinearLUT[i] = Math.pow(i / 255, 2.2);
+// }
+
+export function hexToLinear3v(v: Vec3): NumberArray3 {
+    return [
+        Math.pow(v.x / 255, 2.2),
+        Math.pow(v.y / 255, 2.2),
+        Math.pow(v.z / 255, 2.2)
+    ];
+}
+
+export function hexToLinearRgb(r: number, g: number, b: number): NumberArray3 {
+    return [
+        Math.pow(r / 255, 2.2),
+        Math.pow(r / 255, 2.2),
+        Math.pow(r / 255, 2.2)
+    ];
+}
+
+export function hexToLinear(v: number): number {
+    return Math.pow(v / 255, 2.2);
+}
+

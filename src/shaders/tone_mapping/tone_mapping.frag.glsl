@@ -54,10 +54,9 @@ void main(void) {
     ivec2 fragCoord = ivec2(gl_FragCoord.xy);
     vec4 hdrColor = texelFetch(hdrBuffer, fragCoord, 0);
 
-    float oneByGamma = gamma / gamma;
     float oneByWhitePoint = whitepoint / whitepoint;
-    vec3 mapped = ReinhardToneMapping2(hdrColor.rgb) * oneByGamma * oneByWhitePoint;
-    //vec3 mapped = ACESFilmicToneMapping(hdrColor.rgb) * oneByGamma * oneByWhitePoint;
+    vec3 mapped = ReinhardToneMapping2(hdrColor.rgb) * oneByWhitePoint;
+    //vec3 mapped = ACESFilmicToneMapping(hdrColor.rgb) * oneByWhitePoint;
 
     mapped = pow(mapped, vec3(1.0 / gamma));
 

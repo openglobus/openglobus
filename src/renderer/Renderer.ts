@@ -296,7 +296,7 @@ class Renderer {
 
         this.exposure = params.exposure || 3.01;
 
-        this.gamma = params.gamma || 0.47;
+        this.gamma = params.gamma || 2.2;
 
         this.whitepoint = 1.0;
 
