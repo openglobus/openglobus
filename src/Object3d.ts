@@ -13,23 +13,23 @@ function getColor(color?: number[] | TypedArray | string): Float32Array {
     } else if (typeof color === "string") {
         return htmlColorToFloat32Array(color);
     }
-    return new Float32Array([0.67, 0.67, 0.67, 1]);
+    return new Float32Array([1, 1, 1, 1]);
 }
 
-function getColor3v(color?: NumberArray3 | TypedArray | string): Float32Array {
-    let res = new Float32Array([1.0, 1.0, 1.0]);
-    if (color instanceof Array) {
-        res[0] = color[0];
-        res[1] = color[1];
-        res[2] = color[2];
-    } else if (typeof color === "string") {
-        let c = htmlColorToFloat32Array(color);
-        res[0] = c[0];
-        res[1] = c[1];
-        res[2] = c[2];
-    }
-    return res;
-}
+// function getColor3v(color?: NumberArray3 | TypedArray | string): Float32Array {
+//     let res = new Float32Array([1.0, 1.0, 1.0]);
+//     if (color instanceof Array) {
+//         res[0] = color[0];
+//         res[1] = color[1];
+//         res[2] = color[2];
+//     } else if (typeof color === "string") {
+//         let c = htmlColorToFloat32Array(color);
+//         res[0] = c[0];
+//         res[1] = c[1];
+//         res[2] = c[2];
+//     }
+//     return res;
+// }
 
 interface IObject3dParams {
     name?: string;
