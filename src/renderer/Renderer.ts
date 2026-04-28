@@ -291,12 +291,17 @@ class Renderer {
         this.clearColor = new Float32Array(params.clearColor || [0, 0, 0, 1]);
 
         this._lightPosition = new Float32Array(params.lightPosition || [1, 1, 1]);
-        this._lightAmbient = new Float32Array(srgbToLinearArr(params.lightAmbient || [0.2, 0.2, 0.3]));
-        this._lightDiffuse = new Float32Array(srgbToLinearArr(params.lightDiffuse || [0.9, 0.9, 0.7]));
+        this._lightAmbient = new Float32Array(srgbToLinearArr(params.lightAmbient || [0.2, 0.2, 0.2]));
+        this._lightDiffuse = new Float32Array(srgbToLinearArr(params.lightDiffuse || [1, 1, 1]));
 
         const lightSpecular = params.lightSpecular || [0.00063, 0.00055, 0.00032, 18.0];
         const specularLinear = srgbToLinearArr([lightSpecular[0], lightSpecular[1], lightSpecular[2]]);
-        this._lightSpecular = new Float32Array([specularLinear[0], specularLinear[1], specularLinear[2], lightSpecular[3]]);
+        this._lightSpecular = new Float32Array([
+            specularLinear[0],
+            specularLinear[1],
+            specularLinear[2],
+            lightSpecular[3]
+        ]);
 
         this.exposure = params.exposure || 1;
 
