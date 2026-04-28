@@ -11,7 +11,7 @@ export class OpenStreetMap extends XYZ {
             maxNativeZoom: 19,
             defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
             shininess: 30,
-            specular: [0.05, 0.05, 0.02],
+            specular: [0.3, 0.3, 0.27],
             ambient: [0.2, 0.2, 0.3],
             diffuse: [0.9, 0.9, 0.9],
             ...options
