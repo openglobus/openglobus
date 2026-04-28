@@ -33,3 +33,7 @@ export function srgbToLinear3v(v: Vec3): NumberArray3 {
 export function srgbToLinear(v: number): number {
     return Math.pow(v, 2.2);
 }
+
+export function linearToSrgbArr(arr: NumberArray3): NumberArray3 {
+    return [Math.pow(arr[0], 1.0 / 2.2), Math.pow(arr[1], 1.0 / 2.2), Math.pow(arr[2], 1.0 / 2.2)];
+}

@@ -811,15 +811,15 @@ export class Planet extends Scene {
         if (!renderer) return;
 
         if (layer._ambient) {
-            renderer._lightAmbient.set(layer._ambient);
+            renderer.lightAmbient = layer._ambient;
         }
 
         if (layer._diffuse) {
-            renderer._lightDiffuse.set(layer._diffuse);
+            renderer.lightDiffuse = layer._diffuse;
         }
 
         if (layer._specular) {
-            renderer._lightSpecular.set(layer._specular);
+            renderer.lightSpecular = layer._specular;
         }
 
         this.nightTextureCoefficient = layer.nightTextureCoefficient;

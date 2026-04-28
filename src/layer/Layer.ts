@@ -1,7 +1,6 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
 import { createColorRGB } from "../utils/shared";
-import { srgbToLinear3v } from "../utils/colorSpace";
 import { getColorSpace, SRGB } from "../utils/colorSpace";
 import { createEvents } from "../Events";
 import type { EventsHandler } from "../Events";
@@ -317,19 +316,18 @@ class Layer {
 
         if (options.ambient) {
             let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.2));
-            this._ambient = new Float32Array(srgbToLinear3v(a));
+            this._ambient = new Float32Array([a.x, a.y, a.z]);
         }
 
         if (options.diffuse) {
             let d = utils.createColorRGB(options.diffuse, new Vec3(0.8, 0.8, 0.8));
-            this._diffuse = new Float32Array(srgbToLinear3v(d));
+            this._diffuse = new Float32Array([d.x, d.y, d.z]);
         }
 
         if (options.specular) {
             let s = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
             let shininess = options.shininess || 20.0;
-            let specularLinear = srgbToLinear3v(s);
-            this._specular = new Float32Array([specularLinear[0], specularLinear[1], specularLinear[2], shininess]);
+            this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
         }
 
         this.nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
@@ -351,7 +349,7 @@ class Layer {
     public set diffuse(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._diffuse = new Float32Array(srgbToLinear3v(vec));
+            this._diffuse = new Float32Array([vec.x, vec.y, vec.z]);
         } else {
             this._diffuse = null;
         }
@@ -360,7 +358,7 @@ class Layer {
     public set ambient(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._ambient = new Float32Array(srgbToLinear3v(vec));
+            this._ambient = new Float32Array([vec.x, vec.y, vec.z]);
         } else {
             this._ambient = null;
         }
@@ -369,12 +367,11 @@ class Layer {
     public set specular(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            let specularLinear = srgbToLinear3v(vec);
             this._specular = new Float32Array([
-                specularLinear[0],
-                specularLinear[1],
-                specularLinear[1],
-                this._specular ? this._specular[3] : 0.0
+                vec.x,
+                vec.y,
+                vec.z,
+                this._specular ? this._specular[3] : 20.0
             ]);
         } else {
             this._specular = null;

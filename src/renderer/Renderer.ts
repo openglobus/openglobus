@@ -11,7 +11,7 @@ import { Handler } from "../webgl/Handler";
 import type { WebGLBufferExt } from "../webgl/Handler";
 import { input } from "../input/input";
 import { isEmpty } from "../utils/shared";
-import { srgbToLinearArr } from "../utils/colorSpace";
+import { linearToSrgbArr, srgbToLinearArr } from "../utils/colorSpace";
 import { LabelWorker } from "../entity/label/LabelWorker";
 import { MAX_FLOAT, randomi } from "../math";
 import { Scene } from "../scene/Scene";
@@ -291,17 +291,13 @@ class Renderer {
         this.clearColor = new Float32Array(params.clearColor || [0, 0, 0, 1]);
 
         this._lightPosition = new Float32Array(params.lightPosition || [1, 1, 1]);
-        this._lightAmbient = new Float32Array(srgbToLinearArr(params.lightAmbient || [0.2, 0.2, 0.2]));
-        this._lightDiffuse = new Float32Array(srgbToLinearArr(params.lightDiffuse || [1, 1, 1]));
+        this._lightAmbient = new Float32Array(3);
+        this._lightDiffuse = new Float32Array(3);
+        this._lightSpecular = new Float32Array(4);
 
-        const lightSpecular = params.lightSpecular || [0.00063, 0.00055, 0.00032, 18.0];
-        const specularLinear = srgbToLinearArr([lightSpecular[0], lightSpecular[1], lightSpecular[2]]);
-        this._lightSpecular = new Float32Array([
-            specularLinear[0],
-            specularLinear[1],
-            specularLinear[2],
-            lightSpecular[3]
-        ]);
+        this.lightAmbient = params.lightAmbient || [0.2, 0.2, 0.2];
+        this.lightDiffuse = params.lightDiffuse || [1, 1, 1];
+        this.lightSpecular = params.lightSpecular || [0.00063, 0.00055, 0.00032, 18.0];
 
         this.exposure = params.exposure || 1;
 
@@ -413,6 +409,41 @@ class Renderer {
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    }
+
+    public set lightAmbient(lightAmbient: NumberArray3 | Float32Array) {
+        const linear = srgbToLinearArr([lightAmbient[0], lightAmbient[1], lightAmbient[2]]);
+        this._lightAmbient[0] = linear[0];
+        this._lightAmbient[1] = linear[1];
+        this._lightAmbient[2] = linear[2];
+    }
+
+    public get lightAmbient(): NumberArray3 {
+        return linearToSrgbArr([this._lightAmbient[0], this._lightAmbient[1], this._lightAmbient[2]]);
+    }
+
+    public set lightDiffuse(lightDiffuse: NumberArray3 | Float32Array) {
+        const linear = srgbToLinearArr([lightDiffuse[0], lightDiffuse[1], lightDiffuse[2]]);
+        this._lightDiffuse[0] = linear[0];
+        this._lightDiffuse[1] = linear[1];
+        this._lightDiffuse[2] = linear[2];
+    }
+
+    public get lightDiffuse(): NumberArray3 {
+        return linearToSrgbArr([this._lightDiffuse[0], this._lightDiffuse[1], this._lightDiffuse[2]]);
+    }
+
+    public set lightSpecular(lightSpecular: NumberArray4 | Float32Array) {
+        const linear = srgbToLinearArr([lightSpecular[0], lightSpecular[1], lightSpecular[2]]);
+        this._lightSpecular[0] = linear[0];
+        this._lightSpecular[1] = linear[1];
+        this._lightSpecular[2] = linear[2];
+        this._lightSpecular[3] = lightSpecular[3];
+    }
+
+    public get lightSpecular(): NumberArray4 {
+        const srgb = linearToSrgbArr([this._lightSpecular[0], this._lightSpecular[1], this._lightSpecular[2]]);
+        return [srgb[0], srgb[1], srgb[2], this._lightSpecular[3]];
     }
 
     public enableBlendDefault() {

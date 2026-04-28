@@ -484,7 +484,7 @@ export class Lighting extends Control {
         this._ambient_r.events.on("change", (val: number) => {
             if (this._selectedLayer) {
                 if (!this._selectedLayer._ambient) {
-                    this._selectedLayer._ambient = new Float32Array(this.renderer!._lightAmbient);
+                    this._selectedLayer._ambient = new Float32Array(this.renderer!.lightAmbient);
                 }
                 this._selectedLayer._ambient[0] = val;
                 this._syncSelectedBaseLayerLighting();
@@ -494,7 +494,7 @@ export class Lighting extends Control {
         this._ambient_g.events.on("change", (val: number) => {
             if (this._selectedLayer) {
                 if (!this._selectedLayer._ambient) {
-                    this._selectedLayer._ambient = new Float32Array(this.renderer!._lightAmbient);
+                    this._selectedLayer._ambient = new Float32Array(this.renderer!.lightAmbient);
                 }
                 this._selectedLayer._ambient[1] = val;
                 this._syncSelectedBaseLayerLighting();
@@ -504,7 +504,7 @@ export class Lighting extends Control {
         this._ambient_b.events.on("change", (val: number) => {
             if (this._selectedLayer) {
                 if (!this._selectedLayer._ambient) {
-                    this._selectedLayer._ambient = new Float32Array(this.renderer!._lightAmbient);
+                    this._selectedLayer._ambient = new Float32Array(this.renderer!.lightAmbient);
                 }
                 this._selectedLayer._ambient[2] = val;
                 this._syncSelectedBaseLayerLighting();
@@ -514,7 +514,7 @@ export class Lighting extends Control {
         this._diffuse_r.events.on("change", (val: number) => {
             if (this._selectedLayer) {
                 if (!this._selectedLayer._diffuse) {
-                    this._selectedLayer._diffuse = new Float32Array(this.renderer!._lightDiffuse);
+                    this._selectedLayer._diffuse = new Float32Array(this.renderer!.lightDiffuse);
                 }
                 this._selectedLayer._diffuse[0] = val;
                 this._syncSelectedBaseLayerLighting();
@@ -524,7 +524,7 @@ export class Lighting extends Control {
         this._diffuse_g.events.on("change", (val: number) => {
             if (this._selectedLayer) {
                 if (!this._selectedLayer._diffuse) {
-                    this._selectedLayer._diffuse = new Float32Array(this.renderer!._lightDiffuse);
+                    this._selectedLayer._diffuse = new Float32Array(this.renderer!.lightDiffuse);
                 }
                 this._selectedLayer._diffuse[1] = val;
                 this._syncSelectedBaseLayerLighting();
@@ -534,7 +534,7 @@ export class Lighting extends Control {
         this._diffuse_b.events.on("change", (val: number) => {
             if (this._selectedLayer) {
                 if (!this._selectedLayer._diffuse) {
-                    this._selectedLayer._diffuse = new Float32Array(this.renderer!._lightDiffuse);
+                    this._selectedLayer._diffuse = new Float32Array(this.renderer!.lightDiffuse);
                 }
                 this._selectedLayer._diffuse[2] = val;
                 this._syncSelectedBaseLayerLighting();
@@ -544,7 +544,7 @@ export class Lighting extends Control {
         this._specular_r.events.on("change", (val: number) => {
             if (this._selectedLayer) {
                 if (!this._selectedLayer._specular) {
-                    this._selectedLayer._specular = new Float32Array(this.renderer!._lightSpecular);
+                    this._selectedLayer._specular = new Float32Array(this.renderer!.lightSpecular);
                 }
                 this._selectedLayer._specular[0] = val;
                 this._syncSelectedBaseLayerLighting();
@@ -554,7 +554,7 @@ export class Lighting extends Control {
         this._specular_g.events.on("change", (val: number) => {
             if (this._selectedLayer) {
                 if (!this._selectedLayer._specular) {
-                    this._selectedLayer._specular = new Float32Array(this.renderer!._lightSpecular);
+                    this._selectedLayer._specular = new Float32Array(this.renderer!.lightSpecular);
                 }
                 this._selectedLayer._specular[1] = val;
                 this._syncSelectedBaseLayerLighting();
@@ -564,7 +564,7 @@ export class Lighting extends Control {
         this._specular_b.events.on("change", (val: number) => {
             if (this._selectedLayer) {
                 if (!this._selectedLayer._specular) {
-                    this._selectedLayer._specular = new Float32Array(this.renderer!._lightSpecular);
+                    this._selectedLayer._specular = new Float32Array(this.renderer!.lightSpecular);
                 }
                 this._selectedLayer._specular[2] = val;
                 this._syncSelectedBaseLayerLighting();
@@ -574,7 +574,7 @@ export class Lighting extends Control {
         this._shininess.events.on("change", (val: number) => {
             if (this._selectedLayer) {
                 if (!this._selectedLayer._specular) {
-                    this._selectedLayer._specular = new Float32Array(this.renderer!._lightSpecular);
+                    this._selectedLayer._specular = new Float32Array(this.renderer!.lightSpecular);
                 }
                 this._selectedLayer._specular[3] = val;
                 this._syncSelectedBaseLayerLighting();
@@ -594,17 +594,17 @@ export class Lighting extends Control {
         this._setSliderValue(this._opacity, l ? l.opacity : 0.0);
         this._setSliderValue(this._night, l?.nightTextureCoefficient ?? this.planet!.nightTextureCoefficient);
 
-        const ambient = l?._ambient || this.renderer!._lightAmbient;
+        const ambient = l?._ambient || this.renderer!.lightAmbient;
         this._setSliderValue(this._ambient_r, ambient[0]);
         this._setSliderValue(this._ambient_g, ambient[1]);
         this._setSliderValue(this._ambient_b, ambient[2]);
 
-        const diffuse = l?._diffuse || this.renderer!._lightDiffuse;
+        const diffuse = l?._diffuse || this.renderer!.lightDiffuse;
         this._setSliderValue(this._diffuse_r, diffuse[0]);
         this._setSliderValue(this._diffuse_g, diffuse[1]);
         this._setSliderValue(this._diffuse_b, diffuse[2]);
 
-        const specular = l?._specular || this.renderer!._lightSpecular;
+        const specular = l?._specular || this.renderer!.lightSpecular;
         this._setSliderValue(this._specular_r, specular[0]);
         this._setSliderValue(this._specular_g, specular[1]);
         this._setSliderValue(this._specular_b, specular[2]);
@@ -623,15 +623,15 @@ export class Lighting extends Control {
         if (!layer || !planet || !renderer || !planet.baseLayer || !planet.baseLayer.isEqual(layer)) return;
 
         if (layer._ambient) {
-            renderer._lightAmbient.set(layer._ambient);
+            renderer.lightAmbient = layer._ambient;
         }
 
         if (layer._diffuse) {
-            renderer._lightDiffuse.set(layer._diffuse);
+            renderer.lightDiffuse = layer._diffuse;
         }
 
         if (layer._specular) {
-            renderer._lightSpecular.set(layer._specular);
+            renderer.lightSpecular = layer._specular;
         }
 
         planet.nightTextureCoefficient = layer.nightTextureCoefficient;
