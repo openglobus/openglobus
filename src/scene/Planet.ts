@@ -489,7 +489,7 @@ export class Planet extends Scene {
         //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
-        this._atmosphereMaxMinOpacity = new Float32Array([0.95, 0.28]);
+        this._atmosphereMaxMinOpacity = new Float32Array([1.1, 0.11]);
         this.atmosphereFadeDist = new Float32Array(2);
         this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
@@ -503,7 +503,7 @@ export class Planet extends Scene {
     }
 
     /**
-     * Returns true if current terrain data set is loaded
+     * Returns true if the current terrain data set is loaded
      * @public
      */
     public get terrainReady(): boolean {
