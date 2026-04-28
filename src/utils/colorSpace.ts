@@ -23,14 +23,13 @@ export function getColorSpace(colorSpace?: string | number, defaultColorSpace: n
 }
 
 export function srgbToLinearArr(arr: NumberArray3): NumberArray3 {
-    return [srgbToLinear(arr[0]), srgbToLinear(arr[1]), srgbToLinear(arr[2])];
+    return [Math.pow(arr[0], 2.2), Math.pow(arr[1], 2.2), Math.pow(arr[2], 2.2)];
 }
 
 export function srgbToLinear3v(v: Vec3): NumberArray3 {
-    return [srgbToLinear(v.x), srgbToLinear(v.y), srgbToLinear(v.z)];
+    return [Math.pow(v.x, 2.2), Math.pow(v.y, 2.2), Math.pow(v.z, 2.2)];
 }
 
 export function srgbToLinear(v: number): number {
-    const c = v > 1.0 ? v / 255.0 : v;
-    return Math.pow(c, 2.2);
+    return Math.pow(v, 2.2);
 }

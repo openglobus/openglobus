@@ -8,6 +8,7 @@ import { Vec3 } from "../../math/Vec3";
 import { Vec4 } from "../../math/Vec4";
 import type { WebGLBufferExt } from "../../webgl/Handler";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
+import { srgbToLinear } from "../../utils/colorSpace";
 
 const PICKINGCOLOR_BUFFER = 0;
 const START_POSITION_BUFFER = 1;
@@ -468,13 +469,13 @@ class RayHandler {
         this._thicknessArr = concatArrays(this._thicknessArr, [x, x, x, x, x, x]);
 
         const opacity = ray.getOpacity();
-        let r0 = ray._startColor.x,
-            g0 = ray._startColor.y,
-            b0 = ray._startColor.z,
+        let r0 = srgbToLinear(ray._startColor.x),
+            g0 = srgbToLinear(ray._startColor.y),
+            b0 = srgbToLinear(ray._startColor.z),
             a0 = ray._startColor.w * opacity,
-            r1 = ray._endColor.x,
-            g1 = ray._endColor.y,
-            b1 = ray._endColor.z,
+            r1 = srgbToLinear(ray._endColor.x),
+            g1 = srgbToLinear(ray._endColor.y),
+            b1 = srgbToLinear(ray._endColor.z),
             a1 = ray._endColor.w * opacity;
         this._rgbaArr = concatArrays(this._rgbaArr, [
             r1,
@@ -853,13 +854,13 @@ class RayHandler {
     public setRgbaArr(index: number, startColor: Vec4, endColor: Vec4) {
         let i = index * 24;
         let a = this._rgbaArr,
-            r0 = startColor.x,
-            g0 = startColor.y,
-            b0 = startColor.z,
+            r0 = srgbToLinear(startColor.x),
+            g0 = srgbToLinear(startColor.y),
+            b0 = srgbToLinear(startColor.z),
             a0 = startColor.w,
-            r1 = endColor.x,
-            g1 = endColor.y,
-            b1 = endColor.z,
+            r1 = srgbToLinear(endColor.x),
+            g1 = srgbToLinear(endColor.y),
+            b1 = srgbToLinear(endColor.z),
             a1 = endColor.w;
 
         a[i] = r1;

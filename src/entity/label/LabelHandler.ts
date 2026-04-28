@@ -11,6 +11,7 @@ import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
 import { Vec4 } from "../../math/Vec4";
 import { BaseBillboard } from "../billboard/BaseBillboard";
+import { srgbToLinear } from "../../utils/colorSpace";
 
 type LabelWorkerCallbackData = {
     vertexArr: Float32Array;
@@ -884,9 +885,9 @@ class LabelHandler extends BaseBillboardHandler {
     public override setRgbaArr(index: number, rgba: Vec4) {
         let i = index * 24 * this._maxLetters;
         let a = this._rgbaArr,
-            x = rgba.x,
-            y = rgba.y,
-            z = rgba.z,
+            x = srgbToLinear(rgba.x),
+            y = srgbToLinear(rgba.y),
+            z = srgbToLinear(rgba.z),
             w = rgba.w;
 
         for (let q = 0; q < this._maxLetters; q++) {
@@ -936,9 +937,9 @@ class LabelHandler extends BaseBillboardHandler {
     public setOutlineColorArr(index: number, rgba: Vec4) {
         let i = index * 24 * this._maxLetters;
         let a = this._outlineColorArr,
-            x = rgba.x,
-            y = rgba.y,
-            z = rgba.z,
+            x = srgbToLinear(rgba.x),
+            y = srgbToLinear(rgba.y),
+            z = srgbToLinear(rgba.z),
             w = rgba.w;
 
         for (let q = 0; q < this._maxLetters; q++) {

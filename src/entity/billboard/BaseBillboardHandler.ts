@@ -11,6 +11,7 @@ import { Vec4 } from "../../math/Vec4";
 import type { WebGLBufferExt } from "../../webgl/Handler";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import { BaseBillboard } from "./BaseBillboard";
+import { srgbToLinear } from "../../utils/colorSpace";
 
 const PICKINGCOLOR_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -740,9 +741,9 @@ class BaseBillboardHandler {
     public setRgbaArr(index: number, rgba: Vec4) {
         let i = index * 24;
         let a = this._rgbaArr,
-            x = rgba.x,
-            y = rgba.y,
-            z = rgba.z,
+            x = srgbToLinear(rgba.x),
+            y = srgbToLinear(rgba.y),
+            z = srgbToLinear(rgba.z),
             w = rgba.w;
 
         a[i] = x;

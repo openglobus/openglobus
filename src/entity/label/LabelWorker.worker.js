@@ -9,6 +9,10 @@ function concatTypedArrays(dest, index, source) {
     }
 }
 
+function srgbToLinear(v) {
+    return Math.pow(v, 2.2);
+}
+
 self.onmessage = function (e) {
     var labelData = e.data.labelData,
         id = labelData[0],
@@ -88,9 +92,9 @@ self.onmessage = function (e) {
         y = _offset_y;
         concatTypedArrays(_offsetArr, i, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
-        x = _color_x;
-        y = _color_y;
-        z = _color_z;
+        x = srgbToLinear(_color_x);
+        y = srgbToLinear(_color_y);
+        z = srgbToLinear(_color_z);
         w = _color_w;
         concatTypedArrays(_rgbaArr, i, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
@@ -108,9 +112,9 @@ self.onmessage = function (e) {
         x = _outline;
         concatTypedArrays(_outlineArr, i, [x, x, x, x, x, x]);
 
-        x = _outlineColor_x;
-        y = _outlineColor_y;
-        z = _outlineColor_z;
+        x = srgbToLinear(_outlineColor_x);
+        y = srgbToLinear(_outlineColor_y);
+        z = srgbToLinear(_outlineColor_z);
         w = _outlineColor_w;
         concatTypedArrays(_outlineColorArr, i, [
             x,

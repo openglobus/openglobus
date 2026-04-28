@@ -9,6 +9,7 @@ import type { NumberArray4 } from "../../math/Vec4";
 import { StripHandler } from "./StripHandler";
 import type { WebGLBufferExt } from "../../webgl/Handler";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
+import { srgbToLinear } from "../../utils/colorSpace";
 
 type TPoiExt = Vec3 | NumberArray3;
 type TStripExt = [TPoiExt, TPoiExt];
@@ -55,7 +56,7 @@ class Strip {
      */
     public visibility: boolean;
 
-    public color: Float32Array;
+    protected _color: Float32Array;
 
     /**
      * Parent collection render node.
@@ -95,7 +96,7 @@ class Strip {
 
         this.visibility = options.visibility != undefined ? options.visibility : true;
 
-        this.color = new Float32Array([1.0, 1.0, 1.0, 0.5]);
+        this._color = new Float32Array([1.0, 1.0, 1.0, 0.5]);
 
         if (options.color) {
             let color = utils.createColorRGBA(options.color);
@@ -200,11 +201,11 @@ class Strip {
     }
 
     public setColor(r: number, g: number, b: number, a?: number) {
-        this.color[0] = r;
-        this.color[1] = g;
-        this.color[2] = b;
+        this._color[0] = srgbToLinear(r);
+        this._color[1] = srgbToLinear(g);
+        this._color[2] = srgbToLinear(b);
         if (a !== undefined) {
-            this.color[3] = a;
+            this._color[3] = a;
             this._handler && this._handler.updateStripOpacity(this);
         }
     }
@@ -215,8 +216,12 @@ class Strip {
      * @param {number} opacity - Opacity.
      */
     public setOpacity(opacity: number) {
-        this.color[3] = opacity || 0;
+        this._color[3] = opacity || 0;
         this._handler && this._handler.updateStripOpacity(this);
+    }
+
+    public isOpaque(): boolean {
+        return this._color[3] >= 0.999999;
     }
 
     /**
@@ -295,7 +300,7 @@ class Strip {
     public drawTransparent() {
         this._drawImpl(
             this._scene!.renderer!.handler.programs.stripTransparent,
-            this.color,
+            this._color,
             this._entity!._entityCollection!._fadingOpacity
         );
     }
@@ -303,7 +308,7 @@ class Strip {
     public drawOpaque() {
         this._drawImpl(
             this._scene!.renderer!.handler.programs.stripForward,
-            this.color,
+            this._color,
             this._entity!._entityCollection!._fadingOpacity
         );
     }
