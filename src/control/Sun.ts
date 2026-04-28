@@ -69,7 +69,7 @@ export class Sun extends Control {
     public override oninit() {
         // sunlight initialization
         const renderer = this.renderer!;
-        renderer.lightPosition.set([this._sunlightPosition.x, this._sunlightPosition.y, this._sunlightPosition.z]);
+        renderer._lightPosition.set([this._sunlightPosition.x, this._sunlightPosition.y, this._sunlightPosition.z]);
 
         this.renderer!.events.on("draw", this._draw, this);
 
@@ -103,9 +103,9 @@ export class Sun extends Control {
 
     protected _setSunPosition3v(position: Vec3) {
         this._sunlightPosition.copy(position);
-        this.renderer!.lightPosition[0] = position.x;
-        this.renderer!.lightPosition[1] = position.y;
-        this.renderer!.lightPosition[2] = position.z;
+        this.renderer!._lightPosition[0] = position.x;
+        this.renderer!._lightPosition[1] = position.y;
+        this.renderer!._lightPosition[2] = position.z;
     }
 
     protected _draw() {

@@ -811,15 +811,15 @@ export class Planet extends Scene {
         if (!renderer) return;
 
         if (layer._ambient) {
-            renderer.lightAmbient.set(layer._ambient);
+            renderer._lightAmbient.set(layer._ambient);
         }
 
         if (layer._diffuse) {
-            renderer.lightDiffuse.set(layer._diffuse);
+            renderer._lightDiffuse.set(layer._diffuse);
         }
 
         if (layer._specular) {
-            renderer.lightSpecular.set(layer._specular);
+            renderer._lightSpecular.set(layer._specular);
         }
 
         this.nightTextureCoefficient = layer.nightTextureCoefficient;
@@ -1495,7 +1495,7 @@ export class Planet extends Scene {
         shu = sh.uniforms;
 
         gl.uniform1f(shu.shadeMode, this._atmosphereEnabled ? SHADE_PBR : this._shadeMode);
-        gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
+        gl.uniform3fv(shu.lightPosition, renderer._lightPosition);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
@@ -1540,12 +1540,12 @@ export class Planet extends Scene {
 
         gl.uniform1f(shu.shadeMode, this._shadeMode);
 
-        gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
+        gl.uniform3fv(shu.lightPosition, renderer._lightPosition);
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
-        gl.uniform3fv(shu.diffuse, renderer.lightDiffuse);
-        gl.uniform3fv(shu.ambient, renderer.lightAmbient);
-        gl.uniform4fv(shu.specular, renderer.lightSpecular);
+        gl.uniform3fv(shu.diffuse, renderer._lightDiffuse);
+        gl.uniform3fv(shu.ambient, renderer._lightAmbient);
+        gl.uniform4fv(shu.specular, renderer._lightSpecular);
 
         gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
 
@@ -1591,12 +1591,12 @@ export class Planet extends Scene {
 
         if (!atmosphereControl.isReady) return program;
 
-        gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
+        gl.uniform3fv(shu.lightPosition, renderer._lightPosition);
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
-        gl.uniform3fv(shu.diffuse, renderer.lightDiffuse);
-        gl.uniform3fv(shu.ambient, renderer.lightAmbient);
-        gl.uniform4fv(shu.specular, renderer.lightSpecular);
+        gl.uniform3fv(shu.diffuse, renderer._lightDiffuse);
+        gl.uniform3fv(shu.ambient, renderer._lightAmbient);
+        gl.uniform4fv(shu.specular, renderer._lightSpecular);
 
         gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
 

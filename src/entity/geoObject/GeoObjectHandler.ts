@@ -471,10 +471,10 @@ export class GeoObjectHandler {
 
         //
         // Global sun position
-        gl.uniform3fv(u.lightPosition, r.lightPosition);
-        gl.uniform3fv(u.lightAmbient, r.lightAmbient);
-        gl.uniform3fv(u.lightDiffuse, r.lightDiffuse);
-        gl.uniform4fv(u.lightSpecular, r.lightSpecular);
+        gl.uniform3fv(u.lightPosition, r._lightPosition);
+        gl.uniform3fv(u.lightAmbient, r._lightAmbient);
+        gl.uniform3fv(u.lightDiffuse, r._lightDiffuse);
+        gl.uniform4fv(u.lightSpecular, r._lightSpecular);
     }
 
     protected _bindAtmosphereParams(p: ShaderProgram) {

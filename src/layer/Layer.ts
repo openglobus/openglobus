@@ -1,6 +1,7 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
 import { createColorRGB } from "../utils/shared";
+import { getColorSpace, SRGB } from "../utils/colorSpace";
 import { createEvents } from "../Events";
 import type { EventsHandler } from "../Events";
 import { Extent } from "../Extent";
@@ -15,9 +16,6 @@ import type { NumberArray4 } from "../math/Vec4";
 import type { IDefaultTextureParams } from "../webgl/Handler";
 
 const FADING_RATIO = 30;
-
-const LINEAR = 0;
-const SRGB = 1;
 
 export interface ILayerParams {
     properties?: any;
@@ -94,8 +92,6 @@ export interface ILayerParams {
  */
 class Layer {
     static __counter__: number = 0;
-    static readonly LINEAR: number = LINEAR;
-    static readonly SRGB: number = SRGB;
 
     /**
      * Uniq identifier.
@@ -338,21 +334,7 @@ class Layer {
     }
 
     public static getColorSpace(colorSpace?: string | number): number {
-        if (colorSpace === LINEAR || colorSpace === SRGB) {
-            return colorSpace;
-        }
-
-        if (typeof colorSpace === "string") {
-            const value = colorSpace.trim().toLowerCase();
-            if (value === "linear") {
-                return LINEAR;
-            }
-            if (value === "srgb") {
-                return SRGB;
-            }
-        }
-
-        return SRGB;
+        return getColorSpace(colorSpace, SRGB);
     }
 
     public get iconSrc(): string | null {

@@ -125,10 +125,10 @@ export class PhongDeferredShading implements IDeferredShadingPass {
         sh.activate();
 
         gl.uniformMatrix3fv(p.uniforms.normalMatrix, false, r.activeCamera.getNormalMatrix());
-        gl.uniform3fv(p.uniforms.lightPosition, r.lightPosition);
-        gl.uniform3fv(p.uniforms.lightAmbient, r.lightAmbient);
-        gl.uniform3fv(p.uniforms.lightDiffuse, r.lightDiffuse);
-        gl.uniform4fv(p.uniforms.lightSpecular, r.lightSpecular);
+        gl.uniform3fv(p.uniforms.lightPosition, r._lightPosition);
+        gl.uniform3fv(p.uniforms.lightAmbient, r._lightAmbient);
+        gl.uniform3fv(p.uniforms.lightDiffuse, r._lightDiffuse);
+        gl.uniform4fv(p.uniforms.lightSpecular, r._lightSpecular);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer!.textures[0]);

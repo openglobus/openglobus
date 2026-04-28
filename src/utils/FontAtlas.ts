@@ -54,7 +54,7 @@ class FontTextureAtlas extends TextureAtlas {
     public kernings: Record<number, Record<number, number>>;
 
     constructor(width?: number, height?: number) {
-        super(width, height);
+        super(width, height, "linear");
         this.width = 0;
         this.height = 0;
         this.gliphSize = 0;

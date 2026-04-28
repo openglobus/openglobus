@@ -11,6 +11,7 @@ import { Handler } from "../webgl/Handler";
 import type { WebGLBufferExt } from "../webgl/Handler";
 import { input } from "../input/input";
 import { isEmpty } from "../utils/shared";
+import { srgbToLinearArr } from "../utils/colorSpace";
 import { LabelWorker } from "../entity/label/LabelWorker";
 import { MAX_FLOAT, randomi } from "../math";
 import { Scene } from "../scene/Scene";
@@ -261,10 +262,10 @@ class Renderer {
 
     public clearColor: Float32Array;
 
-    public lightPosition: Float32Array;
-    public lightAmbient: Float32Array;
-    public lightDiffuse: Float32Array;
-    public lightSpecular: Float32Array;
+    public _lightPosition: Float32Array;
+    public _lightAmbient: Float32Array;
+    public _lightDiffuse: Float32Array;
+    public _lightSpecular: Float32Array;
 
     //public lightColor: Float32Array;
     //public lightIntensity: number;
@@ -289,10 +290,13 @@ class Renderer {
 
         this.clearColor = new Float32Array(params.clearColor || [0, 0, 0, 1]);
 
-        this.lightPosition = new Float32Array(params.lightPosition || [1, 1, 1]);
-        this.lightAmbient = new Float32Array(params.lightAmbient || [0.2, 0.2, 0.3]);
-        this.lightDiffuse = new Float32Array(params.lightDiffuse || [0.9, 0.9, 0.7]);
-        this.lightSpecular = new Float32Array(params.lightSpecular || [0.00063, 0.00055, 0.00032, 18.0]);
+        this._lightPosition = new Float32Array(params.lightPosition || [1, 1, 1]);
+        this._lightAmbient = new Float32Array(srgbToLinearArr(params.lightAmbient || [0.2, 0.2, 0.3]));
+        this._lightDiffuse = new Float32Array(srgbToLinearArr(params.lightDiffuse || [0.9, 0.9, 0.7]));
+
+        const lightSpecular = params.lightSpecular || [0.00063, 0.00055, 0.00032, 18.0];
+        const specularLinear = srgbToLinearArr([lightSpecular[0], lightSpecular[1], lightSpecular[2]]);
+        this._lightSpecular = new Float32Array([specularLinear[0], specularLinear[1], specularLinear[2], lightSpecular[3]]);
 
         this.exposure = params.exposure || 3.01;
 
@@ -360,11 +364,11 @@ class Renderer {
         this._initialized = false;
 
         /**
-         * Texture atlas for the billboards images.
+         * Texture atlas for the billboard images.
          * @public
          * @type {TextureAtlas}
          */
-        this.billboardsTextureAtlas = new TextureAtlas();
+        this.billboardsTextureAtlas = new TextureAtlas(1024, 1024, "srgb");
 
         /**
          * Texture font atlas for the font families and styles.
@@ -374,7 +378,7 @@ class Renderer {
         this.fontAtlas = new FontAtlas(params.fontsSrc);
 
         /**
-         * Texture atlas for the rays, polylines and strips.
+         * Texture atlas for the rays, polylines, and strips.
          * @public
          * @type {TextureAtlas}
          */
@@ -422,7 +426,7 @@ class Renderer {
 
     /**
      * Sets depth compare and clear value for the camera (reverse-Z vs classic).
-     * Pass null to restore classic depth state:
+     * Pass null to restore the classic depth state:
      * depthFunc(LESS), clearDepth(1), and clip-control NEGATIVE_ONE_TO_ONE.
      */
     public applyDepthForCamera(camera: Camera | null = this.activeCamera) {
@@ -874,7 +878,7 @@ class Renderer {
     }
 
     /**
-     * Adds scene to the renderer.
+     * Adds a scene to the renderer.
      * @public
      * @param {Scene} scene - Scene.
      */
@@ -964,7 +968,7 @@ class Renderer {
     }
 
     /**
-     * TODO: replace with cache friendly linked list by BillboardHandler, LabelHandler etc.
+     * TODO: replace with cache-friendly linked list by BillboardHandler, LabelHandler etc.
      */
     public enqueueEntityCollectionsToDraw(ecArr: EntityCollection[], depthOrder: number = 0) {
         if (!this._entityCollections[depthOrder]) {

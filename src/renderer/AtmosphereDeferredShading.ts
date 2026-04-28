@@ -46,10 +46,10 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
 
         // Common uniforms (same as Phong)
         gl.uniformMatrix3fv(p.uniforms.normalMatrix, false, r.activeCamera.getNormalMatrix());
-        gl.uniform3fv(p.uniforms.lightPosition, r.lightPosition);
-        gl.uniform3fv(p.uniforms.lightAmbient, r.lightAmbient);
-        gl.uniform3fv(p.uniforms.lightDiffuse, r.lightDiffuse);
-        gl.uniform4fv(p.uniforms.lightSpecular, r.lightSpecular);
+        gl.uniform3fv(p.uniforms.lightPosition, r._lightPosition);
+        gl.uniform3fv(p.uniforms.lightAmbient, r._lightAmbient);
+        gl.uniform3fv(p.uniforms.lightDiffuse, r._lightDiffuse);
+        gl.uniform4fv(p.uniforms.lightSpecular, r._lightSpecular);
         gl.uniform3f(p.uniforms.cameraPosition, r.activeCamera.eye.x, r.activeCamera.eye.y, r.activeCamera.eye.z);
         gl.uniform2fv(p.uniforms.atmosFadeDist, this._atmosphere.planet!.atmosphereFadeDist);
 
