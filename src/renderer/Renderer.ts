@@ -100,7 +100,7 @@ let _tempDepth_ = new Float32Array(2);
  * @fires mhold - Triggered while the middle mouse button is held.
  * @fires mousewheel - Triggered on mouse wheel scroll.
  * @fires touchstart - Triggered on touch start.
- * @fires touchend - Triggered on touch end.
+ * @fires touchend - Triggered on the touch end.
  * @fires touchcancel - Triggered on touch cancel.
  * @fires touchmove - Triggered on touch move.
  * @fires doubletouch - Triggered on double touch.
@@ -194,7 +194,7 @@ class Renderer {
     protected _pickingCallbacks: IFrameCallbackHandler[];
 
     /**
-     * Picking objects(labels and billboards) framebuffer.
+     * Picking objects (labels and billboards) framebuffer.
      * @public
      * @type {Framebuffer}
      */
@@ -226,7 +226,7 @@ class Renderer {
     protected _initialized: boolean;
 
     /**
-     * Texture atlas for the billboards images.
+     * Texture atlas for the billboard images.
      * @public
      * @type {TextureAtlas}
      */
@@ -240,7 +240,7 @@ class Renderer {
     public fontAtlas: FontAtlas;
 
     /**
-     * Texture atlas for the rays, polylines and strips entities.
+     * Texture atlas for the rays, polylines, and strips entities.
      * @public
      * @type {TextureAtlas}
      */
@@ -383,7 +383,7 @@ class Renderer {
          * @public
          * @type {TextureAtlas}
          */
-        this.strokeTextureAtlas = new TextureAtlas();
+        this.strokeTextureAtlas = new TextureAtlas(256, 256, "srgb");
 
         this._entityCollections = [[]];
 
@@ -935,7 +935,7 @@ class Renderer {
     }
 
     /**
-     * Adds scene to the renderer before specific node.
+     * Adds a scene to the renderer before a specific node.
      * @public
      * @param {Scene} scene - Render node.
      * @param {Scene} sceneBefore - Insert before the sceneBefore node.
@@ -1015,7 +1015,7 @@ class Renderer {
 
     /**
      * Forces the depth buffer to be refreshed in the next frame.
-     * Has effect for terrain altitude estimate precision.
+     * Has an effect for terrain altitude estimate precision.
      */
     public markForDepthRefresh(): void {
         this._depthRefreshRequired = true;
@@ -1083,7 +1083,7 @@ class Renderer {
             }
 
             //
-            // billboards pass
+            // billboard pass
             //
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
@@ -1400,7 +1400,7 @@ class Renderer {
         }
 
         //
-        // Depth ordered EntityCollections passes
+        // Depth-ordered EntityCollections passes
         //
         for (let i = 1; i < this._entityCollections.length; i++) {
             gl.clear(gl.DEPTH_BUFFER_BIT);
