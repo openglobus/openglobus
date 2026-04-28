@@ -1637,6 +1637,7 @@ export class Planet extends Scene {
         gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
 
         gl.uniform2fv(shu.atmosFadeDist, this.atmosphereFadeDist);
+        gl.uniform2fv(shu.atmosMaxMinOpacity, this.atmosphereMaxMinOpacity);
         gl.uniform1f(shu.camHeight, cam.getHeight());
 
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
