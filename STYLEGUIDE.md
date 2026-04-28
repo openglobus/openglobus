@@ -14,13 +14,11 @@ Run locally before opening a PR:
 
 ```sh
 npm run lint
-npm run format:check
+npm run format
 npm run test
+npm run docs
 npm run build
 ```
-
-`npm run format:check` is currently non-blocking in CI and can be adopted
-incrementally for touched files.
 
 ## Formatting
 

@@ -37,8 +37,8 @@ Style references:
 ## Branch and Commit Naming
 
 - Branch names should follow:
-  - `feature/<issue_id>_<short_name>`
-  - `bugfix/<issue_id>_<short_name>`
+    - `feature/<issue_id>_<short_name>`
+    - `bugfix/<issue_id>_<short_name>`
 - Include issue reference in commits and PR description (for example, `#123`).
 
 ## Pull Requests
@@ -52,6 +52,7 @@ Local validation checklist:
 
 - [ ] `npm run lint`
 - [ ] `npm run test`
+- [ ] `npm run format`
 - [ ] `npm run build`
 
 ## Reporting Bugs
