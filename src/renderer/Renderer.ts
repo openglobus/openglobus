@@ -298,7 +298,7 @@ class Renderer {
         const specularLinear = srgbToLinearArr([lightSpecular[0], lightSpecular[1], lightSpecular[2]]);
         this._lightSpecular = new Float32Array([specularLinear[0], specularLinear[1], specularLinear[2], lightSpecular[3]]);
 
-        this.exposure = params.exposure || 3.01;
+        this.exposure = params.exposure || 1;
 
         this.gamma = params.gamma || 2.2;
 

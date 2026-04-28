@@ -13,7 +13,7 @@ export class OpenStreetMap extends XYZ {
             shininess: 30,
             specular: [0.05, 0.05, 0.02],
             ambient: [0.2, 0.2, 0.3],
-            diffuse: [0.9, 0.9, 0.7],
+            diffuse: [0.9, 0.9, 0.9],
             ...options
         });
     }

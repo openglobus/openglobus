@@ -1082,10 +1082,15 @@ export class Planet extends Scene {
         }
 
         // creating empty textures
-        this.renderer!.handler.createDefaultTexture(null, (t: WebGLTextureExt) => {
-            this.solidTextureOne = t;
-            this.solidTextureTwo = t;
-        });
+        const srgbInternalFormat = this.renderer!.handler.gl!.SRGB8_ALPHA8;
+        this.renderer!.handler.createDefaultTexture(
+            null,
+            (t: WebGLTextureExt) => {
+                this.solidTextureOne = t;
+                this.solidTextureTwo = t;
+            },
+            srgbInternalFormat
+        );
 
         this.transparentTexture = this.renderer!.handler.transparentTexture;
 
@@ -1103,7 +1108,7 @@ export class Planet extends Scene {
             let img = new Image();
             img.crossOrigin = "Anonymous";
             img.onload = () => {
-                this._nightTexture = this.renderer!.handler.createTextureDefault(img)!;
+                this._nightTexture = this.renderer!.handler.createTextureDefault(img, srgbInternalFormat)!;
                 this._nightTexture.default = true;
             };
             img.src = this._nightTextureSrc;
@@ -1196,12 +1201,21 @@ export class Planet extends Scene {
     public createDefaultTextures(param0: IDefaultTextureParams, param1: IDefaultTextureParams) {
         this.renderer!.handler.gl!.deleteTexture(this.solidTextureOne!);
         this.renderer!.handler.gl!.deleteTexture(this.solidTextureTwo!);
-        this.renderer!.handler.createDefaultTexture(param0, (texture: WebGLTextureExt) => {
-            this.solidTextureOne = texture;
-        });
-        this.renderer!.handler.createDefaultTexture(param1, (texture: WebGLTextureExt) => {
-            this.solidTextureTwo = texture;
-        });
+        const srgbInternalFormat = this.renderer!.handler.gl!.SRGB8_ALPHA8;
+        this.renderer!.handler.createDefaultTexture(
+            param0,
+            (texture: WebGLTextureExt) => {
+                this.solidTextureOne = texture;
+            },
+            srgbInternalFormat
+        );
+        this.renderer!.handler.createDefaultTexture(
+            param1,
+            (texture: WebGLTextureExt) => {
+                this.solidTextureTwo = texture;
+            },
+            srgbInternalFormat
+        );
     }
 
     protected _getLayerAttributionHTML(layer: Layer) {
@@ -2020,7 +2034,7 @@ export class Planet extends Scene {
     }
 
     /**
-     * Starts clear memory thread.
+     * Starts a clear memory thread.
      * @public
      */
     public memClear() {
@@ -2046,7 +2060,7 @@ export class Planet extends Scene {
 
     /**
      * Returns ray vector hit ellipsoid coordinates.
-     * If the ray doesn't hit ellipsoid it returns 'undefined'.
+     * If the ray doesn't hit ellipsoid, it returns 'undefined'.
      * @public
      * @param {Ray} ray - Ray.
      * @returns {Vec3 | undefined} -
