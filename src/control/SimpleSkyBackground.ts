@@ -1,6 +1,7 @@
 import { Control } from "./Control";
 import type { IControlParams } from "./Control";
 import { htmlColorToRgb, rgbToStringHTML } from "../utils/shared";
+import { srgbToLinear } from "../utils/colorSpace";
 import { ShaderProgram } from "../webgl/ShaderProgram";
 import type { NumberArray3 } from "../math/Vec3";
 
@@ -16,8 +17,8 @@ export class SimpleSkyBackground extends Control {
             ...options
         });
 
-        this._colorOne = new Float32Array([128 / 255, 223 / 255, 255 / 255]);
-        this._colorTwo = new Float32Array([10 / 255, 15 / 255, 56 / 255]);
+        this._colorOne = new Float32Array([srgbToLinear(128 / 255), srgbToLinear(223 / 255), srgbToLinear(255 / 255)]);
+        this._colorTwo = new Float32Array([srgbToLinear(10 / 255), srgbToLinear(15 / 255), srgbToLinear(56 / 255)]);
     }
 
     public get colorOne(): string {
@@ -34,16 +35,16 @@ export class SimpleSkyBackground extends Control {
 
     public set colorOne(htmlColor: string) {
         let rgb = htmlColorToRgb(htmlColor);
-        this._colorOne[0] = rgb.x;
-        this._colorOne[1] = rgb.y;
-        this._colorOne[2] = rgb.z;
+        this._colorOne[0] = srgbToLinear(rgb.x);
+        this._colorOne[1] = srgbToLinear(rgb.y);
+        this._colorOne[2] = srgbToLinear(rgb.z);
     }
 
     public set colorTwo(htmlColor: string) {
         let rgb = htmlColorToRgb(htmlColor);
-        this._colorTwo[0] = rgb.x;
-        this._colorTwo[1] = rgb.y;
-        this._colorTwo[2] = rgb.z;
+        this._colorTwo[0] = srgbToLinear(rgb.x);
+        this._colorTwo[1] = srgbToLinear(rgb.y);
+        this._colorTwo[2] = srgbToLinear(rgb.z);
     }
 
     public override oninit() {
