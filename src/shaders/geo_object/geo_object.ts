@@ -148,7 +148,8 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             useReverseDepth: "float",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
-            atmosFadeDist: "vec2"
+            atmosFadeDist: "vec2",
+            atmosMaxMinOpacity: "vec2"
         },
         attributes: {
             aVertexPosition: "vec3",

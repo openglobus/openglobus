@@ -679,7 +679,8 @@ export class InstanceData {
     private _createColorTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
             let h = this._geoObjectHandler._renderer.handler;
-            this._colorTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+            const gl = h.gl!;
+            this._colorTexture = h.createTextureDefault(image, h.gl!.SRGB8_ALPHA8, gl.REPEAT);
         }
     }
 

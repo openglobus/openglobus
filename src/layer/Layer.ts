@@ -1,6 +1,7 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
 import { createColorRGB } from "../utils/shared";
+import { getColorSpace, SRGB } from "../utils/colorSpace";
 import { createEvents } from "../Events";
 import type { EventsHandler } from "../Events";
 import { Extent } from "../Extent";
@@ -31,7 +32,7 @@ export interface ILayerParams {
     fading?: boolean;
     height?: number;
     textureFilter?: string;
-    isSRGB?: boolean;
+    colorSpace?: string | number;
     pickingEnabled?: boolean;
     preLoadZoomLevels?: number[];
     extent?: Extent | [[number, number], [number, number]];
@@ -57,7 +58,7 @@ export interface ILayerParams {
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {boolean} [options.hideInLayerSwitcher=false] - Presence of layer in dialog window of LayerSwitcher control.
- * @param {boolean} [options.isSRGB=false] - Layer image WebGL internal format.
+ * @param {string|number} [options.colorSpace="srgb"] - Layer color space. Available values: "linear", "srgb", 0, 1.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
  * @param {string} [options.icon] - Icon for LayerSwitcher
@@ -196,7 +197,7 @@ class Layer {
 
     protected _textureFilter: string;
 
-    protected _isSRGB: boolean;
+    protected _colorSpace: number;
 
     public _internalFormat: number | null;
 
@@ -288,8 +289,7 @@ class Layer {
 
         this._textureFilter = options.textureFilter ? options.textureFilter.trim().toUpperCase() : "MIPMAP";
 
-        this._isSRGB = options.isSRGB != undefined ? options.isSRGB : false;
-
+        this._colorSpace = Layer.getColorSpace(options.colorSpace);
         this._internalFormat = null;
 
         this._extentMerc = new Extent();
@@ -333,6 +333,10 @@ class Layer {
         this.nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
     }
 
+    public static getColorSpace(colorSpace?: string | number): number {
+        return getColorSpace(colorSpace, SRGB);
+    }
+
     public get iconSrc(): string | null {
         return this._iconSrc;
     }
@@ -345,7 +349,7 @@ class Layer {
     public set diffuse(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._diffuse = new Float32Array(vec.toArray());
+            this._diffuse = new Float32Array([vec.x, vec.y, vec.z]);
         } else {
             this._diffuse = null;
         }
@@ -354,7 +358,7 @@ class Layer {
     public set ambient(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._ambient = new Float32Array(vec.toArray());
+            this._ambient = new Float32Array([vec.x, vec.y, vec.z]);
         } else {
             this._ambient = null;
         }
@@ -363,7 +367,12 @@ class Layer {
     public set specular(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular ? this._specular[3] : 0.0]);
+            this._specular = new Float32Array([
+                vec.x,
+                vec.y,
+                vec.z,
+                this._specular ? this._specular[3] : 20.0
+            ]);
         } else {
             this._specular = null;
         }
@@ -475,7 +484,7 @@ class Layer {
 
         if (planet.renderer && planet.renderer.isInitialized()) {
             // TODO: webgl1
-            if (this._isSRGB) {
+            if (this._colorSpace === SRGB) {
                 this._internalFormat = planet.renderer.handler.gl!.SRGB8_ALPHA8;
             } else {
                 this._internalFormat = planet.renderer.handler.gl!.RGBA8;
@@ -524,7 +533,7 @@ class Layer {
     }
 
     /**
-     * Removes from planet.
+     * Removes from a planet.
      * @public
      * @returns {Layer} This layer.
      */

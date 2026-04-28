@@ -22,6 +22,7 @@ uniform mat3 normalMatrix;
 uniform sampler2D transmittanceTexture;
 uniform sampler2D scatteringTexture;
 uniform vec2 atmosFadeDist;
+uniform vec2 atmosMaxMinOpacity;
 
 #include "../atmos/lut_helpers.glsl"
 #include "../atmos/atmosGroundColor.glsl"
@@ -120,7 +121,7 @@ void main(void) {
         specularWeighting *= sunIlluminance;
 
         float fadingOpacity;
-        getAtmosFadingOpacity(vertex, cameraPosition, atmosFadeDist, fadingOpacity);
+        getAtmosFadingOpacity(vertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
 
         color = mix(baseColor * lightWeighting, atmosColor * baseColor.a, fadingOpacity) + vec4(specularWeighting, 0.0);
     }

@@ -127,6 +127,7 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             atmosFadeDist: "vec2",
+            atmosMaxMinOpacity: "vec2",
             camHeight: "float",
             nightTextureCoefficient: "float",
             transitionOpacity: "float",

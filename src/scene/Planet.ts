@@ -489,7 +489,7 @@ export class Planet extends Scene {
         //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
-        this._atmosphereMaxMinOpacity = new Float32Array([0.95, 0.28]);
+        this._atmosphereMaxMinOpacity = new Float32Array([1.1, 0.11]);
         this.atmosphereFadeDist = new Float32Array(2);
         this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
@@ -503,7 +503,7 @@ export class Planet extends Scene {
     }
 
     /**
-     * Returns true if current terrain data set is loaded
+     * Returns true if the current terrain data set is loaded
      * @public
      */
     public get terrainReady(): boolean {
@@ -811,15 +811,15 @@ export class Planet extends Scene {
         if (!renderer) return;
 
         if (layer._ambient) {
-            renderer.lightAmbient.set(layer._ambient);
+            renderer.lightAmbient = layer._ambient;
         }
 
         if (layer._diffuse) {
-            renderer.lightDiffuse.set(layer._diffuse);
+            renderer.lightDiffuse = layer._diffuse;
         }
 
         if (layer._specular) {
-            renderer.lightSpecular.set(layer._specular);
+            renderer.lightSpecular = layer._specular;
         }
 
         this.nightTextureCoefficient = layer.nightTextureCoefficient;
@@ -1082,10 +1082,15 @@ export class Planet extends Scene {
         }
 
         // creating empty textures
-        this.renderer!.handler.createDefaultTexture(null, (t: WebGLTextureExt) => {
-            this.solidTextureOne = t;
-            this.solidTextureTwo = t;
-        });
+        const srgbInternalFormat = this.renderer!.handler.gl!.SRGB8_ALPHA8;
+        this.renderer!.handler.createDefaultTexture(
+            null,
+            (t: WebGLTextureExt) => {
+                this.solidTextureOne = t;
+                this.solidTextureTwo = t;
+            },
+            srgbInternalFormat
+        );
 
         this.transparentTexture = this.renderer!.handler.transparentTexture;
 
@@ -1103,7 +1108,7 @@ export class Planet extends Scene {
             let img = new Image();
             img.crossOrigin = "Anonymous";
             img.onload = () => {
-                this._nightTexture = this.renderer!.handler.createTextureDefault(img)!;
+                this._nightTexture = this.renderer!.handler.createTextureDefault(img, srgbInternalFormat)!;
                 this._nightTexture.default = true;
             };
             img.src = this._nightTextureSrc;
@@ -1196,12 +1201,21 @@ export class Planet extends Scene {
     public createDefaultTextures(param0: IDefaultTextureParams, param1: IDefaultTextureParams) {
         this.renderer!.handler.gl!.deleteTexture(this.solidTextureOne!);
         this.renderer!.handler.gl!.deleteTexture(this.solidTextureTwo!);
-        this.renderer!.handler.createDefaultTexture(param0, (texture: WebGLTextureExt) => {
-            this.solidTextureOne = texture;
-        });
-        this.renderer!.handler.createDefaultTexture(param1, (texture: WebGLTextureExt) => {
-            this.solidTextureTwo = texture;
-        });
+        const srgbInternalFormat = this.renderer!.handler.gl!.SRGB8_ALPHA8;
+        this.renderer!.handler.createDefaultTexture(
+            param0,
+            (texture: WebGLTextureExt) => {
+                this.solidTextureOne = texture;
+            },
+            srgbInternalFormat
+        );
+        this.renderer!.handler.createDefaultTexture(
+            param1,
+            (texture: WebGLTextureExt) => {
+                this.solidTextureTwo = texture;
+            },
+            srgbInternalFormat
+        );
     }
 
     protected _getLayerAttributionHTML(layer: Layer) {
@@ -1495,7 +1509,7 @@ export class Planet extends Scene {
         shu = sh.uniforms;
 
         gl.uniform1f(shu.shadeMode, this._atmosphereEnabled ? SHADE_PBR : this._shadeMode);
-        gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
+        gl.uniform3fv(shu.lightPosition, renderer._lightPosition);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
@@ -1540,12 +1554,12 @@ export class Planet extends Scene {
 
         gl.uniform1f(shu.shadeMode, this._shadeMode);
 
-        gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
+        gl.uniform3fv(shu.lightPosition, renderer._lightPosition);
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
-        gl.uniform3fv(shu.diffuse, renderer.lightDiffuse);
-        gl.uniform3fv(shu.ambient, renderer.lightAmbient);
-        gl.uniform4fv(shu.specular, renderer.lightSpecular);
+        gl.uniform3fv(shu.diffuse, renderer._lightDiffuse);
+        gl.uniform3fv(shu.ambient, renderer._lightAmbient);
+        gl.uniform4fv(shu.specular, renderer._lightSpecular);
 
         gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
 
@@ -1591,12 +1605,12 @@ export class Planet extends Scene {
 
         if (!atmosphereControl.isReady) return program;
 
-        gl.uniform3fv(shu.lightPosition, renderer.lightPosition);
+        gl.uniform3fv(shu.lightPosition, renderer._lightPosition);
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
-        gl.uniform3fv(shu.diffuse, renderer.lightDiffuse);
-        gl.uniform3fv(shu.ambient, renderer.lightAmbient);
-        gl.uniform4fv(shu.specular, renderer.lightSpecular);
+        gl.uniform3fv(shu.diffuse, renderer._lightDiffuse);
+        gl.uniform3fv(shu.ambient, renderer._lightAmbient);
+        gl.uniform4fv(shu.specular, renderer._lightSpecular);
 
         gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
 
@@ -1623,6 +1637,7 @@ export class Planet extends Scene {
         gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
 
         gl.uniform2fv(shu.atmosFadeDist, this.atmosphereFadeDist);
+        gl.uniform2fv(shu.atmosMaxMinOpacity, this.atmosphereMaxMinOpacity);
         gl.uniform1f(shu.camHeight, cam.getHeight());
 
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
@@ -2020,7 +2035,7 @@ export class Planet extends Scene {
     }
 
     /**
-     * Starts clear memory thread.
+     * Starts a clear memory thread.
      * @public
      */
     public memClear() {
@@ -2046,7 +2061,7 @@ export class Planet extends Scene {
 
     /**
      * Returns ray vector hit ellipsoid coordinates.
-     * If the ray doesn't hit ellipsoid it returns 'undefined'.
+     * If the ray doesn't hit ellipsoid, it returns 'undefined'.
      * @public
      * @param {Ray} ray - Ray.
      * @returns {Vec3 | undefined} -

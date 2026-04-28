@@ -623,15 +623,15 @@ export class Lighting extends Control {
         if (!layer || !planet || !renderer || !planet.baseLayer || !planet.baseLayer.isEqual(layer)) return;
 
         if (layer._ambient) {
-            renderer.lightAmbient.set(layer._ambient);
+            renderer.lightAmbient = layer._ambient;
         }
 
         if (layer._diffuse) {
-            renderer.lightDiffuse.set(layer._diffuse);
+            renderer.lightDiffuse = layer._diffuse;
         }
 
         if (layer._specular) {
-            renderer.lightSpecular.set(layer._specular);
+            renderer.lightSpecular = layer._specular;
         }
 
         planet.nightTextureCoefficient = layer.nightTextureCoefficient;

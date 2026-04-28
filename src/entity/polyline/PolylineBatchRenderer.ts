@@ -19,6 +19,7 @@ import {
     spliceTypedArray
 } from "../../utils/shared";
 import type { TypedArray } from "../../utils/shared";
+import { srgbToLinear } from "../../utils/colorSpace";
 import { Ellipsoid } from "../../ellipsoid/Ellipsoid";
 import type { HTMLImageElementExt } from "../../utils/ImagesCacheManager";
 import type {
@@ -84,25 +85,44 @@ const createMirroredPoint = (p0: Vec3, p1: Vec3): Vec3 => {
     return new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
 };
 
+const writeQuadColor = (
+    target: TypedArray | number[],
+    offset: number,
+    color: NumberArray4,
+    opacity: number = 1.0
+) => {
+    const r = srgbToLinear(color[R]);
+    const g = srgbToLinear(color[G]);
+    const b = srgbToLinear(color[B]);
+    const a = (color[A] != undefined ? color[A] : 1.0) * opacity;
+
+    target[offset] = target[offset + 4] = target[offset + 8] = target[offset + 12] = r;
+    target[offset + 1] = target[offset + 5] = target[offset + 9] = target[offset + 13] = g;
+    target[offset + 2] = target[offset + 6] = target[offset + 10] = target[offset + 14] = b;
+    target[offset + 3] = target[offset + 7] = target[offset + 11] = target[offset + 15] = a;
+};
+
 const pushQuadColor = (outColors: number[], color: NumberArray4, opacity: number) => {
-    let a = color[A] != undefined ? color[A] : 1.0;
-    a *= opacity;
+    const r = srgbToLinear(color[R]);
+    const g = srgbToLinear(color[G]);
+    const b = srgbToLinear(color[B]);
+    const a = (color[A] != undefined ? color[A] : 1.0) * opacity;
     outColors.push(
-        color[R],
-        color[G],
-        color[B],
+        r,
+        g,
+        b,
         a,
-        color[R],
-        color[G],
-        color[B],
+        r,
+        g,
+        b,
         a,
-        color[R],
-        color[G],
-        color[B],
+        r,
+        g,
+        b,
         a,
-        color[R],
-        color[G],
-        color[B],
+        r,
+        g,
+        b,
         a
     );
 };
@@ -1689,9 +1709,9 @@ class PolylineBatchRenderer {
                 color = pathColors_j[0];
             }
 
-            let r = color[R],
-                g = color[G],
-                b = color[B],
+            let r = srgbToLinear(color[R]),
+                g = srgbToLinear(color[G]),
+                b = srgbToLinear(color[B]),
                 a = (color[A] != undefined ? color[A] : 1.0) * opacity;
 
             if (j > 0) {
@@ -1703,9 +1723,9 @@ class PolylineBatchRenderer {
                     color = pathColors_j[i];
                 }
 
-                r = color[R];
-                g = color[G];
-                b = color[B];
+                r = srgbToLinear(color[R]);
+                g = srgbToLinear(color[G]);
+                b = srgbToLinear(color[B]);
                 a = (color[A] != undefined ? color[A] : 1.0) * opacity;
 
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
@@ -1715,9 +1735,9 @@ class PolylineBatchRenderer {
                 color = pathColors_j[path.length - 1];
             }
 
-            r = color[R];
-            g = color[G];
-            b = color[B];
+            r = srgbToLinear(color[R]);
+            g = srgbToLinear(color[G]);
+            b = srgbToLinear(color[B]);
             a = (color[A] != undefined ? color[A] : 1.0) * opacity;
 
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
@@ -1881,11 +1901,7 @@ class PolylineBatchRenderer {
             }
 
             if (j > 0 && pathColors) {
-                const a = color[A] != undefined ? color[A] : 1.0;
-                colors[ck] = colors[ck + 4] = colors[ck + 8] = colors[ck + 12] = color[R];
-                colors[ck + 1] = colors[ck + 5] = colors[ck + 9] = colors[ck + 13] = color[G];
-                colors[ck + 2] = colors[ck + 6] = colors[ck + 10] = colors[ck + 14] = color[B];
-                colors[ck + 3] = colors[ck + 7] = colors[ck + 11] = colors[ck + 15] = a;
+                writeQuadColor(colors, ck, color);
                 ck += 16;
             }
 
@@ -1928,11 +1944,7 @@ class PolylineBatchRenderer {
                         color = lastSegmentColor;
                     }
                     targetSegmentColors![i] = color;
-                    const a = color[A] != undefined ? color[A] : 1.0;
-                    colors[ck] = colors[ck + 4] = colors[ck + 8] = colors[ck + 12] = color[R];
-                    colors[ck + 1] = colors[ck + 5] = colors[ck + 9] = colors[ck + 13] = color[G];
-                    colors[ck + 2] = colors[ck + 6] = colors[ck + 10] = colors[ck + 14] = color[B];
-                    colors[ck + 3] = colors[ck + 7] = colors[ck + 11] = colors[ck + 15] = a;
+                    writeQuadColor(colors, ck, color);
                     ck += 16;
                 }
 
@@ -2014,11 +2026,7 @@ class PolylineBatchRenderer {
             vl[k++] = v_low.z;
 
             if (pathColors) {
-                const a = color[A] != undefined ? color[A] : 1.0;
-                colors[ck] = colors[ck + 4] = colors[ck + 8] = colors[ck + 12] = color[R];
-                colors[ck + 1] = colors[ck + 5] = colors[ck + 9] = colors[ck + 13] = color[G];
-                colors[ck + 2] = colors[ck + 6] = colors[ck + 10] = colors[ck + 14] = color[B];
-                colors[ck + 3] = colors[ck + 7] = colors[ck + 11] = colors[ck + 15] = a;
+                writeQuadColor(colors, ck, color);
                 ck += 16;
             }
         }
@@ -2118,11 +2126,7 @@ class PolylineBatchRenderer {
         }
 
         if (pathColors && segmentIndex > 0) {
-            const a = color[A] != undefined ? color[A] : 1.0;
-            c[ck - 16] = c[ck - 12] = c[ck - 8] = c[ck - 4] = color[R];
-            c[ck - 15] = c[ck - 11] = c[ck - 7] = c[ck - 3] = color[G];
-            c[ck - 14] = c[ck - 10] = c[ck - 6] = c[ck - 2] = color[B];
-            c[ck - 13] = c[ck - 9] = c[ck - 5] = c[ck - 1] = a;
+            writeQuadColor(c, ck - 16, color);
         }
 
         for (let i = 0; i < targetPath.length; i++) {
@@ -2147,11 +2151,7 @@ class PolylineBatchRenderer {
                     color = lastSegmentColor;
                 }
                 targetSegmentColors![i] = color;
-                const a = color[A] != undefined ? color[A] : 1.0;
-                c[ck] = c[ck + 4] = c[ck + 8] = c[ck + 12] = color[R];
-                c[ck + 1] = c[ck + 5] = c[ck + 9] = c[ck + 13] = color[G];
-                c[ck + 2] = c[ck + 6] = c[ck + 10] = c[ck + 14] = color[B];
-                c[ck + 3] = c[ck + 7] = c[ck + 11] = c[ck + 15] = a;
+                writeQuadColor(c, ck, color);
                 ck += 16;
             }
 
@@ -2224,11 +2224,7 @@ class PolylineBatchRenderer {
             } else if (lastSegmentColor) {
                 color = lastSegmentColor;
             }
-            const a = color[A] != undefined ? color[A] : 1.0;
-            c[ck] = c[ck + 4] = c[ck + 8] = c[ck + 12] = color[R];
-            c[ck + 1] = c[ck + 5] = c[ck + 9] = c[ck + 13] = color[G];
-            c[ck + 2] = c[ck + 6] = c[ck + 10] = c[ck + 14] = color[B];
-            c[ck + 3] = c[ck + 7] = c[ck + 11] = c[ck + 15] = a;
+            writeQuadColor(c, ck, color);
         }
     }
 
@@ -2327,11 +2323,7 @@ class PolylineBatchRenderer {
             }
 
             if (j > 0 && pathColors) {
-                const a = color[A] != undefined ? color[A] : 1.0;
-                colors[ck] = colors[ck + 4] = colors[ck + 8] = colors[ck + 12] = color[R];
-                colors[ck + 1] = colors[ck + 5] = colors[ck + 9] = colors[ck + 13] = color[G];
-                colors[ck + 2] = colors[ck + 6] = colors[ck + 10] = colors[ck + 14] = color[B];
-                colors[ck + 3] = colors[ck + 7] = colors[ck + 11] = colors[ck + 15] = a;
+                writeQuadColor(colors, ck, color);
                 ck += 16;
             }
 
@@ -2351,11 +2343,7 @@ class PolylineBatchRenderer {
                         color = lastSegmentColor;
                     }
                     targetSegmentColors![i] = color;
-                    const a = color[A] != undefined ? color[A] : 1.0;
-                    colors[ck] = colors[ck + 4] = colors[ck + 8] = colors[ck + 12] = color[R];
-                    colors[ck + 1] = colors[ck + 5] = colors[ck + 9] = colors[ck + 13] = color[G];
-                    colors[ck + 2] = colors[ck + 6] = colors[ck + 10] = colors[ck + 14] = color[B];
-                    colors[ck + 3] = colors[ck + 7] = colors[ck + 11] = colors[ck + 15] = a;
+                    writeQuadColor(colors, ck, color);
                     ck += 16;
                 }
 
@@ -2447,11 +2435,7 @@ class PolylineBatchRenderer {
             vl[k++] = v_low.z;
 
             if (pathColors) {
-                const a = color[A] != undefined ? color[A] : 1.0;
-                colors[ck] = colors[ck + 4] = colors[ck + 8] = colors[ck + 12] = color[R];
-                colors[ck + 1] = colors[ck + 5] = colors[ck + 9] = colors[ck + 13] = color[G];
-                colors[ck + 2] = colors[ck + 6] = colors[ck + 10] = colors[ck + 14] = color[B];
-                colors[ck + 3] = colors[ck + 7] = colors[ck + 11] = colors[ck + 15] = a;
+                writeQuadColor(colors, ck, color);
                 ck += 16;
             }
         }
@@ -2548,11 +2532,7 @@ class PolylineBatchRenderer {
             }
         }
         if (pathColors && segmentIndex > 0) {
-            const a = color[A] != undefined ? color[A] : 1.0;
-            cb[ck - 16] = cb[ck - 12] = cb[ck - 8] = cb[ck - 4] = color[R];
-            cb[ck - 15] = cb[ck - 11] = cb[ck - 7] = cb[ck - 3] = color[G];
-            cb[ck - 14] = cb[ck - 10] = cb[ck - 6] = cb[ck - 2] = color[B];
-            cb[ck - 13] = cb[ck - 9] = cb[ck - 5] = cb[ck - 1] = a;
+            writeQuadColor(cb, ck - 16, color);
         }
 
         for (let i = 0, len = path.length; i < len; i++) {
@@ -2573,13 +2553,7 @@ class PolylineBatchRenderer {
                 }
 
                 targetSegmentColors![i] = color;
-
-                const a = color[A] != undefined ? color[A] : 1.0;
-
-                cb[ck] = cb[ck + 4] = cb[ck + 8] = cb[ck + 12] = color[R];
-                cb[ck + 1] = cb[ck + 5] = cb[ck + 9] = cb[ck + 13] = color[G];
-                cb[ck + 2] = cb[ck + 6] = cb[ck + 10] = cb[ck + 14] = color[B];
-                cb[ck + 3] = cb[ck + 7] = cb[ck + 11] = cb[ck + 15] = a;
+                writeQuadColor(cb, ck, color);
 
                 ck += 16;
             }
@@ -2652,12 +2626,7 @@ class PolylineBatchRenderer {
                 color = lastSegmentColor;
             }
 
-            const a = color[A] != undefined ? color[A] : 1.0;
-
-            cb[ck] = cb[ck + 4] = cb[ck + 8] = cb[ck + 12] = color[R];
-            cb[ck + 1] = cb[ck + 5] = cb[ck + 9] = cb[ck + 13] = color[G];
-            cb[ck + 2] = cb[ck + 6] = cb[ck + 10] = cb[ck + 14] = color[B];
-            cb[ck + 3] = cb[ck + 7] = cb[ck + 11] = cb[ck + 15] = a;
+            writeQuadColor(cb, ck, color);
         }
     }
 
@@ -3448,9 +3417,9 @@ class PolylineBatchRenderer {
         const cArr = this._colors as Float32Array;
         const cBase = oldAttrCapGroup * 16;
         const cc: NumberArray4 = segColors[segColors.length - 1] || this._defaultColor;
-        const cr = cc[R],
-            cg = cc[G],
-            cb = cc[B],
+        const cr = srgbToLinear(cc[R]),
+            cg = srgbToLinear(cc[G]),
+            cb = srgbToLinear(cc[B]),
             ca = (cc[A] != undefined ? cc[A] : 1.0) * opacity;
 
         for (let k = 0; k < 16; k += 4) {
@@ -3665,10 +3634,7 @@ class PolylineBatchRenderer {
 
             let k = index * 16 + this._pathLengths[segmentIndex] * 16 + 32 * segmentIndex;
 
-            c[k] = c[k + 4] = c[k + 8] = c[k + 12] = color[R];
-            c[k + 1] = c[k + 5] = c[k + 9] = c[k + 13] = color[G];
-            c[k + 2] = c[k + 6] = c[k + 10] = c[k + 14] = color[B];
-            c[k + 3] = c[k + 7] = c[k + 11] = c[k + 15] = (color[A] || 1.0) * opacity;
+            writeQuadColor(c, k, color, opacity);
 
             this._changedBuffers[COLORS_BUFFER] = true;
         } else {
@@ -4263,11 +4229,7 @@ class PolylineBatchRenderer {
             currentColor = lastInputColor;
         }
         if (segmentIndex > 0) {
-            const a = (currentColor[A] != undefined ? currentColor[A] : 1.0) * opacity;
-            c[ck] = c[ck + 4] = c[ck + 8] = c[ck + 12] = currentColor[R];
-            c[ck + 1] = c[ck + 5] = c[ck + 9] = c[ck + 13] = currentColor[G];
-            c[ck + 2] = c[ck + 6] = c[ck + 10] = c[ck + 14] = currentColor[B];
-            c[ck + 3] = c[ck + 7] = c[ck + 11] = c[ck + 15] = a;
+            writeQuadColor(c, ck, currentColor, opacity);
             ck += 16;
         }
 
@@ -4279,25 +4241,14 @@ class PolylineBatchRenderer {
             }
 
             segColors[i] = currentColor;
-
-            const a = (currentColor[A] != undefined ? currentColor[A] : 1.0) * opacity;
-
-            c[ck] = c[ck + 4] = c[ck + 8] = c[ck + 12] = currentColor[R];
-            c[ck + 1] = c[ck + 5] = c[ck + 9] = c[ck + 13] = currentColor[G];
-            c[ck + 2] = c[ck + 6] = c[ck + 10] = c[ck + 14] = currentColor[B];
-            c[ck + 3] = c[ck + 7] = c[ck + 11] = c[ck + 15] = a;
+            writeQuadColor(c, ck, currentColor, opacity);
 
             ck += 16;
         }
 
         currentColor = segColorsInput[segPath.length - 1] || lastInputColor || currentColor;
 
-        const a = (currentColor[A] != undefined ? currentColor[A] : 1.0) * opacity;
-
-        c[ck] = c[ck + 4] = c[ck + 8] = c[ck + 12] = currentColor[R];
-        c[ck + 1] = c[ck + 5] = c[ck + 9] = c[ck + 13] = currentColor[G];
-        c[ck + 2] = c[ck + 6] = c[ck + 10] = c[ck + 14] = currentColor[B];
-        c[ck + 3] = c[ck + 7] = c[ck + 11] = c[ck + 15] = a;
+        writeQuadColor(c, ck, currentColor, opacity);
 
         this._changedBuffers[COLORS_BUFFER] = true;
     }

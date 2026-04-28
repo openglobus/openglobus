@@ -38,10 +38,6 @@ class StripHandler {
 
     protected _opaqueCount: number;
 
-    protected _isOpaque(strip: Strip): boolean {
-        return strip.color[3] >= 0.999999;
-    }
-
     constructor(entityCollection: EntityCollection) {
         this.__id = StripHandler.__counter__++;
 
@@ -89,7 +85,7 @@ class StripHandler {
             this._strips.push(strip);
 
             // keep opaque first, transparent last
-            if (this._isOpaque(strip)) {
+            if (strip.isOpaque()) {
                 this._swap(index, this._opaqueCount);
                 this._opaqueCount++;
             }
@@ -152,7 +148,7 @@ class StripHandler {
         const index = strip._handlerIndex;
         if (index === -1) return;
 
-        const toOpaque = this._isOpaque(strip);
+        const toOpaque = strip.isOpaque();
         const isOpaque = index < this._opaqueCount;
         if (toOpaque === isOpaque) return;
 

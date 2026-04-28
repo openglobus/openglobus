@@ -17,7 +17,7 @@ const RAYS_OPTIONS: IRayParams = {
 const LABEL_OPTIONS: ILabelParams = {
     text: "",
     size: 11,
-    color: "rgba(455,455,455,1.0)",
+    color: "rgba(255,255,255,1.0)",
     outlineColor: "rgba(0,0,0,1)",
     outline: 0.13,
     align: "left",
@@ -28,7 +28,7 @@ const RULER_CORNER_OPTIONS = {
     scale: 1,
     instanced: true,
     tag: "height-ruler",
-    color: "rgb(0,305,0)",
+    color: "rgb(0,205,0)",
     object3d: obj3d
 };
 

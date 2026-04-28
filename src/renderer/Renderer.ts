@@ -11,6 +11,7 @@ import { Handler } from "../webgl/Handler";
 import type { WebGLBufferExt } from "../webgl/Handler";
 import { input } from "../input/input";
 import { isEmpty } from "../utils/shared";
+import { linearToSrgbArr, srgbToLinearArr } from "../utils/colorSpace";
 import { LabelWorker } from "../entity/label/LabelWorker";
 import { MAX_FLOAT, randomi } from "../math";
 import { Scene } from "../scene/Scene";
@@ -99,7 +100,7 @@ let _tempDepth_ = new Float32Array(2);
  * @fires mhold - Triggered while the middle mouse button is held.
  * @fires mousewheel - Triggered on mouse wheel scroll.
  * @fires touchstart - Triggered on touch start.
- * @fires touchend - Triggered on touch end.
+ * @fires touchend - Triggered on the touch end.
  * @fires touchcancel - Triggered on touch cancel.
  * @fires touchmove - Triggered on touch move.
  * @fires doubletouch - Triggered on double touch.
@@ -193,7 +194,7 @@ class Renderer {
     protected _pickingCallbacks: IFrameCallbackHandler[];
 
     /**
-     * Picking objects(labels and billboards) framebuffer.
+     * Picking objects (labels and billboards) framebuffer.
      * @public
      * @type {Framebuffer}
      */
@@ -225,7 +226,7 @@ class Renderer {
     protected _initialized: boolean;
 
     /**
-     * Texture atlas for the billboards images.
+     * Texture atlas for the billboard images.
      * @public
      * @type {TextureAtlas}
      */
@@ -239,7 +240,7 @@ class Renderer {
     public fontAtlas: FontAtlas;
 
     /**
-     * Texture atlas for the rays, polylines and strips entities.
+     * Texture atlas for the rays, polylines, and strips entities.
      * @public
      * @type {TextureAtlas}
      */
@@ -261,10 +262,10 @@ class Renderer {
 
     public clearColor: Float32Array;
 
-    public lightPosition: Float32Array;
-    public lightAmbient: Float32Array;
-    public lightDiffuse: Float32Array;
-    public lightSpecular: Float32Array;
+    public _lightPosition: Float32Array;
+    public _lightAmbient: Float32Array;
+    public _lightDiffuse: Float32Array;
+    public _lightSpecular: Float32Array;
 
     //public lightColor: Float32Array;
     //public lightIntensity: number;
@@ -289,14 +290,18 @@ class Renderer {
 
         this.clearColor = new Float32Array(params.clearColor || [0, 0, 0, 1]);
 
-        this.lightPosition = new Float32Array(params.lightPosition || [1, 1, 1]);
-        this.lightAmbient = new Float32Array(params.lightAmbient || [0.2, 0.2, 0.3]);
-        this.lightDiffuse = new Float32Array(params.lightDiffuse || [0.9, 0.9, 0.7]);
-        this.lightSpecular = new Float32Array(params.lightSpecular || [0.00063, 0.00055, 0.00032, 18.0]);
+        this._lightPosition = new Float32Array(params.lightPosition || [1, 1, 1]);
+        this._lightAmbient = new Float32Array(3);
+        this._lightDiffuse = new Float32Array(3);
+        this._lightSpecular = new Float32Array(4);
 
-        this.exposure = params.exposure || 3.01;
+        this.lightAmbient = params.lightAmbient || [0.2, 0.2, 0.2];
+        this.lightDiffuse = params.lightDiffuse || [1, 1, 1];
+        this.lightSpecular = params.lightSpecular || [0.00063, 0.00055, 0.00032, 18.0];
 
-        this.gamma = params.gamma || 0.47;
+        this.exposure = params.exposure || 1;
+
+        this.gamma = params.gamma || 2.2;
 
         this.whitepoint = 1.0;
 
@@ -360,11 +365,11 @@ class Renderer {
         this._initialized = false;
 
         /**
-         * Texture atlas for the billboards images.
+         * Texture atlas for the billboard images.
          * @public
          * @type {TextureAtlas}
          */
-        this.billboardsTextureAtlas = new TextureAtlas();
+        this.billboardsTextureAtlas = new TextureAtlas(1024, 1024, "srgb");
 
         /**
          * Texture font atlas for the font families and styles.
@@ -374,11 +379,11 @@ class Renderer {
         this.fontAtlas = new FontAtlas(params.fontsSrc);
 
         /**
-         * Texture atlas for the rays, polylines and strips.
+         * Texture atlas for the rays, polylines, and strips.
          * @public
          * @type {TextureAtlas}
          */
-        this.strokeTextureAtlas = new TextureAtlas();
+        this.strokeTextureAtlas = new TextureAtlas(256, 256, "srgb");
 
         this._entityCollections = [[]];
 
@@ -406,6 +411,41 @@ class Renderer {
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     }
 
+    public set lightAmbient(lightAmbient: NumberArray3 | Float32Array) {
+        const linear = srgbToLinearArr([lightAmbient[0], lightAmbient[1], lightAmbient[2]]);
+        this._lightAmbient[0] = linear[0];
+        this._lightAmbient[1] = linear[1];
+        this._lightAmbient[2] = linear[2];
+    }
+
+    public get lightAmbient(): NumberArray3 {
+        return linearToSrgbArr([this._lightAmbient[0], this._lightAmbient[1], this._lightAmbient[2]]);
+    }
+
+    public set lightDiffuse(lightDiffuse: NumberArray3 | Float32Array) {
+        const linear = srgbToLinearArr([lightDiffuse[0], lightDiffuse[1], lightDiffuse[2]]);
+        this._lightDiffuse[0] = linear[0];
+        this._lightDiffuse[1] = linear[1];
+        this._lightDiffuse[2] = linear[2];
+    }
+
+    public get lightDiffuse(): NumberArray3 {
+        return linearToSrgbArr([this._lightDiffuse[0], this._lightDiffuse[1], this._lightDiffuse[2]]);
+    }
+
+    public set lightSpecular(lightSpecular: NumberArray4 | Float32Array) {
+        const linear = srgbToLinearArr([lightSpecular[0], lightSpecular[1], lightSpecular[2]]);
+        this._lightSpecular[0] = linear[0];
+        this._lightSpecular[1] = linear[1];
+        this._lightSpecular[2] = linear[2];
+        this._lightSpecular[3] = lightSpecular[3];
+    }
+
+    public get lightSpecular(): NumberArray4 {
+        const srgb = linearToSrgbArr([this._lightSpecular[0], this._lightSpecular[1], this._lightSpecular[2]]);
+        return [srgb[0], srgb[1], srgb[2], this._lightSpecular[3]];
+    }
+
     public enableBlendDefault() {
         let gl = this.handler.gl!;
         gl.enable(gl.BLEND);
@@ -422,7 +462,7 @@ class Renderer {
 
     /**
      * Sets depth compare and clear value for the camera (reverse-Z vs classic).
-     * Pass null to restore classic depth state:
+     * Pass null to restore the classic depth state:
      * depthFunc(LESS), clearDepth(1), and clip-control NEGATIVE_ONE_TO_ONE.
      */
     public applyDepthForCamera(camera: Camera | null = this.activeCamera) {
@@ -874,7 +914,7 @@ class Renderer {
     }
 
     /**
-     * Adds scene to the renderer.
+     * Adds a scene to the renderer.
      * @public
      * @param {Scene} scene - Scene.
      */
@@ -895,7 +935,7 @@ class Renderer {
     }
 
     /**
-     * Adds scene to the renderer before specific node.
+     * Adds a scene to the renderer before a specific node.
      * @public
      * @param {Scene} scene - Render node.
      * @param {Scene} sceneBefore - Insert before the sceneBefore node.
@@ -964,7 +1004,7 @@ class Renderer {
     }
 
     /**
-     * TODO: replace with cache friendly linked list by BillboardHandler, LabelHandler etc.
+     * TODO: replace with cache-friendly linked list by BillboardHandler, LabelHandler etc.
      */
     public enqueueEntityCollectionsToDraw(ecArr: EntityCollection[], depthOrder: number = 0) {
         if (!this._entityCollections[depthOrder]) {
@@ -975,7 +1015,7 @@ class Renderer {
 
     /**
      * Forces the depth buffer to be refreshed in the next frame.
-     * Has effect for terrain altitude estimate precision.
+     * Has an effect for terrain altitude estimate precision.
      */
     public markForDepthRefresh(): void {
         this._depthRefreshRequired = true;
@@ -1043,7 +1083,7 @@ class Renderer {
             }
 
             //
-            // billboards pass
+            // billboard pass
             //
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
@@ -1360,7 +1400,7 @@ class Renderer {
         }
 
         //
-        // Depth ordered EntityCollections passes
+        // Depth-ordered EntityCollections passes
         //
         for (let i = 1; i < this._entityCollections.length; i++) {
             gl.clear(gl.DEPTH_BUFFER_BIT);

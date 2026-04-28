@@ -10,11 +10,10 @@ export class OpenStreetMap extends XYZ {
             isBaseLayer: true,
             maxNativeZoom: 19,
             defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
-            isSRGB: false,
             shininess: 30,
-            specular: [0.05, 0.05, 0.02],
+            specular: [0.3, 0.3, 0.27],
             ambient: [0.2, 0.2, 0.3],
-            diffuse: [0.9, 0.9, 0.7],
+            diffuse: [0.9, 0.9, 0.9],
             ...options
         });
     }

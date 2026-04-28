@@ -1273,3 +1273,5 @@ export function toFixedMax(value: number, maxFixed: number = -1): string {
     const factor = Math.pow(10, maxFixed);
     return (Math.round(value * factor) / factor).toString();
 }
+
+

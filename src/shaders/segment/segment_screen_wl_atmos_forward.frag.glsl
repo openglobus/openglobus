@@ -34,6 +34,7 @@ uniform int samplerCount;
 uniform float nightTextureCoefficient;
 
 uniform vec2 atmosFadeDist;
+uniform vec2 atmosMaxMinOpacity;
 uniform float camHeight;
 
 uniform float transitionOpacity;
@@ -121,7 +122,7 @@ void main(void) {
         );
     }
 
-    getAtmosFadingOpacity(v_worldVertex, cameraPosition, atmosFadeDist, fadingOpacity);
+    getAtmosFadingOpacity(v_worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
     getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
     specularWeighting *= sunIlluminance;
 

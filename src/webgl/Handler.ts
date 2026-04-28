@@ -1148,21 +1148,25 @@ class Handler {
      * @param {IDefaultTextureParams | null} params - Texture source parameters.
      * @param {function(WebGLTextureExt): void} success - Callback with created texture.
      */
-    public createDefaultTexture(params: IDefaultTextureParams | null, success: (texture: WebGLTextureExt) => void) {
+    public createDefaultTexture(
+        params: IDefaultTextureParams | null,
+        success: (texture: WebGLTextureExt) => void,
+        internalFormat?: number | null
+    ) {
         let imgCnv;
         let texture;
 
         if (params && params.color) {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor(params.color);
-            texture = this.createTexture_n(imgCnv.getCanvas())!;
+            texture = this.createTexture_n(imgCnv.getCanvas(), internalFormat)!;
             texture.default = true;
             success(texture);
         } else if (params && params.url) {
             let img = new Image();
             let that = this;
             img.onload = function () {
-                texture = that.createTextureDefault(img)!;
+                texture = that.createTextureDefault(img, internalFormat)!;
                 texture.default = true;
                 success(texture);
             };
@@ -1170,7 +1174,7 @@ class Handler {
         } else {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor("#C5C5C5");
-            texture = this.createTexture_n(imgCnv.getCanvas())!;
+            texture = this.createTexture_n(imgCnv.getCanvas(), internalFormat)!;
             texture.default = true;
             success(texture);
         }

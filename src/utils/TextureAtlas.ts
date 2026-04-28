@@ -4,6 +4,7 @@ import { ImagesCacheManager } from "./ImagesCacheManager";
 import type { HTMLImageElementExt, ImagesCacheManagerCallback } from "./ImagesCacheManager";
 import { Handler } from "../webgl/Handler";
 import type { WebGLTextureExt } from "../webgl/Handler";
+import { getColorSpace, LINEAR, SRGB } from "./colorSpace";
 
 /**
  * Texture atlas stores images in one texture. Each image has its own
@@ -11,6 +12,7 @@ import type { WebGLTextureExt } from "../webgl/Handler";
  * @class
  * @param {number} [width=1024] - Texture atlas width, if it hasn't 1024 default.
  * @param {number} [height=1024] - Texture atlas height, if it hasn't 1024 default.
+ * @param {string|number} [colorSpace="linear"] - Texture atlas color space. Available values: "linear", "srgb", 0, 1.
  */
 class TextureAtlas {
     /**
@@ -39,8 +41,10 @@ class TextureAtlas {
     protected _images: HTMLImageElementExt[];
     protected _btree: TextureAtlasNode | null;
     protected _imagesCacheManager: ImagesCacheManager;
+    protected _colorSpace: number;
+    protected _internalFormat: number | null;
 
-    constructor(width: number = 1024, height: number = 1024) {
+    constructor(width: number = 1024, height: number = 1024, colorSpace: string | number = "linear") {
         this.nodes = new Map<number, TextureAtlasNode>();
 
         this.texture = null;
@@ -58,6 +62,22 @@ class TextureAtlas {
         this._imagesCacheManager = new ImagesCacheManager();
 
         this.borderSize = 4;
+
+        this._colorSpace = TextureAtlas.getColorSpace(colorSpace);
+        this._internalFormat = null;
+    }
+
+    public static getColorSpace(colorSpace?: string | number): number {
+        return getColorSpace(colorSpace, LINEAR);
+    }
+
+    protected _updateInternalFormat() {
+        if (!this._handler || !this._handler.gl) {
+            this._internalFormat = null;
+            return;
+        }
+
+        this._internalFormat = this._colorSpace === SRGB ? this._handler.gl.SRGB8_ALPHA8 : this._handler.gl.RGBA8;
     }
 
     /**
@@ -93,6 +113,7 @@ class TextureAtlas {
      */
     public assignHandler(handler: Handler) {
         this._handler = handler;
+        this._updateInternalFormat();
         this.createTexture();
     }
 
@@ -225,14 +246,14 @@ class TextureAtlas {
      * Creates atlas gl texture.
      * @public
      */
-    public createTexture(img?: HTMLImageElement | null, internalFormat?: number) {
+    public createTexture(img?: HTMLImageElement | null) {
         if (this._handler) {
             this._handler.gl!.deleteTexture(this.texture!);
             if (img) {
                 this.canvas.resize(img.width, img.height);
                 this.canvas.drawImage(img, 0, 0, img.width, img.height);
             }
-            this.texture = this._handler.createTexture_l(this.canvas.getCanvas(), internalFormat)!;
+            this.texture = this._handler.createTexture_l(this.canvas.getCanvas(), this._internalFormat)!;
         }
     }
 
