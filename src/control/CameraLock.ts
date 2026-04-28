@@ -8,7 +8,7 @@ import { Navigation } from "./Navigation";
 import { Planet } from "../scene/Planet";
 import { input } from "../input/input";
 import { RADIANS } from "../math";
-import {PlanetCamera} from "../camera";
+import { PlanetCamera } from "../camera";
 
 const MIN_LOCK_DISTANCE = 0.001;
 const MIN_VIEW_DISTANCE = 120.0;

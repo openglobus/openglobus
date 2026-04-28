@@ -863,7 +863,10 @@ export class Navigation extends Control {
                     const f = cam.frustums[0];
                     const Wx = 0.5 * (f.right - f.left);
                     const Wy = 0.5 * (f.top - f.bottom);
-                    const offCursor = cam.getRight().scaleTo(Wx * px).addA(cam.getUp().scaleTo(Wy * py));
+                    const offCursor = cam
+                        .getRight()
+                        .scaleTo(Wx * px)
+                        .addA(cam.getUp().scaleTo(Wy * py));
                     const fwd = cam.getForward();
                     const eyeToA = a.sub(cam.eye);
                     const aLat = eyeToA.sub(fwd.scaleTo(fwd.dot(eyeToA)));

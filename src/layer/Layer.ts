@@ -367,12 +367,7 @@ class Layer {
     public set specular(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._specular = new Float32Array([
-                vec.x,
-                vec.y,
-                vec.z,
-                this._specular ? this._specular[3] : 20.0
-            ]);
+            this._specular = new Float32Array([vec.x, vec.y, vec.z, this._specular ? this._specular[3] : 20.0]);
         } else {
             this._specular = null;
         }

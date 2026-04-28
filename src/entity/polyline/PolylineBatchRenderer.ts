@@ -85,12 +85,7 @@ const createMirroredPoint = (p0: Vec3, p1: Vec3): Vec3 => {
     return new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
 };
 
-const writeQuadColor = (
-    target: TypedArray | number[],
-    offset: number,
-    color: NumberArray4,
-    opacity: number = 1.0
-) => {
+const writeQuadColor = (target: TypedArray | number[], offset: number, color: NumberArray4, opacity: number = 1.0) => {
     const r = srgbToLinear(color[R]);
     const g = srgbToLinear(color[G]);
     const b = srgbToLinear(color[B]);
@@ -107,24 +102,7 @@ const pushQuadColor = (outColors: number[], color: NumberArray4, opacity: number
     const g = srgbToLinear(color[G]);
     const b = srgbToLinear(color[B]);
     const a = (color[A] != undefined ? color[A] : 1.0) * opacity;
-    outColors.push(
-        r,
-        g,
-        b,
-        a,
-        r,
-        g,
-        b,
-        a,
-        r,
-        g,
-        b,
-        a,
-        r,
-        g,
-        b,
-        a
-    );
+    outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
 };
 
 const pushQuadPicking = (outPickingColors: number[], pickingColor: NumberArray3 | NumberArray4) => {
