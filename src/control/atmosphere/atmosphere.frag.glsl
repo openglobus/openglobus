@@ -202,7 +202,7 @@ void mainImage(out vec4 outColor)
     }
     #endif
 
-    vec4 color = vec4(pow(opacity * light * 8.0, vec3(1.0 / 2.2)), valueHSV(light) * clamp(opacity, 0.0, 1.0));
+    vec4 color = vec4(opacity * light * 8.0, valueHSV(light) * clamp(opacity, 0.0, 1.0));
 
     outColor = color;
 }

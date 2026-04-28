@@ -88,7 +88,7 @@ void atmosGroundColor(in vec3 _v_vertex, in vec3 _normal, in vec3 _cameraPositio
     vec3 diffuseTransmittanceLight = transmittanceLight * diffuseAngle;
     light += tA * (scatteringLight + diffuseTransmittanceLight);
 
-    outColor = vec4(pow(light * 8.0, vec3(1.0 / 2.2)), 1.0);
+    outColor = vec4(light * 8.0, 1.0);
 }
 
 #endif
