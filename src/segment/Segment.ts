@@ -1768,6 +1768,56 @@ class Segment {
         return [dV0s_x, dV0s_y, dSize_x, dSize_y];
     }
 
+    protected _isImageryLayerRequired(layer: Layer): boolean {
+        if (!this.layerOverlap(layer)) {
+            return false;
+        }
+
+        if (layer._fading && layer._fadingOpacity > 0.0) {
+            return true;
+        }
+
+        const qts = this.quadTreeStrategy;
+        const hasFrameZoomRange = qts.minCurrZoom <= qts.maxCurrZoom;
+
+        if (!hasFrameZoomRange) {
+            return layer.minZoom <= this.tileZoom && layer.maxZoom >= this.tileZoom;
+        }
+
+        return (
+            (layer.minZoom >= qts.minCurrZoom || layer.maxZoom >= qts.minCurrZoom) &&
+            (layer.minZoom <= qts.maxCurrZoom || layer.maxZoom <= qts.maxCurrZoom)
+        );
+    }
+
+    public imageReady(): boolean {
+        const layers = this.planet.visibleTileLayers;
+
+        for (let i = 0; i < layers.length; i++) {
+            const layer = layers[i];
+
+            if (!this._isImageryLayerRequired(layer)) {
+                continue;
+            }
+
+            let material = this.materials[layer.__id];
+
+            if (!material) {
+                material = this.materials[layer.__id] = layer.createMaterial(this);
+            }
+
+            if (!material.isReady) {
+                if (!material.isLoading) {
+                    layer.loadMaterial(material, true);
+                }
+                this.quadTreeStrategy._renderCompleted = false;
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public initSlice(sliceIndex: number): Slice {
         let slice = this._slices[sliceIndex];
 
@@ -1828,12 +1878,7 @@ class Segment {
         }
 
         while (li) {
-            if (
-                this.layerOverlap(li) &&
-                ((li._fading && li._fadingOpacity > 0.0) ||
-                    ((li.minZoom >= qts.minCurrZoom || li.maxZoom >= qts.minCurrZoom) &&
-                        (li.minZoom <= qts.maxCurrZoom || li.maxZoom <= qts.maxCurrZoom)))
-            ) {
+            if (this._isImageryLayerRequired(li)) {
                 notEmpty = true;
 
                 let m = pm[li.__id];

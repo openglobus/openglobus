@@ -58,6 +58,7 @@ export interface IGlobeParams {
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
     transitionOpacityEnabled?: boolean;
+    waitForImagesEnabled?: boolean;
     terrain?: EmptyTerrain;
     controls?: Control[];
     minSlope?: number;
@@ -153,6 +154,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {number} [options.dpi] - Device pixel ratio. Default is current screen DPI.
  * @param {boolean} [options.atmosphereEnabled] - Enables atmosphere effect.
  * @param {boolean} [options.transtitionOpacityEnabled] - Enables terrain smooth opacity transition effect.
+ * @param {boolean} [options.waitForImagesEnabled=true] - When enabled, quadtree subdivision continues only after required imagery tiles for the current segment are ready.
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
  * @param {number} [options.gamma] - Gamma
  * @param {number} [options.exposure] - Exposure
@@ -295,6 +297,7 @@ class Globe {
             maxLoadingRequests: options.maxLoadingRequests,
             atmosphereEnabled: options.atmosphereEnabled != undefined ? options.atmosphereEnabled : true,
             transitionOpacityEnabled: options.transitionOpacityEnabled,
+            waitForImagesEnabled: options.waitForImagesEnabled,
             atmosphereParameters: options.atmosphereParameters,
             minDistanceBeforeMemClear: options.minDistanceBeforeMemClear,
             vectorTileSize: options.vectorTileSize,

@@ -73,6 +73,7 @@ let pointLayer = new Vector("points", {
 });
 
 let globe = new Globe({
+    waitForImagesEnabled: true,
     target: "earth",
     name: "Earth",
     //frustums: [[1, 1e12]],

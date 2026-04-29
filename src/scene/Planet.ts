@@ -75,6 +75,7 @@ export interface IPlanetParams {
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
     transitionOpacityEnabled?: boolean;
+    waitForImagesEnabled?: boolean;
     atmosphereParameters?: IAtmosphereParams;
     minDistanceBeforeMemClear?: number;
     vectorTileSize?: number;
@@ -128,10 +129,11 @@ type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
  * @param {string|null} [options.specularTextureSrc] - Water/specular mask texture URL (`null` disables texture loading).
  * @param {boolean} [options.atmosphereEnabled=false] - Enables atmosphere rendering.
  * @param {boolean} [options.transitionOpacityEnabled] - Enables terrain transition opacity blending.
+ * @param {boolean} [options.waitForImagesEnabled=true] - When `true`, quadtree subdivision waits for required imagery tiles on the current segment in addition to terrain readiness.
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
  * @param {number} [options.minDistanceBeforeMemClear] - Camera travel distance threshold before automatic memory cleanup.
  * @param {number} [options.vectorTileSize] - Vector tile texture size for vector layer baking.
- * @param {boolean} [options.transparentBackground=false] - Enables transparent renderer background.
+ * @param {boolean} [options.transparentBackground=false] - Enables a transparent renderer background.
  * @param {INearPlaneStrategy} [options.nearPlaneStrategy] - Near-plane strategy implementation.
  * @param {number|string} [options.shadeMode=0.5] - Terrain shading mode: `0|none|unlit`, `0.5|phong`, `1|pbr`.
  * @param {boolean} [options.reverseDepth=true] - Enables reverse-Z depth for the default planet camera in perspective mode.
@@ -333,6 +335,7 @@ export class Planet extends Scene {
     protected _initialized: boolean;
 
     protected _collectRenderNodesIsActive: boolean;
+    public waitForImagesEnabled: boolean;
 
     /**
      * Night texture brightness coefficient
@@ -481,6 +484,7 @@ export class Planet extends Scene {
         this._initialized = false;
 
         this._collectRenderNodesIsActive = true;
+        this.waitForImagesEnabled = options.waitForImagesEnabled ?? true;
 
         this.nightTextureCoefficient = 1.0;
 
@@ -1881,7 +1885,7 @@ export class Planet extends Scene {
     ) {
         let gl = this.renderer!.handler.gl!;
 
-        gl.enable(gl.POLYGON_OFFSET_FILL);
+        //gl.enable(gl.POLYGON_OFFSET_FILL);
         gl.disable(gl.CULL_FACE);
 
         let nodes = new Map<number, boolean>();
@@ -1898,8 +1902,8 @@ export class Planet extends Scene {
                 );
             }
 
-            const polygonOffsetUnits = camera.reverseDepthActive ? j : -j;
-            gl.polygonOffset(0, polygonOffsetUnits);
+            //const polygonOffsetUnits = camera.reverseDepthActive ? j : -j;
+            //gl.polygonOffset(0, polygonOffsetUnits);
             let i = renderedNodes.length;
             while (i--) {
                 let ri = renderedNodes[i];
@@ -1913,7 +1917,7 @@ export class Planet extends Scene {
             }
         }
 
-        gl.disable(gl.POLYGON_OFFSET_FILL);
+        //gl.disable(gl.POLYGON_OFFSET_FILL);
         gl.enable(gl.CULL_FACE);
     }
 
@@ -1949,18 +1953,18 @@ export class Planet extends Scene {
             this.quadTreeStrategy._fadingOpaqueSegments[i].colorPickingRendering(sh, sl[0], 0);
         }
 
-        gl.enable(gl.POLYGON_OFFSET_FILL);
+        //gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             i = rn.length;
-            const polygonOffsetUnits = cam.reverseDepthActive ? j : -j;
-            gl.polygonOffset(0, polygonOffsetUnits);
+            //const polygonOffsetUnits = cam.reverseDepthActive ? j : -j;
+            //gl.polygonOffset(0, polygonOffsetUnits);
             while (i--) {
                 rn[i].segment.colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
 
         gl.enable(gl.BLEND);
-        gl.disable(gl.POLYGON_OFFSET_FILL);
+        //gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
     /**
@@ -1979,7 +1983,7 @@ export class Planet extends Scene {
         let shu = sh.uniforms;
 
         gl.disable(gl.BLEND);
-        gl.disable(gl.POLYGON_OFFSET_FILL);
+        //gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
