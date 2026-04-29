@@ -242,7 +242,7 @@ class Segment {
     public terrainExists: boolean;
 
     /**
-     * Means that tree passage reach the segment, and the segment terrain is ready.
+     * Means that tree passage reaches the segment, and the segment terrain is ready.
      * @type {boolean}
      */
     public passReady: boolean;

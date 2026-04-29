@@ -291,43 +291,52 @@ export class XYZ extends Layer {
         } else if (material.segment.tileZoom < this.minNativeZoom) {
             material.textureNotExists();
         } else {
-            let segment = material.segment,
-                pn = segment.node,
-                notEmpty = false;
-
-            let mId = this.__id;
-            let psegm = material;
-            while (pn.parentNode) {
-                pn = pn.parentNode;
-                psegm = pn.segment.materials[mId];
-                if (psegm && psegm.textureExists) {
-                    notEmpty = true;
-                    break;
-                }
-            }
+            let segment = material.segment;
+            let layerId = this.__id;
 
             if (segment.passReady) {
-                let maxNativeZoom = (material.layer as XYZ).maxNativeZoom;
-                if (pn.segment.tileZoom === maxNativeZoom) {
-                    material.textureNotExists();
-                } else if (material.segment.tileZoom <= maxNativeZoom) {
-                    !material.isLoading && !material.isReady && this.loadMaterial(material, forceLoading);
-                } else {
-                    let pn = segment.node;
-                    while (pn.segment.tileZoom > (material.layer as XYZ).maxNativeZoom) {
-                        pn = pn.parentNode!;
+                let node = segment.node;
+                let targetNode = null;
+
+                while (node) {
+                    const seg = node.segment;
+
+                    if (seg.tileZoom <= this.maxNativeZoom) {
+                        const mat = seg.materials[layerId];
+                        if (!mat || !mat.isReady) {
+                            targetNode = node;
+                        }
                     }
-                    let pnm = pn.segment.materials[material.layer.__id];
-                    if (pnm) {
-                        !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm, true);
-                    } else {
-                        pnm = pn.segment.materials[material.layer.__id] = material.layer.createMaterial(pn.segment);
-                        this.loadMaterial(pnm, true);
+
+                    node = node.parentNode!;
+                }
+
+                if (targetNode) {
+                    const seg = targetNode.segment;
+
+                    let mat = seg.materials[layerId];
+                    if (!mat) {
+                        mat = seg.materials[layerId] = this.createMaterial(seg);
+                    }
+
+                    if (!mat.isReady && !mat.isLoading) {
+                        this.loadMaterial(mat, targetNode === segment.node ? forceLoading : true);
                     }
                 }
             }
 
-            if (notEmpty) {
+            let pn = segment.node;
+            let psegm: Material | null = null;
+            while (pn) {
+                const pm = pn.segment.materials[layerId];
+                if (pm && pm.isReady && pm.textureExists) {
+                    psegm = pm;
+                    break;
+                }
+                pn = pn.parentNode!;
+            }
+
+            if (psegm && pn) {
                 material.appliedNode = pn;
                 material.appliedNodeId = pn.nodeId;
                 material.texture = psegm.texture;
