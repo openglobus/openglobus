@@ -273,48 +273,51 @@ class CanvasTiles extends Layer {
         } else if (material.segment.tileZoom < this.minNativeZoom) {
             material.textureNotExists();
         } else {
-            let segment = material.segment;
-            let pn = segment.node,
-                parentTextureExists = false;
-            let maxNativeZoom = (material.layer as CanvasTiles).maxNativeZoom;
-
-            if (segment.passReady && !material.isLoading && segment.tileZoom <= maxNativeZoom) {
-                this.loadMaterial(material);
-            }
-
-            let mId = this._id;
-            let psegm = material;
-            while (pn.parentNode) {
-                pn = pn.parentNode;
-                psegm = pn.segment.materials[mId];
-                if (psegm && psegm.textureExists) {
-                    parentTextureExists = true;
-                    break;
-                }
-            }
+            const segment = material.segment;
+            const layerId = this.__id;
 
             if (segment.passReady) {
-                if (pn.segment.tileZoom === maxNativeZoom) {
-                    if (segment.tileZoom > maxNativeZoom) {
-                        material.textureNotExists();
-                    }
-                } else if (pn.segment.tileZoom < maxNativeZoom) {
-                    let pn = segment.node;
-                    while (pn.segment.tileZoom > maxNativeZoom) {
-                        pn = pn.parentNode!;
+                let node = segment.node;
+                let targetNode = null;
+
+                while (node) {
+                    const seg = node.segment;
+
+                    if (seg.tileZoom <= this.maxNativeZoom) {
+                        const mat = seg.materials[layerId];
+                        if (!mat || !mat.isReady) {
+                            targetNode = node;
+                        }
                     }
 
-                    let pnm = pn.segment.materials[mId];
-                    if (pnm) {
-                        !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm);
-                    } else {
-                        pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(pn.segment);
-                        this.loadMaterial(pnm);
+                    node = node.parentNode!;
+                }
+
+                if (targetNode) {
+                    const seg = targetNode.segment;
+                    let mat = seg.materials[layerId];
+                    if (!mat) {
+                        mat = seg.materials[layerId] = this.createMaterial(seg);
+                    }
+
+                    if (!mat.isReady && !mat.isLoading) {
+                        this.loadMaterial(mat);
                     }
                 }
             }
 
-            if (parentTextureExists) {
+            let pn = segment.node;
+            let psegm: Material | null = null;
+            while (pn) {
+                const pm = pn.segment.materials[layerId];
+                if (pm && pm.isReady && pm.textureExists) {
+                    psegm = pm;
+                    break;
+                }
+                pn = pn.parentNode!;
+            }
+
+            if (psegm && pn) {
                 //
                 // Animated doesn't work withMaxNativeZoom
                 //
@@ -328,6 +331,7 @@ class CanvasTiles extends Layer {
                     });
                 }
 
+                material.appliedNode = pn;
                 material.appliedNodeId = pn.nodeId;
                 material.texture = psegm.texture;
                 let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
