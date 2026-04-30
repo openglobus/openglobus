@@ -72,11 +72,21 @@ let pointLayer = new Vector("points", {
     ]
 });
 
+const skybox = new scene.SkyBox({
+    nx: "./nx.webp",
+    px: "./px.webp",
+    py: "./py.webp",
+    ny: "./ny.webp",
+    pz: "./pz.webp",
+    nz: "./nz.webp"
+});
+
 let globe = new Globe({
     target: "earth",
     name: "Earth",
     //frustums: [[1, 1e12]],
     terrain: new GlobusRgbTerrain(),
+    skybox: skybox,
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer],
     //reverseDepth: false,
     //msaa: 0
