@@ -597,17 +597,25 @@ class Handler {
      * @param {string} params.ny - Negative Y or bottom image url.
      * @param {string} params.pz - Positive Z or face image url.
      * @param {string} params.nz - Negative Z or back image url.
+     * @param {number} [colorSpace=gl.SRGB8_ALPHA8] - Cube texture internal format (for example gl.SRGB8_ALPHA8 or gl.RGBA8).
+     * @param {number} [textureFilter=gl.LINEAR] - Cube texture filter (for example gl.LINEAR or gl.NEAREST).
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
-    public loadCubeMapTexture(params: Texture3DParams): WebGLTextureExt | null {
+    public loadCubeMapTexture(
+        params: Texture3DParams,
+        colorSpace?: number | null,
+        textureFilter?: number | null
+    ): WebGLTextureExt | null {
         let gl = this.gl!;
+        const internalFormat = colorSpace ?? gl.SRGB8_ALPHA8;
+        const filter = textureFilter ?? gl.LINEAR;
 
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, filter);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, filter);
 
         let faces: [string, number][] = [
             [params.px, gl.TEXTURE_CUBE_MAP_POSITIVE_X],
@@ -626,7 +634,7 @@ class Handler {
             let face = faces[i][1];
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
             //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-            gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, emptyImage);
+            gl.texImage2D(face, 0, internalFormat, gl.RGBA, gl.UNSIGNED_BYTE, emptyImage);
         }
 
         for (let i = 0; i < faces.length; i++) {
@@ -638,7 +646,7 @@ class Handler {
                     if (gl && texture) {
                         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
                         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-                        gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                        gl.texImage2D(face, 0, internalFormat, gl.RGBA, gl.UNSIGNED_BYTE, image);
                     }
                 };
             })(texture, face, image);
@@ -738,7 +746,7 @@ class Handler {
     }
 
     /**
-     * Main function that initialize handler.
+     * Main function that initializes handler.
      * @public
      */
     public initialize() {

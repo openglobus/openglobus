@@ -6,12 +6,14 @@ import { RADIANS_HALF } from "../math";
 
 class SkyBox extends Scene {
     public params: Texture3DParams;
+    public size: number;
     public vertexPositionBuffer: WebGLBufferExt | null;
     public texture: WebGLTextureExt | null;
 
-    constructor(params: Texture3DParams) {
+    constructor(params: Texture3DParams, size: number = 100000000) {
         super("skybox");
         this.params = params;
+        this.size = size;
         this.vertexPositionBuffer = null;
         this.texture = null;
     }
@@ -28,10 +30,20 @@ class SkyBox extends Scene {
     }
 
     public override init() {
-        this.renderer!.handler!.addProgram(shaders.skybox());
-        this.texture = this.renderer!.handler.loadCubeMapTexture(this.params);
+        const h = this.renderer!.handler;
+        const gl = h.gl!;
+        h.addProgram(shaders.skybox());
+        this.texture = h.loadCubeMapTexture(this.params, gl.SRGB8_ALPHA8, gl.LINEAR);
         this._createBuffers();
-        this.drawMode = this.renderer!.handler.gl!.TRIANGLES;
+        this.drawMode = gl.TRIANGLES;
+    }
+
+    public setSize(size: number) {
+        this.size = size;
+        if (this.renderer && this.vertexPositionBuffer) {
+            this.renderer.handler.gl!.deleteBuffer(this.vertexPositionBuffer);
+            this._createBuffers();
+        }
     }
 
     public override preFrame() {
@@ -68,30 +80,25 @@ class SkyBox extends Scene {
     }
 
     protected _createBuffers() {
+        const size = this.size;
         const vertices = new Float32Array([
-            -100000000.0, 100000000.0, -100000000.0, -100000000.0, -100000000.0, -100000000.0, 100000000.0,
-            -100000000.0, -100000000.0, 100000000.0, -100000000.0, -100000000.0, 100000000.0, 100000000.0, -100000000.0,
-            -100000000.0, 100000000.0, -100000000.0,
+            -1 * size, 1 * size, -1 * size, -1 * size, -1 * size, -1 * size, 1 * size, -1 * size, -1 * size, 1 * size,
+            -1 * size, -1 * size, 1 * size, 1 * size, -1 * size, -1 * size, 1 * size, -1 * size,
 
-            -100000000.0, -100000000.0, 100000000.0, -100000000.0, -100000000.0, -100000000.0, -100000000.0,
-            100000000.0, -100000000.0, -100000000.0, 100000000.0, -100000000.0, -100000000.0, 100000000.0, 100000000.0,
-            -100000000.0, -100000000.0, 100000000.0,
+            -1 * size, -1 * size, 1 * size, -1 * size, -1 * size, -1 * size, -1 * size, 1 * size, -1 * size, -1 * size,
+            1 * size, -1 * size, -1 * size, 1 * size, 1 * size, -1 * size, -1 * size, 1 * size,
 
-            100000000.0, -100000000.0, -100000000.0, 100000000.0, -100000000.0, 100000000.0, 100000000.0, 100000000.0,
-            100000000.0, 100000000.0, 100000000.0, 100000000.0, 100000000.0, 100000000.0, -100000000.0, 100000000.0,
-            -100000000.0, -100000000.0,
+            1 * size, -1 * size, -1 * size, 1 * size, -1 * size, 1 * size, 1 * size, 1 * size, 1 * size, 1 * size,
+            1 * size, 1 * size, 1 * size, 1 * size, -1 * size, 1 * size, -1 * size, -1 * size,
 
-            -100000000.0, -100000000.0, 100000000.0, -100000000.0, 100000000.0, 100000000.0, 100000000.0, 100000000.0,
-            100000000.0, 100000000.0, 100000000.0, 100000000.0, 100000000.0, -100000000.0, 100000000.0, -100000000.0,
-            -100000000.0, 100000000.0,
+            -1 * size, -1 * size, 1 * size, -1 * size, 1 * size, 1 * size, 1 * size, 1 * size, 1 * size, 1 * size,
+            1 * size, 1 * size, 1 * size, -1 * size, 1 * size, -1 * size, -1 * size, 1 * size,
 
-            -100000000.0, 100000000.0, -100000000.0, 100000000.0, 100000000.0, -100000000.0, 100000000.0, 100000000.0,
-            100000000.0, 100000000.0, 100000000.0, 100000000.0, -100000000.0, 100000000.0, 100000000.0, -100000000.0,
-            100000000.0, -100000000.0,
+            -1 * size, 1 * size, -1 * size, 1 * size, 1 * size, -1 * size, 1 * size, 1 * size, 1 * size, 1 * size,
+            1 * size, 1 * size, -1 * size, 1 * size, 1 * size, -1 * size, 1 * size, -1 * size,
 
-            -100000000.0, -100000000.0, -100000000.0, -100000000.0, -100000000.0, 100000000.0, 100000000.0,
-            -100000000.0, -100000000.0, 100000000.0, -100000000.0, -100000000.0, -100000000.0, -100000000.0,
-            100000000.0, 100000000.0, -100000000.0, 100000000.0
+            -1 * size, -1 * size, -1 * size, -1 * size, -1 * size, 1 * size, 1 * size, -1 * size, -1 * size, 1 * size,
+            -1 * size, -1 * size, -1 * size, -1 * size, 1 * size, 1 * size, -1 * size, 1 * size
         ]);
 
         this.vertexPositionBuffer = this.renderer!.handler.createArrayBuffer(vertices, 3, vertices.length / 3);
