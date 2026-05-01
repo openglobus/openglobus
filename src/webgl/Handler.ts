@@ -71,9 +71,6 @@ export interface IDefaultTextureParams {
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 const CONTEXT_TYPE = "webgl2";
 
-// Maximal mipmap levels
-const MAX_LEVELS = 2;
-
 /**
  * @typedef {"visibilitychange" | "resize"} HandlerEventType
  */
@@ -216,6 +213,10 @@ class Handler {
     protected _requestAnimationFrameId: number = 0;
     protected _clipControlZeroToOne: boolean = false;
     public clipControl: ((origin: number, depth: number) => void) | undefined = undefined;
+
+    protected _getMipmapLevels(width: number, height: number): number {
+        return Math.max(1, Math.floor(Math.log2(Math.max(width, height))) + 1);
+    }
 
     constructor(canvasTarget: string | HTMLCanvasElement | undefined, params: IHandlerParameters = {}) {
         this.events = createEvents<["visibilitychange", "resize"]>(["visibilitychange", "resize"]);
@@ -536,11 +537,12 @@ class Handler {
         texture: WebGLTexture | null = null
     ): WebGLTextureExt | null {
         let gl = this.gl!;
+        const levels = this._getMipmapLevels(image.width, image.height);
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, MAX_LEVELS, internalFormat || gl.RGBA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
@@ -567,12 +569,13 @@ class Handler {
         texture: WebGLTexture | null = null
     ): WebGLTextureExt | null {
         let gl = this.gl!;
+        const levels = this._getMipmapLevels(image.width, image.height);
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, MAX_LEVELS, internalFormat || gl.RGBA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);

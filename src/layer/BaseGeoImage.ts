@@ -26,6 +26,8 @@ const BASEGEOIMAGE_EVENTS: BaseGeoImageEventsList = [
     "loadend"
 ];
 
+const ANIMATED_MIPMAP_UPDATE_INTERVAL = 4;
+
 export type BaseGeoImageEventsType = EventsHandler<BaseGeoImageEventsList> & EventsHandler<LayerEventsList>;
 
 /**
@@ -77,6 +79,7 @@ class BaseGeoImage extends Layer {
     public rendering: Function;
 
     protected _onLoadend_: EventCallback | null;
+    protected _materialMipmapUpdateCounter: number;
 
     constructor(name: string | null, options: IBaseGeoImageParams = {}) {
         super(name, options);
@@ -123,6 +126,7 @@ class BaseGeoImage extends Layer {
         this.rendering = this._renderingProjType0.bind(this);
 
         this._onLoadend_ = null;
+        this._materialMipmapUpdateCounter = 0;
 
         options.corners && this.setCorners(options.corners);
     }
@@ -281,6 +285,7 @@ class BaseGeoImage extends Layer {
 
             gl.deleteTexture(this._materialTexture as WebGLTexture);
             this._materialTexture = h.createEmptyTexture_l(this._frameWidth, this._frameHeight);
+            this._materialMipmapUpdateCounter = 0;
 
             let gridBufferArr = this._planet._geoImageCreator.createGridBuffer(
                 this._cornersWgs84,
@@ -430,6 +435,27 @@ class BaseGeoImage extends Layer {
         //empty
     }
 
+    protected _updateMaterialTextureMipmap() {
+        const p = this._planet;
+        if (!p || !this._materialTexture) return;
+
+        const gl = p.renderer!.handler.gl!;
+        const shouldUpdateMipmaps = !this._animate || this._materialMipmapUpdateCounter <= 0;
+
+        gl.bindTexture(gl.TEXTURE_2D, this._materialTexture as WebGLTexture);
+
+        if (shouldUpdateMipmaps) {
+            gl.generateMipmap(gl.TEXTURE_2D);
+            this._materialMipmapUpdateCounter = this._animate ? ANIMATED_MIPMAP_UPDATE_INTERVAL : 0;
+        } else {
+            this._materialMipmapUpdateCounter--;
+        }
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+
     public _renderingProjType1() {
         let p = this._planet!,
             h = p.renderer!.handler,
@@ -475,6 +501,7 @@ class BaseGeoImage extends Layer {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer as WebGLBuffer);
         gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
         f.deactivate();
+        this._updateMaterialTextureMipmap();
 
         gl.enable(gl.CULL_FACE);
 
@@ -526,6 +553,7 @@ class BaseGeoImage extends Layer {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer as WebGLBuffer);
         gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
         f.deactivate();
+        this._updateMaterialTextureMipmap();
 
         gl.enable(gl.CULL_FACE);
 
