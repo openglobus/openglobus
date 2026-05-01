@@ -10,7 +10,7 @@ class SkyBox extends Scene {
     public vertexPositionBuffer: WebGLBufferExt | null;
     public texture: WebGLTextureExt | null;
 
-    constructor(params: Texture3DParams, size: number = 100000000) {
+    constructor(params: Texture3DParams, size: number = 1000) {
         super("skybox");
         this.params = params;
         this.size = size;
@@ -63,11 +63,13 @@ class SkyBox extends Scene {
             const right = top * aspect;
             const proj = new Mat4().setPerspective(-right, right, -top, top, near, far);
             const view = new Mat4().set(cam.getViewMatrix());
+            view._m[12] = 0.0;
+            view._m[13] = 0.0;
+            view._m[14] = 0.0;
             gl.uniformMatrix4fv(shu.projectionViewMatrix, false, proj.mul(view)._m);
         } else {
-            gl.uniformMatrix4fv(shu.projectionViewMatrix, false, cam.getProjectionViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionViewMatrix, false, cam.getProjectionViewRTEMatrix());
         }
-        gl.uniform3fv(shu.pos, cam.eye.toArray());
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture!);
         gl.uniform1i(shu.uSampler, 0);
