@@ -20,12 +20,12 @@ class SkyBox extends Scene {
 
     static createDefault(RESOURCES_URL: string) {
         return new SkyBox({
-            nx: RESOURCES_URL + "skybox/gal/_nx.jpg",
-            px: RESOURCES_URL + "skybox/gal/_px.jpg",
-            py: RESOURCES_URL + "skybox/gal/_py.jpg",
-            ny: RESOURCES_URL + "skybox/gal/_ny.jpg",
-            pz: RESOURCES_URL + "skybox/gal/_pz.jpg",
-            nz: RESOURCES_URL + "skybox/gal/_nz.jpg"
+            nx: RESOURCES_URL + "skybox/nx.webp",
+            px: RESOURCES_URL + "skybox/px.webp",
+            py: RESOURCES_URL + "skybox/py.webp",
+            ny: RESOURCES_URL + "skybox/ny.webp",
+            pz: RESOURCES_URL + "skybox/pz.webp",
+            nz: RESOURCES_URL + "skybox/nz.webp"
         });
     }
 
