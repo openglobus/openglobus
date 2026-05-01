@@ -1,11 +1,11 @@
 import * as utils from "../utils/shared";
-import { BaseGeoImage } from "../layer/BaseGeoImage";
-import { Framebuffer } from "../webgl/Framebuffer";
-import { LonLat } from "../LonLat";
-import { ShaderProgram } from "../webgl/ShaderProgram";
-import { Planet } from "../scene/Planet";
-import { doubleToTwoFloats2 } from "../math/coder";
-import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
+import {BaseGeoImage} from "../layer/BaseGeoImage";
+import {Framebuffer} from "../webgl/Framebuffer";
+import {LonLat} from "../LonLat";
+import {ShaderProgram} from "../webgl/ShaderProgram";
+import {Planet} from "../scene/Planet";
+import {doubleToTwoFloats2} from "../math/coder";
+import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 
 export class GeoImageCreator {
     public MAX_FRAMES: number;
@@ -120,7 +120,10 @@ export class GeoImageCreator {
 
         i = this._animate.length;
         while (i--) {
-            this._animate[i].rendering();
+            let ai = this._animate[i];
+            if (ai.getVisibility()) {
+                ai.rendering();
+            }
         }
     }
 
@@ -157,10 +160,10 @@ export class GeoImageCreator {
     protected _initBuffers() {
         let h = this._planet.renderer!.handler!;
 
-        this._framebuffer = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
+        this._framebuffer = new Framebuffer(h, {width: 2, height: 2, useDepth: false});
         this._framebuffer.init();
 
-        this._framebufferMercProj = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
+        this._framebufferMercProj = new Framebuffer(h, {width: 2, height: 2, useDepth: false});
         this._framebufferMercProj.init();
 
         let gs = Math.log2(this._gridSize);
@@ -180,35 +183,41 @@ export class GeoImageCreator {
                     sourceTexture: "sampler2d",
                     extentParamsHigh: "vec4",
                     extentParamsLow: "vec4",
-                    isFullExtent: "bool"
+                    isFullExtent: "bool",
+                    decodeSourceSRGB: "bool"
                 },
                 attributes: {
                     cornersHigh: "vec2",
                     cornersLow: "vec2",
                     texCoords: "vec2"
                 },
-                vertexShader: `attribute vec2 cornersHigh; 
+                vertexShader: `attribute vec2 cornersHigh;
                      attribute vec2 cornersLow;
-                      attribute vec2 texCoords; 
-                      uniform vec4 extentParamsHigh; 
-                      uniform vec4 extentParamsLow; 
+                      attribute vec2 texCoords;
+                      uniform vec4 extentParamsHigh;
+                      uniform vec4 extentParamsLow;
                       varying vec2 v_texCoords;
-                      void main() {                                                             
-                          v_texCoords = texCoords; 
+                      void main() {
+                          v_texCoords = texCoords;
                           vec2 highDiff = cornersHigh - extentParamsHigh.xy;
-                          vec2 lowDiff = cornersLow - extentParamsLow.xy;                                        
-                          gl_Position = vec4((-1.0 + (highDiff * step(1.0, length(highDiff)) + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0), 0.0, 1.0); 
+                          vec2 lowDiff = cornersLow - extentParamsLow.xy;
+                          gl_Position = vec4((-1.0 + (highDiff * step(1.0, length(highDiff)) + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0), 0.0, 1.0);
                       }`,
                 fragmentShader: `precision highp float;
                         uniform sampler2D sourceTexture;
                         uniform bool isFullExtent;
+                        uniform bool decodeSourceSRGB;
                         varying vec2 v_texCoords;
                         void main () {
                             if(!isFullExtent && (v_texCoords.x <= 0.001 || v_texCoords.x >= 0.999 ||
                                 v_texCoords.y <= 0.001 || v_texCoords.y >= 0.999)) {
                                 discard;
                             }
-                            gl_FragColor = texture2D(sourceTexture, v_texCoords);
+                            vec4 color = texture2D(sourceTexture, v_texCoords);
+                            if (decodeSourceSRGB) {
+                                color.rgb = pow(color.rgb, vec3(2.2));
+                            }
+                            gl_FragColor = color;
                         }`
             })
         );

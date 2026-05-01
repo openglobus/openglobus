@@ -10,6 +10,7 @@ import type { NumberArray2 } from "../math/Vec2";
 import type { NumberArray4 } from "../math/Vec4";
 import { Planet } from "../scene/Planet";
 import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
+import { SRGB } from "../utils/colorSpace";
 
 export interface IBaseGeoImageParams extends ILayerParams {
     fullExtent?: boolean;
@@ -481,6 +482,7 @@ class BaseGeoImage extends Layer {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         gl.uniform1i(shu.isFullExtent, this._isFullExtent);
+        gl.uniform1i(shu.decodeSourceSRGB, this._colorSpace === SRGB ? 1 : 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
 
@@ -534,6 +536,7 @@ class BaseGeoImage extends Layer {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
+        gl.uniform1i(shu.decodeSourceSRGB, this._colorSpace === SRGB ? 1 : 0);
 
         gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 

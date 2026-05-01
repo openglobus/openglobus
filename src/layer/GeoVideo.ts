@@ -95,7 +95,7 @@ class GeoVideo extends BaseGeoImage {
             gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture!);
             gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, this._video!);
         } else {
-            this._sourceTexture = this._planet!.renderer!.handler.createTexture_n(this._video!, this._internalFormat);
+            this._sourceTexture = this._planet!.renderer!.handler.createTexture_n(this._video!, gl.RGBA8);
             this._sourceCreated = true;
         }
     }
