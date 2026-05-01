@@ -10,7 +10,7 @@ class SkyBox extends Scene {
     public vertexPositionBuffer: WebGLBufferExt | null;
     public texture: WebGLTextureExt | null;
 
-    constructor(params: Texture3DParams, size: number = 1000) {
+    constructor(params: Texture3DParams, size: number = 10000) {
         super("skybox");
         this.params = params;
         this.size = size;
