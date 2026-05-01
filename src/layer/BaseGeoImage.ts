@@ -149,6 +149,9 @@ class BaseGeoImage extends Layer {
     }
 
     public override remove() {
+        if (this._planet) {
+            this._planet._geoImageCreator.remove(this);
+        }
         this.events.off("loadend", this._onLoadend_);
         this._onLoadend_ = null;
         return super.remove();
@@ -321,7 +324,7 @@ class BaseGeoImage extends Layer {
 
         if (p) {
             let gl = p.renderer!.handler.gl;
-            this._creationProceeding && p._geoImageCreator.remove(this);
+            p._geoImageCreator.remove(this);
             p._clearLayerMaterial(this);
 
             if (gl) {

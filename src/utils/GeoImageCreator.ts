@@ -139,20 +139,20 @@ export class GeoImageCreator {
     }
 
     public remove(geoImage: BaseGeoImage) {
-        if (geoImage._isRendering) {
-            geoImage._creationProceeding = false;
-            geoImage._isRendering = false;
-            let arr: BaseGeoImage[];
-            if (geoImage._animate) {
-                arr = this._animate;
-            } else {
-                arr = this._queue;
+        geoImage._creationProceeding = false;
+        geoImage._isRendering = false;
+
+        for (let i = 0; i < this._queue.length; i++) {
+            if (this._queue[i].isEqual(geoImage)) {
+                this._queue.splice(i, 1);
+                break;
             }
-            for (let i = 0; i < arr.length; i++) {
-                if (arr[i].isEqual(geoImage)) {
-                    arr.splice(i, 1);
-                    return;
-                }
+        }
+
+        for (let i = 0; i < this._animate.length; i++) {
+            if (this._animate[i].isEqual(geoImage)) {
+                this._animate.splice(i, 1);
+                break;
             }
         }
     }
