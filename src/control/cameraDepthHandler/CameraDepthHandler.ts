@@ -65,6 +65,11 @@ const DEPTH_FAR = 1000000;
 
 const POLYLINE_DEPTH_OFFSET = -100;
 
+interface IPerimeterSegmentsData {
+    segments: LonLat[][];
+    isClosed: boolean;
+}
+
 export interface ICameraDepthHandlerParams extends IControlParams {
     showFrustum?: boolean;
     showFootprint?: boolean;
@@ -77,7 +82,8 @@ export class CameraDepthHandler extends Control {
     public readonly cameraFootprintLayer: Vector;
 
     protected readonly _cameraFootprintEntity: Entity;
-    protected _cameraFootprintPointCount: number | null;
+    protected _cameraFootprintSegmentPointCounts: number[] | null;
+    protected _cameraFootprintClosedState: boolean | null;
 
     protected _quadTreeStrategy: QuadTreeStrategy | null;
 
@@ -110,7 +116,8 @@ export class CameraDepthHandler extends Control {
             visibility: this._showFootprint
         });
 
-        this._cameraFootprintPointCount = null;
+        this._cameraFootprintSegmentPointCounts = null;
+        this._cameraFootprintClosedState = null;
 
         this._quadTreeStrategy = null;
     }
@@ -274,70 +281,98 @@ export class CameraDepthHandler extends Control {
 
             framebuffer.readPixelBuffersAsync();
 
-            const perimeterPath = this._collectPerimeterLonLats(framebuffer.width, framebuffer.height);
+            const perimeterData = this._collectPerimeterLonLats(framebuffer.width, framebuffer.height);
+            const segments = perimeterData.segments;
+            const nextPointCounts = segments.map((segment) => segment.length);
+            const nextClosedState = perimeterData.isClosed;
 
-            if (perimeterPath) {
-                this.cameraFootprintLayer.setVisibility(true);
-                if (this._cameraFootprintPointCount === null) {
-                    this._cameraFootprintPointCount = perimeterPath.length;
-                    this._cameraFootprintEntity.polyline!.setPathLonLat([perimeterPath]);
-                } else if (perimeterPath.length === this._cameraFootprintPointCount) {
-                    this._cameraFootprintEntity.polyline!.setPathLonLatFast([perimeterPath]);
-                }
-            } else {
-                this.cameraFootprintLayer.setVisibility(false);
+            const isSameTopology =
+                this._cameraFootprintSegmentPointCounts !== null &&
+                this._cameraFootprintClosedState === nextClosedState &&
+                this._cameraFootprintSegmentPointCounts.length === nextPointCounts.length &&
+                this._cameraFootprintSegmentPointCounts.every((count, index) => count === nextPointCounts[index]);
+
+            const polyline = this._cameraFootprintEntity.polyline!;
+            if (polyline.isClosed !== nextClosedState) {
+                polyline.isClosed = nextClosedState;
             }
+
+            this.cameraFootprintLayer.setVisibility(true);
+
+            if (isSameTopology) {
+                polyline.setPathLonLatFast(segments);
+            } else {
+                polyline.setPathLonLat(segments);
+            }
+
+            this._cameraFootprintSegmentPointCounts = nextPointCounts;
+            this._cameraFootprintClosedState = nextClosedState;
         }
     }
 
-    protected _collectPerimeterLonLats(width: number, height: number): LonLat[] | null {
-        const topCount = Math.max(0, Math.ceil((width - 1) / PERIMETER_STEP_PX));
-        const rightCount = Math.max(0, Math.ceil((height - 2) / PERIMETER_STEP_PX));
-        const bottomCount = Math.max(0, Math.ceil((width - 2) / PERIMETER_STEP_PX));
-        const leftCount = Math.max(0, Math.ceil((height - 3) / PERIMETER_STEP_PX));
-        const totalCount = topCount + rightCount + bottomCount + leftCount;
+    protected _collectPerimeterLonLats(width: number, height: number): IPerimeterSegmentsData {
+        const segments: LonLat[][] = [];
+        let currentSegment: LonLat[] | null = null;
+        let hasMissingData = false;
+        let firstPointHasData = false;
+        let lastPointHasData = false;
+        let sampledPointIndex = 0;
 
-        const points: LonLat[] = new Array(totalCount);
-        let pointIndex = 0;
-
-        const addPoint = (x: number, y: number): boolean => {
+        const addPoint = (x: number, y: number) => {
             const lonLat = this.getLonLatFromPixelTerrain(x, y);
-            if (lonLat) {
-                points[pointIndex++] = new LonLat(lonLat.lon, lonLat.lat, lonLat.height);
-                return true;
+            const hasData = !!lonLat;
+
+            if (sampledPointIndex === 0) {
+                firstPointHasData = hasData;
             }
-            return false;
+            lastPointHasData = hasData;
+            sampledPointIndex++;
+
+            if (lonLat) {
+                if (!currentSegment) {
+                    currentSegment = [];
+                    segments.push(currentSegment);
+                }
+                currentSegment.push(new LonLat(lonLat.lon, lonLat.lat, lonLat.height));
+            } else {
+                hasMissingData = true;
+                currentSegment = null;
+            }
         };
 
         for (let x = 1; x < width; x += PERIMETER_STEP_PX) {
-            if (!addPoint(x, 1)) {
-                return null;
-            }
+            addPoint(x, 1);
         }
 
         for (let y = 2; y < height; y += PERIMETER_STEP_PX) {
-            if (!addPoint(width - 1, y)) {
-                return null;
-            }
+            addPoint(width - 1, y);
         }
 
         for (let x = width - 2; x >= 1; x -= PERIMETER_STEP_PX) {
-            if (!addPoint(x, height - 1)) {
-                return null;
-            }
+            addPoint(x, height - 1);
         }
 
         for (let y = height - 2; y >= 2; y -= PERIMETER_STEP_PX) {
-            if (!addPoint(1, y)) {
-                return null;
-            }
+            addPoint(1, y);
         }
 
-        if (pointIndex !== totalCount) {
-            return null;
+        if (segments.length > 1 && firstPointHasData && lastPointHasData) {
+            const firstSegment = segments[0];
+            const lastSegment = segments[segments.length - 1];
+
+            // Path sampling is cyclic. Merge end and start when both are valid.
+            lastSegment.push(...firstSegment);
+            segments[0] = lastSegment;
+            segments.pop();
         }
 
-        return points;
+        const normalizedSegments = segments.filter((segment) => segment.length > 1);
+        const isClosed = !hasMissingData && normalizedSegments.length === 1;
+
+        return {
+            segments: normalizedSegments,
+            isClosed
+        };
     }
 
     public getCartesianFromPixelTerrain(x: number, y: number): Vec3 | undefined {
