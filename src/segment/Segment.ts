@@ -737,10 +737,18 @@ class Segment {
     }
 
     protected _checkEqualization(neighborSide: number, neigborNode: Node): boolean {
+        const ns = neigborNode && neigborNode.segment;
+        const oppositeSide = OPSIDE[neighborSide];
+        const oppositeNeighbors = neigborNode && neigborNode.neighbors && neigborNode.neighbors[oppositeSide];
+        const hasReverseNeighbor = !!oppositeNeighbors && oppositeNeighbors.indexOf(this.node) !== -1;
         return (
             neigborNode &&
-            neigborNode.segment &&
-            this.tileZoom >= neigborNode.segment.tileZoom &&
+            ns &&
+            hasReverseNeighbor &&
+            !!ns.renderVertices &&
+            Number.isFinite(ns.gridSize) &&
+            ns.gridSize >= 1 &&
+            this.tileZoom >= ns.tileZoom &&
             this.node.equalizedSideWithNodeId[neighborSide] !==
                 neigborNode.equalizedSideWithNodeId[OPSIDE[neighborSide]]
         );
@@ -756,9 +764,6 @@ class Segment {
 
             let gs = this.gridSize;
             let gsOne = gs + 1;
-
-            this.node.equalizedSideWithNodeId[side] = n.equalizedSideWithNodeId[OPSIDE[side]];
-            this.readyToEngage = true;
 
             let offset = this.node.getOffsetOppositeNeighbourSide(n, side);
 
@@ -796,6 +801,9 @@ class Segment {
                 nIndexMul = n_gsOne;
                 nIndexOffset = n_gs;
             }
+
+            this.node.equalizedSideWithNodeId[side] = n.equalizedSideWithNodeId[OPSIDE[side]];
+            this.readyToEngage = true;
 
             for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
                 let index = (indexMul * k + indexOffset) * 3;
@@ -1946,33 +1954,6 @@ class Segment {
             gl.drawElements(p.drawMode, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
         }
     }
-
-    // public heightPickingRendering(sh: ShaderProgram, layerSlice: Layer[]) {
-    //     const gl = this.handler.gl!;
-    //     const sha = sh.attributes;
-    //     const shu = sh.uniforms;
-    //
-    //     // var pm = this.materials,
-    //     //     p = this.planet;
-    //
-    //     let currHeight;
-    //     if (layerSlice && layerSlice.length) {
-    //         currHeight = layerSlice[0]._height;
-    //     } else {
-    //         currHeight = 0;
-    //     }
-    //
-    //     gl.uniform1f(shu.height, currHeight);
-    //
-    //     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh!);
-    //     gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh!.itemSize, gl.FLOAT, false, 0, 0);
-    //
-    //     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow!);
-    //     gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow!.itemSize, gl.FLOAT, false, 0, 0);
-    //
-    //     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer!);
-    //     gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
-    // }
 
     public increaseTransitionOpacity() {
         //this._transitionOpacity += 0.01;
