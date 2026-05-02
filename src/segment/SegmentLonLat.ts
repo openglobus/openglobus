@@ -108,20 +108,41 @@ class SegmentLonLat extends Segment {
      * @todo simplify layer._extentMerc in layer.getNativeExtent(this)
      *
      */
-    protected override _getLayerExtentOffset(layer: Layer): [number, number, number, number] {
-        const v0s = layer._extent;
-        const v0t = this._extent;
-        const sSize_x = v0s.northEast.lon - v0s.southWest.lon;
-        const sSize_y = v0s.northEast.lat - v0s.southWest.lat;
-        const dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
-        const dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
-        const dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
-        const dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
-        return [dV0s_x, dV0s_y, dSize_x, dSize_y];
-    }
+    // protected override _getLayerExtentOffset(layer: Layer): [number, number, number, number] {
+    //     const v0s = layer._extent;
+    //     const v0t = this._extent;
+    //     const lonShift = this._getCyclicLonShift(v0s, v0t, 360.0);
+    //     const sourceSwLon = v0s.southWest.lon + lonShift;
+    //     const sourceNeLon = v0s.northEast.lon + lonShift;
+    //     const sSize_x = sourceNeLon - sourceSwLon;
+    //     const sSize_y = v0s.northEast.lat - v0s.southWest.lat;
+    //     const dV0s_x = (v0t.southWest.lon - sourceSwLon) / sSize_x;
+    //     const dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
+    //     const dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
+    //     const dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
+    //     return [dV0s_x, dV0s_y, dSize_x, dSize_y];
+    // }
 
     public override layerOverlap(layer: Layer): boolean {
-        return this._extent.overlaps(layer._extent);
+        if (this._extent.overlaps(layer._extent)) {
+            return true;
+        }
+
+        const segmentExtent = this._extent;
+        const layerExtent = layer._extent;
+
+        if (
+            segmentExtent.southWest.lat > layerExtent.northEast.lat ||
+            segmentExtent.northEast.lat < layerExtent.southWest.lat
+        ) {
+            return false;
+        }
+
+        const lonShift = this._getCyclicLonShift(layerExtent, segmentExtent, 360.0);
+        const shiftedSwLon = layerExtent.southWest.lon + lonShift;
+        const shiftedNeLon = layerExtent.northEast.lon + lonShift;
+
+        return segmentExtent.southWest.lon <= shiftedNeLon && segmentExtent.northEast.lon >= shiftedSwLon;
     }
 
     public override getDefaultTexture(): WebGLTextureExt | null {

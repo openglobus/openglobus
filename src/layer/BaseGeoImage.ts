@@ -28,6 +28,9 @@ const BASEGEOIMAGE_EVENTS: BaseGeoImageEventsList = [
 ];
 
 const ANIMATED_MIPMAP_UPDATE_INTERVAL = 4;
+const LON_WRAP = 360.0;
+const LON_HALF_WRAP = 180.0;
+const FULL_WORLD_EDGE_EPS = 1e-6;
 
 export type BaseGeoImageEventsType = EventsHandler<BaseGeoImageEventsList> & EventsHandler<LayerEventsList>;
 
@@ -212,7 +215,13 @@ class BaseGeoImage extends Layer {
      */
     public setCornersLonLat(corners: LonLat[]) {
         this._refreshFrame = true;
-        this._cornersWgs84 = [corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone()];
+        const cornersUnwrapped = this._unwrapCornersLonLat(corners);
+        this._cornersWgs84 = [
+            cornersUnwrapped[0].clone(),
+            cornersUnwrapped[1].clone(),
+            cornersUnwrapped[2].clone(),
+            cornersUnwrapped[3].clone()
+        ];
         this._crossesAntimeridian = this._detectAntimeridianCrossing(this._cornersWgs84);
 
         for (let i = 0; i < this._cornersWgs84.length; i++) {
@@ -237,6 +246,46 @@ class BaseGeoImage extends Layer {
         if (this._ready && !this._creationProceeding) {
             this._planet!._geoImageCreator.add(this);
         }
+    }
+
+    protected _isExplicitFullWorldLonEdge(lonA: number, lonB: number): boolean {
+        return Math.abs(Math.abs(lonB - lonA) - LON_WRAP) <= FULL_WORLD_EDGE_EPS;
+    }
+
+    protected _unwrapCornersLonLat(corners: LonLat[]): LonLat[] {
+        if (corners.length !== 4) {
+            return [corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone()];
+        }
+
+        const out = [corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone()];
+
+        for (let i = 1; i < out.length; i++) {
+            const prevLon = out[i - 1].lon;
+            const sourcePrevLon = corners[i - 1].lon;
+            const sourceCurrLon = corners[i].lon;
+
+            if (this._isExplicitFullWorldLonEdge(sourcePrevLon, sourceCurrLon)) {
+                out[i].lon = prevLon + (sourceCurrLon - sourcePrevLon);
+                continue;
+            }
+
+            let lon = sourceCurrLon;
+            let delta = lon - prevLon;
+
+            while (delta > LON_HALF_WRAP) {
+                lon -= LON_WRAP;
+                delta = lon - prevLon;
+            }
+
+            while (delta < -LON_HALF_WRAP) {
+                lon += LON_WRAP;
+                delta = lon - prevLon;
+            }
+
+            out[i].lon = lon;
+        }
+
+        return out;
     }
 
     protected _detectAntimeridianCrossing(corners: LonLat[]): boolean {
@@ -398,6 +447,36 @@ class BaseGeoImage extends Layer {
         material.isReady = false;
     }
 
+    protected _getCyclicLonShift(sourceExtent: Extent, targetExtent: Extent, worldWidth: number): number {
+        const sourceCenter = (sourceExtent.southWest.lon + sourceExtent.northEast.lon) * 0.5;
+        const targetCenter = (targetExtent.southWest.lon + targetExtent.northEast.lon) * 0.5;
+        const sourceWidth = sourceExtent.northEast.lon - sourceExtent.southWest.lon;
+
+        if (worldWidth <= 0.0 || sourceWidth >= worldWidth) {
+            return 0.0;
+        }
+
+        const k0 = Math.round((targetCenter - sourceCenter) / worldWidth);
+        let bestShift = k0 * worldWidth;
+        let bestScore = Number.POSITIVE_INFINITY;
+
+        for (let dk = -1; dk <= 1; dk++) {
+            const shift = (k0 + dk) * worldWidth;
+            const shiftedSw = sourceExtent.southWest.lon + shift;
+            const shiftedNe = sourceExtent.northEast.lon + shift;
+            const shiftedCenter = (shiftedSw + shiftedNe) * 0.5;
+            const overlapsX = targetExtent.southWest.lon <= shiftedNe && targetExtent.northEast.lon >= shiftedSw;
+            const score = Math.abs(shiftedCenter - targetCenter) + (overlapsX ? 0.0 : worldWidth);
+
+            if (score < bestScore) {
+                bestScore = score;
+                bestShift = shift;
+            }
+        }
+
+        return bestShift;
+    }
+
     /**
      * @public
      * @override
@@ -413,18 +492,24 @@ class BaseGeoImage extends Layer {
             !this._creationProceeding && this.loadMaterial(material);
         }
 
-        let v0s, v0t;
+        let v0s: Extent, v0t: Extent, worldWidth: number;
         if (this._projType === 0) {
             v0s = this._extentWgs84;
             v0t = segment._extent;
+            worldWidth = 360.0;
         } else {
             v0s = this._extentMerc;
             v0t = segment.getExtentMerc();
+            worldWidth = mercator.POLE2;
         }
 
-        let sSize_x = v0s.northEast.lon - v0s.southWest.lon;
+        const lonShift = this._getCyclicLonShift(v0s, v0t, worldWidth);
+        const sourceSwLon = v0s.southWest.lon + lonShift;
+        const sourceNeLon = v0s.northEast.lon + lonShift;
+
+        let sSize_x = sourceNeLon - sourceSwLon;
         let sSize_y = v0s.northEast.lat - v0s.southWest.lat;
-        let dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
+        let dV0s_x = (v0t.southWest.lon - sourceSwLon) / sSize_x;
         let dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
         let dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
         let dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;

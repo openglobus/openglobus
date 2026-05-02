@@ -1749,24 +1749,58 @@ class Segment {
     }
 
     /**
-     * @param layer
+     * Computes cyclic longitude shift for `sourceExtent` to align it with `targetExtent`
+     * in wrapped horizontal coordinate space (for example, Web Mercator world copies).
      * @protected
-     *
-     * @todo siplify layer._extentMerc in this.getLayerExtent(layer)
-     *
+     * @param {Extent} sourceExtent - Source extent to shift along longitude.
+     * @param {Extent} targetExtent - Target extent used as alignment reference.
+     * @param {number} worldWidth - Full world width in projection units.
+     * @returns {number} Longitude shift to apply to `sourceExtent`.
      */
+    protected _getCyclicLonShift(sourceExtent: Extent, targetExtent: Extent, worldWidth: number): number {
+        const sourceCenter = (sourceExtent.southWest.lon + sourceExtent.northEast.lon) * 0.5;
+        const targetCenter = (targetExtent.southWest.lon + targetExtent.northEast.lon) * 0.5;
+        const sourceWidth = sourceExtent.northEast.lon - sourceExtent.southWest.lon;
 
-    protected _getLayerExtentOffset(layer: Layer): [number, number, number, number] {
-        const v0s = layer._extentMerc;
-        const v0t = this._extent;
-        const sSize_x = v0s.northEast.lon - v0s.southWest.lon;
-        const sSize_y = v0s.northEast.lat - v0s.southWest.lat;
-        const dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
-        const dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
-        const dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
-        const dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
-        return [dV0s_x, dV0s_y, dSize_x, dSize_y];
+        if (worldWidth <= 0.0 || sourceWidth >= worldWidth) {
+            return 0.0;
+        }
+
+        const k0 = Math.round((targetCenter - sourceCenter) / worldWidth);
+        let bestShift = k0 * worldWidth;
+        let bestScore = Number.POSITIVE_INFINITY;
+
+        for (let dk = -1; dk <= 1; dk++) {
+            const shift = (k0 + dk) * worldWidth;
+            const shiftedSw = sourceExtent.southWest.lon + shift;
+            const shiftedNe = sourceExtent.northEast.lon + shift;
+            const shiftedCenter = (shiftedSw + shiftedNe) * 0.5;
+            const overlapsX = targetExtent.southWest.lon <= shiftedNe && targetExtent.northEast.lon >= shiftedSw;
+            const score = Math.abs(shiftedCenter - targetCenter) + (overlapsX ? 0.0 : worldWidth);
+
+            if (score < bestScore) {
+                bestScore = score;
+                bestShift = shift;
+            }
+        }
+
+        return bestShift;
     }
+
+    // protected _getLayerExtentOffset(layer: Layer): [number, number, number, number] {
+    //     const v0s = layer._extentMerc;
+    //     const v0t = this._extent;
+    //     const lonShift = this._getCyclicLonShift(v0s, v0t, mercator.POLE2);
+    //     const sourceSwLon = v0s.southWest.lon + lonShift;
+    //     const sourceNeLon = v0s.northEast.lon + lonShift;
+    //     const sSize_x = sourceNeLon - sourceSwLon;
+    //     const sSize_y = v0s.northEast.lat - v0s.southWest.lat;
+    //     const dV0s_x = (v0t.southWest.lon - sourceSwLon) / sSize_x;
+    //     const dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
+    //     const dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
+    //     const dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
+    //     return [dV0s_x, dV0s_y, dSize_x, dSize_y];
+    // }
 
     public initSlice(sliceIndex: number): Slice {
         let slice = this._slices[sliceIndex];
@@ -2116,7 +2150,25 @@ class Segment {
     }
 
     public layerOverlap(layer: Layer): boolean {
-        return this._extent.overlaps(layer._extentMerc);
+        if (this._extent.overlaps(layer._extentMerc)) {
+            return true;
+        }
+
+        const segmentExtent = this._extent;
+        const layerExtent = layer._extentMerc;
+
+        if (
+            segmentExtent.southWest.lat > layerExtent.northEast.lat ||
+            segmentExtent.northEast.lat < layerExtent.southWest.lat
+        ) {
+            return false;
+        }
+
+        const lonShift = this._getCyclicLonShift(layerExtent, segmentExtent, mercator.POLE2);
+        const shiftedSwLon = layerExtent.southWest.lon + lonShift;
+        const shiftedNeLon = layerExtent.northEast.lon + lonShift;
+
+        return segmentExtent.southWest.lon <= shiftedNeLon && segmentExtent.northEast.lon >= shiftedSwLon;
     }
 
     public getDefaultTexture(): WebGLTextureExt | null {

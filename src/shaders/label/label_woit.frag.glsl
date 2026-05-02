@@ -28,6 +28,12 @@ float getDistance() {
     return median(msdf.r, msdf.g, msdf.b);
 }
 
+float getScreenPxRange(vec2 uv, vec2 atlasSize, float pxRange) {
+    vec2 unitRange = vec2(pxRange) / atlasSize;
+    vec2 screenTexSize = vec2(1.0) / max(fwidth(uv), vec2(1e-6));
+    return max(0.5 * dot(unitRange, screenTexSize), 1.0);
+}
+
 void main() {
     if (v_fontIndex == -1) {
         accumColor = vec4(0.0);
@@ -37,16 +43,15 @@ void main() {
 
     vec4 sdfParams = sdfParamsArr[v_fontIndex];
     float sd = getDistance();
-    vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
-
-    float fillDist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
-    float fillOpacity = clamp(fillDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+    float pxRange = max(sdfParams.w, 1e-6);
+    float sdfEdge = max(0.5 - 1.0 / pxRange, 0.0);
+    float screenPxRange = getScreenPxRange(v_uv, sdfParams.xy, pxRange);
+    float fillOpacity = clamp((sd - 0.5) * screenPxRange + 0.5, 0.0, 1.0);
 
     float opacity = fillOpacity;
     if (isOutlinePass != 0) {
-        float outlineWidth = max(v_outline, 0.0);
-        float outlineDist = sd + min(outlineWidth, 0.5 - 1.0 / sdfParams.w) - 0.5;
-        float outlineOpacity = clamp(outlineDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0) * step(1e-6, v_outline);
+        float outlineWidth = min(max(v_outline, 0.0), sdfEdge);
+        float outlineOpacity = clamp((sd + outlineWidth - 0.5) * screenPxRange + 0.5, 0.0, 1.0) * step(1e-6, v_outline);
         opacity = max(0.0, outlineOpacity - fillOpacity);
     }
 
