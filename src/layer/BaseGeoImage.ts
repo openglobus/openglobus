@@ -72,6 +72,7 @@ class BaseGeoImage extends Layer {
     protected _cornersMerc: LonLat[];
 
     protected _isFullExtent: number;
+    protected _crossesAntimeridian: boolean;
 
     /**
      * rendering function pointer
@@ -120,6 +121,7 @@ class BaseGeoImage extends Layer {
         this._cornersMerc = [];
 
         this._isFullExtent = options.fullExtent ? 1 : 0;
+        this._crossesAntimeridian = false;
 
         /**
          * rendering function pointer
@@ -195,7 +197,7 @@ class BaseGeoImage extends Layer {
      * Sets geoImage geographical corners coordinates.
      * @public
      * @param {Array.<Array.<number>>} corners - GeoImage corner coordinates. Each coordinate has exactly 2 entries.
-     * First corner is top-left, second is top-right, third is bottom-right, and fourth is bottom-left.
+     * The first corner is top-left, the second is top-right, the third is bottom-right, and the fourth is bottom-left.
      */
     public setCorners(corners: NumberArray2[]) {
         this.setCornersLonLat(LonLat.join(corners));
@@ -205,12 +207,13 @@ class BaseGeoImage extends Layer {
      * Sets geoImage geographical corners coordinates.
      * @public
      * @param {Array.<LonLat>} corners - GeoImage corner coordinates.
-     * First corner is top-left, second is top-right, third is bottom-right, and fourth is bottom-left.
+     * The first corner is top-left, the second is top-right, the third is bottom-right, and the fourth is bottom-left.
      * (exactly 4 entries)
      */
     public setCornersLonLat(corners: LonLat[]) {
         this._refreshFrame = true;
         this._cornersWgs84 = [corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone()];
+        this._crossesAntimeridian = this._detectAntimeridianCrossing(this._cornersWgs84);
 
         for (let i = 0; i < this._cornersWgs84.length; i++) {
             if (this._cornersWgs84[i].lat >= 89.9) {
@@ -234,6 +237,22 @@ class BaseGeoImage extends Layer {
         if (this._ready && !this._creationProceeding) {
             this._planet!._geoImageCreator.add(this);
         }
+    }
+
+    protected _detectAntimeridianCrossing(corners: LonLat[]): boolean {
+        let minLon = 180.0;
+        let maxLon = -180.0;
+
+        for (let i = 0; i < corners.length; i++) {
+            let lon = corners[i].lon;
+            if (lon < -180.0 || lon > 180.0) {
+                lon = ((lon + 180.0) % 360.0 + 360.0) % 360.0 - 180.0;
+            }
+            if (lon < minLon) minLon = lon;
+            if (lon > maxLon) maxLon = lon;
+        }
+
+        return (maxLon - minLon) > 180.0;
     }
 
     /**
@@ -484,7 +503,8 @@ class BaseGeoImage extends Layer {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.uniform1i(shu.isFullExtent, this._isFullExtent);
+        // Keep edge-discard disabled for antimeridian-crossing images to avoid a seam on +/-180.
+        gl.uniform1i(shu.isFullExtent, (this._isFullExtent || this._crossesAntimeridian) ? 1 : 0);
         gl.uniform1i(shu.decodeSourceSRGB, this._colorSpace === SRGB ? 1 : 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
@@ -539,6 +559,7 @@ class BaseGeoImage extends Layer {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
+        gl.uniform1i(shu.isFullExtent, (this._isFullExtent || this._crossesAntimeridian) ? 1 : 0);
         gl.uniform1i(shu.decodeSourceSRGB, this._colorSpace === SRGB ? 1 : 0);
 
         gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
