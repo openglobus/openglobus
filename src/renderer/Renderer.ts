@@ -1340,19 +1340,13 @@ class Renderer {
 
             let i = rn.length;
             while (i--) {
-                rn[i].preDraw();
+                rn[i].draw();
             }
 
             //
             // Deferred geometry pass for opaque objects
             //
             this.deferredShadingPass.beginPass();
-
-            //@todo need to remove it
-            i = rn.length;
-            while (i--) {
-                rn[i].draw();
-            }
 
             e.dispatch(e.gbufferpass, this);
             this._drawGBufferEntityCollections(0);

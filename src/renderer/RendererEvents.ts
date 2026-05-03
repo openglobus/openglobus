@@ -1042,218 +1042,223 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 const RENDERER_EVENTS: RendererEventsType = [
     /**
      * Triggered when camera projection is changed
-     * @event og.RendererEvents#projchanged
+     * @event projchanged
      */
     "projchanged",
 
     /**
-     * Triggered when relative center is changed
-     * @event og.RendererEvents#changerelativecenter
+     * Triggered when a relative center is changed
+     * @event changerelativecenter
      */
     "changerelativecenter",
 
     /**
-     * Triggered before scene frame is rendered(before render nodes).
-     * @event og.RendererEvents#draw
+     * Triggered before the scene frame is rendered (before render nodes).
+     * @event draw
      */
     "draw",
 
     /**
      * Triggered for forward pass
-     * @event og.RendererEvents#forwardpass
+     * @event forwardpass
      */
     "forwardpass",
+
+    /**
+     * Triggered after all
+     * @event forwardpass
+     */
     "postforwardpass",
 
     /**
      *  Triggered for WOIT (transparency) pass
-     *  @event og.RendererEvents#transparentpass
+     *  @event transparentpass
      */
     "transparentpass",
 
     /**
      * Triggered for deferred opaque geometry pass
-     * @event og.RendererEvents#gbufferpass
+     * @event gbufferpass
      */
     "gbufferpass",
 
     /**
-     * Triggered after scene frame is rendered(after render nodes).
-     * @event og.RendererEvents#postdraw
+     * Triggered after a scene frame is rendered (after render nodes).
+     * @event postdraw
      */
     "postdraw",
 
     /**
-     * Triggered when screen is resized.
-     * @event og.RendererEvents#resize
+     * Triggered when the screen is resized.
+     * @event resize
      */
     "resize",
 
     /**
-     * Triggered when screen is resized.
-     * @event og.RendererEvents#resizeend
+     * Triggered when the screen is resized.
+     * @event resizeend
      */
     "resizeend",
 
     /**
      * Mouse enters the work screen
-     * @event og.RendererEvents#mouseenter
+     * @event mouseenter
      */
     "mouseenter",
 
     /**
      * Mouse leaves the work screen
-     * @event og.RendererEvents#mouseleave
+     * @event mouseleave
      */
     "mouseleave",
 
     /**
      * Mouse is moving.
-     * @event og.RendererEvents#mousemove
+     * @event mousemove
      */
     "mousemove",
 
     /**
      * Mouse is just stopped.
-     * @event og.RendererEvents#mousestop
+     * @event mousestop
      */
     "mousestop",
 
     /**
      * Mouse left button clicked.
-     * @event og.RendererEvents#lclick
+     * @event lclick
      */
     "lclick",
 
     /**
      * Mouse right button clicked.
-     * @event og.RendererEvents#rclick
+     * @event rclick
      */
     "rclick",
 
     /**
      * Mouse middle button clicked.
-     * @event og.RendererEvents#mclick
+     * @event mclick
      */
     "mclick",
 
     /**
-     * Mouse left button double click.
-     * @event og.RendererEvents#ldblclick
+     * Mouse left button double-click.
+     * @event ldblclick
      */
     "ldblclick",
 
     /**
      * Mouse right button double click.
-     * @event og.RendererEvents#rdblclick
+     * @event rdblclick
      */
     "rdblclick",
 
     /**
      * Mouse middle button double click.
-     * @event og.RendererEvents#mdblclick
+     * @event mdblclick
      */
     "mdblclick",
 
     /**
-     * Mouse left button up(stop pressing).
-     * @event og.RendererEvents#lup
+     * Mouse left button up (stop pressing).
+     * @event lup
      */
     "lup",
 
     /**
-     * Mouse right button up(stop pressing).
-     * @event og.RendererEvents#rup
+     * Mouse the right button up (stop pressing).
+     * @event rup
      */
     "rup",
 
     /**
-     * Mouse middle button up(stop pressing).
-     * @event og.RendererEvents#mup
+     * Mouse the middle button up (stop pressing).
+     * @event mup
      */
     "mup",
 
     /**
-     * Mouse left button is just pressed down(start pressing).
-     * @event og.RendererEvents#ldown
+     * Mouse left button is just pressed down (start pressing).
+     * @event ldown
      */
     "ldown",
 
     /**
-     * Mouse right button is just pressed down(start pressing).
-     * @event og.RendererEvents#rdown
+     * Mouse right button is just pressed down (start pressing).
+     * @event rdown
      */
     "rdown",
 
     /**
-     * Mouse middle button is just pressed down(start pressing).
-     * @event og.RendererEvents#mdown
+     * Mouse middle button is just pressed down (start pressing).
+     * @event mdown
      */
     "mdown",
 
     /**
      * Mouse left button is pressing.
-     * @event og.RendererEvents#lhold
+     * @event lhold
      */
     "lhold",
 
     /**
      * Mouse right button is pressing.
-     * @event og.RendererEvents#rhold
+     * @event rhold
      */
     "rhold",
 
     /**
      * Mouse middle button is pressing.
-     * @event og.RendererEvents#mhold
+     * @event mhold
      */
     "mhold",
 
     /**
      * Mouse wheel is rotated.
-     * @event og.RendererEvents#mousewheel
+     * @event mousewheel
      */
     "mousewheel",
 
     /**
      * Triggered when touching starts.
-     * @event og.RendererEvents#touchstart
+     * @event touchstart
      */
     "touchstart",
 
     /**
      * Triggered when touching ends.
-     * @event og.RendererEvents#touchend
+     * @event touchend
      */
     "touchend",
 
     /**
      * Triggered when touching cancel.
-     * @event og.RendererEvents#touchcancel
+     * @event touchcancel
      */
     "touchcancel",
 
     /**
      * Triggered when touch is move.
-     * @event og.RendererEvents#touchmove
+     * @event touchmove
      */
     "touchmove",
 
     /**
      * Triggered when double touch.
-     * @event og.RendererEvents#doubletouch
+     * @event doubletouch
      */
     "doubletouch",
 
     /**
-     * Triggered when touch leaves picked object.
-     * @event og.RendererEvents#touchleave
+     * Triggered when touch leaves a picked object.
+     * @event touchleave
      */
     "touchleave",
 
     /**
-     * Triggered when touch enter picking object.
-     * @event og.RendererEvents#touchenter
+     * Triggered when touch enter picking an object.
+     * @event touchenter
      */
     "touchenter"
 ];

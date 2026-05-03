@@ -6,10 +6,10 @@ import type { Planet } from "./Planet";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
- * For example one scene node for rendering the Earth, another one for rendering the Moon, another node for rendering stars etc.
- * Each render node has own model view space defined with matrices(scale, rotation, translation, transformation).
- * There are collections of light sources, entities and so on in the node.
- * Access to the node is renderer.scenes["Earth"]
+ * For example, one scene node for rendering the Earth, another one for rendering the Moon, another node for rendering stars etc.
+ * Each render node has its own model view space defined with matrices(scale, rotation, translation, transformation).
+ * There are collections of light sources, entities, and so on in the node.
+ * Access to the node is renderer.scenes[ "Earth"]
  * @class
  * @param {string} name - Node name.
  */
@@ -56,11 +56,6 @@ class Scene {
 
     public drawMode: number;
 
-    /** Show rendering.
-     * @public
-     */
-    public show: boolean;
-
     protected _isActive: boolean;
 
     /**
@@ -88,8 +83,6 @@ class Scene {
         this.renderer = null;
 
         this.drawMode = 0;
-
-        this.show = true;
 
         this._isActive = true;
 
@@ -198,7 +191,7 @@ class Scene {
     }
 
     /**
-     * Adds entity collection.
+     * Adds an entity collection.
      * @public
      * @param {EntityCollection} entityCollection - Entity collection.
      * @param {boolean} [isHidden] - If it's true that this collection has specific rendering.
@@ -256,19 +249,14 @@ class Scene {
     }
 
     /**
-     * Calls render frame node's callback. Used in renderer.
-     * @public
-     */
-    public preDraw() {
-        this._isActive && this._preDraw();
-    }
-
-    /**
-     * Calls render frame node's callback. Used in renderer.
+     * Calls render the frame node's callback. Used in renderer.
      * @public
      */
     public draw() {
-        this._isActive && this._draw();
+        if (this._isActive) {
+            this._preDraw();
+            this._draw();
+        }
     }
 
     /**
@@ -350,11 +338,10 @@ class Scene {
             }
         }
 
-        if (this.show) {
-            this.preFrame();
-            for (let i = 0; i < this._entityCollectionsByDepthOrder.length; i++) {
-                this.drawEntityCollections(this._entityCollectionsByDepthOrder[i], i);
-            }
+        this.preFrame();
+
+        for (let i = 0; i < this._entityCollectionsByDepthOrder.length; i++) {
+            this.drawEntityCollections(this._entityCollectionsByDepthOrder[i], i);
         }
     }
 
@@ -365,9 +352,7 @@ class Scene {
             }
         }
 
-        if (this.show) {
-            this.frame();
-        }
+        this.frame();
     }
 
     public drawEntityCollections(ec: EntityCollection[], depthOrder: number = 0) {
