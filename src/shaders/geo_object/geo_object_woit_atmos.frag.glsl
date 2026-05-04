@@ -14,8 +14,12 @@ uniform vec4 lightSpecular;
 uniform vec3 materialProperties;
 uniform sampler2D uColorTexture;
 uniform sampler2D uNormalTexture;
+uniform sampler2D uMetallicRoughnessTexture;
+uniform sampler2D uAOTexture;
 uniform float uUseColorTexture;
 uniform float uUseNormalTexture;
+uniform float uUseMetallicRoughnessTexture;
+uniform float uUseAOTexture;
 uniform float shadeMode;
 uniform mat3 normalMatrix;
 
@@ -48,50 +52,66 @@ void main(void) {
         baseColor = vColor;
     }
 
-    vec3 normal = normalize(vNormal);
-
-    if (uUseNormalTexture > 0.0) {
-        normal = getNormalWorldFromTexture(
-            uNormalTexture,
-            vTexCoords,
-            normal,
-            v_viewPosition,
-            normalMatrix
-        );
-    }
-
-    vec3 vertex = v_vertex;
-    vec3 sunPos = lightPosition;
     vec4 color;
 
     float shade = shadeMode;
 
     if (shade == SHADE_UNLIT) {
         color = baseColor;
-    } else if (shade < SHADE_PBR) {
-        float metallic = clamp(materialProperties.b, 0.0, 1.0);
-        float specularMask = metallic;
+        weightedOITAccumulate(color, accumColor, accumAlpha);
+        return;
+    }
+
+    vec3 normal = normalize(vNormal);
+
+    if (uUseNormalTexture > 0.0) {
+        normal = getNormalWorldFromTexture(
+        uNormalTexture,
+        vTexCoords,
+        normal,
+        v_viewPosition,
+        normalMatrix
+        );
+    }
+
+    vec3 material = materialProperties;
+    if (uUseAOTexture > 0.0) {
+        material.r = texture(uAOTexture, vTexCoords).r;
+    }
+    if (uUseMetallicRoughnessTexture > 0.0) {
+        vec4 mr = texture(uMetallicRoughnessTexture, vTexCoords);
+        material.g = mr.g;
+        material.b = mr.b;
+    }
+    vec3 vertex = v_vertex;
+    vec3 sunPos = lightPosition;
+
+    if (shade < SHADE_PBR) {
+        float metallic = material.b;
+        float roughness = material.g;
+        float specularMask = metallic * (1.0 - roughness);
         vec4 lightWeighting;
         vec3 specularWeighting;
 
         // PHONG mode in atmosphere pass: apply only Phong lighting without atmospheric contribution.
         getPhongLighting(
-            vertex,
-            normal,
-            cameraPosition,
-            sunPos,
-            lightAmbient,
-            lightDiffuse,
-            lightSpecular,
-            specularMask,
-            specularWeighting,
-            lightWeighting
+        vertex,
+        normal,
+        cameraPosition,
+        sunPos,
+        lightAmbient,
+        lightDiffuse,
+        lightSpecular,
+        specularMask,
+        specularWeighting,
+        lightWeighting
         );
 
         color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
     } else {
-        float metallic = clamp(materialProperties.b, 0.0, 1.0);
-        float specularMask = metallic;
+        float metallic = material.b;
+        float roughness = material.g;
+        float specularMask = metallic * (1.0 - roughness);
         vec3 lightDir = normalize(sunPos);
         vec3 viewDir = normalize(cameraPosition - vertex);
         vec3 sunIlluminance;
@@ -101,17 +121,17 @@ void main(void) {
         // TODO: Real PBR lighting is not implemented yet. Keep Phong + atmosphere for PBR mode.
         getSunIlluminance(vertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
         getPhongLighting(
-            vertex,
-            normal,
-            cameraPosition,
-            sunPos,
-            lightAmbient,
-            lightDiffuse,
-            lightSpecular,
-            specularMask,
-            sunIlluminance,
-            specularWeighting,
-            lightWeighting
+        vertex,
+        normal,
+        cameraPosition,
+        sunPos,
+        lightAmbient,
+        lightDiffuse,
+        lightSpecular,
+        specularMask,
+        sunIlluminance,
+        specularWeighting,
+        lightWeighting
         );
 
         vec4 atmosColor;

@@ -265,6 +265,10 @@ class GeoObject {
         this._handler && this._handler.setVisibility(this._tagData!, this._tagDataIndex, visibility);
     }
 
+    public get instanceData(): InstanceData | null {
+        return this._tagData;
+    }
+
     /**
      * Returns geo object visibility.
      * @public

@@ -45,9 +45,11 @@ interface IObject3dParams {
     ambientOcclusion?: number;
     colorTextureSrc?: string;
     normalTextureSrc?: string;
+    ambientOcclusionTextureSrc?: string;
     metallicRoughnessTextureSrc?: string;
     colorTextureImage?: HTMLImageElement;
     normalTextureImage?: HTMLImageElement;
+    ambientOcclusionTextureImage?: HTMLImageElement;
     metallicRoughnessTextureImage?: HTMLImageElement;
 }
 
@@ -72,6 +74,8 @@ class Object3d {
     public colorTextureImage: HTMLImageElement | null;
     public normalTextureSrc: string | null;
     public normalTextureImage: HTMLImageElement | null;
+    public ambientOcclusionTextureSrc: string | null;
+    public ambientOcclusionTextureImage: HTMLImageElement | null;
     public metallicRoughnessTextureSrc: string | null;
     public metallicRoughnessTextureImage: HTMLImageElement | null;
 
@@ -90,14 +94,16 @@ class Object3d {
 
         this.color = getColor(data.color);
 
-        this.metallic = data.metallic || 1;
-        this.roughness = data.roughness || 0;
-        this.ambientOcclusion = data.ambientOcclusion || 1;
+        this.metallic = data.metallic ?? 0;
+        this.roughness = data.roughness ?? 0;
+        this.ambientOcclusion = data.ambientOcclusion ?? 0;
 
         this.colorTextureSrc = data.colorTextureSrc || null;
         this.colorTextureImage = data.colorTextureImage || null;
         this.normalTextureSrc = data.normalTextureSrc || null;
         this.normalTextureImage = data.normalTextureImage || null;
+        this.ambientOcclusionTextureSrc = data.ambientOcclusionTextureSrc || null;
+        this.ambientOcclusionTextureImage = data.ambientOcclusionTextureImage || null;
         this.metallicRoughnessTextureSrc = data.metallicRoughnessTextureSrc || null;
         this.metallicRoughnessTextureImage = data.metallicRoughnessTextureImage || null;
 
@@ -172,15 +178,9 @@ class Object3d {
      * @param {number} [data.shininess=100] - Shininess coefficient of the material, controlling specular highlight size.
      */
     public setMaterialProperties(data: MaterialProperties) {
-        if (data.metallic) {
-            this.metallic = data.metallic;
-        }
-        if (data.roughness) {
-            this.roughness = data.roughness;
-        }
-        if (data.ambientOcclusion) {
-            this.ambientOcclusion = data.ambientOcclusion;
-        }
+        this.metallic = data.metallic ?? this.metallic;
+        this.roughness = data.roughness ?? this.roughness;
+        this.ambientOcclusion = data.ambientOcclusion ?? this.ambientOcclusion;
         return this;
     }
 

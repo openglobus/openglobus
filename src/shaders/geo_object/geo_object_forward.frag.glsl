@@ -12,8 +12,12 @@ uniform vec4 lightSpecular;
 uniform vec3 materialProperties;
 uniform sampler2D uColorTexture;
 uniform sampler2D uNormalTexture;
+uniform sampler2D uMetallicRoughnessTexture;
+uniform sampler2D uAOTexture;
 uniform float uUseColorTexture;
 uniform float uUseNormalTexture;
+uniform float uUseMetallicRoughnessTexture;
+uniform float uUseAOTexture;
 uniform float shadeMode;
 uniform mat3 normalMatrix;
 
@@ -37,27 +41,41 @@ void main(void) {
         baseColor = vColor;
     }
 
-    vec3 normal = normalize(vNormal);
-
-    if (uUseNormalTexture > 0.0) {
-        normal = getNormalWorldFromTexture(
-            uNormalTexture,
-            vTexCoords,
-            normal,
-            v_viewPosition,
-            normalMatrix
-        );
-    }
-
     float shade = shadeMode;
 
     if (shade == SHADE_UNLIT) {
         fragColor = baseColor;
-    } else if (shade < SHADE_PBR) {
-        float metallic = clamp(materialProperties.b, 0.0, 1.0);
+        return;
+    }
+
+    vec3 normal = normalize(vNormal);
+
+    if (uUseNormalTexture > 0.0) {
+        normal = getNormalWorldFromTexture(
+        uNormalTexture,
+        vTexCoords,
+        normal,
+        v_viewPosition,
+        normalMatrix
+        );
+    }
+
+    vec3 material = materialProperties;
+    if (uUseAOTexture > 0.0) {
+        material.r = texture(uAOTexture, vTexCoords).r;
+    }
+    if (uUseMetallicRoughnessTexture > 0.0) {
+        vec4 mr = texture(uMetallicRoughnessTexture, vTexCoords);
+        material.g = mr.g;
+        material.b = mr.b;
+    }
+
+    if (shade < SHADE_PBR) {
+        float metallic = material.b;
+        float roughness = material.g;
 
         vec3 vertex = v_vertex;
-        float specularMask = metallic;
+        float specularMask = metallic * (1.0 - roughness);
 
         vec4 lightWeighting;
         vec3 specularWeighting;
@@ -78,10 +96,11 @@ void main(void) {
 
         fragColor = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
     } else {
-        float metallic = clamp(materialProperties.b, 0.0, 1.0);
+        float metallic = material.b;
+        float roughness = material.g;
 
         vec3 vertex = v_vertex;
-        float specularMask = metallic;
+        float specularMask = metallic * (1.0 - roughness);
 
         vec4 lightWeighting;
         vec3 specularWeighting;

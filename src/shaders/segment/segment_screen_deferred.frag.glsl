@@ -59,7 +59,6 @@ void main(void) {
 
         vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
         emission = overGround * getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight);
-        emission *= emissionImageColor.a;
     }
 
     // R = ambient occlusion, G = roughness, B = metallic(specular mask proxy)

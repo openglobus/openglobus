@@ -209,6 +209,7 @@ export class GeoObjectHandler {
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].loadColorTexture();
             this._instanceDataMapValues[i].loadNormalTexture();
+            this._instanceDataMapValues[i].loadAmbientOcclusionTexture();
             this._instanceDataMapValues[i].loadMetallicRoughnessTexture();
         }
 
@@ -267,6 +268,22 @@ export class GeoObjectHandler {
         }
     }
 
+    public setAmbientOcclusionTextureTag(src: string | HTMLImageElement, tag: string) {
+        const tagData = this._instanceDataMap.get(tag);
+        if (tagData) {
+            if (typeof src === "string") {
+                tagData._ambientOcclusionTextureSrc = src;
+                tagData._ambientOcclusionTextureImage = null;
+            }
+            if (src instanceof HTMLImageElement) {
+                tagData._ambientOcclusionTextureSrc = null;
+                tagData._ambientOcclusionTextureImage = src;
+            }
+            this._instanceDataMap.set(tag, tagData);
+            tagData.loadAmbientOcclusionTexture();
+        }
+    }
+
     public setObjectSrc(src: string, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (src) {
@@ -302,15 +319,18 @@ export class GeoObjectHandler {
 
             tagData._colorTextureSrc = object.colorTextureSrc;
             tagData._normalTextureSrc = object.normalTextureSrc;
+            tagData._ambientOcclusionTextureSrc = object.ambientOcclusionTextureSrc;
             tagData._metallicRoughnessTextureSrc = object.metallicRoughnessTextureSrc;
             tagData._colorTextureImage = object.colorTextureImage;
             tagData._normalTextureImage = object.normalTextureImage;
+            tagData._ambientOcclusionTextureImage = object.ambientOcclusionTextureImage;
             tagData._metallicRoughnessTextureImage = object.metallicRoughnessTextureImage;
 
             tagData.setMaterialProperties(object.ambientOcclusion, object.roughness, object.metallic);
 
             tagData.loadColorTexture();
             tagData.loadNormalTexture();
+            tagData.loadAmbientOcclusionTexture();
             tagData.loadMetallicRoughnessTexture();
 
             this._updateTag(tagData);
@@ -337,9 +357,11 @@ export class GeoObjectHandler {
 
             tagData._colorTextureSrc = geoObject.object3d.colorTextureSrc;
             tagData._normalTextureSrc = geoObject.object3d.normalTextureSrc;
+            tagData._ambientOcclusionTextureSrc = geoObject.object3d.ambientOcclusionTextureSrc;
             tagData._metallicRoughnessTextureSrc = geoObject.object3d.metallicRoughnessTextureSrc;
             tagData._colorTextureImage = geoObject.object3d.colorTextureImage;
             tagData._normalTextureImage = geoObject.object3d.normalTextureImage;
+            tagData._ambientOcclusionTextureImage = geoObject.object3d.ambientOcclusionTextureImage;
             tagData._metallicRoughnessTextureImage = geoObject.object3d.metallicRoughnessTextureImage;
 
             tagData.setMaterialProperties(
@@ -350,6 +372,7 @@ export class GeoObjectHandler {
 
             tagData.loadColorTexture();
             tagData.loadNormalTexture();
+            tagData.loadAmbientOcclusionTexture();
             tagData.loadMetallicRoughnessTexture();
         }
 

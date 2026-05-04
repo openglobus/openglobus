@@ -6,8 +6,12 @@ precision highp float;
 
 uniform sampler2D uColorTexture;
 uniform sampler2D uNormalTexture;
+uniform sampler2D uMetallicRoughnessTexture;
+uniform sampler2D uAOTexture;
 uniform float uUseColorTexture;
 uniform float uUseNormalTexture;
+uniform float uUseMetallicRoughnessTexture;
+uniform float uUseAOTexture;
 uniform vec3 materialProperties;
 uniform float shadeMode;
 uniform mat3 normalMatrix;
@@ -23,8 +27,18 @@ layout (location = 2) out vec4 normalColor;
 layout (location = 3) out vec4 positionColor;
 
 void main(void) {
+    vec3 material = materialProperties;
+    if (uUseAOTexture > 0.0) {
+        material.r = texture(uAOTexture, vTexCoords).r;
+    }
+    if (uUseMetallicRoughnessTexture > 0.0) {
+        vec4 mr = texture(uMetallicRoughnessTexture, vTexCoords);
+        material.g = mr.g;
+        material.b = mr.b;
+    }
+
     // R = ambient occlusion, G = roughness, B = metallic
-    materials = vec4(materialProperties, 1.0);
+    materials = vec4(material, 1.0);
     positionColor = vec4(v_viewPosition, 0.0);
     vec3 normal = normalize(vNormal);
 

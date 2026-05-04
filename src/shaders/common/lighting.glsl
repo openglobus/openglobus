@@ -54,7 +54,9 @@ const float EMISSION_PACK_RANGE = 8.0;
 
 float packEmissionColor(in vec3 emissionColor)
 {
-    vec3 packed = floor(clamp(emissionColor / EMISSION_PACK_RANGE, 0.0, 1.0) * 255.0 + 0.5);
+    // Gamma encode before 8-bit packing to preserve low-intensity night emission.
+    vec3 encoded = sqrt(clamp(emissionColor / EMISSION_PACK_RANGE, 0.0, 1.0));
+    vec3 packed = floor(encoded * 255.0 + 0.5);
     return packed.r + packed.g * 256.0 + packed.b * 65536.0;
 }
 
@@ -63,7 +65,9 @@ vec3 unpackEmissionColor(in float packedEmission)
     float r = mod(packedEmission, 256.0);
     float g = mod(floor(packedEmission / 256.0), 256.0);
     float b = mod(floor(packedEmission / 65536.0), 256.0);
-    return (vec3(r, g, b) / 255.0) * EMISSION_PACK_RANGE;
+    vec3 encoded = vec3(r, g, b) / 255.0;
+    vec3 decoded = encoded * encoded;
+    return decoded * EMISSION_PACK_RANGE;
 }
 
 #endif

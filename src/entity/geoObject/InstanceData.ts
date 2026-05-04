@@ -35,13 +35,16 @@ export class InstanceData {
 
     public _colorTexture: WebGLTextureExt | null;
     public _normalTexture: WebGLTextureExt | null;
+    public _ambientOcclusionTexture: WebGLTextureExt | null;
     public _metallicRoughnessTexture: WebGLTextureExt | null;
 
     public _colorTextureSrc: string | null;
     public _normalTextureSrc: string | null;
+    public _ambientOcclusionTextureSrc: string | null;
     public _metallicRoughnessTextureSrc: string | null;
     public _colorTextureImage: HTMLImageElement | null;
     public _normalTextureImage: HTMLImageElement | null;
+    public _ambientOcclusionTextureImage: HTMLImageElement | null;
     public _metallicRoughnessTextureImage: HTMLImageElement | null;
 
     public _objectSrc?: string;
@@ -100,6 +103,10 @@ export class InstanceData {
         this._normalTexture = null;
         this._normalTextureSrc = null;
         this._normalTextureImage = null;
+
+        this._ambientOcclusionTexture = null;
+        this._ambientOcclusionTextureSrc = null;
+        this._ambientOcclusionTextureImage = null;
 
         this._metallicRoughnessTexture = null;
         this._metallicRoughnessTextureSrc = null;
@@ -372,6 +379,16 @@ export class InstanceData {
         gl.bindTexture(gl.TEXTURE_2D, this._normalTexture || r.handler.defaultTexture);
         gl.uniform1i(u.uNormalTexture, 1);
 
+        gl.uniform1f(u.uUseMetallicRoughnessTexture, this._metallicRoughnessTexture ? 1 : 0);
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, this._metallicRoughnessTexture || r.handler.defaultTexture);
+        gl.uniform1i(u.uMetallicRoughnessTexture, 2);
+
+        gl.uniform1f(u.uUseAOTexture, this._ambientOcclusionTexture ? 1 : 0);
+        gl.activeTexture(gl.TEXTURE3);
+        gl.bindTexture(gl.TEXTURE_2D, this._ambientOcclusionTexture || r.handler.defaultTexture);
+        gl.uniform1i(u.uAOTexture, 3);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
         gl.vertexAttribPointer(a.aTexCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -442,6 +459,27 @@ export class InstanceData {
         }
     }
 
+    public async loadAmbientOcclusionTexture() {
+        if (!this._geoObjectHandler._renderer) {
+            return;
+        }
+        if (this._ambientOcclusionTextureSrc) {
+            const image = await loadImage(this._ambientOcclusionTextureSrc);
+            const textureImage = await prepareTextureImage(image);
+            if (textureImage) {
+                this._createAmbientOcclusionTexture(textureImage);
+            }
+            return;
+        }
+        if (this._ambientOcclusionTextureImage) {
+            const textureImage = await prepareTextureImage(this._ambientOcclusionTextureImage);
+            if (textureImage) {
+                this._createAmbientOcclusionTexture(textureImage);
+            }
+            return;
+        }
+    }
+
     public clear() {
         this.numInstances = 0;
         this._opaqueInstanceCount = 0;
@@ -476,6 +514,7 @@ export class InstanceData {
             if (h) {
                 h.deleteTexture(this._colorTexture);
                 h.deleteTexture(this._normalTexture);
+                h.deleteTexture(this._ambientOcclusionTexture);
                 h.deleteTexture(this._metallicRoughnessTexture);
 
                 let gl = h.gl;
@@ -498,6 +537,7 @@ export class InstanceData {
 
             this._colorTexture = null;
             this._normalTexture = null;
+            this._ambientOcclusionTexture = null;
             this._metallicRoughnessTexture = null;
         }
 
@@ -695,6 +735,13 @@ export class InstanceData {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
             let h = this._geoObjectHandler._renderer.handler;
             this._metallicRoughnessTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+        }
+    }
+
+    private _createAmbientOcclusionTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
+        if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
+            let h = this._geoObjectHandler._renderer.handler;
+            this._ambientOcclusionTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
         }
     }
 }
