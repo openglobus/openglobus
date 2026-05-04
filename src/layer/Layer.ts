@@ -42,6 +42,7 @@ export interface ILayerParams {
     shininess?: number;
     nightTextureCoefficient?: number;
     iconSrc?: string | null;
+    waitForParentMaterial?: boolean;
 }
 
 /**
@@ -49,19 +50,33 @@ export interface ILayerParams {
  * Base class; normally only used for creating subclasses and not instantiated in apps.
  * A visual representation of raster or vector map data well known as a layer.
  * @class
- * @param {String} [name="noname"] - Layer name.
- * @param {Object} [options] - Layer options:
+ * @param {string|null} [name="noname"] - Layer name.
+ * @param {ILayerParams} [options={}] - Layer options.
+ * @param {*} [options.properties={}] - Custom user properties.
+ * @param {number} [options.labelMaxLetters] - Label max letters (reserved for specific layer implementations).
+ * @param {boolean} [options.hideInLayerSwitcher=false] - Presence in LayerSwitcher control.
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
- * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
- * @param {string} [options.attribution] - Layer attribution shown in the attribution area.
- * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
+ * @param {number} [options.maxZoom=50] - Maximal visibility zoom level.
+ * @param {string} [options.attribution=""] - Layer attribution shown in the attribution area.
+ * @param {number} [options.zIndex=0] - Layer z-index.
+ * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
+ * @param {[IDefaultTextureParams, IDefaultTextureParams]} [options.defaultTextures=[null, null]] - Default textures.
  * @param {boolean} [options.visibility=true] - Layer visibility.
- * @param {boolean} [options.hideInLayerSwitcher=false] - Presence of layer in dialog window of LayerSwitcher control.
+ * @param {boolean} [options.fading=false] - Enables fade-in/fade-out opacity transitions.
+ * @param {number} [options.height=0] - Height over the ground.
+ * @param {string} [options.textureFilter="mipmap"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
  * @param {string|number} [options.colorSpace="srgb"] - Layer color space. Available values: "linear", "srgb", 0, 1.
- * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
- * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
- * @param {string} [options.icon] - Icon for LayerSwitcher
+ * @param {boolean} [options.pickingEnabled=true] - Enables layer picking.
+ * @param {number[]} [options.preLoadZoomLevels=[0, 1]] - Zoom levels to preload when layer becomes visible.
+ * @param {Extent|[[number, number], [number, number]]} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
+ * @param {string|NumberArray3|Vec3} [options.ambient] - Ambient color.
+ * @param {string|NumberArray3|Vec3} [options.diffuse] - Diffuse color.
+ * @param {string|NumberArray3|Vec3} [options.specular] - Specular color.
+ * @param {number} [options.shininess=20.0] - Specular shininess coefficient.
+ * @param {number} [options.nightTextureCoefficient=1.0] - Night texture blending coefficient.
+ * @param {string|null} [options.iconSrc=null] - Icon for LayerSwitcher.
+ * @param {boolean} [options.waitForParentMaterial=true] - Wait for parent material while loading current tile material.
  * @fires visibilitychange
  * @fires baselayerchange
  * @fires add
@@ -236,6 +251,8 @@ class Layer {
 
     protected _iconSrc: string | null;
 
+    public waitForParentMaterial: boolean;
+
     constructor(name?: string | null, options: ILayerParams = {}) {
         this.__id = Layer.__counter__++;
 
@@ -331,6 +348,8 @@ class Layer {
         }
 
         this.nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
+
+        this.waitForParentMaterial = options.waitForParentMaterial ?? true;
     }
 
     public static getColorSpace(colorSpace?: string | number): number {

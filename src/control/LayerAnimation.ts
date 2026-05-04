@@ -159,6 +159,7 @@ export class LayerAnimation extends Control {
                 li.setVisibility(false);
                 li.setBaseLayer(false);
                 li.opacity = 0.0;
+                li.waitForParentMaterial = false;
             }
             this._appendFrameToPlanet(0);
         }

@@ -22,14 +22,14 @@ type CanvasTilesEventsType = EventsHandler<CanvasTilesEventsList> & EventsHandle
 
 const CANVASTILES_EVENTS: CanvasTilesEventsList = [
     /**
-     * Triggered when current tile image has loaded before rendering.
-     * @event og.layer.CanvasTiles#load
+     * Triggered when the current tile image has loaded before rendering.
+     * @event load
      */
     "load",
 
     /**
      * Triggered when all tiles have loaded or loading has stopped.
-     * @event og.layer.CanvasTiles#loadend
+     * @event loadend
      */
     "loadend"
 ];
@@ -38,14 +38,17 @@ const CANVASTILES_EVENTS: CanvasTilesEventsList = [
  * Layer that renders each tile as a separate canvas object.
  * @class
  * @extends {Layer}
- * @param {String} [name="noname"] - Layer name.
- * @param {ICanvasTilesParams} options:
+ * @param {string} [name="noname"] - Layer name.
+ * @param {ICanvasTilesParams} options - Layer options.
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
- * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
+ * @param {number} [options.maxZoom=50] - Maximal visibility zoom level.
  * @param {string} [options.attribution] - Layer attribution shown in the attribution area.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
+ * @param {boolean} [options.animated=false] - Re-draw ready tiles every frame.
+ * @param {number} [options.minNativeZoom=0] - Minimal zoom level where native tile drawing is allowed.
+ * @param {number} [options.maxNativeZoom=100] - Maximal zoom level where native tile drawing is allowed.
  * @param {DrawTileCallback} options.drawTile - Draw tile callback.
  * @fires load
  * @fires loadend
@@ -255,6 +258,14 @@ class CanvasTiles extends Layer {
     }
 
     public override applyMaterial(material: Material): NumberArray4 {
+        if (this.waitForParentMaterial) {
+            return this._apllyMaterialDefault(material);
+        } else {
+            return this._applyMaterialFast(material);
+        }
+    }
+
+    protected _apllyMaterialDefault(material: Material): NumberArray4 {
         if (material.isReady) {
             // IMPORTANT!
             // Animated doesn't work withMaxNativeZoom
@@ -351,98 +362,98 @@ class CanvasTiles extends Layer {
         return material.texOffset;
     }
 
-    // public override applyMaterial(material: Material): NumberArray4 {
-    //     if (material.isReady) {
-    //         // IMPORTANT!
-    //         // Animated doesn't work withMaxNativeZoom
-    //         // It could be fixed with call drawTile method only for parent
-    //         // material (which is rendered on the current segment material),
-    //         // just for one renderer frame
-    //         if ((material.layer as CanvasTiles).animated) {
-    //             requestAnimationFrame(() => {
-    //                 this.drawTile(material, function (canvas) {
-    //                     material.applyImage(canvas);
-    //                 });
-    //             });
-    //         }
-    //
-    //         return material.texOffset;
-    //     } else if (material.segment.tileZoom < this.minNativeZoom) {
-    //         material.textureNotExists();
-    //     } else {
-    //         let segment = material.segment;
-    //         let pn = segment.node,
-    //             parentTextureExists = false;
-    //         let maxNativeZoom = (material.layer as CanvasTiles).maxNativeZoom;
-    //
-    //         if (segment.passReady && !material.isLoading && segment.tileZoom <= maxNativeZoom) {
-    //             this.loadMaterial(material);
-    //         }
-    //
-    //         let mId = this._id;
-    //         let psegm = material;
-    //         while (pn.parentNode) {
-    //             pn = pn.parentNode;
-    //             psegm = pn.segment.materials[mId];
-    //             if (psegm && psegm.textureExists) {
-    //                 parentTextureExists = true;
-    //                 break;
-    //             }
-    //         }
-    //
-    //         if (segment.passReady) {
-    //             if (pn.segment.tileZoom === maxNativeZoom) {
-    //                 if (segment.tileZoom > maxNativeZoom) {
-    //                     material.textureNotExists();
-    //                 }
-    //             } else if (pn.segment.tileZoom < maxNativeZoom) {
-    //                 let pn = segment.node;
-    //                 while (pn.segment.tileZoom > maxNativeZoom) {
-    //                     pn = pn.parentNode!;
-    //                 }
-    //
-    //                 let pnm = pn.segment.materials[mId];
-    //                 if (pnm) {
-    //                     !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm);
-    //                 } else {
-    //                     pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(pn.segment);
-    //                     this.loadMaterial(pnm);
-    //                 }
-    //             }
-    //         }
-    //
-    //         if (parentTextureExists) {
-    //             //
-    //             // Animated doesn't work withMaxNativeZoom
-    //             //
-    //             if ((material.layer as CanvasTiles).animated) {
-    //                 requestAnimationFrame(() => {
-    //                     if (material.segment) {
-    //                         this.drawTile(material, function (canvas) {
-    //                             material.applyImage(canvas);
-    //                         });
-    //                     }
-    //                 });
-    //             }
-    //
-    //             material.appliedNodeId = pn.nodeId;
-    //             material.texture = psegm.texture;
-    //             let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
-    //             material.texOffset[0] = segment.tileX * dZ2 - pn.segment.tileX;
-    //             material.texOffset[1] = segment.tileY * dZ2 - pn.segment.tileY;
-    //             material.texOffset[2] = dZ2;
-    //             material.texOffset[3] = dZ2;
-    //         } else {
-    //             material.texture = segment.planet.transparentTexture;
-    //             material.texOffset[0] = 0.0;
-    //             material.texOffset[1] = 0.0;
-    //             material.texOffset[2] = 1.0;
-    //             material.texOffset[3] = 1.0;
-    //         }
-    //     }
-    //
-    //     return material.texOffset;
-    // }
+    protected _applyMaterialFast(material: Material): NumberArray4 {
+        if (material.isReady) {
+            // IMPORTANT!
+            // Animated doesn't work withMaxNativeZoom
+            // It could be fixed with call drawTile method only for parent
+            // material (which is rendered on the current segment material),
+            // just for one renderer frame
+            if ((material.layer as CanvasTiles).animated) {
+                requestAnimationFrame(() => {
+                    this.drawTile(material, function (canvas) {
+                        material.applyImage(canvas);
+                    });
+                });
+            }
+
+            return material.texOffset;
+        } else if (material.segment.tileZoom < this.minNativeZoom) {
+            material.textureNotExists();
+        } else {
+            let segment = material.segment;
+            let pn = segment.node,
+                parentTextureExists = false;
+            let maxNativeZoom = (material.layer as CanvasTiles).maxNativeZoom;
+
+            if (segment.passReady && !material.isLoading && segment.tileZoom <= maxNativeZoom) {
+                this.loadMaterial(material);
+            }
+
+            let mId = this._id;
+            let psegm = material;
+            while (pn.parentNode) {
+                pn = pn.parentNode;
+                psegm = pn.segment.materials[mId];
+                if (psegm && psegm.textureExists) {
+                    parentTextureExists = true;
+                    break;
+                }
+            }
+
+            if (segment.passReady) {
+                if (pn.segment.tileZoom === maxNativeZoom) {
+                    if (segment.tileZoom > maxNativeZoom) {
+                        material.textureNotExists();
+                    }
+                } else if (pn.segment.tileZoom < maxNativeZoom) {
+                    let pn = segment.node;
+                    while (pn.segment.tileZoom > maxNativeZoom) {
+                        pn = pn.parentNode!;
+                    }
+
+                    let pnm = pn.segment.materials[mId];
+                    if (pnm) {
+                        !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm);
+                    } else {
+                        pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(pn.segment);
+                        this.loadMaterial(pnm);
+                    }
+                }
+            }
+
+            if (parentTextureExists) {
+                //
+                // Animated doesn't work withMaxNativeZoom
+                //
+                if ((material.layer as CanvasTiles).animated) {
+                    requestAnimationFrame(() => {
+                        if (material.segment) {
+                            this.drawTile(material, function (canvas) {
+                                material.applyImage(canvas);
+                            });
+                        }
+                    });
+                }
+
+                material.appliedNodeId = pn.nodeId;
+                material.texture = psegm.texture;
+                let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+                material.texOffset[0] = segment.tileX * dZ2 - pn.segment.tileX;
+                material.texOffset[1] = segment.tileY * dZ2 - pn.segment.tileY;
+                material.texOffset[2] = dZ2;
+                material.texOffset[3] = dZ2;
+            } else {
+                material.texture = segment.planet.transparentTexture;
+                material.texOffset[0] = 0.0;
+                material.texOffset[1] = 0.0;
+                material.texOffset[2] = 1.0;
+                material.texOffset[3] = 1.0;
+            }
+        }
+
+        return material.texOffset;
+    }
 
     public override clearMaterial(material: Material) {
         if (material.isReady) {

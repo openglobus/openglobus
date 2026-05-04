@@ -295,13 +295,13 @@ class BaseGeoImage extends Layer {
         for (let i = 0; i < corners.length; i++) {
             let lon = corners[i].lon;
             if (lon < -180.0 || lon > 180.0) {
-                lon = ((lon + 180.0) % 360.0 + 360.0) % 360.0 - 180.0;
+                lon = ((((lon + 180.0) % 360.0) + 360.0) % 360.0) - 180.0;
             }
             if (lon < minLon) minLon = lon;
             if (lon > maxLon) maxLon = lon;
         }
 
-        return (maxLon - minLon) > 180.0;
+        return maxLon - minLon > 180.0;
     }
 
     /**
@@ -589,7 +589,7 @@ class BaseGeoImage extends Layer {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Keep edge-discard disabled for antimeridian-crossing images to avoid a seam on +/-180.
-        gl.uniform1i(shu.isFullExtent, (this._isFullExtent || this._crossesAntimeridian) ? 1 : 0);
+        gl.uniform1i(shu.isFullExtent, this._isFullExtent || this._crossesAntimeridian ? 1 : 0);
         gl.uniform1i(shu.decodeSourceSRGB, this._colorSpace === SRGB ? 1 : 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
@@ -644,7 +644,7 @@ class BaseGeoImage extends Layer {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
-        gl.uniform1i(shu.isFullExtent, (this._isFullExtent || this._crossesAntimeridian) ? 1 : 0);
+        gl.uniform1i(shu.isFullExtent, this._isFullExtent || this._crossesAntimeridian ? 1 : 0);
         gl.uniform1i(shu.decodeSourceSRGB, this._colorSpace === SRGB ? 1 : 0);
 
         gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);

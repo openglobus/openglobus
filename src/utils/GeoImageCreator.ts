@@ -1,11 +1,11 @@
 import * as utils from "../utils/shared";
-import {BaseGeoImage} from "../layer/BaseGeoImage";
-import {Framebuffer} from "../webgl/Framebuffer";
-import {LonLat} from "../LonLat";
-import {ShaderProgram} from "../webgl/ShaderProgram";
-import {Planet} from "../scene/Planet";
-import {doubleToTwoFloats2} from "../math/coder";
-import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import { BaseGeoImage } from "../layer/BaseGeoImage";
+import { Framebuffer } from "../webgl/Framebuffer";
+import { LonLat } from "../LonLat";
+import { ShaderProgram } from "../webgl/ShaderProgram";
+import { Planet } from "../scene/Planet";
+import { doubleToTwoFloats2 } from "../math/coder";
+import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 
 export class GeoImageCreator {
     public MAX_FRAMES: number;
@@ -160,10 +160,10 @@ export class GeoImageCreator {
     protected _initBuffers() {
         let h = this._planet.renderer!.handler!;
 
-        this._framebuffer = new Framebuffer(h, {width: 2, height: 2, useDepth: false});
+        this._framebuffer = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
         this._framebuffer.init();
 
-        this._framebufferMercProj = new Framebuffer(h, {width: 2, height: 2, useDepth: false});
+        this._framebufferMercProj = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
         this._framebufferMercProj.init();
 
         let gs = Math.log2(this._gridSize);
