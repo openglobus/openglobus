@@ -8,7 +8,7 @@ import { EntityCollection } from "../entity/EntityCollection";
 import { Framebuffer, Multisample, ShaderProgram } from "../webgl/index";
 import { FontAtlas } from "../utils/FontAtlas";
 import { Handler } from "../webgl/Handler";
-import type { WebGLBufferExt } from "../webgl/Handler";
+import type { ImageSource, WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 import { input } from "../input/input";
 import { isEmpty } from "../utils/shared";
 import { linearToSrgbArr, srgbToLinearArr } from "../utils/colorSpace";
@@ -20,6 +20,7 @@ import { toneMapping } from "../shaders/tone_mapping/toneMapping";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { ITransparencyPass } from "./ITransparencyPass";
 import { PhongDeferredShading } from "./PhongDeferredShading";
+import { TextureResourceManager } from "./TextureResourceManager";
 import { WOITPass } from "./WOITPass";
 import { TextureAtlas } from "../utils/TextureAtlas";
 import { Vec2 } from "../math/Vec2";
@@ -261,6 +262,7 @@ class Renderer {
     public outputTexture: WebGLTexture | null;
 
     public clearColor: Float32Array;
+    protected _textureResourceManager: TextureResourceManager;
 
     public _lightPosition: Float32Array;
     public _lightAmbient: Float32Array;
@@ -398,6 +400,7 @@ class Renderer {
         this.screenTexture = {};
 
         this.outputTexture = null;
+        this._textureResourceManager = new TextureResourceManager(this.handler);
 
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.start();
@@ -692,6 +695,22 @@ class Renderer {
         if (this._bottomRightContainer.parentElement !== rootContainer) {
             rootContainer.appendChild(this._bottomRightContainer);
         }
+    }
+
+    public getTexture(
+        image: ImageSource,
+        internalFormat?: number | null,
+        texParami?: number | null
+    ): WebGLTextureExt | null {
+        return this._textureResourceManager.getTexture({
+            image,
+            internalFormat,
+            texParami
+        });
+    }
+
+    public releaseTexture(texture: WebGLTextureExt | null | undefined): void {
+        this._textureResourceManager.releaseTexture(texture);
     }
 
     public topLeftContainer(): HTMLDivElement {
@@ -1803,6 +1822,8 @@ class Renderer {
         //this.strokeTextureAtlas.clear();
 
         this._entityCollections = [[]];
+
+        this._textureResourceManager.clear();
 
         this.handler.ONCANVASRESIZE = null;
         this.handler.destroy();
