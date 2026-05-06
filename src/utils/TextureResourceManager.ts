@@ -1,6 +1,21 @@
+/*
+ * Copyright 2026 Michael Gevlich
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import type { Handler, ImageSource, WebGLTextureExt } from "../webgl/Handler";
-import { fnv1a32, normalizeUri } from "../utils/shared";
-import { getTextureResourceMeta } from "../utils/textureResourceMeta";
+import { fnv1a32, normalizeUri } from "./shared";
+import { getTextureResourceMeta } from "./textureResourceMeta";
 
 interface TextureResourceEntry {
     key: string;
@@ -18,6 +33,19 @@ export interface RendererTextureRequest {
     texParami?: number | null;
 }
 
+/**
+ * Converts a nullable key component into a stable string field.
+ *
+ * Used by texture resource keys to make absent/default GPU parameters explicit.
+ *
+ * Examples:
+ * - toKeyField("fmt", undefined) => "fmt:default"
+ * - toKeyField("wrap", null) => "wrap:default"
+ * - toKeyField("mime", "image/png") => "mime:image/png"
+ *
+ * The "default" value means that the texture will be created using the
+ * default behavior of Handler.createTextureDefault(...) for this parameter.
+ */
 function toKeyField(name: string, value: string | number | null | undefined): string {
     if (value === undefined || value === null || value === "") {
         return `${name}:default`;
@@ -25,6 +53,10 @@ function toKeyField(name: string, value: string | number | null | undefined): st
     return `${name}:${value}`;
 }
 
+/**
+ * Manages shared WebGL textures with reference counting.
+ * Reuses textures for the same resource key and deletes them when no owners remain.
+ */
 export class TextureResourceManager {
     protected _handler: Handler;
     protected _entriesByKey: Map<string, TextureResourceEntry> = new Map();
@@ -32,10 +64,19 @@ export class TextureResourceManager {
     protected _objectKeys: WeakMap<ImageSource, number> = new WeakMap();
     protected _objectKeyCounter: number = 0;
 
+    /**
+     * @param handler WebGL handler used to create and delete textures.
+     */
     constructor(handler: Handler) {
         this._handler = handler;
     }
 
+    /**
+     * Returns an existing texture for the same resource or creates a new one.
+     * Increases reference count for reused textures.
+     * @param params Texture source and GPU creation parameters.
+     * @returns Managed WebGL texture or null if creation failed.
+     */
     public acquireTexture(params: RendererTextureRequest): WebGLTextureExt | null {
         const key = this._buildResourceKey(params);
         const existing = this._entriesByKey.get(key);
@@ -61,6 +102,11 @@ export class TextureResourceManager {
         return texture;
     }
 
+    /**
+     * Releases one texture reference.
+     * Deletes GPU texture only when the reference count reaches zero.
+     * @param texture Managed texture previously returned by acquireTexture.
+     */
     public releaseTexture(texture: WebGLTextureExt | null | undefined): void {
         if (!texture) {
             return;
@@ -87,6 +133,9 @@ export class TextureResourceManager {
         }
     }
 
+    /**
+     * Deletes all managed GPU textures and clears manager state.
+     */
     public clear(): void {
         for (const entry of this._entriesByKey.values()) {
             this._handler.deleteTexture(entry.texture);
@@ -95,10 +144,18 @@ export class TextureResourceManager {
         this._keysByTexture = new WeakMap();
     }
 
+    /**
+     * Returns number of unique managed texture entries.
+     * @returns Number of entries in the manager.
+     */
     public getEntryCount(): number {
         return this._entriesByKey.size;
     }
 
+    /**
+     * Returns debug statistics for managed textures.
+     * @returns Object with number of entries and total reference count.
+     */
     public getStats(): { entries: number; refs: number } {
         let refs = 0;
         for (const entry of this._entriesByKey.values()) {
@@ -110,6 +167,96 @@ export class TextureResourceManager {
         };
     }
 
+    /**
+     * Builds a stable texture resource key.
+     *
+     * The key is composed of two logical parts:
+     *
+     * 1. Source image identity
+     *    Describes where the original image comes from or how it can be uniquely identified.
+     *
+     *    Supported prefixes:
+     *
+     *    - res:
+     *      A precomputed resource key provided by the GLTF parser.
+     *      This is the preferred path for GLTF/GLB textures.
+     *
+     *      Example:
+     *      res:gltf-image|bytes:9a4c1f20|mime:image/png|len:24576
+     *
+     *    - uri:
+     *      A normalized external image URI.
+     *      Used when the texture comes from an external image file.
+     *      The URI should be resolved relative to the GLTF file path.
+     *
+     *      Example:
+     *      uri:https://example.com/models/tree/textures/baseColor.png
+     *
+     *    - fp:
+     *      A content fingerprint calculated from image pixels.
+     *      This is an expensive fallback path because it may require canvas readback.
+     *      It can also fail for cross-origin images.
+     *
+     *      Example:
+     *      fp:7f21ab09
+     *
+     *    - obj:
+     *      A last-resort object identity key.
+     *      Used only when no resourceKey, URI, or content fingerprint is available.
+     *      This avoids accidental sharing between unrelated images.
+     *
+     *      Example:
+     *      obj:3
+     *
+     * 2. GPU texture creation parameters.
+     *    Describes how the source image is uploaded to WebGL.
+     *    The same source image may require different GPU textures if creation parameters differ.
+     *
+     *    Supported fields:
+     *
+     *    - fmt:
+     *      Internal texture format passed to Handler.createTextureDefault(...).
+     *      If absent, "fmt:default" means the default internal format is used.
+     *
+     *      Example:
+     *      fmt:default
+     *      fmt:6408
+     *
+     *    - wrap:
+     *      Texture wrapping/filtering parameter passed to Handler.createTextureDefault(...).
+     *      If absent, "wrap:default" means the default texture parameter is used.
+     *
+     *      Example:
+     *      wrap:default
+     *      wrap:10497
+     *
+     *    - mime:
+     *      MIME type of the original image, if available.
+     *      Used as an additional discriminator and for debugging.
+     *
+     *      Example:
+     *      mime:image/png
+     *
+     *    - len:
+     *      Original image byte length, if available.
+     *      Used as an additional cheap discriminator, but not as the primary identity.
+     *
+     *      Example:
+     *      len:24576
+     *
+     * Important:
+     *
+     * - GLTF texture/image name is intentionally not used as a primary identity key.
+     *   Names may be missing, duplicated, or different for the same binary image.
+     *
+     * - The preferred identity source is resourceKey from the GLTF parser.
+     *
+     * - The fallback order is:
+     *   resourceKey -> normalized URI -> content fingerprint -> object identity.
+     *
+     * - The final key must distinguish not only the source image, but also the GPU upload
+     *   parameters that may affect the resulting WebGLTexture.
+     */
     protected _buildResourceKey(params: RendererTextureRequest): string {
         const imageMeta = getTextureResourceMeta(params.image);
         const resourceKey = params.resourceKey ?? imageMeta?.resourceKey;
