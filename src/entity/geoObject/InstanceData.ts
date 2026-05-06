@@ -722,7 +722,11 @@ export class InstanceData {
             let r = this._geoObjectHandler._renderer;
             let h = r.handler;
             const gl = h.gl!;
-            this._colorTexture = r.getTexture(image, h.gl!.SRGB8_ALPHA8, gl.REPEAT);
+            this._colorTexture = r.acquireTexture({
+                image,
+                internalFormat: h.gl!.SRGB8_ALPHA8,
+                texParami: gl.REPEAT
+            });
         }
     }
 
@@ -730,7 +734,11 @@ export class InstanceData {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
             let r = this._geoObjectHandler._renderer;
             let h = r.handler;
-            this._normalTexture = r.getTexture(image, null, h.gl!.REPEAT);
+            this._normalTexture = r.acquireTexture({
+                image,
+                internalFormat: null,
+                texParami: h.gl!.REPEAT
+            });
         }
     }
 
@@ -738,7 +746,11 @@ export class InstanceData {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
             let r = this._geoObjectHandler._renderer;
             let h = r.handler;
-            this._metallicRoughnessTexture = r.getTexture(image, null, h.gl!.REPEAT);
+            this._metallicRoughnessTexture = r.acquireTexture({
+                image,
+                internalFormat: null,
+                texParami: h.gl!.REPEAT
+            });
         }
     }
 
@@ -746,7 +758,11 @@ export class InstanceData {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
             let r = this._geoObjectHandler._renderer;
             let h = r.handler;
-            this._ambientOcclusionTexture = r.getTexture(image, null, h.gl!.REPEAT);
+            this._ambientOcclusionTexture = r.acquireTexture({
+                image,
+                internalFormat: null,
+                texParami: h.gl!.REPEAT
+            });
         }
     }
 }

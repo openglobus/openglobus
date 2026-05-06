@@ -21,6 +21,7 @@ import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { ITransparencyPass } from "./ITransparencyPass";
 import { PhongDeferredShading } from "./PhongDeferredShading";
 import { TextureResourceManager } from "./TextureResourceManager";
+import type { RendererTextureRequest } from "./TextureResourceManager";
 import { WOITPass } from "./WOITPass";
 import { TextureAtlas } from "../utils/TextureAtlas";
 import { Vec2 } from "../math/Vec2";
@@ -697,16 +698,8 @@ class Renderer {
         }
     }
 
-    public getTexture(
-        image: ImageSource,
-        internalFormat?: number | null,
-        texParami?: number | null
-    ): WebGLTextureExt | null {
-        return this._textureResourceManager.getTexture({
-            image,
-            internalFormat,
-            texParami
-        });
+    public acquireTexture(params: RendererTextureRequest): WebGLTextureExt | null {
+        return this._textureResourceManager.acquireTexture(params);
     }
 
     public releaseTexture(texture: WebGLTextureExt | null | undefined): void {
