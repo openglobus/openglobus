@@ -509,13 +509,14 @@ export class InstanceData {
 
     public _deleteBuffers() {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-            let h = this._geoObjectHandler._renderer.handler;
+            let r = this._geoObjectHandler._renderer;
+            let h = r.handler;
 
             if (h) {
-                h.deleteTexture(this._colorTexture);
-                h.deleteTexture(this._normalTexture);
-                h.deleteTexture(this._ambientOcclusionTexture);
-                h.deleteTexture(this._metallicRoughnessTexture);
+                r.releaseTexture(this._colorTexture);
+                r.releaseTexture(this._normalTexture);
+                r.releaseTexture(this._ambientOcclusionTexture);
+                r.releaseTexture(this._metallicRoughnessTexture);
 
                 let gl = h.gl;
                 if (gl) {
@@ -718,30 +719,50 @@ export class InstanceData {
 
     private _createColorTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-            let h = this._geoObjectHandler._renderer.handler;
+            let r = this._geoObjectHandler._renderer;
+            let h = r.handler;
             const gl = h.gl!;
-            this._colorTexture = h.createTextureDefault(image, h.gl!.SRGB8_ALPHA8, gl.REPEAT);
+            this._colorTexture = r.acquireTexture({
+                image,
+                internalFormat: h.gl!.SRGB8_ALPHA8,
+                texParami: gl.REPEAT
+            });
         }
     }
 
     private _createNormalTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-            let h = this._geoObjectHandler._renderer.handler;
-            this._normalTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+            let r = this._geoObjectHandler._renderer;
+            let h = r.handler;
+            this._normalTexture = r.acquireTexture({
+                image,
+                internalFormat: null,
+                texParami: h.gl!.REPEAT
+            });
         }
     }
 
     private _createMetallicRoughnessTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-            let h = this._geoObjectHandler._renderer.handler;
-            this._metallicRoughnessTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+            let r = this._geoObjectHandler._renderer;
+            let h = r.handler;
+            this._metallicRoughnessTexture = r.acquireTexture({
+                image,
+                internalFormat: null,
+                texParami: h.gl!.REPEAT
+            });
         }
     }
 
     private _createAmbientOcclusionTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-            let h = this._geoObjectHandler._renderer.handler;
-            this._ambientOcclusionTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+            let r = this._geoObjectHandler._renderer;
+            let h = r.handler;
+            this._ambientOcclusionTexture = r.acquireTexture({
+                image,
+                internalFormat: null,
+                texParami: h.gl!.REPEAT
+            });
         }
     }
 }

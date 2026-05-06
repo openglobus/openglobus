@@ -13,6 +13,7 @@ import type { NumberArray4 } from "../math/Vec4";
 import { colorTable } from "./colorTable";
 import { Ellipsoid } from "../ellipsoid/Ellipsoid";
 import { wgs84 } from "../ellipsoid/wgs84";
+import { getTextureResourceMeta, setTextureResourceMeta } from "./textureResourceMeta";
 import * as mercator from "../mercator";
 
 export function getDefault(param?: any, def?: any): boolean {
@@ -38,6 +39,44 @@ export function isUndefExt(obj: any, defVal: any): any {
 }
 
 let _stampCounter: number = 0;
+
+export function fnv1a32(bytes: Uint8Array | Uint8ClampedArray): string {
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < bytes.length; i++) {
+        hash ^= bytes[i];
+        hash = Math.imul(hash, 0x01000193);
+    }
+    return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+export function normalizeUri(src: string, baseUri?: string): string {
+    try {
+        const fallbackBase =
+            typeof window !== "undefined" && window.location?.href ? window.location.href : "http://localhost/";
+        const base = baseUri || fallbackBase;
+        const normalized = new URL(src, base);
+        normalized.hash = "";
+        normalized.protocol = normalized.protocol.toLowerCase();
+        normalized.hostname = normalized.hostname.toLowerCase();
+        return normalized.href;
+    } catch {
+        if (!baseUri) {
+            return src;
+        }
+
+        try {
+            const fallbackBase =
+                typeof window !== "undefined" && window.location?.href ? window.location.href : "http://localhost/";
+            const normalized = new URL(src, fallbackBase);
+            normalized.hash = "";
+            normalized.protocol = normalized.protocol.toLowerCase();
+            normalized.hostname = normalized.hostname.toLowerCase();
+            return normalized.href;
+        } catch {
+            return src;
+        }
+    }
+}
 
 export function stamp(obj: any): number {
     let stamp = obj._openglobus_id;
@@ -1190,6 +1229,7 @@ export async function prepareTextureImage(
     canvas.height = height;
     const ctx = canvas.getContext("2d");
     ctx!.drawImage(image, 0, 0, width, height);
+    setTextureResourceMeta(canvas, getTextureResourceMeta(image));
     return canvas;
 }
 
