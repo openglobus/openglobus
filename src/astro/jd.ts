@@ -1,4 +1,4 @@
-import {binarySearch} from "../utils/shared";
+import { binarySearch } from "../utils/shared";
 
 export type JulianDate = number;
 
@@ -453,7 +453,7 @@ export function daysToSeconds(d: number): number {
     return d * SECONDS_PER_DAY;
 }
 
-type LeapSeconds = { jd: JulianDate, leapSeconds: number };
+type LeapSeconds = { jd: JulianDate; leapSeconds: number };
 
 function __ls(jd: JulianDate, leapSeconds: number): LeapSeconds {
     return {

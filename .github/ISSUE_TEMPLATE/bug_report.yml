@@ -1,0 +1,52 @@
+name: Bug report
+description: Quick bug report for OpenGlobus
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting.
+        Keep it short and practical. A minimal reproduction helps a lot.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What went wrong?
+      description: One short description of the bug
+      placeholder: e.g. Camera jumps to a wrong position after zoom in/out
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce?
+      description: Short steps
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: input
+    id: sandbox_url
+    attributes:
+      label: Sandbox URL (optional)
+      description: Link to a sandbox example or reproduction
+      placeholder: e.g. https://sandbox.openglobus.org/...
+    validations:
+      required: false
+  - type: input
+    id: environment
+    attributes:
+      label: Environment (optional)
+      description: Browser/OS/version if relevant
+      placeholder: e.g. Chrome 122 / Ubuntu 24.04 / OpenGlobus 0.28.6
+    validations:
+      required: false

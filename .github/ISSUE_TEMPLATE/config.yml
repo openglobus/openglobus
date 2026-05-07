@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and discussions
+    url: https://github.com/openglobus/openglobus/discussions
+    about: Ask and discuss usage questions in GitHub Discussions
+  - name: Security reports
+    url: mailto:mgevlich@gmail.com
+    about: Report security vulnerabilities privately by email

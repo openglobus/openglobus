@@ -1,13 +1,28 @@
-import {Deferred} from '../../Deferred';
-import {createEvents, type EventsHandler} from '../../Events';
-import {Vec3} from "../../math/Vec3";
-import {Planet} from "../../scene/Planet";
-import {LonLat} from "../../LonLat";
+/*
+ * Copyright 2026 Michael Gevlich
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { Deferred } from "../../Deferred";
+import { createEvents, type EventsHandler } from "../../Events";
+import { Vec3 } from "../../math/Vec3";
+import { Planet } from "../../scene/Planet";
+import { LonLat } from "../../LonLat";
 
 const DEFAULT_WARNING_HEIGHT_LEVEL = 5;
 
 export interface ElevationProfileParams {
-    planet?: Planet
+    planet?: Planet;
 }
 
 export interface IProfileData {
@@ -145,8 +160,14 @@ export class ElevationProfile {
         return def.promise;
     }
 
-    protected _collectCoordsBetweenTwoTrackPoints(index: number, internalPoints: number, scaleFactor: number, p0: Vec3, trackDir: Vec3, promiseCounter: number) {
-
+    protected _collectCoordsBetweenTwoTrackPoints(
+        index: number,
+        internalPoints: number,
+        scaleFactor: number,
+        p0: Vec3,
+        trackDir: Vec3,
+        promiseCounter: number
+    ) {
         if (!this.planet) return;
 
         for (let j = 1; j <= internalPoints; j++) {
@@ -167,7 +188,6 @@ export class ElevationProfile {
     }
 
     protected _collectAllPoints(pointsLonLat: LonLat[], promiseCounter: number) {
-
         if (!this.planet) return;
         if (promiseCounter !== this._promiseCounter) return;
 
@@ -187,7 +207,7 @@ export class ElevationProfile {
             let proj = Vec3.proj_b_to_plane(trackDir, n0);
             let projLen = proj.length();
             let internalPoints = Math.floor(projLen / SEGMMENT_LENGTH);
-            let scaleFactor = SEGMMENT_LENGTH * dirLength / projLen;
+            let scaleFactor = (SEGMMENT_LENGTH * dirLength) / projLen;
 
             this._getGroundElevation(lonlat0, i - 1, promiseCounter);
 
@@ -272,7 +292,6 @@ export class ElevationProfile {
     }
 
     public collectProfile(pointsLonLat: LonLat[]): Promise<ElevationProfileDrawData> {
-
         let def = new Deferred<ElevationProfileDrawData>();
 
         if (!this.planet) def.reject();
@@ -293,7 +312,12 @@ export class ElevationProfile {
             this._calcPointsAsync(pointsLonLat, counter).then((p: IProfileData) => {
                 if (counter === this._promiseCounter) {
                     this._planeDistance = p.dist;
-                    this.setRange(0, p.dist, p.minY - BOTTOM_PADDING * Math.abs(p.minY), p.maxY + Math.abs(p.maxY) * TOP_PADDING);
+                    this.setRange(
+                        0,
+                        p.dist,
+                        p.minY - BOTTOM_PADDING * Math.abs(p.minY),
+                        p.maxY + Math.abs(p.maxY) * TOP_PADDING
+                    );
                     this._pointsReady = true;
                     this._drawData = [p.trackCoords, p.groundCoords];
                     this.events.dispatch(this.events.profilecollected, this._drawData, this);
@@ -306,8 +330,10 @@ export class ElevationProfile {
     }
 
     protected _updatePointType(pIndex: number) {
-        if ((this._pGroundCoords[pIndex][3] >= this._pGroundCoords[pIndex][1]) &&
-            (this._pGroundCoords[pIndex][3] < this._pGroundCoords[pIndex][1] + this._warningHeightLevel - HEIGHT_EPS)) {
+        if (
+            this._pGroundCoords[pIndex][3] >= this._pGroundCoords[pIndex][1] &&
+            this._pGroundCoords[pIndex][3] < this._pGroundCoords[pIndex][1] + this._warningHeightLevel - HEIGHT_EPS
+        ) {
             this._pGroundCoords[pIndex][2] = WARNING;
         }
 

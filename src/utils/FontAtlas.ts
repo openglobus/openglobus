@@ -1,8 +1,9 @@
-import {Deferred} from '../Deferred';
-import {Rectangle} from '../Rectangle';
-import {TextureAtlas, TextureAtlasNode} from './TextureAtlas';
-import {Handler} from "../webgl/Handler";
-import type {HTMLImageElementExt} from "./ImagesCacheManager";
+import { Deferred } from "../Deferred";
+import { Rectangle } from "../Rectangle";
+import { TextureAtlas, TextureAtlasNode } from "./TextureAtlas";
+import type { WebGLTextureExt } from "../webgl/Handler";
+import { Handler } from "../webgl/Handler";
+import type { HTMLImageElementExt } from "./ImagesCacheManager";
 
 //@todo: get the value from shader module
 const MAX_SIZE = 11;
@@ -38,7 +39,7 @@ export interface IFontParams {
     };
     distanceField: {
         distanceRange: number;
-    }
+    };
     chars: IChar[];
     kernings: IKerning[];
     pages: string[];
@@ -53,7 +54,7 @@ class FontTextureAtlas extends TextureAtlas {
     public kernings: Record<number, Record<number, number>>;
 
     constructor(width?: number, height?: number) {
-        super(width, height);
+        super(width, height, "linear");
         this.width = 0;
         this.height = 0;
         this.gliphSize = 0;
@@ -71,7 +72,7 @@ interface IMetrics extends IChar {
     nChar: string;
     nCode: number;
     nWidth: number;
-    nHeight: number
+    nHeight: number;
     nAdvance: number;
     nXOffset: number;
     nYOffset: number;
@@ -105,7 +106,7 @@ class FontTextureAtlasNode extends TextureAtlasNode {
             nAdvance: 0,
             nXOffset: 0,
             nYOffset: 0
-        }
+        };
     }
 }
 
@@ -113,12 +114,16 @@ class FontAtlas {
     public atlasesArr: FontTextureAtlas[];
     public samplerArr: Uint32Array;
     public sdfParamsArr: Float32Array;
+    public textureArray: WebGLTextureExt | null;
     public catalogSrc: string;
 
     protected atlasIndexes: Record<string, number>;
     protected atlasIndexesDeferred: Record<string, Deferred<number>>;
     protected tokenImageSize: number;
     protected _handler: Handler | null;
+    protected _textureArrayWidth: number;
+    protected _textureArrayHeight: number;
+    protected _textureArrayMismatchWarningShown: boolean;
 
     constructor(catalogSrc?: string) {
         this.atlasesArr = [];
@@ -127,7 +132,11 @@ class FontAtlas {
         this.tokenImageSize = 64;
         this.samplerArr = new Uint32Array(MAX_SIZE);
         this.sdfParamsArr = new Float32Array(MAX_SIZE * 4);
+        this.textureArray = null;
         this._handler = null;
+        this._textureArrayWidth = 0;
+        this._textureArrayHeight = 0;
+        this._textureArrayMismatchWarningShown = false;
         this.catalogSrc = catalogSrc || "./";
     }
 
@@ -174,9 +183,8 @@ class FontAtlas {
 
         for (let i = 0; i < chars.length; i++) {
             let ci = chars[i];
-            let ti = ci.char;
 
-            idToChar[ci.id] = ti;
+            idToChar[ci.id] = ci.char;
 
             let r = new Rectangle(ci.x, ci.y, ci.x + ci.width, ci.y + ci.height);
 
@@ -201,7 +209,7 @@ class FontAtlas {
             tc[11] = r.top / h;
 
             let taNode = new FontTextureAtlasNode(r, tc);
-            let ciNorm = ci.char.normalize('NFKC');
+            let ciNorm = ci.char.normalize("NFKC");
             let ciCode = ciNorm.charCodeAt(0);
 
             //taNode.metrics = ci;
@@ -297,10 +305,70 @@ class FontAtlas {
 
     protected _createTexture(atlas: FontTextureAtlas, img: HTMLImageElementExt) {
         atlas.createTexture(img);
+        this._updateTextureArrayLayer(atlas);
+    }
+
+    protected _ensureTextureArray(width: number, height: number): boolean {
+        if (!this._handler || !this._handler.isWebGl2() || !this._handler.gl) {
+            return false;
+        }
+
+        if (!this.textureArray) {
+            let gl = this._handler.gl;
+            this.textureArray = gl.createTexture() as WebGLTextureExt;
+            this._textureArrayWidth = width;
+            this._textureArrayHeight = height;
+
+            gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.textureArray);
+            gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.RGBA, width, height, MAX_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+        }
+
+        const isSameSize = this._textureArrayWidth === width && this._textureArrayHeight === height;
+        if (!isSameSize && !this._textureArrayMismatchWarningShown) {
+            this._textureArrayMismatchWarningShown = true;
+            console.warn("FontAtlas: all fonts must have identical atlas dimensions for sampler2DArray labels.");
+        }
+        return isSameSize;
+    }
+
+    protected _updateTextureArrayLayer(atlas: FontTextureAtlas) {
+        if (!this._handler || !this._handler.gl || !this._handler.isWebGl2()) {
+            return;
+        }
+
+        let index = this.atlasesArr.indexOf(atlas);
+        if (index === -1 || index >= MAX_SIZE) {
+            return;
+        }
+
+        if (!this._ensureTextureArray(atlas.width, atlas.height)) {
+            return;
+        }
+
+        let gl = this._handler.gl;
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.textureArray);
+        gl.texSubImage3D(
+            gl.TEXTURE_2D_ARRAY,
+            0,
+            0,
+            0,
+            index,
+            atlas.width,
+            atlas.height,
+            1,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            atlas.canvas.getCanvas()
+        );
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
     }
 
     public loadFont(faceName: string, srcDir: string, atlasUrl: string) {
-
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
 
@@ -334,7 +402,6 @@ class FontAtlas {
                 return response.json();
             })
             .then((data: IFontParams) => {
-
                 this._applyFontDataToAtlas(atlas, data, index);
 
                 let img = new Image();
@@ -346,11 +413,11 @@ class FontAtlas {
                 img.src = `${srcDir}/${data.pages[0]}`;
                 img.crossOrigin = "Anonymous";
             })
-            .catch(err => {
+            .catch((err) => {
                 def.reject();
-                return {'status': "error", 'msg': err.toString()};
+                return { status: "error", msg: err.toString() };
             });
     }
 }
 
-export {FontAtlas};
+export { FontAtlas };

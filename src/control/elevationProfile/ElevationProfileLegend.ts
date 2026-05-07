@@ -1,8 +1,7 @@
-import {type IViewParams, View} from '../../ui/View';
-import {distanceFormatExt} from "../../utils/shared";
+import { type IViewParams, View } from "../../ui/View";
+import { distanceFormatExt } from "../../utils/shared";
 
-const TEMPLATE =
-    `<div class="og-elevationprofile-legend">
+const TEMPLATE = `<div class="og-elevationprofile-legend">
         <div class="og-elevationprofile-legend__row og-elevationprofile-legend__track">
           <div class="og-elevationprofile-square"></div>
           <div class="og-elevationprofile-value">0</div>
@@ -25,12 +24,9 @@ const TEMPLATE =
         </div>
       </div>`;
 
-export interface IElevationProfileLegendParams extends IViewParams {
-
-}
+export interface IElevationProfileLegendParams extends IViewParams {}
 
 export class ElevationProfileLegend extends View<null> {
-
     public $groundValue: HTMLElement | null;
     public $trackValue: HTMLElement | null;
     public $warningValue: HTMLElement | null;

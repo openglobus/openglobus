@@ -1,12 +1,27 @@
+/*
+ * Copyright 2026 Michael Gevlich
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as quadTree from "../quadTree/quadTree";
-import {Framebuffer} from "../webgl/Framebuffer";
-import {Lock, Key} from "../Lock";
-import {Planet} from "../scene/Planet";
-import {Program} from "../webgl/Program";
-import {QueueArray} from "../QueueArray";
-import {Segment} from "../segment/Segment";
-import {Handler} from "../webgl/Handler";
-import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import { Framebuffer } from "../webgl/Framebuffer";
+import { Lock, Key } from "../Lock";
+import { Planet } from "../scene/Planet";
+import { ShaderProgram } from "../webgl/ShaderProgram";
+import { QueueArray } from "../QueueArray";
+import { Segment } from "../segment/Segment";
+import { Handler } from "../webgl/Handler";
+import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 
 interface INormalMapCreatorParams {
     minTableSize?: number;
@@ -16,7 +31,6 @@ interface INormalMapCreatorParams {
 }
 
 export class NormalMapCreator {
-
     protected _minTabelSize: number;
     protected _maxTableSize: number;
 
@@ -36,7 +50,6 @@ export class NormalMapCreator {
     protected _lock: Lock;
 
     constructor(planet: Planet, options: INormalMapCreatorParams = {}) {
-
         this._minTabelSize = options.minTableSize || 1;
         this._maxTableSize = options.maxTableSize || 8;
 
@@ -65,80 +78,91 @@ export class NormalMapCreator {
     }
 
     public init() {
-
         this._maxTableSize = this._planet.maxGridSize || 8;
 
         this._handler = this._planet.renderer!.handler;
 
         let isWebkit = false; //('WebkitAppearance' in document.documentElement.style) && !/^((?!chrome).)*safari/i.test(navigator.userAgent);
 
-        /*==================================================================================
-         * http://www.sunsetlakesoftware.com/2013/10/21/optimizing-gaussian-blurs-mobile-gpu
-         *=================================================================================*/
-        const normalMapBlur = new Program("normalMapBlur", {
+        const normalMapBlur = new ShaderProgram("normalMapBlur", {
             attributes: {
                 a_position: "vec2"
             },
             uniforms: {
                 s_texture: "sampler2d"
             },
-            vertexShader:
-                `attribute vec2 a_position;
-                       attribute vec2 a_texCoord;
+            vertexShader: `#version 300 es
+                        in vec2 a_position;
 
-                      varying vec2 blurCoordinates[5];
-
-                      void main() {
-                          vec2 vt = a_position * 0.5 + 0.5; 
-                          ${isWebkit ? "vt.y = 1.0 - vt.y; " : " "}
-                          gl_Position = vec4(a_position, 0.0, 1.0);
-                          blurCoordinates[0] = vt;
-                          blurCoordinates[1] = vt + ${(1.0 / this._width) * 1.407333};
-                          blurCoordinates[2] = vt - ${(1.0 / this._height) * 1.407333};
-                          blurCoordinates[3] = vt + ${(1.0 / this._width) * 3.294215};
-                          blurCoordinates[4] = vt - ${(1.0 / this._height) * 3.294215};
-                }`,
-            fragmentShader: `precision lowp float;
-                        uniform sampler2D s_texture;                        
-                        varying vec2 blurCoordinates[5];                        
+                        out vec2 blurCoordinates[5];
 
                         void main() {
-                            lowp vec4 sum = vec4(0.0);
-                            //if(blurCoordinates[0].x <= 0.01 || blurCoordinates[0].x >= 0.99 ||
-                            //    blurCoordinates[0].y <= 0.01 || blurCoordinates[0].y >= 0.99){
-                            //    sum = texture2D(s_texture, blurCoordinates[0]);
-                            //} else {
-                                sum += texture2D(s_texture, blurCoordinates[0]) * 0.204164;
-                                sum += texture2D(s_texture, blurCoordinates[1]) * 0.304005;
-                                sum += texture2D(s_texture, blurCoordinates[2]) * 0.304005;
-                                sum += texture2D(s_texture, blurCoordinates[3]) * 0.093913;
-                                sum += texture2D(s_texture, blurCoordinates[4]) * 0.093913;
-                            //}
-                            gl_FragColor = sum;
+                            vec2 vt = a_position * 0.5 + 0.5;
+                            ${isWebkit ? "vt.y = 1.0 - vt.y; " : " "}
+                            gl_Position = vec4(a_position, 0.0, 1.0);
+                            blurCoordinates[0] = vt;
+                            blurCoordinates[1] = vt + vec2(${(1.0 / this._width) * 1.407333}, 0.0);
+                            blurCoordinates[2] = vt - vec2(${(1.0 / this._width) * 1.407333}, 0.0);
+                            blurCoordinates[3] = vt + vec2(0.0, ${(1.0 / this._height) * 3.294215});
+                            blurCoordinates[4] = vt - vec2(0.0, ${(1.0 / this._height) * 3.294215});
+                        }`,
+            fragmentShader: `#version 300 es
+                        precision highp float;
+                        uniform sampler2D s_texture;
+                        in vec2 blurCoordinates[5];
+                        out vec4 fragColor;
+
+                        vec3 decodeNormal(vec3 c) {
+                            return c * 2.0 - 1.0;
+                        }
+
+                        void main() {
+                            vec2 uv = blurCoordinates[0];
+                            vec4 center = texture(s_texture, uv);
+
+                            // Keep border intact to avoid seams between adjacent tiles.
+                            if(uv.x <= ${3.294215 / this._width} || uv.x >= ${1.0 - 3.294215 / this._width} ||
+                               uv.y <= ${3.294215 / this._height} || uv.y >= ${1.0 - 3.294215 / this._height}) {
+                                fragColor = center;
+                                return;
+                            }
+
+                            vec3 n = vec3(0.0);
+                            n += decodeNormal(center.rgb) * 0.204164;
+                            n += decodeNormal(texture(s_texture, blurCoordinates[1]).rgb) * 0.304005;
+                            n += decodeNormal(texture(s_texture, blurCoordinates[2]).rgb) * 0.304005;
+                            n += decodeNormal(texture(s_texture, blurCoordinates[3]).rgb) * 0.093913;
+                            n += decodeNormal(texture(s_texture, blurCoordinates[4]).rgb) * 0.093913;
+
+                            n = normalize(n);
+                            fragColor = vec4(n * 0.5 + 0.5, center.a);
                         }`
         });
 
-        const normalMap = new Program("normalMap", {
+        const normalMap = new ShaderProgram("normalMap", {
             attributes: {
                 a_position: "vec2",
                 a_normal: "vec3"
             },
             uniforms: {},
-            vertexShader: `attribute vec2 a_position;
-                      attribute vec3 a_normal;
-                      
-                      varying vec3 v_color;
-                      
-                      void main() {
-                          gl_Position = vec4(a_position, 0, 1);
-                          v_color = normalize(a_normal) * 0.5 + 0.5;
-                      }`,
-            fragmentShader: `precision highp float;
-                        
-                        varying vec3 v_color;
-                        
+            vertexShader: `#version 300 es
+                        in vec2 a_position;
+                        in vec3 a_normal;
+
+                        out vec3 v_color;
+
+                        void main() {
+                            gl_Position = vec4(a_position, 0.0, 1.0);
+                            v_color = normalize(a_normal) * 0.5 + 0.5;
+                        }`,
+            fragmentShader: `#version 300 es
+                        precision highp float;
+
+                        in vec3 v_color;
+                        out vec4 fragColor;
+
                         void main () {
-                            gl_FragColor = vec4(v_color, 1.0);
+                            fragColor = vec4(v_color, 1.0);
                         }`
         });
 
@@ -158,8 +182,7 @@ export class NormalMapCreator {
 
         //create vertices hasharray for different grid size segments from 2^4(16) to 2^7(128)
         for (let p = this._minTabelSize; p <= this._maxTableSize; p++) {
-
-            const gs = (1 << p);//Math.pow(2, p);
+            const gs = 1 << p; //Math.pow(2, p);
             const gs2 = gs / 2;
 
             let vertices = new Float32Array((gs + 1) * (gs + 1) * 2);
@@ -172,14 +195,12 @@ export class NormalMapCreator {
                 }
             }
 
-            this._verticesBufferArray[gs] = this._handler.createArrayBuffer(
-                vertices,
-                2,
-                vertices.length / 2
-            );
+            this._verticesBufferArray[gs] = this._handler.createArrayBuffer(vertices, 2, vertices.length / 2);
 
             this._indexBufferArray[gs] =
-                this._planet._indexesCache[Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)].buffer!;
+                this._planet._indexesCache[Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][
+                    Math.log2(gs)
+                ].buffer!;
         }
 
         //create 2d screen square buffer
@@ -190,12 +211,7 @@ export class NormalMapCreator {
 
     protected _drawNormalMapBlur(segment: Segment): boolean {
         let normals = segment.normalMapNormals;
-        if (
-            segment.node &&
-            segment.node.getState() !== quadTree.NOTRENDERING &&
-            normals &&
-            normals.length
-        ) {
+        if (segment.node && segment.node.getState() !== quadTree.NOTRENDERING && normals && normals.length) {
             const size = normals.length / 3;
             const gridSize = Math.sqrt(size) - 1;
 
@@ -218,7 +234,7 @@ export class NormalMapCreator {
 
                 const f = this._framebuffer!;
                 let p = h.programs.normalMap;
-                let sha = p._program.attributes;
+                let sha = p.attributes;
 
                 f.bindOutputTexture(this._normalMapVerticesTexture!);
 
@@ -231,12 +247,7 @@ export class NormalMapCreator {
                 gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-                gl.drawElements(
-                    gl.TRIANGLE_STRIP,
-                    this._indexBufferArray[gridSize].numItems,
-                    gl.UNSIGNED_INT,
-                    0
-                );
+                gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_INT, 0);
 
                 gl.deleteBuffer(_normalsBuffer);
 
@@ -249,17 +260,10 @@ export class NormalMapCreator {
 
                 p.activate();
                 gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer!);
-                gl.vertexAttribPointer(
-                    p._program.attributes.a_position,
-                    this._positionBuffer!.itemSize,
-                    gl.FLOAT,
-                    false,
-                    0,
-                    0
-                );
+                gl.vertexAttribPointer(p.attributes.a_position, this._positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture!);
-                gl.uniform1i(p._program.uniforms.s_texture, 0);
+                gl.uniform1i(p.uniforms.s_texture, 0);
                 gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer!.numItems);
                 return true;
             } else {
@@ -271,12 +275,7 @@ export class NormalMapCreator {
 
     protected _drawNormalMapNoBlur(segment: Segment): boolean {
         let normals = segment.normalMapNormals;
-        if (
-            segment.node &&
-            segment.node.getState() !== quadTree.NOTRENDERING &&
-            normals &&
-            normals.length
-        ) {
+        if (segment.node && segment.node.getState() !== quadTree.NOTRENDERING && normals && normals.length) {
             const size = normals.length / 3;
             const gridSize = Math.sqrt(size) - 1;
 
@@ -299,7 +298,7 @@ export class NormalMapCreator {
 
                 const f = this._framebuffer!;
                 const p = h.programs.normalMap;
-                const sha = p._program.attributes;
+                const sha = p.attributes;
 
                 f.bindOutputTexture(outTexture!);
 
@@ -312,12 +311,7 @@ export class NormalMapCreator {
                 gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-                gl.drawElements(
-                    gl.TRIANGLE_STRIP,
-                    this._indexBufferArray[gridSize].numItems,
-                    gl.UNSIGNED_INT,
-                    0
-                );
+                gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_INT, 0);
 
                 gl.deleteBuffer(_normalsBuffer);
 
@@ -438,5 +432,4 @@ export class NormalMapCreator {
     public free(key: Key) {
         this._lock.free(key);
     }
-
 }

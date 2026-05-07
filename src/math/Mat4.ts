@@ -1,13 +1,25 @@
-import {Mat3} from "./Mat3";
-import {Quat} from "./Quat";
-import {Vec3} from "./Vec3";
-import {Vec4} from "./Vec4";
+import { Mat3 } from "./Mat3";
+import { Quat } from "./Quat";
+import { Vec3 } from "./Vec3";
+import { Vec4 } from "./Vec4";
 
 export type NumberArray16 = [
-    number, number, number, number,
-    number, number, number, number,
-    number, number, number, number,
-    number, number, number, number
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number
 ];
 
 /**
@@ -15,21 +27,14 @@ export type NumberArray16 = [
  * @class
  */
 export class Mat4 {
-
     /**
      * A 4x4 matrix, index-able as a column-major order array.
      * @public
      * @type {Array.<number>}
      */
-    public _m: NumberArray16 = [
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0
-    ];
+    public _m: NumberArray16 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    constructor() {
-    }
+    constructor() {}
 
     /**
      * Returns identity matrix instance.
@@ -58,11 +63,11 @@ export class Mat4 {
     }
 
     /**
-     * Get rotation matrix around the point
+     * Returns a rotation matrix around a point.
      * @public
-     * @param {number} angle - Rotation angle in radians
-     * @param {Vec3} [center] - Point that the camera rotates around
-     * @param {Vec3} [up] - Camera up vector
+     * @param {number} angle - Rotation angle in radians.
+     * @param {Vec3} [center] - Rotation center point.
+     * @param {Vec3} [up] - Up axis.
      */
     static getRotationAroundPoint(angle: number, center: Vec3 = Vec3.ZERO, up: Vec3 = Vec3.UP): Mat4 {
         let rot = Mat4.getRotation(angle, up);
@@ -146,7 +151,6 @@ export class Mat4 {
         return new Quat(...out);
     }
 
-
     /**
      * Sets column-major order array matrix.
      * @public
@@ -188,7 +192,7 @@ export class Mat4 {
      * Copy matrix.
      * @public
      * @param {Mat4} a - Matrix to copy.
-     * @return {Mat4}
+     * @returns {Mat4}
      */
     public copy(a: Mat4): Mat4 {
         return this.set(a._m);
@@ -256,7 +260,7 @@ export class Mat4 {
      * @public
      * @returns {Mat3} -
      */
-    public toInverseMatrix3(): Mat3 | undefined {
+    public toInverseMatrix3(res: Mat3): Mat3 {
         let a = this._m;
         let c = a[0],
             d = a[1],
@@ -272,13 +276,10 @@ export class Mat4 {
             m = j * g - f * i,
             n = c * l + d * o + e * m;
 
-        if (!n) {
-            return;
-        }
-
         n = 1.0 / n;
 
-        let res = new Mat3();
+        res = res || new Mat3();
+
         res._m[0] = l * n;
         res._m[1] = (-k * d + e * j) * n;
         res._m[2] = (h * d - e * f) * n;
@@ -406,7 +407,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public mul(mx: Mat4): Mat4 {
-
         let d = this._m[0],
             e = this._m[1],
             g = this._m[2],
@@ -470,7 +470,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public translate(v: Vec3): Mat4 {
-
         let d = v.x,
             e = v.y,
             b = v.z;
@@ -500,14 +499,13 @@ export class Mat4 {
     }
 
     /**
-     * Rotate current matrix around the aligned axis and angle.
+     * Rotates the current matrix around an axis by an angle.
      * @public
-     * @param {Vec3} u - Aligned axis.
-     * @param {number} angle - Aligned axis angle in radians.
+     * @param {Vec3} u - Rotation axis.
+     * @param {number} angle - Rotation angle in radians.
      * @returns {Mat4} -
      */
     public rotate(u: Vec3, angle: number): Mat4 {
-
         let c = Math.cos(angle),
             s = Math.sin(angle);
 
@@ -542,7 +540,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public setRotation(u: Vec3, angle: number): Mat4 {
-
         let c = Math.cos(angle),
             s = Math.sin(angle);
 
@@ -615,7 +612,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public setPerspective(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4 {
-
         let h = right - left,
             i = top - bottom,
             j = near - far,
@@ -647,6 +643,47 @@ export class Mat4 {
     }
 
     /**
+     * Infinite reverse-Z perspective.
+     * By default uses WebGL clip space (NDC z in [-1, 1]); with `zeroToOne=true` uses EXT_clip_control ZERO_TO_ONE (NDC z in [0, 1]).
+     * Use with gl.clearDepth(0), gl.depthFunc(GL_GREATER). Far plane is not used in the matrix (culling only).
+     */
+    public setPerspectiveReverseInfinite(
+        left: number,
+        right: number,
+        bottom: number,
+        top: number,
+        near: number,
+        zeroToOne: boolean = false
+    ): Mat4 {
+        const h = right - left,
+            i = top - bottom,
+            n2 = 2 * near,
+            mm = this._m;
+
+        mm[0] = n2 / h;
+        mm[1] = 0;
+        mm[2] = 0;
+        mm[3] = 0;
+
+        mm[4] = 0;
+        mm[5] = n2 / i;
+        mm[6] = 0;
+        mm[7] = 0;
+
+        mm[8] = (right + left) / h;
+        mm[9] = (top + bottom) / i;
+        mm[10] = zeroToOne ? 0 : 1;
+        mm[11] = -1;
+
+        mm[12] = 0;
+        mm[13] = 0;
+        mm[14] = zeroToOne ? near : n2;
+        mm[15] = 0;
+
+        return this;
+    }
+
+    /**
      * Creates current orthographic projection matrix.
      * @public
      * @param {number} left -
@@ -655,10 +692,9 @@ export class Mat4 {
      * @param {number} top -
      * @param {number} near -
      * @param {number} far -
-     * @return {Mat4} -
+     * @returns {Mat4} -
      */
     public setOrthographic(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4 {
-
         let lr = 1.0 / (left - right),
             bt = 1.0 / (bottom - top),
             nf = 1.0 / (near - far),
@@ -693,7 +729,6 @@ export class Mat4 {
      * @returns {Mat4} -
      */
     public eulerToMatrix(ax: number, ay: number, az: number): Mat4 {
-
         let a = Math.cos(ax),
             b = Math.sin(ax),
             c = Math.cos(ay),

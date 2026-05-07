@@ -1,18 +1,19 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
-import {createColorRGB} from "../utils/shared";
-import {createEvents} from "../Events";
-import type {EventsHandler} from "../Events";
-import {Extent} from "../Extent";
-import {LonLat} from "../LonLat";
-import {Node} from "../quadTree/Node";
-import {Material} from "./Material";
-import {Planet} from "../scene/Planet";
-import {Segment} from "../segment/Segment";
-import {Vec3} from "../math/Vec3";
-import type {NumberArray3} from "../math/Vec3";
-import type {NumberArray4} from "../math/Vec4";
-import type {IDefaultTextureParams} from "../webgl/Handler";
+import { createColorRGB } from "../utils/shared";
+import { getColorSpace, SRGB } from "../utils/colorSpace";
+import { createEvents } from "../Events";
+import type { EventsHandler } from "../Events";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
+import { Node } from "../quadTree/Node";
+import { Material } from "./Material";
+import { Planet } from "../scene/Planet";
+import { Segment } from "../segment/Segment";
+import { Vec3 } from "../math/Vec3";
+import type { NumberArray3 } from "../math/Vec3";
+import type { NumberArray4 } from "../math/Vec4";
+import type { IDefaultTextureParams } from "../webgl/Handler";
 
 const FADING_RATIO = 30;
 
@@ -31,7 +32,7 @@ export interface ILayerParams {
     fading?: boolean;
     height?: number;
     textureFilter?: string;
-    isSRGB?: boolean;
+    colorSpace?: string | number;
     pickingEnabled?: boolean;
     preLoadZoomLevels?: number[];
     extent?: Extent | [[number, number], [number, number]];
@@ -41,6 +42,7 @@ export interface ILayerParams {
     shininess?: number;
     nightTextureCoefficient?: number;
     iconSrc?: string | null;
+    waitForParentMaterial?: boolean;
 }
 
 /**
@@ -48,48 +50,62 @@ export interface ILayerParams {
  * Base class; normally only used for creating subclasses and not instantiated in apps.
  * A visual representation of raster or vector map data well known as a layer.
  * @class
- * @param {String} [name="noname"] - Layer name.
- * @param {Object} [options] - Layer options:
+ * @param {string|null} [name="noname"] - Layer name.
+ * @param {ILayerParams} [options={}] - Layer options.
+ * @param {*} [options.properties={}] - Custom user properties.
+ * @param {number} [options.labelMaxLetters] - Label max letters (reserved for specific layer implementations).
+ * @param {boolean} [options.hideInLayerSwitcher=false] - Presence in LayerSwitcher control.
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
- * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
- * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
- * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
+ * @param {number} [options.maxZoom=50] - Maximal visibility zoom level.
+ * @param {string} [options.attribution=""] - Layer attribution shown in the attribution area.
+ * @param {number} [options.zIndex=0] - Layer z-index.
+ * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
+ * @param {[IDefaultTextureParams, IDefaultTextureParams]} [options.defaultTextures=[null, null]] - Default textures.
  * @param {boolean} [options.visibility=true] - Layer visibility.
- * @param {boolean} [options.hideInLayerSwitcher=false] - Presence of layer in dialog window of LayerSwitcher control.
- * @param {boolean} [options.isSRGB=false] - Layer image webgl internal format.
- * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
- * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
- * @param {string} [options.icon] - Icon for LayerSwitcher
- * @fires EventsHandler<LayerEventsList>#visibilitychange
- * @fires EventsHandler<LayerEventsList>#add
- * @fires EventsHandler<LayerEventsList>#remove
- * @fires EventsHandler<LayerEventsList>#mousemove
- * @fires EventsHandler<LayerEventsList>#mouseenter
- * @fires EventsHandler<LayerEventsList>#mouseleave
- * @fires EventsHandler<LayerEventsList>#lclick
- * @fires EventsHandler<LayerEventsList>#rclick
- * @fires EventsHandler<LayerEventsList>#mclick
- * @fires EventsHandler<LayerEventsList>#ldblclick
- * @fires EventsHandler<LayerEventsList>#rdblclick
- * @fires EventsHandler<LayerEventsList>#mdblclick
- * @fires EventsHandler<LayerEventsList>#lup
- * @fires EventsHandler<LayerEventsList>#rup
- * @fires EventsHandler<LayerEventsList>#mup
- * @fires EventsHandler<LayerEventsList>#ldown
- * @fires EventsHandler<LayerEventsList>#rdown
- * @fires EventsHandler<LayerEventsList>#mdown
- * @fires EventsHandler<LayerEventsList>#lhold
- * @fires EventsHandler<LayerEventsList>#rhold
- * @fires EventsHandler<LayerEventsList>#mhold
- * @fires EventsHandler<LayerEventsList>#mousewheel
- * @fires EventsHandler<LayerEventsList>#touchmove
- * @fires EventsHandler<LayerEventsList>#touchstart
- * @fires EventsHandler<LayerEventsList>#touchend
- * @fires EventsHandler<LayerEventsList>#doubletouch
+ * @param {boolean} [options.fading=false] - Enables fade-in/fade-out opacity transitions.
+ * @param {number} [options.height=0] - Height over the ground.
+ * @param {string} [options.textureFilter="mipmap"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
+ * @param {string|number} [options.colorSpace="srgb"] - Layer color space. Available values: "linear", "srgb", 0, 1.
+ * @param {boolean} [options.pickingEnabled=true] - Enables layer picking.
+ * @param {number[]} [options.preLoadZoomLevels=[0, 1]] - Zoom levels to preload when layer becomes visible.
+ * @param {Extent|[[number, number], [number, number]]} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
+ * @param {string|NumberArray3|Vec3} [options.ambient] - Ambient color.
+ * @param {string|NumberArray3|Vec3} [options.diffuse] - Diffuse color.
+ * @param {string|NumberArray3|Vec3} [options.specular] - Specular color.
+ * @param {number} [options.shininess=20.0] - Specular shininess coefficient.
+ * @param {number} [options.nightTextureCoefficient=1.0] - Night texture blending coefficient.
+ * @param {string|null} [options.iconSrc=null] - Icon for LayerSwitcher.
+ * @param {boolean} [options.waitForParentMaterial=true] - Wait for parent material while loading current tile material.
+ * @fires visibilitychange
+ * @fires baselayerchange
+ * @fires add
+ * @fires remove
+ * @fires mousemove
+ * @fires mouseenter
+ * @fires mouseleave
+ * @fires lclick
+ * @fires rclick
+ * @fires mclick
+ * @fires ldblclick
+ * @fires rdblclick
+ * @fires mdblclick
+ * @fires lup
+ * @fires rup
+ * @fires mup
+ * @fires ldown
+ * @fires rdown
+ * @fires mdown
+ * @fires lhold
+ * @fires rhold
+ * @fires mhold
+ * @fires mousewheel
+ * @fires touchmove
+ * @fires touchstart
+ * @fires touchend
+ * @fires doubletouch
  */
 class Layer {
-
     static __counter__: number = 0;
 
     /**
@@ -196,7 +212,7 @@ class Layer {
 
     protected _textureFilter: string;
 
-    protected _isSRGB: boolean;
+    protected _colorSpace: number;
 
     public _internalFormat: number | null;
 
@@ -235,8 +251,9 @@ class Layer {
 
     protected _iconSrc: string | null;
 
-    constructor(name?: string | null, options: ILayerParams = {}) {
+    public waitForParentMaterial: boolean;
 
+    constructor(name?: string | null, options: ILayerParams = {}) {
         this.__id = Layer.__counter__++;
 
         this._iconSrc = options.iconSrc || null;
@@ -289,19 +306,13 @@ class Layer {
 
         this._textureFilter = options.textureFilter ? options.textureFilter.trim().toUpperCase() : "MIPMAP";
 
-        this._isSRGB = options.isSRGB != undefined ? options.isSRGB : false;
-
+        this._colorSpace = Layer.getColorSpace(options.colorSpace);
         this._internalFormat = null;
 
         this._extentMerc = new Extent();
 
         // Setting the extent up
-        this.setExtent(
-            utils.createExtent(
-                options.extent,
-                new Extent(new LonLat(-180, -90), new LonLat(180, 90))
-            )
-        );
+        this.setExtent(utils.createExtent(options.extent, new Extent(new LonLat(-180, -90), new LonLat(180, 90))));
 
         /**
          * Layer picking color. Assign when added to the planet.
@@ -337,6 +348,12 @@ class Layer {
         }
 
         this.nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
+
+        this.waitForParentMaterial = options.waitForParentMaterial ?? true;
+    }
+
+    public static getColorSpace(colorSpace?: string | number): number {
+        return getColorSpace(colorSpace, SRGB);
     }
 
     public get iconSrc(): string | null {
@@ -351,7 +368,7 @@ class Layer {
     public set diffuse(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._diffuse = new Float32Array(vec.toArray());
+            this._diffuse = new Float32Array([vec.x, vec.y, vec.z]);
         } else {
             this._diffuse = null;
         }
@@ -360,7 +377,7 @@ class Layer {
     public set ambient(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._ambient = new Float32Array(vec.toArray());
+            this._ambient = new Float32Array([vec.x, vec.y, vec.z]);
         } else {
             this._ambient = null;
         }
@@ -369,7 +386,7 @@ class Layer {
     public set specular(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular ? this._specular[3] : 0.0]);
+            this._specular = new Float32Array([vec.x, vec.y, vec.z, this._specular ? this._specular[3] : 20.0]);
         } else {
             this._specular = null;
         }
@@ -432,7 +449,7 @@ class Layer {
      * Returns true if a layer has imagery tiles.
      * @public
      * @virtual
-     * @returns {boolean} - Imagery tiles flag.
+     * @returns {boolean} Imagery tiles flag.
      */
     public hasImageryTiles(): boolean {
         return this._hasImageryTiles;
@@ -441,7 +458,7 @@ class Layer {
     /**
      * Gets layer identifier.
      * @public
-     * @returns {string} - Layer object id.
+     * @returns {number} Layer object id.
      */
     public getID(): number {
         return this.__id;
@@ -462,7 +479,7 @@ class Layer {
      * Compares layers instances.
      * @public
      * @param {Layer} layer - Layer instance to compare.
-     * @returns {boolean} - Returns true if the layers is the same instance of the input.
+     * @returns {boolean} Returns true if the layer is the same instance as the input.
      */
     public isEqual(layer: Layer): boolean {
         return layer.__id === this.__id;
@@ -475,14 +492,13 @@ class Layer {
      * @param {Planet} planet - Planet render node.
      */
     public _assignPlanet(planet: Planet) {
-
         this._planet = planet;
 
         planet._layers.push(this);
 
         if (planet.renderer && planet.renderer.isInitialized()) {
             // TODO: webgl1
-            if (this._isSRGB) {
+            if (this._colorSpace === SRGB) {
                 this._internalFormat = planet.renderer.handler.gl!.SRGB8_ALPHA8;
             } else {
                 this._internalFormat = planet.renderer.handler.gl!.RGBA8;
@@ -507,7 +523,7 @@ class Layer {
     }
 
     public get isIdle(): boolean {
-        return this._planet && this._planet.quadTreeStrategy._terrainCompletedActivated || false;
+        return (this._planet && this._planet.quadTreeStrategy._terrainCompletedActivated) || false;
     }
 
     /**
@@ -531,9 +547,9 @@ class Layer {
     }
 
     /**
-     * Removes from planet.
+     * Removes from a planet.
      * @public
-     * @returns {Layer} -This layer.
+     * @returns {Layer} This layer.
      */
     public remove(): this {
         let p = this._planet;
@@ -577,7 +593,7 @@ class Layer {
     /**
      * Sets layer attribution text.
      * @public
-     * @param {string} html - HTML code that represents layer attribution, it could be just a text.
+     * @param {string} html - HTML string that represents layer attribution.
      */
     public setAttribution(html: string) {
         if (this._attribution !== html) {
@@ -589,7 +605,7 @@ class Layer {
     /**
      * Gets layer attribution.
      * @public
-     * @returns {string} Layer attribution
+     * @returns {string} Layer attribution.
      */
     public getAttribution(): string {
         return this._attribution;
@@ -608,7 +624,7 @@ class Layer {
     /**
      * Gets layer height.
      * @public
-     * @returns {number} -
+     * @returns {number}
      */
     public getHeight(): number {
         return this._height;
@@ -627,14 +643,14 @@ class Layer {
     /**
      * Gets z-index.
      * @public
-     * @returns {number} -
+     * @returns {number}
      */
     public getZIndex(): number {
         return this._zIndex;
     }
 
     /**
-     * Set zIndex to the maximal value depend on other layers on the planet.
+     * Sets z-index to the maximum value relative to other layers on the planet.
      * @public
      */
     public bringToFront() {
@@ -650,24 +666,28 @@ class Layer {
     /**
      * Returns true if the layer is a base.
      * @public
-     * @returns {boolean} - Base layer flag.
+     * @returns {boolean} Base layer flag.
      */
     public isBaseLayer(): boolean {
         return this._isBaseLayer;
     }
 
     /**
-     * Sets base layer type true.
+     * Sets base layer type flag.
      * @public
      * @param {boolean} isBaseLayer -
      */
     public setBaseLayer(isBaseLayer: boolean) {
+        let isChanged = this._isBaseLayer !== isBaseLayer;
         this._isBaseLayer = isBaseLayer;
         if (this._planet) {
             if (!isBaseLayer && this._planet.baseLayer && this.isEqual(this._planet.baseLayer)) {
                 this._planet.baseLayer = null;
             }
             this._planet.updateVisibleLayers();
+        }
+        if (isChanged) {
+            this.events.dispatch(this.events.baselayerchange, this);
         }
     }
 
@@ -739,7 +759,6 @@ class Layer {
 
     protected _preLoad() {
         if (this._planet && this._preLoadZoomLevels.length) {
-
             let p = this._planet,
                 maxZoom = Math.max(...this._preLoadZoomLevels);
 
@@ -752,7 +771,7 @@ class Layer {
     /**
      * Gets layer visibility.
      * @public
-     * @returns {boolean} - Layer visibility.
+     * @returns {boolean} Layer visibility.
      */
     public getVisibility(): boolean {
         return this._visibility;
@@ -784,7 +803,7 @@ class Layer {
     /**
      * Gets layer extent.
      * @public
-     * @return {Extent} - Layer geodetic extent.
+     * @returns {Extent} Layer geodetic extent.
      */
     public getExtent(): Extent {
         return this._extent;
@@ -793,12 +812,11 @@ class Layer {
     /**
      * Gets layer web-mercator extent.
      * @public
-     * @return {Extent} - Layer extent.
+     * @returns {Extent} Layer extent.
      */
     public getExtentMerc(): Extent {
         return this._extentMerc;
     }
-
 
     /**
      * Fly extent.
@@ -850,7 +868,8 @@ class Layer {
     public _refreshFadingOpacity(minCurrZoom: number, maxCurrZoom: number) {
         let p = this._planet!;
         if (
-            this._visibility && p.getViewExtent().overlaps(this._extent) &&
+            this._visibility &&
+            p.getViewExtent().overlaps(this._extent) &&
             maxCurrZoom >= this.minZoom &&
             minCurrZoom <= this.maxZoom
         ) {
@@ -881,17 +900,14 @@ class Layer {
         this._planet?.quadTreeStrategy.clearLayerMaterial(this);
     }
 
-    public abortMaterialLoading(material: Material) {
+    public abortMaterialLoading(material: Material) {}
 
-    }
-
-    public abortLoading() {
-
-    }
+    public abortLoading() {}
 }
 
 export type LayerEventsList = [
     "visibilitychange",
+    "baselayerchange",
     "add",
     "remove",
     "mousemove",
@@ -923,19 +939,25 @@ export type LayerEventsList = [
 
 export const LAYER_EVENTS: LayerEventsList = [
     /**
-     * Triggered when layer visibility changed.
+     * Triggered when layer visibility changes.
      * @event og.Layer#visibilitychange
      */
     "visibilitychange",
 
     /**
-     * Triggered when layer has added to the planet.
+     * Triggered when layer base layer flag changes.
+     * @event og.Layer#baselayerchange
+     */
+    "baselayerchange",
+
+    /**
+     * Triggered when the layer is added to the planet.
      * @event og.Layer#add
      */
     "add",
 
     /**
-     * Triggered when layer has removed from the planet.
+     * Triggered when the layer is removed from the planet.
      * @event og.Layer#remove
      */
     "remove",
@@ -1091,4 +1113,4 @@ export const LAYER_EVENTS: LayerEventsList = [
     "touchenter"
 ];
 
-export {Layer};
+export { Layer };

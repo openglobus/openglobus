@@ -1,19 +1,35 @@
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import type {IMouseState} from "../renderer/RendererEvents";
-import {Quat} from "../math/Quat";
-import {Ray} from "../math/Ray";
-import {Sphere} from "../bv/Sphere";
-import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
-import {input} from "../input/input";
-import {Plane} from "../math/Plane";
-import {createEvents, type EventsHandler} from "../Events";
+/*
+ * Copyright 2026 Michael Gevlich
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-export type NavigationMode = "lockNorth" | "adaptive" | "free";
+import type { IControlParams } from "./Control";
+import { Control } from "./Control";
+import type { IMouseState } from "../renderer/RendererEvents";
+import { Quat } from "../math/Quat";
+import { Ray } from "../math/Ray";
+import { Sphere } from "../bv/Sphere";
+import { Vec2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
+import { input } from "../input/input";
+import { Plane } from "../math/Plane";
+import { createEvents, type EventsHandler } from "../Events";
+
+export type NavigationMode = "north" | "adaptive" | "free";
 
 export interface INavigationParams extends IControlParams {
     inertia?: number;
+    velInertia?: number;
     dragInertia?: number;
     minSlope?: number;
     mass?: number;
@@ -24,11 +40,7 @@ export interface INavigationParams extends IControlParams {
     disableTilt?: boolean;
 }
 
-export type NavigationEventsList = [
-    "drag",
-    "zoom",
-    "rotate",
-];
+export type NavigationEventsList = ["drag", "zoom", "rotate"];
 
 const NAVIGATION_EVENTS: NavigationEventsList = [
     /**
@@ -47,12 +59,16 @@ const NAVIGATION_EVENTS: NavigationEventsList = [
      * Triggered on rotate.
      * @event og.Navigation#rotate
      */
-    "rotate",
+    "rotate"
 ];
 
-const DEFAULT_VELINERTIA = 0.96;
+// Velocity inertia (0–1)
+// Lower value - camera stops faster after release
+const DEFAULT_VELINERTIA = 0.89;
 
-const DEFAULT_DRAG_INERTIA = 170;
+// Drag inertia approach smoothing
+// Lower value - camera approaches the grabbed point more slowly
+const DEFAULT_DRAG_INERTIA = 230;
 
 // Camera moves vertically (up/down) when slope is less than this threshold
 const MIN_SLOPE = 0.35;
@@ -61,7 +77,7 @@ const MIN_SLOPE = 0.35;
 const DEFAULT_POLE_THRESHOLD = 0.999;
 
 const MODE_FREE = 0;
-const MODE_LOCK_NORTH = 1;
+const MODE_NORTH = 1;
 const MODE_ADAPTIVE = 2;
 
 /**
@@ -69,20 +85,20 @@ const MODE_ADAPTIVE = 2;
  * @class
  * @extends {Control}
  * @param {INavigationParams} [options] - Navigation options:
- * @param {NavigationMode} [options.mode] - Navigation mode: "lockNorth" (keeps north fixed), "adaptive" (default, auto-detects arc mode), "free" (arc rotation mode)
+ * @param {NavigationMode} [options.mode] - Navigation mode: "north" (keeps north fixed), "adaptive" (default, auto-detects arc mode), "free" (arc rotation mode)
  * @param {number} [options.inertia] - inertia factor
+ * @param {number} [options.velInertia] - base velocity inertia factor. Default is 0.89
  * @param {number} [options.dragInertia] - drag inertia
  * @param {number} [options.mass] - camera mass, affects velocity. Default is 1
  * @param {number} [options.minSlope] - minimal slope for vertical camera movement. Default is 0.35
  * @param {number} [options.poleThreshold] - Vertical rotation is reduced when camera is close to poles
  * @param {boolean} [options.disableRotation] - Disables horizontal rotation controls (right mouse button and touchpad). Default is false
  * @param {boolean} [options.disableTilt] - Disables vertical tilt controls (right mouse button and touchpad). Default is false
- * @fires og.Navigation#drag
- * @fires og.Navigation#zoom
- * @fires og.Navigation#rotate
+ * @fires drag
+ * @fires zoom
+ * @fires rotate
  */
 export class Navigation extends Control {
-
     public force: Vec3;
     public force_h: number;
     public force_v: number;
@@ -145,13 +161,10 @@ export class Navigation extends Control {
 
     protected _isTouchPad: boolean;
 
+    protected _defaultVelInertia: number;
     protected _velInertia: number;
 
     protected _hold: boolean = false;
-
-    //protected _prevVel: Vec3 = new Vec3();
-
-    //protected _screenPosIsChanged: boolean = true;
 
     protected _rotHDir: number;
     protected _rotVDir: number;
@@ -176,15 +189,16 @@ export class Navigation extends Control {
         this.vel_roll = 0;
         this.force_roll = 0;
 
-        this.mass = options.mass != undefined ? options.mass : 1;
-        this.inertia = options.inertia != undefined ? options.inertia : 1;
-        this._velInertia = DEFAULT_VELINERTIA;
-        this.minSlope = options.minSlope != undefined ? options.minSlope : MIN_SLOPE;
-        this.dragInertia = options.dragInertia != undefined ? options.dragInertia : DEFAULT_DRAG_INERTIA;
-        this.zoomSpeed = options.zoomSpeed != undefined ? options.zoomSpeed : 1;
-        this.poleThreshold = options.poleThreshold != undefined ? options.poleThreshold : DEFAULT_POLE_THRESHOLD;
-        this.disableRotation = options.disableRotation != undefined ? options.disableRotation : false;
-        this.disableTilt = options.disableTilt != undefined ? options.disableTilt : false;
+        this.mass = options.mass ?? 1;
+        this.inertia = options.inertia ?? 1;
+        this._defaultVelInertia = options.velInertia ?? DEFAULT_VELINERTIA;
+        this._velInertia = this._defaultVelInertia;
+        this.minSlope = options.minSlope ?? MIN_SLOPE;
+        this.dragInertia = options.dragInertia ?? DEFAULT_DRAG_INERTIA;
+        this.zoomSpeed = options.zoomSpeed ?? 1;
+        this.poleThreshold = options.poleThreshold ?? DEFAULT_POLE_THRESHOLD;
+        this.disableRotation = options.disableRotation ?? false;
+        this.disableTilt = options.disableTilt ?? false;
 
         this._lookPos = undefined;
         this._grabbedPoint = null;
@@ -218,7 +232,7 @@ export class Navigation extends Control {
 
         this._freeMode = false;
 
-        this.mode = this._modeToNumber(options.mode || "adaptive");
+        this.mode = this._modeToNumber(options.mode ?? "adaptive");
     }
 
     override oninit() {
@@ -279,7 +293,7 @@ export class Navigation extends Control {
 
     public _onShiftFree = () => {
         this._shiftBusy = false;
-    }
+    };
 
     private _onCameraFly = () => {
         this.stop();
@@ -293,7 +307,7 @@ export class Navigation extends Control {
             }
             this._onRDown(e);
         }
-    }
+    };
 
     protected _onMouseEnter = (e: IMouseState) => {
         const renderEvents = this.renderer!.events;
@@ -307,14 +321,14 @@ export class Navigation extends Control {
         } else {
             this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
         }
-    }
+    };
 
     protected _onMouseLeave = () => {
         if (this.renderer!.events.mouseState.leftButtonDown) {
             this.vel.scale(0);
         }
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
-    }
+    };
 
     protected _onRHold = (e: IMouseState) => {
         if (this.disableRotation && this.disableTilt) {
@@ -331,12 +345,10 @@ export class Navigation extends Control {
 
             // temporary fix
             let hdg = this.planet!.camera.getHeading();
-            this._freeMode = false;
-            if (!isNaN(hdg) && (hdg > 45 && hdg < 340)) {
-                this._freeMode = true;
-            }
+
+            this._freeMode = !isNaN(hdg) && hdg > 45 && hdg < 340;
         }
-    }
+    };
 
     protected _handleRotation() {
         if (this.disableRotation && this.disableTilt) {
@@ -362,11 +374,36 @@ export class Navigation extends Control {
                 let d_v_v = this.vel_v * this.dt;
                 cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
             }
+
+            // Ortho: keep `focusDistance = |altitude|` invariant during tilt.
+            // `rotateVertical` orbits eye around the pivot preserving
+            // `dist(eye, pivot)`, but altitude over terrain changes. Slide eye
+            // along the picking ray (`-forward` in ortho) so that altitude
+            // returns to `focusDistance`. This preserves scale and keeps the
+            // pivot under the same screen pixel (parallel rays).
+            if (cam.isOrthographic && this._targetRotationPoint) {
+                const preFocus = cam.focusDistance;
+                cam.checkTerrainCollision();
+                const alt = Math.abs(cam.getAltitude());
+                if (preFocus > 0 && alt > 0) {
+                    const fwd = cam.getForward();
+                    const n = cam.eye.getNormal();
+                    const cosT = -fwd.dot(n);
+                    if (cosT > 1e-3) {
+                        const s = (preFocus - alt) / cosT;
+                        if (Math.abs(s) > 1e-6) {
+                            cam.eye.addA(fwd.scaleTo(-s));
+                            cam.update();
+                        }
+                    }
+                }
+            }
+
             this.events.dispatch(this.events.rotate, this);
             this._curPitch = cam.getPitch();
             this._curYaw = cam.getYaw();
             this._curRoll = cam.getRoll();
-            this._velInertia = DEFAULT_VELINERTIA;
+            this._velInertia = this._defaultVelInertia;
         }
     }
 
@@ -387,11 +424,10 @@ export class Navigation extends Control {
                 this._tRad = this.planet.camera.eye.distance(tp);
             }
         }
-    }
+    };
 
     protected _getTargetPoint(p: Vec2): Vec3 | null {
         if (this.planet) {
-
             if (this.planet.camera.isOrthographic) {
                 return this.renderer!.getCartesianFromPixel(p) || null;
             }
@@ -407,7 +443,6 @@ export class Navigation extends Control {
 
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.planet) {
-
             this._targetRotationPoint = null;
             this._targetDragPoint = null;
 
@@ -417,31 +452,11 @@ export class Navigation extends Control {
             let cam = this.planet.camera;
 
             if (cam.isOrthographic) {
-
-                //
-                //@todo make map coordinates under the pointer
-                //
-
-                sx = this.renderer!.handler.getWidth() * 0.5;
-                sy = this.renderer!.handler.getHeight() * 0.5;
-
                 let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
                 if (!_targetZoomPoint) return;
 
                 this._targetZoomPoint = _targetZoomPoint;
                 this._grabbedSphere.radius = this._targetZoomPoint.length();
-
-                let zoomDist = cam.eye.distance(_targetZoomPoint);//this.renderer!.getDistanceFromPixel(new Vec2(sx, sy))!;
-
-                let dist = zoomDist;
-                let p1 = new Vec3();
-                let dir = cam.unproject(sx, sy, dist, p1);
-
-                const p0 = p1.sub(dir.scaleTo(dist));
-                _targetZoomPoint = new Ray(p0, dir).hitSphere(this._grabbedSphere);
-                if (!_targetZoomPoint) return;
-
-                this._targetZoomPoint = _targetZoomPoint;
             } else {
                 let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
                 if (!_targetZoomPoint) return;
@@ -473,13 +488,18 @@ export class Navigation extends Control {
             }
 
             let dir = this._targetZoomPoint.sub(cam.eye);
-            if (dir.length() > 6000 && this._wheelDirection > 0 && cam.eye.getNormal().negate().dot(dir.normalize()) < 0.3) {
+            if (
+                dir.length() > 6000 &&
+                this._wheelDirection > 0 &&
+                cam.eye.getNormal().negate().dot(dir.normalize()) < 0.3
+            ) {
                 scale = 4.3;
             }
 
             let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
 
-            this.force = (e.direction.scale(this._wheelDirection))
+            this.force = e.direction
+                .scale(this._wheelDirection)
                 .normalize()
                 .scale(this._wheelDirection < 0 ? dist * 1.3 : dist)
                 .scale(this.zoomSpeed);
@@ -488,13 +508,12 @@ export class Navigation extends Control {
 
             this.force_roll = this._curRoll;
         }
-    }
+    };
 
     protected _onLDown = (e: IMouseState) => {
-
         this.stop();
 
-        this._targetRotationPoint = null
+        this._targetRotationPoint = null;
         this._targetZoomPoint = null;
 
         if (!this.planet) return;
@@ -525,15 +544,13 @@ export class Navigation extends Control {
         this._curRoll = this.planet.camera.getRoll();
 
         this._currScreenPos.copy(e.pos);
-    }
+    };
 
     protected _onLHold = (e: IMouseState) => {
         if (this._grabbedPoint && this.planet) {
-
             let cam = this.planet.camera;
 
             if (cam.isOrthographic) {
-
                 const dist = this._grabbedDist;
                 const p1 = new Vec3();
                 const dir = cam.unproject(e.x, e.y, dist, p1);
@@ -554,9 +571,7 @@ export class Navigation extends Control {
 
                 let newEye = rot.mulVec3(cam.eye);
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
-
             } else if (cam.slope > this.minSlope) {
-
                 // Need distance for orthographic camera
                 this._grabbedDist = cam.eye.distance(this._grabbedPoint);
                 let dir = cam.unproject(e.x, e.y, this._grabbedDist);
@@ -576,13 +591,12 @@ export class Navigation extends Control {
                         this._grabbedPoint.getNormal()
                     );
                 } else {
-
-
                     let upProj = Vec3.NORTH;
 
                     // Calculate angle along the projected up axis
-                    let _a = Math.acos(_targetDragPoint.dot(upProj) / this._grabbedSphere.radius)
-                        - Math.acos(this._grabbedPoint.dot(upProj) / this._grabbedSphere.radius);
+                    let _a =
+                        Math.acos(_targetDragPoint.dot(upProj) / this._grabbedSphere.radius) -
+                        Math.acos(this._grabbedPoint.dot(upProj) / this._grabbedSphere.radius);
 
                     // Reduce vertical rotation when camera is close to poles (only when moving towards pole)
                     let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
@@ -599,22 +613,20 @@ export class Navigation extends Control {
                     let grabbedProj = Vec3.proj_b_to_plane(this._grabbedPoint, upProj);
 
                     // Calculate horizontal rotation around upProj axis
-                    let _hRot = Quat.getRotationBetweenVectors(
-                        targetProj.getNormal(), grabbedProj.getNormal());
+                    let _hRot = Quat.getRotationBetweenVectors(targetProj.getNormal(), grabbedProj.getNormal());
 
                     rot = _hRot.mul(_vRot);
                 }
 
                 let newEye = rot.mulVec3(cam.eye);
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
-
             } else {
                 let p0 = this._grabbedPoint,
                     p1 = Vec3.add(p0, cam.getRight()),
                     p2 = Vec3.add(p0, p0.getNormal());
 
                 let px = new Vec3();
-                new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px);
+                e.ray.hitPlaneRes(Plane.fromPoints(p0, p1, p2), px);
                 let newEye = cam.eye.add(px.subA(p0).negate());
                 this.force = newEye.sub(cam.eye).scale(this.dragInertia);
                 this._targetDragPoint = px;
@@ -623,21 +635,20 @@ export class Navigation extends Control {
             this.vel.set(0.0, 0.0, 0.0);
 
             if (!this._currScreenPos.equal(e.pos)) {
-                //this._screenPosIsChanged = true;
                 this._currScreenPos.copy(e.pos);
             }
 
             this._hold = true;
         }
-    }
+    };
 
     protected _onLUp = (e: IMouseState) => {
         this._hold = false;
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
-    }
+    };
 
     public get freeMode(): boolean {
-        if (this.mode === MODE_LOCK_NORTH) {
+        if (this.mode === MODE_NORTH) {
             return false;
         }
         if (this.mode === MODE_FREE) {
@@ -652,8 +663,8 @@ export class Navigation extends Control {
 
     protected _modeToNumber(mode: NavigationMode): number {
         switch (mode) {
-            case "lockNorth":
-                return MODE_LOCK_NORTH;
+            case "north":
+                return MODE_NORTH;
             case "free":
                 return MODE_FREE;
             case "adaptive":
@@ -662,44 +673,92 @@ export class Navigation extends Control {
         }
     }
 
+    protected _getSurfaceDragAxes(eyeNorm: Vec3, fallbackAxis: Vec3): { north: Vec3; east: Vec3 } | null {
+        const eps = 1e-12;
+
+        let north = Vec3.proj_b_to_plane(Vec3.NORTH, eyeNorm);
+        if (north.length2() < eps) {
+            north = Vec3.proj_b_to_plane(fallbackAxis, eyeNorm);
+            if (north.length2() < eps) {
+                return null;
+            }
+        }
+        north.normalize();
+
+        let east = north.cross(eyeNorm);
+        if (east.length2() < eps) {
+            return null;
+        }
+        east.normalize();
+        north = eyeNorm.cross(east).normalize();
+
+        return { north, east };
+    }
+
+    protected _transportDragInertiaVelocity(
+        velocity: Vec3,
+        fromEyeNorm: Vec3,
+        toEyeNorm: Vec3,
+        fallbackAxis: Vec3
+    ): Vec3 | null {
+        const fromAxes = this._getSurfaceDragAxes(fromEyeNorm, fallbackAxis);
+        const toAxes = this._getSurfaceDragAxes(toEyeNorm, fallbackAxis);
+        if (!fromAxes || !toAxes) {
+            return null;
+        }
+
+        const northVel = velocity.dot(fromAxes.north);
+        const eastVel = velocity.dot(fromAxes.east);
+
+        return toAxes.north.scaleTo(northVel).addA(toAxes.east.scaleTo(eastVel));
+    }
+
     protected _handleDrag() {
         if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.1) {
-            this._velInertia = DEFAULT_VELINERTIA;
+            this._velInertia = this._defaultVelInertia;
             let cam = this.planet!.camera;
 
-            // if (Math.abs(cam.eyeNorm.dot(Vec3.NORTH)) > 0.9) {
-            //     this.fixedUp = false;
-            // }
-            //
-            // if (!this._screenPosIsChanged) {
-            //     if (this.vel.length() > this._prevVel.length()) {
-            //         this.fixedUp = false;
-            //     }
-            // }
-            // this._screenPosIsChanged = false;
-            // this._prevVel.copy(this.vel);
-
             if (cam.slope > this.minSlope) {
-                let d_v = this.vel.scaleTo(this.dt);
-                let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
+                const dt = this.dt;
+                const startEyeNorm = cam.eyeNorm;
+                let d_v = this.vel.scaleTo(dt);
+                let d_s = Vec3.proj_b_to_plane(d_v, startEyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
+                const newEyeNorm = newEye.getNormal();
 
                 if (this.freeMode) {
-                    let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
+                    let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEyeNorm);
                     cam.rotate(rot);
                     cam.eye.copy(newEye);
                 } else {
+                    let inertiaDamping = 1.0;
+
                     // Check if newEye exceeds pole threshold
-                    let newNorthProximity = newEye.getNormal().dot(Vec3.NORTH);
+                    let newNorthProximity = newEyeNorm.dot(Vec3.NORTH);
                     let northProximity = cam.eyeNorm.dot(Vec3.NORTH);
-                    if ((newNorthProximity > northProximity && newNorthProximity >= this.poleThreshold) ||
-                        (newNorthProximity < northProximity && newNorthProximity <= -this.poleThreshold)) {
-                        this.vel.scale(0.8);
+                    if (
+                        (newNorthProximity > northProximity && newNorthProximity >= this.poleThreshold) ||
+                        (newNorthProximity < northProximity && newNorthProximity <= -this.poleThreshold)
+                    ) {
+                        inertiaDamping = 0.8;
                     }
 
                     cam.eye.copy(newEye);
                     this._corrRoll();
                     cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+
+                    const transportedVel = this._transportDragInertiaVelocity(
+                        this.vel,
+                        startEyeNorm,
+                        newEyeNorm,
+                        cam.getUp()
+                    );
+                    if (transportedVel) {
+                        this.vel.copy(transportedVel);
+                    }
+                    if (inertiaDamping !== 1.0) {
+                        this.vel.scale(inertiaDamping);
+                    }
                 }
             } else {
                 let d_v = this.vel.scaleTo(this.dt);
@@ -717,15 +776,14 @@ export class Navigation extends Control {
     protected _corrRoll() {
         if (this.planet!.camera.slope < 0.5) {
             this._curRoll -= this.vel_roll * this.dt;
-            if (this._curRoll < 0.01 * Math.PI / 180) {
-                this._curRoll = 0.01 * Math.PI / 180;
+            if (this._curRoll < (0.01 * Math.PI) / 180) {
+                this._curRoll = (0.01 * Math.PI) / 180;
             }
         }
     }
 
     protected _handleZoom() {
         if (this._targetZoomPoint && this.vel.length() > 0.1) {
-
             // Common
             let cam = this.planet!.camera;
             let a = this._targetZoomPoint;
@@ -766,43 +824,54 @@ export class Navigation extends Control {
             cam.rotate(rot);
 
             if (!this.freeMode) {
-
                 this._corrRoll();
-                // restore camera direction
+                // restore camera direction — keeps north up at the NEW eye location
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
 
                 cam.update();
-                let dirCurr = cam.unproject2v(this._currScreenPos, cam.eye.distance(this._targetZoomPoint));
-                let dirNew = a.sub(cam.eye).normalize();
 
-                let px0 = new Vec3();
-                let px1 = new Vec3();
-                let pl = Plane.fromPoints(a, a.add(cam.getUp()), a.add(cam.getRight()));
+                if (!cam.isOrthographic) {
+                    let dirCurr = cam.unproject2v(this._currScreenPos, cam.eye.distance(this._targetZoomPoint));
+                    let dirNew = a.sub(cam.eye).normalize();
 
-                new Ray(cam.eye, dirCurr).hitPlaneRes(pl, px0);
-                new Ray(cam.eye, dirNew).hitPlaneRes(pl, px1);
+                    let px0 = new Vec3();
+                    let px1 = new Vec3();
+                    let pl = Plane.fromPoints(a, a.add(cam.getUp()), a.add(cam.getRight()));
 
-                let dp = px1.sub(px0);
-                cam.eye = cam.eye.add(dp);
+                    new Ray(cam.eye, dirCurr).hitPlaneRes(pl, px0);
+                    new Ray(cam.eye, dirNew).hitPlaneRes(pl, px1);
 
-                // Looks like it helps to fix unpredictable camera loose focus wheb zoomOut
+                    let dp = px1.sub(px0);
+                    cam.eye = cam.eye.add(dp);
+                }
+
+                // Looks like it helps to fix unpredictable camera loose focus when zoomOut
                 this._corrRoll();
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
-
-                // ver.2
-                // let px0 = new Ray(cam.eye, dirCurr).hitSphere(this._grabbedSphere)!;
-                // let px1 = new Ray(cam.eye, dirNew).hitSphere(this._grabbedSphere)!;
             }
 
             cam.checkTerrainCollision();
 
             if (cam.isOrthographic) {
-                //
-                //@todo make map coordinates under the pointer
-                //
                 let alt = cam.getAltitude();
                 if (alt) {
                     cam.focusDistance = Math.abs(alt);
+                    const w2 = cam.width * 0.5;
+                    const h2 = cam.height * 0.5;
+                    const px = (this._currScreenPos.x - w2) / w2;
+                    const py = -(this._currScreenPos.y - h2) / h2;
+                    const f = cam.frustums[0];
+                    const Wx = 0.5 * (f.right - f.left);
+                    const Wy = 0.5 * (f.top - f.bottom);
+                    const offCursor = cam
+                        .getRight()
+                        .scaleTo(Wx * px)
+                        .addA(cam.getUp().scaleTo(Wy * py));
+                    const fwd = cam.getForward();
+                    const eyeToA = a.sub(cam.eye);
+                    const aLat = eyeToA.sub(fwd.scaleTo(fwd.dot(eyeToA)));
+                    cam.eye.addA(aLat.subA(offCursor));
+                    cam.update();
                 }
             }
         }
@@ -861,11 +930,10 @@ export class Navigation extends Control {
         this.vel.set(0, 0, 0);
         this.vel_h = 0;
         this.vel_v = 0;
-        this._velInertia = DEFAULT_VELINERTIA;
+        this._velInertia = this._defaultVelInertia;
         this._targetZoomPoint = null;
         this._grabbedPoint = null;
         this._targetRotationPoint = null;
         this._targetDragPoint = null;
     }
 }
-

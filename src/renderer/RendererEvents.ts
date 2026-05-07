@@ -1,14 +1,15 @@
-import {Events} from "../Events";
-import type {EventsHandler, EventCallback} from "../Events";
-import {input} from "../input/input";
-import {KeyboardHandler} from "../input/KeyboardHandler";
-import {MouseHandler} from "../input/MouseHandler";
-import type {MouseHandlerEvent, MouseEventExt} from "../input/MouseHandler";
-import {Renderer} from "./Renderer";
-import {PointerHandler, type PointerEventExt} from "../input/PointerHandler";
-import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
-import type {NumberArray3} from "../math/Vec3";
+import { Events } from "../Events";
+import type { EventsHandler, EventCallback } from "../Events";
+import { input } from "../input/input";
+import { KeyboardHandler } from "../input/KeyboardHandler";
+import { MouseHandler } from "../input/MouseHandler";
+import type { MouseHandlerEvent, MouseEventExt } from "../input/MouseHandler";
+import { Renderer } from "./Renderer";
+import { PointerHandler, type PointerEventExt } from "../input/PointerHandler";
+import { Vec2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
+import type { NumberArray3 } from "../math/Vec3";
+import { Ray } from "../math/Ray";
 
 export type RendererEventsHandler = RendererEvents & EventsHandler<RendererEventsType>;
 
@@ -20,7 +21,10 @@ export type RendererEventsType = [
     "projchanged",
     "changerelativecenter",
     "draw",
-    "drawtransparent",
+    "forwardpass",
+    "postforwardpass",
+    "transparentpass",
+    "gbufferpass",
     "postdraw",
     "resize",
     "resizeend",
@@ -71,9 +75,15 @@ export interface IBaseInputState {
     /** Previous touch X coordinate. */
     prev_x: number;
     /** Previous touch Y coordinate. */
-    prev_y: number,
+    prev_y: number;
     /** Screen touch position world direction. */
     direction: Vec3;
+    /**
+     * World-space picking ray.
+     * Perspective: origin is camera.eye.
+     * Orthographic: origin is per-pixel on the view plane, direction is camera forward.
+     */
+    ray: Ray;
     /** Current touched(picking) object. */
     pickingObject: any | null;
     /** Renderer instance. */
@@ -115,9 +125,9 @@ export interface IMouseState extends IBaseInputState {
     middleButtonClick: boolean;
     /** Mouse has just stopped now. */
     justStopped: boolean;
-    /** Mose double click delay response time.*/
+    /** Mouse double-click delay response time. */
     doubleClickDelay: number;
-    /** Mose click delay response time.*/
+    /** Mouse click delay response time. */
     clickDelay: number;
     /** Mouse wheel. */
     wheelDelta: number;
@@ -135,9 +145,9 @@ export interface ITouchState extends IBaseInputState {
     touchCancel: boolean;
     /** Touched twice.*/
     doubleTouch: boolean;
-    /** Double touching responce delay.*/
+    /** Double-touch response delay. */
     doubleTouchDelay: number;
-    /** Double touching responce radius in screen pixels.*/
+    /** Double-touch response radius in screen pixels. */
     doubleTouchRadius: number;
     /** Currently touching.*/
     touching: boolean;
@@ -238,7 +248,6 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     protected _entityPickingEventsActive: boolean;
 
     constructor(renderer: Renderer) {
-
         super(RENDERER_EVENTS);
 
         this.renderer = renderer;
@@ -264,6 +273,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             prev_x: 0,
             prev_y: 0,
             direction: new Vec3(),
+            ray: new Ray(),
             leftButtonUp: false,
             rightButtonUp: false,
             middleButtonUp: false,
@@ -309,6 +319,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             prev_x: 0,
             prev_y: 0,
             direction: new Vec3(),
+            ray: new Ray(),
             sys: null,
             pickingObject: null,
             renderer: renderer
@@ -337,11 +348,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
     public pointerEvent(): boolean {
         let ms = this.mouseState;
-        return (
-            ms.moving ||
-            ms.justStopped ||
-            ms.wheelDelta !== 0
-        )
+        return ms.moving || ms.justStopped || ms.wheelDelta !== 0;
     }
 
     public get active(): boolean {
@@ -359,17 +366,14 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
      */
     public handleEvents() {
         if (this._active) {
-            this.mouseState.direction = this.renderer.activeCamera!.unproject(
-                this.mouseState.x,
-                this.mouseState.y
-            );
+            let cam = this.renderer.activeCamera!;
+            cam.getRay(this.mouseState.x, this.mouseState.y, this.mouseState.ray);
+            this.mouseState.direction = this.mouseState.ray.direction;
             //
             // TODO: Replace in some other place with a thought that we do
             // not need to make unproject when we do not make touching
-            this.touchState.direction = this.renderer.activeCamera!.unproject(
-                this.touchState.x,
-                this.touchState.y
-            );
+            cam.getRay(this.touchState.x, this.touchState.y, this.touchState.ray);
+            this.touchState.direction = this.touchState.ray.direction;
 
             this._keyboardHandler.handleEvents();
             this.handleMouseEvents();
@@ -378,7 +382,13 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    public override on(name: string, p0: EventCallback | number, p1?: number | EventCallback, p2?: any, keyPriority?: number) {
+    public override on(
+        name: string,
+        p0: EventCallback | number,
+        p1?: number | EventCallback,
+        p2?: any,
+        keyPriority?: number
+    ) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
             this._keyboardHandler.addEvent(name, p0 as number, p1 as EventCallback, p2, keyPriority);
         } else {
@@ -437,21 +447,21 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
     public updateButtonsStates(buttons: number) {
         let ms = this.mouseState;
-        if ((buttons & LB_M) && ms.leftButtonDown) {
+        if (buttons & LB_M && ms.leftButtonDown) {
             ms.leftButtonDown = true;
         } else {
             ms.leftButtonHold = false;
             ms.leftButtonDown = false;
         }
 
-        if ((buttons & RB_M) && ms.rightButtonDown) {
+        if (buttons & RB_M && ms.rightButtonDown) {
             ms.rightButtonDown = true;
         } else {
             ms.rightButtonHold = false;
             ms.rightButtonDown = false;
         }
 
-        if ((buttons & MB_M) && ms.middleButtonDown) {
+        if (buttons & MB_M && ms.middleButtonDown) {
             ms.middleButtonDown = true;
         } else {
             ms.middleButtonHold = false;
@@ -460,7 +470,6 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     }
 
     protected onMouseMove(sys: MouseEvent, event?: MouseHandlerEvent) {
-
         let ms = this.mouseState;
         this.updateButtonsStates(sys.buttons);
         ms.sys = sys;
@@ -693,8 +702,8 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         ts.sys = event;
         ts.moving = true;
 
-        let dX = ts.x - ts.prev_x
-        let dY = ts.y - ts.prev_y
+        let dX = ts.x - ts.prev_x;
+        let dY = ts.y - ts.prev_y;
         if (Math.abs(dX) > 9 || Math.abs(dY) > 9) {
             this._dblTchBegins = 0;
             this._oneTouchStart = false;
@@ -719,14 +728,23 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
                     ts.pickingObject = co;
                     pe && pe.dispatch(pe.touchleave, ts);
                 }
-                _currPickingColor[0] = _currPickingColor[1] = _currPickingColor[2] = _currPickingColor[3] =
-                    _prevPickingColor[0] = _prevPickingColor[1] = _prevPickingColor[2] = _prevPickingColor[3] =
-                        _tempCurrPickingColor[0] = _tempCurrPickingColor[1] = _tempCurrPickingColor[2] = _tempCurrPickingColor[3] = 0.0;
+                _currPickingColor[0] =
+                    _currPickingColor[1] =
+                    _currPickingColor[2] =
+                    _currPickingColor[3] =
+                    _prevPickingColor[0] =
+                    _prevPickingColor[1] =
+                    _prevPickingColor[2] =
+                    _prevPickingColor[3] =
+                    _tempCurrPickingColor[0] =
+                    _tempCurrPickingColor[1] =
+                    _tempCurrPickingColor[2] =
+                    _tempCurrPickingColor[3] =
+                        0.0;
             }
         }
 
         if (this._isMouseInside && !(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
-
             let r = this.renderer;
             let c = _currPickingColor,
                 p = _prevPickingColor,
@@ -756,7 +774,6 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
             //object is changed
             if (c[0] !== p[0] || c[1] !== p[1] || c[2] !== p[2]) {
-
                 //current is black
                 if (ISBLACK(c)) {
                     let po = r.getPickingObjectArr<any>(p);
@@ -1025,207 +1042,225 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 const RENDERER_EVENTS: RendererEventsType = [
     /**
      * Triggered when camera projection is changed
-     * @event og.RendererEvents#projchanged
+     * @event projchanged
      */
     "projchanged",
 
     /**
-     * Triggered when relative center is changed
-     * @event og.RendererEvents#changerelativecenter
+     * Triggered when a relative center is changed
+     * @event changerelativecenter
      */
     "changerelativecenter",
 
     /**
-     * Triggered before scene frame is rendered(before render nodes).
-     * @event og.RendererEvents#draw
+     * Triggered before the scene frame is rendered (before render nodes).
+     * @event draw
      */
     "draw",
 
     /**
-     * Triggered after all transparent object are drawn
-     * @event og.RendererEvents#drawtransparent
+     * Triggered for forward pass
+     * @event forwardpass
      */
-    "drawtransparent",
+    "forwardpass",
 
     /**
-     * Triggered after scene frame is rendered(after render nodes).
-     * @event og.RendererEvents#postdraw
+     * Triggered after all
+     * @event forwardpass
+     */
+    "postforwardpass",
+
+    /**
+     *  Triggered for WOIT (transparency) pass
+     *  @event transparentpass
+     */
+    "transparentpass",
+
+    /**
+     * Triggered for deferred opaque geometry pass
+     * @event gbufferpass
+     */
+    "gbufferpass",
+
+    /**
+     * Triggered after a scene frame is rendered (after render nodes).
+     * @event postdraw
      */
     "postdraw",
 
     /**
-     * Triggered when screen is resized.
-     * @event og.RendererEvents#resize
+     * Triggered when the screen is resized.
+     * @event resize
      */
     "resize",
 
     /**
-     * Triggered when screen is resized.
-     * @event og.RendererEvents#resizeend
+     * Triggered when the screen is resized.
+     * @event resizeend
      */
     "resizeend",
 
     /**
      * Mouse enters the work screen
-     * @event og.RendererEvents#mouseenter
+     * @event mouseenter
      */
     "mouseenter",
 
     /**
      * Mouse leaves the work screen
-     * @event og.RendererEvents#mouseleave
+     * @event mouseleave
      */
     "mouseleave",
 
     /**
      * Mouse is moving.
-     * @event og.RendererEvents#mousemove
+     * @event mousemove
      */
     "mousemove",
 
     /**
      * Mouse is just stopped.
-     * @event og.RendererEvents#mousestop
+     * @event mousestop
      */
     "mousestop",
 
     /**
      * Mouse left button clicked.
-     * @event og.RendererEvents#lclick
+     * @event lclick
      */
     "lclick",
 
     /**
      * Mouse right button clicked.
-     * @event og.RendererEvents#rclick
+     * @event rclick
      */
     "rclick",
 
     /**
      * Mouse middle button clicked.
-     * @event og.RendererEvents#mclick
+     * @event mclick
      */
     "mclick",
 
     /**
-     * Mouse left button double click.
-     * @event og.RendererEvents#ldblclick
+     * Mouse left button double-click.
+     * @event ldblclick
      */
     "ldblclick",
 
     /**
      * Mouse right button double click.
-     * @event og.RendererEvents#rdblclick
+     * @event rdblclick
      */
     "rdblclick",
 
     /**
      * Mouse middle button double click.
-     * @event og.RendererEvents#mdblclick
+     * @event mdblclick
      */
     "mdblclick",
 
     /**
-     * Mouse left button up(stop pressing).
-     * @event og.RendererEvents#lup
+     * Mouse left button up (stop pressing).
+     * @event lup
      */
     "lup",
 
     /**
-     * Mouse right button up(stop pressing).
-     * @event og.RendererEvents#rup
+     * Mouse the right button up (stop pressing).
+     * @event rup
      */
     "rup",
 
     /**
-     * Mouse middle button up(stop pressing).
-     * @event og.RendererEvents#mup
+     * Mouse the middle button up (stop pressing).
+     * @event mup
      */
     "mup",
 
     /**
-     * Mouse left button is just pressed down(start pressing).
-     * @event og.RendererEvents#ldown
+     * Mouse left button is just pressed down (start pressing).
+     * @event ldown
      */
     "ldown",
 
     /**
-     * Mouse right button is just pressed down(start pressing).
-     * @event og.RendererEvents#rdown
+     * Mouse right button is just pressed down (start pressing).
+     * @event rdown
      */
     "rdown",
 
     /**
-     * Mouse middle button is just pressed down(start pressing).
-     * @event og.RendererEvents#mdown
+     * Mouse middle button is just pressed down (start pressing).
+     * @event mdown
      */
     "mdown",
 
     /**
      * Mouse left button is pressing.
-     * @event og.RendererEvents#lhold
+     * @event lhold
      */
     "lhold",
 
     /**
      * Mouse right button is pressing.
-     * @event og.RendererEvents#rhold
+     * @event rhold
      */
     "rhold",
 
     /**
      * Mouse middle button is pressing.
-     * @event og.RendererEvents#mhold
+     * @event mhold
      */
     "mhold",
 
     /**
      * Mouse wheel is rotated.
-     * @event og.RendererEvents#mousewheel
+     * @event mousewheel
      */
     "mousewheel",
 
     /**
      * Triggered when touching starts.
-     * @event og.RendererEvents#touchstart
+     * @event touchstart
      */
     "touchstart",
 
     /**
      * Triggered when touching ends.
-     * @event og.RendererEvents#touchend
+     * @event touchend
      */
     "touchend",
 
     /**
      * Triggered when touching cancel.
-     * @event og.RendererEvents#touchcancel
+     * @event touchcancel
      */
     "touchcancel",
 
     /**
      * Triggered when touch is move.
-     * @event og.RendererEvents#touchmove
+     * @event touchmove
      */
     "touchmove",
 
     /**
      * Triggered when double touch.
-     * @event og.RendererEvents#doubletouch
+     * @event doubletouch
      */
     "doubletouch",
 
     /**
-     * Triggered when touch leaves picked object.
-     * @event og.RendererEvents#touchleave
+     * Triggered when touch leaves a picked object.
+     * @event touchleave
      */
     "touchleave",
 
     /**
-     * Triggered when touch enter picking object.
-     * @event og.RendererEvents#touchenter
+     * Triggered when touch enter picking an object.
+     * @event touchenter
      */
     "touchenter"
 ];
 
-export {RendererEvents};
+export { RendererEvents };

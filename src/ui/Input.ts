@@ -1,7 +1,7 @@
-import type {EventsHandler} from "../Events";
-import {View} from './View';
-import type {IViewParams, ViewEventsList} from './View';
-import {stringTemplate, toFixedMax} from '../utils/shared';
+import type { EventsHandler } from "../Events";
+import { View } from "./View";
+import type { IViewParams, ViewEventsList } from "./View";
+import { stringTemplate, toFixedMax } from "../utils/shared";
 
 interface IInputParams extends IViewParams {
     label?: string;
@@ -22,7 +22,6 @@ const TEMPLATE = `<div class="og-input">
     </div>`;
 
 class Input extends View<null> {
-
     public override events: EventsHandler<InputEventsList> & EventsHandler<ViewEventsList>;
 
     protected _value: string;
@@ -52,7 +51,6 @@ class Input extends View<null> {
     }
 
     public override render(params: any): this {
-
         super.render(params);
 
         this.$label = this.select(".og-input-label")!;
@@ -66,8 +64,7 @@ class Input extends View<null> {
         return this;
     }
 
-    protected _onResize = () => {
-    }
+    protected _onResize = () => {};
 
     public set value(val: string | number) {
         if (val !== this._value) {
@@ -117,11 +114,11 @@ class Input extends View<null> {
         e = e || window.event;
         e.preventDefault();
         e.stopPropagation();
-    }
+    };
 
     protected _onMouseWheelFF = (e: WheelEvent) => {
         this._onMouseWheel(e);
-    }
+    };
 
     protected _onInput = (e: Event) => {
         //@ts-ignore
@@ -130,8 +127,7 @@ class Input extends View<null> {
         e.stopPropagation();
         //@ts-ignore
         this._setValue(e.target.value);
-    }
-
+    };
 
     public override remove() {
         this._clearEvents();
@@ -149,4 +145,4 @@ class Input extends View<null> {
     }
 }
 
-export {Input}
+export { Input };

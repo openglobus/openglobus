@@ -1,15 +1,30 @@
-import {type EventsHandler, createEvents} from '../Events';
-import {Layer} from '../layer/Layer';
-import {Control, type IControlParams} from "./Control";
+/*
+ * Copyright 2026 Michael Gevlich
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { type EventsHandler, createEvents } from "../Events";
+import { Layer } from "../layer/Layer";
+import { Control, type IControlParams } from "./Control";
 
 type LayerAnimationEventsList = ["change", "idle", "play", "pause", "stop"];
 
 const LAYERANIMATION_EVENTS: LayerAnimationEventsList = ["change", "idle", "play", "pause", "stop"];
 
 interface ILayerAnimationParams extends IControlParams {
-    layers?: Layer,
-    playInterval?: number,
-    frameSize?: number,
+    layers?: Layer;
+    playInterval?: number;
+    frameSize?: number;
     repeat?: boolean;
     skipTimeout?: number;
 }
@@ -44,7 +59,7 @@ export class LayerAnimation extends Control {
 
     protected _onViewchange = () => {
         this._timeoutStart = performance.now();
-    }
+    };
 
     protected _getFramesNum(): number {
         return Math.ceil(this._layersArr.length / this._frameSize);
@@ -68,7 +83,11 @@ export class LayerAnimation extends Control {
         if (this.planet) {
             let minIndex = frameIndex * this._frameSize;
             let maxIndex = minIndex + this._frameSize;
-            for (let i = minIndex, len = maxIndex > this._layersArr.length ? this._layersArr.length : maxIndex; i < len; i++) {
+            for (
+                let i = minIndex, len = maxIndex > this._layersArr.length ? this._layersArr.length : maxIndex;
+                i < len;
+                i++
+            ) {
                 this.planet.addLayer(this._layersArr[i]);
             }
         }
@@ -78,7 +97,11 @@ export class LayerAnimation extends Control {
         if (this.planet) {
             let minIndex = frameIndex * this._frameSize;
             let maxIndex = minIndex + this._frameSize;
-            for (let i = minIndex, len = maxIndex > this._layersArr.length ? this._layersArr.length : maxIndex; i < len; i++) {
+            for (
+                let i = minIndex, len = maxIndex > this._layersArr.length ? this._layersArr.length : maxIndex;
+                i < len;
+                i++
+            ) {
                 this._layersArr[i].abortLoading();
                 this._layersArr[i].remove();
                 this._layersArr[i].setVisibility(false);
@@ -116,7 +139,7 @@ export class LayerAnimation extends Control {
         if (!isVisible) {
             this.pause();
         }
-    }
+    };
 
     public clear() {
         this.stop();
@@ -136,6 +159,7 @@ export class LayerAnimation extends Control {
                 li.setVisibility(false);
                 li.setBaseLayer(false);
                 li.opacity = 0.0;
+                li.waitForParentMaterial = false;
             }
             this._appendFrameToPlanet(0);
         }
@@ -162,7 +186,7 @@ export class LayerAnimation extends Control {
      */
     public get isIdle(): boolean {
         let currLayer = this._layersArr[this._currentIndex];
-        return currLayer && currLayer.isIdle || !currLayer;
+        return (currLayer && currLayer.isIdle) || !currLayer;
     }
 
     public get playInterval() {
@@ -199,7 +223,6 @@ export class LayerAnimation extends Control {
 
     public play() {
         if (!this.isPlaying) {
-
             if (this._currentIndex >= this._layersArr.length - 1) {
                 this.stop();
             }
@@ -211,12 +234,11 @@ export class LayerAnimation extends Control {
                 this._setCurrentIndexAsync(this._playIndex, false, false);
 
                 requestAnimationFrame(() => {
-                    if (this.isIdle || (performance.now() - this._timeoutStart > this.skipTimeout)) {
+                    if (this.isIdle || performance.now() - this._timeoutStart > this.skipTimeout) {
                         this._playIndex++;
                         this._timeoutStart = performance.now();
                     }
                 });
-
             }, this._playInterval);
 
             this.events.dispatch(this.events.play);
@@ -249,11 +271,9 @@ export class LayerAnimation extends Control {
      * and make prev layer transparent, also check previous frame index to clean up.
      */
     private _onLayerLoadend = (layer: Layer) => {
-
         let currLayer = this._layersArr[this._currentIndex];
 
         if (currLayer && currLayer.isEqual(layer)) {
-
             // BRUTE
             let currFrame = this._getFrameIndex(this._currentIndex);
             let from = currFrame * this._frameSize,
@@ -281,8 +301,7 @@ export class LayerAnimation extends Control {
 
             this.events.dispatch(this.events.idle, currLayer);
         }
-    }
-
+    };
 
     /**
      * Function sets layer index visible.
@@ -299,9 +318,7 @@ export class LayerAnimation extends Control {
      * layer remains not transparent (opacity = 1) till current layer is loading.
      */
     protected _setCurrentIndexAsync(index: number, forceVisibility: boolean = false, stopPropagation: boolean = false) {
-
         if (index != this._currentIndex && index >= 0 && index < this._layersArr.length) {
-
             let prevCurrIndex = this._currentIndex;
             this._currentIndex = index;
             this._playIndex = index;
@@ -327,13 +344,11 @@ export class LayerAnimation extends Control {
             }
 
             if (currLayer) {
-
                 currLayer.opacity = 0.0;
                 currLayer.setVisibility(true);
 
                 requestAnimationFrame(() => {
                     if (currLayer.isIdle || forceVisibility) {
-
                         currLayer.opacity = 1.0;
 
                         // If frame is changed - remove it from the planet

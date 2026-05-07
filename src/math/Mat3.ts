@@ -1,31 +1,21 @@
-import {Mat4} from "./Mat4";
-import {Vec3} from "./Vec3";
+import { Mat4 } from "./Mat4";
+import { Vec3 } from "./Vec3";
 
-export type NumberArray9 = [
-    number, number, number,
-    number, number, number,
-    number, number, number
-];
+export type NumberArray9 = [number, number, number, number, number, number, number, number, number];
 
 /**
  * Class represents a 3x3 matrix.
  * @class
  */
 export class Mat3 {
-
     /**
      * A 3x3 matrix, indexing as a column-major order array.
      * @public
      * @type {Array.<number>}
      */
-    public _m: NumberArray9 = [
-        0, 0, 0,
-        0, 0, 0,
-        0, 0, 0
-    ];
+    public _m: NumberArray9 = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    constructor() {
-    }
+    constructor() {}
 
     /**
      * Sets column-major order array matrix.
@@ -108,22 +98,17 @@ export class Mat3 {
     /**
      * Multiply to 3d vector.
      * @public
-     * @params {Vec3} p - 3d vector.
+     * @param {Vec3} p - 3D vector.
      * @returns {Vec3}
      */
     public mulVec(p: Vec3): Vec3 {
-
         let d = p.x,
             e = p.y,
             g = p.z;
 
         let m = this._m;
 
-        return new Vec3(
-            m[0] * d + m[3] * e + m[6] * g,
-            m[1] * d + m[4] * e + m[7] * g,
-            m[2] * d + m[5] * e + m[8] * g
-        );
+        return new Vec3(m[0] * d + m[3] * e + m[6] * g, m[1] * d + m[4] * e + m[7] * g, m[2] * d + m[5] * e + m[8] * g);
     }
 
     /**
@@ -132,7 +117,6 @@ export class Mat3 {
      * @returns {Mat4}
      */
     public getMat4(): Mat4 {
-
         let res = new Mat4();
         let b = res._m;
         let a = this._m;
@@ -161,7 +145,7 @@ export class Mat3 {
 /**
  * Mat3 factory.
  * @static
- * @return {Mat3}
+ * @returns {Mat3}
  */
 export function mat3(): Mat3 {
     return new Mat3();

@@ -1,10 +1,10 @@
 import * as quadTree from "../quadTree/quadTree";
-import type {EventCallback, EventsHandler} from "../Events";
-import {Layer} from "./Layer";
-import type {ILayerParams, LayerEventsList} from "./Layer";
-import {Material} from "../layer/Material";
-import type {NumberArray4} from "../math/Vec4";
-import {Planet} from "../scene/Planet";
+import type { EventCallback, EventsHandler } from "../Events";
+import { Layer } from "./Layer";
+import type { ILayerParams, LayerEventsList } from "./Layer";
+import { Material } from "../layer/Material";
+import type { NumberArray4 } from "../math/Vec4";
+import { Planet } from "../scene/Planet";
 
 type ApplyImageFunc = (material: HTMLCanvasElement | ImageBitmap | HTMLImageElement) => void;
 type DrawTileCallback = (material: Material, applyImage: ApplyImageFunc) => void;
@@ -16,47 +16,46 @@ export interface ICanvasTilesParams extends ILayerParams {
     maxNativeZoom?: number;
 }
 
-type CanvasTilesEventsList = [
-    "load",
-    "loadend"
-];
+type CanvasTilesEventsList = ["load", "loadend"];
 
 type CanvasTilesEventsType = EventsHandler<CanvasTilesEventsList> & EventsHandler<LayerEventsList>;
 
 const CANVASTILES_EVENTS: CanvasTilesEventsList = [
     /**
-     * Triggered when current tile image has loaded before rendering.
-     * @event og.layer.CanvasTiles#load
+     * Triggered when the current tile image has loaded before rendering.
+     * @event load
      */
     "load",
 
     /**
      * Triggered when all tiles have loaded or loading has stopped.
-     * @event og.layer.CanvasTiles#loadend
+     * @event loadend
      */
     "loadend"
 ];
 
 /**
- * Layer used to rendering each tile as a separate canvas object.
+ * Layer that renders each tile as a separate canvas object.
  * @class
  * @extends {Layer}
- * @param {String} [name="noname"] - Layer name.
- * @param {ICanvasTilesParams} options:
+ * @param {string} [name="noname"] - Layer name.
+ * @param {ICanvasTilesParams} options - Layer options.
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
- * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
- * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
+ * @param {number} [options.maxZoom=50] - Maximal visibility zoom level.
+ * @param {string} [options.attribution] - Layer attribution shown in the attribution area.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
+ * @param {boolean} [options.animated=false] - Re-draw ready tiles every frame.
+ * @param {number} [options.minNativeZoom=0] - Minimal zoom level where native tile drawing is allowed.
+ * @param {number} [options.maxNativeZoom=100] - Maximal zoom level where native tile drawing is allowed.
  * @param {DrawTileCallback} options.drawTile - Draw tile callback.
- * @fires EventsHandler<CanvasTilesEventsList>#load
- * @fires EventsHandler<CanvasTilesEventsList>#loadend
+ * @fires load
+ * @fires loadend
  */
 class CanvasTiles extends Layer {
-
     static MAX_REQUESTS: number = 20;
-    static __requestsCounter: number = 0
+    static __requestsCounter: number = 0;
 
     public override events: CanvasTilesEventsType;
 
@@ -73,7 +72,7 @@ class CanvasTiles extends Layer {
     protected _counter: number;
 
     /**
-     * Tile pending queue that waiting for create.
+     * Queue of pending tiles waiting to be created.
      * @protected
      * @type {Material[]}
      */
@@ -87,7 +86,6 @@ class CanvasTiles extends Layer {
     public drawTile: DrawTileCallback;
 
     protected _onLoadend_: EventCallback | null;
-
 
     constructor(name: string | null, options: ICanvasTilesParams) {
         super(name, options);
@@ -142,7 +140,7 @@ class CanvasTiles extends Layer {
     public override abortLoading() {
         this._pendingsQueue.forEach((qi: Material) => {
             this.abortMaterialLoading(qi);
-        })
+        });
         this._pendingsQueue = [];
     }
 
@@ -260,8 +258,15 @@ class CanvasTiles extends Layer {
     }
 
     public override applyMaterial(material: Material): NumberArray4 {
-        if (material.isReady) {
+        if (this.waitForParentMaterial) {
+            return this._apllyMaterialDefault(material);
+        } else {
+            return this._applyMaterialFast(material);
+        }
+    }
 
+    protected _apllyMaterialDefault(material: Material): NumberArray4 {
+        if (material.isReady) {
             // IMPORTANT!
             // Animated doesn't work withMaxNativeZoom
             // It could be fixed with call drawTile method only for parent
@@ -276,11 +281,106 @@ class CanvasTiles extends Layer {
             }
 
             return material.texOffset;
-
         } else if (material.segment.tileZoom < this.minNativeZoom) {
             material.textureNotExists();
         } else {
+            const segment = material.segment;
+            const layerId = this.__id;
 
+            if (segment.passReady) {
+                let node = segment.node;
+                let targetNode = null;
+
+                while (node) {
+                    const seg = node.segment;
+
+                    if (seg.tileZoom <= this.maxNativeZoom) {
+                        const mat = seg.materials[layerId];
+                        if (!mat || !mat.isReady) {
+                            targetNode = node;
+                        }
+                    }
+
+                    node = node.parentNode!;
+                }
+
+                if (targetNode) {
+                    const seg = targetNode.segment;
+                    let mat = seg.materials[layerId];
+                    if (!mat) {
+                        mat = seg.materials[layerId] = this.createMaterial(seg);
+                    }
+
+                    if (!mat.isReady && !mat.isLoading) {
+                        this.loadMaterial(mat);
+                    }
+                }
+            }
+
+            let pn = segment.node;
+            let psegm: Material | null = null;
+            while (pn) {
+                const pm = pn.segment.materials[layerId];
+                if (pm && pm.isReady && pm.textureExists) {
+                    psegm = pm;
+                    break;
+                }
+                pn = pn.parentNode!;
+            }
+
+            if (psegm && pn) {
+                //
+                // Animated doesn't work withMaxNativeZoom
+                //
+                if ((material.layer as CanvasTiles).animated) {
+                    requestAnimationFrame(() => {
+                        if (material.segment) {
+                            this.drawTile(material, function (canvas) {
+                                material.applyImage(canvas);
+                            });
+                        }
+                    });
+                }
+
+                material.appliedNode = pn;
+                material.appliedNodeId = pn.nodeId;
+                material.texture = psegm.texture;
+                let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+                material.texOffset[0] = segment.tileX * dZ2 - pn.segment.tileX;
+                material.texOffset[1] = segment.tileY * dZ2 - pn.segment.tileY;
+                material.texOffset[2] = dZ2;
+                material.texOffset[3] = dZ2;
+            } else {
+                material.texture = segment.planet.transparentTexture;
+                material.texOffset[0] = 0.0;
+                material.texOffset[1] = 0.0;
+                material.texOffset[2] = 1.0;
+                material.texOffset[3] = 1.0;
+            }
+        }
+
+        return material.texOffset;
+    }
+
+    protected _applyMaterialFast(material: Material): NumberArray4 {
+        if (material.isReady) {
+            // IMPORTANT!
+            // Animated doesn't work withMaxNativeZoom
+            // It could be fixed with call drawTile method only for parent
+            // material (which is rendered on the current segment material),
+            // just for one renderer frame
+            if ((material.layer as CanvasTiles).animated) {
+                requestAnimationFrame(() => {
+                    this.drawTile(material, function (canvas) {
+                        material.applyImage(canvas);
+                    });
+                });
+            }
+
+            return material.texOffset;
+        } else if (material.segment.tileZoom < this.minNativeZoom) {
+            material.textureNotExists();
+        } else {
             let segment = material.segment;
             let pn = segment.node,
                 parentTextureExists = false;
@@ -307,7 +407,6 @@ class CanvasTiles extends Layer {
                         material.textureNotExists();
                     }
                 } else if (pn.segment.tileZoom < maxNativeZoom) {
-
                     let pn = segment.node;
                     while (pn.segment.tileZoom > maxNativeZoom) {
                         pn = pn.parentNode!;
@@ -317,16 +416,13 @@ class CanvasTiles extends Layer {
                     if (pnm) {
                         !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm);
                     } else {
-                        pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(
-                            pn.segment
-                        );
+                        pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(pn.segment);
                         this.loadMaterial(pnm);
                     }
                 }
             }
 
             if (parentTextureExists) {
-
                 //
                 // Animated doesn't work withMaxNativeZoom
                 //
@@ -384,4 +480,4 @@ class CanvasTiles extends Layer {
     }
 }
 
-export {CanvasTiles};
+export { CanvasTiles };

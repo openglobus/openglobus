@@ -1,17 +1,18 @@
-import {QueueArray} from '../QueueArray';
+import { QueueArray } from "../QueueArray";
 
-export type HTMLImageElementExt =
-    HTMLImageElement
-    & { __nodeIndex?: number; atlasWidth?: number; atlasHeight?: number };
+export type HTMLImageElementExt = HTMLImageElement & {
+    __nodeIndex?: number;
+    atlasWidth?: number;
+    atlasHeight?: number;
+};
 export type ImagesCacheManagerCallback = (image: HTMLImageElementExt) => void;
 
 interface IImagesCacheRequest {
-    "src": string;
-    "success": ImagesCacheManagerCallback;
+    src: string;
+    success: ImagesCacheManagerCallback;
 }
 
 class ImagesCacheManager {
-
     public imagesCache: Record<string, HTMLImageElementExt>;
 
     protected _counter: number;
@@ -30,7 +31,7 @@ class ImagesCacheManager {
         if (this.imagesCache[src]) {
             success(this.imagesCache[src]);
         } else {
-            let req = {"src": src, "success": success};
+            let req = { src: src, success: success };
             if (this._counter >= 1) {
                 this._pendingsQueue.unshift(req);
             } else {
@@ -44,7 +45,7 @@ class ImagesCacheManager {
         const that = this;
 
         let img: HTMLImageElementExt = new Image();
-        img.crossOrigin = '';
+        img.crossOrigin = "";
         img.onload = function () {
             that.imagesCache[req.src] = img;
             img.__nodeIndex = that._imageIndexCounter++;
@@ -82,4 +83,4 @@ class ImagesCacheManager {
     }
 }
 
-export {ImagesCacheManager};
+export { ImagesCacheManager };

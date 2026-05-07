@@ -1,4 +1,4 @@
-import { Billboard } from "../../src/entity/Billboard";
+import { Billboard } from "../../src/entity/billboard/Billboard";
 
 test("Testing Billboard", () => {
     let billboard = new Billboard();

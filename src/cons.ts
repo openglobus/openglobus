@@ -3,7 +3,6 @@
  * @class
  */
 export class Cons {
-
     protected _container: HTMLElement;
     protected _visibility: boolean;
 

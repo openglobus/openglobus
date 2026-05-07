@@ -1,10 +1,10 @@
-import { Billboard } from '../../src/entity/Billboard';
+import { Billboard } from '../../src/entity/billboard/Billboard';
 import { Entity } from '../../src/entity/Entity';
 import { EntityCollection } from '../../src/entity/EntityCollection';
-import { PointCloud } from '../../src/entity/PointCloud';
-import { Polyline } from '../../src/entity/Polyline';
-import { Ray } from '../../src/entity/Ray';
-import { Strip } from '../../src/entity/Strip';
+import { PointCloud } from '../../src/entity/pointCloud/PointCloud';
+import { Polyline } from '../../src/entity/polyline/Polyline';
+import { Ray } from '../../src/entity/ray/Ray';
+import { Strip } from '../../src/entity/strip/Strip';
 import { LonLat } from '../../src/LonLat';
 import { Vec3 } from '../../src/math/Vec3';
 

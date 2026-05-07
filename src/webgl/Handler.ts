@@ -1,23 +1,42 @@
-import {BaseFramebuffer} from "./BaseFramebuffer";
-import {Clock} from "../Clock";
-import {cons} from "../cons";
-import {createEvents} from "../Events";
-import type {EventsHandler} from "../Events";
-import {getUrlParam, isEmpty} from "../utils/shared";
-import type {TypedArray} from "../utils/shared";
-import {ImageCanvas} from "../ImageCanvas";
-import {Vec2} from "../math/Vec2";
-import type {NumberArray2} from "../math/Vec2";
-import {ProgramController} from "./ProgramController";
-import {Program} from "./Program";
-import {Stack} from "../Stack";
-import {throttle} from "../utils/shared";
+/*
+ * Copyright 2026 Michael Gevlich
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { BaseFramebuffer } from "./BaseFramebuffer";
+import { Clock } from "../Clock";
+import { cons } from "../cons";
+import { createEvents } from "../Events";
+import type { EventsHandler } from "../Events";
+import { getUrlParam, isEmpty } from "../utils/shared";
+import type { TypedArray } from "../utils/shared";
+import { ImageCanvas } from "../ImageCanvas";
+import { Vec2 } from "../math/Vec2";
+import type { NumberArray2 } from "../math/Vec2";
+import { ShaderProgram } from "./ShaderProgram";
+import { Stack } from "../Stack";
+import { throttle } from "../utils/shared";
 
 export type WebGLContextExt = { type: string } & WebGL2RenderingContext;
 export type WebGLBufferExt = { numItems: number; itemSize: number } & WebGLBuffer;
 export type WebGLTextureExt = { default?: boolean } & WebGLTexture;
 export type ImageSource = HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement | HTMLVideoElement;
-type CreateTextureFunc = (image: ImageSource, internalFormat?: number | null, texParami?: number | null, texture?: WebGLTextureExt) => WebGLTextureExt | null;
+type CreateTextureFunc = (
+    image: ImageSource,
+    internalFormat?: number | null,
+    texParami?: number | null,
+    texture?: WebGLTextureExt
+) => WebGLTextureExt | null;
 
 export interface IHandlerParameters {
     anisotropy?: number;
@@ -30,18 +49,18 @@ export interface IHandlerParameters {
         antialias?: boolean;
         premultipliedAlpha?: boolean;
         preserveDrawingBuffer?: boolean;
-    },
+    };
     extensions?: string[];
     autoActivate?: boolean;
 }
 
 export interface Texture3DParams {
-    nx: string,
-    px: string,
-    py: string,
-    ny: string,
-    pz: string,
-    nz: string
+    nx: string;
+    px: string;
+    py: string;
+    ny: string;
+    pz: string;
+    nz: string;
 }
 
 export interface IDefaultTextureParams {
@@ -50,10 +69,7 @@ export interface IDefaultTextureParams {
 }
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
-const CONTEXT_TYPE = ["webgl2", "webgl"];
-
-// Maximal mipmap levels
-const MAX_LEVELS = 2;
+const CONTEXT_TYPE = "webgl2";
 
 /**
  * @typedef {"visibilitychange" | "resize"} HandlerEventType
@@ -71,8 +87,7 @@ const MAX_LEVELS = 2;
  * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: EXT_texture_filter_anisotropic.
  */
 class Handler {
-
-    protected _throttledDrawFrame: () => void
+    protected _throttledDrawFrame: () => void;
 
     /**
      * Events.
@@ -118,18 +133,18 @@ class Handler {
     public gl: WebGLContextExt | null;
 
     /**
-     * Shader program controller list.
+     * Shader program list.
      * @public
-     * @type {Record<string, ProgramController>}
+     * @type {Record<string, ShaderProgram>}
      */
-    public programs: Record<string, ProgramController>;
+    public programs: Record<string, ShaderProgram>;
 
     /**
-     * Current active shader program controller.
+     * Current active shader program.
      * @public
-     * @type {ProgramController}
+     * @type {ShaderProgram}
      */
-    public activeProgram: ProgramController | null;
+    public activeProgram: ShaderProgram | null;
 
     /**
      * Handler parameters.
@@ -192,18 +207,18 @@ class Handler {
 
     public ONCANVASRESIZE: Function | null;
 
-    public createTexture_n: CreateTextureFunc;
-    public createTexture_l: CreateTextureFunc;
-    public createTexture_mm: CreateTextureFunc;
-    public createTexture_a: CreateTextureFunc;
-
     public intersectionObserver?: IntersectionObserver;
     public resizeObserver?: ResizeObserver;
 
     protected _requestAnimationFrameId: number = 0;
+    protected _clipControlZeroToOne: boolean = false;
+    public clipControl: ((origin: number, depth: number) => void) | undefined = undefined;
+
+    protected _getMipmapLevels(width: number, height: number): number {
+        return Math.max(1, Math.floor(Math.log2(Math.max(width, height))) + 1);
+    }
 
     constructor(canvasTarget: string | HTMLCanvasElement | undefined, params: IHandlerParameters = {}) {
-
         this.events = createEvents<["visibilitychange", "resize"]>(["visibilitychange", "resize"]);
 
         this._throttledDrawFrame = this.drawFrame;
@@ -229,10 +244,10 @@ class Handler {
             anisotropy: params.anisotropy || 4,
             width: params.width || 256,
             height: params.height || 256,
-            pixelRatio: getUrlParam('og_dpi') || params.pixelRatio || 1.0,
+            pixelRatio: getUrlParam("og_dpi") || params.pixelRatio || 1.0,
             extensions: params.extensions || [],
             context: params.context || {}
-        }
+        };
 
         //this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
 
@@ -244,8 +259,7 @@ class Handler {
 
         this._initialized = false;
 
-        this._frameCallback = function () {
-        };
+        this._frameCallback = function () {};
 
         this.transparentTexture = null;
 
@@ -253,19 +267,14 @@ class Handler {
 
         this.framebufferStack = new Stack();
 
-        this.createTexture_n = this.createTexture_n_webgl2.bind(this);
-        this.createTexture_l = this.createTexture_l_webgl2.bind(this);
-        this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
-        this.createTexture_a = this.createTexture_a_webgl2.bind(this);
-
         this.createTexture = {
-            "NEAREST": this.createTexture_n,
-            "LINEAR": this.createTexture_l,
-            "MIPMAP": this.createTexture_mm,
-            "ANISOTROPIC": this.createTexture_a
+            NEAREST: this.createTexture_n.bind(this),
+            LINEAR: this.createTexture_l.bind(this),
+            MIPMAP: this.createTexture_mm.bind(this),
+            ANISOTROPIC: this.createTexture_a.bind(this)
         };
 
-        this.createTextureDefault = this.createTexture_n;
+        this.createTextureDefault = this.createTexture.NEAREST;
 
         this.ONCANVASRESIZE = null;
 
@@ -293,7 +302,8 @@ class Handler {
             if (this._canvasTarget instanceof HTMLElement) {
                 this.canvas = this._canvasTarget;
             } else {
-                this.canvas = (document.getElementById(this._canvasTarget) || document.querySelector(this._canvasTarget)) as HTMLCanvasElement;
+                this.canvas = (document.getElementById(this._canvasTarget) ||
+                    document.querySelector(this._canvasTarget)) as HTMLCanvasElement;
             }
         } else {
             this.canvas = document.createElement("canvas");
@@ -304,17 +314,14 @@ class Handler {
 
     /**
      * The return value is null if the extension is not supported, or an extension object otherwise.
-     * @param {WebGLRenderingContext | WebGL2RenderingContext | null} gl - WebGl context pointer.
+     * @param {WebGL2RenderingContext | null} gl - WebGl context pointer.
      * @param {string} name - Extension name.
      * @returns {any} -
      */
-    static getExtension(gl: WebGLRenderingContext | WebGL2RenderingContext | null, name: string): any | undefined {
-
+    static getExtension(gl: WebGL2RenderingContext | null, name: string): any | undefined {
         if (!gl) return;
-
-        let i, ext;
-        for (i in vendorPrefixes) {
-            ext = gl.getExtension(vendorPrefixes[i] + name);
+        for (let i in vendorPrefixes) {
+            let ext = gl.getExtension(vendorPrefixes[i] + name);
             if (ext) {
                 return ext;
             }
@@ -331,21 +338,9 @@ class Handler {
         let ctx: WebGLContextExt | null = null;
 
         try {
-            let urlParams = new URLSearchParams(location.search);
-            let ver = urlParams.get('og_ver');
-            if (ver) {
-                ctx = canvas.getContext(ver, contextAttributes) as WebGLContextExt;
-                if (ctx) {
-                    ctx.type = ver;
-                }
-            } else {
-                for (let i = 0; i < CONTEXT_TYPE.length; i++) {
-                    ctx = canvas.getContext(CONTEXT_TYPE[i], contextAttributes) as WebGLContextExt;
-                    if (ctx) {
-                        ctx.type = CONTEXT_TYPE[i];
-                        break;
-                    }
-                }
+            ctx = canvas.getContext(CONTEXT_TYPE, contextAttributes) as WebGLContextExt;
+            if (ctx) {
+                ctx.type = CONTEXT_TYPE;
             }
         } catch (ex) {
             cons.logErr("exception during the GL context initialization");
@@ -368,50 +363,37 @@ class Handler {
     }
 
     /**
-     * Creates empty texture.
+     * Creates an empty immutable 2D texture (WebGL2).
      * @public
-     * @param {number} [width=1] - Specifies the width of the texture image.
-     * @param {number} [height=1] - Specifies the width of the texture image.
-     * @param {string} [filter="NEAREST"] - Specifies GL_TEXTURE_MIN(MAX)_FILTER texture value.
-     * @param {string} [internalFormat="RGBA"] - Specifies the color components in the texture.
-     * @param {string} [format="RGBA"] - Specifies the format of the texel data.
-     * @param {string} [type="UNSIGNED_BYTE"] - Specifies the data type of the texel data.
-     * @param {number} [level=0] - Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
-     * @returns {WebGLTexture | null} - WebGL texture object.
+     * @param {number} [width=1] - Texture width in pixels.
+     * @param {number} [height=1] - Texture height in pixels.
+     * @param {string} [filter="NEAREST"] - GL_TEXTURE_MIN_FILTER and GL_TEXTURE_MAG_FILTER value.
+     * @param {string} [internalFormat="RGBA8"] - Sized internal format (e.g. "RGBA8", "RGBA16F", "R16F").
+     * @param {string} [param="CLAMP_TO_EDGE"] - GL_TEXTURE_WRAP_S/T value.
+     * @param {number} [levels=1] - Number of mipmap levels (immutable storage).
+     * @returns {WebGLTexture | null} - Created WebGL texture object.
      */
     public createEmptyTexture2DExt(
         width: number = 1,
         height: number = 1,
         filter: string = "NEAREST",
-        internalFormat: string = "RGBA",
-        format: string = "RGBA",
-        type: string = "UNSIGNED_BYTE",
+        internalFormat: string = "RGBA8",
         param: string = "CLAMP_TO_EDGE",
-        level: number = 0
+        levels: number = 1
     ): WebGLTexture | null {
+        const gl = this.gl as WebGL2RenderingContext;
 
-        let gl = this.gl!;
-
-        let texture = gl.createTexture();
+        const texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(
-            gl.TEXTURE_2D,
-            level,
-            (gl as any)[internalFormat.toUpperCase()],
-            width,
-            height,
-            0,
-            (gl as any)[format.toUpperCase()],
-            (gl as any)[type.toUpperCase()],
-            null!
-        );
+
+        gl.texStorage2D(gl.TEXTURE_2D, levels, (gl as any)[internalFormat.toUpperCase()], width, height);
+
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, (gl as any)[filter.toUpperCase()]);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, (gl as any)[filter.toUpperCase()]);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, (gl as any)[param.toUpperCase()]);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, (gl as any)[param.toUpperCase()]);
-        gl.bindTexture(gl.TEXTURE_2D, null!);
 
+        gl.bindTexture(gl.TEXTURE_2D, null);
         return texture;
     }
 
@@ -420,7 +402,8 @@ class Handler {
      * @public
      * @param {number} width - Empty texture width.
      * @param {number} height - Empty texture height.
-     * @param {number} [internalFormat]
+     * @param {number} [internalFormat] - Internal texture format, `gl.RGBA` by default.
+     * @param {number} [texParami] - Wrap mode for S/T axes, `gl.CLAMP_TO_EDGE` by default.
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createEmptyTexture_n(
@@ -429,23 +412,12 @@ class Handler {
         internalFormat?: number | null,
         texParami?: number | null
     ): WebGLTexture | null {
-
         let gl = this.gl!;
 
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(
-            gl.TEXTURE_2D,
-            0,
-            internalFormat || gl.RGBA,
-            width,
-            height,
-            0,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
-            null!
-        );
+        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null!);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texParami || gl.CLAMP_TO_EDGE);
@@ -470,7 +442,6 @@ class Handler {
         internalFormat?: number | null,
         texParami?: number | null
     ): WebGLTexture | null {
-
         let gl = this.gl!;
 
         let texture = gl.createTexture();
@@ -489,138 +460,18 @@ class Handler {
     /**
      * Creates NEAREST filter texture.
      * @public
-     * @param {HTMLCanvasElement | Image} image - Image or Canvas object.
-     * @param {number} [internalFormat]
-     * @param {number} [texParami]
-     * @param {WebGLTexture | null} [texture=null]
-     * @returns {WebGLTexture | null} - WebGL texture object.
-     */
-    public createTexture_n_webgl1(
-        image: ImageSource,
-        internalFormat?: number | null,
-        texParami?: number | null,
-        texture: WebGLTexture | null = null): WebGLTexture | null {
-
-        let gl = this.gl!;
-
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texParami || gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texParami || gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null!);
-
-        return texture;
-    }
-
-    /**
-     * Creates LINEAR filter texture.
-     * @public
      * @param {ImageSource} image - Image or Canvas object.
      * @param {number} [internalFormat]
      * @param {number} [texParami]
      * @param {WebGLTexture | null} [texture]
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
-    public createTexture_l_webgl1(
+    public createTexture_n(
         image: ImageSource,
         internalFormat?: number | null,
         texParami?: number | null,
-        texture: WebGLTexture | null = null): WebGLTexture | null {
-
-        let gl = this.gl!;
-
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texParami || gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texParami || gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null!);
-
-        return texture;
-    }
-
-    /**
-     * Creates MIPMAP filter texture.
-     * @public
-     * @param {ImageSource} image - Image or Canvas object.
-     * @param {number} [internalFormat]
-     * @param {number} [texParami]
-     * @param {WebGLTexture | null} [texture]
-     * @returns {WebGLTexture | null} - WebGL texture object.
-     */
-    public createTexture_mm_webgl1(
-        image: ImageSource,
-        internalFormat?: number | null,
-        texParami?: number | null,
-        texture: WebGLTexture | null = null): WebGLTexture | null {
-
-        let gl = this.gl!;
-
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.generateMipmap(gl.TEXTURE_2D);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texParami || gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texParami || gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null!);
-
-        return texture;
-    }
-
-    /**
-     * Creates ANISOTROPY filter texture.
-     * @public
-     * @param {ImageSource} image - Image or Canvas object.
-     * @param {number} [internalFormat]
-     * @param {number} [texParami]
-     * @param {WebGLTexture | null} [texture]
-     * @returns {WebGLTexture | null} - WebGL texture object.
-     */
-    public createTexture_a_webgl1(
-        image: ImageSource,
-        internalFormat?: number | null,
-        texParami?: number | null,
-        texture: WebGLTexture | null = null): WebGLTexture | null {
-
-        let gl = this.gl!;
-
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.generateMipmap(gl.TEXTURE_2D);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.texParameterf(gl.TEXTURE_2D, this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._params.anisotropy);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texParami || gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texParami || gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null!);
-
-        return texture;
-    }
-
-    /**
-     * Creates NEAREST filter texture.
-     * @public
-     * @param {ImageSource} image - Image or Canvas object.
-     * @param {number} [internalFormat]
-     * @param {number} [texParami]
-     * @param {WebGLTexture | null} [texture]
-     * @returns {WebGLTexture | null} - WebGL texture object.
-     */
-    public createTexture_n_webgl2(
-        image: ImageSource,
-        internalFormat?: number | null,
-        texParami?: number | null,
-        texture: WebGLTexture | null = null): WebGLTexture | null {
-
+        texture: WebGLTexture | null = null
+    ): WebGLTextureExt | null {
         let gl = this.gl!;
 
         texture = texture || gl.createTexture();
@@ -647,12 +498,12 @@ class Handler {
      * @param {WebGLTexture | null} [texture]
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
-    public createTexture_l_webgl2(
+    public createTexture_l(
         image: ImageSource,
         internalFormat?: number | null,
         texParami?: number | null,
-        texture: WebGLTexture | null = null): WebGLTexture | null {
-
+        texture: WebGLTexture | null = null
+    ): WebGLTextureExt | null {
         let gl = this.gl!;
 
         texture = texture || gl.createTexture();
@@ -679,18 +530,19 @@ class Handler {
      * @param {WebGLTexture | null} [texture]
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
-    public createTexture_mm_webgl2(
+    public createTexture_mm(
         image: ImageSource,
         internalFormat?: number | null,
         texParami?: number | null,
-        texture: WebGLTexture | null = null): WebGLTexture | null {
-
+        texture: WebGLTexture | null = null
+    ): WebGLTextureExt | null {
         let gl = this.gl!;
+        const levels = this._getMipmapLevels(image.width, image.height);
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, MAX_LEVELS, internalFormat || gl.RGBA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
@@ -710,23 +562,28 @@ class Handler {
      * @param {WebGLTexture | null} [texture]
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
-    public createTexture_a_webgl2(
+    public createTexture_a(
         image: ImageSource,
         internalFormat?: number | null,
         texParami?: number | null,
-        texture: WebGLTexture | null = null): WebGLTexture | null {
-
+        texture: WebGLTexture | null = null
+    ): WebGLTextureExt | null {
         let gl = this.gl!;
+        const levels = this._getMipmapLevels(image.width, image.height);
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, MAX_LEVELS, internalFormat || gl.RGBA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.texParameterf(gl.TEXTURE_2D, this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._params.anisotropy);
+        gl.texParameterf(
+            gl.TEXTURE_2D,
+            this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT,
+            this._params.anisotropy
+        );
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texParami || gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texParami || gl.CLAMP_TO_EDGE);
         gl.bindTexture(gl.TEXTURE_2D, null!);
@@ -743,18 +600,25 @@ class Handler {
      * @param {string} params.ny - Negative Y or bottom image url.
      * @param {string} params.pz - Positive Z or face image url.
      * @param {string} params.nz - Negative Z or back image url.
+     * @param {number} [colorSpace=gl.SRGB8_ALPHA8] - Cube texture internal format (for example gl.SRGB8_ALPHA8 or gl.RGBA8).
+     * @param {number} [textureFilter=gl.LINEAR] - Cube texture filter (for example gl.LINEAR or gl.NEAREST).
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
-    public loadCubeMapTexture(params: Texture3DParams): WebGLTexture | null {
-
+    public loadCubeMapTexture(
+        params: Texture3DParams,
+        colorSpace?: number | null,
+        textureFilter?: number | null
+    ): WebGLTextureExt | null {
         let gl = this.gl!;
+        const internalFormat = colorSpace ?? gl.SRGB8_ALPHA8;
+        const filter = textureFilter ?? gl.LINEAR;
 
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, filter);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, filter);
 
         let faces: [string, number][] = [
             [params.px, gl.TEXTURE_CUBE_MAP_POSITIVE_X],
@@ -773,7 +637,7 @@ class Handler {
             let face = faces[i][1];
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
             //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-            gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, emptyImage);
+            gl.texImage2D(face, 0, internalFormat, gl.RGBA, gl.UNSIGNED_BYTE, emptyImage);
         }
 
         for (let i = 0; i < faces.length; i++) {
@@ -785,7 +649,7 @@ class Handler {
                     if (gl && texture) {
                         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
                         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-                        gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                        gl.texImage2D(face, 0, internalFormat, gl.RGBA, gl.UNSIGNED_BYTE, image);
                     }
                 };
             })(texture, face, image);
@@ -798,17 +662,17 @@ class Handler {
     /**
      * Adds shader program to the handler.
      * @public
-     * @param {Program} program - Shader program.
+     * @param {ShaderProgram} program - Shader program.
      * @param {boolean} [activate] - If false program will not compile.
-     * @return {Program} -
+     * @return {ShaderProgram} -
      */
-    public addProgram(program: Program, activate: boolean = false): Program {
+    public addProgram(program: ShaderProgram, activate: boolean = false): ShaderProgram {
         if (!this.programs[program.name]) {
-            let sc = new ProgramController(this, program);
-            this.programs[program.name] = sc;
-            this._initProgramController(sc);
+            program.attach(this);
+            this.programs[program.name] = program;
+            this._initProgram(program);
             if (!activate) {
-                sc._activated = false;
+                program._activated = false;
             }
         } else {
             console.warn(`Shader program: "${program.name}" already exists.`);
@@ -828,9 +692,9 @@ class Handler {
     /**
      * Adds shader programs to the handler.
      * @public
-     * @param {Array.<Program>} programsArr - Shader program array.
+     * @param {Array.<ShaderProgram>} programsArr - Shader program array.
      */
-    public addPrograms(programsArr: Program[]) {
+    public addPrograms(programsArr: ShaderProgram[]) {
         for (let i = 0; i < programsArr.length; i++) {
             this.addProgram(programsArr[i]);
         }
@@ -839,18 +703,18 @@ class Handler {
     /**
      * Used in addProgram
      * @protected
-     * @param {ProgramController} sc - Program controller
+     * @param {ShaderProgram} program - ShaderProgram
      */
-    protected _initProgramController(sc: ProgramController) {
+    protected _initProgram(program: ShaderProgram) {
         if (this._initialized) {
-            sc.initialize();
+            program.initialize();
             if (!this.activeProgram) {
-                this.activeProgram = sc;
-                sc.activate();
+                this.activeProgram = program;
+                program.activate();
             } else {
-                sc.deactivate();
-                this.activeProgram._program.enableAttribArrays();
-                this.activeProgram._program.use();
+                program.deactivate();
+                this.activeProgram.enableAttribArrays();
+                this.activeProgram.use();
             }
         }
     }
@@ -861,7 +725,7 @@ class Handler {
      */
     protected _initPrograms() {
         for (let p in this.programs) {
-            this._initProgramController(this.programs[p]);
+            this._initProgram(this.programs[p]);
         }
     }
 
@@ -878,20 +742,17 @@ class Handler {
             if (ext) {
                 this.extensions[extensionStr] = ext;
             } else if (showLog) {
-                console.warn(
-                    "og.webgl.Handler: extension '" + extensionStr + "' doesn't initialize."
-                );
+                console.warn("og.webgl.Handler: extension '" + extensionStr + "' doesn't initialize.");
             }
         }
         return this.extensions && this.extensions[extensionStr];
     }
 
     /**
-     * Main function that initialize handler.
+     * Main function that initializes handler.
      * @public
      */
     public initialize() {
-
         if (this._initialized) return;
 
         if (!this.canvas) return;
@@ -905,65 +766,51 @@ class Handler {
         /** Sets default extensions */
         this._params.extensions.push("EXT_texture_filter_anisotropic");
 
-        if (this.gl.type === "webgl") {
-            this._params.extensions.push("OES_standard_derivatives");
-            this._params.extensions.push("OES_element_index_uint");
-            this._params.extensions.push("WEBGL_depth_texture");
-            this._params.extensions.push("ANGLE_instanced_arrays");
-            //this._params.extensions.push("WEBGL_draw_buffers");
-            //this._params.extensions.push("EXT_frag_depth");
-        } else {
-            this._params.extensions.push("EXT_color_buffer_float");
-            this._params.extensions.push("OES_texture_float_linear");
-            //this._params.extensions.push("WEBGL_draw_buffers");
-        }
+        this._params.extensions.push("EXT_color_buffer_float");
+        this._params.extensions.push("OES_texture_float_linear");
+        this._params.extensions.push("EXT_clip_control");
+        //this._params.extensions.push("WEBGL_draw_buffers");
 
         let i = this._params.extensions.length;
         while (i--) {
             this.initializeExtension(this._params.extensions[i], true);
         }
 
-        if (this.gl.type === "webgl") {
-            this.createTexture_n = this.createTexture_n_webgl1.bind(this);
-            this.createTexture_l = this.createTexture_l_webgl1.bind(this);
-            this.createTexture_mm = this.createTexture_mm_webgl1.bind(this);
-            this.createTexture_a = this.createTexture_a_webgl1.bind(this);
-        } else {
-            this.createTexture_n = this.createTexture_n_webgl2.bind(this);
-            this.createTexture_l = this.createTexture_l_webgl2.bind(this);
-            this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
-            this.createTexture_a = this.createTexture_a_webgl2.bind(this);
+        //
+        // Init clipControl function
+        //
+        const clipControlExt = this.extensions.EXT_clip_control;
+        if (clipControlExt && clipControlExt.clipControlEXT) {
+            this.clipControl = clipControlExt.clipControlEXT.bind(clipControlExt);
         }
 
-        this.createTexture["NEAREST"] = this.createTexture_n;
-        this.createTexture["LINEAR"] = this.createTexture_l;
-        this.createTexture["MIPMAP"] = this.createTexture_mm;
-        this.createTexture["ANISOTROPIC"] = this.createTexture_a;
-
         if (!this.extensions.EXT_texture_filter_anisotropic) {
-            this.createTextureDefault = this.createTexture_mm;
+            this.createTextureDefault = this.createTexture.MIPMAP;
         } else {
-            this.createTextureDefault = this.createTexture_a;
+            this.createTextureDefault = this.createTexture.ANISOTROPIC;
         }
 
         /** Initializing shaders and rendering parameters*/
         this._initPrograms();
         this._setDefaults();
 
-        this.intersectionObserver = new IntersectionObserver((entries) => {
-            this._toggleVisibilityChange(entries[entries.length - 1].isIntersecting);
-        }, {threshold: 0});
+        this.intersectionObserver = new IntersectionObserver(
+            (entries) => {
+                this._toggleVisibilityChange(entries[entries.length - 1].isIntersecting);
+            },
+            { threshold: 0 }
+        );
 
         this.intersectionObserver.observe(this.canvas);
 
-        this.resizeObserver = new ResizeObserver(entries => {
+        this.resizeObserver = new ResizeObserver((entries) => {
             this._toggleVisibilityChange(entries[0].contentRect.width !== 0 && entries[0].contentRect.height !== 0);
         });
 
         this.resizeObserver.observe(this.canvas);
 
         document.addEventListener("visibilitychange", () => {
-            this._toggleVisibilityChange(document.visibilityState === 'visible');
+            this._toggleVisibilityChange(document.visibilityState === "visible");
         });
     }
 
@@ -983,7 +830,6 @@ class Handler {
      * @protected
      */
     protected _setDefaults() {
-
         let gl = this.gl;
 
         if (!gl) return;
@@ -991,20 +837,46 @@ class Handler {
 
         gl.depthFunc(gl.LESS);
         gl.enable(gl.DEPTH_TEST);
-        this.setSize(
-            this.canvas.clientWidth || this._params.width,
-            this.canvas.clientHeight || this._params.height
-        );
+        this.setSize(this.canvas.clientWidth || this._params.width, this.canvas.clientHeight || this._params.height);
         gl.frontFace(gl.CCW);
         gl.cullFace(gl.BACK);
         gl.enable(gl.CULL_FACE);
+        gl.enable(gl.DITHER);
         gl.disable(gl.BLEND);
-        this.createDefaultTexture({color: "rgba(0,0,0,0.0)"}, (t: WebGLTextureExt) => {
+        this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, (t: WebGLTextureExt) => {
             this.transparentTexture = t;
         });
-        this.createDefaultTexture({color: "rgba(255, 255, 255, 1.0)"}, (t: WebGLTextureExt) => {
+        this.createDefaultTexture({ color: "rgba(255, 255, 255, 1.0)" }, (t: WebGLTextureExt) => {
             this.defaultTexture = t;
         });
+    }
+
+    /**
+     * Returns true when clip-control depth range is currently ZERO_TO_ONE.
+     * @public
+     * @returns {boolean} -
+     */
+    public get isClipControlZeroToOne(): boolean {
+        return this._clipControlZeroToOne;
+    }
+
+    /**
+     * Switches clip-control depth range between ZERO_TO_ONE and NEGATIVE_ONE_TO_ONE.
+     * If EXT_clip_control is unavailable, the internal ZERO_TO_ONE flag is reset to false.
+     * @public
+     * @param {boolean} useZeroToOne - True sets ZERO_TO_ONE, false sets NEGATIVE_ONE_TO_ONE.
+     */
+    public setClipControlZeroToOne(useZeroToOne: boolean) {
+        if (!this.clipControl) {
+            this._clipControlZeroToOne = false;
+            return;
+        }
+        const ext = this.extensions.EXT_clip_control!;
+
+        if (this._clipControlZeroToOne !== useZeroToOne) {
+            this.clipControl(ext.LOWER_LEFT_EXT, useZeroToOne ? ext.ZERO_TO_ONE_EXT : ext.NEGATIVE_ONE_TO_ONE_EXT);
+            this._clipControlZeroToOne = useZeroToOne;
+        }
     }
 
     public getCanvasSize(): NumberArray2 {
@@ -1012,23 +884,24 @@ class Handler {
     }
 
     /**
-     * Creates STREAM_DRAW ARRAY buffer.
+     * Creates ARRAY_BUFFER storage for frequently updated data.
      * @public
-     * @param {number} itemSize - Array item size.
-     * @param {number} numItems - Items quantity.
-     * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
-     * @param {number} [bytes=4] -
+     * @param {number} itemSize - Number of scalar components per item.
+     * @param {number} numItems - Number of items.
+     * @param {number} [usage=STREAM_DRAW] - GL usage hint (STATIC_DRAW, DYNAMIC_DRAW or STREAM_DRAW).
+     * @param {number} [bytes=4] - Bytes per scalar component.
      * @return {WebGLBufferExt} -
      */
-    public createStreamArrayBuffer(itemSize: number, numItems: number, usage?: number, bytes: number = 4): WebGLBufferExt {
+    public createStreamArrayBuffer(
+        itemSize: number,
+        numItems: number,
+        usage?: number,
+        bytes: number = 4
+    ): WebGLBufferExt {
         let gl = this.gl!;
         let buffer: WebGLBufferExt = gl.createBuffer() as WebGLBufferExt;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.bufferData(
-            gl.ARRAY_BUFFER,
-            numItems * itemSize * bytes,
-            usage || gl.STREAM_DRAW
-        );
+        gl.bufferData(gl.ARRAY_BUFFER, numItems * itemSize * bytes, usage || gl.STREAM_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null!);
         buffer.itemSize = itemSize;
         buffer.numItems = numItems;
@@ -1036,11 +909,11 @@ class Handler {
     }
 
     /**
-     * Sets stream buffer.
+     * Uploads data to an existing ARRAY_BUFFER via bufferSubData.
      * @public
-     * @param {WebGLBufferExt} buffer -
-     * @param {TypedArray} array -
-     * @param {number} [offset=0] -
+     * @param {WebGLBufferExt} buffer - Target ARRAY_BUFFER.
+     * @param {TypedArray} array - Source data to upload.
+     * @param {number} [offset=0] - Byte offset in the target buffer.
      * @return {WebGLBufferExt} -
      */
     public setStreamArrayBuffer(buffer: WebGLBufferExt, array: TypedArray, offset: number = 0): WebGLBufferExt {
@@ -1052,12 +925,12 @@ class Handler {
     }
 
     /**
-     * Creates ARRAY buffer.
+     * Creates and initializes ARRAY_BUFFER from a typed array.
      * @public
-     * @param {TypedArray} array - Input array.
-     * @param {number} itemSize - Array item size.
-     * @param {number} numItems - Items quantity.
-     * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
+     * @param {TypedArray} array - Source data.
+     * @param {number} itemSize - Number of scalar components per item.
+     * @param {number} [numItems] - Number of items (computed from array length when omitted).
+     * @param {number} [usage=STATIC_DRAW] - GL usage hint (STATIC_DRAW, DYNAMIC_DRAW or STREAM_DRAW).
      * @return {WebGLBufferExt} -
      */
     public createArrayBuffer(array: TypedArray, itemSize: number, numItems?: number, usage?: number): WebGLBufferExt {
@@ -1072,10 +945,10 @@ class Handler {
     }
 
     /**
-     * Creates ARRAY buffer specific length.
+     * Creates ARRAY_BUFFER storage with a specific byte length and no initial data.
      * @public
-     * @param {number} size -
-     * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
+     * @param {number} size - Buffer size in bytes.
+     * @param {number} [usage=STATIC_DRAW] - GL usage hint (STATIC_DRAW, DYNAMIC_DRAW or STREAM_DRAW).
      * @return {WebGLBufferExt} -
      */
     public createArrayBufferLength(size: number, usage?: number): WebGLBufferExt {
@@ -1098,7 +971,12 @@ class Handler {
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    public createElementArrayBuffer(array: TypedArray, itemSize: number, numItems?: number, usage?: number): WebGLBufferExt {
+    public createElementArrayBuffer(
+        array: TypedArray,
+        itemSize: number,
+        numItems?: number,
+        usage?: number
+    ): WebGLBufferExt {
         let gl = this.gl!;
         let buffer = gl.createBuffer() as WebGLBufferExt;
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
@@ -1206,7 +1084,10 @@ class Handler {
         /** Canvas resize checking */
         let canvas = this.canvas!;
 
-        if (Math.floor(canvas.clientWidth * this._params.pixelRatio) !== canvas.width || Math.floor(canvas.clientHeight * this._params.pixelRatio) !== canvas.height) {
+        if (
+            Math.floor(canvas.clientWidth * this._params.pixelRatio) !== canvas.width ||
+            Math.floor(canvas.clientHeight * this._params.pixelRatio) !== canvas.height
+        ) {
             if (canvas.clientWidth === 0 || canvas.clientHeight === 0) {
                 this.stop();
             } else if (!document.hidden) {
@@ -1217,7 +1098,7 @@ class Handler {
 
         /** Draw frame */
         this._frameCallback();
-    }
+    };
 
     /**
      * Clearing gl frame.
@@ -1270,27 +1151,33 @@ class Handler {
     }
 
     /**
-     * Creates default texture object.
+     * Creates a default 2x2 texture and passes it to callback.
+     * If `params.color` is set, a solid color texture is created.
+     * If `params.url` is set, the image is loaded asynchronously.
+     * Otherwise a fallback gray texture is created.
      * @public
-     * @param {IDefaultTextureParams | null} params - Texture parameters.
-     * @param {function(WebGLTextureExt): void} [success] - Creation callback.
+     * @param {IDefaultTextureParams | null} params - Texture source parameters.
+     * @param {function(WebGLTextureExt): void} success - Callback with created texture.
      */
-    public createDefaultTexture(params: IDefaultTextureParams | null, success: (texture: WebGLTextureExt) => void) {
-
+    public createDefaultTexture(
+        params: IDefaultTextureParams | null,
+        success: (texture: WebGLTextureExt) => void,
+        internalFormat?: number | null
+    ) {
         let imgCnv;
         let texture;
 
         if (params && params.color) {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor(params.color);
-            texture = this.createTexture_n(imgCnv.getCanvas())!;
+            texture = this.createTexture_n(imgCnv.getCanvas(), internalFormat)!;
             texture.default = true;
             success(texture);
         } else if (params && params.url) {
             let img = new Image();
             let that = this;
             img.onload = function () {
-                texture = that.createTextureDefault(img)!;
+                texture = that.createTextureDefault(img, internalFormat)!;
                 texture.default = true;
                 success(texture);
             };
@@ -1298,12 +1185,17 @@ class Handler {
         } else {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor("#C5C5C5");
-            texture = this.createTexture_n(imgCnv.getCanvas())!;
+            texture = this.createTexture_n(imgCnv.getCanvas(), internalFormat)!;
             texture.default = true;
             success(texture);
         }
     }
 
+    /**
+     * Deletes texture if it is not marked as default.
+     * @public
+     * @param {WebGLTextureExt | null | undefined} texture - Texture to delete.
+     */
     public deleteTexture(texture: WebGLTextureExt | null | undefined) {
         if (texture && !texture.default && this.gl) {
             this.gl.deleteTexture(texture);
@@ -1311,10 +1203,10 @@ class Handler {
     }
 
     /**
+     * Releases handler resources, WebGL objects, observers and canvas.
      * @public
      */
     public destroy() {
-
         this.resizeObserver?.disconnect();
         this.intersectionObserver?.disconnect();
 
@@ -1465,4 +1357,4 @@ class Handler {
     // });
 }
 
-export {Handler};
+export { Handler };

@@ -1,13 +1,13 @@
-import {Extent} from "../Extent";
-import {EPSG3857} from "../proj/EPSG3857";
-import {binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt} from "../utils/shared";
-import {LonLat} from "../LonLat";
-import {MAX, MIN} from "../math";
-import {Segment} from "../segment/Segment";
-import {QuadTreeStrategy} from "./QuadTreeStrategy";
+import { Extent } from "../Extent";
+import { EPSG3857 } from "../proj/EPSG3857";
+import { binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
+import { LonLat } from "../LonLat";
+import { MAX, MIN } from "../math";
+import { Segment } from "../segment/Segment";
+import { QuadTreeStrategy } from "./QuadTreeStrategy";
 
-import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
+import { Vec2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
 import {
     E,
     MAX_RENDERED_NODES,
@@ -27,32 +27,33 @@ import {
     WALKTHROUGH
 } from "./quadTree";
 
-import {
-    TILEGROUP_COMMON,
-    TILEGROUP_NORTH,
-    TILEGROUP_SOUTH
-} from "../segment/Segment";
+import { TILEGROUP_COMMON, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "../segment/Segment";
 
-import {PlanetCamera} from "../camera/PlanetCamera";
+import { PlanetCamera } from "../camera/PlanetCamera";
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
 
-const _vertOrder: Vec2[] = [
-    new Vec2(0, 0), new Vec2(1, 0),
-    new Vec2(0, 1), new Vec2(1, 1)
-];
+const _vertOrder: Vec2[] = [new Vec2(0, 0), new Vec2(1, 0), new Vec2(0, 1), new Vec2(1, 1)];
 
 const _neGridSize = Math.sqrt(_vertOrder.length) - 1;
 
 type BoundsType = {
-    xmin: number; ymin: number; zmin: number;
-    xmax: number; ymax: number; zmax: number
+    xmin: number;
+    ymin: number;
+    zmin: number;
+    xmax: number;
+    ymax: number;
+    zmax: number;
 };
 
 let BOUNDS: BoundsType = {
-    xmin: 0.0, ymin: 0.0, zmin: 0.0,
-    xmax: 0.0, ymax: 0.0, zmax: 0.0
+    xmin: 0.0,
+    ymin: 0.0,
+    zmin: 0.0,
+    xmax: 0.0,
+    ymax: 0.0,
+    zmax: 0.0
 };
 
 let __staticCounter = 0;
@@ -133,14 +134,27 @@ class Node {
         const c = new LonLat(sw.lon + size_x, sw.lat + size_y);
         const nd = this.nodes;
 
-        nd[NW] = new Node(this.SegmentPrototype, qts, NW, this, z, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
+        nd[NW] = new Node(
+            this.SegmentPrototype,
+            qts,
+            NW,
+            this,
+            z,
+            new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat))
+        );
         nd[NE] = new Node(this.SegmentPrototype, qts, NE, this, z, new Extent(c, new LonLat(ne.lon, ne.lat)));
         nd[SW] = new Node(this.SegmentPrototype, qts, SW, this, z, new Extent(new LonLat(sw.lon, sw.lat), c));
-        nd[SE] = new Node(this.SegmentPrototype, qts, SE, this, z, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
+        nd[SE] = new Node(
+            this.SegmentPrototype,
+            qts,
+            SE,
+            this,
+            z,
+            new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y))
+        );
     }
 
     public createBounds() {
-
         let seg = this.segment;
 
         seg._setExtentLonLat();
@@ -161,6 +175,9 @@ class Node {
         seg.centerNormal.x = x * length;
         seg.centerNormal.y = y * length;
         seg.centerNormal.z = z * length;
+
+        // Initial relative center is the same as bounding sphere center
+        seg._relativeCenter.set(x, y, z);
     }
 
     public getState(): number | null {
@@ -208,7 +225,13 @@ class Node {
         }
     }
 
-    public traverseNodes(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean, zoomPassNode?: Node) {
+    public traverseNodes(
+        cam: PlanetCamera,
+        maxZoom?: number | null,
+        terrainReadySegment?: Segment | null,
+        stopLoading?: boolean,
+        zoomPassNode?: Node
+    ) {
         if (!this.ready) {
             this.createChildNodes();
         }
@@ -221,12 +244,18 @@ class Node {
         n[3]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
     }
 
-    public renderTree(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean, zoomPassNode?: Node) {
+    public renderTree(
+        cam: PlanetCamera,
+        maxZoom?: number | null,
+        terrainReadySegment?: Segment | null,
+        stopLoading?: boolean,
+        zoomPassNode?: Node
+    ) {
         if (this.quadTreeStrategy._renderedNodes.length >= MAX_RENDERED_NODES) {
             return;
         }
 
-        if (!maxZoom || zoomPassNode && this.segment.tileZoom > zoomPassNode.segment.tileZoom) {
+        if (!maxZoom || (zoomPassNode && this.segment.tileZoom > zoomPassNode.segment.tileZoom)) {
             this.prevState = this.state;
         }
         this.state = WALKTHROUGH;
@@ -241,7 +270,7 @@ class Node {
         // Search a node which the camera is flying over.
         if (!this.parentNode || this.parentNode._cameraInside) {
             let inside;
-            if (/*Math.abs(cam._lonLat.lat) <= MAX_LAT && */seg._projection.id === EPSG3857.id) {
+            if (/*Math.abs(cam._lonLat.lat) <= MAX_LAT && */ seg._projection.id === EPSG3857.id) {
                 inside = seg._extent.isInside(cam._lonLatMerc);
             } else /*if (seg._projection.id === EPSG4326.id)*/ {
                 inside = seg._extent.isInside(cam._lonLat);
@@ -255,7 +284,8 @@ class Node {
 
         this.inFrustum = 0;
 
-        let frustums = cam.frustums, numFrustums = frustums.length;
+        let frustums = cam.frustums,
+            numFrustums = frustums.length;
 
         if (seg.tileZoom < 6) {
             for (let i = 0; i < numFrustums; i++) {
@@ -284,20 +314,24 @@ class Node {
             let maxDist = 106876472875.63281 * planet._heightFactor;
             horizonDist = horizonDist < maxDist ? maxDist : horizonDist;
 
-            let altVis = seg.tileZoom < 2 || seg.tileZoom > 19 ||
+            let altVis =
+                seg.tileZoom < 2 ||
+                seg.tileZoom > 19 ||
                 /* Could be replaced with camera frustum always looking down check,
                 and not to go through nodes from the opposite of the globe*/
                 (seg.tileZoom < 6 && !seg.terrainReady);
 
             if (cam.isOrthographic) {
                 let f = cam.getForward();
-                altVis = altVis ||
+                altVis =
+                    altVis ||
                     f.dot(seg._sw.getNormal()) < -0 ||
                     f.dot(seg._nw.getNormal()) < -0 ||
                     f.dot(seg._ne.getNormal()) < -0 ||
                     f.dot(seg._se.getNormal()) < -0;
             } else {
-                altVis = altVis ||
+                altVis =
+                    altVis ||
                     cam.eye.distance2(seg._sw) < horizonDist ||
                     cam.eye.distance2(seg._nw) < horizonDist ||
                     cam.eye.distance2(seg._ne) < horizonDist ||
@@ -311,18 +345,23 @@ class Node {
             if (seg.tileZoom < 2) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
             } else if (
-                seg.terrainReady && (!maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < this.quadTreeStrategy.lodSize
-                    || maxZoom && ((seg.tileZoom === maxZoom) || !altVis))
+                seg.terrainReady &&
+                ((!maxZoom &&
+                    cam.projectedSize(seg.bsphere.center, seg._plainRadius) < this.quadTreeStrategy.lodSize) ||
+                    (maxZoom && (seg.tileZoom === maxZoom || !altVis)))
             ) {
-
                 if (altVis) {
                     seg.passReady = true;
                     this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
                 } else {
                     this.state = NOTRENDERING;
                 }
-
-            } else if (seg.terrainReady && seg.checkZoom() && (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.quadTreeStrategy._maxLodSize)) {
+            } else if (
+                seg.terrainReady &&
+                seg.checkZoom() &&
+                (!maxZoom ||
+                    cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.quadTreeStrategy._maxLodSize)
+            ) {
                 this.traverseNodes(cam, maxZoom, seg, stopLoading, zoomPassNode);
             } else if (altVis) {
                 seg.passReady = maxZoom ? seg.terrainReady : false;
@@ -335,7 +374,12 @@ class Node {
         }
     }
 
-    public renderNode(inFrustum: number, onlyTerrain?: boolean, terrainReadySegment?: Segment | null, stopLoading?: boolean) {
+    public renderNode(
+        inFrustum: number,
+        onlyTerrain?: boolean,
+        terrainReadySegment?: Segment | null,
+        stopLoading?: boolean
+    ) {
         let seg = this.segment;
 
         // Create and load terrain data
@@ -356,7 +400,7 @@ class Node {
         }
 
         // Create normal map texture
-        if (seg.planet.lightEnabled && !seg.normalMapReady) {
+        if (!seg.normalMapReady) {
             this.whileNormalMapCreating();
         }
 
@@ -382,16 +426,29 @@ class Node {
 
     public childrenPrevStateEquals(state: number): boolean {
         let n = this.nodes;
-        return n.length === 4 && n[0].prevState === state && n[1].prevState === state && n[2].prevState === state && n[3].prevState === state;
+        return (
+            n.length === 4 &&
+            n[0].prevState === state &&
+            n[1].prevState === state &&
+            n[2].prevState === state &&
+            n[3].prevState === state
+        );
     }
 
     public isFading(): boolean {
         let n = this.nodes;
-        return this.state === WALKTHROUGH && this.segment._transitionOpacity > 0.0 && n.length === 4 && (n[0].state === RENDERING && n[1].state === RENDERING && n[2].state === RENDERING && n[3].state === RENDERING);
+        return (
+            this.state === WALKTHROUGH &&
+            this.segment._transitionOpacity > 0.0 &&
+            n.length === 4 &&
+            n[0].state === RENDERING &&
+            n[1].state === RENDERING &&
+            n[2].state === RENDERING &&
+            n[3].state === RENDERING
+        );
     }
 
     public _collectFadingNodes() {
-
         if (this.segment.tileZoom < 3) {
             this.segment._transitionOpacity = 1.0;
             return;
@@ -399,7 +456,6 @@ class Node {
 
         // Light up the node
         if (this.prevState !== RENDERING) {
-
             // means that the node is lighting up
             this.segment._transitionOpacity = 0.0;
 
@@ -412,7 +468,6 @@ class Node {
             if (this.parentNode) {
                 // Parent was visible the last frame, make the parent fading
                 if (this.parentNode.prevState === RENDERING) {
-
                     let pn: Node | null = this.parentNode.parentNode;
                     while (pn) {
                         if (pn.isFading()) {
@@ -476,7 +531,10 @@ class Node {
             } else {
                 // Looks like a bug fix for suddenly empty spaces
                 for (let i = 0; i < this._fadingNodes.length; i++) {
-                    if (this.segment._transitionOpacity < 1.0 && this._fadingNodes[i].segment._transitionOpacity === 0) {
+                    if (
+                        this.segment._transitionOpacity < 1.0 &&
+                        this._fadingNodes[i].segment._transitionOpacity === 0
+                    ) {
                         this._fadingNodes[i].segment._transitionOpacity = 0;
                         this.segment._transitionOpacity = 1.0;
                     }
@@ -523,7 +581,6 @@ class Node {
     }
 
     public applyNeighbor(node: Node, side: number) {
-
         const opcs = OPSIDE[side];
 
         if (this.neighbors[side].length === 0 || node.neighbors[opcs].length === 0) {
@@ -557,9 +614,7 @@ class Node {
      * @public
      */
     public getRenderedNodesNeighbors(nodes: Node[]) {
-
         for (let i = nodes.length - 1; i >= 0; --i) {
-
             let ni = nodes[i];
             let cs = this.getCommonSide(ni);
 
@@ -584,40 +639,90 @@ class Node {
             const a = as._extentLonLat;
             const b = bs._extentLonLat;
 
-            let a_ne = a.northEast, a_sw = a.southWest,
-                b_ne = b.northEast, b_sw = b.southWest;
+            let a_ne = a.northEast,
+                a_sw = a.southWest,
+                b_ne = b.northEast,
+                b_sw = b.southWest;
 
-            let a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat,
-                a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
-                b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat,
-                b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
+            let a_ne_lon = a_ne.lon,
+                a_ne_lat = a_ne.lat,
+                a_sw_lon = a_sw.lon,
+                a_sw_lat = a_sw.lat,
+                b_ne_lon = b_ne.lon,
+                b_ne_lat = b_ne.lat,
+                b_sw_lon = b_sw.lon,
+                b_sw_lat = b_sw.lat;
 
             if (as._tileGroup === bs._tileGroup) {
-                if (a_ne_lon === b_sw_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
+                if (
+                    a_ne_lon === b_sw_lon &&
+                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+                ) {
                     return E;
-                } else if (a_sw_lon === b_ne_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
+                } else if (
+                    a_sw_lon === b_ne_lon &&
+                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+                ) {
                     return W;
-                } else if (a_ne_lat === b_sw_lat && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
+                } else if (
+                    a_ne_lat === b_sw_lat &&
+                    ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+                ) {
                     return N;
-                } else if (a_sw_lat === b_ne_lat && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
+                } else if (
+                    a_sw_lat === b_ne_lat &&
+                    ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+                ) {
                     return S;
                 }
                 // World edge 180 to -180
-                else if (bs.tileX === 0 && b_sw_lon === -a_ne_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
+                else if (
+                    bs.tileX === 0 &&
+                    b_sw_lon === -a_ne_lon &&
+                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+                ) {
                     return E;
-                } else if (as.tileX === 0 && a_sw_lon === -b_ne_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
+                } else if (
+                    as.tileX === 0 &&
+                    a_sw_lon === -b_ne_lon &&
+                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+                ) {
                     return W;
                 }
             }
 
             // @todo: replace to the default strategy
-            if (as._tileGroup === TILEGROUP_COMMON && bs._tileGroup === TILEGROUP_NORTH && as.tileY === 0 && bs.tileY === bs.powTileZoom/*Math.pow(2, bs.tileZoom)*/ - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
+            if (
+                as._tileGroup === TILEGROUP_COMMON &&
+                bs._tileGroup === TILEGROUP_NORTH &&
+                as.tileY === 0 &&
+                bs.tileY === bs.powTileZoom /*Math.pow(2, bs.tileZoom)*/ - 1 &&
+                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+            ) {
                 return N;
-            } else if (as._tileGroup === TILEGROUP_COMMON && bs._tileGroup === TILEGROUP_SOUTH && as.tileY === as.powTileZoom/*Math.pow(2, as.tileZoom)*/ - 1 && bs.tileY === 0 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
+            } else if (
+                as._tileGroup === TILEGROUP_COMMON &&
+                bs._tileGroup === TILEGROUP_SOUTH &&
+                as.tileY === as.powTileZoom /*Math.pow(2, as.tileZoom)*/ - 1 &&
+                bs.tileY === 0 &&
+                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+            ) {
                 return S;
-            } else if (as._tileGroup === TILEGROUP_SOUTH && bs._tileGroup === TILEGROUP_COMMON && as.tileY === 0 && bs.tileY === bs.powTileZoom/*Math.pow(2, bs.tileZoom)*/ - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
+            } else if (
+                as._tileGroup === TILEGROUP_SOUTH &&
+                bs._tileGroup === TILEGROUP_COMMON &&
+                as.tileY === 0 &&
+                bs.tileY === bs.powTileZoom /*Math.pow(2, bs.tileZoom)*/ - 1 &&
+                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+            ) {
                 return N;
-            } else if (as._tileGroup === TILEGROUP_NORTH && bs._tileGroup === TILEGROUP_COMMON && as.tileY === as.powTileZoom/*Math.pow(2, as.tileZoom)*/ - 1 && bs.tileY === 0 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
+            } else if (
+                as._tileGroup === TILEGROUP_NORTH &&
+                bs._tileGroup === TILEGROUP_COMMON &&
+                as.tileY === as.powTileZoom /*Math.pow(2, as.tileZoom)*/ - 1 &&
+                bs.tileY === 0 &&
+                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+            ) {
                 return S;
             }
         }
@@ -626,7 +731,6 @@ class Node {
     }
 
     public whileNormalMapCreating() {
-
         const seg = this.segment;
 
         if (!seg.terrainIsLoading && seg.terrainExists && !seg._inTheQueue) {
@@ -647,7 +751,6 @@ class Node {
     }
 
     public whileTerrainLoading(terrainReadySegment?: Segment | null) {
-
         const seg = this.segment;
 
         let pn: Node = this;
@@ -660,201 +763,216 @@ class Node {
             }
         }
 
-        if (pn.segment.terrainReady && this.appliedTerrainNodeId !== pn.nodeId) {
+        if (!pn.segment.terrainReady || this.appliedTerrainNodeId === pn.nodeId) {
+            return;
+        }
 
-            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1), // 2 * Math.pow(2, dZ-1)
-                offsetX = seg.tileX - pn.segment.tileX * dZ2,
-                offsetY = seg.tileY - pn.segment.tileY * dZ2;
+        let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1), // 2 * Math.pow(2, dZ-1)
+            offsetX = seg.tileX - pn.segment.tileX * dZ2,
+            offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
-            const pseg = pn.segment;
+        const pseg = pn.segment;
 
-            let tempVertices: Float64Array,
-                tempVerticesHigh: Float32Array,
-                tempVerticesLow: Float32Array,
-                noDataVertices: Uint8Array;
+        let renderVertices: Float64Array,
+            renderVerticesHigh: Float32Array,
+            renderVerticesLow: Float32Array,
+            noDataVertices: Uint8Array;
 
-            this.appliedTerrainNodeId = pn.nodeId;
-            this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+        this.appliedTerrainNodeId = pn.nodeId;
+        this.equalizedSideWithNodeId[N] =
+            this.equalizedSideWithNodeId[E] =
+            this.equalizedSideWithNodeId[S] =
+            this.equalizedSideWithNodeId[W] =
+                this.appliedTerrainNodeId;
 
-            let gridSize = pn.segment.gridSize / dZ2,
-                gridSizeExt = pn.segment.fileGridSize / dZ2;
+        let gridSize = pn.segment.gridSize / dZ2,
+            gridSizeExt = pn.segment.fileGridSize / dZ2;
 
-            BOUNDS.xmin = MAX;
-            BOUNDS.xmax = MIN;
-            BOUNDS.ymin = MAX;
-            BOUNDS.ymax = MIN;
-            BOUNDS.zmin = MAX;
-            BOUNDS.zmax = MIN;
+        BOUNDS.xmin = BOUNDS.ymin = BOUNDS.zmin = MAX;
+        BOUNDS.xmax = BOUNDS.ymax = BOUNDS.zmax = MIN;
 
-            if (gridSize >= 1) {
-                seg.gridSize = gridSize;
+        if (gridSize >= 1) {
+            seg.gridSize = gridSize;
 
-                let len = (gridSize + 1) * (gridSize + 1) * 3;
-                tempVertices = new Float64Array(len);
-                tempVerticesHigh = new Float32Array(len);
-                tempVerticesLow = new Float32Array(len);
+            let len = (gridSize + 1) * (gridSize + 1) * 3;
+            renderVertices = new Float64Array(len);
+            renderVerticesHigh = new Float32Array(len);
+            renderVerticesLow = new Float32Array(len);
 
-                if (pseg.noDataVertices) {
-                    noDataVertices = new Uint8Array(len / 3);
-                }
-
-                getMatrixSubArrayBoundsExt(
-                    pseg.terrainVertices!,
-                    pseg.terrainVerticesHigh!,
-                    pseg.terrainVerticesLow!,
-                    pseg.noDataVertices!,
-                    pseg.gridSize,
-                    gridSize * offsetY,
-                    gridSize * offsetX,
-                    gridSize,
-                    tempVertices,
-                    tempVerticesHigh,
-                    tempVerticesLow,
-                    BOUNDS,
-                    noDataVertices!
-                );
-
-            } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
-
-                seg.gridSize = gridSizeExt;
-
-                let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
-                tempVertices = new Float64Array(len);
-                tempVerticesHigh = new Float32Array(len);
-                tempVerticesLow = new Float32Array(len);
-
-                if (pseg.noDataVertices) {
-                    noDataVertices = new Uint8Array(len / 3);
-                }
-
-                getMatrixSubArrayBoundsExt(
-                    pseg.normalMapVertices!,
-                    pseg.normalMapVerticesHigh!,
-                    pseg.normalMapVerticesLow!,
-                    pseg.noDataVertices!,
-                    pn.segment.fileGridSize,
-                    gridSizeExt * offsetY,
-                    gridSizeExt * offsetX,
-                    gridSizeExt,
-                    tempVertices,
-                    tempVerticesHigh,
-                    tempVerticesLow,
-                    BOUNDS,
-                    noDataVertices!
-                );
-
-            } else {
-
-                seg.gridSize = _neGridSize;
-
-                let i0 = Math.floor(gridSize * offsetY),
-                    j0 = Math.floor(gridSize * offsetX);
-
-                let bigOne;
-                if (pseg.gridSize === 1) {
-                    bigOne = pseg.terrainVertices!;
-                } else {
-                    bigOne = getMatrixSubArray64(pseg.terrainVertices!, pseg.gridSize, i0, j0, 1);
-                }
-
-                let insideSize = 1.0 / gridSize;
-
-                let t_i0 = offsetY - insideSize * i0, t_j0 = offsetX - insideSize * j0;
-
-                let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
-                    v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
-
-                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
-                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
-                    ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
-                    vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
-
-                let coords = new Vec3();
-
-                tempVertices = new Float64Array(3 * _vertOrder.length);
-                tempVerticesHigh = new Float32Array(3 * _vertOrder.length);
-                tempVerticesLow = new Float32Array(3 * _vertOrder.length);
-
-                for (let i = 0; i < _vertOrder.length; i++) {
-                    let vi_y = _vertOrder[i].y + t_i0, vi_x = _vertOrder[i].x + t_j0;
-
-                    let vi_x_is = vi_x * gridSize, vi_y_is = vi_y * gridSize;
-
-                    if (vi_y + vi_x < insideSize) {
-                        coords = vn.scaleTo(vi_x_is).addA(vw.scaleTo(vi_y_is)).addA(v_lt);
-                    } else {
-                        coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
-                    }
-
-                    Vec3.doubleToTwoFloats(coords, _tempHigh, _tempLow);
-
-                    let i3 = i * 3;
-
-                    tempVertices[i3] = coords.x;
-                    tempVertices[i3 + 1] = coords.y;
-                    tempVertices[i3 + 2] = coords.z;
-
-                    tempVerticesHigh[i3] = _tempHigh.x;
-                    tempVerticesHigh[i3 + 1] = _tempHigh.y;
-                    tempVerticesHigh[i3 + 2] = _tempHigh.z;
-
-                    tempVerticesLow[i3] = _tempLow.x;
-                    tempVerticesLow[i3 + 1] = _tempLow.y;
-                    tempVerticesLow[i3 + 2] = _tempLow.z;
-
-                    if (coords.x < BOUNDS.xmin) BOUNDS.xmin = coords.x;
-                    if (coords.x > BOUNDS.xmax) BOUNDS.xmax = coords.x;
-                    if (coords.y < BOUNDS.ymin) BOUNDS.ymin = coords.y;
-                    if (coords.y > BOUNDS.ymax) BOUNDS.ymax = coords.y;
-                    if (coords.z < BOUNDS.zmin) BOUNDS.zmin = coords.z;
-                    if (coords.z > BOUNDS.zmax) BOUNDS.zmax = coords.z;
-                }
+            if (pseg.noDataVertices) {
+                noDataVertices = new Uint8Array(len / 3);
             }
 
-            seg.readyToEngage = true;
+            getMatrixSubArrayBoundsExt(
+                pseg.terrainVertices!,
+                pseg.noDataVertices!,
+                pseg.gridSize,
+                gridSize * offsetY,
+                gridSize * offsetX,
+                gridSize,
+                pseg._relativeCenter,
+                seg._relativeCenter,
+                renderVertices,
+                renderVerticesHigh,
+                renderVerticesLow,
+                BOUNDS,
+                noDataVertices!
+            );
+        } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
+            seg.gridSize = gridSizeExt;
 
-            seg.terrainVertices = tempVertices;
-            seg.terrainVerticesHigh = tempVerticesHigh;
-            seg.terrainVerticesLow = tempVerticesLow;
+            let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
+            renderVertices = new Float64Array(len);
+            renderVerticesHigh = new Float32Array(len);
+            renderVerticesLow = new Float32Array(len);
 
-            seg.tempVertices = tempVertices;
-            seg.tempVerticesHigh = tempVerticesHigh;
-            seg.tempVerticesLow = tempVerticesLow;
+            if (pseg.noDataVertices) {
+                noDataVertices = new Uint8Array(len / 3);
+            }
 
-            seg.noDataVertices = noDataVertices!;
+            getMatrixSubArrayBoundsExt(
+                pseg.normalMapVertices!,
+                pseg.noDataVertices!,
+                pn.segment.fileGridSize,
+                gridSizeExt * offsetY,
+                gridSizeExt * offsetX,
+                gridSizeExt,
+                pseg._relativeCenter,
+                seg._relativeCenter,
+                renderVertices,
+                renderVerticesHigh,
+                renderVerticesLow,
+                BOUNDS,
+                noDataVertices!
+            );
+        } else {
+            seg.gridSize = _neGridSize;
 
-            seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
+            let i0 = Math.floor(gridSize * offsetY),
+                j0 = Math.floor(gridSize * offsetX);
 
-            if (seg.tileZoom > seg.planet.terrain!.maxZoom) {
-                if (pn.segment.tileZoom >= seg.planet.terrain!.maxZoom) {
+            let bigOne;
+            if (pseg.gridSize === 1) {
+                bigOne = pseg.terrainVertices!;
+            } else {
+                bigOne = getMatrixSubArray64(pseg.terrainVertices!, pseg.gridSize, i0, j0, 1);
+            }
 
-                    seg._plainRadius = pn.segment._plainRadius / dZ2;
+            let insideSize = 1.0 / gridSize;
 
-                    seg.terrainReady = true;
-                    seg.terrainIsLoading = false;
+            let t_i0 = offsetY - insideSize * i0,
+                t_j0 = offsetX - insideSize * j0;
 
-                    seg.terrainVertices = tempVertices;
-                    seg.terrainVerticesHigh = tempVerticesHigh;
-                    seg.terrainVerticesLow = tempVerticesLow;
+            let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
+                v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-                    seg.passReady = true;
+            let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
 
-                    this.appliedTerrainNodeId = this.nodeId;
-                    this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+            let coords = new Vec3();
 
-                    if (pn.segment.terrainExists) {
-                        seg.normalMapVertices = tempVertices;
-                        seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
+            renderVertices = new Float64Array(3 * _vertOrder.length);
+            renderVerticesHigh = new Float32Array(3 * _vertOrder.length);
+            renderVerticesLow = new Float32Array(3 * _vertOrder.length);
 
-                        let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1,
-                            fgsZ = fgs / dZ2;
+            for (let i = 0; i < _vertOrder.length; i++) {
+                let vi_y = _vertOrder[i].y + t_i0,
+                    vi_x = _vertOrder[i].x + t_j0;
 
-                        if (fgs > 1) {
-                            seg.normalMapNormals = getMatrixSubArray32(pseg.normalMapNormals!, fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
-                        } else {
-                            // TODO: interpolation
-                            seg.normalMapNormals = pseg.normalMapNormals;
-                        }
+                let vi_x_is = vi_x * gridSize,
+                    vi_y_is = vi_y * gridSize;
+
+                if (vi_y + vi_x < insideSize) {
+                    coords = vn.scaleTo(vi_x_is).addA(vw.scaleTo(vi_y_is)).addA(v_lt);
+                } else {
+                    coords = vs
+                        .scaleTo(1 - vi_x_is)
+                        .addA(ve.scaleTo(1 - vi_y_is))
+                        .addA(v_rb);
+                }
+
+                coords.addA(pseg._relativeCenter);
+                let dstCoords = coords.sub(seg._relativeCenter);
+
+                Vec3.doubleToTwoFloats(dstCoords, _tempHigh, _tempLow);
+
+                let i3 = i * 3;
+
+                renderVertices[i3] = dstCoords.x;
+                renderVertices[i3 + 1] = dstCoords.y;
+                renderVertices[i3 + 2] = dstCoords.z;
+
+                renderVerticesHigh[i3] = _tempHigh.x;
+                renderVerticesHigh[i3 + 1] = _tempHigh.y;
+                renderVerticesHigh[i3 + 2] = _tempHigh.z;
+
+                renderVerticesLow[i3] = _tempLow.x;
+                renderVerticesLow[i3 + 1] = _tempLow.y;
+                renderVerticesLow[i3 + 2] = _tempLow.z;
+
+                if (coords.x < BOUNDS.xmin) BOUNDS.xmin = coords.x;
+                if (coords.x > BOUNDS.xmax) BOUNDS.xmax = coords.x;
+                if (coords.y < BOUNDS.ymin) BOUNDS.ymin = coords.y;
+                if (coords.y > BOUNDS.ymax) BOUNDS.ymax = coords.y;
+                if (coords.z < BOUNDS.zmin) BOUNDS.zmin = coords.z;
+                if (coords.z > BOUNDS.zmax) BOUNDS.zmax = coords.z;
+            }
+        }
+
+        seg.readyToEngage = true;
+
+        seg.terrainVertices = renderVertices;
+        seg.terrainVerticesHigh = renderVerticesHigh;
+        seg.terrainVerticesLow = renderVerticesLow;
+
+        seg.renderVertices = renderVertices;
+        seg.renderVerticesHigh = renderVerticesHigh;
+        seg.renderVerticesLow = renderVerticesLow;
+
+        seg.noDataVertices = noDataVertices!;
+
+        seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
+
+        if (seg.tileZoom > seg.planet.terrain!.maxZoom) {
+            if (pn.segment.tileZoom >= seg.planet.terrain!.maxZoom) {
+                seg._plainRadius = pn.segment._plainRadius / dZ2;
+
+                seg.terrainReady = true;
+                seg.terrainIsLoading = false;
+
+                seg.terrainVertices = renderVertices;
+                seg.terrainVerticesHigh = renderVerticesHigh;
+                seg.terrainVerticesLow = renderVerticesLow;
+
+                seg.passReady = true;
+
+                this.appliedTerrainNodeId = this.nodeId;
+                this.equalizedSideWithNodeId[N] =
+                    this.equalizedSideWithNodeId[E] =
+                    this.equalizedSideWithNodeId[S] =
+                    this.equalizedSideWithNodeId[W] =
+                        this.appliedTerrainNodeId;
+
+                if (pn.segment.terrainExists) {
+                    seg.normalMapVertices = renderVertices;
+                    seg.fileGridSize = Math.sqrt(renderVertices.length / 3) - 1;
+
+                    let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1,
+                        fgsZ = fgs / dZ2;
+
+                    if (fgs > 1) {
+                        seg.normalMapNormals = getMatrixSubArray32(
+                            pseg.normalMapNormals!,
+                            fgs,
+                            fgsZ * offsetY,
+                            fgsZ * offsetX,
+                            fgsZ
+                        );
+                    } else {
+                        // TODO: interpolation
+                        seg.normalMapNormals = pseg.normalMapNormals;
                     }
                 }
             }
@@ -862,7 +980,6 @@ class Node {
     }
 
     public destroy() {
-
         this.prevState = this.state = NOTRENDERING;
         this.segment.destroySegment();
 
@@ -956,4 +1073,4 @@ class Node {
     }
 }
 
-export {Node};
+export { Node };

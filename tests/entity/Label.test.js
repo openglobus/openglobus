@@ -1,4 +1,4 @@
-import { Label } from "../../src/entity/Label";
+import { Label } from "../../src/entity/label/Label";
 import { Vec4 } from "../../src/math/Vec4";
 import { FontAtlas } from "../../src/utils/FontAtlas";
 test('Testing Label', () => {

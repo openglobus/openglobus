@@ -1,4 +1,4 @@
-import {Vec3} from "./math/Vec3";
+import { Vec3 } from "./math/Vec3";
 
 /** @const */
 export const TWO_PI = 2.0 * Math.PI;
@@ -138,7 +138,7 @@ export function nextHighestPowerOfTwo(x: number, maxValue: number = 4096): numbe
     for (let i = 1; i < 32; i <<= 1) {
         x = x | (x >> i);
     }
-    return (x + 1) > maxValue ? maxValue : x + 1
+    return x + 1 > maxValue ? maxValue : x + 1;
 }
 
 /**
@@ -223,7 +223,7 @@ export function step(edge: number, x: number): number {
  * @returns {number} -
  */
 export function frac(x: number): number {
-    const mx = Math.abs(x)
+    const mx = Math.abs(x);
     return mx - Math.floor(mx);
 }
 
@@ -289,9 +289,7 @@ export function square(f: number): number {
 }
 
 export function bezier1v(t: number, p0: number, p1: number, p2: number, p3: number): number {
-    return (
-        cube(1 - t) * p0 + 3 * square(1 - t) * t * p1 + 3 * (1 - t) * square(t) * p2 + cube(t) * p3
-    );
+    return cube(1 - t) * p0 + 3 * square(1 - t) * t * p1 + 3 * (1 - t) * square(t) * p2 + cube(t) * p3;
 }
 
 /**
@@ -305,14 +303,14 @@ export function bezier1v(t: number, p0: number, p1: number, p2: number, p3: numb
  * @returns {Vec3} -
  */
 export function bezier3v(t: number, p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3): Vec3 {
-
     let u = 1 - t;
     let tt = t * t;
     let uu = u * u;
     let uuu = uu * u;
     let ttt = tt * t;
 
-    return p0.scaleTo(uuu)
+    return p0
+        .scaleTo(uuu)
         .addA(p1.scaleTo(3 * uu * t))
         .addA(p2.scaleTo(3 * u * tt))
         .addA(p3.scaleTo(ttt));
@@ -388,12 +386,6 @@ export function solve_iteration(f: (x: number) => number, x0: number, err: numbe
     }
     return x2;
 }
-
-/**
- * Equation function.
- * @callback equationCallback
- * @param {number} x - Equation variable.
- */
 
 /**
  *

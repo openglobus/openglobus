@@ -1,16 +1,17 @@
-﻿import {Entity} from '../../entity/Entity';
-import {createEvents} from '../../Events';
-import type {EventsHandler} from '../../Events';
-import {LonLat} from "../../LonLat";
-import {Object3d} from '../../Object3d';
-import {Planet} from "../../scene/Planet";
-import {RenderNode} from '../../scene/RenderNode';
-import {Vector} from '../../layer/Vector';
-import {Vec2} from '../../math/Vec2';
-import {Vec3} from '../../math/Vec3';
-import type {IMouseState} from "../../renderer/RendererEvents";
-import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
-import type {ILabelParams} from "../../entity/Label";
+import { Entity } from "../../entity/Entity";
+import { createEvents } from "../../Events";
+import type { EventsHandler } from "../../Events";
+import { LonLat } from "../../LonLat";
+import { Object3d } from "../../Object3d";
+import { Planet } from "../../scene/Planet";
+import { Scene } from "../../scene/Scene";
+import { Vector } from "../../layer/Vector";
+import { Vec2 } from "../../math/Vec2";
+import { Vec3 } from "../../math/Vec3";
+import type { IMouseState } from "../../renderer/RendererEvents";
+import { Ellipsoid } from "../../ellipsoid/Ellipsoid";
+import type { ILabelParams } from "../../entity/label/Label";
+import { SHADE_UNLIT } from "../../shadeModeConstants";
 
 const OUTLINE_COUNT = 120;
 
@@ -28,24 +29,25 @@ export const distanceFormat = (v: number): string => {
     } else {
         return `${v.toFixed(1)} m`;
     }
-}
+};
 
-let obj3d = Object3d.createCylinder(1.1, 0, 2.7, 20, 1, true, false, 0, 0, 0);
+let obj3d = Object3d.createCylinder(0.33, 0, 1.0, 20, 1, true, false, 0, 0, 0);
 
 const LABEL_OPTIONS: ILabelParams = {
     text: "",
     size: 11,
-    color: "rgba(455,455,455,1.0)",
-    outlineColor: "rgba(0,0,0,0.34)",
-    outline: 0.23,
+    color: "rgba(255,255,255,1.0)",
+    outlineColor: "rgba(0,0,0,1)",
+    outline: 0.15,
     align: "center",
-    offset: [0, 20, 0]
+    offset: [0, 20]
 };
+
 const RULER_CORNER_OPTIONS = {
     scale: 1,
     instanced: true,
     tag: "ruler",
-    color: "rgb(0,305,0)",
+    color: "rgb(0,205,0)",
     object3d: obj3d
 };
 
@@ -79,7 +81,7 @@ type RulerSceneEventsList = [
     "touchenter"
 ];
 
-class RulerScene extends RenderNode {
+class RulerScene extends Scene {
     public events: EventsHandler<RulerSceneEventsList>;
     protected _ignoreTerrain: boolean;
     protected _planet: Planet | null;
@@ -123,7 +125,7 @@ class RulerScene extends RenderNode {
         this._trackLayer = new Vector("track", {
             entities: [],
             pickingEnabled: false,
-            polygonOffsetUnits: -1.0,
+            depthOffset: -5.0,
             relativeToGround: true,
             hideInLayerSwitcher: true
         });
@@ -131,7 +133,7 @@ class RulerScene extends RenderNode {
         this._labelLayer = new Vector("ruler-label", {
             entities: [],
             pickingEnabled: false,
-            polygonOffsetUnits: -100.0,
+            depthOffset: -5.0,
             relativeToGround: true,
             hideInLayerSwitcher: true
         });
@@ -140,12 +142,13 @@ class RulerScene extends RenderNode {
             entities: [],
             pickingEnabled: true,
             hideInLayerSwitcher: true,
-            scaleByDistance: [100, 4000000, 1.0],
-            pickingScale: 2
+            scaleByDistance: [1, 5000, 0.023],
+            pickingScale: 2,
+            shadeMode: SHADE_UNLIT
         });
 
         this._propsLabel = new Entity({
-            name: 'propsLabel',
+            name: "propsLabel",
             label: LABEL_OPTIONS
         });
 
@@ -153,7 +156,7 @@ class RulerScene extends RenderNode {
             polyline: {
                 path3v: [],
                 thickness: 4.8,
-                color: "rgb(255,131,0)",
+                color: ["rgb(255,131,0)"],
                 isClosed: false
             }
         });
@@ -188,7 +191,7 @@ class RulerScene extends RenderNode {
     }
 
     protected _createCorners() {
-        this._cornersLayer.addEntities(this._cornerEntity)
+        this._cornersLayer.addEntities(this._cornerEntity);
     }
 
     public override init() {
@@ -206,7 +209,6 @@ class RulerScene extends RenderNode {
     }
 
     public _activate() {
-
         this._propsLabel.label!.setVisibility(false);
         this.setVisibility(false);
 
@@ -219,7 +221,6 @@ class RulerScene extends RenderNode {
         this._cornersLayer.events.on("mouseleave", this._onCornerLeave, this);
         this._cornersLayer.events.on("ldown", this._onCornerLdown, this);
         this._cornersLayer.events.on("lup", this._onCornerLup, this);
-
     }
 
     protected _deactivate() {
@@ -255,7 +256,7 @@ class RulerScene extends RenderNode {
                 this._anchorLonLat = this._cornerEntity[0].getLonLat().clone();
             }
         }
-    }
+    };
 
     protected _onLUp = () => {
         if (this._pickedCorner) {
@@ -263,23 +264,23 @@ class RulerScene extends RenderNode {
             this._pickedCorner = null;
             this._anchorLonLat = null;
         }
-    }
+    };
 
     protected _onCornerLup = () => {
         this._onLUp();
-    }
+    };
 
     protected _onCornerEnter = (e: IMouseState) => {
         e.renderer.handler.canvas!.style.cursor = "pointer";
-    }
+    };
 
     protected _onCornerLeave = (e: IMouseState) => {
         e.renderer.handler.canvas!.style.cursor = "default";
-    }
+    };
 
     protected _onLdblclick = () => {
         this._preventClick = true;
-    }
+    };
 
     public setVisibility(visibility: boolean) {
         this._cornersLayer.setVisibility(visibility);
@@ -308,10 +309,9 @@ class RulerScene extends RenderNode {
         if (this._startLonLat) {
             this._stopDrawing = true;
         }
-    }
+    };
 
     protected _drawLine(startLonLat: LonLat, endLonLat: LonLat, startPos?: Vec3) {
-
         if (!startPos) {
             startPos = this._planet!.ellipsoid.lonLatToCartesian(startLonLat);
         }
@@ -328,7 +328,7 @@ class RulerScene extends RenderNode {
         dir.normalize();
 
         for (let i = 0; i < OUTLINE_COUNT; i++) {
-            let f = dir.scaleTo(i * dist / OUTLINE_COUNT).addA(startPos);
+            let f = dir.scaleTo((i * dist) / OUTLINE_COUNT).addA(startPos);
             path.push(f);
         }
         path.push(endPos);
@@ -357,7 +357,7 @@ class RulerScene extends RenderNode {
                 }
             }
         }
-    }
+    };
 
     public clear() {
         this._trackEntity.remove();
@@ -373,10 +373,12 @@ class RulerScene extends RenderNode {
         if (t) {
             const startPos = t[0].clone(),
                 endPos = t[t.length - 1].clone();
-            return this._cornerEntity[0].getCartesian().equal(startPos) &&
+            return (
+                this._cornerEntity[0].getCartesian().equal(startPos) &&
                 this._cornerEntity[1].getCartesian().equal(endPos)
+            );
         }
-        return false
+        return false;
     }
 
     public override frame() {
@@ -435,4 +437,4 @@ const RULERSCENE_EVENTS: RulerSceneEventsList = [
     "touchenter"
 ];
 
-export {RulerScene};
+export { RulerScene };

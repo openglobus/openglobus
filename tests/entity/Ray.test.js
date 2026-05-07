@@ -1,4 +1,4 @@
-import { Ray } from "../../src/entity/Ray";
+import { Ray } from "../../src/entity/ray/Ray";
 import { Vec3 } from "../../src/math/Vec3";
 
 test('Testing Ray', () => {

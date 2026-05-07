@@ -1,3 +1,6 @@
+#ifndef OG_UTILS_GLSL
+#define OG_UTILS_GLSL
+
 float getLerpValue(in float min, in float max, in float between)
 {
     return (clamp(between, min, max) - min) / (max - min);
@@ -99,3 +102,5 @@ vec3 normalEllipsoid(in vec3 pos, in vec3 ra)
 {
     return normalize(pos / (ra * ra));
 }
+
+#endif

@@ -1,8 +1,8 @@
-import {createEvents} from '../Events';
-import type {EventsHandler} from '../Events';
-import {Planet} from "../scene/Planet";
-import {Segment} from "../segment/Segment";
-import {QuadTreeStrategy} from "../quadTree";
+import { createEvents } from "../Events";
+import type { EventsHandler } from "../Events";
+import { Planet } from "../scene/Planet";
+import { Segment } from "../segment/Segment";
+import { QuadTreeStrategy } from "../quadTree";
 
 type LoaderEventsList = ["loadend", "layerloadend"];
 
@@ -16,7 +16,7 @@ export interface IResponse {
 
 type IResponseCallback = (response: IResponse) => void;
 
-export type FetchCache = 'default' | 'no-store' | 'no-cache' | 'reload' | 'force-cache' | 'only-if-cached';
+export type FetchCache = "default" | "no-store" | "no-cache" | "reload" | "force-cache" | "only-if-cached";
 
 // interface IResponseHandler {
 //     json: (r: Response) => Promise<any>;
@@ -30,31 +30,30 @@ interface Obj<T> {
     __id: number;
     isIdle: boolean;
     isEqual: (obj: T) => boolean;
-    events: EventsHandler<any>
+    events: EventsHandler<any>;
     _planet?: Planet | null;
     quadTreeStrategy?: QuadTreeStrategy | null;
 }
 
 type QueryParams<T> = {
-    sender?: T,
-    src: string,
-    type: string,
-    filter?: (val: QueryParams<T>) => boolean,
-    options?: any,
-    segment?: Segment
+    sender?: T;
+    src: string;
+    type: string;
+    filter?: (val: QueryParams<T>) => boolean;
+    options?: any;
+    segment?: Segment;
 };
 
 type QueueData<T> = {
-    params: QueryParams<T>,
-    callback: IResponseCallback
+    params: QueryParams<T>;
+    callback: IResponseCallback;
 };
 
 type RequestCounter<T> = {
-    sender: T,
-    counter: number,
-    __requestCounterFrame__: number
+    sender: T;
+    counter: number;
+    __requestCounterFrame__: number;
 };
-
 
 export class Loader<T extends Obj<T>> {
     public MAX_REQUESTS: number;
@@ -63,33 +62,34 @@ export class Loader<T extends Obj<T>> {
 
     protected _loading: number;
 
-    protected _queue: QueueData<T>[];//new QueueArray();
+    protected _queue: QueueData<T>[]; //new QueueArray();
 
     protected _senderRequestCounter: RequestCounter<T>[];
 
-    protected _promises: { [key: string]: (r: Response) => Promise<any> };//IResponseHandler;
+    protected _promises: { [key: string]: (r: Response) => Promise<any> }; //IResponseHandler;
 
     constructor(maxRequests: number = 24) {
-
         this.MAX_REQUESTS = maxRequests;
 
         this.events = createEvents(LOADER_EVENTS);
 
         this._loading = 0;
 
-        this._queue = [];//new QueueArray();
+        this._queue = []; //new QueueArray();
 
         this._senderRequestCounter = [];
 
         this._promises = {
-            'json': r => r.json(),
-            'blob': r => r.blob(),
-            'arrayBuffer': r => r.arrayBuffer(),
-            'imageBitmap': r => r.blob().then(
-                (r: Blob) => createImageBitmap(r, {
-                    premultiplyAlpha: "premultiply"
-                })),
-            'text': r => r.text()
+            json: (r) => r.json(),
+            blob: (r) => r.blob(),
+            arrayBuffer: (r) => r.arrayBuffer(),
+            imageBitmap: (r) =>
+                r.blob().then((r: Blob) =>
+                    createImageBitmap(r, {
+                        premultiplyAlpha: "premultiply"
+                    })
+                ),
+            text: (r) => r.text()
         };
     }
 
@@ -97,12 +97,14 @@ export class Loader<T extends Obj<T>> {
         if (params.sender) {
             if (!this._senderRequestCounter[params.sender.__id]) {
                 this._senderRequestCounter[params.sender.__id] = {
-                    sender: params.sender, counter: 0, __requestCounterFrame__: 0
+                    sender: params.sender,
+                    counter: 0,
+                    __requestCounterFrame__: 0
                 };
             }
             this._senderRequestCounter[params.sender.__id].counter++;
         }
-        this._queue.push({params, callback});
+        this._queue.push({ params, callback });
         this._exec();
     }
 
@@ -116,12 +118,11 @@ export class Loader<T extends Obj<T>> {
             })
 
             .then((data: any) => {
-                return {status: "ready", data: data};
-
+                return { status: "ready", data: data };
             })
 
             .catch((err: Error) => {
-                return {status: "error", msg: err.toString()};
+                return { status: "error", msg: err.toString() };
             });
     }
 
@@ -140,7 +141,10 @@ export class Loader<T extends Obj<T>> {
     }
 
     protected _checkLoadend(request: RequestCounter<T>, sender: T) {
-        if (request.counter === 0 && (!sender._planet || sender.quadTreeStrategy && sender.quadTreeStrategy._terrainCompletedActivated)) {
+        if (
+            request.counter === 0 &&
+            (!sender._planet || (sender.quadTreeStrategy && sender.quadTreeStrategy._terrainCompletedActivated))
+        ) {
             sender.events.dispatch(sender.events.loadend, sender);
             this.events.dispatch(this.events.layerloadend, sender);
             request.__requestCounterFrame__ = 0;
@@ -168,9 +172,7 @@ export class Loader<T extends Obj<T>> {
     }
 
     protected _exec() {
-
         if (this._queue.length > 0 && this._loading < this.MAX_REQUESTS) {
-
             let q = this._queue.pop()!;
 
             if (!q) return;
@@ -178,7 +180,6 @@ export class Loader<T extends Obj<T>> {
             let p = q.params;
 
             if (!p.filter || p.filter(p)) {
-
                 this._loading++;
 
                 return fetch(p.src!, p.options || {})
@@ -190,15 +191,14 @@ export class Loader<T extends Obj<T>> {
                     })
                     .then((data: any) => {
                         this._loading--;
-                        this._handleResponse(q, {status: "ready", data: data});
+                        this._handleResponse(q, { status: "ready", data: data });
                     })
                     .catch((err: Error) => {
                         this._loading--;
-                        this._handleResponse(q, {status: "error", msg: err.toString()});
+                        this._handleResponse(q, { status: "error", msg: err.toString() });
                     });
-
             } else {
-                this._handleResponse(q, {status: "abort"});
+                this._handleResponse(q, { status: "abort" });
             }
         } else if (this._loading === 0) {
             this.events.dispatch(this.events.loadend);
@@ -206,7 +206,6 @@ export class Loader<T extends Obj<T>> {
     }
 
     public abort(sender: T) {
-
         if (this._senderRequestCounter[sender.__id]) {
             this._senderRequestCounter[sender.__id].counter = 0;
             cancelAnimationFrame(this._senderRequestCounter[sender.__id].__requestCounterFrame__);
@@ -216,7 +215,7 @@ export class Loader<T extends Obj<T>> {
         for (let i = 0, len = this._queue.length; i < len; i++) {
             let qi = this._queue[i];
             if (qi && qi.params.sender && sender.isEqual(qi.params.sender)) {
-                qi.callback({'status': "abort"});
+                qi.callback({ status: "abort" });
                 //@ts-ignore
                 this._queue[i] = null;
             }
@@ -233,7 +232,7 @@ export class Loader<T extends Obj<T>> {
                     cancelAnimationFrame(this._senderRequestCounter[sender.__id].__requestCounterFrame__);
                     this._senderRequestCounter[sender.__id].__requestCounterFrame__ = 0;
                 }
-                qi.callback({'status': "abort"});
+                qi.callback({ status: "abort" });
                 //@ts-ignore
                 this._queue[i] = null;
             }

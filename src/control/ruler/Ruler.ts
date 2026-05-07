@@ -1,9 +1,9 @@
-import {Control} from "../Control";
-import type {IControlParams} from "../Control";
-import {RulerScene} from "./RulerScene";
+import { Control } from "../Control";
+import type { IControlParams } from "../Control";
+import { RulerScene } from "./RulerScene";
 
 export interface IRulerParams extends IControlParams {
-    ignoreTerrain?: boolean
+    ignoreTerrain?: boolean;
 }
 
 export class Ruler extends Control {
@@ -27,7 +27,7 @@ export class Ruler extends Control {
     }
 
     public override onactivate() {
-        this.renderer && this.renderer.addNode(this._rulerScene);
+        this.renderer && this.renderer.addScene(this._rulerScene);
     }
 
     public override ondeactivate() {

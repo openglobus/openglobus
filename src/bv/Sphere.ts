@@ -1,6 +1,6 @@
-import {Vec3} from "../math/Vec3";
-import {Ellipsoid} from "../ellipsoid/Ellipsoid";
-import {Extent} from "../Extent";
+import { Vec3 } from "../math/Vec3";
+import { Ellipsoid } from "../ellipsoid/Ellipsoid";
+import { Extent } from "../Extent";
 
 export type NumberArray6 = [number, number, number, number, number, number];
 
@@ -26,7 +26,6 @@ class Sphere {
     public center: Vec3;
 
     constructor(radius: number = 0, center?: Vec3) {
-
         this.radius = radius;
 
         this.center = center ? center.clone() : new Vec3();
@@ -38,11 +37,7 @@ class Sphere {
      */
     public setFromBounds(bounds: NumberArray6) {
         let m = new Vec3(bounds[0], bounds[1], bounds[2]);
-        this.center.set(
-            m.x + (bounds[3] - m.x) * 0.5,
-            m.y + (bounds[3] - m.y) * 0.5,
-            m.z + (bounds[5] - m.z) * 0.5
-        );
+        this.center.set(m.x + (bounds[3] - m.x) * 0.5, m.y + (bounds[3] - m.y) * 0.5, m.z + (bounds[5] - m.z) * 0.5);
         this.radius = this.center.distance(m);
     }
 
@@ -56,4 +51,4 @@ class Sphere {
     }
 }
 
-export {Sphere};
+export { Sphere };

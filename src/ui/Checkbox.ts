@@ -1,7 +1,7 @@
-import type {EventsHandler} from "../Events";
-import {View} from './View';
-import type {IViewParams, ViewEventsList} from './View';
-import {stringTemplate, toFixedMax} from '../utils/shared';
+import type { EventsHandler } from "../Events";
+import { View } from "./View";
+import type { IViewParams, ViewEventsList } from "./View";
+import { stringTemplate } from "../utils/shared";
 
 interface ICheckboxParams extends IViewParams {
     label?: string;
@@ -21,7 +21,6 @@ const TEMPLATE = `<div class="og-checkbox">
     </div>`;
 
 class Checkbox extends View<null> {
-
     public override events: EventsHandler<CheckboxEventsList> & EventsHandler<ViewEventsList>;
 
     protected $label: HTMLElement | null;
@@ -67,7 +66,6 @@ class Checkbox extends View<null> {
     }
 
     public override render(params: any): this {
-
         super.render(params);
 
         this.$label = this.select(".og-input-label")!;
@@ -84,8 +82,7 @@ class Checkbox extends View<null> {
         return this;
     }
 
-    protected _onResize = () => {
-    }
+    protected _onResize = () => {};
 
     public set checked(isChecked: boolean) {
         if (isChecked !== this._checked) {
@@ -120,11 +117,11 @@ class Checkbox extends View<null> {
         e = e || window.event;
         e.preventDefault();
         e.stopPropagation();
-    }
+    };
 
     protected _onMouseWheelFF = (e: WheelEvent) => {
         this._onMouseWheel(e);
-    }
+    };
 
     protected _onClick = (e: Event) => {
         //@ts-ignore
@@ -132,8 +129,7 @@ class Checkbox extends View<null> {
         e.stopPropagation();
 
         this.checked = !this._checked;
-    }
-
+    };
 
     public override remove() {
         this._clearEvents();
@@ -151,4 +147,4 @@ class Checkbox extends View<null> {
     }
 }
 
-export {Checkbox}
+export { Checkbox };

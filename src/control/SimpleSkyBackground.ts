@@ -1,12 +1,11 @@
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import {htmlColorToRgb, rgbToStringHTML} from "../utils/shared";
-import {Program} from '../webgl/Program';
-import type {NumberArray3} from "../math/Vec3";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
+import { htmlColorToRgb, rgbToStringHTML } from "../utils/shared";
+import { srgbToLinear } from "../utils/colorSpace";
+import { ShaderProgram } from "../webgl/ShaderProgram";
+import type { NumberArray3 } from "../math/Vec3";
 
-interface ISimpleSkyBackgroundParams extends IControlParams {
-
-}
+interface ISimpleSkyBackgroundParams extends IControlParams {}
 
 export class SimpleSkyBackground extends Control {
     protected _colorOne: Float32Array;
@@ -18,8 +17,8 @@ export class SimpleSkyBackground extends Control {
             ...options
         });
 
-        this._colorOne = new Float32Array([128 / 255, 223 / 255, 255 / 255]);
-        this._colorTwo = new Float32Array([10 / 255, 15 / 255, 56 / 255]);
+        this._colorOne = new Float32Array([srgbToLinear(128 / 255), srgbToLinear(223 / 255), srgbToLinear(255 / 255)]);
+        this._colorTwo = new Float32Array([srgbToLinear(10 / 255), srgbToLinear(15 / 255), srgbToLinear(56 / 255)]);
     }
 
     public get colorOne(): string {
@@ -36,16 +35,16 @@ export class SimpleSkyBackground extends Control {
 
     public set colorOne(htmlColor: string) {
         let rgb = htmlColorToRgb(htmlColor);
-        this._colorOne[0] = rgb.x;
-        this._colorOne[1] = rgb.y;
-        this._colorOne[2] = rgb.z;
+        this._colorOne[0] = srgbToLinear(rgb.x);
+        this._colorOne[1] = srgbToLinear(rgb.y);
+        this._colorOne[2] = srgbToLinear(rgb.z);
     }
 
     public set colorTwo(htmlColor: string) {
         let rgb = htmlColorToRgb(htmlColor);
-        this._colorTwo[0] = rgb.x;
-        this._colorTwo[1] = rgb.y;
-        this._colorTwo[2] = rgb.z;
+        this._colorTwo[0] = srgbToLinear(rgb.x);
+        this._colorTwo[1] = srgbToLinear(rgb.y);
+        this._colorTwo[2] = srgbToLinear(rgb.z);
     }
 
     public override oninit() {
@@ -66,7 +65,7 @@ export class SimpleSkyBackground extends Control {
     protected _drawBackground() {
         let h = this.renderer!.handler;
         let sh = h.programs.simpleSkyBackground,
-            p = sh._program,
+            p = sh,
             shu = p.uniforms,
             gl = h.gl!;
         let cam = this.planet!.camera;
@@ -83,8 +82,7 @@ export class SimpleSkyBackground extends Control {
         gl.uniform1f(shu.earthRadius, this.planet!.ellipsoid.getPolarSize() + 1);
         gl.uniform3fv(shu.colorOne, this._colorOne);
         gl.uniform3fv(shu.colorTwo, this._colorTwo);
-
-        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        gl.uniformMatrix3fv(shu.normalMatrix, false, cam.getNormalMatrix());
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -92,20 +90,21 @@ export class SimpleSkyBackground extends Control {
     }
 }
 
-function simpleSkyBackgroundShader(): Program {
-    return new Program("simpleSkyBackground", {
+function simpleSkyBackgroundShader(): ShaderProgram {
+    return new ShaderProgram("simpleSkyBackground", {
         uniforms: {
-            iResolution: "vec2", fov: "float",
+            iResolution: "vec2",
+            fov: "float",
             camPos: "vec3",
             earthRadius: "float",
-            viewMatrix: "mat4",
+            normalMatrix: "mat3",
             colorOne: "vec3",
             colorTwo: "vec3"
-        }, attributes: {
+        },
+        attributes: {
             corners: "vec3"
         },
-        vertexShader:
-            `attribute vec2 corners;
+        vertexShader: `attribute vec2 corners;
                         
             varying vec2 tc;
             
@@ -113,8 +112,7 @@ function simpleSkyBackgroundShader(): Program {
                 gl_Position = vec4(corners, 0.0, 1.0);
                 tc = corners * 0.5 + 0.5;
             }`,
-        fragmentShader:
-            `precision highp float;
+        fragmentShader: `precision highp float;
             
             #define MAX 10e10
             #define PI 3.14159265359
@@ -128,7 +126,7 @@ function simpleSkyBackgroundShader(): Program {
             uniform vec2 iResolution;
             uniform float fov;
             uniform float earthRadius;
-            uniform mat4 viewMatrix;
+            uniform mat3 normalMatrix;
             
             uniform vec3 colorOne;
             uniform vec3 colorTwo;
@@ -154,52 +152,10 @@ function simpleSkyBackgroundShader(): Program {
                 return vec2( -b-h, -b+h );
             }
             
-            mat3 transpose(mat3 matrix) {
-                vec3 row0 = matrix[0];
-                vec3 row1 = matrix[1];
-                vec3 row2 = matrix[2];
-                mat3 result = mat3(
-                    vec3(row0.x, row1.x, row2.x),
-                    vec3(row0.y, row1.y, row2.y),
-                    vec3(row0.z, row1.z, row2.z)
-                );
-                return result;
-            }
-            
-            float det(mat2 matrix) {
-                return matrix[0].x * matrix[1].y - matrix[0].y * matrix[1].x;
-            }
-            
-            mat3 inverse(mat3 matrix) {
-                vec3 row0 = matrix[0];
-                vec3 row1 = matrix[1];
-                vec3 row2 = matrix[2];
-            
-                vec3 minors0 = vec3(
-                    det(mat2(row1.y, row1.z, row2.y, row2.z)),
-                    det(mat2(row1.z, row1.x, row2.z, row2.x)),
-                    det(mat2(row1.x, row1.y, row2.x, row2.y))
-                );
-                vec3 minors1 = vec3(
-                    det(mat2(row2.y, row2.z, row0.y, row0.z)),
-                    det(mat2(row2.z, row2.x, row0.z, row0.x)),
-                    det(mat2(row2.x, row2.y, row0.x, row0.y))
-                );
-                vec3 minors2 = vec3(
-                    det(mat2(row0.y, row0.z, row1.y, row1.z)),
-                    det(mat2(row0.z, row0.x, row1.z, row1.x)),
-                    det(mat2(row0.x, row0.y, row1.x, row1.y))
-                );
-            
-                mat3 adj = transpose(mat3(minors0, minors1, minors2));
-            
-                return (1.0 / dot(row0, minors0)) * adj;
-            }
-            
             void main(void) {
             
                 vec3 dir = computeView(tc);
-                dir = inverse(mat3(viewMatrix)) * dir;
+                dir = normalMatrix * dir;
                 
                 vec2 ER = sphIntersect(camPos, dir, vec3(0.0), earthRadius);
                 

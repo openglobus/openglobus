@@ -1,40 +1,38 @@
-import {Entity} from '../../entity/Entity';
-import {LonLat} from "../../LonLat";
-import {Object3d} from "../../Object3d";
-import {RulerScene, type IRulerSceneParams} from "../ruler/RulerScene";
-import {Vector} from "../../layer/Vector";
-import {Vec3} from "../../math/Vec3";
-import type {ILabelParams} from "../../entity/Label";
-import type {IRayParams} from "../../entity/Ray";
+import { Entity } from "../../entity/Entity";
+import { LonLat } from "../../LonLat";
+import { Object3d } from "../../Object3d";
+import { RulerScene, type IRulerSceneParams } from "../ruler/RulerScene";
+import { Vector } from "../../layer/Vector";
+import { Vec3 } from "../../math/Vec3";
+import type { ILabelParams } from "../../entity/label/Label";
+import type { IRayParams } from "../../entity/ray/Ray";
 
-let obj3d = Object3d.createCylinder(1.1, 0, 2, 6, 1, true, true, 0, 0, 0);
+let obj3d = Object3d.createCylinder(0.33, 0, 1.0, 20, 1, true, false, 0, 0, 0);
 
 const RAYS_OPTIONS: IRayParams = {
     startColor: "rgb(255,131,0)",
     endColor: "rgb(255,131,0)",
     thickness: 5
-}
+};
 const LABEL_OPTIONS: ILabelParams = {
     text: "",
     size: 11,
-    color: "rgba(455,455,455,1.0)",
-    outlineColor: "rgba(0,0,0,0.34)",
-    outline: 0.23,
-    align: "center",
-    offset: [0, 18, 0]
+    color: "rgba(255,255,255,1.0)",
+    outlineColor: "rgba(0,0,0,1)",
+    outline: 0.13,
+    align: "left",
+    offset: [10, 18]
 };
 
 const RULER_CORNER_OPTIONS = {
     scale: 1,
     instanced: true,
     tag: "height-ruler",
-    color: "rgb(255,131,0)",
+    color: "rgb(0,205,0)",
     object3d: obj3d
 };
 
-interface IHeightRulerSceneParams extends IRulerSceneParams {
-
-}
+interface IHeightRulerSceneParams extends IRulerSceneParams {}
 
 class HeightRulerScene extends RulerScene {
     protected _geoRulerLayer: Vector;
@@ -48,36 +46,36 @@ class HeightRulerScene extends RulerScene {
         this._geoRulerLayer = new Vector("rayHeightRuler", {
             entities: [],
             pickingEnabled: false,
-            polygonOffsetUnits: -2.0,
+            depthOffset: -5.0,
             relativeToGround: false,
             hideInLayerSwitcher: true
         });
 
         this._rayV = new Entity({
-            name: 'verticalRay',
+            name: "verticalRay",
             ray: RAYS_OPTIONS
         });
 
         this._rayH = new Entity({
-            name: 'heightRay',
+            name: "heightRay",
             ray: RAYS_OPTIONS
         });
 
         this._heightLabels = [
             new Entity({
-                name: 'startCornerLabel',
+                name: "startCornerLabel",
                 label: {
                     ...LABEL_OPTIONS
                 }
             }),
             new Entity({
-                name: 'endCornerLabel',
+                name: "endCornerLabel",
                 label: {
                     ...LABEL_OPTIONS
                 }
             }),
             new Entity({
-                name: 'deltaLabel',
+                name: "deltaLabel",
                 label: {
                     ...LABEL_OPTIONS
                 }
@@ -95,11 +93,11 @@ class HeightRulerScene extends RulerScene {
     }
 
     public get startLabel(): Entity {
-        return this._heightLabels[0]
+        return this._heightLabels[0];
     }
 
     public get endLabel(): Entity {
-        return this._heightLabels[1]
+        return this._heightLabels[1];
     }
 
     public get corners(): Entity[] {
@@ -159,8 +157,8 @@ class HeightRulerScene extends RulerScene {
         const middleLonLat = this.minHeightCornerLonLat.clone();
         middleLonLat.height = this.maxHeightCornerLonLat.height;
 
-        this._rayH.ray!.setStartPosition3v(this._planet!.ellipsoid.lonLatToCartesian(this.maxHeightCornerLonLat))
-        this._rayH.ray!.setEndPosition3v(this._planet!.ellipsoid.lonLatToCartesian(middleLonLat))
+        this._rayH.ray!.setStartPosition3v(this._planet!.ellipsoid.lonLatToCartesian(this.maxHeightCornerLonLat));
+        this._rayH.ray!.setEndPosition3v(this._planet!.ellipsoid.lonLatToCartesian(middleLonLat));
         this._rayV.ray!.setStartPosition3v(this._planet!.ellipsoid.lonLatToCartesian(this.minHeightCornerLonLat));
         this._rayV.ray!.setEndPosition3v(this._planet!.ellipsoid.lonLatToCartesian(middleLonLat));
 
@@ -171,11 +169,11 @@ class HeightRulerScene extends RulerScene {
         this.endLabel.setLonLat(this.endCornerLonLat);
 
         const startHeight = await this._planet!.getHeightDefault(this.startCornerLonLat),
-            endHeight = await this._planet!.getHeightDefault(this.endCornerLonLat)
+            endHeight = await this._planet!.getHeightDefault(this.endCornerLonLat);
 
         this.deltaLabel.label!.setText(`\u0394 ${Math.abs(startHeight - endHeight).toFixed(1)} m`);
-        this.startLabel.label!.setText(`P1 ${startHeight.toFixed(1)} m`)
-        this.endLabel.label!.setText(`P2 ${endHeight.toFixed(1)} m`)
+        this.startLabel.label!.setText(`P1 ${startHeight.toFixed(1)} m`);
+        this.endLabel.label!.setText(`P2 ${endHeight.toFixed(1)} m`);
     }
 
     public override clear() {
@@ -224,10 +222,9 @@ class HeightRulerScene extends RulerScene {
     }
 
     public override frame() {
-        super.frame()
+        super.frame();
         this._updateHeightRaysAndLabels();
     }
 }
 
-
-export {HeightRulerScene};
+export { HeightRulerScene };

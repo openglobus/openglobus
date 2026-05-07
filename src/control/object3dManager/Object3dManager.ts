@@ -1,16 +1,16 @@
-import {Control, type IControlParams} from "../Control";
-import {Object3dManagerDialog} from "./Object3dManagerDialog";
-import {Object3dCollection} from "./Object3dCollection";
-import {IObject3dItem} from "./Object3dCollection";
-import {Vector} from "../../layer/Vector";
-import {IMouseState} from "../../renderer/RendererEvents";
-import {LonLat} from "../../LonLat";
-import {Entity} from "../../entity/Entity";
-import {input} from "../../input/input";
+import { Control, type IControlParams } from "../Control";
+import { Object3dManagerDialog } from "./Object3dManagerDialog";
+import { Object3dCollection } from "./Object3dCollection";
+import { IObject3dItem } from "./Object3dCollection";
+import { Vector } from "../../layer/Vector";
+import { IMouseState } from "../../renderer/RendererEvents";
+import { LonLat } from "../../LonLat";
+import { Entity } from "../../entity/Entity";
+import { input } from "../../input/input";
 
 export interface IObject3dManagerParams extends IControlParams {
-    collection?: IObject3dItem[],
-    layer?: Vector
+    collection?: IObject3dItem[];
+    layer?: Vector;
 }
 
 export class Object3dManager extends Control {
@@ -55,7 +55,7 @@ export class Object3dManager extends Control {
 
     protected _onSelect = (item: IObject3dItem) => {
         this._currentItem = item;
-    }
+    };
 
     public bindLayer(layer: Vector) {
         this._layer = layer;
@@ -87,10 +87,9 @@ export class Object3dManager extends Control {
                 this._layer.add(entity);
             }
         }
-    }
+    };
 
     protected _createEntity(item: IObject3dItem, lonLat: LonLat): Entity {
-
         let name = item.name;
         let scale = item.scale;
 
@@ -99,7 +98,7 @@ export class Object3dManager extends Control {
             pitch: 0,
             yaw: 0,
             roll: 0,
-            scale,
+            scale
         });
 
         for (let i = 0; i < item.objects.length; i++) {

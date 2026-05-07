@@ -1,6 +1,6 @@
-import {EPS10} from '../math';
-import {Sphere} from "../bv/Sphere";
-import {Vec3} from './Vec3';
+import { EPS10 } from "../math";
+import { Sphere } from "../bv/Sphere";
+import { Vec3 } from "./Vec3";
 
 /**
  * @todo: write tests
@@ -10,7 +10,6 @@ import {Vec3} from './Vec3';
  * @param {Vec3} [p1] - Second point of the line
  */
 export class Line3 {
-
     /**
      * First point of the line
      * @public
@@ -52,8 +51,17 @@ export class Line3 {
 
         let A = vx * vx + vy * vy + vz * vz,
             B = 2.0 * (px * vx + py * vy + pz * vz - vx * cx - vy * cy - vz * cz),
-            C = px * px - 2 * px * cx + cx * cx + py * py - 2 * py * cy + cy * cy +
-                pz * pz - 2 * pz * cz + cz * cz - sphere.radius * sphere.radius;
+            C =
+                px * px -
+                2 * px * cx +
+                cx * cx +
+                py * py -
+                2 * py * cy +
+                cy * cy +
+                pz * pz -
+                2 * pz * cz +
+                cz * cz -
+                sphere.radius * sphere.radius;
         let D = B * B - 4 * A * C;
 
         if (D < 0) {
@@ -63,21 +71,14 @@ export class Line3 {
 
         let t1 = (-B - Math.sqrt(D)) / (2.0 * A);
 
-        let solution1 = new Vec3(
-            p0.x * (1 - t1) + t1 * p1.x,
-            p0.y * (1 - t1) + t1 * p1.y,
-            p0.z * (1 - t1) + t1 * p1.z
-        );
+        let solution1 = new Vec3(p0.x * (1 - t1) + t1 * p1.x, p0.y * (1 - t1) + t1 * p1.y, p0.z * (1 - t1) + t1 * p1.z);
 
         if (D == 0) {
             return [solution1];
         }
 
         let t2 = (-B + Math.sqrt(D)) / (2.0 * A);
-        let solution2 = new Vec3(
-            p0.x * (1 - t2) + t2 * p1.x,
-            p0.y * (1 - t2) + t2 * p1.y,
-            p0.z * (1 - t2) + t2 * p1.z);
+        let solution2 = new Vec3(p0.x * (1 - t2) + t2 * p1.x, p0.y * (1 - t2) + t2 * p1.y, p0.z * (1 - t2) + t2 * p1.z);
 
         // prefer a solution that's on the line segment itself
         if (Math.abs(t1 - 0.5) < Math.abs(t2 - 0.5)) {
@@ -88,7 +89,6 @@ export class Line3 {
     }
 
     public intersects(line: Line3, res: Vec3, res2?: Vec3): boolean {
-
         let p13 = this.p0.sub(line.p0),
             p43 = line.p1.sub(line.p0);
 
@@ -123,7 +123,6 @@ export class Line3 {
         res.z = this.p0.z + mua * p21.z;
 
         if (res2) {
-
             let mub = (d1343 + d4321 * mua) / d4343;
 
             res2.x = line.p0.x + mub * p43.x;
@@ -135,28 +134,19 @@ export class Line3 {
     }
 
     public getNearestDistancePoint(point: Vec3, res: Vec3): boolean {
-
         let p0 = this.p0,
             p1 = this.p1;
 
         let mag = this.getMagnitude();
 
         let u =
-            (
-                ((point.x - p0.x) * (p1.x - p0.x)) +
-                ((point.y - p0.y) * (p1.y - p0.y)) +
-                ((point.z - p0.z) * (p1.z - p0.z))
-            ) /
+            ((point.x - p0.x) * (p1.x - p0.x) + (point.y - p0.y) * (p1.y - p0.y) + (point.z - p0.z) * (p1.z - p0.z)) /
             (mag * mag);
 
         res.x = p0.x + u * (p1.x - p0.x);
         res.y = p0.y + u * (p1.y - p0.y);
         res.z = p0.z + u * (p1.z - p0.z);
 
-        if (u < 0.0 || u > 1.0) {
-            return false;
-        }
-
-        return true;
+        return !(u < 0.0 || u > 1.0);
     }
 }

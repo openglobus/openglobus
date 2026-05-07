@@ -112,4 +112,4 @@ class Rectangle {
     }
 }
 
-export {Rectangle};
+export { Rectangle };

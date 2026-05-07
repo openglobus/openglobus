@@ -1,27 +1,24 @@
-import {Program} from '../webgl/Program';
-import {types} from '../webgl/types';
+import { ShaderProgram } from "../webgl/ShaderProgram";
+import { types } from "../webgl/types";
 
-export function skybox(): Program {
-    return new Program("skybox", {
+export function skybox(): ShaderProgram {
+    return new ShaderProgram("skybox", {
         uniforms: {
-            projectionViewMatrix: {type: types.MAT4},
-            uSampler: {type: types.SAMPLERCUBE},
-            pos: {type: types.VEC3}
+            projectionViewMatrix: { type: types.MAT4 },
+            uSampler: "samplercube"
         },
         attributes: {
-            aVertexPosition: {type: types.VEC3, enableArray: true}
+            aVertexPosition: "vec3"
         },
-        vertexShader:
-            `attribute vec3 aVertexPosition;
+        vertexShader: `attribute vec3 aVertexPosition;
             uniform mat4 projectionViewMatrix;
-            uniform vec3 pos;
             varying vec3 vTextureCoord;
             void main(void) {
-                vTextureCoord = aVertexPosition;
-                gl_Position = projectionViewMatrix * vec4(aVertexPosition + pos, 1.0);
+                vTextureCoord = normalize(aVertexPosition);
+                vec4 clipPos = projectionViewMatrix * vec4(aVertexPosition, 1.0);
+                gl_Position = clipPos.xyww;
             }`,
-        fragmentShader:
-            `precision lowp float;
+        fragmentShader: `precision highp float;
             varying vec3 vTextureCoord;
             uniform samplerCube uSampler;
             void main(void) {

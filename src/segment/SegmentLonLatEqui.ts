@@ -1,10 +1,10 @@
-import {Extent} from "../Extent";
-import {Node} from "../quadTree/Node";
-import {SegmentLonLat} from "./SegmentLonLat";
-import {getTileCellIndex, TILEGROUP_COMMON} from "./Segment";
-import {equi} from "../proj/equi";
-import type {WebGLTextureExt} from "../webgl/Handler";
-import {QuadTreeStrategy} from "../quadTree";
+import { Extent } from "../Extent";
+import { Node } from "../quadTree/Node";
+import { SegmentLonLat } from "./SegmentLonLat";
+import { getTileCellIndex, TILEGROUP_COMMON } from "./Segment";
+import { equi } from "../proj/equi";
+import type { WebGLTextureExt } from "../webgl/Handler";
+import { QuadTreeStrategy } from "../quadTree";
 
 const MAX_POLE_ZOOM = 5;
 export const POLE_PIECE_SIZE = 5 / Math.pow(2, MAX_POLE_ZOOM);

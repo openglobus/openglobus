@@ -3,7 +3,7 @@
 precision highp float;
 
 #ifndef saturate
-    #define saturate(a) clamp(a, 0.0, 1.0)
+#define saturate(a) clamp(a, 0.0, 1.0)
 #endif
 
 uniform sampler2D hdrBuffer;
@@ -11,6 +11,11 @@ uniform sampler2D hdrBuffer;
 uniform float whitepoint;
 uniform float exposure;
 uniform float gamma;
+
+// Interleaved gradient noise for temporal-stable dithering in 8-bit targets.
+float interleavedGradientNoise(vec2 uv) {
+    return fract(52.9829189 * fract(dot(uv, vec2(0.06711056, 0.00583715))));
+}
 
 vec3 LinearToneMapping(vec3 color) {
     return exposure * color;
@@ -43,19 +48,21 @@ vec3 ACESFilmicToneMapping(vec3 color) {
     return saturate((color * (2.51 * color + 0.03)) / (color * (2.43 * color + 0.59) + 0.14));
 }
 
-in vec2 tc;
-
 layout (location = 0) out vec4 fragColor;
 
 void main(void) {
-    vec4 hdrColor = texture(hdrBuffer, tc);
+    ivec2 fragCoord = ivec2(gl_FragCoord.xy);
+    vec4 hdrColor = texelFetch(hdrBuffer, fragCoord, 0);
 
-    float oneByGamma = gamma / gamma;
     float oneByWhitePoint = whitepoint / whitepoint;
-    vec3 mapped = ReinhardToneMapping2(hdrColor.rgb) * oneByGamma * oneByWhitePoint;
-    //vec3 mapped = ACESFilmicToneMapping(hdrColor.rgb) * oneByGamma * oneByWhitePoint;
+    vec3 mapped = ReinhardToneMapping2(hdrColor.rgb) * oneByWhitePoint;
+    //vec3 mapped = ACESFilmicToneMapping(hdrColor.rgb) * oneByWhitePoint;
 
     mapped = pow(mapped, vec3(1.0 / gamma));
+
+    // Remove visible color banding in dark gradients when writing to RGBA8 buffers.
+    float dither = interleavedGradientNoise(gl_FragCoord.xy) - 0.5;
+    mapped = clamp(mapped + dither / 255.0, 0.0, 1.0);
 
     fragColor = vec4(mapped, hdrColor.a);
 }

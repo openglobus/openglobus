@@ -1,4 +1,4 @@
-import {isString} from "./shared";
+import { isString } from "./shared";
 
 export class BaseWorker<T> {
     protected _sourceId: number;
@@ -26,14 +26,14 @@ export class BaseWorker<T> {
 
     public setProgram(program: any) {
         if (isString(program)) {
-            let p = new Blob([program], {type: "application/javascript"});
+            let p = new Blob([program], { type: "application/javascript" });
             for (let i = 0; i < this._numWorkers; i++) {
                 let w = new Worker(URL.createObjectURL(p));
                 w.onmessage = (e: MessageEvent) => {
                     this._onMessage(e);
                     this._workerQueue && this._workerQueue.unshift(e.target as Worker);
                     this.check();
-                }
+                };
                 this._workerQueue.push(w);
             }
         } else {
@@ -43,18 +43,15 @@ export class BaseWorker<T> {
                     this._onMessage(e);
                     this._workerQueue && this._workerQueue.unshift(e.target as Worker);
                     this.check();
-                }
+                };
                 this._workerQueue.push(w);
             }
         }
     }
 
-    public make(data: T) {
-    }
+    public make(data: T) {}
 
-    protected _onMessage(e: MessageEvent) {
-
-    }
+    protected _onMessage(e: MessageEvent) {}
 
     public destroy() {
         for (let i = 0; i < this._workerQueue.length; i++) {

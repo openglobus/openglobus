@@ -1,6 +1,6 @@
-import {print2d} from "../utils/shared";
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
+import { print2d } from "../utils/shared";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
 
 /**
  * Frame per second(FPS) display control.

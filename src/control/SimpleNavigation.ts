@@ -1,13 +1,27 @@
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import {input} from "../input/input";
-import type {IMouseState} from "../renderer/RendererEvents";
-import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
+/*
+ * Copyright 2026 Michael Gevlich
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
+import { input } from "../input/input";
+import type { IMouseState } from "../renderer/RendererEvents";
+import { Vec2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
 import * as math from "../math";
-import {Ray} from "../math/Ray";
-import {Plane} from "../math/Plane";
-import {Camera} from "../camera/Camera";
+import { Ray } from "../math/Ray";
+import { Plane } from "../math/Plane";
 
 interface ISimpleNavigationParams extends IControlParams {
     speed?: number;
@@ -39,7 +53,8 @@ export class SimpleNavigation extends Control {
     constructor(options: ISimpleNavigationParams = {}) {
         super({
             name: "SimpleNavigation",
-            autoActivate: true, ...options
+            autoActivate: true,
+            ...options
         });
         this.speed = options.speed || 1.0; // m/s
         this.force = new Vec3();
@@ -56,19 +71,12 @@ export class SimpleNavigation extends Control {
         this._wheelPos = new Vec3();
     }
 
-    override oninit() {
-    }
+    override oninit() {}
 
     public override onactivate() {
         super.onactivate();
 
         let r = this.renderer!;
-
-        if (r.activeCamera.isOrthographic) {
-            r.getDepthMinDistanceAsync().then((dist) => {
-                r.activeCamera.focusDistance = dist;
-            });
-        }
 
         r.events.on("mousewheel", this._onMouseWheel);
         r.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
@@ -128,12 +136,11 @@ export class SimpleNavigation extends Control {
             // console.log(depth);
 
             if (!this._grabbedPoint) {
-                let cam = this.renderer.activeCamera;
                 let p0 = new Vec3(),
                     p1 = new Vec3(1, 0, 0),
                     p2 = new Vec3(0, 0, 1);
                 let px = new Vec3();
-                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+                if (e.ray.hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                     this._grabbedPoint = px;
                 }
             }
@@ -142,14 +149,14 @@ export class SimpleNavigation extends Control {
                 this._eye0.copy(this.renderer.activeCamera.eye);
             }
         }
-    }
+    };
 
     protected _onMouseLeftButtonUp = (e: IMouseState) => {
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
         if (e.x === e.prev_x && e.y === e.prev_y) {
             //this.force.set(0, 0, 0);
         }
-    }
+    };
 
     protected _onMouseLeftButtonHold = (e: IMouseState) => {
         if (this.renderer && this._grabbedPoint && e.moving) {
@@ -165,7 +172,9 @@ export class SimpleNavigation extends Control {
                 cam.eye = this._eye0.add(cam_sx.add(cam_sy));
             } else {
                 let camSlope = Math.abs(cam.getForward().dot(Vec3.UP));
-                let p0 = this._grabbedPoint, p1, p2;
+                let p0 = this._grabbedPoint,
+                    p1,
+                    p2;
                 if (camSlope > 0.7) {
                     p1 = Vec3.add(p0, Vec3.LEFT);
                     p2 = Vec3.add(p0, cam.getRight());
@@ -174,13 +183,13 @@ export class SimpleNavigation extends Control {
                     p2 = Vec3.add(p0, Vec3.UP);
                 }
                 let px = new Vec3();
-                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
+                if (e.ray.hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                     cam.eye = cam.eye.add(p0.sub(px));
                 }
             }
             cam.update();
         }
-    }
+    };
 
     protected _onRHold = (e: IMouseState) => {
         if (this._lookPos && e.moving && this.renderer) {
@@ -196,7 +205,7 @@ export class SimpleNavigation extends Control {
             cam.rotateVertical(l * (e.y - e.prev_y), this._lookPos);
             cam.update();
         }
-    }
+    };
 
     protected _onRDown = (e: IMouseState) => {
         if (this.renderer) {
@@ -207,13 +216,12 @@ export class SimpleNavigation extends Control {
             } else {
                 const cam = this.renderer.activeCamera;
                 let pl = new Plane(Vec3.ZERO, Vec3.UP);
-                let ray = new Ray(cam.eye, e.direction);
                 this._lookPos = new Vec3();
-                ray.hitPlaneRes(pl, this._lookPos)
+                e.ray.hitPlaneRes(pl, this._lookPos);
                 this._up = Vec3.UP;
             }
         }
-    }
+    };
 
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.renderer) {
@@ -236,61 +244,60 @@ export class SimpleNavigation extends Control {
                 if (!pos) {
                     pos = new Vec3();
                     let pl = new Plane(Vec3.ZERO, Vec3.UP);
-                    let ray = new Ray(cam.eye, e.direction);
-                    ray.hitPlaneRes(pl, pos);
+                    e.ray.hitPlaneRes(pl, pos);
                 }
                 let dir = pos.sub(cam.eye).normalize();
                 let dist = cam.eye.distance(pos) * 8;
                 this.force.addA(dir.scale(e.wheelDelta)).normalize().scale(dist);
             }
         }
-    }
+    };
 
     protected onCameraMoveForward = () => {
         this.force.addA(this.renderer!.activeCamera.getForward()).normalize();
-    }
+    };
 
     protected onCameraMoveBackward = () => {
         this.force.addA(this.renderer!.activeCamera.getBackward()).normalize();
-    }
+    };
 
     protected onCameraStrifeLeft = () => {
         this.force.addA(this.renderer!.activeCamera.getLeft()).normalize();
-    }
+    };
 
     protected onCameraStrifeRight = () => {
         this.force.addA(this.renderer!.activeCamera.getRight()).normalize();
-    }
+    };
 
     protected onCameraLookUp = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected onCameraLookDown = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected onCameraTurnLeft = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected onCameraTurnRight = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected onCameraRollLeft = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected onCameraRollRight = () => {
         let cam = this.renderer!.activeCamera!;
         cam.update();
-    }
+    };
 
     protected _handleMouseWheel() {
         let cam = this.renderer!.activeCamera;

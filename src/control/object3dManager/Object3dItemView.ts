@@ -1,21 +1,17 @@
-import {IViewParams, View, type ViewEventsList} from "../../ui/View";
-import {IObject3dItem} from "./Object3dCollection";
-import {createEvents, EventsHandler} from "../../Events";
-import {stringTemplate} from "../../utils/shared";
+import { IViewParams, View, type ViewEventsList } from "../../ui/View";
+import { IObject3dItem } from "./Object3dCollection";
+import { createEvents, EventsHandler } from "../../Events";
+import { stringTemplate } from "../../utils/shared";
 
 type Object3dItemViewEvents = ["click"];
 
-const EVENT_NAMES: Object3dItemViewEvents = [
-    "click",
-];
+const EVENT_NAMES: Object3dItemViewEvents = ["click"];
 
-const ITEM_TEMPLATE =
-    `<button class="og-object3d-collection__item">
+const ITEM_TEMPLATE = `<button class="og-object3d-collection__item">
         <div class="og-object3d-collection__item_name">{name}</div>
     </button>`;
 
 export class Object3dItemView extends View<IObject3dItem> {
-
     public override events: EventsHandler<Object3dItemViewEvents> & EventsHandler<ViewEventsList>;
 
     constructor(params: IViewParams) {

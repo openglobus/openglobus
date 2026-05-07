@@ -1,7 +1,6 @@
-import {Vec2} from './Vec2';
+import { Vec2 } from "./Vec2";
 
 export class Line2 {
-
     public a: number;
     public b: number;
     public c: number;

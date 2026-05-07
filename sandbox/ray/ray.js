@@ -5,7 +5,7 @@ import {
     Renderer,
     Vec3,
     Mat4,
-    RenderNode,
+    Scene,
     EntityCollection,
     scene,
 } from "../../lib/og.es.js";
@@ -16,7 +16,7 @@ let renderer = new Renderer("frame", {
     autoActivate: true
 });
 
-class MyScene extends RenderNode {
+class MyScene extends Scene {
     constructor() {
         super("MyScene");
     }
@@ -47,8 +47,20 @@ class MyScene extends RenderNode {
             }
         });
 
+        let rayEntity3 = new Entity({
+            ray: {
+                thickness: 10,
+                startPosition: [5, 0, 0],
+                endPosition: [5, 15, 0],
+                startColor: "rgba(255,0,0,0.5)",
+                endColor: "rgba(255,0,0,0.5)",
+                //src: "./template2.png",
+                //src: "data:image/png;base64,R0lGODlhAQABAIAAAP7//wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+            }
+        });
+
         let collection = new EntityCollection({
-            entities: [rayEntity1, rayEntity2]
+            entities: [rayEntity1, rayEntity2, rayEntity3]
         });
 
         collection.addTo(this);
@@ -60,7 +72,7 @@ class MyScene extends RenderNode {
     }
 }
 
-renderer.addNodes([
+renderer.addScenes([
     new scene.Axes(),
     new MyScene()
 ]);

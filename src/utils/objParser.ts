@@ -1,4 +1,4 @@
-import type {NumberArray3} from "../math/Vec3";
+import type { NumberArray3 } from "../math/Vec3";
 
 export interface IObjGeometryData {
     vertices: number[];
@@ -10,7 +10,7 @@ export interface IObjGeometry {
     object: string;
     groups: string[];
     material: string;
-    data: IObjGeometryData
+    data: IObjGeometryData;
 }
 
 export interface IObjMaterial {
@@ -20,10 +20,10 @@ export interface IObjMaterial {
     shininess?: number; // roughnessFactor, glossinessFactor
     color?: NumberArray3; // baseColorFactor
     opacity?: number;
-    illum?: number
+    illum?: number;
     colorTexture?: string; // baseColorTexture
     normalTexture?: string; // normalTexture
-    metallicRoughnessTexture?: string;//R - roughness, B - metallic; specular glossiness or glossinessTexture
+    metallicRoughnessTexture?: string; //R - roughness, B - metallic; specular glossiness or glossinessTexture
 }
 
 type MaterialMap = Record<string, IObjMaterial>;
@@ -34,14 +34,13 @@ export interface IObj {
 }
 
 function getTexturePath(path: string) {
-    let p = path.split('/');
+    let p = path.split("/");
     let filename = p[p.length - 1];
     let folder = p[p.length - 2];
     return `${folder ? folder + "/" : ""}${filename}`;
 }
 
 export class Obj {
-
     public objPositions: number[][];
     public objTexcoords: number[][];
     public objNormals: number[][];
@@ -62,23 +61,18 @@ export class Obj {
     protected _path: string;
 
     constructor() {
-
         this.objPositions = [];
         this.objTexcoords = [];
         this.objNormals = [];
 
         // same order as `f` indices
-        this.objVertexData = [
-            this.objPositions,
-            this.objTexcoords,
-            this.objNormals,
-        ];
+        this.objVertexData = [this.objPositions, this.objTexcoords, this.objNormals];
 
         // same order as `f` indices
         this.vertexData = [
-            [],   // positions
-            [],   // texcoords
-            [],   // normals
+            [], // positions
+            [], // texcoords
+            [] // normals
         ];
 
         this._materialLibs = [];
@@ -87,8 +81,8 @@ export class Obj {
         this.materials = {};
         this.material = {};
 
-        this.object = 'default';
-        this.groups = ['default'];
+        this.object = "default";
+        this.groups = ["default"];
 
         this._path = "";
 
@@ -147,16 +141,16 @@ export class Obj {
                 // skip refraction
             },
             Ka: (parts: string[], unparsedArgs: string) => {
-                this.material.ambient = parts.map(v => parseFloat(v)) as NumberArray3;
+                this.material.ambient = parts.map((v) => parseFloat(v)) as NumberArray3;
             },
             Kd: (parts: string[], unparsedArgs: string) => {
-                this.material.diffuse = parts.map(v => parseFloat(v)) as NumberArray3;
+                this.material.diffuse = parts.map((v) => parseFloat(v)) as NumberArray3;
             },
             Ks: (parts: string[], unparsedArgs: string) => {
-                this.material.specular = parts.map(v => parseFloat(v)) as NumberArray3;
+                this.material.specular = parts.map((v) => parseFloat(v)) as NumberArray3;
             },
             Ke: (parts: string[], unparsedArgs: string) => {
-                this.material.color = parts.map(v => parseFloat(v)) as NumberArray3;
+                this.material.color = parts.map((v) => parseFloat(v)) as NumberArray3;
             },
             illum: (parts: string[], unparsedArgs: string) => {
                 this.material.illum = parseFloat(unparsedArgs);
@@ -181,7 +175,7 @@ export class Obj {
             },
             map_Ns: (parts: string[], unparsedArgs: string) => {
                 this.material.metallicRoughnessTexture = `${this._path}/${getTexturePath(unparsedArgs)}`;
-            },
+            }
         };
     }
 
@@ -195,16 +189,11 @@ export class Obj {
 
     public setGeometry() {
         if (!this.geometry) {
-
             const vertices: number[] = [];
             const texCoords: number[] = [];
             const normals: number[] = [];
 
-            this.vertexData = [
-                vertices,
-                texCoords,
-                normals,
-            ];
+            this.vertexData = [vertices, texCoords, normals];
 
             this.geometry = {
                 object: this.object,
@@ -213,8 +202,8 @@ export class Obj {
                 data: {
                     vertices,
                     texCoords,
-                    normals,
-                },
+                    normals
+                }
             };
 
             this.geometries.push(this.geometry!);
@@ -222,7 +211,7 @@ export class Obj {
     }
 
     public addVertex(vert: string) {
-        let ptn = vert.split('/');
+        let ptn = vert.split("/");
         for (let i = 0; i < ptn.length; i++) {
             let objIndexStr = ptn[i];
             if (!objIndexStr) {
@@ -244,10 +233,10 @@ export class Obj {
 
     protected _innerParser(text: string, fileName: string) {
         const keywordRE = /(\w*)(?: )*(.*)/;
-        const lines = text.split('\n');
+        const lines = text.split("\n");
         for (let lineNo = 0; lineNo < lines.length; ++lineNo) {
             const line = lines[lineNo].trim();
-            if (line === '' || line.startsWith('#')) {
+            if (line === "" || line.startsWith("#")) {
                 continue;
             }
             const m = keywordRE.exec(line);
@@ -258,7 +247,7 @@ export class Obj {
             const parts = line.split(/\s+/).slice(1);
             const handler = this.keywords[keyword];
             if (!handler) {
-                console.warn(`Unknown keyword '${keyword}' in '${fileName}:${lineNo}'`);  // eslint-disable-line no-console
+                console.warn(`Unknown keyword '${keyword}' in '${fileName}:${lineNo}'`); // eslint-disable-line no-console
                 continue;
             }
             handler(parts, unparsedArgs);
@@ -269,11 +258,10 @@ export class Obj {
         return {
             geometries: this.geometries,
             materials: this.materials
-        }
+        };
     }
 
     public async load(src: string) {
-
         this._path = src.substring(0, src.lastIndexOf("/"));
 
         const response = await fetch(src);
@@ -283,17 +271,17 @@ export class Obj {
 
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
-        let {value, done} = await reader.read();
-        let partialLine = '';
+        let { value, done } = await reader.read();
+        let partialLine = "";
 
         while (!done) {
-            const text = decoder.decode(value, {stream: true});
-            const lines = (partialLine + text).split('\n');
+            const text = decoder.decode(value, { stream: true });
+            const lines = (partialLine + text).split("\n");
             partialLine = lines.pop()!;
             for (const line of lines) {
                 this._innerParser(line, src);
             }
-            ({value, done} = await reader.read());
+            ({ value, done } = await reader.read());
         }
 
         if (partialLine) {
@@ -302,17 +290,17 @@ export class Obj {
 
         this._cleanupGeometryArrays();
 
-        let defArr = this._materialLibs.map(filename => {
+        let defArr = this._materialLibs.map((filename) => {
             filename = `${this._path}/${filename}`;
             return fetch(filename)
                 .then((response) => response.text())
                 .then((text: string) => {
-                    return {text, filename}
-                })
+                    return { text, filename };
+                });
         });
 
         await Promise.all(defArr).then((mtlArr) => {
-            mtlArr.forEach(mtl => this._innerParser(mtl.text, mtl.filename));
+            mtlArr.forEach((mtl) => this._innerParser(mtl.text, mtl.filename));
         });
 
         return this.data;
@@ -322,11 +310,11 @@ export class Obj {
         const stream = file.stream();
         const reader = stream.getReader();
         const decoder = new TextDecoder();
-        let {value, done} = await reader.read();
+        let { value, done } = await reader.read();
         let partialLine = "";
 
         while (!done) {
-            const text = decoder.decode(value, {stream: true});
+            const text = decoder.decode(value, { stream: true });
             const lines = (partialLine + text).split("\n");
             partialLine = lines.pop()!;
 
@@ -334,7 +322,7 @@ export class Obj {
                 this._innerParser(line, file.name);
             }
 
-            ({value, done} = await reader.read());
+            ({ value, done } = await reader.read());
         }
 
         if (partialLine) {
@@ -365,8 +353,7 @@ export class Obj {
     }
 }
 
-
-function rotateObject(obj: IObjGeometryData, angle: number): { vertices: number[], normals: number[] } {
+function rotateObject(obj: IObjGeometryData, angle: number): { vertices: number[]; normals: number[] } {
     const cosA = Math.cos(angle);
     const sinA = Math.sin(angle);
 
@@ -396,4 +383,3 @@ function rotateObject(obj: IObjGeometryData, angle: number): { vertices: number[
         normals: normals
     };
 }
-

@@ -1,7 +1,7 @@
-import type {EventsHandler} from "../Events";
-import {View} from './View';
-import type {IViewParams, ViewEventsList} from './View';
-import {stringTemplate} from '../utils/shared';
+import type { EventsHandler } from "../Events";
+import { View } from "./View";
+import type { IViewParams, ViewEventsList } from "./View";
+import { stringTemplate } from "../utils/shared";
 
 interface IColorParams extends IViewParams {
     label?: string;
@@ -12,8 +12,7 @@ type ColorEventsList = ["input"];
 
 const COLOR_EVENTS: ColorEventsList = ["input"];
 
-const TEMPLATE =
-    `<div class="og-color">
+const TEMPLATE = `<div class="og-color">
       <label for="{id}" class="og-color-label">{label}</label>
       <input type="color" name="{id}" value="{value}"/>
     </div>`;
@@ -21,7 +20,6 @@ const TEMPLATE =
 let __labelCounter__ = 0;
 
 class Color extends View<null> {
-
     public override events: EventsHandler<ColorEventsList> & EventsHandler<ViewEventsList>;
 
     protected _value: string;
@@ -33,7 +31,7 @@ class Color extends View<null> {
             template: stringTemplate(TEMPLATE, {
                 id: `color-${__labelCounter__++}`,
                 label: options.label || "",
-                value: options.value || "#000000",
+                value: options.value || "#000000"
             })
         });
 
@@ -47,7 +45,6 @@ class Color extends View<null> {
     }
 
     public override render(params: any): this {
-
         super.render(params);
 
         this.$label = this.select(".og-color-label")!;
@@ -84,7 +81,7 @@ class Color extends View<null> {
     protected _onInput = (e: Event) => {
         //@ts-ignore
         this.value = e.target.value;
-    }
+    };
 
     public override remove() {
         this._clearEvents();
@@ -92,4 +89,4 @@ class Color extends View<null> {
     }
 }
 
-export {Color}
+export { Color };

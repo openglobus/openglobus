@@ -1,9 +1,9 @@
-import {View} from "../../ui/View";
-import type {IViewParams, ViewEventsList} from "../../ui/View";
-import {Button} from "../../ui/Button";
-import {ToggleButton} from "../../ui/ToggleButton";
-import type {EventsHandler} from "../../Events";
-import {ElevationProfile} from "./ElevationProfile";
+import { View } from "../../ui/View";
+import type { IViewParams, ViewEventsList } from "../../ui/View";
+import { Button } from "../../ui/Button";
+import { ToggleButton } from "../../ui/ToggleButton";
+import type { EventsHandler } from "../../Events";
+import { ElevationProfile } from "./ElevationProfile";
 
 const TEMPLATE = '<div class="og-elevationprofile-buttons"></div>';
 
@@ -24,15 +24,13 @@ const LOCATION_SVG_ICON = `<?xml version="1.0" encoding="utf-8"?>
 <g><g><path fill="#000000" d="M127,169.4c23.7,0,42.8-18.3,42.8-41s-19.2-41-42.8-41c-23.7,0-42.8,18.4-42.8,41S103.4,169.4,127,169.4z"/><path fill="#000000" d="M221.7,120.2c-3.8-44-40.9-78.9-87-82V15h-16.3v23.6c-44.8,4-80.3,38.5-84.1,81.7H10v15.6h24.3c3.8,43.1,39.3,77.4,84.1,81.7V241h16.3v-23.2c46-3.1,83.2-37.9,87-82H246v-15.6H221.7L221.7,120.2L221.7,120.2z M128,201.6c-42.5,0-76.7-33-76.7-73.4c0-40.4,34.5-73.4,76.7-73.4c42.5,0,76.7,33,76.7,73.4C204.7,168.5,170.5,201.6,128,201.6L128,201.6z"/></g></g>
 </svg>`;
 
-interface IElevationProfileButtonsViewParams extends IViewParams {
-}
+interface IElevationProfileButtonsViewParams extends IViewParams {}
 
 type ElevationProfileButtonsViewEventsList = ["reset", "list", "location"];
 
 const ELEVATIONPROFILEBUTTONSVIEW_EVENTS: ElevationProfileButtonsViewEventsList = ["reset", "list", "location"];
 
 export class ElevationProfileButtonsView extends View<ElevationProfile> {
-
     public override events: EventsHandler<ElevationProfileButtonsViewEventsList> & EventsHandler<ViewEventsList>;
     public pointListBtn: ToggleButton;
 

@@ -1,4 +1,4 @@
-import * as math from '../../math';
+import * as math from "../../math";
 
 type BaselineType = "alphabetic" | "bottom" | "hanging" | "ideographic" | "middle" | "top";
 type AlignType = "center" | "end" | "left" | "right" | "start";
@@ -8,18 +8,17 @@ export function addSeconds(date: Date, seconds: number): Date {
 }
 
 export function dateToStr(date: Date, showTime: boolean = true, showMilliseconds: boolean = false): string {
-
     let month = MONTHS[date.getMonth()],
         day = date.getUTCDate(),
         year = date.getUTCFullYear();
 
     if (showTime) {
-        let h = date.getUTCHours().toString().padStart(2, '0'),
-            m = date.getUTCMinutes().toString().padStart(2, '0'),
-            s = date.getUTCSeconds().toString().padStart(2, '0');
+        let h = date.getUTCHours().toString().padStart(2, "0"),
+            m = date.getUTCMinutes().toString().padStart(2, "0"),
+            s = date.getUTCSeconds().toString().padStart(2, "0");
 
         if (showMilliseconds) {
-            let ms = date.getUTCMilliseconds().toString().padStart(3, '0');
+            let ms = date.getUTCMilliseconds().toString().padStart(3, "0");
             return `${month} ${day} ${year} ${h}:${m}:${s}.${ms}`;
         }
 
@@ -37,7 +36,13 @@ export function getNearestTimeLeft(t: number, div: number): number {
     return t - (t % div);
 }
 
-export function drawNotch(ctx: CanvasRenderingContext2D, xOffset: number = 0, size: number = 10, thickness: number = 2, color: string = "white") {
+export function drawNotch(
+    ctx: CanvasRenderingContext2D,
+    xOffset: number = 0,
+    size: number = 10,
+    thickness: number = 2,
+    color: string = "white"
+) {
     ctx.lineWidth = thickness;
     ctx.strokeStyle = color;
     ctx.beginPath();
@@ -46,7 +51,17 @@ export function drawNotch(ctx: CanvasRenderingContext2D, xOffset: number = 0, si
     ctx.stroke();
 }
 
-export function drawText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, font: string = "12px Arial", fillStyle: string = "black", align: AlignType = "left", baseLine: BaselineType = "bottom", rotDeg: number = 0) {
+export function drawText(
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number,
+    font: string = "12px Arial",
+    fillStyle: string = "black",
+    align: AlignType = "left",
+    baseLine: BaselineType = "bottom",
+    rotDeg: number = 0
+) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(rotDeg * math.RADIANS);
@@ -106,7 +121,7 @@ export const SCALES: [number, number][] = [
     [6307200000.0, 2], // 200years
     [12614400000.0, 4], // 400years
     [15768000000.0, 5], // 500years
-    [31536000000.0, 10], // 1000years
+    [31536000000.0, 10] // 1000years
 ];
 
 export function getScale(seconds: number) {
@@ -117,17 +132,4 @@ export function getScale(seconds: number) {
     }
 }
 
-export const MONTHS = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-];
+export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

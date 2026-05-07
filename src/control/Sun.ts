@@ -1,10 +1,9 @@
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
-import {Clock} from "../Clock";
-import {getSunPosition} from "../astro/earth";
-import {LightSource} from "../light/LightSource";
-import {Quat} from "../math/Quat";
-import {Vec3} from "../math/Vec3";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
+import { Clock } from "../Clock";
+import { getSunPosition } from "../astro/earth";
+import { Quat } from "../math/Quat";
+import { Vec3 } from "../math/Vec3";
 
 interface ISunParams extends IControlParams {
     activationHeight?: number;
@@ -20,7 +19,6 @@ export class Sun extends Control {
     public activationHeight: number;
     public offsetVertical: number;
     public offsetHorizontal: number;
-    public sunlight: LightSource;
 
     protected _currDate: number;
     protected _prevDate: number;
@@ -29,9 +27,10 @@ export class Sun extends Control {
     protected _stopped: boolean;
     protected _f: number;
     protected _k: number;
+    protected _sunlightPosition: Vec3;
 
     constructor(options: ISunParams = {}) {
-        super({autoActivate: true, ...options});
+        super({ autoActivate: true, ...options });
 
         this._name = "sun";
 
@@ -41,12 +40,7 @@ export class Sun extends Control {
 
         this.offsetHorizontal = options.offsetHorizontal || 5000000;
 
-        this.sunlight = new LightSource({
-            ambient: new Vec3(0.15, 0.15, 0.25),
-            diffuse: new Vec3(0.9, 0.9, 0.8),
-            specular: new Vec3(0.1, 0.1, 0.06),
-            shininess: 110
-        });
+        this._sunlightPosition = new Vec3();
 
         /**
          * Current frame handler clock date and time.
@@ -73,10 +67,9 @@ export class Sun extends Control {
     }
 
     public override oninit() {
-        this.planet!.lightEnabled = true;
-
         // sunlight initialization
-        this.sunlight.addTo(this.planet!);
+        const renderer = this.renderer!;
+        renderer._lightPosition.set([this._sunlightPosition.x, this._sunlightPosition.y, this._sunlightPosition.z]);
 
         this.renderer!.events.on("draw", this._draw, this);
 
@@ -102,6 +95,17 @@ export class Sun extends Control {
 
     public bindClock(clock: Clock) {
         this._clockPtr = clock;
+    }
+
+    public getPosition(): Vec3 {
+        return this._sunlightPosition.clone();
+    }
+
+    protected _setSunPosition3v(position: Vec3) {
+        this._sunlightPosition.copy(position);
+        this.renderer!._lightPosition[0] = position.x;
+        this.renderer!._lightPosition[1] = position.y;
+        this.renderer!._lightPosition[2] = position.z;
     }
 
     protected _draw() {
@@ -131,39 +135,33 @@ export class Sun extends Control {
 
                 if (this._k > 0) {
                     this._k -= 0.001;
-                    let rot = Quat.getRotationBetweenVectors(
-                        this.sunlight._position.normal(),
-                        pos.normal()
-                    );
+                    let rot = Quat.getRotationBetweenVectors(this._sunlightPosition.normal(), pos.normal());
                     let r = rot.slerp(Quat.IDENTITY, this._k).normalize();
-                    this.sunlight.setPosition3v(r.mulVec3(this.sunlight._position));
+                    this._setSunPosition3v(r.mulVec3(this._sunlightPosition));
                 } else {
-                    this.sunlight.setPosition3v(pos);
+                    this._setSunPosition3v(pos);
                 }
             } else {
                 this._k = 1;
                 if (this._f > 0) {
                     this._f -= 0.001;
                     let rot = Quat.getRotationBetweenVectors(
-                        this.sunlight._position.normal(),
+                        this._sunlightPosition.normal(),
                         getSunPosition(this._currDate).normal()
                     );
                     let r = rot.slerp(Quat.IDENTITY, this._f).normalize();
-                    this.sunlight.setPosition3v(r.mulVec3(this.sunlight._position));
+                    this._setSunPosition3v(r.mulVec3(this._sunlightPosition));
                 } else {
-                    if (
-                        (Math.abs(this._currDate - this._prevDate) > 0.00034 && this._active) ||
-                        this._lightOn
-                    ) {
+                    if ((Math.abs(this._currDate - this._prevDate) > 0.00034 && this._active) || this._lightOn) {
                         this._lightOn = false;
                         this._prevDate = this._currDate;
-                        this.sunlight.setPosition3v(getSunPosition(this._currDate));
+                        this._setSunPosition3v(getSunPosition(this._currDate));
                         this._f = 0;
                     }
                 }
             }
         } else {
-            this.sunlight.setPosition3v(getSunPosition(this._currDate));
+            this._setSunPosition3v(getSunPosition(this._currDate));
         }
     }
 }

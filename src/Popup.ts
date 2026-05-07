@@ -1,14 +1,14 @@
-import {CLOSE_ICON} from './ui/icons';
-import {createLonLat, stringTemplate} from "./utils/shared";
-import type {EventsHandler} from "./Events";
-import {LonLat} from "./LonLat";
-import {Planet} from "./scene/Planet";
-import {Vec2} from "./math/Vec2";
-import {Vec3} from "./math/Vec3";
-import type {NumberArray2} from "./math/Vec2";
-import type {NumberArray3} from "./math/Vec3";
-import {View} from './ui/View';
-import type {IViewParams, ViewEventsList} from './ui/View';
+import { CLOSE_ICON } from "./ui/icons";
+import { createLonLat, stringTemplate } from "./utils/shared";
+import type { EventsHandler } from "./Events";
+import { LonLat } from "./LonLat";
+import { Planet } from "./scene/Planet";
+import { Vec2 } from "./math/Vec2";
+import { Vec3 } from "./math/Vec3";
+import type { NumberArray2 } from "./math/Vec2";
+import type { NumberArray3 } from "./math/Vec3";
+import { View } from "./ui/View";
+import type { IViewParams, ViewEventsList } from "./ui/View";
 
 const TEMPLATE = `<div class="og-popup {className}">
       <div class="og-popup-content-wrapper">
@@ -37,7 +37,6 @@ type PopupEventsList = ["open", "close"];
 const POPUP_EVENTS: PopupEventsList = ["open", "close"];
 
 class Popup extends View<null> {
-
     public override events: EventsHandler<PopupEventsList> & EventsHandler<ViewEventsList>;
 
     public $content: HTMLElement | null;
@@ -94,8 +93,7 @@ class Popup extends View<null> {
     public setScreen(p: Vec2) {
         if (this._planet) {
             let r = this._planet.renderer!.handler.pixelRatio;
-            this.el!.style.transform =
-                `translate(${p.x / r - this.clientWidth * 0.5}px, ${p.y / r - this._planet.renderer!.handler.canvas!.clientHeight - this.$tip!.clientHeight}px)`;
+            this.el!.style.transform = `translate(${p.x / r - this.clientWidth * 0.5}px, ${p.y / r - this._planet.renderer!.handler.canvas!.clientHeight - this.$tip!.clientHeight}px)`;
         }
     }
 
@@ -228,4 +226,4 @@ class Popup extends View<null> {
     }
 }
 
-export {Popup};
+export { Popup };

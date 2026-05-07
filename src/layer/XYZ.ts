@@ -1,13 +1,13 @@
 import * as mercator from "../mercator";
-import {Layer} from "./Layer";
-import type {ILayerParams, LayerEventsList} from "./Layer";
-import {RENDERING} from "../quadTree/quadTree";
-import {Segment} from "../segment/Segment";
-import {stringTemplate} from "../utils/shared";
-import type {EventsHandler} from "../Events";
-import {Material} from "./Material";
-import type {NumberArray4} from "../math/Vec4";
-import type {FetchCache, IResponse} from "../utils/Loader";
+import { Layer } from "./Layer";
+import type { ILayerParams, LayerEventsList } from "./Layer";
+import { RENDERING } from "../quadTree/quadTree";
+import { Segment } from "../segment/Segment";
+import { stringTemplate } from "../utils/shared";
+import type { EventsHandler } from "../Events";
+import { Material } from "./Material";
+import type { NumberArray4 } from "../math/Vec4";
+import type { FetchCache, IResponse } from "../utils/Loader";
 
 export interface IXYZParams extends ILayerParams {
     url?: string;
@@ -23,10 +23,7 @@ export interface IXYZParams extends ILayerParams {
     cache?: FetchCache;
 }
 
-type XYZEventsList = [
-    "load",
-    "loadend"
-];
+type XYZEventsList = ["load", "loadend"];
 
 type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsList>;
 
@@ -42,16 +39,16 @@ type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsLis
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
  * @param {number} [options.minNativeZoom=0] - Minimal available zoom level.
  * @param {number} [options.maxNativeZoom=19] - Maximal available zoom level.
- * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
+ * @param {string} [options.attribution] - Layer attribution shown in the attribution area.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {string} [options.crossOrigin=true] - If true, all tiles will have their crossOrigin attribute set to ''.
  * @param {string} options.url - Tile url source template(see example below).
- * @param {string} options.textureFilter - texture gl filter. NEAREST, LINEAR, MIPMAP, ANISOTROPIC.
- * @param {Function} options.urlRewrite - Url rewrite function.
+ * @param {string} options.textureFilter - Texture WebGL filter: NEAREST, LINEAR, MIPMAP, ANISOTROPIC.
+ * @param {Function} options.urlRewrite - URL rewrite function.
  *
- * @fires EventsHandler<XYZEventsList>#load
- * @fires EventsHandler<XYZEventsList>#loadend
+ * @fires load
+ * @fires loadend
  *
  * @example <caption>Creates OpenStreetMap base tile layer</caption>
  * new og.layer.XYZ("OpenStreetMap", {
@@ -62,7 +59,6 @@ type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsLis
  * });
  */
 export class XYZ extends Layer {
-
     public override events: XYZEventsType;
 
     /**
@@ -96,7 +92,7 @@ export class XYZ extends Layer {
      * @private
      * @param {Segment} segment - Segment to load.
      * @param {string} url - Created url.
-     * @returns {string} - Url query string.
+     * @returns {string} URL query string.
      */
     protected _urlRewriteCallback: Function | null;
 
@@ -194,7 +190,6 @@ export class XYZ extends Layer {
      * @param {boolean} [forceLoading=false] -
      */
     public override loadMaterial(material: Material, forceLoading: boolean = false) {
-
         let seg = material.segment;
 
         if (this._isBaseLayer) {
@@ -211,7 +206,8 @@ export class XYZ extends Layer {
             if (this._checkSegment(seg)) {
                 material.loadingAttempts++;
 
-                this._planet!._tileLoader.load({
+                this._planet!._tileLoader.load(
+                    {
                         sender: this,
                         src: this._getHTTPRequestString(material.segment),
                         type: "imageBitmap",
@@ -250,7 +246,7 @@ export class XYZ extends Layer {
      * @protected
      * @virtual
      * @param {Segment} segment - Creates specific url for current segment.
-     * @returns {string} - Returns url string.
+     * @returns {string} URL string.
      */
     protected _createUrl(segment: Segment): string {
         return stringTemplate(this.url, {
@@ -263,14 +259,18 @@ export class XYZ extends Layer {
 
     protected _getSubdomain(): string {
         this._requestCount++;
-        return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomains * this._s.length) / this._requestsPeerSubdomains)];
+        return this._s[
+            Math.floor(
+                (this._requestCount % (this._requestsPeerSubdomains * this._s.length)) / this._requestsPeerSubdomains
+            )
+        ];
     }
 
     /**
      * Returns actual url query string.
      * @protected
      * @param {Segment} segment - Segment that loads image data.
-     * @returns {string} - Url string.
+     * @returns {string} URL string.
      */
     protected _getHTTPRequestString(segment: Segment) {
         return this._urlRewriteCallback ? this._urlRewriteCallback(segment, this.url) : this._createUrl(segment);
@@ -286,12 +286,91 @@ export class XYZ extends Layer {
     }
 
     public override applyMaterial(material: Material, forceLoading: boolean = false): NumberArray4 {
+        if (this.waitForParentMaterial) {
+            return this._apllyMaterialDefault(material, forceLoading);
+        } else {
+            return this._applyMaterialFast(material, forceLoading);
+        }
+    }
+
+    protected _apllyMaterialDefault(material: Material, forceLoading: boolean = false): NumberArray4 {
         if (material.isReady) {
             return material.texOffset;
         } else if (material.segment.tileZoom < this.minNativeZoom) {
             material.textureNotExists();
         } else {
+            let segment = material.segment;
+            let layerId = this.__id;
 
+            if (segment.passReady) {
+                let node = segment.node;
+                let targetNode = null;
+
+                while (node) {
+                    const seg = node.segment;
+
+                    if (seg.tileZoom <= this.maxNativeZoom) {
+                        const mat = seg.materials[layerId];
+                        if (!mat || !mat.isReady) {
+                            targetNode = node;
+                        }
+                    }
+
+                    node = node.parentNode!;
+                }
+
+                if (targetNode) {
+                    const seg = targetNode.segment;
+
+                    let mat = seg.materials[layerId];
+                    if (!mat) {
+                        mat = seg.materials[layerId] = this.createMaterial(seg);
+                    }
+
+                    if (!mat.isReady && !mat.isLoading) {
+                        this.loadMaterial(mat, targetNode === segment.node ? forceLoading : true);
+                    }
+                }
+            }
+
+            let pn = segment.node;
+            let psegm: Material | null = null;
+            while (pn) {
+                const pm = pn.segment.materials[layerId];
+                if (pm && pm.isReady && pm.textureExists) {
+                    psegm = pm;
+                    break;
+                }
+                pn = pn.parentNode!;
+            }
+
+            if (psegm && pn) {
+                material.appliedNode = pn;
+                material.appliedNodeId = pn.nodeId;
+                material.texture = psegm.texture;
+                let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+                material.texOffset[0] = segment.tileX * dZ2 - pn.segment.tileX;
+                material.texOffset[1] = segment.tileY * dZ2 - pn.segment.tileY;
+                material.texOffset[2] = dZ2;
+                material.texOffset[3] = dZ2;
+            } else {
+                material.texture = segment.planet.transparentTexture;
+                material.texOffset[0] = 0.0;
+                material.texOffset[1] = 0.0;
+                material.texOffset[2] = 1.0;
+                material.texOffset[3] = 1.0;
+            }
+        }
+
+        return material.texOffset;
+    }
+
+    protected _applyMaterialFast(material: Material, forceLoading: boolean = false): NumberArray4 {
+        if (material.isReady) {
+            return material.texOffset;
+        } else if (material.segment.tileZoom < this.minNativeZoom) {
+            material.textureNotExists();
+        } else {
             let segment = material.segment,
                 pn = segment.node,
                 notEmpty = false;
@@ -322,9 +401,7 @@ export class XYZ extends Layer {
                     if (pnm) {
                         !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm, true);
                     } else {
-                        pnm = pn.segment.materials[material.layer.__id] = material.layer.createMaterial(
-                            pn.segment
-                        );
+                        pnm = pn.segment.materials[material.layer.__id] = material.layer.createMaterial(pn.segment);
                         this.loadMaterial(pnm, true);
                     }
                 }

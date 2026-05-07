@@ -1,5 +1,4 @@
 class Lock {
-
     protected _lock: number;
 
     constructor() {
@@ -7,7 +6,7 @@ class Lock {
     }
 
     public lock(key: Key) {
-        this._lock |= (1 << key.id);
+        this._lock |= 1 << key.id;
     }
 
     public free(key: Key) {
@@ -24,7 +23,6 @@ class Lock {
 }
 
 class Key {
-
     static __counter__: number = 0;
 
     protected __id: number;
@@ -38,4 +36,4 @@ class Key {
     }
 }
 
-export {Lock, Key};
+export { Lock, Key };

@@ -1,7 +1,7 @@
 import * as jd from "./astro/jd";
-import {type EventsHandler, createEvents} from "./Events";
-import type {JulianDate} from "./astro/jd";
-import {Handler} from "./webgl/Handler";
+import { type EventsHandler, createEvents } from "./Events";
+import type { JulianDate } from "./astro/jd";
+import { Handler } from "./webgl/Handler";
 
 type ClockEventsList = ["tick", "end", "start", "stop"];
 
@@ -90,10 +90,7 @@ class Clock {
     protected _intervalStart: number;
     protected _intervalCallback: Function | null;
 
-
     constructor(params: IClockParams = {}) {
-
-
         this.__id = Clock.__counter__++;
 
         this.events = createEvents<ClockEventsList>(CLOCK_EVENTS, this);
@@ -171,7 +168,7 @@ class Clock {
 
     public tick(dt: number) {
         let m = this._multiplier * this._running;
-        this.deltaTicks = dt * m
+        this.deltaTicks = dt * m;
         if (this.active) {
             let cd = jd.addMilliseconds(this.currentDate, this.deltaTicks);
             if (m > 0) {
@@ -233,4 +230,4 @@ class Clock {
     }
 }
 
-export {Clock};
+export { Clock };

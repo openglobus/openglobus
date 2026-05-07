@@ -1,10 +1,9 @@
-import * as math from "../math";
-import {Control, type IControlParams} from "./Control";
-import {input} from "../input/input";
-import {Vec3} from "../math/Vec3";
-import {Camera} from "../camera/Camera";
-import {PlanetCamera} from "../camera/PlanetCamera";
-import {RADIANS} from "../math";
+import { Control, type IControlParams } from "./Control";
+import { input } from "../input/input";
+import { Vec3 } from "../math/Vec3";
+import { Camera } from "../camera/Camera";
+import { PlanetCamera } from "../camera/PlanetCamera";
+import { RADIANS } from "../math";
 
 interface IKeyboardNavigationParams extends IControlParams {
     speed?: number;
@@ -15,7 +14,6 @@ interface IKeyboardNavigationParams extends IControlParams {
  * Planet camera keyboard navigation. Use W,S,A,D and left shift key for fly around a planet.
  */
 export class KeyboardNavigation extends Control {
-
     public speed: number;
     public force: Vec3;
     public vel: Vec3;
@@ -25,7 +23,7 @@ export class KeyboardNavigation extends Control {
 
     constructor(options: IKeyboardNavigationParams = {}) {
         options = options || {};
-        super({name: "KeyboardNavigation", ...options});
+        super({ name: "KeyboardNavigation", ...options });
         this._camera = options.camera || null;
 
         this.speed = options.speed || 10.0;
@@ -56,9 +54,7 @@ export class KeyboardNavigation extends Control {
         r.events.on("draw", this.onDraw, this, -1000);
     }
 
-    public override ondeactivate() {
-        let r = this.renderer!;
-    }
+    public override ondeactivate() {}
 
     public override oninit() {
         this.activate();
@@ -72,41 +68,40 @@ export class KeyboardNavigation extends Control {
         if (this._camera) {
             this._camera.setPitch(this._camera.getPitch() + 0.1 * RADIANS);
         }
-    }
+    };
 
     protected onCameraPitchDown = () => {
         if (this._camera) {
             this._camera.setPitch(this._camera.getPitch() - 0.1 * RADIANS);
         }
-    }
+    };
 
     protected onCameraYawLeft = () => {
         if (this._camera) {
             this._camera.setYaw(this._camera.getYaw() - 0.1 * RADIANS);
         }
-    }
+    };
 
     protected onCameraYawRight = () => {
         if (this._camera) {
             this._camera.setYaw(this._camera.getYaw() + 0.1 * RADIANS);
         }
-    }
+    };
 
     protected onCameraMoveForward = () => {
         if (this._camera) {
             this.force.addA(this._camera.getForward()).normalize();
         }
-    }
+    };
 
     protected onCameraMoveBackward = () => {
         if (this._camera) {
             this.force.addA(this._camera.getBackward()).normalize();
         }
-    }
+    };
 
     protected onDraw() {
         if (this.renderer && this._camera) {
-
             let acc = this.force.scale(1.0 / this.mass);
             this.vel.addA(acc);
             this.vel.scale(0.96);

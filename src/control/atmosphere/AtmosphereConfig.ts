@@ -1,58 +1,50 @@
-import {Control, type IControlParams} from "../Control";
-import {Dialog} from '../../ui/Dialog';
-import {Slider} from "../../ui/Slider";
-import {ToggleButton} from "../../ui/ToggleButton";
-import {View} from '../../ui/View';
-import type {AtmosphereParameters} from "../../shaders/atmos/atmos";
+import { Control, type IControlParams } from "../Control";
+import { Dialog } from "../../ui/Dialog";
+import { Slider } from "../../ui/Slider";
+import { ToggleButton } from "../../ui/ToggleButton";
+import { View } from "../../ui/View";
+import type { AtmosphereParameters } from "../../shaders/atmos/atmos";
 
-interface IAtmosphereConfigParams extends IControlParams {
+interface IAtmosphereConfigParams extends IControlParams {}
 
-}
+const TEMPLATE = `<div class="og-atmosphere og-options-container">
 
-const TEMPLATE =
-    `<div class="og-atmosphere og-options-container">
-         
-         <div class="og-option og-atmosphere-maxOpacity"></div> 
-         <div class="og-option og-atmosphere-minOpacity"></div>
-         
-       <div class="og-emptyline-2"></div>
-         
          <div class="og-option og-atmosphere-rayleight"></div>
          <div class="og-option og-atmosphere-mie"></div>
-         
+
        <div class="og-emptyline-2"></div>
-                  
-         <div class="og-option og-atmosphere-height"></div> 
+
+         <div class="og-option og-atmosphere-height"></div>
          <div class="og-option og-atmosphere-bottomRadius"></div>
-         
+
        <div class="og-emptyline-2"></div>
-         
-         <div class="og-option og-atmosphere-mieScatteringCoefficient"></div>  
+
+         <div class="og-option og-atmosphere-mieScatteringCoefficient"></div>
          <div class="og-option og-atmosphere-mieExtinctionCoefficient"></div>
-         
+
        <div class="og-emptyline-2"></div>
-         
-         <div class="og-option og-atmosphere-rayleighScatteringCoefficientA"></div>    
-         <div class="og-option og-atmosphere-rayleighScatteringCoefficientB"></div>    
+
+         <div class="og-option og-atmosphere-rayleighScatteringCoefficientA"></div>
+         <div class="og-option og-atmosphere-rayleighScatteringCoefficientB"></div>
          <div class="og-option og-atmosphere-rayleighScatteringCoefficientC"></div>
-         
+
        <div class="og-emptyline-2"></div>
-         
-         <div class="og-option og-atmosphere-ozoneAbsorptionCoefficientA"></div>    
-         <div class="og-option og-atmosphere-ozoneAbsorptionCoefficientB"></div>    
+
+         <div class="og-option og-atmosphere-ozoneAbsorptionCoefficientA"></div>
+         <div class="og-option og-atmosphere-ozoneAbsorptionCoefficientB"></div>
          <div class="og-option og-atmosphere-ozoneAbsorptionCoefficientC"></div>
-         
+
        <div class="og-emptyline-2"></div>
-         
-         <div class="og-option og-atmosphere-ozoneDensityHeight"></div>    
-         <div class="og-option og-atmosphere-ozoneDensityWide"></div>    
-         
+
+         <div class="og-option og-atmosphere-ozoneDensityHeight"></div>
+         <div class="og-option og-atmosphere-ozoneDensityWide"></div>
+
        <div class="og-emptyline-2"></div>
-         
-         <div class="og-option og-atmosphere-sunAngularRadius"></div> 
-         <div class="og-option og-atmosphere-sunIntensity"></div> 
+
+         <div class="og-option og-atmosphere-sunAngularRadius"></div>
+         <div class="og-option og-atmosphere-sunIntensity"></div>
          <div class="og-option og-atmosphere-groundAlbedo"></div>
-       
+
     </div>`;
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
@@ -66,8 +58,6 @@ export class AtmosphereConfig extends Control {
     protected _dialog: Dialog<null>;
     protected _panel: View<null>;
 
-    public $maxOpacity: HTMLElement | null;
-    public $minOpacity: HTMLElement | null;
     public $rayleight: HTMLElement | null;
     public $mie: HTMLElement | null;
     public $height: HTMLElement | null;
@@ -86,8 +76,6 @@ export class AtmosphereConfig extends Control {
     public $ozoneDensityHeight: HTMLElement | null;
     public $ozoneDensityWide: HTMLElement | null;
 
-    protected _maxOpacity: Slider;
-    protected _minOpacity: Slider;
     protected _rayleight: Slider;
     protected _mie: Slider;
     protected _height: Slider;
@@ -112,8 +100,6 @@ export class AtmosphereConfig extends Control {
     constructor(options: IAtmosphereConfigParams = {}) {
         super(options);
 
-        this.$maxOpacity = null;
-        this.$minOpacity = null;
         this.$rayleight = null;
         this.$mie = null;
         this.$height = null;
@@ -154,16 +140,6 @@ export class AtmosphereConfig extends Control {
             template: TEMPLATE
         });
 
-        this._maxOpacity = new Slider({
-            label: "Max.opacity",
-            max: 5
-        });
-
-        this._minOpacity = new Slider({
-            label: "Min.opacity",
-            max: 5
-        });
-
         this._rayleight = new Slider({
             label: "Rayleight Scale",
             min: -10.0,
@@ -199,8 +175,8 @@ export class AtmosphereConfig extends Control {
 
         this._mieExtinctionCoefficient = new Slider({
             label: "Mie Extinction Coef.e-6",
-            min: -10 * 4.440,
-            max: 10 * 4.440
+            min: -10 * 4.44,
+            max: 10 * 4.44
         });
 
         this._rayleighScatteringCoefficientA = new Slider({
@@ -217,19 +193,19 @@ export class AtmosphereConfig extends Control {
 
         this._rayleighScatteringCoefficientC = new Slider({
             label: "Rayleight Scattering Coef C.e-6",
-            min: -10 * 33.100,
-            max: 10 * 33.100
+            min: -10 * 33.1,
+            max: 10 * 33.1
         });
 
         this._ozoneAbsorptionCoefficientA = new Slider({
             label: "Ozone absorbtion Coef A.e-6",
-            min: -10 * 0.650,
-            max: 10 * 0.650
+            min: -10 * 0.65,
+            max: 10 * 0.65
         });
 
         this._ozoneAbsorptionCoefficientB = new Slider({
             label: "Ozone absorbtion Coef B.e-6",
-            min: -10 * 0.650,
+            min: -10 * 0.65,
             max: 10 * 1.881
         });
 
@@ -256,7 +232,7 @@ export class AtmosphereConfig extends Control {
 
         this._sunIntensity = new Slider({
             label: "Sun Intensity",
-            max: 10 * 1.0
+            max: 10
         });
 
         this._groundAlbedo = new Slider({
@@ -284,30 +260,48 @@ export class AtmosphereConfig extends Control {
             ozoneDensityHeight: 0,
             ozoneDensityWide: 0,
             disableSunDisk: false
-        }
+        };
     }
 
     public override oninit() {
-
-        this._toggleBtn.appendTo(this.renderer!.div!);
+        this._toggleBtn.appendTo(this.renderer!.topLeftContainer());
         this._dialog.appendTo(this.renderer!.div!);
+        this._dialog.events.on("visibility", (v: boolean) => {
+            if (v) {
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
+            }
+        });
         this._panel.appendTo(this._dialog.container!);
 
         if (this._panel.el) {
             this.$height = this._panel.el.querySelector(".og-option.og-atmosphere-height");
-            this.$maxOpacity = this._panel.el.querySelector(".og-option.og-atmosphere-maxOpacity");
-            this.$minOpacity = this._panel.el.querySelector(".og-option.og-atmosphere-minOpacity");
             this.$rayleight = this._panel.el.querySelector(".og-option.og-atmosphere-rayleight");
             this.$mie = this._panel.el.querySelector(".og-option.og-atmosphere-mie");
             this.$bottomRadius = this._panel.el.querySelector(".og-option.og-atmosphere-bottomRadius");
-            this.$mieScatteringCoefficient = this._panel.el.querySelector(".og-option.og-atmosphere-mieScatteringCoefficient");
-            this.$mieExtinctionCoefficient = this._panel.el.querySelector(".og-option.og-atmosphere-mieExtinctionCoefficient");
-            this.$rayleighScatteringCoefficientA = this._panel.el.querySelector(".og-option.og-atmosphere-rayleighScatteringCoefficientA");
-            this.$rayleighScatteringCoefficientB = this._panel.el.querySelector(".og-option.og-atmosphere-rayleighScatteringCoefficientB");
-            this.$rayleighScatteringCoefficientC = this._panel.el.querySelector(".og-option.og-atmosphere-rayleighScatteringCoefficientC");
-            this.$ozoneAbsorptionCoefficientA = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneAbsorptionCoefficientA");
-            this.$ozoneAbsorptionCoefficientB = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneAbsorptionCoefficientB");
-            this.$ozoneAbsorptionCoefficientC = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneAbsorptionCoefficientC");
+            this.$mieScatteringCoefficient = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-mieScatteringCoefficient"
+            );
+            this.$mieExtinctionCoefficient = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-mieExtinctionCoefficient"
+            );
+            this.$rayleighScatteringCoefficientA = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-rayleighScatteringCoefficientA"
+            );
+            this.$rayleighScatteringCoefficientB = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-rayleighScatteringCoefficientB"
+            );
+            this.$rayleighScatteringCoefficientC = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-rayleighScatteringCoefficientC"
+            );
+            this.$ozoneAbsorptionCoefficientA = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-ozoneAbsorptionCoefficientA"
+            );
+            this.$ozoneAbsorptionCoefficientB = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-ozoneAbsorptionCoefficientB"
+            );
+            this.$ozoneAbsorptionCoefficientC = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-ozoneAbsorptionCoefficientC"
+            );
             this.$sunAngularRadius = this._panel.el.querySelector(".og-option.og-atmosphere-sunAngularRadius");
             this.$sunIntensity = this._panel.el.querySelector(".og-option.og-atmosphere-sunIntensity");
             this.$groundAlbedo = this._panel.el.querySelector(".og-option.og-atmosphere-groundAlbedo");
@@ -319,8 +313,6 @@ export class AtmosphereConfig extends Control {
             this._dialog.setVisibility(isActive);
         });
 
-        this._maxOpacity.appendTo(this.$maxOpacity!);
-        this._minOpacity.appendTo(this.$minOpacity!);
         this._height.appendTo(this.$height!);
         this._rayleight.appendTo(this.$rayleight!);
         this._mie.appendTo(this.$mie!);
@@ -341,7 +333,6 @@ export class AtmosphereConfig extends Control {
         this._ozoneDensityWide.appendTo(this.$ozoneDensityWide!);
 
         if (this.planet) {
-
             this._parameters = this.planet.atmosphereControl.parameters;
 
             // make slider ranges planet-aware
@@ -367,19 +358,6 @@ export class AtmosphereConfig extends Control {
             this._ozoneDensityHeight.value = this._parameters.ozoneDensityHeight;
             this._ozoneDensityWide.value = this._parameters.ozoneDensityWide;
         }
-
-
-        this._minOpacity.value = this.planet!.atmosphereMinOpacity;
-        this._minOpacity.events.on("change", (val: number) => {
-            this.planet!.atmosphereMinOpacity = val;
-        });
-
-        this._maxOpacity.value = this.planet!.atmosphereMaxOpacity;
-        this._maxOpacity.events.on("change", (val: number) => {
-            this.planet!.atmosphereMaxOpacity = val;
-            //let atmos = this.planet!.renderer!.controls.Atmosphere as Atmosphere;
-            //atmos.opacity = val;
-        });
 
         this._rayleight.events.on("change", (val: number) => {
             this._parameters.RAYLEIGH_SCALE = val;

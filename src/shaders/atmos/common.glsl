@@ -1,3 +1,6 @@
+#ifndef ATMOS_COMMON_GLSL
+#define ATMOS_COMMON_GLSL
+
 #include "../common/utils.glsl"
 
 #define PI 3.1415926538
@@ -106,3 +109,18 @@ vec3 transmittance(float height, float angle)
     vec3 opticalDepth = opticalDepth(height, angle);
     return exp(-(rayleighScatteringCoefficient * opticalDepth.x + mieExtinctionCoefficient * opticalDepth.y + ozoneAbsorptionCoefficient * opticalDepth.z));
 }
+
+void getAtmosFadingOpacity(
+    in vec3 _v_vertex,
+    in vec3 _cameraPosition,
+    in vec2 atmosFadeDist,
+    in vec2 atmosMaxMinOpacity,
+    out float opacity
+)
+{
+    float vertDist = distance(_cameraPosition, _v_vertex);
+    float t = clamp((vertDist - atmosFadeDist.x) * atmosFadeDist.y, 0.0, 1.0);
+    opacity = mix(atmosMaxMinOpacity.y, atmosMaxMinOpacity.x, t);
+}
+
+#endif

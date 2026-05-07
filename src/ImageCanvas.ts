@@ -5,7 +5,6 @@
  * @param {number} [height] - Canvas height. Default 256.
  */
 class ImageCanvas {
-
     /**
      * Canvas object.
      * @protected
@@ -67,8 +66,8 @@ class ImageCanvas {
      * @param {string} color - CSS string color.
      */
     public fill(color: string) {
-        this._context.fillStyle = color
-        this._context.fill()
+        this._context.fillStyle = color;
+        this._context.fill();
     }
 
     /**
@@ -160,7 +159,13 @@ class ImageCanvas {
      * @param {string} [font] - Font style. 'normal 14px Verdana' - is default.
      * @param {string} [color] - Css font color.
      */
-    public drawText(text: string, x: number = 0, y: number = 14, font: string = "normal 14px Verdana", color: string = "black") {
+    public drawText(
+        text: string,
+        x: number = 0,
+        y: number = 14,
+        font: string = "normal 14px Verdana",
+        color: string = "black"
+    ) {
         this._context.fillStyle = color;
         this._context.font = font;
         this._context.fillText(text, x, y);
@@ -217,11 +222,7 @@ class ImageCanvas {
         windowContent += "</body>";
         windowContent += "</html>";
 
-        let printWin = window.open(
-            "",
-            "",
-            "width=" + img.width + "px ,height=" + img.height + "px"
-        );
+        let printWin = window.open("", "", "width=" + img.width + "px ,height=" + img.height + "px");
 
         if (printWin) {
             printWin.document.open();
@@ -241,4 +242,4 @@ class ImageCanvas {
     }
 }
 
-export {ImageCanvas};
+export { ImageCanvas };

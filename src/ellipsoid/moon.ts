@@ -1,4 +1,4 @@
-import {Ellipsoid} from "./Ellipsoid";
+import { Ellipsoid } from "./Ellipsoid";
 
 /**
  * Moon ellipsoid object.

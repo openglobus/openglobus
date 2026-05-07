@@ -1,7 +1,7 @@
-import {Vec3} from "../math/Vec3";
-import type {NumberArray6} from "./Sphere";
-import {Ellipsoid} from "../ellipsoid/Ellipsoid";
-import {Extent} from "../Extent";
+import { Vec3 } from "../math/Vec3";
+import type { NumberArray6 } from "./Sphere";
+import { Ellipsoid } from "../ellipsoid/Ellipsoid";
+import { Extent } from "../Extent";
 
 type Vec3Array8 = [Vec3, Vec3, Vec3, Vec3, Vec3, Vec3, Vec3, Vec3];
 
@@ -11,16 +11,14 @@ type Vec3Array8 = [Vec3, Vec3, Vec3, Vec3, Vec3, Vec3, Vec3, Vec3];
  * @param {NumberArray6} [boundsArr]
  */
 class Box {
-
     /**
      * Vertices array.
      * @public
      * @type{Array.<Vec3>}
      */
-    public vertices: Vec3Array8
+    public vertices: Vec3Array8;
 
     constructor(boundsArr?: NumberArray6) {
-
         this.vertices = [
             new Vec3(),
             new Vec3(),
@@ -77,5 +75,4 @@ class Box {
     }
 }
 
-export {Box};
-
+export { Box };

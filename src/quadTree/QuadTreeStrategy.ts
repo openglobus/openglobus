@@ -1,21 +1,18 @@
-import {EPSG3857} from "../proj/EPSG3857";
-import {Layer} from "../layer/Layer";
-import {Vector} from "../layer/Vector";
-import {Node} from "../quadTree/Node";
-import {Planet} from "../scene/Planet";
-import {Proj} from "../proj/Proj";
-import {LonLat} from "../LonLat";
-import {getTileCellExtent, getTileCellIndex, Segment, TILEGROUP_COMMON} from "../segment/Segment";
-import {Extent} from "../Extent";
-import {EntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
-import {PlanetCamera} from "../camera";
+import { EPSG3857 } from "../proj/EPSG3857";
+import { Layer } from "../layer/Layer";
+import { Vector } from "../layer/Vector";
+import { Node } from "../quadTree/Node";
+import { Planet } from "../scene/Planet";
+import { Proj } from "../proj/Proj";
+import { LonLat } from "../LonLat";
+import { getTileCellExtent, getTileCellIndex, Segment, TILEGROUP_COMMON } from "../segment/Segment";
+import { Extent } from "../Extent";
+import { EntityCollectionsTreeStrategy } from "./EntityCollectionsTreeStrategy";
+import { PlanetCamera } from "../camera";
 import * as math from "../math";
-import {createEvents, EventsHandler} from "../Events";
+import { createEvents, EventsHandler } from "../Events";
 
-export type QuadTreeStrategyEventsList = [
-    "rendercompleted",
-    "terraincompleted",
-];
+export type QuadTreeStrategyEventsList = ["rendercompleted", "terraincompleted"];
 
 const CUR_LOD_SIZE = 256; //px
 const MIN_LOD_SIZE = 512; //px
@@ -34,7 +31,6 @@ export interface QuadTreeStrategyParams {
 }
 
 export class QuadTreeStrategy {
-
     public events: EventsHandler<QuadTreeStrategyEventsList>;
 
     public name: string;
@@ -70,6 +66,8 @@ export class QuadTreeStrategy {
 
     public _fadingOpaqueSegments: Segment[];
 
+    public _transparentSegments: Segment[];
+
     /**
      * Current visible minimal zoom index planet segment.
      * @public
@@ -102,7 +100,7 @@ export class QuadTreeStrategy {
     public minEqualZoomAltitude: number;
     public minEqualZoomCameraSlope: number;
 
-    public _renderCompleted: boolean
+    public _renderCompleted: boolean;
     public _renderCompletedActivated: boolean;
 
     public _terrainCompleted: boolean;
@@ -111,7 +109,6 @@ export class QuadTreeStrategy {
     protected _skipPreRender: boolean = false;
 
     constructor(params: QuadTreeStrategyParams) {
-
         this.events = createEvents<QuadTreeStrategyEventsList>(QUADTREESTRATEGY_EVENTS);
 
         this.name = params.name || "";
@@ -123,12 +120,12 @@ export class QuadTreeStrategy {
         this._renderedNodes = [];
         this._renderedNodesInFrustum = [];
 
-        this._fadingNodes = new Map<number, Node>;
+        this._fadingNodes = new Map<number, Node>();
         this._fadingNodesInFrustum = [];
         this._fadingOpaqueSegments = [];
+        this._transparentSegments = [];
 
         this.minCurrZoom = math.MAX;
-
         this.maxCurrZoom = math.MIN;
 
         this._viewExtent = new Extent(new LonLat(180, 180), new LonLat(-180, -180));
@@ -148,7 +145,8 @@ export class QuadTreeStrategy {
         this._terrainCompleted = false;
         this._terrainCompletedActivated = false;
 
-        this._transitionOpacityEnabled = params.transitionOpacityEnabled != undefined ? params.transitionOpacityEnabled : true;
+        this._transitionOpacityEnabled =
+            params.transitionOpacityEnabled != undefined ? params.transitionOpacityEnabled : true;
     }
 
     public get lodSize(): number {
@@ -176,8 +174,8 @@ export class QuadTreeStrategy {
     }
 
     /**
-     * clears layer material from the quad tree list. 
-     * @param layer 
+     * clears layer material from the quad tree list.
+     * @param layer
      * @param keepRendered if true, keeps materials that are currently rendered.
      */
     public clearLayerMaterial(layer: Layer, keepRendered: boolean = false) {
@@ -236,12 +234,21 @@ export class QuadTreeStrategy {
         });
     }
 
-    public init(camera: PlanetCamera) {
-        this._initEvents();
+    protected _updateRenderedNodesInFrustumArray(camera: PlanetCamera) {
         this._renderedNodesInFrustum = new Array(camera.frustums.length);
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i] = [];
         }
+    }
+
+    public init(camera: PlanetCamera) {
+        this._initEvents();
+
+        this._updateRenderedNodesInFrustumArray(camera);
+
+        camera.events.on("frustumschanged", () => {
+            this._updateRenderedNodesInFrustumArray(camera);
+        });
 
         this.preRender();
         this.clearRenderedNodes();
@@ -258,7 +265,8 @@ export class QuadTreeStrategy {
         this._renderedNodes = [];
     }
 
-    protected _clearRenderNodesInFrustum() {1
+    protected _clearRenderNodesInFrustum() {
+        1;
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i].length = 0;
             this._renderedNodesInFrustum[i] = [];
@@ -266,8 +274,12 @@ export class QuadTreeStrategy {
     }
 
     protected _collectRenderedNodesMaxZoom(cam: PlanetCamera) {
-        if (cam.isOrthographic || cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
-
+        if (
+            cam.isOrthographic ||
+            (cam.slope > this.minEqualZoomCameraSlope &&
+                cam._lonLat.height < this.maxEqualZoomAltitude &&
+                cam._lonLat.height > this.minEqualZoomAltitude)
+        ) {
             this.minCurrZoom = this.maxCurrZoom;
 
             let temp = this._renderedNodes,
@@ -282,7 +294,8 @@ export class QuadTreeStrategy {
                 let ht = ri.segment.centerNormal.dot(cam.getBackward());
                 if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
                     this._renderedNodes.push(ri);
-                    let k = 0, inFrustum = ri.inFrustum;
+                    let k = 0,
+                        inFrustum = ri.inFrustum;
                     while (inFrustum) {
                         if (inFrustum & 1) {
                             rf[k].push(ri);
@@ -315,9 +328,7 @@ export class QuadTreeStrategy {
      * @protected
      */
     public collectRenderNodes(cam: PlanetCamera) {
-
         if (this._skipPreRender) {
-
             this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
             cam._insideSegment = null;
 
@@ -334,13 +345,20 @@ export class QuadTreeStrategy {
 
             this._collectRenderNodes(cam);
 
+            // No visible nodes collected (e.g. camera tilted strongly upward)
+            // — clamp to 0/0 so Vector layer visibility gate doesn't compare
+            // against sentinel values and reject all entities.
+            if (this.maxCurrZoom === math.MIN) {
+                this.minCurrZoom = 0;
+                this.maxCurrZoom = 0;
+            }
+
             this._collectRenderedNodesMaxZoom(cam);
 
             // main camera effect
             this._fadingNodes.clear();
 
             if (this._transitionOpacityEnabled) {
-
                 let opaqueNodes: Node[] = [];
 
                 for (let i = 0; i < this._renderedNodes.length; i++) {
@@ -374,7 +392,6 @@ export class QuadTreeStrategy {
     public preRender() {
         this._skipPreRender = false;
         for (let i = 0; i < this._quadTreeList.length; i++) {
-
             let quadTree = this._quadTreeList[i];
             quadTree.createChildNodes();
             quadTree.segment.createPlainSegment();
@@ -386,9 +403,7 @@ export class QuadTreeStrategy {
     }
 
     public preLoad() {
-
         for (let i = 0; i < this._quadTreeList.length; i++) {
-
             let quadTree = this._quadTreeList[i];
             quadTree.segment.passReady = true;
             quadTree.renderNode(1);
@@ -427,7 +442,7 @@ export class QuadTreeStrategy {
         let z = zoom,
             x: number,
             y: number,
-            pz = (1 << z);
+            pz = 1 << z;
 
         x = getTileCellIndex(lonLat.lon, 360 / pz, -180);
         y = getTileCellIndex(lonLat.lat, 180 / pz, 90);
@@ -455,7 +470,4 @@ export class QuadTreeStrategy {
     }
 }
 
-const QUADTREESTRATEGY_EVENTS: QuadTreeStrategyEventsList = [
-    "rendercompleted",
-    "terraincompleted"
-]
+const QUADTREESTRATEGY_EVENTS: QuadTreeStrategyEventsList = ["rendercompleted", "terraincompleted"];
