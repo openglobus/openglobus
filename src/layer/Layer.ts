@@ -61,7 +61,7 @@ export interface ILayerParams {
  * @param {string} [options.attribution=""] - Layer attribution shown in the attribution area.
  * @param {number} [options.zIndex=0] - Layer z-index.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
- * @param {[IDefaultTextureParams, IDefaultTextureParams]} [options.defaultTextures=[null, null]] - Default textures.
+ * @param {Array.<IDefaultTextureParams>} [options.defaultTextures=[null, null]] - Default textures.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {boolean} [options.fading=false] - Enables fade-in/fade-out opacity transitions.
  * @param {number} [options.height=0] - Height over the ground.
@@ -69,7 +69,7 @@ export interface ILayerParams {
  * @param {string|number} [options.colorSpace="srgb"] - Layer color space. Available values: "linear", "srgb", 0, 1.
  * @param {boolean} [options.pickingEnabled=true] - Enables layer picking.
  * @param {number[]} [options.preLoadZoomLevels=[0, 1]] - Zoom levels to preload when layer becomes visible.
- * @param {Extent|[[number, number], [number, number]]} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
+ * @param {Extent|Array.<Array.<number>>} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {string|NumberArray3|Vec3} [options.ambient] - Ambient color.
  * @param {string|NumberArray3|Vec3} [options.diffuse] - Diffuse color.
  * @param {string|NumberArray3|Vec3} [options.specular] - Specular color.

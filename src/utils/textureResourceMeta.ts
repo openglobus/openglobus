@@ -14,12 +14,13 @@ export function getTextureResourceMeta(target: object | null | undefined): IText
         return undefined;
     }
 
-    return (target as TextureResourceMetaContainer)[OG_TEXTURE_RESOURCE_META_KEY] as
-        | ITextureResourceMeta
-        | undefined;
+    return (target as TextureResourceMetaContainer)[OG_TEXTURE_RESOURCE_META_KEY] as ITextureResourceMeta | undefined;
 }
 
-export function setTextureResourceMeta(target: object | null | undefined, meta: ITextureResourceMeta | undefined): void {
+export function setTextureResourceMeta(
+    target: object | null | undefined,
+    meta: ITextureResourceMeta | undefined
+): void {
     if (!target) {
         return;
     }
