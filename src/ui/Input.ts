@@ -9,6 +9,7 @@ interface IInputParams extends IViewParams {
     min?: number;
     max?: number;
     type?: string;
+    step?: number | "any";
     maxFixed?: number;
 }
 
@@ -25,6 +26,10 @@ class Input extends View<null> {
     public override events: EventsHandler<InputEventsList> & EventsHandler<ViewEventsList>;
 
     protected _value: string;
+    protected _type: string;
+    protected _min?: number;
+    protected _max?: number;
+    protected _step: number | "any";
 
     protected $label: HTMLElement | null;
     protected $input: HTMLInputElement | null;
@@ -43,6 +48,10 @@ class Input extends View<null> {
         this.events = this.events.registerNames(SLIDER_EVENTS);
 
         this._value = options.value || "";
+        this._type = options.type || "text";
+        this._min = options.min;
+        this._max = options.max;
+        this._step = options.step ?? "any";
 
         this._maxFixed = options.maxFixed != undefined ? options.maxFixed : -1;
 
@@ -58,6 +67,22 @@ class Input extends View<null> {
             this.$label.style.display = "none";
         }
         this.$input = this.select<HTMLInputElement>("input");
+
+        if (this.$input && this._type === "number") {
+            this.$input.setAttribute("step", this._step.toString());
+            this.$input.setAttribute("inputmode", "decimal");
+
+            if (this._min !== undefined) {
+                this.$input.min = this._min.toString();
+            }
+            if (this._max !== undefined) {
+                this.$input.max = this._max.toString();
+            }
+        }
+
+        if (this.$input) {
+            this.$input.value = this._value;
+        }
 
         this._initEvents();
 
@@ -125,8 +150,17 @@ class Input extends View<null> {
         e = e || window.event;
         e.preventDefault();
         e.stopPropagation();
-        //@ts-ignore
-        this._setValue(e.target.value);
+        const target = e.target as HTMLInputElement;
+        let nextValue = target.value;
+
+        if (this._type === "number") {
+            nextValue = nextValue.replace(",", ".");
+            if (nextValue !== target.value) {
+                target.value = nextValue;
+            }
+        }
+
+        this._setValue(nextValue);
     };
 
     public override remove() {

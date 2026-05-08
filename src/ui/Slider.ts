@@ -9,6 +9,7 @@ interface ISliderParams extends IViewParams {
     value?: number;
     min?: number;
     max?: number;
+    step?: number | "any";
 }
 
 type SliderEventsList = ["change"];
@@ -18,10 +19,10 @@ const SLIDER_EVENTS: SliderEventsList = ["change"];
 const TEMPLATE = `<div class="og-slider">
       <div class="og-slider-label">{label}</div>
       <div class="og-slider-panel">
-        <div class="og-slider-progress"></div>      
+        <div class="og-slider-progress"></div>
         <div class="og-slider-pointer"></div>
       </div>
-      <input type="number"/>
+      <input type="number" inputmode="decimal"/>
     </div>`;
 
 class Slider extends View<null> {
@@ -30,6 +31,7 @@ class Slider extends View<null> {
     protected _value: number;
     protected _min: number;
     protected _max: number;
+    protected _step: number | "any";
 
     protected _startPosX: number;
 
@@ -54,6 +56,7 @@ class Slider extends View<null> {
         this._value = options.value || 0.0;
         this._min = options.min || 0.0;
         this._max = options.max || 1.0;
+        this._step = options.step ?? "any";
         //this._step = options.step || ((this._max - this._min) / 10.0);
 
         this._resizeObserver = new ResizeObserver(this._onResize);
@@ -78,6 +81,12 @@ class Slider extends View<null> {
         this.$progress = this.select(".og-slider-progress");
         this.$panel = this.select(".og-slider-panel");
         this.$input = this.select<HTMLInputElement>("input");
+
+        if (this.$input) {
+            this.$input.setAttribute("step", this._step.toString());
+            this.$input.min = this._min.toString();
+            this.$input.max = this._max.toString();
+        }
 
         this._syncUiFromValue();
 
@@ -154,7 +163,7 @@ class Slider extends View<null> {
         e.preventDefault();
         e.stopPropagation();
         //@ts-ignore
-        this.value = parseFloat(e.target.value);
+        this.value = e.target.value;
     };
 
     protected _onMouseDown = (e: MouseEvent) => {
