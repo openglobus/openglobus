@@ -81,53 +81,10 @@ const skybox = new scene.SkyBox({
     nz: "./nz.webp"
 });
 
-// atmosphereParameters: {
-//     ATMOS_HEIGHT: 100000.0,
-//         RAYLEIGH_SCALE: 0.086,
-//         MIE_SCALE: 0.0045,
-//         GROUND_ALBEDO: 0.04,
-//         BOTTOM_RADIUS: 6356752.3142451793,
-//         EQUATORIAL_RADIUS: 6378137.0,
-//         rayleighScatteringCoefficient_0: 4.2,
-//         rayleighScatteringCoefficient_1: 12.9,
-//         rayleighScatteringCoefficient_2: 42.0,
-//         mieScatteringCoefficient: 1.6,
-//         mieExtinctionCoefficient: 1.85,
-//         ozoneAbsorptionCoefficient_0: 1.25,
-//         ozoneAbsorptionCoefficient_1: 2.1,
-//         ozoneAbsorptionCoefficient_2: 0.09,
-//         ozoneDensityHeight: 25e3,
-//         ozoneDensityWide: 15e3,
-//         SUN_ANGULAR_RADIUS: 0.004685,
-//         SUN_INTENSITY: 1.0,
-//         disableSunDisk: false
-// },
-
 let globe = new Globe({
     target: "earth",
     name: "Earth",
     //frustums: [[1, 1e12]],
-atmosphereParameters: {
-    ATMOS_HEIGHT: 100000.0,
-        RAYLEIGH_SCALE: 0.086,
-        MIE_SCALE: 0.0045,
-        GROUND_ALBEDO: 0.04,
-        BOTTOM_RADIUS: 6356752.3142451793,
-        EQUATORIAL_RADIUS: 6378137.0,
-        rayleighScatteringCoefficient_0: 4.2,
-        rayleighScatteringCoefficient_1: 12.9,
-        rayleighScatteringCoefficient_2: 42.0,
-        mieScatteringCoefficient: 1.6,
-        mieExtinctionCoefficient: 1.85,
-        ozoneAbsorptionCoefficient_0: 1.25,
-        ozoneAbsorptionCoefficient_1: 2.1,
-        ozoneAbsorptionCoefficient_2: 0.09,
-        ozoneDensityHeight: 25e3,
-        ozoneDensityWide: 15e3,
-        SUN_ANGULAR_RADIUS: 0.004685,
-        SUN_INTENSITY: 1.0,
-        disableSunDisk: false
-},
     terrain: new GlobusRgbTerrain(),
     //skybox: skybox,
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer],

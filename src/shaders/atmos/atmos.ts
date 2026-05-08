@@ -30,21 +30,43 @@ export interface AtmosphereParameters {
     disableSunDisk?: boolean;
 }
 
+/*
+ * Previous DEFAULT_PARAMS values:
+ * ATMOS_HEIGHT: 100000.0
+ * RAYLEIGH_SCALE: 0.08
+ * MIE_SCALE: 0.012
+ * GROUND_ALBEDO: 0.05
+ * BOTTOM_RADIUS: 6356752.3142451793
+ * EQUATORIAL_RADIUS: 6378137.0
+ * rayleighScatteringCoefficient_0: 5.802
+ * rayleighScatteringCoefficient_1: 13.558
+ * rayleighScatteringCoefficient_2: 33.1
+ * mieScatteringCoefficient: 3.996
+ * mieExtinctionCoefficient: 4.44
+ * ozoneAbsorptionCoefficient_0: 0.65
+ * ozoneAbsorptionCoefficient_1: 1.881
+ * ozoneAbsorptionCoefficient_2: 0.085
+ * SUN_ANGULAR_RADIUS: 0.004685
+ * SUN_INTENSITY: 1.0
+ * ozoneDensityHeight: 25e3
+ * ozoneDensityWide: 15e3
+ * disableSunDisk: false
+ */
 export const DEFAULT_PARAMS: AtmosphereParameters = {
     ATMOS_HEIGHT: 100000.0,
-    RAYLEIGH_SCALE: 0.08,
-    MIE_SCALE: 0.012,
-    GROUND_ALBEDO: 0.05,
+    RAYLEIGH_SCALE: 0.086,
+    MIE_SCALE: 0.0045,
+    GROUND_ALBEDO: 0.022,
     BOTTOM_RADIUS: 6356752.3142451793,
     EQUATORIAL_RADIUS: 6378137.0,
-    rayleighScatteringCoefficient_0: 5.802,
-    rayleighScatteringCoefficient_1: 13.558,
-    rayleighScatteringCoefficient_2: 33.1,
-    mieScatteringCoefficient: 3.996,
-    mieExtinctionCoefficient: 4.44,
-    ozoneAbsorptionCoefficient_0: 0.65,
-    ozoneAbsorptionCoefficient_1: 1.881,
-    ozoneAbsorptionCoefficient_2: 0.085,
+    rayleighScatteringCoefficient_0: 4.2,
+    rayleighScatteringCoefficient_1: 12.9,
+    rayleighScatteringCoefficient_2: 42.0,
+    mieScatteringCoefficient: 1.6,
+    mieExtinctionCoefficient: 1.85,
+    ozoneAbsorptionCoefficient_0: 1.25,
+    ozoneAbsorptionCoefficient_1: 2.1,
+    ozoneAbsorptionCoefficient_2: 0.09,
     SUN_ANGULAR_RADIUS: 0.004685,
     SUN_INTENSITY: 1.0,
     ozoneDensityHeight: 25e3,
