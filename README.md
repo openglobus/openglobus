@@ -3,7 +3,7 @@
 
 # OpenGlobus
 
-[openglobus](https://www.openglobus.org/) is a typescript/javascript library designed to display interactive 3D maps and other geospatial data at a
+[OpenGlobus](https://www.openglobus.org/) is a typescript/javascript library designed to display interactive 3D maps and other geospatial data at a
 scale from planet to bee.
 
 It supports various high-resolution terrain providers, imagery layers, renders thousands of 3D objects, provides
