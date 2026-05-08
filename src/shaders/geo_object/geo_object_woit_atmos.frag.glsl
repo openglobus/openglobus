@@ -89,6 +89,7 @@ void main(void) {
     if (shade < SHADE_PBR) {
         float metallic = material.b;
         float roughness = material.g;
+        float ao = material.r;
         float specularMask = metallic * (1.0 - roughness);
         vec4 lightWeighting;
         vec3 specularWeighting;
@@ -103,14 +104,15 @@ void main(void) {
         lightDiffuse,
         lightSpecular,
         specularMask,
+        ao,
         specularWeighting,
         lightWeighting
         );
-
         color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
     } else {
         float metallic = material.b;
         float roughness = material.g;
+        float ao = material.r;
         float specularMask = metallic * (1.0 - roughness);
         vec3 lightDir = normalize(sunPos);
         vec3 viewDir = normalize(cameraPosition - vertex);
@@ -130,6 +132,7 @@ void main(void) {
         lightSpecular,
         specularMask,
         sunIlluminance,
+        ao,
         specularWeighting,
         lightWeighting
         );

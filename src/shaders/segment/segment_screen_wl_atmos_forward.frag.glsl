@@ -102,6 +102,7 @@ void main(void) {
         specular,
         specularMask,
         sunIlluminance,
+        1.0,
         specularWeighting,
         lightWeighting
         );
@@ -117,6 +118,7 @@ void main(void) {
         specular,
         specularMask,
         sunIlluminance,
+        1.0,
         specularWeighting,
         lightWeighting
         );

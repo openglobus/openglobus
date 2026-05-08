@@ -10,6 +10,7 @@ in vec3 ambient,
 in vec3 diffuse,
 in vec4 specular,
 in float specularMask,
+in float ao,
 out vec3 outSpecularWeighting,
 out vec4 outLightWeighting
 ){
@@ -20,9 +21,8 @@ out vec4 outLightWeighting
     vec3 reflectionDir = reflect(-lightDir, normal);
     float reflection = max(dot(reflectionDir, viewDir), 0.0);
     float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
-
     outSpecularWeighting = specular.rgb * pow(reflection, specular.w) * specularMask;
-    outLightWeighting = vec4(ambient + diffuse * diffuseLightWeighting, 1.0);
+    outLightWeighting = vec4(ambient * ao + diffuse * diffuseLightWeighting, 1.0);
 }
 
 void getPhongLighting(
@@ -35,6 +35,7 @@ in vec3 diffuse,
 in vec4 specular,
 in float specularMask,
 in vec3 sunIlluminance,
+in float ao,
 out vec3 outSpecularWeighting,
 out vec4 outLightWeighting
 ){
@@ -45,9 +46,8 @@ out vec4 outLightWeighting
     vec3 reflectionDir = reflect(-lightDir, normal);
     float reflection = max(dot(reflectionDir, viewDir), 0.0);
     float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
-
     outSpecularWeighting = sunIlluminance * specular.rgb * pow(reflection, specular.w) * specularMask;
-    outLightWeighting = vec4(ambient + sunIlluminance * diffuse * diffuseLightWeighting, 1.0);
+    outLightWeighting = vec4(ambient * ao + sunIlluminance * diffuse * diffuseLightWeighting, 1.0);
 }
 
 const float EMISSION_PACK_RANGE = 8.0;

@@ -51,6 +51,7 @@ void main(void) {
 
     vec3 cameraRelWorld = normalMatrix * viewPos;
     vec3 worldVertex = cameraRelWorld + cameraPosition;
+    float ao = materials.r;
     float specularMask = materials.b;
 
     vec3 sunPos = lightPosition;
@@ -69,10 +70,10 @@ void main(void) {
         lightDiffuse,
         lightSpecular,
         specularMask,
+        ao,
         specularWeighting,
         lightWeighting
         );
-
         fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
     } else {
         vec3 lightDir = normalize(sunPos);
@@ -91,6 +92,7 @@ void main(void) {
         lightSpecular,
         specularMask,
         sunIlluminance,
+        ao,
         specularWeighting,
         lightWeighting
         );

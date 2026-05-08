@@ -73,6 +73,7 @@ void main(void) {
     if (shade < SHADE_PBR) {
         float metallic = material.b;
         float roughness = material.g;
+        float ao = material.r;
 
         vec3 vertex = v_vertex;
         float specularMask = metallic * (1.0 - roughness);
@@ -90,14 +91,15 @@ void main(void) {
         lightDiffuse,
         lightSpecular,
         specularMask,
+        ao,
         specularWeighting,
         lightWeighting
         );
-
         fragColor = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
     } else {
         float metallic = material.b;
         float roughness = material.g;
+        float ao = material.r;
 
         vec3 vertex = v_vertex;
         float specularMask = metallic * (1.0 - roughness);
@@ -115,10 +117,10 @@ void main(void) {
         lightDiffuse,
         lightSpecular,
         specularMask,
+        ao,
         specularWeighting,
         lightWeighting
         );
-
         fragColor = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
     }
 }

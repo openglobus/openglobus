@@ -40,6 +40,7 @@ void main(void) {
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
 
     vec3 cameraRelWorld = normalMatrix * viewPos;
+    float ao = materials.r;
     float specularMask = materials.b;
 
     vec4 lightWeighting;
@@ -56,10 +57,10 @@ void main(void) {
         lightDiffuse,
         lightSpecular,
         specularMask,
+        ao,
         specularWeighting,
         lightWeighting
         );
-
         fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
     } else {
         // TODO: Real PBR deferred(no-atmos) is not implemented yet. Keep PBR as Phong for now.
@@ -72,10 +73,10 @@ void main(void) {
         lightDiffuse,
         lightSpecular,
         specularMask,
+        ao,
         specularWeighting,
         lightWeighting
         );
-
         fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
     }
 }
