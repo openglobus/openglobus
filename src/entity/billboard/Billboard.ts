@@ -2,13 +2,16 @@ import { BaseBillboard } from "./BaseBillboard";
 import type { IBaseBillboardParams } from "./BaseBillboard";
 import { BillboardHandler } from "./BillboardHandler";
 import type { HTMLImageElementExt } from "../../utils/ImagesCacheManager";
+import { Vec2 } from "../../math/Vec2";
+import { LOCK_FREE, LOCK_UPDATE } from "../label/LabelWorker";
 
 export interface IBillboardParams extends IBaseBillboardParams {
     src?: string;
     image?: HTMLImageElement;
-    size?: [number, number];
-    width?: number;
-    height?: number;
+    size?: [number, number] | null;
+    width?: number | null;
+    height?: number | null;
+    scale?: number | null;
 }
 
 /**
@@ -70,11 +73,30 @@ class Billboard extends BaseBillboard {
 
         this._image = options.image || null;
 
-        this._scale = 1.0;
+        this._scale = options.scale ?? 1.0;
 
-        this._width = options.width || (options.size ? options.size[0] : 30);
+        this._width = options.width ?? (options.size ? options.size[0] : 0);
 
-        this._height = options.height || (options.size ? options.size[1] : 30);
+        this._height = options.height ?? (options.size ? options.size[1] : 0);
+
+        this._applyImageSize(this._image);
+    }
+
+    protected _applyImageSize(image: HTMLImageElementExt | HTMLImageElement | null) {
+        if (!image) {
+            return;
+        }
+
+        if (this._width === 0) {
+            this._width = image.width;
+        }
+
+        if (this._height === 0) {
+            this._height = image.height;
+        }
+
+        this._handler &&
+            this._handler.setSizeArr(this._handlerIndex, this._width * this._scale, this._height * this._scale);
     }
 
     /**
@@ -93,11 +115,13 @@ class Billboard extends BaseBillboard {
                 ta.loadImage(src, function (img: HTMLImageElementExt) {
                     if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
                         that._image = img;
+                        that._applyImageSize(img);
                         bh!.setTexCoordArr(that._handlerIndex, ta.get(that._image!.__nodeIndex!)!.texCoords);
                     } else {
                         ta.addImage(img);
                         ta.createTexture();
                         that._image = img;
+                        that._applyImageSize(img);
                         rn!.updateBillboardsTexCoords();
                     }
                 });
@@ -132,6 +156,21 @@ class Billboard extends BaseBillboard {
         this._width = width;
         this._height = height;
         this._handler && this._handler.setSizeArr(this._handlerIndex, width * this._scale, height * this._scale);
+    }
+
+    public getScale(): number {
+        return this._scale;
+    }
+
+    public override setOffset(x: number, y: number) {
+        this._offset.x = x;
+        this._offset.y = y;
+
+        if (this._isReady && this._handler) {
+            this._handler.setOffsetArr(this._handlerIndex, new Vec2(x * this._scale, y * this._scale));
+        } else if (this._lockId !== LOCK_FREE) {
+            this._lockId = LOCK_UPDATE;
+        }
     }
 
     /**
