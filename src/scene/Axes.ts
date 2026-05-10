@@ -46,6 +46,10 @@ class Axes extends Scene {
         this.renderer?.events.on("forwardpass", this.forward);
     }
 
+    public override onremove() {
+        this.renderer?.events.off("forwardpass", this.forward);
+    }
+
     public forward = () => {
         this.renderer!.handler.programs.axesShader.activate().set({
             projectionViewMatrix: this.renderer!.activeCamera!.getProjectionViewMatrix(),

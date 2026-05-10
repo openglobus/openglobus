@@ -216,6 +216,7 @@ class RulerScene extends Scene {
         this.renderer!.events.on("mousemove", this._onMouseMove, this);
         this.renderer!.events.on("ldblclick", this._onLdblclick, this);
         this.renderer!.events.on("lup", this._onLUp, this);
+        this.renderer!.events.on("forwardpass", this._onForwardpass, this);
 
         this._cornersLayer.events.on("mouseenter", this._onCornerEnter, this);
         this._cornersLayer.events.on("mouseleave", this._onCornerLeave, this);
@@ -234,6 +235,7 @@ class RulerScene extends Scene {
         this.renderer!.events.off("lclick", this._onLclick);
         this.renderer!.events.off("mousemove", this._onMouseMove);
         this.renderer!.events.off("lup", this._onLUp);
+        this.renderer!.events.off("forwardpass", this._onForwardpass);
 
         this._cornersLayer.events.off("mouseenter", this._onCornerEnter);
         this._cornersLayer.events.off("mouseleave", this._onCornerLeave);
@@ -381,7 +383,7 @@ class RulerScene extends Scene {
         return false;
     }
 
-    public override frame() {
+    protected _onForwardpass() {
         let t = this._trackEntity.polyline!.getPath3v()[0] as Vec3[];
         if (t) {
             const startPos = t[0].clone(),

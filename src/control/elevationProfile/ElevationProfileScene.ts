@@ -324,6 +324,8 @@ class ElevationProfileScene extends Scene {
         this._headPointersLayer.events.on("ldown", this._onHeadPointerLDown);
         this._headPointersLayer.events.on("lup", this._onHeadPointerLUp);
 
+        this.renderer!.events.on("forwardpass", this._onForwardpass, this);
+
         this.setPointerVisibility(false);
     }
 
@@ -642,6 +644,7 @@ class ElevationProfileScene extends Scene {
     };
 
     protected _deactivate() {
+        this.renderer!.events.off("forwardpass", this._onForwardpass);
         this.renderer!.events.off("ldblclick", this._onLClick);
         this.renderer!.events.off("mousemove", this._onMouseMove);
         this.renderer!.events.off("lup", this._onLUp);
@@ -689,7 +692,7 @@ class ElevationProfileScene extends Scene {
         this._trackEntity.polyline!.setPath3v([]);
     }
 
-    public override frame() {
+    protected _onForwardpass = () => {
         if (this._clampToGround) {
             let __tempVec__ = new Vec3();
             const nodes = this._planet!.quadTreeStrategy._renderedNodes;
@@ -707,7 +710,7 @@ class ElevationProfileScene extends Scene {
                 }
             }
         }
-    }
+    };
 
     public get ellipsoid(): Ellipsoid | null {
         return this._planet ? this._planet.ellipsoid : null;

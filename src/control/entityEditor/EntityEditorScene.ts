@@ -350,10 +350,12 @@ class EntityEditorScene extends Scene {
     public activate() {
         this.renderer!.events.on("lclick", this._onLclick);
         this.renderer!.events.on("mousemove", this._onMouseMove);
+        this.renderer!.events.on("forwardpass", this._onForwardpass, this);
         this._addAxisLayers();
     }
 
     protected deactivate() {
+        this.renderer!.events.off("forwardpass", this._onForwardpass);
         this.renderer!.events.off("lclick", this._onLclick);
         this.renderer!.events.off("mousemove", this._onMouseMove);
         this._removeAxisLayers();
@@ -414,7 +416,7 @@ class EntityEditorScene extends Scene {
         this.removeEntityCollection(this._rotateLayer);
     }
 
-    public override frame() {
+    protected _onForwardpass = () => {
         if (this._selectedEntity) {
             let cart = this._selectedEntity.getAbsoluteCartesian();
             this._axisEntity.setCartesian3v(cart);
@@ -422,7 +424,7 @@ class EntityEditorScene extends Scene {
             this._rotateEntity.setCartesian3v(cart, this._selectedEntity.getAbsoluteYaw());
             this._axisTrackEntity.setCartesian3v(cart);
         }
-    }
+    };
 
     protected _moveX = (e: IMouseState) => {
         if (!this._selectedEntity) return;

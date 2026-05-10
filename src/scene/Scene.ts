@@ -1,8 +1,8 @@
-import { Renderer } from "../renderer/Renderer";
-import type { EntityCollection } from "../entity/EntityCollection";
-import { Quat } from "../math/Quat";
-import { Vec3 } from "../math/Vec3";
-import type { Planet } from "./Planet";
+import {Renderer} from "../renderer/Renderer";
+import type {EntityCollection} from "../entity/EntityCollection";
+import {Quat} from "../math/Quat";
+import {Vec3} from "../math/Vec3";
+import type {Planet} from "./Planet";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -48,7 +48,7 @@ class Scene {
     public parentNode: Scene | null;
 
     /**
-     * Renderer that calls frame() callback.
+     * Assigned renderer.
      * @public
      * @type {Renderer}
      */
@@ -231,7 +231,7 @@ class Scene {
     }
 
     public updateEntityCollectionsDepthOrder() {
-        let grouped: Record<number, EntityCollection[]> = { 0: [] };
+        let grouped: Record<number, EntityCollection[]> = {0: []};
         for (const ec of this.entityCollections) {
             if (ec.getVisibility()) {
                 if (!grouped[ec.depthOrder]) {
@@ -255,7 +255,6 @@ class Scene {
     public draw() {
         if (this._isActive) {
             this._preDraw();
-            this._draw();
         }
     }
 
@@ -324,7 +323,7 @@ class Scene {
     }
 
     public frame() {
-        // virtual
+        // legacy virtual callback, use renderer.events.on("forwardpass", ...) instead
     }
 
     public preFrame() {
@@ -343,16 +342,6 @@ class Scene {
         for (let i = 0; i < this._entityCollectionsByDepthOrder.length; i++) {
             this.drawEntityCollections(this._entityCollectionsByDepthOrder[i], i);
         }
-    }
-
-    protected _draw() {
-        for (let i = 0; i < this.childNodes.length; i++) {
-            if (this.childNodes[i]._isActive) {
-                this.childNodes[i]._draw();
-            }
-        }
-
-        this.frame();
     }
 
     public drawEntityCollections(ec: EntityCollection[], depthOrder: number = 0) {
@@ -421,4 +410,4 @@ class Scene {
     }
 }
 
-export { Scene };
+export {Scene};

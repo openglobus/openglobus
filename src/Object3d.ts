@@ -96,7 +96,7 @@ class Object3d {
 
         this.metallic = data.metallic ?? 0;
         this.roughness = data.roughness ?? 0;
-        this.ambientOcclusion = data.ambientOcclusion ?? 0;
+        this.ambientOcclusion = data.ambientOcclusion ?? 1;
 
         this.colorTextureSrc = data.colorTextureSrc || null;
         this.colorTextureImage = data.colorTextureImage || null;
