@@ -200,6 +200,7 @@ class PolygonDrawingScene extends Scene {
         this._geometryLayer.addTo(this._planet!);
 
         this.events.on("change", this._onChange, this);
+        this.renderer!.events.on("forwardpass", this._onForwardpass, this);
     }
 
     protected _onChange = (e: PolygonDrawingScene) => {
@@ -218,6 +219,7 @@ class PolygonDrawingScene extends Scene {
     };
 
     override onremove() {
+        this.renderer?.events.off("forwardpass", this._onForwardpass);
         this._clearEvents();
         this.hideGhostPointer();
         this.stopNewPoint();
@@ -429,11 +431,11 @@ class PolygonDrawingScene extends Scene {
         }
     }
 
-    public override frame() {
+    protected _onForwardpass = () => {
         this._drawCorners();
         this._drawCenters();
         this._drawGhostCorner();
-    }
+    };
 
     protected _checkTerrainCollision(entity: Entity) {
         let _tempTerrPoint = new Vec3();

@@ -162,6 +162,7 @@ class SelectionScene extends Scene {
 
         this._onMouseLup_ = this._onMouseLup.bind(this);
         this.renderer?.events.on("lup", this._onMouseLup_, this);
+        this.renderer?.events.on("forwardpass", this._onForwardpass, this);
 
         this._planet.addLayer(this._trackLayer);
 
@@ -175,6 +176,7 @@ class SelectionScene extends Scene {
         this.renderer?.events.off("mousemove", this._onMouseMove_);
         this.renderer?.events.off("ldown", this._onMouseLdown_);
         this.renderer?.events.off("lup", this._onMouseLup_);
+        this.renderer?.events.off("forwardpass", this._onForwardpass);
 
         this.clear();
 
@@ -300,7 +302,7 @@ class SelectionScene extends Scene {
         this._cornerEntity[1].geoObject?.setVisibility(false);
     }
 
-    override frame() {
+    protected _onForwardpass = () => {
         let t = this._trackEntity.polyline?.getPath3v()[0];
         if (t) {
             if (!this._ignoreTerrain) {
@@ -313,7 +315,7 @@ class SelectionScene extends Scene {
                 this._propsLabel.label?.setText(`${distanceFormat(res)}, ${Math.round(this._heading)} deg`);
             }
         }
-    }
+    };
 
     get ellipsoid() {
         return this._planet ? this._planet.ellipsoid : null;

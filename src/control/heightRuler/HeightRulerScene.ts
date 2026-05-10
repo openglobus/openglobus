@@ -219,12 +219,17 @@ class HeightRulerScene extends RulerScene {
         this._geoRulerLayer.addEntities([this._rayH, this._rayV]);
 
         this._planet!.addLayer(this._geoRulerLayer);
+        this.renderer!.events.on("forwardpass", this._onForwardpassHeight, this);
     }
 
-    public override frame() {
-        super.frame();
-        this._updateHeightRaysAndLabels();
+    public override onremove() {
+        this.renderer?.events.off("forwardpass", this._onForwardpassHeight);
+        super.onremove();
     }
+
+    protected _onForwardpassHeight = () => {
+        this._updateHeightRaysAndLabels();
+    };
 }
 
 export { HeightRulerScene };
