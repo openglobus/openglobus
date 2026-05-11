@@ -13,10 +13,19 @@ export class WOITPass implements ITransparencyPass {
 
     public init() {
         let h = this._renderer.handler;
+        let initialWidth = h.canvas!.width;
+        let initialHeight = h.canvas!.height;
+
+        if (this._renderer.forwardFramebuffer) {
+            initialWidth = this._renderer.forwardFramebuffer.width;
+            initialHeight = this._renderer.forwardFramebuffer.height;
+        }
 
         h.addProgram(weightedOITResolve());
 
         this._framebuffer = new Framebuffer(h, {
+            width: initialWidth,
+            height: initialHeight,
             targets: [
                 {
                     internalFormat: "RGBA16F",
