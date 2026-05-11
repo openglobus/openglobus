@@ -29,8 +29,8 @@
         "test:watch": "vitest",
         "test": "vitest run --reporter=verbose",
         "lint": "eslint src/",
-    "format": "prettier --write src css",
-    "format:check": "prettier --check src css",
+        "format": "prettier --write src css",
+        "format:check": "prettier --check src css",
         "dts": "tsc --build tsconfig.json",
         "dev_serve": "npm-run-all --parallel --continue-on-error --race dev serve"
     },
