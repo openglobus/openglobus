@@ -21,6 +21,7 @@ interface IChar {
     xadvance: number;
     xoffset: number;
     yoffset: number;
+    unicode?: number;
 }
 
 interface IKerning {
@@ -29,7 +30,7 @@ interface IKerning {
     amount: number;
 }
 
-export interface IFontParams {
+interface IFontBmParams {
     common: {
         scaleH: number;
         scaleW: number;
@@ -42,8 +43,53 @@ export interface IFontParams {
     };
     chars: IChar[];
     kernings: IKerning[];
-    pages: string[];
 }
+
+interface IMSDFAtlasBounds {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+}
+
+interface IMSDFGlyph {
+    unicode?: number;
+    index?: string;
+    advance: number;
+    planeBounds?: IMSDFAtlasBounds;
+    atlasBounds?: IMSDFAtlasBounds;
+}
+
+interface IMSDFKerning {
+    unicode1?: number;
+    unicode2?: number;
+    index1?: number;
+    index2?: number;
+    advance: number;
+}
+
+interface IMSDFAtlasParams {
+    atlas: {
+        type?: string;
+        distanceRange: number;
+        size: number;
+        width: number;
+        height: number;
+        yOrigin?: "top" | "bottom";
+    };
+    metrics?: {
+        emSize?: number;
+        lineHeight?: number;
+        ascender?: number;
+        descender?: number;
+        underlineY?: number;
+        underlineThickness?: number;
+    };
+    glyphs: IMSDFGlyph[];
+    kerning?: IMSDFKerning[];
+}
+
+export type IFontParams = IMSDFAtlasParams;
 
 class FontTextureAtlas extends TextureAtlas {
     public width: number;
@@ -162,7 +208,100 @@ class FontAtlas {
         return face.trim().toLowerCase();
     }
 
-    protected _applyFontDataToAtlas(atlas: FontTextureAtlas, data: IFontParams, index: number = 0) {
+    protected _normalizeMsdfAtlasParams(data: IMSDFAtlasParams, atlasUrl?: string): IFontBmParams {
+        const s = data.atlas.size || 1;
+        const yOrigin = data.atlas.yOrigin || "bottom";
+        const isTopOrigin = yOrigin === "top";
+        const chars: IChar[] = [];
+
+        for (let i = 0; i < data.glyphs.length; i++) {
+            const gi = data.glyphs[i];
+            const glyphIndex = gi.index != undefined ? parseInt(gi.index) : i;
+
+            let x = 0;
+            let y = 0;
+            let width = 0;
+            let height = 0;
+            if (gi.atlasBounds) {
+                width = gi.atlasBounds.right - gi.atlasBounds.left;
+                height = isTopOrigin ? gi.atlasBounds.bottom - gi.atlasBounds.top : gi.atlasBounds.top - gi.atlasBounds.bottom;
+                x = gi.atlasBounds.left;
+                y = isTopOrigin ? gi.atlasBounds.top : data.atlas.height - gi.atlasBounds.top;
+            }
+
+            let xoffset = 0;
+            let yoffset = 0;
+            if (gi.planeBounds) {
+                const planeTop = isTopOrigin ? -gi.planeBounds.top : gi.planeBounds.top;
+                const planeBottom = isTopOrigin ? -gi.planeBounds.bottom : gi.planeBounds.bottom;
+                width = (gi.planeBounds.right - gi.planeBounds.left) * s;
+                height = (planeTop - planeBottom) * s;
+                xoffset = gi.planeBounds.left * s;
+                yoffset = (1.0 - planeTop) * s;
+            }
+
+            const char = typeof gi.unicode === "number" && gi.unicode <= 0x10ffff ? String.fromCodePoint(gi.unicode) : "";
+
+            chars.push({
+                id: typeof gi.unicode === "number" ? gi.unicode : glyphIndex,
+                unicode: typeof gi.unicode === "number" ? gi.unicode : undefined,
+                index: glyphIndex,
+                char,
+                width,
+                height,
+                x,
+                y,
+                chnl: 15,
+                page: 0,
+                xadvance: gi.advance * s,
+                xoffset,
+                yoffset
+            });
+        }
+
+        const kernings: IKerning[] = [];
+        if (data.kerning) {
+            for (let i = 0; i < data.kerning.length; i++) {
+                const ki = data.kerning[i];
+                const first =
+                    typeof ki.index1 === "number"
+                        ? ki.index1
+                        : typeof ki.unicode1 === "number"
+                          ? ki.unicode1
+                          : undefined;
+                const second =
+                    typeof ki.index2 === "number"
+                        ? ki.index2
+                        : typeof ki.unicode2 === "number"
+                          ? ki.unicode2
+                          : undefined;
+                if (typeof first === "number" && typeof second === "number") {
+                    kernings.push({
+                        first,
+                        second,
+                        amount: ki.advance * s
+                    });
+                }
+            }
+        }
+
+        return {
+            common: {
+                scaleH: data.atlas.height,
+                scaleW: data.atlas.width
+            },
+            info: {
+                size: s
+            },
+            distanceField: {
+                distanceRange: data.atlas.distanceRange
+            },
+            chars,
+            kernings
+        };
+    }
+
+    protected _applyFontDataToAtlas(atlas: FontTextureAtlas, data: IFontBmParams, index: number = 0) {
         let chars = data.chars;
 
         atlas.height = data.common.scaleH;
@@ -179,12 +318,10 @@ class FontAtlas {
         this.sdfParamsArr[index * 4 + 2] = s;
         this.sdfParamsArr[index * 4 + 3] = atlas.distanceRange;
 
-        let idToChar: Record<number, string> = {};
+        atlas.nodes.clear();
 
         for (let i = 0; i < chars.length; i++) {
             let ci = chars[i];
-
-            idToChar[ci.id] = ci.char;
 
             let r = new Rectangle(ci.x, ci.y, ci.x + ci.width, ci.y + ci.height);
 
@@ -209,8 +346,8 @@ class FontAtlas {
             tc[11] = r.top / h;
 
             let taNode = new FontTextureAtlasNode(r, tc);
-            let ciNorm = ci.char.normalize("NFKC");
-            let ciCode = ciNorm.charCodeAt(0);
+            const ciNorm = ci.char.normalize("NFKC");
+            const ciCode = ciNorm.codePointAt(0) ?? ci.id;
 
             //taNode.metrics = ci;
 
@@ -239,7 +376,7 @@ class FontAtlas {
 
             taNode.emptySize = 1;
 
-            atlas.nodes.set(ciNorm.charCodeAt(0), taNode);
+            atlas.nodes.set(ciCode, taNode);
         }
 
         atlas.kernings = {};
@@ -249,15 +386,6 @@ class FontAtlas {
 
             let first = ki.first,
                 second = ki.second;
-
-            //let charFirst = idToChar[first],
-            //    charSecond = idToChar[second];
-
-            // if (!atlas.kernings[charFirst]) {
-            //     atlas.kernings[charFirst] = {};
-            // }
-            //
-            // atlas.kernings[charFirst][charSecond] = ki.amount / s;
 
             if (!atlas.kernings[first]) {
                 atlas.kernings[first] = {};
@@ -293,7 +421,7 @@ class FontAtlas {
 
         this.atlasesArr[index] = atlas;
 
-        this._applyFontDataToAtlas(atlas, dataJson, index);
+        this._applyFontDataToAtlas(atlas, this._normalizeMsdfAtlasParams(dataJson), index);
 
         let img = new Image();
         img.onload = () => {
@@ -401,7 +529,8 @@ class FontAtlas {
                 //return response.json(response);
                 return response.json();
             })
-            .then((data: IFontParams) => {
+            .then((rawData: IFontParams) => {
+                const data = this._normalizeMsdfAtlasParams(rawData, atlasUrl);
                 this._applyFontDataToAtlas(atlas, data, index);
 
                 let img = new Image();
@@ -410,7 +539,8 @@ class FontAtlas {
                     def.resolve(index);
                 };
 
-                img.src = `${srcDir}/${data.pages[0]}`;
+                const atlasImageUrl = atlasUrl.replace(/\.json$/i, ".png");
+                img.src = `${srcDir}/${atlasImageUrl}`;
                 img.crossOrigin = "Anonymous";
             })
             .catch((err) => {

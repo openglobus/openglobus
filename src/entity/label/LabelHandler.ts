@@ -619,11 +619,13 @@ class LabelHandler extends BaseBillboardHandler {
 
         let offset = 0.0;
         let kern = fa.kernings;
+        const spaceGlyph = fa.get(32);
 
         for (c = 0; c < len; c++) {
             let j = i + c * 24;
             let char = text[c];
-            let n = fa.get(char.charCodeAt(0)) || fa.get(" ".charCodeAt(0))!;
+            let unicode = char.codePointAt(0) ?? 32;
+            let n = fa.get(unicode) || spaceGlyph;
             if (!n) continue;
             let tc = n.texCoords;
 
@@ -692,9 +694,10 @@ class LabelHandler extends BaseBillboardHandler {
             g[j + 22] = m.nXOffset;
             g[j + 23] = m.nYOffset;
 
-            let k = kern[char.charCodeAt(0)];
+            let k = kern[unicode];
             if (k && text[c + 1]) {
-                let kk = k[text[c + 1].charCodeAt(0)];
+                let nextUnicode = text[c + 1].codePointAt(0) ?? 32;
+                let kk = k[nextUnicode];
                 if (kk) {
                     offset += m.nAdvance + kk + letterSpacing;
                 } else {
