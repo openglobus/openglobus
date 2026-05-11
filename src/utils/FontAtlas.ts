@@ -21,7 +21,6 @@ interface IChar {
     xadvance: number;
     xoffset: number;
     yoffset: number;
-    unicode?: number;
 }
 
 interface IKerning {
@@ -41,55 +40,51 @@ interface IFontBmParams {
     distanceField: {
         distanceRange: number;
     };
-    chars: IChar[];
+    glyphs: IChar[];
     kernings: IKerning[];
 }
 
 interface IMSDFAtlasBounds {
     left: number;
-    top: number;
-    right: number;
     bottom: number;
+    right: number;
+    top: number;
 }
 
 interface IMSDFGlyph {
-    unicode?: number;
-    index?: string;
+    index: string;
     advance: number;
-    planeBounds?: IMSDFAtlasBounds;
-    atlasBounds?: IMSDFAtlasBounds;
+    planeBounds: IMSDFAtlasBounds;
+    atlasBounds: IMSDFAtlasBounds;
 }
 
 interface IMSDFKerning {
-    unicode1?: number;
-    unicode2?: number;
-    index1?: number;
-    index2?: number;
+    index1: number;
+    index2: number;
     advance: number;
 }
 
-interface IMSDFAtlasParams {
+export interface IMSDFAtlasParams {
     atlas: {
-        type?: string;
+        type: string;
         distanceRange: number;
+        distanceRangeMiddle: number;
         size: number;
         width: number;
         height: number;
-        yOrigin?: "top" | "bottom";
+        yOrigin: "top" | "bottom";
     };
-    metrics?: {
-        emSize?: number;
-        lineHeight?: number;
-        ascender?: number;
-        descender?: number;
-        underlineY?: number;
-        underlineThickness?: number;
+    metrics: {
+        emSize: number;
+        lineHeight: number;
+        ascender: number;
+        descender: number;
+        underlineY: number;
+        underlineThickness: number;
     };
     glyphs: IMSDFGlyph[];
-    kerning?: IMSDFKerning[];
+    kerning: IMSDFKerning[];
 }
-
-export type IFontParams = IMSDFAtlasParams;
 
 class FontTextureAtlas extends TextureAtlas {
     public width: number;
@@ -212,7 +207,7 @@ class FontAtlas {
         const s = data.atlas.size || 1;
         const yOrigin = data.atlas.yOrigin || "bottom";
         const isTopOrigin = yOrigin === "top";
-        const chars: IChar[] = [];
+        const glyphs: IChar[] = [];
 
         for (let i = 0; i < data.glyphs.length; i++) {
             const gi = data.glyphs[i];
@@ -224,27 +219,38 @@ class FontAtlas {
             let height = 0;
             if (gi.atlasBounds) {
                 width = gi.atlasBounds.right - gi.atlasBounds.left;
-                height = isTopOrigin ? gi.atlasBounds.bottom - gi.atlasBounds.top : gi.atlasBounds.top - gi.atlasBounds.bottom;
                 x = gi.atlasBounds.left;
-                y = isTopOrigin ? gi.atlasBounds.top : data.atlas.height - gi.atlasBounds.top;
+                if (isTopOrigin) {
+                    height = gi.atlasBounds.bottom - gi.atlasBounds.top;
+                    y = gi.atlasBounds.top;
+                } else {
+                    height = gi.atlasBounds.top - gi.atlasBounds.bottom;
+                    y = data.atlas.height - gi.atlasBounds.top;
+                }
             }
 
             let xoffset = 0;
             let yoffset = 0;
             if (gi.planeBounds) {
-                const planeTop = isTopOrigin ? -gi.planeBounds.top : gi.planeBounds.top;
-                const planeBottom = isTopOrigin ? -gi.planeBounds.bottom : gi.planeBounds.bottom;
+                let planeTop: number;
+                let planeBottom: number;
+                if (isTopOrigin) {
+                    planeTop = -gi.planeBounds.top;
+                    planeBottom = -gi.planeBounds.bottom;
+                } else {
+                    planeTop = gi.planeBounds.top;
+                    planeBottom = gi.planeBounds.bottom;
+                }
                 width = (gi.planeBounds.right - gi.planeBounds.left) * s;
                 height = (planeTop - planeBottom) * s;
                 xoffset = gi.planeBounds.left * s;
                 yoffset = (1.0 - planeTop) * s;
             }
 
-            const char = typeof gi.unicode === "number" && gi.unicode <= 0x10ffff ? String.fromCodePoint(gi.unicode) : "";
+            const char = glyphIndex <= 0x10ffff ? String.fromCodePoint(glyphIndex) : "";
 
-            chars.push({
-                id: typeof gi.unicode === "number" ? gi.unicode : glyphIndex,
-                unicode: typeof gi.unicode === "number" ? gi.unicode : undefined,
+            glyphs.push({
+                id: glyphIndex,
                 index: glyphIndex,
                 char,
                 width,
@@ -263,25 +269,13 @@ class FontAtlas {
         if (data.kerning) {
             for (let i = 0; i < data.kerning.length; i++) {
                 const ki = data.kerning[i];
-                const first =
-                    typeof ki.index1 === "number"
-                        ? ki.index1
-                        : typeof ki.unicode1 === "number"
-                          ? ki.unicode1
-                          : undefined;
-                const second =
-                    typeof ki.index2 === "number"
-                        ? ki.index2
-                        : typeof ki.unicode2 === "number"
-                          ? ki.unicode2
-                          : undefined;
-                if (typeof first === "number" && typeof second === "number") {
-                    kernings.push({
-                        first,
-                        second,
-                        amount: ki.advance * s
-                    });
-                }
+                const first = ki.index1;
+                const second = ki.index2;
+                kernings.push({
+                    first,
+                    second,
+                    amount: ki.advance * s
+                });
             }
         }
 
@@ -296,13 +290,13 @@ class FontAtlas {
             distanceField: {
                 distanceRange: data.atlas.distanceRange
             },
-            chars,
+            glyphs,
             kernings
         };
     }
 
     protected _applyFontDataToAtlas(atlas: FontTextureAtlas, data: IFontBmParams, index: number = 0) {
-        let chars = data.chars;
+        let glyphs = data.glyphs;
 
         atlas.height = data.common.scaleH;
         atlas.width = data.common.scaleW;
@@ -320,8 +314,8 @@ class FontAtlas {
 
         atlas.nodes.clear();
 
-        for (let i = 0; i < chars.length; i++) {
-            let ci = chars[i];
+        for (let i = 0; i < glyphs.length; i++) {
+            let ci = glyphs[i];
 
             let r = new Rectangle(ci.x, ci.y, ci.x + ci.width, ci.y + ci.height);
 
@@ -395,7 +389,7 @@ class FontAtlas {
         }
     }
 
-    public initFont(faceName: string, dataJson: IFontParams, imageBase64: string) {
+    public initFont(faceName: string, dataJson: IMSDFAtlasParams, imageBase64: string) {
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
 
@@ -529,7 +523,7 @@ class FontAtlas {
                 //return response.json(response);
                 return response.json();
             })
-            .then((rawData: IFontParams) => {
+            .then((rawData: IMSDFAtlasParams) => {
                 const data = this._normalizeMsdfAtlasParams(rawData, atlasUrl);
                 this._applyFontDataToAtlas(atlas, data, index);
 
