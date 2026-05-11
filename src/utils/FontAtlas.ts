@@ -53,6 +53,7 @@ interface IMSDFAtlasBounds {
 
 interface IMSDFGlyph {
     index: string;
+    unicode?: number | string;
     advance: number;
     planeBounds: IMSDFAtlasBounds;
     atlasBounds: IMSDFAtlasBounds;
@@ -211,7 +212,13 @@ class FontAtlas {
 
         for (let i = 0; i < data.glyphs.length; i++) {
             const gi = data.glyphs[i];
-            const glyphIndex = gi.index != undefined ? parseInt(gi.index) : i;
+            const rawGlyphCode =
+                gi.unicode != undefined
+                    ? Number(gi.unicode)
+                    : gi.index != undefined
+                      ? Number(gi.index)
+                      : i;
+            const glyphIndex = Number.isFinite(rawGlyphCode) ? rawGlyphCode : i;
 
             let x = 0;
             let y = 0;
