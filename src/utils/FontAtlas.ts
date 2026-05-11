@@ -39,6 +39,7 @@ interface IFontBmParams {
     };
     distanceField: {
         distanceRange: number;
+        isMtsdf: boolean;
     };
     glyphs: IChar[];
     kernings: IKerning[];
@@ -92,6 +93,7 @@ class FontTextureAtlas extends TextureAtlas {
     public height: number;
     public gliphSize: number;
     public distanceRange: number;
+    public isMtsdf: boolean;
     public override nodes: Map<number, FontTextureAtlasNode>;
     public kernings: Record<number, Record<number, number>>;
 
@@ -101,6 +103,7 @@ class FontTextureAtlas extends TextureAtlas {
         this.height = 0;
         this.gliphSize = 0;
         this.distanceRange = 0;
+        this.isMtsdf = false;
         this.nodes = new Map<number, FontTextureAtlasNode>();
         this.kernings = {};
     }
@@ -206,6 +209,8 @@ class FontAtlas {
 
     protected _normalizeMsdfAtlasParams(data: IMSDFAtlasParams, atlasUrl?: string): IFontBmParams {
         const s = data.atlas.size || 1;
+        const atlasType = (data.atlas.type || "").toLowerCase();
+        const isMtsdf = atlasType === "mtsdf";
         const yOrigin = data.atlas.yOrigin || "bottom";
         const isTopOrigin = yOrigin === "top";
         const glyphs: IChar[] = [];
@@ -295,7 +300,8 @@ class FontAtlas {
                 size: s
             },
             distanceField: {
-                distanceRange: data.atlas.distanceRange
+                distanceRange: data.atlas.distanceRange,
+                isMtsdf
             },
             glyphs,
             kernings
@@ -309,6 +315,7 @@ class FontAtlas {
         atlas.width = data.common.scaleW;
         atlas.gliphSize = data.info.size;
         atlas.distanceRange = data.distanceField.distanceRange;
+        atlas.isMtsdf = data.distanceField.isMtsdf;
 
         let w = atlas.width,
             h = atlas.height,
@@ -316,7 +323,8 @@ class FontAtlas {
 
         this.sdfParamsArr[index * 4] = w;
         this.sdfParamsArr[index * 4 + 1] = h;
-        this.sdfParamsArr[index * 4 + 2] = s;
+        // z is a shader flag: 1.0 for MTSDF atlas (alpha contains true SDF), 0.0 otherwise.
+        this.sdfParamsArr[index * 4 + 2] = atlas.isMtsdf ? 1.0 : 0.0;
         this.sdfParamsArr[index * 4 + 3] = atlas.distanceRange;
 
         atlas.nodes.clear();
@@ -416,6 +424,7 @@ class FontAtlas {
         atlas.width = 0;
         atlas.gliphSize = 0;
         atlas.distanceRange = 0;
+        atlas.isMtsdf = false;
         atlas.kernings = {};
 
         atlas.assignHandler(this._handler!);
@@ -517,6 +526,7 @@ class FontAtlas {
         atlas.width = 0;
         atlas.gliphSize = 0;
         atlas.distanceRange = 0;
+        atlas.isMtsdf = false;
         atlas.kernings = {};
 
         atlas.assignHandler(this._handler!);
