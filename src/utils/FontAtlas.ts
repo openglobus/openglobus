@@ -169,6 +169,7 @@ class FontAtlas {
     protected _textureArrayWidth: number;
     protected _textureArrayHeight: number;
     protected _textureArrayMismatchWarningShown: boolean;
+    protected _fontLoadWarningShown: Record<string, boolean>;
 
     constructor(catalogSrc?: string) {
         this.atlasesArr = [];
@@ -182,6 +183,7 @@ class FontAtlas {
         this._textureArrayWidth = 0;
         this._textureArrayHeight = 0;
         this._textureArrayMismatchWarningShown = false;
+        this._fontLoadWarningShown = {};
         this.catalogSrc = catalogSrc || "./";
     }
 
@@ -193,7 +195,7 @@ class FontAtlas {
         let fullName = this.getFullIndex(face);
 
         // Try to load font from the directory
-        if (!this.atlasIndexes[fullName]) {
+        if (this.atlasIndexes[fullName] === undefined) {
             this.loadFont(face, this.catalogSrc, `${face}.json`);
         }
 
@@ -509,6 +511,7 @@ class FontAtlas {
     public loadFont(faceName: string, srcDir: string, atlasUrl: string) {
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
+        const fontJsonUrl = `${srcDir.replace(/\/+$/, "")}/${atlasUrl.replace(/^\/+/, "")}`;
 
         this.atlasIndexes[fullName] = index;
 
@@ -519,7 +522,6 @@ class FontAtlas {
 
         this.samplerArr[this.atlasesArr.length] = index;
 
-        // TODO: FontTextureAtlas();
         let atlas = new FontTextureAtlas();
 
         atlas.height = 0;
@@ -532,10 +534,10 @@ class FontAtlas {
         atlas.assignHandler(this._handler!);
         this.atlasesArr[index] = atlas;
 
-        fetch(`${srcDir}/${atlasUrl}`)
+        fetch(fontJsonUrl)
             .then((response: Response) => {
                 if (!response.ok) {
-                    throw Error(`Unable to load "${srcDir}/${atlasUrl}"`);
+                    throw Error(`Unable to load "${fontJsonUrl}"`);
                 }
                 //return response.json(response);
                 return response.json();
@@ -551,11 +553,19 @@ class FontAtlas {
                 };
 
                 const atlasImageUrl = atlasUrl.replace(/\.json$/i, ".png");
-                img.src = `${srcDir}/${atlasImageUrl}`;
+                img.src = `${srcDir.replace(/\/+$/, "")}/${atlasImageUrl.replace(/^\/+/, "")}`;
                 img.crossOrigin = "Anonymous";
             })
             .catch((err) => {
-                def.reject();
+                if (!this._fontLoadWarningShown[fullName]) {
+                    this._fontLoadWarningShown[fullName] = true;
+                    console.warn(
+                        `FontAtlas: font "${faceName}" not found or invalid (${fontJsonUrl}). Labels using this font may not render.`,
+                        err
+                    );
+                }
+                // Keep promise resolved to prevent unhandled rejections in label update loops.
+                def.resolve(index);
                 return { status: "error", msg: err.toString() };
             });
     }
