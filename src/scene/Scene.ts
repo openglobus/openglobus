@@ -1,8 +1,8 @@
-import {Renderer} from "../renderer/Renderer";
-import type {EntityCollection} from "../entity/EntityCollection";
-import {Quat} from "../math/Quat";
-import {Vec3} from "../math/Vec3";
-import type {Planet} from "./Planet";
+import { Renderer } from "../renderer/Renderer";
+import type { EntityCollection } from "../entity/EntityCollection";
+import { Quat } from "../math/Quat";
+import { Vec3 } from "../math/Vec3";
+import type { Planet } from "./Planet";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -231,7 +231,7 @@ class Scene {
     }
 
     public updateEntityCollectionsDepthOrder() {
-        let grouped: Record<number, EntityCollection[]> = {0: []};
+        let grouped: Record<number, EntityCollection[]> = { 0: [] };
         for (const ec of this.entityCollections) {
             if (ec.getVisibility()) {
                 if (!grouped[ec.depthOrder]) {
@@ -410,4 +410,4 @@ class Scene {
     }
 }
 
-export {Scene};
+export { Scene };

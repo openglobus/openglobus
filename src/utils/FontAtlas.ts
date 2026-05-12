@@ -220,11 +220,7 @@ class FontAtlas {
         for (let i = 0; i < data.glyphs.length; i++) {
             const gi = data.glyphs[i];
             const rawGlyphCode =
-                gi.unicode != undefined
-                    ? Number(gi.unicode)
-                    : gi.index != undefined
-                      ? Number(gi.index)
-                      : i;
+                gi.unicode != undefined ? Number(gi.unicode) : gi.index != undefined ? Number(gi.index) : i;
             const glyphIndex = Number.isFinite(rawGlyphCode) ? rawGlyphCode : i;
 
             let x = 0;
