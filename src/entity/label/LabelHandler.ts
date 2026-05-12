@@ -366,6 +366,7 @@ class LabelHandler extends BaseBillboardHandler {
 
         let gl = h.gl!,
             ec = this._entityCollection;
+        const usePremultipliedBlend = labelProgram === h.programs.label;
 
         let fontTextureArray = r.fontAtlas.textureArray;
         if (!fontTextureArray) {
@@ -374,6 +375,9 @@ class LabelHandler extends BaseBillboardHandler {
 
         gl.disable(gl.CULL_FACE);
         this._configureDepthPass(depthWrite);
+        if (usePremultipliedBlend) {
+            r.enableBlendOneSrcAlpha();
+        }
 
         if (labelProgram === h.programs.labelWoit) {
             gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
@@ -428,6 +432,9 @@ class LabelHandler extends BaseBillboardHandler {
         const numLabels = endBillboardIndex - startBillboardIndex;
         if (numLabels <= 0) {
             gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+            if (usePremultipliedBlend) {
+                r.enableBlendDefault();
+            }
             this._restoreDepthPass(depthWrite);
             gl.enable(gl.CULL_FACE);
             return;
@@ -457,6 +464,9 @@ class LabelHandler extends BaseBillboardHandler {
         gl.drawArrays(gl.TRIANGLES, startVertexIndex, vertexCount);
 
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+        if (usePremultipliedBlend) {
+            r.enableBlendDefault();
+        }
         this._restoreDepthPass(depthWrite);
         gl.enable(gl.CULL_FACE);
     }
@@ -619,11 +629,13 @@ class LabelHandler extends BaseBillboardHandler {
 
         let offset = 0.0;
         let kern = fa.kernings;
+        const spaceGlyph = fa.get(32);
 
         for (c = 0; c < len; c++) {
             let j = i + c * 24;
             let char = text[c];
-            let n = fa.get(char.charCodeAt(0)) || fa.get(" ".charCodeAt(0))!;
+            let unicode = char.codePointAt(0) ?? 32;
+            let n = fa.get(unicode) || spaceGlyph;
             if (!n) continue;
             let tc = n.texCoords;
 
@@ -692,9 +704,10 @@ class LabelHandler extends BaseBillboardHandler {
             g[j + 22] = m.nXOffset;
             g[j + 23] = m.nYOffset;
 
-            let k = kern[char.charCodeAt(0)];
+            let k = kern[unicode];
             if (k && text[c + 1]) {
-                let kk = k[text[c + 1].charCodeAt(0)];
+                let nextUnicode = text[c + 1].codePointAt(0) ?? 32;
+                let kk = k[nextUnicode];
                 if (kk) {
                     offset += m.nAdvance + kk + letterSpacing;
                 } else {

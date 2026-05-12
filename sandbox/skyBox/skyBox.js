@@ -188,12 +188,12 @@ globe.renderer.events.on("lclick", function (e) {
                 lonlat: ll,
                 label: {
                     align: "center",
-                    text: "Hello world",
-                    size: 30,
+                    text: "Hello C-c world!",
+                    size: 8,
                     offset: [0, 50, 0],
-                    color: "rgba(255,255,255,1)",
-                    outlineColor: "rgba(255,0,0,1)",
-                    outline: 0.2
+                    color: "rgba(0,0,0,1)",
+                        outlineColor: "rgba(255,255,255,0.3)",
+                    outline: 0
                 }
             })
         );
