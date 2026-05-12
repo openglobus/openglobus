@@ -134,9 +134,13 @@ class Label extends BaseBillboard {
 
         this._outlineColor = utils.createColorRGBA(options.outlineColor, new Vec4(0.0, 0.0, 0.0, 1.0));
 
-        this._align = options.align
-            ? (STR2ALIGN[options.align.trim().toLowerCase()] as number) || ALIGN.RIGHT
-            : ALIGN.RIGHT;
+        if (options.align) {
+            const alignKey = options.align.trim().toLowerCase();
+            const alignValue = STR2ALIGN[alignKey];
+            this._align = alignValue != undefined ? alignValue : ALIGN.LEFT;
+        } else {
+            this._align = ALIGN.LEFT;
+        }
 
         this._fontIndex = 0;
 

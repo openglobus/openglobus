@@ -719,8 +719,8 @@ class LabelHandler extends BaseBillboardHandler {
         }
 
         // 49/512 - font atlas left border letter offset
-        if (align === ALIGN.CENTER) {
-            offset *= -0.5;
+        if (align === ALIGN.CENTER || align === ALIGN.RIGHT) {
+            offset *= align === ALIGN.CENTER ? -0.5 : -1.0;
             for (c = 0; c < len; c++) {
                 let j = i + c * 24;
                 a[j + 2] += offset;
