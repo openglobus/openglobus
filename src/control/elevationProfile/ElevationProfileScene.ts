@@ -42,10 +42,10 @@ const POINTER_BILLBOARD_OPTIONS: IBillboardParams = {
 const POINTER_LABEL_OPTIONS: ILabelParams = {
     text: "",
     face: "arial",
-    size: 10.5,
-    color: "rgba(455,455,455,1.0)",
-    outlineColor: "rgba(0,0,0,0.34)",
-    outline: 0.23,
+    size: 12,
+    color: "rgba(255,255,255,1.0)",
+    outlineColor: "rgba(0,0,0,1)",
+    outline: 0.7,
     align: "left",
     offset: [5, 15]
 };
@@ -53,10 +53,10 @@ const POINTER_LABEL_OPTIONS: ILabelParams = {
 const LABEL_OPTIONS: ILabelParams = {
     face: "arial",
     text: "",
-    size: 10.5,
-    color: "rgba(455,455,455,1.0)",
-    outlineColor: "rgba(0,0,0,0.34)",
-    outline: 0.23,
+    size: 12,
+    color: "rgba(255,255,255,1)",
+    outlineColor: "rgba(0,0,0,1)",
+    outline: 0.7,
     align: "right",
     offset: [-47, 25]
 };

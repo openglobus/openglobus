@@ -366,6 +366,7 @@ class LabelHandler extends BaseBillboardHandler {
 
         let gl = h.gl!,
             ec = this._entityCollection;
+        const usePremultipliedBlend = labelProgram === h.programs.label;
 
         let fontTextureArray = r.fontAtlas.textureArray;
         if (!fontTextureArray) {
@@ -374,6 +375,9 @@ class LabelHandler extends BaseBillboardHandler {
 
         gl.disable(gl.CULL_FACE);
         this._configureDepthPass(depthWrite);
+        if (usePremultipliedBlend) {
+            r.enableBlendOneSrcAlpha();
+        }
 
         if (labelProgram === h.programs.labelWoit) {
             gl.uniform1f(shu.useReverseDepth, r.activeCamera.reverseDepthActive ? 1.0 : 0.0);
@@ -428,6 +432,9 @@ class LabelHandler extends BaseBillboardHandler {
         const numLabels = endBillboardIndex - startBillboardIndex;
         if (numLabels <= 0) {
             gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+            if (usePremultipliedBlend) {
+                r.enableBlendDefault();
+            }
             this._restoreDepthPass(depthWrite);
             gl.enable(gl.CULL_FACE);
             return;
@@ -457,6 +464,9 @@ class LabelHandler extends BaseBillboardHandler {
         gl.drawArrays(gl.TRIANGLES, startVertexIndex, vertexCount);
 
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+        if (usePremultipliedBlend) {
+            r.enableBlendDefault();
+        }
         this._restoreDepthPass(depthWrite);
         gl.enable(gl.CULL_FACE);
     }

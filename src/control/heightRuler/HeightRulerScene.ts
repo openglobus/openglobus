@@ -19,7 +19,7 @@ const LABEL_OPTIONS: ILabelParams = {
     size: 11,
     color: "rgba(255,255,255,1.0)",
     outlineColor: "rgba(0,0,0,1)",
-    outline: 0.13,
+    outline: 0.7,
     align: "left",
     offset: [10, 18]
 };

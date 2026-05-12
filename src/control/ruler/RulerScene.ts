@@ -1,4 +1,4 @@
-import { Entity } from "../../entity/Entity";
+﻿import { Entity } from "../../entity/Entity";
 import { createEvents } from "../../Events";
 import type { EventsHandler } from "../../Events";
 import { LonLat } from "../../LonLat";
@@ -35,10 +35,10 @@ let obj3d = Object3d.createCylinder(0.33, 0, 1.0, 20, 1, true, false, 0, 0, 0);
 
 const LABEL_OPTIONS: ILabelParams = {
     text: "",
-    size: 11,
+    size: 12,
     color: "rgba(255,255,255,1.0)",
     outlineColor: "rgba(0,0,0,1)",
-    outline: 0.15,
+    outline: 0.7,
     align: "center",
     offset: [0, 20]
 };

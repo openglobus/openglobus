@@ -23,20 +23,7 @@ in vec3 v_pickingColor;
 
 layout (location = 0) out vec4 outScreen;
 
-float median(float r, float g, float b) {
-    return max(min(r, g), min(max(r, g), b));
-}
-
-float getDistance() {
-    vec3 msdf = texture(fontTextureArr, vec3(v_uv, float(v_fontIndex))).rgb;
-    return median(msdf.r, msdf.g, msdf.b);
-}
-
-float getScreenPxRange(vec2 uv, vec2 atlasSize, float pxRange) {
-    vec2 unitRange = vec2(pxRange) / atlasSize;
-    vec2 screenTexSize = vec2(1.0) / max(fwidth(uv), vec2(1e-6));
-    return max(0.5 * dot(unitRange, screenTexSize), 1.0);
-}
+#include "./msdf_common.glsl"
 
 void main() {
 
@@ -52,10 +39,10 @@ void main() {
     }
 
     vec4 sdfParams = sdfParamsArr[v_fontIndex];
-    float sd = getDistance();
+    float sd = msdfGetDistance(fontTextureArr, v_uv, v_fontIndex);
     float pxRange = max(sdfParams.w, 1e-6);
     float sdfEdge = max(0.5 - 1.0 / pxRange, 0.0);
-    float screenPxRange = getScreenPxRange(v_uv, sdfParams.xy, pxRange);
+    float screenPxRange = msdfGetScreenPxRange(v_uv, sdfParams.xy, pxRange);
     float fillOpacity = clamp((sd - 0.5) * screenPxRange + 0.5, 0.0, 1.0);
 
     float alpha;
@@ -72,5 +59,5 @@ void main() {
         discard;
     }
 
-    outScreen = vec4(v_rgba.rgb, alpha);
+    outScreen = vec4(v_rgba.rgb * alpha, alpha);
 }
