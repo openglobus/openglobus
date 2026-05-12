@@ -511,7 +511,7 @@ class FontAtlas {
     public loadFont(faceName: string, srcDir: string, atlasUrl: string) {
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
-        const fontJsonUrl = `${srcDir.replace(/\/+$/, "")}/${atlasUrl.replace(/^\/+/, "")}`;
+        const fontJsonUrl = `${srcDir}/${atlasUrl}`;
 
         this.atlasIndexes[fullName] = index;
 
@@ -539,7 +539,6 @@ class FontAtlas {
                 if (!response.ok) {
                     throw Error(`Unable to load "${fontJsonUrl}"`);
                 }
-                //return response.json(response);
                 return response.json();
             })
             .then((rawData: IMSDFAtlasParams) => {
@@ -552,8 +551,8 @@ class FontAtlas {
                     def.resolve(index);
                 };
 
-                const atlasImageUrl = atlasUrl.replace(/\.json$/i, ".png");
-                img.src = `${srcDir.replace(/\/+$/, "")}/${atlasImageUrl.replace(/^\/+/, "")}`;
+                const atlasImageUrl = `${atlasUrl.slice(0, atlasUrl.length - 5)}.png`;
+                img.src = `${srcDir}/${atlasImageUrl}`;
                 img.crossOrigin = "Anonymous";
             })
             .catch((err) => {
