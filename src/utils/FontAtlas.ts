@@ -1,7 +1,7 @@
 import { Deferred } from "../Deferred";
 import { Rectangle } from "../Rectangle";
-import { TextureAtlas, TextureAtlasNode } from "./TextureAtlas";
-import type { WebGLTextureExt } from "../webgl/Handler";
+import { TextureAtlasNode } from "./TextureAtlas";
+import type { ImageSource, WebGLTextureExt } from "../webgl/Handler";
 import { Handler } from "../webgl/Handler";
 import type { HTMLImageElementExt } from "./ImagesCacheManager";
 
@@ -88,28 +88,33 @@ export interface IMSDFAtlasParams {
     kerning: IMSDFKerning[];
 }
 
-class FontTextureAtlas extends TextureAtlas {
+class FontTextureAtlas {
     public width: number;
     public height: number;
     public gliphSize: number;
     public distanceRange: number;
     public isMtsdf: boolean;
-    public override nodes: Map<number, FontTextureAtlasNode>;
+    public sourceImage: HTMLImageElementExt | null;
+    public nodes: Map<number, FontTextureAtlasNode>;
     public kernings: Record<number, Record<number, number>>;
 
-    constructor(width?: number, height?: number) {
-        super(width, height, "linear");
+    constructor() {
         this.width = 0;
         this.height = 0;
         this.gliphSize = 0;
         this.distanceRange = 0;
         this.isMtsdf = false;
+        this.sourceImage = null;
         this.nodes = new Map<number, FontTextureAtlasNode>();
         this.kernings = {};
     }
 
-    public override get(key: number): FontTextureAtlasNode | undefined {
+    public get(key: number): FontTextureAtlasNode | undefined {
         return this.nodes.get(key);
+    }
+
+    public createTexture(img?: HTMLImageElementExt | null) {
+        this.sourceImage = img || null;
     }
 }
 
@@ -425,8 +430,6 @@ class FontAtlas {
         atlas.isMtsdf = false;
         atlas.kernings = {};
 
-        atlas.assignHandler(this._handler!);
-
         this.atlasesArr[index] = atlas;
 
         this._applyFontDataToAtlas(atlas, this._normalizeMsdfAtlasParams(dataJson), index);
@@ -488,6 +491,9 @@ class FontAtlas {
 
         let gl = this._handler.gl;
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.textureArray);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+        const uploadSource: ImageSource = atlas.sourceImage as ImageSource;
         gl.texSubImage3D(
             gl.TEXTURE_2D_ARRAY,
             0,
@@ -499,8 +505,10 @@ class FontAtlas {
             1,
             gl.RGBA,
             gl.UNSIGNED_BYTE,
-            atlas.canvas.getCanvas()
+            uploadSource
         );
+        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.BROWSER_DEFAULT_WEBGL);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
     }
 
@@ -527,7 +535,6 @@ class FontAtlas {
         atlas.isMtsdf = false;
         atlas.kernings = {};
 
-        atlas.assignHandler(this._handler!);
         this.atlasesArr[index] = atlas;
 
         fetch(fontJsonUrl)
