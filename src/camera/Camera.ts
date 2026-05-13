@@ -1,20 +1,20 @@
-import { type EventsHandler, createEvents } from "../Events";
-import { Frustum } from "./Frustum";
-import { Mat3 } from "../math/Mat3";
-import type { NumberArray9 } from "../math/Mat3";
-import { Mat4 } from "../math/Mat4";
-import type { NumberArray16 } from "../math/Mat4";
-import { Renderer } from "../renderer/Renderer";
-import { Vec2 } from "../math/Vec2";
-import type { NumberArray2 } from "../math/Vec2";
-import { Vec3 } from "../math/Vec3";
-import { Vec4 } from "../math/Vec4";
-import { Sphere } from "../bv/Sphere";
-import { Ray } from "../math/Ray";
-import { Quat } from "../math/Quat";
-import { DEGREES_DOUBLE, MAX_FLOAT, RADIANS, RADIANS_HALF } from "../math";
-import { Easing, EasingFunction } from "../utils/easing";
-import { LonLat } from "../LonLat";
+import {type EventsHandler, createEvents} from "../Events";
+import {Frustum} from "./Frustum";
+import {Mat3} from "../math/Mat3";
+import type {NumberArray9} from "../math/Mat3";
+import {Mat4} from "../math/Mat4";
+import type {NumberArray16} from "../math/Mat4";
+import {Renderer} from "../renderer/Renderer";
+import {Vec2} from "../math/Vec2";
+import type {NumberArray2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import {Sphere} from "../bv/Sphere";
+import {Ray} from "../math/Ray";
+import {Quat} from "../math/Quat";
+import {DEGREES_DOUBLE, MAX_FLOAT, RADIANS, RADIANS_HALF} from "../math";
+import {Easing, EasingFunction} from "../utils/easing";
+import {LonLat} from "../LonLat";
 
 export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flystop", "frustumschanged"];
 
@@ -437,9 +437,11 @@ class Camera {
         params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
         const ease = params.ease || DEFAULT_EASING;
 
-        this._completeCallback = params.completeCallback || (() => {});
+        this._completeCallback = params.completeCallback || (() => {
+        });
 
-        this._frameCallback = params.frameCallback || (() => {});
+        this._frameCallback = params.frameCallback || (() => {
+        });
 
         if (params.startCallback) {
             params.startCallback.call(this);
@@ -1414,4 +1416,4 @@ class Camera {
     }
 }
 
-export { Camera };
+export {Camera};

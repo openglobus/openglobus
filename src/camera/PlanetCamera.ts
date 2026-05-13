@@ -608,7 +608,7 @@ class PlanetCamera extends Camera {
         let anbn = 1.0 - an.dot(bn);
         let hM_a = params.amplitude * math.SQRT_HALF * Math.sqrt(anbn > 0.0 ? anbn : 0.0);
 
-        let maxHeight = 6639613;
+        let maxHeight = this.planet.ellipsoid.getEquatorialSize();
         let currMaxHeight = Math.max(this._lonLat.height, lonlat_b.height);
         if (currMaxHeight > maxHeight) {
             maxHeight = currMaxHeight;
