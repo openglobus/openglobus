@@ -229,7 +229,7 @@ class EmptyTerrain {
 
     public clearCache() {}
 
-    public getHeightAsync(lonLat: LonLat, callback: (height: number) => void): boolean {
+    public getHeightAsync(lonLat: LonLat, callback: (height: number) => void, zoom?: number): boolean {
         callback(0);
         return true;
     }
