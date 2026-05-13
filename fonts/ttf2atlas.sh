@@ -22,7 +22,6 @@ mkdir -p "$output_dir"
   -dimensions 1024 1024 \
   -size 28 \
   -pxrange 12 \
-  -pots \
   -pxpadding 1 \
   -format png \
   -imageout "$output_dir/$font_name.png" \

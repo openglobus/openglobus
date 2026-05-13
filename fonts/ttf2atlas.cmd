@@ -20,4 +20,4 @@ if not exist "%ATLAS_EXE%" (
 
 if not exist "%OUT_DIR%" mkdir "%OUT_DIR%"
 
-"%ATLAS_EXE%" -font "%FONT_PATH%" -charset "%SCRIPT_DIR%charset.txt" -type mtsdf -dimensions 1024 1024 -size 28 -pxrange 12 -pots -pxpadding 1 -format png -imageout "%OUT_DIR%\%FONT_NAME%.png" -json "%OUT_DIR%\%FONT_NAME%.json"
+"%ATLAS_EXE%" -font "%FONT_PATH%" -charset "%SCRIPT_DIR%charset.txt" -type mtsdf -dimensions 1024 1024 -size 28 -pxrange 12 -pxpadding 1 -format png -imageout "%OUT_DIR%\%FONT_NAME%.png" -json "%OUT_DIR%\%FONT_NAME%.json"
