@@ -7,16 +7,16 @@ import {
     type IFlyCartesianParams,
     type ICameraParams
 } from "./Camera";
-import { Key } from "../Lock";
-import { LonLat } from "../LonLat";
-import { Mat4 } from "../math/Mat4";
-import { Planet } from "../scene/Planet";
-import { Quat } from "../math/Quat";
-import { Ray } from "../math/Ray";
-import { Vec3 } from "../math/Vec3";
-import { Extent } from "../Extent";
-import { Segment } from "../segment/Segment";
-import { RADIANS } from "../math";
+import {Key} from "../Lock";
+import {LonLat} from "../LonLat";
+import {Mat4} from "../math/Mat4";
+import {Planet} from "../scene/Planet";
+import {Quat} from "../math/Quat";
+import {Ray} from "../math/Ray";
+import {Vec3} from "../math/Vec3";
+import {Extent} from "../Extent";
+import {Segment} from "../segment/Segment";
+import {RADIANS} from "../math";
 
 export interface IPlanetCameraParams extends ICameraParams {
     minAltitude?: number;
@@ -118,6 +118,7 @@ class PlanetCamera extends Camera {
     protected _checkTerrainCollision: boolean;
 
     public eyeNorm: Vec3;
+    protected _extentFitRequestId: number;
 
     constructor(planet: Planet, options: IPlanetCameraParams = {}) {
         const reverseDepth = options.reverseDepth ?? true;
@@ -129,11 +130,11 @@ class PlanetCamera extends Camera {
             (useSingleReverseFrustum
                 ? [[150, 1e12]]
                 : [
-                      [1, 100.075],
-                      [100, 1000.075],
-                      [1000, 1e6 + 10000],
-                      [1e6, 1e9]
-                  ]);
+                    [1, 100.075],
+                    [100, 1000.075],
+                    [1000, 1e6 + 10000],
+                    [1e6, 1e9]
+                ]);
 
         super({
             ...options,
@@ -166,6 +167,7 @@ class PlanetCamera extends Camera {
         this._checkTerrainCollision = true;
 
         this.eyeNorm = this.eye.getNormal();
+        this._extentFitRequestId = 0;
     }
 
     /**
@@ -343,6 +345,54 @@ class PlanetCamera extends Camera {
         return center;
     }
 
+    protected _getExtentCenterHeightInfo(extent: Extent): { height: number; segmentZoom: number } {
+        const renderedNodes = this.planet.quadTreeStrategy._renderedNodes;
+        if (!renderedNodes || !renderedNodes.length) {
+            return {height: NaN, segmentZoom: -1};
+        }
+
+        const centerLonLat = extent.getCenter();
+        const centerCartesian = this.planet.ellipsoid.lonLatToCartesian(centerLonLat);
+
+        let bestSegment: Segment | null = null;
+
+        for (let i = renderedNodes.length - 1; i >= 0; i--) {
+            const seg = renderedNodes[i].segment;
+            if (seg && seg._extentLonLat && seg._extentLonLat.isInside(centerLonLat)) {
+                if (!bestSegment || seg.tileZoom > bestSegment.tileZoom) {
+                    bestSegment = seg;
+                }
+            }
+        }
+
+        if (!bestSegment) {
+            return {height: NaN, segmentZoom: -1};
+        }
+
+        if (!bestSegment.terrainReady || !bestSegment.renderVertices || !bestSegment.renderVertices.length) {
+            return {height: NaN, segmentZoom: bestSegment.tileZoom};
+        }
+
+        const nativeCenter = bestSegment.projectNative(centerLonLat);
+        const centerAltitudeFromTerrain = bestSegment.getTerrainPoint(centerCartesian, nativeCenter, this._terrainPoint);
+        return {height: -centerAltitudeFromTerrain, segmentZoom: bestSegment.tileZoom};
+    }
+
+    protected _isSegmentHeightAccurate(extentHeight: number, segmentZoom: number): boolean {
+        if (!Number.isFinite(extentHeight) || segmentZoom < 0) {
+            return false;
+        }
+
+        const terrain = this.planet.terrain;
+        if (!terrain) {
+            return true;
+        }
+
+        // Tolerance: segment zoom should be close to native terrain zoom.
+        const minAcceptedZoom = Math.max(0, (terrain.maxNativeZoom || terrain.maxZoom || 0) - 2);
+        return segmentZoom >= minAcceptedZoom;
+    }
+
     /**
      * View current extent.
      * @public
@@ -351,8 +401,34 @@ class PlanetCamera extends Camera {
      */
     public viewExtent(extent: Extent, height?: number) {
         this.stopFlying();
-        this.set(this.getExtentPosition(extent, height), Vec3.ZERO, Vec3.NORTH);
-        this.update();
+        const requestId = ++this._extentFitRequestId;
+
+        if (height != undefined) {
+            this.set(this.getExtentPosition(extent, height), Vec3.ZERO, Vec3.NORTH);
+            this.update();
+            return;
+        }
+
+        const info = this._getExtentCenterHeightInfo(extent);
+        if (this._isSegmentHeightAccurate(info.height, info.segmentZoom)) {
+            this.set(this.getExtentPosition(extent, info.height), Vec3.ZERO, Vec3.NORTH);
+            this.update();
+            return;
+        }
+
+        if (!this.planet.terrain) {
+            this.set(this.getExtentPosition(extent, 0), Vec3.ZERO, Vec3.NORTH);
+            this.update();
+            return;
+        }
+
+        const terrain = this.planet.terrain;
+        const zoom = Math.max(1, Math.min(terrain.maxNativeZoom, terrain.maxZoom));
+        terrain.getHeightAsync(extent.getCenter(), (h: number) => {
+            if (requestId !== this._extentFitRequestId) return;
+            this.set(this.getExtentPosition(extent, h || 0), Vec3.ZERO, Vec3.NORTH);
+            this.update();
+        }, zoom);
     }
 
     /**
@@ -364,7 +440,30 @@ class PlanetCamera extends Camera {
      */
     public flyExtent(extent: Extent, height?: number | null, params: IPlanetFlyCartesianParams = {}) {
         params.look = Vec3.ZERO;
-        this.flyCartesian(this.getExtentPosition(extent, height), params);
+        const requestId = ++this._extentFitRequestId;
+
+        if (height != undefined && height != null) {
+            this.flyCartesian(this.getExtentPosition(extent, height), params);
+            return;
+        }
+
+        const info = this._getExtentCenterHeightInfo(extent);
+        if (this._isSegmentHeightAccurate(info.height, info.segmentZoom)) {
+            this.flyCartesian(this.getExtentPosition(extent, info.height), params);
+            return;
+        }
+
+        if (!this.planet.terrain) {
+            this.flyCartesian(this.getExtentPosition(extent, 0), params);
+            return;
+        }
+
+        const terrain = this.planet.terrain;
+        const zoom = Math.max(1, Math.min(terrain.maxNativeZoom, terrain.maxZoom));
+        terrain.getHeightAsync(extent.getCenter(), (h: number) => {
+            if (requestId !== this._extentFitRequestId) return;
+            this.flyCartesian(this.getExtentPosition(extent, h || 0), params);
+        }, zoom);
     }
 
     /**
@@ -433,9 +532,11 @@ class PlanetCamera extends Camera {
         params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
         const ease = params.ease || DEFAULT_EASING;
 
-        this._completeCallback = params.completeCallback || (() => {});
+        this._completeCallback = params.completeCallback || (() => {
+        });
 
-        this._frameCallback = params.frameCallback || (() => {});
+        this._frameCallback = params.frameCallback || (() => {
+        });
 
         if (params.startCallback) {
             params.startCallback.call(this);
@@ -793,4 +894,4 @@ class PlanetCamera extends Camera {
     }
 }
 
-export { PlanetCamera };
+export {PlanetCamera};

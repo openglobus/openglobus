@@ -82,7 +82,7 @@ export interface IFlyBaseParams {
     frameCallback?: Function;
 }
 
-export const DEFAULT_FLIGHT_DURATION = 800;
+export const DEFAULT_FLIGHT_DURATION = 1000;
 export const DEFAULT_EASING = Easing.CubicInOut;
 
 type CameraFrame = {
