@@ -521,6 +521,7 @@ class BaseBillboardHandler {
 
     public drawPicking() {
         if (this._billboards.length && this.pickingEnabled) {
+            this.update();
             this._pickingPASS();
         }
     }
