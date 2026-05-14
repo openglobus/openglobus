@@ -189,11 +189,11 @@ globe.renderer.events.on("lclick", function (e) {
                 label: {
                     align: "center",
                     text: "Hello C-c world!",
-                    size: 8,
+                    size: 16,
                     offset: [0, 50, 0],
                     color: "rgba(0,0,0,1)",
-                        outlineColor: "rgba(255,255,255,0.3)",
-                    outline: 0
+                    outlineColor: "rgba(255,255,255,0.3)",
+                    outline: 0.2
                 }
             })
         );

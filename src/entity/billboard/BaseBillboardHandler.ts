@@ -507,12 +507,14 @@ class BaseBillboardHandler {
 
     public drawTransparent() {
         if (this._opaqueCounterIndex < this._billboards.length) {
+            this.update();
             this._displayPASS(this._opaqueCounterIndex, this._billboards.length, this._getTransparentProgram(), false);
         }
     }
 
     public drawTransparentForward() {
         if (this._opaqueCounterIndex < this._billboards.length) {
+            this.update();
             this._displayPASS(this._opaqueCounterIndex, this._billboards.length, this._getOpaqueProgram(), false);
         }
     }

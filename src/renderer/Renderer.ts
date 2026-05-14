@@ -1095,17 +1095,37 @@ class Renderer {
                 ec[i]._fadingOpacity && ec[i].stripHandler.drawForward();
             }
 
+            // //
+            // // billboard pass
+            // //
+            // gl.activeTexture(gl.TEXTURE0);
+            // gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
             //
-            // billboard pass
+            // i = ec.length;
+            // while (i--) {
+            //     let eci = ec[i];
+            //     eci._fadingOpacity && eci.billboardHandler.drawForward();
+            // }
             //
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
+            // //
+            // // labels pass
+            // //
+            // i = ec.length;
+            // while (i--) {
+            //     ec[i]._fadingOpacity && ec[i].labelHandler.drawForward();
+            // }
+        }
+    }
 
-            i = ec.length;
-            while (i--) {
-                let eci = ec[i];
-                eci._fadingOpacity && eci.billboardHandler.drawForward();
-            }
+    protected _drawLabelsForwardEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+
+        if (ec.length) {
+            let gl = this.handler.gl!;
+
+            this.enableBlendDefault();
+
+            let i = ec.length;
 
             //
             // labels pass
@@ -1392,6 +1412,7 @@ class Renderer {
             //
             this.transparencyPass.resolve();
 
+            this._drawLabelsForwardEntityCollections(0);
             e.dispatch(e.postforwardpass, this);
 
             //
