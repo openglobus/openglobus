@@ -37,8 +37,10 @@ void main() {
 
     float opacity = fillOpacity;
     if (isOutlinePass != 0) {
-        float outlineWidth = min(max(v_outline, 0.0), sdfEdge);
-        float outlineOpacity = clamp((sd + outlineWidth - 0.5) * screenPxRange + 0.5, 0.0, 1.0) * step(1e-6, v_outline);
+//        float outlineWidth = min(max(v_outline, 0.0), sdfEdge);
+//        float outlineOpacity = clamp((sd + outlineWidth - 0.5) * screenPxRange + 0.5, 0.0, 1.0) * step(1e-6, v_outline);
+        float outlineWidth = clamp(v_outline, 0.0, sdfEdge);
+        float outlineOpacity = clamp((sd + outlineWidth - 0.5) * screenPxRange + 0.5, 0.0, 1.0);
         opacity = max(0.0, outlineOpacity - fillOpacity);
     }
 

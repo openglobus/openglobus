@@ -43,6 +43,7 @@ const OUTLINECOLOR_BUFFER = 10;
 
 const EMPTY = -1.0;
 const RTL = 1.0;
+const OUTLINE_DEPTH_BIAS = 2.0;
 
 class LabelPassHandler {
     protected _owner: LabelHandler;
@@ -182,7 +183,7 @@ class LabelHandler extends BaseBillboardHandler {
 
     protected override _isBillboardOpaque(billboard: BaseBillboard): boolean {
         const label = billboard as Label;
-        return label._color.w >= 1.0 && label.getOutlineOpacity() >= 1.0;
+        return label._color.w >= 1.0;
     }
 
     protected override _swapBillboardData(firstIndex: number, secondIndex: number) {
@@ -443,8 +444,9 @@ class LabelHandler extends BaseBillboardHandler {
         const startVertexIndex = startBillboardIndex * 6 * this._maxLetters;
         const vertexCount = numLabels * 6 * this._maxLetters;
 
+        const depthOffset = isOutlinePass ? ec.depthOffset + OUTLINE_DEPTH_BIAS : ec.depthOffset;
         gl.uniform1i(shu.isOutlinePass, isOutlinePass ? 1 : 0);
-        gl.uniform1f(shu.depthOffset, ec.depthOffset);
+        gl.uniform1f(shu.depthOffset, depthOffset);
         gl.uniform1f(shu.depthOffsetNear, r.activeCamera.frustum.depthOffsetNear);
 
         if (isOutlinePass) {
@@ -937,9 +939,7 @@ class LabelHandler extends BaseBillboardHandler {
             a[j + 23] = w;
         }
 
-        const opacityOffset = index * 24 * this._maxLetters + 3;
-        const outlineAlpha = this._outlineColorArr[opacityOffset];
-        const opacityChanged = this._updateBillboardOpacityState(index, w >= 1.0 && outlineAlpha >= 1.0);
+        const opacityChanged = this._updateBillboardOpacityState(index, w >= 1.0);
         if (opacityChanged) {
             this.refresh();
         } else {
@@ -991,7 +991,7 @@ class LabelHandler extends BaseBillboardHandler {
 
         const opacityOffset = index * 24 * this._maxLetters + 3;
         const fillAlpha = this._rgbaArr[opacityOffset];
-        const opacityChanged = this._updateBillboardOpacityState(index, fillAlpha >= 1.0 && w >= 1.0);
+        const opacityChanged = this._updateBillboardOpacityState(index, fillAlpha >= 1.0);
         if (opacityChanged) {
             this.refresh();
         } else {
