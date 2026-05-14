@@ -315,6 +315,7 @@ class LabelHandler extends BaseBillboardHandler {
 
     public override drawTransparent() {
         if (this._billboards.length) {
+            this.update();
             this.outlineLabelHandler.drawTransparent();
             this.fillLabelHandler.drawTransparent();
         }
@@ -322,6 +323,7 @@ class LabelHandler extends BaseBillboardHandler {
 
     public override drawTransparentForward() {
         if (this._billboards.length) {
+            this.update();
             this.outlineLabelHandler.drawTransparentForward();
             this.fillLabelHandler.drawTransparentForward();
         }
