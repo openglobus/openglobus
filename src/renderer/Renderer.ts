@@ -1095,25 +1095,17 @@ class Renderer {
                 ec[i]._fadingOpacity && ec[i].stripHandler.drawForward();
             }
 
-            // //
-            // // billboard pass
-            // //
-            // gl.activeTexture(gl.TEXTURE0);
-            // gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
             //
-            // i = ec.length;
-            // while (i--) {
-            //     let eci = ec[i];
-            //     eci._fadingOpacity && eci.billboardHandler.drawForward();
-            // }
+            // billboard pass
             //
-            // //
-            // // labels pass
-            // //
-            // i = ec.length;
-            // while (i--) {
-            //     ec[i]._fadingOpacity && ec[i].labelHandler.drawForward();
-            // }
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
+
+            i = ec.length;
+            while (i--) {
+                let eci = ec[i];
+                eci._fadingOpacity && eci.billboardHandler.drawForward();
+            }
         }
     }
 
