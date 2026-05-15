@@ -213,6 +213,18 @@ export class CameraDepthHandler extends Control {
         }
     }
 
+    public getCamera(): Camera {
+        return this.camera!;
+    }
+
+    public getDepthFramebuffer(): Framebuffer | null {
+        return this.framebuffer || null;
+    }
+
+    public getDepthTexture(): WebGLTexture {
+        return this.framebuffer!.textures[0]!;
+    }
+
     protected _depthHandlerCallback = (frameHandler: CameraFrameHandler) => {
         if (!this.planet) return;
         if (!this._quadTreeStrategy) return;

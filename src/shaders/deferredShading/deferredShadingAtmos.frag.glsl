@@ -6,6 +6,7 @@ precision highp sampler2D;
 #include "../common/shadeMode.glsl"
 #include "../atmos/common.glsl"
 #include "../common/lighting.glsl"
+#include "../common/projectors.glsl"
 
 uniform sampler2D baseTexture;
 uniform sampler2D materialsTexture;
@@ -38,11 +39,6 @@ void main(void) {
     vec4 normalColor = texelFetch(normalTexture, fragCoord, 0);
     float shadeMode = normalColor.a;
 
-    if (shadeMode == SHADE_UNLIT) {
-        fragColor = baseColor;
-        return;
-    }
-
     vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
     vec4 viewPositionData = texelFetch(viewPositionTexture, fragCoord, 0);
     vec3 viewPos = viewPositionData.xyz;
@@ -51,6 +47,13 @@ void main(void) {
 
     vec3 cameraRelWorld = normalMatrix * viewPos;
     vec3 worldVertex = cameraRelWorld + cameraPosition;
+    vec3 projectorContribution = applyProjectors(baseColor.rgb, worldVertex, normal);
+
+    if (shadeMode == SHADE_UNLIT) {
+        fragColor = vec4(baseColor.rgb + projectorContribution, baseColor.a);
+        return;
+    }
+
     float ao = materials.r;
     float specularMask = materials.b;
 
@@ -74,7 +77,7 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorContribution, baseColor.a);
     } else {
         vec3 lightDir = normalize(sunPos);
         vec3 viewDir = normalize(-cameraRelWorld);
@@ -107,7 +110,7 @@ void main(void) {
         getAtmosFadingOpacity(worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
 
         fragColor = vec4(
-        mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+        mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting + projectorContribution,
         baseColor.a
         );
     }

@@ -11,10 +11,19 @@ export function deferredShading(): ShaderProgram {
             materialsTexture: "sampler2d",
             normalTexture: "sampler2d",
             viewPositionTexture: "sampler2d",
+            cameraPosition: "vec3",
             lightPosition: "vec3",
             lightAmbient: "vec3",
             lightDiffuse: "vec3",
-            lightSpecular: "vec4"
+            lightSpecular: "vec4",
+            u_projectorCount: "int",
+            u_projectorViewProj: "mat4",
+            u_projectorColorIntensity: "vec4",
+            u_projectorParams: "vec4",
+            u_projectorDepth0: "sampler2d",
+            u_projectorDepth1: "sampler2d",
+            u_projectorDepth2: "sampler2d",
+            u_projectorDepth3: "sampler2d"
         },
         attributes: {
             corners: "vec3"
