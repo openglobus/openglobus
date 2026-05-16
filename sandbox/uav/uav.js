@@ -9,7 +9,8 @@ import {
     PlanetCamera,
     input,
     Gltf,
-    Object3d
+    Object3d,
+    RendererProjector
 } from "../../lib/og.es.js";
 
 let uavLayer = new Vector("UAV.Layer", {
@@ -74,7 +75,7 @@ function syncTrackedCameras() {
     }
 }
 
-globus.planet.renderer.events.on("draw", syncTrackedCameras);
+globus.planet.renderer.events.on("draw", syncTrackedCameras, null, -300);
 
 async function createTrackedCameraEntity(cameraSnapshot) {
     const uavGltf = await uavGltfPromise;
@@ -98,6 +99,20 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     }
     depthCamera.copy(cameraSnapshot);
 
+    const projector = new RendererProjector({
+        enabled: true,
+        camera: depthCamera,
+        depthTexture: depthHandler.getDepthTexture(),
+        color: [1.0, 1, 1],
+        intensity: 1.0,
+        opacity: 1,
+        bias: 0.0005,
+        normalBias: 0.0,
+        mode: "decal",
+        priority: 0
+    });
+    globus.planet.renderer.projectors.add(projector);
+
     const framebuffer = depthHandler.framebuffer;
 
     const depthPreview = new control.FramebufferPreview({
@@ -115,7 +130,8 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         properties: {
             camera: depthCamera,
             depthHandler,
-            depthPreview
+            depthPreview,
+            projector
         },
         geoObject: {
             tag: `uav:${rootName}`,
@@ -130,7 +146,7 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         independentPicking: true,
         geoObject: {
             tag: "camera-frustum",
-            color: "rgba(0,255,0,0.2)",
+            color: "rgba(0,255,0,0.1)",
             object3d: cameraFrustumObject3d
         }
     });

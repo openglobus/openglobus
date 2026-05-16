@@ -22,7 +22,6 @@ export type { ITouchState } from "./renderer/RendererEvents";
 export type { IDeferredShadingPass } from "./renderer/IDeferredShadingPass";
 export type { ITransparencyPass } from "./renderer/ITransparencyPass";
 export type {
-    ProjectorDepthSource,
     ProjectorMode,
     IRendererProjectorParams
 } from "./renderer/ProjectorManager";

@@ -37,7 +37,7 @@ void main(void) {
 
     vec3 cameraRelWorld = normalMatrix * viewPos;
     vec3 worldPos = cameraRelWorld + cameraPosition;
-    vec3 projectorContribution = applyProjectors(baseColor.rgb, worldPos, normal);
+    vec3 projectorContribution = applyProjectors(worldPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
         fragColor = vec4(baseColor.rgb + projectorContribution, baseColor.a);

@@ -1,6 +1,5 @@
 import type { Camera } from "../camera/Camera";
 import type { NumberArray3 } from "../math/Vec3";
-import type { Framebuffer } from "../webgl/Framebuffer";
 import type { ShaderProgram } from "../webgl/ShaderProgram";
 import type { Renderer } from "./Renderer";
 import { srgbToLinearArr } from "../utils/colorSpace";
@@ -10,15 +9,10 @@ export const DEFAULT_PROJECTOR_TEXTURE_UNIT_START = 6;
 
 export type ProjectorMode = "light" | "decal";
 
-export interface ProjectorDepthSource {
-    getCamera(): Camera;
-    getDepthTexture(): WebGLTexture;
-    getDepthFramebuffer?(): Framebuffer | null | undefined;
-}
-
 export interface IRendererProjectorParams {
     enabled: boolean;
-    source: ProjectorDepthSource;
+    camera: Camera;
+    depthTexture: WebGLTexture;
     color: NumberArray3;
     intensity: number;
     opacity: number;
@@ -33,7 +27,8 @@ export class RendererProjector {
 
     public readonly id: number;
     public enabled: boolean;
-    public source: ProjectorDepthSource;
+    public camera: Camera;
+    public depthTexture: WebGLTexture;
     public color: NumberArray3;
     public intensity: number;
     public opacity: number;
@@ -45,7 +40,8 @@ export class RendererProjector {
     constructor(params: IRendererProjectorParams) {
         this.id = RendererProjector.__staticCounter__++;
         this.enabled = params.enabled;
-        this.source = params.source;
+        this.camera = params.camera;
+        this.depthTexture = params.depthTexture;
         this.color = [params.color[0], params.color[1], params.color[2]];
         this.intensity = params.intensity;
         this.opacity = params.opacity;
@@ -158,14 +154,10 @@ export class ProjectorManager {
             const projector = this._projectors[i];
             if (!projector.enabled) continue;
 
-            const camera = projector.source.getCamera();
-
-            const depthTexture = projector.source.getDepthTexture();
-
             const candidate: ActiveProjector = {
                 projector,
-                camera,
-                depthTexture
+                camera: projector.camera,
+                depthTexture: projector.depthTexture
             };
             active.push(candidate);
         }

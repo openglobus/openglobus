@@ -43,22 +43,22 @@ float getProjectorVisibility(int projectorIndex, vec3 worldPos, vec3 normal) {
     return step(receiverDepth, mapDepth + bias);
 }
 
-vec3 applyProjector(int projectorIndex, vec3 baseColor, vec3 worldPos, vec3 normal) {
+vec3 applyProjector(int projectorIndex, vec3 worldPos, vec3 normal) {
     float visibility = getProjectorVisibility(projectorIndex, worldPos, normal);
     vec4 colorIntensity = u_projectorColorIntensity[projectorIndex];
     float opacity = u_projectorParams[projectorIndex].z;
 
-    return baseColor * colorIntensity.rgb * colorIntensity.a * opacity * visibility;
+    return colorIntensity.rgb * colorIntensity.a * opacity * visibility;
 }
 
-vec3 applyProjectors(vec3 baseColor, vec3 worldPos, vec3 normal) {
+vec3 applyProjectors(vec3 worldPos, vec3 normal) {
     vec3 contribution = vec3(0.0);
 
     for (int i = 0; i < MAX_PROJECTORS; i++) {
         if (i >= u_projectorCount) {
             break;
         }
-        contribution += applyProjector(i, baseColor, worldPos, normal);
+        contribution += applyProjector(i, worldPos, normal);
     }
 
     return contribution;

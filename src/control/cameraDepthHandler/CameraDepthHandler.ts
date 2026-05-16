@@ -217,10 +217,6 @@ export class CameraDepthHandler extends Control {
         return this.camera!;
     }
 
-    public getDepthFramebuffer(): Framebuffer | null {
-        return this.framebuffer || null;
-    }
-
     public getDepthTexture(): WebGLTexture {
         return this.framebuffer!.textures[0]!;
     }
