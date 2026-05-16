@@ -104,9 +104,9 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         enabled: true,
         camera: depthCamera,
         depthTexture: depthHandler.getDepthTexture(),
-        color: [1.0, 1.0, 1.0],
+        color: [1.0, 1.0, 0.1],
         intensity: 1.0,
-        opacity: 0.3,
+        opacity: 0.45,
         bias: 0.0005,
         normalBias: 0.0,
         depthEpsilon: 0.0015,
@@ -157,7 +157,7 @@ async function createTrackedCameraEntity(cameraSnapshot) {
 
     frustumEntity.setScale3v(
         Object3d.getFrustumScaleByCameraAngles(
-            100,
+            3,
             depthCamera.horizontalViewAngle,
             depthCamera.verticalViewAngle
         )
@@ -199,14 +199,14 @@ globus.planet.renderer.events.on("charkeypress", input.KEY_V, () => {
     restoreCamera();
 });
 
-function updateSkyBoxFrustum() {
-    const camera = globus.planet.camera;
-    const alt = camera.getAltitude();
-    camera.setNearFar(alt - alt * 0.9);
-}
-
-globus.planet.camera.events.on("viewchange", updateSkyBoxFrustum);
-updateSkyBoxFrustum();
+// function updateSkyBoxFrustum() {
+//     const camera = globus.planet.camera;
+//     const alt = camera.getAltitude();
+//     camera.setNearFar(alt - alt * 0.9);
+// }
+//
+// globus.planet.camera.events.on("viewchange", updateSkyBoxFrustum);
+// updateSkyBoxFrustum();
 
 // let toneMappingFramebufferPreview = new control.FramebufferPreview({
 //     title: "toneMappingFramebuffer",

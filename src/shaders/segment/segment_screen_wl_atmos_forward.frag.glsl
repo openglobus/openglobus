@@ -8,6 +8,7 @@ precision highp float;
 #include "../atmos/common.glsl"
 #include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
+#include "../common/projectors.glsl"
 
 uniform vec4 specular;
 uniform vec3 diffuse;
@@ -59,13 +60,15 @@ void main(void) {
     if (samplerCount > 3) blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
     if (samplerCount > 4) blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
 
+    vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
+    vec3 normal = normalize((texNormal - 0.5) * 2.0);
+    vec3 projectorContribution = applyProjectors(v_worldVertex, normal);
+
     if (shadeMode == SHADE_UNLIT) {
+        diffuseColor.rgb += projectorContribution;
         diffuseColor *= transitionOpacity;
         return;
     }
-
-    vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
-    vec3 normal = normalize((texNormal - 0.5) * 2.0);
 
     float specularMask = 0.0;
     vec3 emission = vec3(0.0);
@@ -129,7 +132,7 @@ void main(void) {
     specularWeighting *= sunIlluminance;
 
     diffuseColor = vec4(
-    mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+    mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting + projectorContribution,
     diffuseColor.a
     );
 
