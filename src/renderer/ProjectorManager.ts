@@ -18,6 +18,7 @@ export interface IRendererProjectorParams {
     opacity: number;
     bias: number;
     normalBias: number;
+    depthEpsilon?: number;
     mode: ProjectorMode;
     priority: number;
 }
@@ -34,6 +35,7 @@ export class RendererProjector {
     public opacity: number;
     public bias: number;
     public normalBias: number;
+    public depthEpsilon: number;
     public mode: ProjectorMode;
     public priority: number;
 
@@ -47,6 +49,7 @@ export class RendererProjector {
         this.opacity = params.opacity;
         this.bias = params.bias;
         this.normalBias = params.normalBias;
+        this.depthEpsilon = params.depthEpsilon ?? 0.001;
         this.mode = params.mode;
         this.priority = params.priority;
     }
@@ -201,6 +204,6 @@ export class ProjectorManager {
         this._paramsData[vOffset] = projector.bias;
         this._paramsData[vOffset + 1] = projector.normalBias;
         this._paramsData[vOffset + 2] = projector.opacity;
-        this._paramsData[vOffset + 3] = 0.0;
+        this._paramsData[vOffset + 3] = projector.depthEpsilon;
     }
 }

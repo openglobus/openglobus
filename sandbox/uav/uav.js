@@ -103,11 +103,12 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         enabled: true,
         camera: depthCamera,
         depthTexture: depthHandler.getDepthTexture(),
-        color: [1.0, 1, 1],
+        color: [1.0, 1.0, 1.0],
         intensity: 1.0,
-        opacity: 1,
+        opacity: 0.3,
         bias: 0.0005,
         normalBias: 0.0,
+        depthEpsilon: 0.0015,
         mode: "decal",
         priority: 0
     });

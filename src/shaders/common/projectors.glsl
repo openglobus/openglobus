@@ -17,6 +17,13 @@ float sampleProjectorDepth(int index, vec2 uv) {
     return texture(u_projectorDepth3, uv).r;
 }
 
+vec2 getProjectorTexelSize(int index) {
+    if (index == 0) return 1.0 / vec2(textureSize(u_projectorDepth0, 0));
+    if (index == 1) return 1.0 / vec2(textureSize(u_projectorDepth1, 0));
+    if (index == 2) return 1.0 / vec2(textureSize(u_projectorDepth2, 0));
+    return 1.0 / vec2(textureSize(u_projectorDepth3, 0));
+}
+
 float getProjectorVisibility(int projectorIndex, vec3 worldPos, vec3 normal) {
     vec3 biasedWorldPos = worldPos + normal * u_projectorParams[projectorIndex].y;
     vec4 clip = u_projectorViewProj[projectorIndex] * vec4(biasedWorldPos, 1.0);
@@ -37,10 +44,24 @@ float getProjectorVisibility(int projectorIndex, vec3 worldPos, vec3 normal) {
         return 0.0;
     }
 
-    float mapDepth = sampleProjectorDepth(projectorIndex, uv);
     float bias = u_projectorParams[projectorIndex].x;
+    float depthEpsilon = u_projectorParams[projectorIndex].w;
+    float depthThreshold = bias + depthEpsilon;
 
-    return step(receiverDepth, mapDepth + bias);
+    vec2 texelSize = getProjectorTexelSize(projectorIndex);
+    float visibility = 0.0;
+    for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++) {
+            vec2 uvOffset = uv + vec2(float(x), float(y)) * texelSize;
+            if (uvOffset.x < 0.0 || uvOffset.x > 1.0 || uvOffset.y < 0.0 || uvOffset.y > 1.0) {
+                continue;
+            }
+            float mapDepth = sampleProjectorDepth(projectorIndex, uvOffset);
+            visibility = max(visibility, step(receiverDepth, mapDepth + depthThreshold));
+        }
+    }
+
+    return visibility;
 }
 
 vec3 applyProjector(int projectorIndex, vec3 worldPos, vec3 normal) {

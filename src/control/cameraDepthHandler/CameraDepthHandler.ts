@@ -287,7 +287,8 @@ export class CameraDepthHandler extends Control {
         if (this._showFootprint) {
             let framebuffer = frameHandler.frameBuffer;
 
-            framebuffer.readPixelBuffersAsync();
+            //framebuffer.readPixelBuffersAsync();
+            framebuffer.readPixelBuffers();
 
             const perimeterData = this._collectPerimeterLonLats(framebuffer.width, framebuffer.height);
             const segments = perimeterData.segments;
