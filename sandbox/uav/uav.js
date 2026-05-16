@@ -89,7 +89,8 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     const objectId = cameraObjectCounter++;
 
     const depthHandler = new control.CameraDepthHandler({
-        showFrustum: false
+        showFrustum: false,
+        showFootprint: false
     });
     globus.planet.addControl(depthHandler);
 
