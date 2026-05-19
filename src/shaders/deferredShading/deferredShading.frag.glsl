@@ -17,7 +17,6 @@ uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
 uniform vec3 lightDiffuse;
 uniform vec4 lightSpecular;
-uniform vec3 cameraPosition;
 
 layout (location = 0) out vec4 fragColor;
 
@@ -35,12 +34,11 @@ void main(void) {
     vec3 emission = unpackEmissionColor(viewPositionData.a);
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
 
-    vec3 cameraRelWorld = normalMatrix * viewPos;
-    vec3 worldPos = cameraRelWorld + cameraPosition;
-    vec3 projectorContribution = applyProjectors(worldPos, normal);
+    vec3 rtcPos = normalMatrix * viewPos;
+    vec3 projectorColor = applyProjectors(rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
-        fragColor = vec4(baseColor.rgb + projectorContribution, baseColor.a);
+        fragColor = vec4(baseColor.rgb + projectorColor, baseColor.a);
         return;
     }
 
@@ -54,7 +52,7 @@ void main(void) {
     if (shadeMode < SHADE_PBR) {
         // PHONG mode in deferred no-atmos pass.
         getPhongLighting(
-        cameraRelWorld,
+        rtcPos,
         normal,
         vec3(0.0),
         lightPosition,
@@ -66,11 +64,11 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorContribution, baseColor.a);
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorColor, baseColor.a);
     } else {
         // TODO: Real PBR deferred(no-atmos) is not implemented yet. Keep PBR as Phong for now.
         getPhongLighting(
-        cameraRelWorld,
+        rtcPos,
         normal,
         vec3(0.0),
         lightPosition,
@@ -82,6 +80,6 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorContribution, baseColor.a);
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorColor, baseColor.a);
     }
 }

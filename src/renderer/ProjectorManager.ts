@@ -67,6 +67,7 @@ export class ProjectorManager {
     protected _activeProjectors: ActiveProjector[];
 
     protected _viewProjData: Float32Array;
+    protected _eyeRelData: Float32Array;
     protected _colorIntensityData: Float32Array;
     protected _paramsData: Float32Array;
     protected _updateActiveProjectors: boolean;
@@ -77,6 +78,7 @@ export class ProjectorManager {
         this._activeProjectors = [];
 
         this._viewProjData = new Float32Array(MAX_PROJECTORS * 16);
+        this._eyeRelData = new Float32Array(MAX_PROJECTORS * 3);
         this._colorIntensityData = new Float32Array(MAX_PROJECTORS * 4);
         this._paramsData = new Float32Array(MAX_PROJECTORS * 4);
         this._updateActiveProjectors = true;
@@ -122,14 +124,20 @@ export class ProjectorManager {
         gl.uniform1i(u.u_projectorCount!, count);
 
         if (count > 0) {
+            const activeCameraEye = this._renderer.activeCamera.eye;
             for (let i = 0; i < count; i++) {
                 const pi = active[i];
                 const mOffset = i * 16;
+                const eOffset = i * 3;
 
-                this._viewProjData.set(pi.camera.getProjectionViewMatrix(), mOffset);
+                this._viewProjData.set(pi.camera.getProjectionViewRTEMatrix(), mOffset);
+                this._eyeRelData[eOffset] = pi.camera.eye.x - activeCameraEye.x;
+                this._eyeRelData[eOffset + 1] = pi.camera.eye.y - activeCameraEye.y;
+                this._eyeRelData[eOffset + 2] = pi.camera.eye.z - activeCameraEye.z;
             }
 
-            gl.uniformMatrix4fv(u.u_projectorViewProj!, false, this._viewProjData.subarray(0, count * 16));
+            gl.uniformMatrix4fv(u.u_projectorViewProjRTE!, false, this._viewProjData.subarray(0, count * 16));
+            gl.uniform3fv(u.u_projectorEyeRel!, this._eyeRelData.subarray(0, count * 3));
             gl.uniform4fv(u.u_projectorColorIntensity!, this._colorIntensityData.subarray(0, count * 4));
             gl.uniform4fv(u.u_projectorParams!, this._paramsData.subarray(0, count * 4));
         }

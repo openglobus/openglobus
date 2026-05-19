@@ -1,7 +1,8 @@
 const int MAX_PROJECTORS = 4;
 
 uniform int u_projectorCount;
-uniform mat4 u_projectorViewProj[MAX_PROJECTORS];
+uniform mat4 u_projectorViewProjRTE[MAX_PROJECTORS];
+uniform vec3 u_projectorEyeRel[MAX_PROJECTORS];
 uniform vec4 u_projectorColorIntensity[MAX_PROJECTORS];
 uniform vec4 u_projectorParams[MAX_PROJECTORS];
 
@@ -24,9 +25,10 @@ vec2 getProjectorTexelSize(int index) {
     return 1.0 / vec2(textureSize(u_projectorDepth3, 0));
 }
 
-float getProjectorVisibility(int projectorIndex, vec3 worldPos, vec3 normal) {
-    vec3 biasedWorldPos = worldPos + normal * u_projectorParams[projectorIndex].y;
-    vec4 clip = u_projectorViewProj[projectorIndex] * vec4(biasedWorldPos, 1.0);
+float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
+    vec3 biasedRtcPos = rtcPos + normal * u_projectorParams[projectorIndex].y;
+    vec3 projectorRelPos = biasedRtcPos - u_projectorEyeRel[projectorIndex];
+    vec4 clip = u_projectorViewProjRTE[projectorIndex] * vec4(projectorRelPos, 1.0);
 
     if (abs(clip.w) <= 1e-6) {
         return 0.0;
@@ -64,22 +66,22 @@ float getProjectorVisibility(int projectorIndex, vec3 worldPos, vec3 normal) {
     return visibility;
 }
 
-vec3 applyProjector(int projectorIndex, vec3 worldPos, vec3 normal) {
-    float visibility = getProjectorVisibility(projectorIndex, worldPos, normal);
+vec3 applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal) {
+    float visibility = getProjectorVisibility(projectorIndex, rtcPos, normal);
     vec4 colorIntensity = u_projectorColorIntensity[projectorIndex];
     float opacity = u_projectorParams[projectorIndex].z;
 
     return colorIntensity.rgb * colorIntensity.a * opacity * visibility;
 }
 
-vec3 applyProjectors(vec3 worldPos, vec3 normal) {
+vec3 applyProjectors(vec3 rtcPos, vec3 normal) {
     vec3 contribution = vec3(0.0);
 
     for (int i = 0; i < MAX_PROJECTORS; i++) {
         if (i >= u_projectorCount) {
             break;
         }
-        contribution += applyProjector(i, worldPos, normal);
+        contribution += applyProjector(i, rtcPos, normal);
     }
 
     return contribution;

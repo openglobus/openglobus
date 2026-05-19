@@ -44,6 +44,7 @@ uniform vec3 cameraPosition;
 
 in vec4 vTextureCoord;
 in vec3 v_worldVertex;
+in vec3 v_rtcPos;
 in vec2 vGlobalTextureCoord;
 in float v_height;
 
@@ -62,10 +63,10 @@ void main(void) {
 
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
-    vec3 projectorContribution = applyProjectors(v_worldVertex, normal);
+    vec3 projectorColor = applyProjectors(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
-        diffuseColor.rgb += projectorContribution;
+        diffuseColor.rgb += projectorColor;
         diffuseColor *= transitionOpacity;
         return;
     }
@@ -132,7 +133,7 @@ void main(void) {
     specularWeighting *= sunIlluminance;
 
     diffuseColor = vec4(
-    mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting + projectorContribution,
+    mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting + projectorColor,
     diffuseColor.a
     );
 

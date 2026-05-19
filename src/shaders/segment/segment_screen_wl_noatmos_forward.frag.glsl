@@ -34,6 +34,7 @@ uniform vec3 cameraPosition;
 
 in vec4 vTextureCoord;
 in vec3 v_worldVertex;
+in vec3 v_rtcPos;
 in vec2 vGlobalTextureCoord;
 in float v_height;
 
@@ -54,10 +55,10 @@ void main(void) {
 
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
-    vec3 projectorContribution = applyProjectors(v_worldVertex, normal);
+    vec3 projectorColor = applyProjectors(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
-        fragColor.rgb += projectorContribution;
+        fragColor.rgb += projectorColor;
         fragColor *= transitionOpacity;
         return;
     }
@@ -107,6 +108,6 @@ void main(void) {
         );
     }
 
-    fragColor = vec4(fragColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorContribution, fragColor.a);
+    fragColor = vec4(fragColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorColor, fragColor.a);
     fragColor *= transitionOpacity;
 }

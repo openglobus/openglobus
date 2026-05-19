@@ -45,12 +45,12 @@ void main(void) {
     vec3 emission = unpackEmissionColor(viewPositionData.a);
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
 
-    vec3 cameraRelWorld = normalMatrix * viewPos;
-    vec3 worldVertex = cameraRelWorld + cameraPosition;
-    vec3 projectorContribution = applyProjectors(worldVertex, normal);
+    vec3 rtcPos = normalMatrix * viewPos;
+    vec3 worldVertex = rtcPos + cameraPosition;
+    vec3 projectorColor = applyProjectors(rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
-        fragColor = vec4(baseColor.rgb + projectorContribution, baseColor.a);
+        fragColor = vec4(baseColor.rgb + projectorColor, baseColor.a);
         return;
     }
 
@@ -65,7 +65,7 @@ void main(void) {
     if (shadeMode < SHADE_PBR) {
         // PHONG mode in atmosphere pass: apply only Phong lighting without atmospheric contribution.
         getPhongLighting(
-        cameraRelWorld,
+        rtcPos,
         normal,
         vec3(0.0),
         sunPos,
@@ -77,16 +77,16 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorContribution, baseColor.a);
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorColor, baseColor.a);
     } else {
         vec3 lightDir = normalize(sunPos);
-        vec3 viewDir = normalize(-cameraRelWorld);
+        vec3 viewDir = normalize(-rtcPos);
         vec3 sunIlluminance;
         getSunIlluminance(worldVertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
 
         // TODO: Real PBR deferred is not implemented yet. Keep Phong + atmosphere for PBR mode.
         getPhongLighting(
-        cameraRelWorld,
+        rtcPos,
         normal,
         vec3(0.0),
         sunPos,
@@ -110,7 +110,7 @@ void main(void) {
         getAtmosFadingOpacity(worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
 
         fragColor = vec4(
-        mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting + projectorContribution,
+        mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting + projectorColor,
         baseColor.a
         );
     }
