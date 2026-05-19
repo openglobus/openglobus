@@ -3,6 +3,7 @@ import {
     control,
     Vector,
     Entity,
+    LonLat,
     OpenStreetMap,
     GlobusRgbTerrain,
     Bing,
@@ -17,13 +18,17 @@ let uavLayer = new Vector("UAV.Layer", {
     scaleByDistance: [50, 50000, 1]
 });
 
+let myObjects = new Vector("myObjects", {
+    scaleByDistance: [1, 1, 1]
+});
+
 const globus = new Globe({
     target: "earth",
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
-    layers: [new Bing(), new OpenStreetMap(), uavLayer],
+    layers: [new Bing(), new OpenStreetMap(), uavLayer, myObjects],
     atmosphereEnabled: true,
-    fontsSrc: "../../res/fonts",
+    fontsSrc: "../../res/fonts"
 });
 
 globus.planet.addControl(new control.TimelineControl());
@@ -35,6 +40,19 @@ globus.planet.addControl(new control.EntityEditor());
 const uavGltfPromise = Gltf.loadGlb("./uav.glb");
 const cameraFrustumObject3d = Object3d.createFrustum();
 const trackedCameraEntities = [];
+const skyCubeObject3d = Object3d.createCube(10000, 10000, 10000).setColor("white");
+
+myObjects.add(
+    new Entity({
+        name: "sky-cube",
+        lonlat: new LonLat(9.0814898, 46.4864594, 10000),
+        independentPicking: true,
+        geoObject: {
+            tag: "sky-cube",
+            object3d: skyCubeObject3d
+        }
+    })
+);
 
 const depthPreviewShader = `float linearizeDepth(float z, float near, float far) {
                 float ndcZ = z * 2.0 - 1.0;
@@ -156,11 +174,7 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     uavModelRoot.appendChild(frustumEntity);
 
     frustumEntity.setScale3v(
-        Object3d.getFrustumScaleByCameraAngles(
-            3,
-            depthCamera.horizontalViewAngle,
-            depthCamera.verticalViewAngle
-        )
+        Object3d.getFrustumScaleByCameraAngles(3, depthCamera.horizontalViewAngle, depthCamera.verticalViewAngle)
     );
 
     frustumEntity.setAbsolutePitch(depthCamera.getPitch());

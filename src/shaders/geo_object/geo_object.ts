@@ -117,7 +117,16 @@ export const geo_object_woit = (): ShaderProgram =>
             uUseMetallicRoughnessTexture: "float",
             uUseAOTexture: "float",
             shadeMode: "float",
-            useReverseDepth: "float"
+            useReverseDepth: "float",
+            u_projectorCount: "int",
+            u_projectorViewProjRTE: "mat4",
+            u_projectorEyeRel: "vec3",
+            u_projectorColorIntensity: "vec4",
+            u_projectorParams: "vec4",
+            u_projectorDepth0: "sampler2d",
+            u_projectorDepth1: "sampler2d",
+            u_projectorDepth2: "sampler2d",
+            u_projectorDepth3: "sampler2d"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -165,7 +174,16 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             atmosFadeDist: "vec2",
-            atmosMaxMinOpacity: "vec2"
+            atmosMaxMinOpacity: "vec2",
+            u_projectorCount: "int",
+            u_projectorViewProjRTE: "mat4",
+            u_projectorEyeRel: "vec3",
+            u_projectorColorIntensity: "vec4",
+            u_projectorParams: "vec4",
+            u_projectorDepth0: "sampler2d",
+            u_projectorDepth1: "sampler2d",
+            u_projectorDepth2: "sampler2d",
+            u_projectorDepth3: "sampler2d"
         },
         attributes: {
             aVertexPosition: "vec3",

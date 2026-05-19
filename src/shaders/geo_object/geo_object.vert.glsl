@@ -30,6 +30,7 @@ uniform vec3 rtcEyePositionLow;
 
 out vec3 cameraPosition;
 out vec3 v_vertex;
+out vec3 v_rtcPos;
 out vec3 v_viewPosition;
 out vec4 vColor;
 out vec3 vNormal;
@@ -69,5 +70,6 @@ void main(void) {
     v_viewPosition = viewPos.xyz;
     gl_Position = projectionMatrix * viewPos;
 
+    v_rtcPos = rtcWorldOffset + vert;
     v_vertex = rtcWorldOffset + cameraPosition + vert;
 }

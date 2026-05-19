@@ -562,6 +562,7 @@ export class GeoObjectHandler {
         if (useAtmos) {
             this._bindAtmosphereParams(p);
         }
+        r.projectors.bind(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
