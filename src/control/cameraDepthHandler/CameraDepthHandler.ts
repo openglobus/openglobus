@@ -57,11 +57,11 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
     return dist;
 }
 
-const CAM_WIDTH = 512;
-const CAM_HEIGHT = 512;
+const CAM_WIDTH = 1024;
+const CAM_HEIGHT = 1024;
 const PERIMETER_STEP_PX = 1;
-const DEPTH_NEAR = 100;
-const DEPTH_FAR = 100000;
+const DEPTH_NEAR = 500;
+const DEPTH_FAR = 200000;
 
 const POLYLINE_DEPTH_OFFSET = -100;
 
@@ -73,6 +73,7 @@ interface IPerimeterSegmentsData {
 export interface ICameraDepthHandlerParams extends IControlParams {
     showFrustum?: boolean;
     showFootprint?: boolean;
+    excludeLayers?: Vector[];
 }
 
 export class CameraDepthHandler extends Control {
@@ -89,6 +90,7 @@ export class CameraDepthHandler extends Control {
 
     protected _showFrustum: boolean;
     protected _showFootprint: boolean;
+    protected _excludeLayers: Vector[];
 
     constructor(params: ICameraDepthHandlerParams) {
         super(params);
@@ -98,6 +100,7 @@ export class CameraDepthHandler extends Control {
 
         this._showFrustum = params.showFrustum ?? true;
         this._showFootprint = params.showFootprint ?? true;
+        this._excludeLayers = params.excludeLayers ? [...params.excludeLayers] : [];
 
         this._cameraFootprintEntity = new Entity({
             polyline: {
@@ -221,13 +224,70 @@ export class CameraDepthHandler extends Control {
         return this.framebuffer!.textures[0]!;
     }
 
+    protected _segmentsPass(camera: PlanetCamera) {
+
+        const h = this.renderer!.handler;
+        const gl = h.gl!;
+
+        h.programs.camera_depth.activate();
+        let sh = h.programs.camera_depth;
+        let shu = sh.uniforms;
+
+        gl.uniformMatrix4fv(shu.viewMatrix, false, camera.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, camera.getProjectionMatrix());
+
+        let isEq = this.planet!.terrain!.equalizeVertices;
+
+        let rn = this._quadTreeStrategy!._renderedNodesInFrustum[camera.getCurrentFrustum()];
+
+        let i = rn.length;
+        while (i--) {
+            let s = rn[i].segment;
+            if (s._transitionOpacity >= 1) {
+                isEq && s.equalize();
+                s.readyToEngage && s.engage();
+                s.ensureIndexBuffer();
+                s.updateRTCEyePosition(camera);
+                s.depthRendering(sh);
+            }
+        }
+
+        for (let i = 0; i < this._quadTreeStrategy!._fadingOpaqueSegments.length; ++i) {
+            let s = this._quadTreeStrategy!._fadingOpaqueSegments[i];
+            isEq && s.equalize();
+            s.readyToEngage && s.engage();
+            s.ensureIndexBuffer();
+            s.updateRTCEyePosition(camera);
+            s.depthRendering(sh);
+        }
+    }
+
+    protected _geoObjectsPass(camera: PlanetCamera) {
+
+        const layers = this.planet!.layers;
+
+        for (let i = 0; i < layers.length; i++) {
+            const layer = layers[i];
+            if (!(layer instanceof Vector) || !layer.getVisibility()) {
+                continue;
+            }
+
+            if (this._excludeLayers.includes(layer)) {
+                continue;
+            }
+
+            const geoObjectCollection = layer._geoObjectEntityCollection;
+
+            geoObjectCollection.geoObjectHandler.drawDepthCameraPass(camera);
+        }
+    }
+
     protected _depthHandlerCallback = (frameHandler: CameraFrameHandler) => {
         if (!this.planet) return;
         if (!this._quadTreeStrategy) return;
 
         let framebuffer = frameHandler.frameBuffer,
             gl = framebuffer.handler.gl!,
-            h = framebuffer.handler,
             mainCam = this.renderer!.activeCamera;
 
         framebuffer.activate();
@@ -242,37 +302,9 @@ export class CameraDepthHandler extends Control {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
 
-        h.programs.camera_depth.activate();
-        let sh = h.programs.camera_depth;
-        let shu = sh.uniforms;
-
-        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
-
-        let isEq = this.planet.terrain!.equalizeVertices;
-
-        let rn = this._quadTreeStrategy._renderedNodesInFrustum[cam.getCurrentFrustum()];
-
-        let i = rn.length;
-        while (i--) {
-            let s = rn[i].segment;
-            if (s._transitionOpacity >= 1) {
-                isEq && s.equalize();
-                s.readyToEngage && s.engage();
-                s.ensureIndexBuffer();
-                s.updateRTCEyePosition(cam);
-                s.depthRendering(sh);
-            }
-        }
-
-        for (let i = 0; i < this._quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
-            let s = this._quadTreeStrategy._fadingOpaqueSegments[i];
-            isEq && s.equalize();
-            s.readyToEngage && s.engage();
-            s.ensureIndexBuffer();
-            s.updateRTCEyePosition(cam);
-            s.depthRendering(sh);
-        }
+        // Inside this.planet! and this._quadTreeStrategy!
+        this._segmentsPass(cam);
+        this._geoObjectsPass(cam);
 
         gl.enable(gl.BLEND);
 

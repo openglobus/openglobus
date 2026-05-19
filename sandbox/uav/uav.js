@@ -108,7 +108,8 @@ async function createTrackedCameraEntity(cameraSnapshot) {
 
     const depthHandler = new control.CameraDepthHandler({
         showFrustum: false,
-        showFootprint: false
+        showFootprint: false,
+        excludeLayers: [uavLayer]
     });
     globus.planet.addControl(depthHandler);
 
@@ -125,9 +126,9 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         color: [1.0, 1.0, 0.1],
         intensity: 1.0,
         opacity: 0.45,
-        bias: 0.0005,
-        normalBias: 0.0,
-        depthEpsilon: 0.0015,
+        bias: 0.0005, //0.00003 .. 0.00008 - 0.0005
+        normalBias: 0.1, // 0.2 .. 1.0
+        depthEpsilon: 0.0002, //0.00015 .. 0.0005 - 0.0015
         mode: "decal",
         priority: 0
     });

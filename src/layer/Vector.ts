@@ -152,7 +152,7 @@ class Vector extends Layer {
     /** todo: combine into one */
     protected _stripEntityCollection: EntityCollection;
     protected _polylineEntityCollection: EntityCollection;
-    protected _geoObjectEntityCollection: EntityCollection;
+    public _geoObjectEntityCollection: EntityCollection;
 
     public _geometryHandler: GeometryHandler;
 
