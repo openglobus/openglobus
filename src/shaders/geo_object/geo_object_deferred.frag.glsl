@@ -14,6 +14,7 @@ uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform vec3 materialProperties;
 uniform float shadeMode;
+uniform float uProjectorMask;
 uniform mat3 normalMatrix;
 
 in vec3 v_viewPosition;
@@ -37,8 +38,8 @@ void main(void) {
         material.b = mr.b;
     }
 
-    // R = ambient occlusion, G = roughness, B = metallic
-    materials = vec4(material, 1.0);
+    // R = ambient occlusion, G = roughness, B = metallic, A = projectorMask
+    materials = vec4(material, uProjectorMask);
     positionColor = vec4(v_viewPosition, 0.0);
     vec3 normal = normalize(vNormal);
 

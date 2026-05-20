@@ -81,7 +81,6 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         gl.uniform1i(p.uniforms.scatteringTexture, 5);
 
         r.projectors.bind(p, 6);
-
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.depthMask(true);

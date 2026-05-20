@@ -30,19 +30,20 @@ void main(void) {
     float shadeMode = normalColor.a;
 
     vec4 viewPositionData = texelFetch(viewPositionTexture, fragCoord, 0);
+    vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
     vec3 viewPos = viewPositionData.xyz;
     vec3 emission = unpackEmissionColor(viewPositionData.a);
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
+    float receiveProjectors = materials.a;
 
     vec3 rtcPos = normalMatrix * viewPos;
-    vec3 projectorColor = applyProjectors(rtcPos, normal);
+    vec3 projectorColor = applyProjectors(rtcPos, normal) * receiveProjectors;
 
     if (shadeMode == SHADE_UNLIT) {
         fragColor = vec4(baseColor.rgb + projectorColor, baseColor.a);
         return;
     }
 
-    vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
     float ao = materials.r;
     float specularMask = materials.b;
 

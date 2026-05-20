@@ -478,6 +478,7 @@ export class GeoObjectHandler {
             r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
         );
         gl.uniform1f(u.shadeMode, ec._shadeMode);
+        gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);

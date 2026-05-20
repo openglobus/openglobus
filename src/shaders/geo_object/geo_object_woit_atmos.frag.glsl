@@ -22,6 +22,7 @@ uniform float uUseNormalTexture;
 uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform float shadeMode;
+uniform float uProjectorMask;
 uniform mat3 normalMatrix;
 
 uniform sampler2D transmittanceTexture;
@@ -69,7 +70,7 @@ void main(void) {
         );
     }
 
-    vec3 projectorColor = applyProjectors(v_rtcPos, normal);
+    vec3 projectorColor = applyProjectors(v_rtcPos, normal) * uProjectorMask;
 
     if (shade == SHADE_UNLIT) {
         color = baseColor;

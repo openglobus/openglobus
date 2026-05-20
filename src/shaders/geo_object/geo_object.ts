@@ -31,7 +31,8 @@ export const geo_object_deferred = (): ShaderProgram =>
             uUseMetallicRoughnessTexture: "float",
             uUseAOTexture: "float",
             materialProperties: "vec3",
-            shadeMode: "float"
+            shadeMode: "float",
+            uProjectorMask: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -118,6 +119,7 @@ export const geo_object_woit = (): ShaderProgram =>
             uUseMetallicRoughnessTexture: "float",
             uUseAOTexture: "float",
             shadeMode: "float",
+            uProjectorMask: "float",
             useReverseDepth: "float",
             u_projectorCount: "int",
             u_projectorViewProjRTE: "mat4",
@@ -171,6 +173,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             uUseMetallicRoughnessTexture: "float",
             uUseAOTexture: "float",
             shadeMode: "float",
+            uProjectorMask: "float",
             useReverseDepth: "float",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",

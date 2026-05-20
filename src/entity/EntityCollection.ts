@@ -27,6 +27,7 @@ interface IEntityCollectionParams {
     visibility?: boolean;
     labelMaxLetters?: number;
     pickingEnabled?: boolean;
+    receiveProjectors?: boolean;
     scaleByDistance?: NumberArray3;
     pickingScale?: number | NumberArray3;
     opacity?: number;
@@ -220,6 +221,7 @@ class EntityCollection {
     public _quadNode?: EntityCollectionNode;
 
     public _shadeMode: ShadeMode;
+    public receiveProjectors: boolean;
 
     /**
      * Disables `gl.CULL_FACE` for geo objects rendering passes (opaque/transparent).
@@ -257,6 +259,8 @@ class EntityCollection {
         if (options.pickingEnabled != undefined) {
             this.setPickingEnabled(options.pickingEnabled);
         }
+
+        this.receiveProjectors = options.receiveProjectors ?? true;
 
         this._entities = [];
 
@@ -369,6 +373,10 @@ class EntityCollection {
         this.pointCloudHandler.pickingEnabled = enable;
         this.stripHandler.pickingEnabled = enable;
         this.geoObjectHandler.pickingEnabled = enable;
+    }
+
+    public setReceiveProjectors(enable: boolean) {
+        this.receiveProjectors = enable;
     }
 
     /**

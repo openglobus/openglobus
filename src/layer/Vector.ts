@@ -28,6 +28,7 @@ export interface IVectorParams extends ILayerParams {
     shadeMode?: ShadeModeInput;
     depthOrder?: number;
     disableCullFace?: boolean;
+    receiveProjectors?: boolean;
 }
 
 type VectorEventsList = [
@@ -174,6 +175,7 @@ class Vector extends Layer {
     protected _shadeMode: ShadeMode;
 
     protected _disableCullFace: boolean;
+    protected _receiveProjectors: boolean;
 
     constructor(name?: string | null, options: IVectorParams = {}) {
         super(name, options);
@@ -225,11 +227,13 @@ class Vector extends Layer {
         this._bindEventsDefault(this._polylineEntityCollection);
 
         this._disableCullFace = options.disableCullFace ?? false;
+        this._receiveProjectors = options.receiveProjectors ?? true;
 
         this._geoObjectEntityCollection = new EntityCollection({
             pickingEnabled: this.pickingEnabled,
             shadeMode: this._shadeMode,
-            disableCullFace: this._disableCullFace
+            disableCullFace: this._disableCullFace,
+            receiveProjectors: this._receiveProjectors
         });
         this._bindEventsDefault(this._geoObjectEntityCollection);
 
@@ -244,6 +248,7 @@ class Vector extends Layer {
         this.depthOffset = options.depthOffset != undefined ? options.depthOffset : 0.0;
 
         this.pickingEnabled = this._pickingEnabled;
+        this.receiveProjectors = this._receiveProjectors;
 
         this._depthOrder = options.depthOrder || 0;
     }
@@ -276,6 +281,18 @@ class Vector extends Layer {
     public set disableCullFace(v: boolean) {
         this._disableCullFace = v;
         this._geoObjectEntityCollection.disableCullFace = v;
+    }
+
+    public get receiveProjectors(): boolean {
+        return this._receiveProjectors;
+    }
+
+    public set receiveProjectors(v: boolean) {
+        this._receiveProjectors = v;
+        this._stripEntityCollection.setReceiveProjectors(v);
+        this._polylineEntityCollection.setReceiveProjectors(v);
+        this._geoObjectEntityCollection.setReceiveProjectors(v);
+        this._entityCollectionsTreeStrategy?.setReceiveProjectors(v);
     }
 
     public get labelMaxLetters(): number {
