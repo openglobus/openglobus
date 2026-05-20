@@ -60,7 +60,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
 
 /**
  * Vector layer is an alternative entity storage. Used for geospatial data rendering like
- * points, lines, polygons, geometry objects etc.
+ * points, lines, polygons, geometry objects, etc.
  * @class
  * @extends {Layer}
  * @param {string} [name="noname"] - Layer name.
@@ -92,6 +92,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * @param {number|string} [options.shadeMode=1] - Geo object shading: 0/none unlit, 0.5/phong, 1/pbr.
  * @param {number} [options.depthOrder=0] - Rendering order group for vector collections.
  * @param {boolean} [options.disableCullFace=false] - Disables back-face culling for geo object rendering.
+ * @param {boolean} [options.receiveProjectors=true] - Enables/disables projector effect reception for this layer entities.
  *
  * //@fires entitymove
  * @fires draw
@@ -283,10 +284,20 @@ class Vector extends Layer {
         this._geoObjectEntityCollection.disableCullFace = v;
     }
 
+    /**
+     * Gets projector effect reception state for this vector layer entities.
+     * @public
+     * @returns {boolean}
+     */
     public get receiveProjectors(): boolean {
         return this._receiveProjectors;
     }
 
+    /**
+     * Enables/disables projector effect reception for this vector layer entities.
+     * @public
+     * @param {boolean} v - `true` to receive projector effects, `false` to ignore them.
+     */
     public set receiveProjectors(v: boolean) {
         this._receiveProjectors = v;
         this._stripEntityCollection.setReceiveProjectors(v);

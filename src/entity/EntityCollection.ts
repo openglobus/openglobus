@@ -46,10 +46,11 @@ interface IEntityCollectionParams {
  * @param {boolean} [options.visibility=true] - Entity visibility.
  * @param {number} [options.labelMaxLetters] - Maximum label letters per line used by the label handler.
  * @param {boolean} [options.pickingEnabled] - Enables/disables picking for all entity handlers.
+ * @param {boolean} [options.receiveProjectors=true] - Enables/disables projector effect reception for this collection.
  * @param {Array.<number>} [options.scaleByDistance] - Entity scale by distance parameters. (exactly 3 entries)
  * First index - near distance to the entity, after entity becomes full scale.
- * Second index - far distance to the entity, when entity becomes zero scale.
- * Third index - far distance to the entity, when entity becomes invisible.
+ * Second index - far distance to the entity, when the entity becomes zero scale.
+ * Third index - far distance to the entity, when the entity becomes invisible.
  * @param {number|Array.<number>} [options.pickingScale] - Picking scale value or xyz scale array.
  * @param {number} [options.opacity] - Entity global opacity.
  * @param {number|string} [options.shadeMode=1] - Geo object shading mode: `0|none|unlit`, `0.5|phong`, `1|pbr`.
@@ -221,6 +222,12 @@ class EntityCollection {
     public _quadNode?: EntityCollectionNode;
 
     public _shadeMode: ShadeMode;
+
+    /**
+     * Enables/disables projector effect reception for this collection.
+     * @public
+     * @type {boolean}
+     */
     public receiveProjectors: boolean;
 
     /**
@@ -375,6 +382,11 @@ class EntityCollection {
         this.geoObjectHandler.pickingEnabled = enable;
     }
 
+    /**
+     * Sets whether this collection receives projector effects.
+     * @public
+     * @param {boolean} enable - `true` to receive projector effects, `false` to ignore them.
+     */
     public setReceiveProjectors(enable: boolean) {
         this.receiveProjectors = enable;
     }
