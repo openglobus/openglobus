@@ -15,7 +15,8 @@ import {
 } from "../../lib/og.es.js";
 
 let uavLayer = new Vector("UAV.Layer", {
-    scaleByDistance: [50, 50000, 1]
+    scaleByDistance: [50, 50000, 1],
+    receiveProjectors: false
 });
 
 let myObjects = new Vector("myObjects", {

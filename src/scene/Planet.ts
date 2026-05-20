@@ -77,6 +77,7 @@ export interface IPlanetParams {
     transitionOpacityEnabled?: boolean;
     atmosphereParameters?: IAtmosphereParams;
     minDistanceBeforeMemClear?: number;
+    disableMemClear?: boolean;
     vectorTileSize?: number;
     maxNodesCount?: number;
     transparentBackground?: boolean;
@@ -130,6 +131,7 @@ type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
  * @param {boolean} [options.transitionOpacityEnabled] - Enables terrain transition opacity blending.
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
  * @param {number} [options.minDistanceBeforeMemClear] - Camera travel distance threshold before automatic memory cleanup.
+ * @param {boolean} [options.disableMemClear=false] - Disables automatic memory cleanup via memClear().
  * @param {number} [options.vectorTileSize] - Vector tile texture size for vector layer baking.
  * @param {boolean} [options.transparentBackground=false] - Enables transparent renderer background.
  * @param {INearPlaneStrategy} [options.nearPlaneStrategy] - Near-plane strategy implementation.
@@ -365,6 +367,7 @@ export class Planet extends Scene {
 
     protected _atmosphere: Atmosphere;
     private _minDistanceBeforeMemClear: number = 0;
+    public disableMemClear: boolean;
     private _maxNodes: number;
 
     protected _transparentBackground: boolean;
@@ -453,6 +456,8 @@ export class Planet extends Scene {
         this.SLICE_SIZE_3 = this.SLICE_SIZE * 3;
 
         this._maxNodes = options.maxNodesCount || DEFAULT_MAX_NODES;
+
+        this.disableMemClear = options.disableMemClear ?? false;
 
         this._pickingColorArr = new Float32Array(this.SLICE_SIZE_4);
         this._samplerArr = new Int32Array(this.SLICE_SIZE);
@@ -866,7 +871,7 @@ export class Planet extends Scene {
      */
     public setTerrain(terrain: EmptyTerrain) {
         if (this._initialized) {
-            this.memClear();
+            this.memClear(true);
         }
 
         if (this.terrain) {
@@ -1417,7 +1422,11 @@ export class Planet extends Scene {
         }
 
         // free memory
-        if (this._createdNodesCount > this._maxNodes && this._distBeforeMemClear > this._minDistanceBeforeMemClear) {
+        if (
+            !this.disableMemClear &&
+            this._createdNodesCount > this._maxNodes &&
+            this._distBeforeMemClear > this._minDistanceBeforeMemClear
+        ) {
             this.terrain!.clearCache();
             this.memClear();
         }
@@ -2040,7 +2049,11 @@ export class Planet extends Scene {
      * Starts a clear memory thread.
      * @public
      */
-    public memClear() {
+    public memClear(force = false) {
+        if (this.disableMemClear && !force) {
+            return;
+        }
+
         this._distBeforeMemClear = 0;
 
         this.camera._insideSegment = null;
@@ -2397,7 +2410,7 @@ export class Planet extends Scene {
      * @public
      */
     public override onremove() {
-        this.memClear();
+        this.memClear(true);
         this.quadTreeStrategy.destroyBranches();
         this.quadTreeStrategy.clearRenderedNodes();
     }

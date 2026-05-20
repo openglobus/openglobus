@@ -67,7 +67,18 @@ import { Object3d } from "./Object3d";
 
 import { Handler, ShaderProgram, Framebuffer, Multisample } from "./webgl/index";
 
-import { EmptyTerrain, GlobusTerrain, RgbTerrain, BilTerrain, GlobusRgbTerrain } from "./terrain/index";
+import {
+    EmptyTerrain,
+    GlobusTerrain,
+    RgbTerrain,
+    BilTerrain,
+    GlobusRgbTerrain,
+    MapterhornTerrain,
+    rgbToHeightByEncoding,
+    rgbToHeightRgb,
+    rgbToHeightTerrarium,
+    resolveRgbToHeightFunc
+} from "./terrain/index";
 
 import { MoveAxisEntity } from "./control/entityEditor/MoveAxisEntity";
 import { Gltf } from "./utils/gltf/gltfParser";
@@ -98,6 +109,11 @@ export {
     GlobusTerrain,
     RgbTerrain,
     GlobusRgbTerrain,
+    MapterhornTerrain,
+    rgbToHeightByEncoding,
+    rgbToHeightRgb,
+    rgbToHeightTerrarium,
+    resolveRgbToHeightFunc,
     BilTerrain,
     Camera,
     Ellipsoid,
