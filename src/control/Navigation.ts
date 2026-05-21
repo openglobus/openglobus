@@ -428,6 +428,11 @@ export class Navigation extends Control {
 
     protected _getTargetPoint(p: Vec2): Vec3 | null {
         if (this.planet) {
+            const depthPoint = this.renderer!.getCartesianFromPixel(p);
+            if (depthPoint) {
+                return depthPoint;
+            }
+
             if (this.planet.camera.isOrthographic) {
                 return this.renderer!.getCartesianFromPixel(p) || null;
             }
