@@ -25,7 +25,7 @@ export class Bing extends XYZ {
             textureFilter: "LINEAR",
             maxNativeZoom: 17,
             defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
-            attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="https://www.bing.com" target="_blank"><img style="position: relative; top: 2px;" title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation</div>`,
+            attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="https://www.bing.com" target="_blank">Bing Maps</a> © 2021 Microsoft Corporation</div>`,
             urlRewrite: (s: Segment, u: string) => {
                 return stringTemplate(u, {
                     s: this._getSubdomain(),
