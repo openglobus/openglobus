@@ -225,7 +225,6 @@ export class CameraDepthHandler extends Control {
     }
 
     protected _segmentsPass(camera: PlanetCamera) {
-
         const h = this.renderer!.handler;
         const gl = h.gl!;
 
@@ -263,7 +262,6 @@ export class CameraDepthHandler extends Control {
     }
 
     protected _geoObjectsPass(camera: PlanetCamera) {
-
         const layers = this.planet!.layers;
 
         for (let i = 0; i < layers.length; i++) {

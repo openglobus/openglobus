@@ -423,14 +423,7 @@ class Handler {
         const texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
 
-        gl.texStorage3D(
-            gl.TEXTURE_2D_ARRAY,
-            levels,
-            (gl as any)[internalFormat.toUpperCase()],
-            width,
-            height,
-            depth
-        );
+        gl.texStorage3D(gl.TEXTURE_2D_ARRAY, levels, (gl as any)[internalFormat.toUpperCase()], width, height, depth);
 
         gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, (gl as any)[filter.toUpperCase()]);
         gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, (gl as any)[filter.toUpperCase()]);

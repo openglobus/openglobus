@@ -189,13 +189,7 @@ export class BaseFramebuffer {
         if (!this._fbo) return -1;
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-        gl.framebufferTextureLayer(
-            gl.FRAMEBUFFER,
-            gl.COLOR_ATTACHMENT0 + colorAttachmentIndex,
-            texture,
-            level,
-            layer
-        );
+        gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + colorAttachmentIndex, texture, level, layer);
         const status = this.checkStatus();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 

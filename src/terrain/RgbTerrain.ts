@@ -18,26 +18,14 @@ function normalizeRgbTerrainEncoding(encoding?: string | null): RgbTerrainEncodi
 
 export type RgbToHeightFunc = (r: number, g: number, b: number, minHeight: number, resolution: number) => number;
 
-export function rgbToHeightRgb(
-    r: number,
-    g: number,
-    b: number,
-    minHeight: number,
-    resolution: number
-): number {
+export function rgbToHeightRgb(r: number, g: number, b: number, minHeight: number, resolution: number): number {
     if (r === 255) {
         return minHeight;
     }
     return minHeight + resolution * (r * 256 * 256 + g * 256 + b);
 }
 
-export function rgbToHeightTerrarium(
-    r: number,
-    g: number,
-    b: number,
-    _minHeight: number,
-    _resolution: number
-): number {
+export function rgbToHeightTerrarium(r: number, g: number, b: number, _minHeight: number, _resolution: number): number {
     // minHeight = - 32768, resolution = 1 /256
     return r * 256 + g + b / 256 - 32768;
 }
@@ -47,7 +35,9 @@ export const rgbToHeightByEncoding: Record<RgbTerrainEncoding, RgbToHeightFunc> 
     terrarium: rgbToHeightTerrarium
 };
 
-export function resolveRgbToHeightFunc(options: Pick<IRgbTerrainParams, "encoding" | "rgbToHeightFunc">): RgbToHeightFunc {
+export function resolveRgbToHeightFunc(
+    options: Pick<IRgbTerrainParams, "encoding" | "rgbToHeightFunc">
+): RgbToHeightFunc {
     if (options.rgbToHeightFunc) {
         return options.rgbToHeightFunc;
     }
