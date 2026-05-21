@@ -1,28 +1,20 @@
-const int MAX_PROJECTORS = 4;
+const int MAX_PROJECTORS = 16;
 
 uniform int u_projectorCount;
+uniform int u_projectorLayer[MAX_PROJECTORS];
 uniform mat4 u_projectorViewProjRTE[MAX_PROJECTORS];
 uniform vec3 u_projectorEyeRel[MAX_PROJECTORS];
 uniform vec4 u_projectorColorIntensity[MAX_PROJECTORS];
 uniform vec4 u_projectorParams[MAX_PROJECTORS];
 
-uniform sampler2D u_projectorDepth0;
-uniform sampler2D u_projectorDepth1;
-uniform sampler2D u_projectorDepth2;
-uniform sampler2D u_projectorDepth3;
+uniform highp sampler2DArray u_projectorDepthArray;
 
 float sampleProjectorDepth(int index, vec2 uv) {
-    if (index == 0) return texture(u_projectorDepth0, uv).r;
-    if (index == 1) return texture(u_projectorDepth1, uv).r;
-    if (index == 2) return texture(u_projectorDepth2, uv).r;
-    return texture(u_projectorDepth3, uv).r;
+    return texture(u_projectorDepthArray, vec3(uv, float(u_projectorLayer[index]))).r;
 }
 
-vec2 getProjectorTexelSize(int index) {
-    if (index == 0) return 1.0 / vec2(textureSize(u_projectorDepth0, 0));
-    if (index == 1) return 1.0 / vec2(textureSize(u_projectorDepth1, 0));
-    if (index == 2) return 1.0 / vec2(textureSize(u_projectorDepth2, 0));
-    return 1.0 / vec2(textureSize(u_projectorDepth3, 0));
+vec2 getProjectorTexelSize() {
+    return 1.0 / vec2(textureSize(u_projectorDepthArray, 0).xy);
 }
 
 float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
@@ -50,7 +42,7 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
     float depthEpsilon = u_projectorParams[projectorIndex].w;
     float depthThreshold = bias + depthEpsilon;
 
-    vec2 texelSize = getProjectorTexelSize(projectorIndex);
+    vec2 texelSize = getProjectorTexelSize();
     float visibility = 0.0;
     for (int y = -1; y <= 1; y++) {
         for (int x = -1; x <= 1; x++) {

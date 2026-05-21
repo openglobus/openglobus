@@ -5,7 +5,6 @@ precision highp sampler2D;
 
 #include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
-#include "../common/projectors.glsl"
 
 uniform sampler2D baseTexture;
 uniform sampler2D materialsTexture;
@@ -34,13 +33,11 @@ void main(void) {
     vec3 viewPos = viewPositionData.xyz;
     vec3 emission = unpackEmissionColor(viewPositionData.a);
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
-    float receiveProjectors = materials.a;
 
     vec3 rtcPos = normalMatrix * viewPos;
-    vec3 projectorColor = applyProjectors(rtcPos, normal) * receiveProjectors;
 
     if (shadeMode == SHADE_UNLIT) {
-        fragColor = vec4(baseColor.rgb + projectorColor, baseColor.a);
+        fragColor = vec4(baseColor.rgb, baseColor.a);
         return;
     }
 
@@ -65,7 +62,7 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorColor, baseColor.a);
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
     } else {
         // TODO: Real PBR deferred(no-atmos) is not implemented yet. Keep PBR as Phong for now.
         getPhongLighting(
@@ -81,6 +78,6 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorColor, baseColor.a);
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
     }
 }

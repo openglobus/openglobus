@@ -80,8 +80,10 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         gl.bindTexture(gl.TEXTURE_2D, this._atmosphere._scatteringBuffer!.textures[0]);
         gl.uniform1i(p.uniforms.scatteringTexture, 5);
 
-        r.projectors.bind(p, 6);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        // Per-projector additive frustum-geometry pass.
+        this._projectorPass.apply(this._framebuffer!);
 
         gl.depthMask(true);
         gl.enable(gl.DEPTH_TEST);

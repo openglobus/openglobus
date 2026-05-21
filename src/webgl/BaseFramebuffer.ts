@@ -171,6 +171,65 @@ export class BaseFramebuffer {
     }
 
     /**
+     * Attaches texture array layer to framebuffer color attachment and returns framebuffer status.
+     * @public
+     * @param {WebGLTexture | null} texture - Source texture array.
+     * @param {number} layer - Array layer index.
+     * @param {number} [colorAttachmentIndex=0] - Color attachment index.
+     * @param {number} [level=0] - Mipmap level.
+     * @returns {number} - Framebuffer status enum.
+     */
+    public attachLayer(
+        texture: WebGLTexture | null,
+        layer: number,
+        colorAttachmentIndex: number = 0,
+        level: number = 0
+    ): number {
+        const gl = this.handler.gl!;
+        if (!this._fbo) return -1;
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+        gl.framebufferTextureLayer(
+            gl.FRAMEBUFFER,
+            gl.COLOR_ATTACHMENT0 + colorAttachmentIndex,
+            texture,
+            level,
+            layer
+        );
+        const status = this.checkStatus();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        return status;
+    }
+
+    /**
+     * Converts framebuffer status enum to readable text.
+     */
+    public statusToText(status: number): string {
+        const gl = this.handler.gl;
+        if (!gl) {
+            return `0x${status.toString(16)}`;
+        }
+
+        switch (status) {
+            case gl.FRAMEBUFFER_COMPLETE:
+                return "FRAMEBUFFER_COMPLETE";
+            case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                return "FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+            case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                return "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
+            case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+                return "FRAMEBUFFER_INCOMPLETE_DIMENSIONS";
+            case gl.FRAMEBUFFER_UNSUPPORTED:
+                return "FRAMEBUFFER_UNSUPPORTED";
+            case gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                return "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE";
+            default:
+                return `0x${status.toString(16)}`;
+        }
+    }
+
+    /**
      * Activate framebuffer frame to draw.
      * @public
      * @returns {Framebuffer} Returns Current framebuffer.

@@ -21,14 +21,13 @@ export type { IControlParams } from "./control/Control";
 export type { ITouchState } from "./renderer/RendererEvents";
 export type { IDeferredShadingPass } from "./renderer/IDeferredShadingPass";
 export type { ITransparencyPass } from "./renderer/ITransparencyPass";
-export type {
-    ProjectorMode,
-    IRendererProjectorParams
-} from "./renderer/ProjectorManager";
+export type { ProjectorMode, IRendererProjectorParams } from "./renderer/RendererProjector";
+export { RendererProjector } from "./renderer/RendererProjector";
 export { PhongDeferredShading } from "./renderer/PhongDeferredShading";
 export { AtmosphereDeferredShading } from "./renderer/AtmosphereDeferredShading";
 export { WOITPass } from "./renderer/WOITPass";
-export { ProjectorManager, RendererProjector } from "./renderer/ProjectorManager";
+export { ProjectorsPass } from "./renderer/ProjectorsPass";
+export { ProjectorManager } from "./renderer/ProjectorManager";
 export { SHADE_UNLIT, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "./shadeModeConstants";
 
 declare const __OG_VERSION__: string;

@@ -1586,7 +1586,7 @@ export class Planet extends Scene {
         gl.uniform1f(shu.camHeight, cam.getHeight());
 
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
-        renderer.projectors.bind(sh, this.SLICE_SIZE + 6);
+        renderer.projectors.bindForward(sh, this.SLICE_SIZE + 6);
 
         return sh;
     }
@@ -1651,7 +1651,7 @@ export class Planet extends Scene {
         gl.uniform1f(shu.camHeight, cam.getHeight());
 
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
-        renderer.projectors.bind(sh, this.SLICE_SIZE + 6);
+        renderer.projectors.bindForward(sh, this.SLICE_SIZE + 6);
 
         return sh;
     }
