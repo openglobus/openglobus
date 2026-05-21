@@ -63,7 +63,7 @@ const depthPreviewShader = `float linearizeDepth(float z, float near, float far)
             void mainImage(out vec4 fragColor, in vec2 fragCoord){
                 float near = 100.0;
                 float far = 100000.0;
-                float depth = texture(inputTexture, fragCoord).r;
+                float depth = texture(inputTextureArray, vec3(fragCoord, float(u_arrayLayer))).r;
                 float linearDepth = linearizeDepth(depth, near, far);
                 float normalized = pow(near / max(linearDepth, near), 0.35);
                 fragColor = vec4(vec3(clamp(normalized, 0.0, 1.0)), 1.0);
@@ -123,7 +123,7 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     const projector = new RendererProjector({
         enabled: true,
         camera: depthCamera,
-        depthTexture: depthHandler.getDepthTexture(),
+        framebuffer: depthHandler.framebuffer,
         color: [1.0, 1.0, 0.1],
         intensity: 1.0,
         opacity: 0.45,
@@ -135,11 +135,12 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     });
     globus.planet.renderer.projectors.add(projector);
 
-    const framebuffer = depthHandler.framebuffer;
-
     const depthPreview = new control.FramebufferPreview({
         title: `depthHandler:${objectId}`,
-        framebuffer,
+        arrayTexture: projector.arrayTexture,
+        arrayLayer: projector.slot,
+        width: depthHandler.framebuffer.width,
+        height: depthHandler.framebuffer.height,
         image: depthPreviewShader,
         flippedY: true
     });
