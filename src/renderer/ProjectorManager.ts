@@ -229,6 +229,9 @@ export class ProjectorManager {
 
         if (total === 0) {
             gl.uniform1i(u.u_projectorCount!, 0);
+            // Keep sampler2DArray on its dedicated unit even when projectors are disabled.
+            // Prevents sampler type conflicts with sampler2D bound to texture unit 0.
+            gl.uniform1i(u.u_projectorDepthArray!, textureUnitStart);
             return 0;
         }
 
@@ -300,6 +303,7 @@ export class ProjectorManager {
 
         if (total === 0 || projectorIndex < 0 || projectorIndex >= total) {
             gl.uniform1i(u.u_projectorCount!, 0);
+            gl.uniform1i(u.u_projectorDepthArray!, textureUnitStart);
             return 0;
         }
 

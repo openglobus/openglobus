@@ -1673,8 +1673,8 @@ export class Planet extends Scene {
         for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
             let f = currentNode._fadingNodes[j].segment;
 
-            //if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[j].__id) && !nodes.has(f.node.__id)) {
-            if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
+            if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[j].__id) && !nodes.has(f.node.__id)) {
+            //if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
                 nodes.set(f.node.__id, true);
 
                 if (f._transitionOpacity < 1.0) {
