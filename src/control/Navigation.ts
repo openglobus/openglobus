@@ -436,6 +436,11 @@ export class Navigation extends Control {
                 return this.planet.getCartesianFromPixelEllipsoid(p) || null;
             }
 
+            const depthPoint = this.renderer!.getCartesianFromPixel(p);
+            if (depthPoint) {
+                return depthPoint;
+            }
+
             return this.planet.getCartesianFromPixelTerrain(p) || null;
         }
         return null;
@@ -451,19 +456,11 @@ export class Navigation extends Control {
 
             let cam = this.planet.camera;
 
-            if (cam.isOrthographic) {
-                let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
-                if (!_targetZoomPoint) return;
+            let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
+            if (!_targetZoomPoint) return;
 
-                this._targetZoomPoint = _targetZoomPoint;
-                this._grabbedSphere.radius = this._targetZoomPoint.length();
-            } else {
-                let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
-                if (!_targetZoomPoint) return;
-
-                this._targetZoomPoint = _targetZoomPoint;
-                this._grabbedSphere.radius = this._targetZoomPoint.length();
-            }
+            this._targetZoomPoint = _targetZoomPoint;
+            this._grabbedSphere.radius = this._targetZoomPoint.length();
 
             this._curPitch = cam.getPitch();
             this._curYaw = cam.getYaw();
