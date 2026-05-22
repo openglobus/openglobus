@@ -1,6 +1,6 @@
-import { readFile, writeFile } from 'fs/promises';
-import path from 'node:path';
-import { minify } from 'terser';
+import { readFile, writeFile } from "fs/promises";
+import path from "node:path";
+import { minify } from "terser";
 
 export default function forceTerserPlugin({ filePath }) {
     const mapPath = `${filePath}.map`;
@@ -8,13 +8,10 @@ export default function forceTerserPlugin({ filePath }) {
     const mapFileName = path.basename(mapPath);
 
     return {
-        name: 'vite-plugin-force-terser',
-        apply: 'build',
-        async closeBundle() {
-            const [code, prevMap] = await Promise.all([
-                readFile(filePath, 'utf-8'),
-                readFile(mapPath, 'utf-8')
-            ]);
+        name: "vite-plugin-force-terser",
+        apply: "build",
+        async writeBundle() {
+            const [code, prevMap] = await Promise.all([readFile(filePath, "utf-8"), readFile(mapPath, "utf-8")]);
 
             const result = await minify(
                 { [fileName]: code },
@@ -31,13 +28,10 @@ export default function forceTerserPlugin({ filePath }) {
             );
 
             if (result.code && result.map) {
-                await Promise.all([
-                    writeFile(filePath, result.code, 'utf-8'),
-                    writeFile(mapPath, result.map, 'utf-8'),
-                ]);
+                await Promise.all([writeFile(filePath, result.code, "utf-8"), writeFile(mapPath, result.map, "utf-8")]);
                 console.log(`✔ ${fileName} and ${mapFileName} regenerated with Terser`);
             } else {
-                console.warn('⚠ terser did not return code or map');
+                console.warn("⚠ terser did not return code or map");
             }
         }
     };
