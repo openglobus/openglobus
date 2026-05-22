@@ -3,26 +3,33 @@ import {
     control,
     Vector,
     Entity,
+    LonLat,
     OpenStreetMap,
     GlobusRgbTerrain,
     Bing,
     PlanetCamera,
     input,
     Gltf,
-    Object3d
+    Object3d,
+    Projector
 } from "../../lib/og.es.js";
 
 let uavLayer = new Vector("UAV.Layer", {
-    scaleByDistance: [50, 50000, 1]
+    scaleByDistance: [50, 50000, 1],
+    receiveProjectors: false
+});
+
+let myObjects = new Vector("myObjects", {
+    scaleByDistance: [1, 1, 1]
 });
 
 const globus = new Globe({
     target: "earth",
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
-    layers: [new Bing(), new OpenStreetMap(), uavLayer],
+    layers: [new Bing(), new OpenStreetMap(), uavLayer, myObjects],
     atmosphereEnabled: true,
-    fontsSrc: "../../res/fonts",
+    fontsSrc: "../../res/fonts"
 });
 
 globus.planet.addControl(new control.TimelineControl());
@@ -34,6 +41,19 @@ globus.planet.addControl(new control.EntityEditor());
 const uavGltfPromise = Gltf.loadGlb("./uav.glb");
 const cameraFrustumObject3d = Object3d.createFrustum();
 const trackedCameraEntities = [];
+const skyCubeObject3d = Object3d.createCube(10000, 10000, 10000).setColor("white");
+
+myObjects.add(
+    new Entity({
+        name: "sky-cube",
+        lonlat: new LonLat(9.0814898, 46.4864594, 10000),
+        independentPicking: true,
+        geoObject: {
+            tag: "sky-cube",
+            object3d: skyCubeObject3d
+        }
+    })
+);
 
 const depthPreviewShader = `float linearizeDepth(float z, float near, float far) {
                 float ndcZ = z * 2.0 - 1.0;
@@ -43,7 +63,7 @@ const depthPreviewShader = `float linearizeDepth(float z, float near, float far)
             void mainImage(out vec4 fragColor, in vec2 fragCoord){
                 float near = 100.0;
                 float far = 100000.0;
-                float depth = texture(inputTexture, fragCoord).r;
+                float depth = texture(inputTextureArray, vec3(fragCoord, float(u_arrayLayer))).r;
                 float linearDepth = linearizeDepth(depth, near, far);
                 float normalized = pow(near / max(linearDepth, near), 0.35);
                 fragColor = vec4(vec3(clamp(normalized, 0.0, 1.0)), 1.0);
@@ -74,7 +94,7 @@ function syncTrackedCameras() {
     }
 }
 
-globus.planet.renderer.events.on("draw", syncTrackedCameras);
+globus.planet.renderer.events.on("draw", syncTrackedCameras, null, -300);
 
 async function createTrackedCameraEntity(cameraSnapshot) {
     const uavGltf = await uavGltfPromise;
@@ -88,7 +108,9 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     const objectId = cameraObjectCounter++;
 
     const depthHandler = new control.CameraDepthHandler({
-        showFrustum: false
+        showFrustum: false,
+        showFootprint: false,
+        excludeLayers: [uavLayer]
     });
     globus.planet.addControl(depthHandler);
 
@@ -98,11 +120,27 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     }
     depthCamera.copy(cameraSnapshot);
 
-    const framebuffer = depthHandler.framebuffer;
+    const projector = new Projector({
+        enabled: true,
+        camera: depthCamera,
+        framebuffer: depthHandler.framebuffer,
+        color: [1.0, 1.0, 0.1],
+        intensity: 1.0,
+        opacity: 0.45,
+        bias: 0.0005, //0.00003 .. 0.00008 - 0.0005
+        normalBias: 0.1, // 0.2 .. 1.0
+        depthEpsilon: 0.0002, //0.00015 .. 0.0005 - 0.0015
+        mode: "decal",
+        priority: 0
+    });
+    globus.planet.renderer.projectors.add(projector);
 
     const depthPreview = new control.FramebufferPreview({
         title: `depthHandler:${objectId}`,
-        framebuffer,
+        arrayTexture: projector.arrayTexture,
+        arrayLayer: projector.slot,
+        width: depthHandler.framebuffer.width,
+        height: depthHandler.framebuffer.height,
         image: depthPreviewShader,
         flippedY: true
     });
@@ -115,7 +153,8 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         properties: {
             camera: depthCamera,
             depthHandler,
-            depthPreview
+            depthPreview,
+            projector
         },
         geoObject: {
             tag: `uav:${rootName}`,
@@ -130,7 +169,7 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         independentPicking: true,
         geoObject: {
             tag: "camera-frustum",
-            color: "rgba(0,255,0,0.2)",
+            color: "rgba(0,255,0,0.1)",
             object3d: cameraFrustumObject3d
         }
     });
@@ -138,11 +177,7 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     uavModelRoot.appendChild(frustumEntity);
 
     frustumEntity.setScale3v(
-        Object3d.getFrustumScaleByCameraAngles(
-            100,
-            depthCamera.horizontalViewAngle,
-            depthCamera.verticalViewAngle
-        )
+        Object3d.getFrustumScaleByCameraAngles(3, depthCamera.horizontalViewAngle, depthCamera.verticalViewAngle)
     );
 
     frustumEntity.setAbsolutePitch(depthCamera.getPitch());
@@ -181,14 +216,14 @@ globus.planet.renderer.events.on("charkeypress", input.KEY_V, () => {
     restoreCamera();
 });
 
-function updateSkyBoxFrustum() {
-    const camera = globus.planet.camera;
-    const alt = camera.getAltitude();
-    camera.setNearFar(alt - alt * 0.9);
-}
-
-globus.planet.camera.events.on("viewchange", updateSkyBoxFrustum);
-updateSkyBoxFrustum();
+// function updateSkyBoxFrustum() {
+//     const camera = globus.planet.camera;
+//     const alt = camera.getAltitude();
+//     camera.setNearFar(alt - alt * 0.9);
+// }
+//
+// globus.planet.camera.events.on("viewchange", updateSkyBoxFrustum);
+// updateSkyBoxFrustum();
 
 // let toneMappingFramebufferPreview = new control.FramebufferPreview({
 //     title: "toneMappingFramebuffer",

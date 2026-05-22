@@ -6,6 +6,7 @@ precision highp float;
 #include "../atmos/common.glsl"
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
+#include "../common/projectors.glsl"
 
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
@@ -21,6 +22,7 @@ uniform float uUseNormalTexture;
 uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform float shadeMode;
+uniform float uProjectorMask;
 uniform mat3 normalMatrix;
 
 uniform sampler2D transmittanceTexture;
@@ -33,6 +35,7 @@ uniform vec2 atmosMaxMinOpacity;
 
 in vec3 cameraPosition;
 in vec3 v_vertex;
+in vec3 v_rtcPos;
 in vec3 v_viewPosition;
 in vec4 vColor;
 in vec3 vNormal;
@@ -55,13 +58,6 @@ void main(void) {
     vec4 color;
 
     float shade = shadeMode;
-
-    if (shade == SHADE_UNLIT) {
-        color = baseColor;
-        weightedOITAccumulate(color, accumColor, accumAlpha);
-        return;
-    }
-
     vec3 normal = normalize(vNormal);
 
     if (uUseNormalTexture > 0.0) {
@@ -72,6 +68,15 @@ void main(void) {
         v_viewPosition,
         normalMatrix
         );
+    }
+
+    vec3 projectorColor = applyProjectors(v_rtcPos, normal) * uProjectorMask;
+
+    if (shade == SHADE_UNLIT) {
+        color = baseColor;
+        color.rgb += projectorColor;
+        weightedOITAccumulate(color, accumColor, accumAlpha);
+        return;
     }
 
     vec3 material = materialProperties;
@@ -109,6 +114,7 @@ void main(void) {
         lightWeighting
         );
         color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
+        color.rgb += projectorColor;
     } else {
         float metallic = material.b;
         float roughness = material.g;
@@ -147,6 +153,7 @@ void main(void) {
         getAtmosFadingOpacity(vertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
 
         color = mix(baseColor * lightWeighting, atmosColor * baseColor.a, fadingOpacity) + vec4(specularWeighting, 0.0);
+        color.rgb += projectorColor;
     }
 
     weightedOITAccumulate(color, accumColor, accumAlpha);

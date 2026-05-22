@@ -298,6 +298,36 @@ export class Framebuffer extends BaseFramebuffer {
         });
     };
 
+    /**
+     * Synchronously reads all configured async pixel buffers for the current framebuffer state.
+     * Use when the same-frame CPU readback is required.
+     */
+    public readPixelBuffers() {
+        const gl = this.handler.gl!;
+
+        let w = this.width,
+            h = this.height;
+
+        let pb = this.pixelBuffers;
+        if (!pb.length) return;
+
+        this.activate();
+
+        for (let i = 0; i < pb.length; i++) {
+            let pbi = pb[i];
+            if (!pbi.data) continue;
+
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbi.buffer);
+            gl.bufferData(gl.PIXEL_PACK_BUFFER, pbi.data.byteLength, gl.STREAM_READ);
+            gl.readBuffer(pbi.glAttachment);
+            gl.readPixels(0, 0, w, h, gl.RGBA, pbi.glType, 0);
+            gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, pbi.data);
+        }
+
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+        this.deactivate();
+    }
+
     public getPixelBufferData(targetIndex: number = 0): TypedArray | null {
         let pbInd = this._targets[targetIndex].pixelBufferIndex;
         return pbInd !== -1 ? this.pixelBuffers[pbInd].data : null;

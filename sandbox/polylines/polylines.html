@@ -1,0 +1,119 @@
+<html>
+    <head>
+        <title>OpenGlobus - Earth planet</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+    </head>
+
+    <body>
+        <div id="globus" style="width: 100%; height: 100%"></div>
+        <script type="module" id="og-sandbox-script">
+            "use strict";
+
+            import { math, Globe, Entity, GlobusRgbTerrain, XYZ, LonLat, Vector, Vec3, Quat } from "../../lib/og.es.js";
+
+            //
+            // Orbit circles
+            //
+            var size = 5.0;
+            var greenOrbit = [];
+            var p = new Vec3(0, 0, 6378137.0 + 3000000.0);
+            var q = Quat.axisAngleToQuat(new Vec3(1, 1, 0).normalize(), size * math.RADIANS);
+
+            var redOrbit = [];
+            var p2 = new Vec3(0, 0, 6378137.0 + 5000000.0);
+            var q2 = Quat.axisAngleToQuat(new Vec3(-0.1, 1, 0.1).normalize(), size * math.RADIANS);
+
+            for (let i = 0; i < 360; i += size) {
+                p = q.mulVec3(p);
+                greenOrbit.push(p);
+
+                p2 = q2.mulVec3(p2);
+                redOrbit.push(p2);
+            }
+
+            //
+            // Geodetic grid
+            //
+            var grid = [];
+            //meridians
+            for (let i = -180; i < 180; i += 10) {
+                var mer = [];
+                for (let j = -90; j <= 90; j++) {
+                    mer.push(new LonLat(i, j, 20000));
+                }
+                grid.push(mer);
+            }
+
+            //parallels
+            for (let i = -90; i < 90; i += 10) {
+                var mer = [];
+                for (let j = -180; j <= 180; j++) {
+                    mer.push(new LonLat(j, i, 20000));
+                }
+                grid.push(mer);
+            }
+
+            var collection = new Vector("Collection", {
+                entities: [
+                    {
+                        polyline: {
+                            pathLonLat: grid,
+                            thickness: 3,
+                            color: "rgba(68, 157, 205, 0.92)"
+                        }
+                    },
+                    {
+                        polyline: {
+                            path3v: [greenOrbit],
+                            thickness: 7.5,
+                            color: "#39b739",
+                            isClosed: true
+                        }
+                    },
+                    {
+                        polyline: {
+                            path3v: [redOrbit],
+                            thickness: 12.5,
+                            color: "#ff3b3b",
+                            isClosed: true
+                        }
+                    },
+                    {
+                        polyline: {
+                            pathLonLat: [
+                                [new LonLat(55, 2.351, 200000), new LonLat(52, 17, 200000), new LonLat(50, 35, 300000)]
+                            ],
+                            pathColors: [
+                                [
+                                    [1, 1, 1, 1],
+                                    [1, 1, 0, 1],
+                                    [1, 0, 0, 1]
+                                ]
+                            ],
+                            thickness: 25.5,
+                            //'color': "red",
+                            isClosed: false
+                        }
+                    }
+                ]
+            });
+
+            var osm = new XYZ("OpenStreetMap", {
+                isBaseLayer: true,
+                url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                visibility: true,
+                attribution: "Data @ OpenStreetMap contributors, ODbL"
+            });
+
+            var globus = new Globe({
+                target: "globus",
+                name: "Earth",
+                layers: [osm, collection],
+                terrain: new GlobusRgbTerrain(),
+                resourcesSrc: "../../external/og/lib/res",
+                fontsSrc: "../../external/og/lib/res/fonts"
+            });
+        </script>
+    </body>
+</html>

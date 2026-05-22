@@ -89,7 +89,14 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             camHeight: "float",
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
-            shadeMode: "float"
+            shadeMode: "float",
+            u_projectorCount: "int",
+            u_projectorLayer: "intxx",
+            u_projectorViewProjRTE: "mat4",
+            u_projectorEyeRel: "vec3",
+            u_projectorColorIntensity: "vec4",
+            u_projectorParams: "vec4",
+            u_projectorDepthArray: "sampler2darray"
         },
         attributes: {
             aVertexPositionHigh: "vec3",
@@ -131,7 +138,14 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             camHeight: "float",
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
-            shadeMode: "float"
+            shadeMode: "float",
+            u_projectorCount: "int",
+            u_projectorLayer: "intxx",
+            u_projectorViewProjRTE: "mat4",
+            u_projectorEyeRel: "vec3",
+            u_projectorColorIntensity: "vec4",
+            u_projectorParams: "vec4",
+            u_projectorDepthArray: "sampler2darray"
         },
         attributes: {
             aVertexPositionHigh: "vec3",

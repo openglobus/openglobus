@@ -1,15 +1,18 @@
 import { Framebuffer } from "../webgl/Framebuffer";
 import { deferredShading } from "../shaders/deferredShading/deferredShading";
 import { applyDeferredDepth } from "../shaders/applyDeferredDepth";
+import { ProjectorsPass } from "./projectors/ProjectorsPass";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { Renderer } from "./Renderer";
 
 export class PhongDeferredShading implements IDeferredShadingPass {
     protected _renderer: Renderer;
     protected _framebuffer: Framebuffer | null = null;
+    protected _projectorPass: ProjectorsPass;
 
     constructor(renderer: Renderer) {
         this._renderer = renderer;
+        this._projectorPass = new ProjectorsPass(renderer);
     }
 
     public init() {
@@ -17,6 +20,7 @@ export class PhongDeferredShading implements IDeferredShadingPass {
 
         h.addProgram(deferredShading());
         h.addProgram(applyDeferredDepth());
+        this._projectorPass.init();
 
         this._framebuffer = new Framebuffer(h, {
             useDepth: false,
@@ -74,6 +78,7 @@ export class PhongDeferredShading implements IDeferredShadingPass {
             this._framebuffer.destroy();
             this._framebuffer = null;
         }
+        this._projectorPass.dispose();
         this._renderer.handler.removeProgram("deferredShading");
         this._renderer.handler.removeProgram("applyDeferredDepth");
     }
@@ -147,6 +152,9 @@ export class PhongDeferredShading implements IDeferredShadingPass {
         gl.uniform1i(p.uniforms.viewPositionTexture, 3);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        // Per-projector additive frustum-geometry pass.
+        this._projectorPass.apply(this._framebuffer!);
 
         gl.depthMask(true);
         gl.enable(gl.DEPTH_TEST);

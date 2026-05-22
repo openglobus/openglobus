@@ -39,6 +39,8 @@ export class EntityCollectionsTreeStrategy {
 
     public setPickingEnabled(pickingEnabled: boolean) {}
 
+    public setReceiveProjectors(receiveProjectors: boolean) {}
+
     public dispose() {}
 
     public insertEntities(entitiesForTree: Entity[]) {}

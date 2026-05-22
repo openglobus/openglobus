@@ -11,6 +11,7 @@ import geo_object_picking_vert from "./geo_object_picking.vert.glsl";
 import geo_object_picking_frag from "./geo_object_picking.frag.glsl";
 import geo_object_depth_vert from "./geo_object_depth.vert.glsl";
 import geo_object_depth_frag from "./geo_object_depth.frag.glsl";
+import geo_object_depth_camera_frag from "./geo_object_depth_camera.frag.glsl";
 
 export const geo_object_deferred = (): ShaderProgram =>
     new ShaderProgram("geo_object_deferred", {
@@ -30,7 +31,8 @@ export const geo_object_deferred = (): ShaderProgram =>
             uUseMetallicRoughnessTexture: "float",
             uUseAOTexture: "float",
             materialProperties: "vec3",
-            shadeMode: "float"
+            shadeMode: "float",
+            uProjectorMask: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -117,7 +119,15 @@ export const geo_object_woit = (): ShaderProgram =>
             uUseMetallicRoughnessTexture: "float",
             uUseAOTexture: "float",
             shadeMode: "float",
-            useReverseDepth: "float"
+            uProjectorMask: "float",
+            useReverseDepth: "float",
+            u_projectorCount: "int",
+            u_projectorLayer: "intxx",
+            u_projectorViewProjRTE: "mat4",
+            u_projectorEyeRel: "vec3",
+            u_projectorColorIntensity: "vec4",
+            u_projectorParams: "vec4",
+            u_projectorDepthArray: "sampler2darray"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -161,11 +171,19 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             uUseMetallicRoughnessTexture: "float",
             uUseAOTexture: "float",
             shadeMode: "float",
+            uProjectorMask: "float",
             useReverseDepth: "float",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             atmosFadeDist: "vec2",
-            atmosMaxMinOpacity: "vec2"
+            atmosMaxMinOpacity: "vec2",
+            u_projectorCount: "int",
+            u_projectorLayer: "intxx",
+            u_projectorViewProjRTE: "mat4",
+            u_projectorEyeRel: "vec3",
+            u_projectorColorIntensity: "vec4",
+            u_projectorParams: "vec4",
+            u_projectorDepthArray: "sampler2darray"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -234,4 +252,27 @@ export const geo_object_depth = (): ShaderProgram =>
         },
         vertexShader: geo_object_depth_vert,
         fragmentShader: geo_object_depth_frag
+    });
+
+export const geo_object_depth_camera = (): ShaderProgram =>
+    new ShaderProgram("geo_object_depth_camera", {
+        uniforms: {
+            viewMatrix: "mat4",
+            projectionMatrix: "mat4",
+            uScaleByDistance: "vec4",
+            rtcEyePositionHigh: "vec3",
+            rtcEyePositionLow: "vec3"
+        },
+        attributes: {
+            aVertexPosition: "vec3",
+            aRTCPositionHigh: { type: "vec3", divisor: 1 },
+            aRTCPositionLow: { type: "vec3", divisor: 1 },
+            aScale: { type: "vec3", divisor: 1 },
+            aTranslate: { type: "vec3", divisor: 1 },
+            aDispose: { type: "float", divisor: 1 },
+            qRot: { type: "vec4", divisor: 1 },
+            aLocalPosition: { type: "vec3", divisor: 1 }
+        },
+        vertexShader: geo_object_depth_vert,
+        fragmentShader: geo_object_depth_camera_frag
     });
