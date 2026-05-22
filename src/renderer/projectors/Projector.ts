@@ -3,7 +3,7 @@ import type { NumberArray3 } from "../../math/Vec3";
 import type { Framebuffer } from "../../webgl/Framebuffer";
 import type { ProjectorManager } from "./ProjectorManager";
 
-export type ProjectorMode = "light" | "decal";
+export type ProjectorMode = "color" | "image" | "video" | "texture";
 
 export interface IProjectorParams {
     enabled: boolean;

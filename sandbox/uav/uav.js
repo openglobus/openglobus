@@ -11,7 +11,7 @@ import {
     input,
     Gltf,
     Object3d,
-    RendererProjector
+    Projector
 } from "../../lib/og.es.js";
 
 let uavLayer = new Vector("UAV.Layer", {
@@ -120,7 +120,7 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     }
     depthCamera.copy(cameraSnapshot);
 
-    const projector = new RendererProjector({
+    const projector = new Projector({
         enabled: true,
         camera: depthCamera,
         framebuffer: depthHandler.framebuffer,
