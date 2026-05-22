@@ -1,6 +1,6 @@
-import type { Camera } from "../camera/Camera";
-import type { NumberArray3 } from "../math/Vec3";
-import type { Framebuffer } from "../webgl/Framebuffer";
+import type { Camera } from "../../camera/Camera";
+import type { NumberArray3 } from "../../math/Vec3";
+import type { Framebuffer } from "../../webgl/Framebuffer";
 import type { ProjectorManager } from "./ProjectorManager";
 
 export type ProjectorMode = "light" | "decal";

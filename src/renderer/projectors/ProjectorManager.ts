@@ -1,8 +1,8 @@
-import { Mat4 } from "../math/Mat4";
-import { cons } from "../cons";
-import type { ShaderProgram } from "../webgl/ShaderProgram";
-import type { Renderer } from "./Renderer";
-import { srgbToLinearArr } from "../utils/colorSpace";
+import { Mat4 } from "../../math/Mat4";
+import { cons } from "../../cons";
+import type { ShaderProgram } from "../../webgl/ShaderProgram";
+import type { Renderer } from "../Renderer";
+import { srgbToLinearArr } from "../../utils/colorSpace";
 import { RendererProjector } from "./RendererProjector";
 
 export type { ProjectorMode, IRendererProjectorParams } from "./RendererProjector";

@@ -1,10 +1,10 @@
-import { Mat4 } from "../math/Mat4";
-import { projectorsPass } from "../shaders/projectorsPass/projectorsPass";
-import type { Renderer } from "./Renderer";
-import type { Framebuffer } from "../webgl/Framebuffer";
+import { Mat4 } from "../../math/Mat4";
+import { projectorsPass } from "../../shaders/projectorsPass/projectorsPass";
+import type { Renderer } from "../Renderer";
+import type { Framebuffer } from "../../webgl/Framebuffer";
 import type { RendererProjector } from "./RendererProjector";
-import type { NumberArray16 } from "../math/Mat4";
-import type { Vec3 } from "../math/Vec3";
+import type { NumberArray16 } from "../../math/Mat4";
+import type { Vec3 } from "../../math/Vec3";
 
 const CORNERS = [-1, -1, -1, 1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, 1, 1, -1, 1, -1, 1, 1, 1, 1, 1];
 

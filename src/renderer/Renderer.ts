@@ -20,7 +20,7 @@ import { toneMapping } from "../shaders/tone_mapping/toneMapping";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { ITransparencyPass } from "./ITransparencyPass";
 import { PhongDeferredShading } from "./PhongDeferredShading";
-import { ProjectorManager } from "./ProjectorManager";
+import { ProjectorManager } from "./projectors/ProjectorManager";
 import { TextureResourceManager } from "../utils/TextureResourceManager";
 import type { RendererTextureRequest } from "../utils/TextureResourceManager";
 import { WOITPass } from "./WOITPass";

@@ -1,7 +1,7 @@
 import { Framebuffer } from "../webgl/Framebuffer";
 import { deferredShading } from "../shaders/deferredShading/deferredShading";
 import { applyDeferredDepth } from "../shaders/applyDeferredDepth";
-import { ProjectorsPass } from "./ProjectorsPass";
+import { ProjectorsPass } from "./projectors/ProjectorsPass";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { Renderer } from "./Renderer";
 
