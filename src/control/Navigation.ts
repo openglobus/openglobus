@@ -163,6 +163,7 @@ export class Navigation extends Control {
 
     protected _defaultVelInertia: number;
     protected _velInertia: number;
+    protected _prevDistanceToTarget: number;
 
     protected _hold: boolean = false;
 
@@ -193,6 +194,7 @@ export class Navigation extends Control {
         this.inertia = options.inertia ?? 1;
         this._defaultVelInertia = options.velInertia ?? DEFAULT_VELINERTIA;
         this._velInertia = this._defaultVelInertia;
+        this._prevDistanceToTarget = 0;
         this.minSlope = options.minSlope ?? MIN_SLOPE;
         this.dragInertia = options.dragInertia ?? DEFAULT_DRAG_INERTIA;
         this.zoomSpeed = options.zoomSpeed ?? 1;
@@ -446,6 +448,10 @@ export class Navigation extends Control {
         return null;
     }
 
+    protected _checkJump(distanceToTarget: number) {
+        return this._prevDistanceToTarget !== 0 && distanceToTarget > this._prevDistanceToTarget * 2;
+    }
+
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.planet) {
             this._targetRotationPoint = null;
@@ -455,20 +461,21 @@ export class Navigation extends Control {
                 sy = e.y;
 
             let cam = this.planet.camera;
+            const wheelDirection = Math.sign(e.wheelDelta);
 
-            if (cam.isOrthographic) {
-                let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
-                if (!_targetZoomPoint) return;
+            let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
+            if (!_targetZoomPoint) return;
 
-                this._targetZoomPoint = _targetZoomPoint;
-                this._grabbedSphere.radius = this._targetZoomPoint.length();
-            } else {
-                let _targetZoomPoint = this._getTargetPoint(new Vec2(sx, sy));
-                if (!_targetZoomPoint) return;
+            const distanceToTarget = cam.eye.distance(_targetZoomPoint);
 
-                this._targetZoomPoint = _targetZoomPoint;
-                this._grabbedSphere.radius = this._targetZoomPoint.length();
+            if (this._checkJump(distanceToTarget)) {
+                this._prevDistanceToTarget = 0;
+                return;
             }
+            this._prevDistanceToTarget = distanceToTarget;
+
+            this._targetZoomPoint = _targetZoomPoint;
+            this._grabbedSphere.radius = this._targetZoomPoint.length();
 
             this._curPitch = cam.getPitch();
             this._curYaw = cam.getYaw();
@@ -936,6 +943,7 @@ export class Navigation extends Control {
         this.vel_h = 0;
         this.vel_v = 0;
         this._velInertia = this._defaultVelInertia;
+        this._prevDistanceToTarget = 0;
         this._targetZoomPoint = null;
         this._grabbedPoint = null;
         this._targetRotationPoint = null;
