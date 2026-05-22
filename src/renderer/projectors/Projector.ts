@@ -5,7 +5,7 @@ import type { ProjectorManager } from "./ProjectorManager";
 
 export type ProjectorMode = "light" | "decal";
 
-export interface IRendererProjectorParams {
+export interface IProjectorParams {
     enabled: boolean;
     camera: Camera;
     framebuffer: Framebuffer; // Framebuffer that renders the depth map for this projector.
@@ -19,7 +19,7 @@ export interface IRendererProjectorParams {
     priority: number;
 }
 
-export class RendererProjector {
+export class Projector {
     protected static __staticCounter__ = 0;
 
     public readonly id: number;
@@ -45,8 +45,8 @@ export class RendererProjector {
      */
     public _manager: ProjectorManager | null = null;
 
-    constructor(params: IRendererProjectorParams) {
-        this.id = RendererProjector.__staticCounter__++;
+    constructor(params: IProjectorParams) {
+        this.id = Projector.__staticCounter__++;
         this.enabled = params.enabled;
         this.camera = params.camera;
         this.framebuffer = params.framebuffer;
@@ -86,3 +86,7 @@ export class RendererProjector {
         return this.framebuffer.textures[0] || null;
     }
 }
+
+// Backward-compatible aliases
+export type IRendererProjectorParams = IProjectorParams;
+export { Projector as RendererProjector };

@@ -3,10 +3,10 @@ import { cons } from "../../cons";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { Renderer } from "../Renderer";
 import { srgbToLinearArr } from "../../utils/colorSpace";
-import { RendererProjector } from "./RendererProjector";
+import { Projector } from "./Projector";
 
-export type { ProjectorMode, IRendererProjectorParams } from "./RendererProjector";
-export { RendererProjector } from "./RendererProjector";
+export type { ProjectorMode, IProjectorParams, IRendererProjectorParams } from "./Projector";
+export { Projector, RendererProjector } from "./Projector";
 
 /**
  * Maximum number of depth layers allocated in manager-owned projector array texture.
@@ -26,8 +26,8 @@ export const DEFAULT_PROJECTOR_TEXTURE_UNIT_START = 6;
 
 export class ProjectorManager {
     protected _renderer: Renderer;
-    protected _projectors: RendererProjector[];
-    protected _activeProjectors: RendererProjector[];
+    protected _projectors: Projector[];
+    protected _activeProjectors: Projector[];
 
     protected _viewProjData: Float32Array;
     protected _invViewProjData: Float32Array;
@@ -78,11 +78,11 @@ export class ProjectorManager {
     }
 
     /** Snapshot of currently active projectors (sorted by priority desc). */
-    public get active(): RendererProjector[] {
+    public get active(): Projector[] {
         return this._getActiveProjectors().slice();
     }
 
-    public add(projector: RendererProjector): number {
+    public add(projector: Projector): number {
         if (projector._slot !== -1) return projector.id;
 
         if (this._freeSlots.length === 0) {
@@ -121,7 +121,7 @@ export class ProjectorManager {
      * referenced inside framebuffer.textures[0] so framebuffer.destroy() can free it
      * normally — we never overwrite that slot with the shared array texture.
      */
-    protected _rebindFramebufferToLayer(projector: RendererProjector): void {
+    protected _rebindFramebufferToLayer(projector: Projector): void {
         const gl = this._renderer.handler.gl;
         if (!gl) return;
 
@@ -140,7 +140,7 @@ export class ProjectorManager {
      * Restores projector.framebuffer COLOR_ATTACHMENT0 back to its original TEXTURE_2D
      * so subsequent depth renders no longer touch the freed array layer.
      */
-    protected _restoreFramebufferAttachment(projector: RendererProjector): void {
+    protected _restoreFramebufferAttachment(projector: Projector): void {
         const gl = this._renderer.handler.gl;
         if (!gl) return;
 
@@ -158,7 +158,7 @@ export class ProjectorManager {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
-    public update(projector: RendererProjector): boolean {
+    public update(projector: Projector): boolean {
         const index = this._projectors.findIndex((p) => p.id === projector.id);
         if (index === -1) return false;
         this._projectors[index] = this._prepareProjector(projector);
@@ -166,7 +166,7 @@ export class ProjectorManager {
         return true;
     }
 
-    public remove(projector: RendererProjector): boolean {
+    public remove(projector: Projector): boolean {
         const index = this._projectors.findIndex((p) => p.id === projector.id);
         if (index === -1) return false;
 
@@ -372,8 +372,8 @@ export class ProjectorManager {
         return true;
     }
 
-    protected _collectActiveProjectors(): RendererProjector[] {
-        const active: RendererProjector[] = [];
+    protected _collectActiveProjectors(): Projector[] {
+        const active: Projector[] = [];
 
         for (let i = 0; i < this._projectors.length; i++) {
             const projector = this._projectors[i];
@@ -387,7 +387,7 @@ export class ProjectorManager {
         return active;
     }
 
-    protected _getActiveProjectors(): RendererProjector[] {
+    protected _getActiveProjectors(): Projector[] {
         if (!this._updateActiveProjectors) return this._activeProjectors;
 
         this._activeProjectors = this._collectActiveProjectors();
@@ -396,7 +396,7 @@ export class ProjectorManager {
         return this._activeProjectors;
     }
 
-    protected _prepareProjector(projector: RendererProjector): RendererProjector {
+    protected _prepareProjector(projector: Projector): Projector {
         const linearColor = srgbToLinearArr(projector.color);
         projector.color = [linearColor[0], linearColor[1], linearColor[2]];
         return projector;

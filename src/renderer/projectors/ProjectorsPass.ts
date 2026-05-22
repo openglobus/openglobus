@@ -2,7 +2,7 @@ import { Mat4 } from "../../math/Mat4";
 import { projectorsPass } from "../../shaders/projectorsPass/projectorsPass";
 import type { Renderer } from "../Renderer";
 import type { Framebuffer } from "../../webgl/Framebuffer";
-import type { RendererProjector } from "./RendererProjector";
+import type { Projector } from "./Projector";
 import type { NumberArray16 } from "../../math/Mat4";
 import type { Vec3 } from "../../math/Vec3";
 
@@ -65,7 +65,7 @@ export class ProjectorsPass {
      * (CPU-side near-plane clipping of the volume is too costly to be worth it here).
      */
     protected _computeScissor(
-        projector: RendererProjector,
+        projector: Projector,
         mainPV: NumberArray16,
         mainEye: Vec3,
         viewportW: number,
