@@ -106,6 +106,10 @@ export type PlanetEventsList = [
  */
 const DEFAULT_MAX_NODES = 400;
 
+// Reserved early renderer priorities for the planet frame pipeline.
+const PLANET_DRAW_PRIORITY = -10000;
+const PLANET_PREDRAW_PRIORITY = -9900;
+
 type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
 
 /**
@@ -1144,7 +1148,8 @@ export class Planet extends Scene {
 
         this._normalMapCreator.init();
 
-        this.renderer!.events.on("predraw", this._globalPreDraw, this, -100);
+        this.renderer!.events.on("predraw", this.onPreDraw, this, PLANET_PREDRAW_PRIORITY);
+        this.renderer!.events.on("draw", this.onDraw, this, PLANET_DRAW_PRIORITY);
 
         // Creating quad trees nodes
         this.quadTreeStrategy.init(this.camera);
@@ -1411,7 +1416,7 @@ export class Planet extends Scene {
         );
     }
 
-    protected _globalPreDraw() {
+    protected onPreDraw = () => {
         let cam = this.camera;
 
         this._distBeforeMemClear += this._prevCamEye.distance(cam.eye);
@@ -1434,52 +1439,50 @@ export class Planet extends Scene {
         if (this._indexesCacheToRemoveCounter > 600) {
             this._clearIndexesCache();
         }
-    }
+    };
 
     /**
      * Render node callback.
      * @public
      */
-    public override preFrame() {
+    public onDraw = () => {
+        this.camera.update();
+
         if (this._updateLayers) {
             this._updateLayers = false;
             this._updateVisibleLayers();
         }
 
-        if (this.camera.isFarthestFrustumActive) {
-            this.camera.update();
-
-            if (this._collectRenderNodesIsActive) {
-                this.quadTreeStrategy.collectRenderNodes(this.camera);
-            }
-
-            //this.transformLights();
-
-            // creates terrain normal maps
-            this._normalMapCreator.frame();
-
-            // Creating geoImages textures.
-            this._geoImageCreator.frame();
-
-            // Vector tiles rasterization
-            this._vectorTileCreator.frame();
-
-            this.camera.checkTerrainCollision();
-            this.applyNear(this.camera);
-            this.camera.update();
-
-            // Here is the planet node dispatches a draw event before
-            // rendering begins, and we have got render nodes.
-            this.events.dispatch(this.events.draw, this);
-
-            // Collect entity collections from vector layers
-            this._collectVectorLayerCollections();
+        if (this._collectRenderNodesIsActive) {
+            this.quadTreeStrategy.collectRenderNodes(this.camera);
         }
+
+        //this.transformLights();
+
+        // creates terrain normal maps
+        this._normalMapCreator.frame();
+
+        // Creating geoImages textures.
+        this._geoImageCreator.frame();
+
+        // Vector tiles rasterization
+        this._vectorTileCreator.frame();
+
+        this.camera.checkTerrainCollision();
+        this.applyNear(this.camera);
+        this.camera.update();
+
+        // Here is the planet node dispatches a draw event before
+        // rendering begins, and we have got render nodes.
+        this.events.dispatch(this.events.draw, this);
+
+        // Collect entity collections from vector layers
+        this._collectVectorLayerCollections();
 
         for (let i = 0; i < this._visibleEntityCollections.length; i++) {
             this.drawEntityCollections(this._visibleEntityCollections[i], i);
         }
-    }
+    };
 
     /**
      * Pauses quadtree render-node collection and disables camera terrain collision checks.
@@ -2410,6 +2413,10 @@ export class Planet extends Scene {
      * @public
      */
     public override onremove() {
+        if (this.renderer) {
+            this.renderer.events.off("draw", this.onDraw);
+            this.renderer.events.off("predraw", this.onPreDraw);
+        }
         this.memClear(true);
         this.quadTreeStrategy.destroyBranches();
         this.quadTreeStrategy.clearRenderedNodes();

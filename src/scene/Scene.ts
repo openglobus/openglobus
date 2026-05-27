@@ -93,6 +93,13 @@ class Scene {
         this._pickingId = -1;
     }
 
+    protected _onDraw = () => {
+        if (!this._isActive) return;
+        for (let i = 0; i < this._entityCollectionsByDepthOrder.length; i++) {
+            this.drawEntityCollections(this._entityCollectionsByDepthOrder[i], i);
+        }
+    };
+
     public get name(): string {
         return this._name;
     }
@@ -125,6 +132,7 @@ class Scene {
     public assign(renderer: Renderer) {
         this.renderer = renderer;
         this._pickingId = renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
+        this.renderer.events.on("draw", this._onDraw);
         this.initialize();
     }
 
@@ -165,6 +173,7 @@ class Scene {
             }
             r.removePickingCallback(this._pickingId);
             this._pickingId = -1;
+            r.events.off("draw", this._onDraw);
             this.onremove && this.onremove();
         }
     }
@@ -249,16 +258,6 @@ class Scene {
     }
 
     /**
-     * Calls render the frame node's callback. Used in renderer.
-     * @public
-     */
-    public draw() {
-        if (this._isActive) {
-            this._preDraw();
-        }
-    }
-
-    /**
      * Gets render node activity.
      * @public
      * @returns {Boolean} -
@@ -319,28 +318,6 @@ class Scene {
             ei.polylineHandler.refreshTexCoordsArr();
             //Strips etc.
             //@todo
-        }
-    }
-
-    public frame() {
-        // legacy virtual callback, use renderer.events.on("forwardpass", ...) instead
-    }
-
-    public preFrame() {
-        // virtual
-    }
-
-    protected _preDraw() {
-        for (let i = 0; i < this.childNodes.length; i++) {
-            if (this.childNodes[i]._isActive) {
-                this.childNodes[i]._preDraw();
-            }
-        }
-
-        this.preFrame();
-
-        for (let i = 0; i < this._entityCollectionsByDepthOrder.length; i++) {
-            this.drawEntityCollections(this._entityCollectionsByDepthOrder[i], i);
         }
     }
 

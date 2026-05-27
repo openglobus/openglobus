@@ -80,6 +80,9 @@ const MODE_FREE = 0;
 const MODE_NORTH = 1;
 const MODE_ADAPTIVE = 2;
 
+// Reserved early renderer priority for camera input integration.
+const NAVIGATION_PREDRAW_PRIORITY = -10000;
+
 /**
  * Navigation.
  * @class
@@ -263,7 +266,7 @@ export class Navigation extends Control {
         r.events.on("lhold", this._onLHold);
         r.events.on("ldown", this._onLDown);
         r.events.on("lup", this._onLUp);
-        r.events.on("predraw", this.onDraw, this, -1000);
+        r.events.on("predraw", this.onPreDraw, this, NAVIGATION_PREDRAW_PRIORITY);
         r.events.on("mousemove", this._onMouseMove);
         r.events.on("mouseleave", this._onMouseLeave);
         r.events.on("mouseenter", this._onMouseEnter);
@@ -278,13 +281,13 @@ export class Navigation extends Control {
         r.events.off("lhold", this._onLHold);
         r.events.off("ldown", this._onLDown);
         r.events.off("lup", this._onLUp);
-        r.events.off("predraw", this.onDraw);
+        r.events.off("predraw", this.onPreDraw);
         r.events.off("mousemove", this._onMouseMove);
         r.events.off("mouseleave", this._onMouseLeave);
         r.events.off("mouseenter", this._onMouseEnter);
     }
 
-    protected onDraw() {
+    protected onPreDraw() {
         this._updateVel();
         this._handleZoom();
         this._handleDrag();
@@ -389,11 +392,19 @@ export class Navigation extends Control {
                     const fwd = cam.getForward();
                     const n = cam.eye.getNormal();
                     const cosT = -fwd.dot(n);
-                    if (cosT > 1e-3) {
-                        const s = (preFocus - alt) / cosT;
+                    if (cosT > 1e-2) {
+                        let s = (preFocus - alt) / cosT;
+                        if (!Number.isFinite(s)) {
+                            s = 0;
+                        }
+                        const maxStep = Math.max(preFocus * 0.25, 1.0);
+                        if (s > maxStep) {
+                            s = maxStep;
+                        } else if (s < -maxStep) {
+                            s = -maxStep;
+                        }
                         if (Math.abs(s) > 1e-6) {
                             cam.eye.addA(fwd.scaleTo(-s));
-                            cam.update();
                         }
                     }
                 }
@@ -847,7 +858,7 @@ export class Navigation extends Control {
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
             }
 
-            cam.checkTerrainCollision();
+            //cam.checkTerrainCollision();
 
             if (cam.isOrthographic) {
                 let alt = cam.getAltitude();
@@ -868,7 +879,7 @@ export class Navigation extends Control {
                     const eyeToA = a.sub(cam.eye);
                     const aLat = eyeToA.sub(fwd.scaleTo(fwd.dot(eyeToA)));
                     cam.eye.addA(aLat.subA(offCursor));
-                    cam.update();
+                    //cam.update();
                 }
             }
         }

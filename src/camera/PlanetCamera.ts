@@ -770,10 +770,16 @@ class PlanetCamera extends Camera {
      */
     public checkTerrainCollision() {
         this._terrainAltitude = this._lonLat.height;
+        this.updateGeodeticPosition();
         if (this._insideSegment && this._insideSegment.planet) {
+            const insideLonLat = this._insideSegment.getInsideLonLat(this);
+            if (!this._insideSegment._extent.isInside(insideLonLat)) {
+                return;
+            }
+
             this._terrainAltitude = this._insideSegment.getTerrainPoint(
                 this.eye,
-                this._insideSegment.getInsideLonLat(this),
+                insideLonLat,
                 this._terrainPoint
             );
             if (this._terrainAltitude < this.minAltitude && this._checkTerrainCollision) {

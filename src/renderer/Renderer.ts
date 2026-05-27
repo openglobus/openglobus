@@ -1356,14 +1356,9 @@ class Renderer {
         let frustums = this.activeCamera.frustums;
 
         // Rendering scenes and entityCollections
-        let rn = this._scenesArr;
         let k = frustums.length;
 
         this.activeCamera.setCurrentFrustum(this.activeCamera.FARTHEST_FRUSTUM_INDEX);
-        let i = rn.length;
-        while (i--) {
-            rn[i].draw();
-        }
 
         e.dispatch(e.draw, this);
 
