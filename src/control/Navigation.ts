@@ -142,6 +142,7 @@ export class Navigation extends Control {
     protected _wheelDirection: number;
 
     protected _currScreenPos: Vec2;
+    protected _grabbedScreenPoint: Vec2;
 
     protected _tUp: Vec3;
     protected _tRad: number;
@@ -218,6 +219,7 @@ export class Navigation extends Control {
         this._wheelDirection = 1;
 
         this._currScreenPos = new Vec2();
+        this._grabbedScreenPoint = new Vec2();
 
         this._grabbedSphere = new Sphere();
 
@@ -552,6 +554,7 @@ export class Navigation extends Control {
         this._curRoll = this.planet.camera.getRoll();
 
         this._currScreenPos.copy(e.pos);
+        this._grabbedScreenPoint.set(e.nx, e.ny);
     };
 
     protected _onLHold = (e: IMouseState) => {
@@ -559,26 +562,15 @@ export class Navigation extends Control {
             let cam = this.planet.camera;
 
             if (cam.isOrthographic) {
-                const dist = this._grabbedDist;
-                const p1 = new Vec3();
-                const dir = cam.unproject(e.x, e.y, dist, p1);
+                const nx = e.nx - this._grabbedScreenPoint.x;
+                const ny = e.ny - this._grabbedScreenPoint.y;
+                const f = cam.frustum;
+                const dx = -(f.right - f.left) * nx;
+                const dy = (f.top - f.bottom) * ny;
+                const targetEye = this._eye0.add(cam.getRight().scale(dx)).addA(cam.getUp().scale(dy));
 
-                const p0 = p1.sub(dir.scaleTo(dist));
-                const _targetDragPoint = new Ray(p0, dir).hitSphere(this._grabbedSphere);
-
-                if (!_targetDragPoint) {
-                    return;
-                }
-
-                this._targetDragPoint = _targetDragPoint;
-
-                let rot = Quat.getRotationBetweenVectors(
-                    this._targetDragPoint.getNormal(),
-                    this._grabbedPoint.getNormal()
-                );
-
-                let newEye = rot.mulVec3(cam.eye);
-                this.force = newEye.sub(cam.eye).scale(this.dragInertia);
+                this._targetDragPoint = this._grabbedPoint;
+                this.force = targetEye.sub(cam.eye).scale(this.dragInertia);
             } else if (cam.slope > this.minSlope) {
                 // Need distance for orthographic camera
                 this._grabbedDist = cam.eye.distance(this._grabbedPoint);
@@ -726,7 +718,14 @@ export class Navigation extends Control {
             this._velInertia = this._defaultVelInertia;
             let cam = this.planet!.camera;
 
-            if (cam.slope > this.minSlope) {
+            if (cam.isOrthographic) {
+                const dt = this.dt;
+                const d_v = this.vel.scaleTo(dt);
+                const right = cam.getRight();
+                const up = cam.getUp();
+                const d_s = right.scaleTo(d_v.dot(right)).addA(up.scaleTo(d_v.dot(up)));
+                cam.eye.addA(d_s);
+            } else if (cam.slope > this.minSlope) {
                 const dt = this.dt;
                 const startEyeNorm = cam.eyeNorm;
                 let d_v = this.vel.scaleTo(dt);
