@@ -94,7 +94,7 @@ function syncTrackedCameras() {
     }
 }
 
-globus.planet.renderer.events.on("draw", syncTrackedCameras, null, -300);
+globus.planet.renderer.events.on("predraw", syncTrackedCameras, null, -300);
 
 async function createTrackedCameraEntity(cameraSnapshot) {
     const uavGltf = await uavGltfPromise;
@@ -130,7 +130,7 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         bias: 0.0005, //0.00003 .. 0.00008 - 0.0005
         normalBias: 0.1, // 0.2 .. 1.0
         depthEpsilon: 0.0002, //0.00015 .. 0.0005 - 0.0015
-        mode: "decal",
+        mode: "color",
         priority: 0
     });
     globus.planet.renderer.projectors.add(projector);

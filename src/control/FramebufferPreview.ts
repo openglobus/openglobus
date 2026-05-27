@@ -128,13 +128,13 @@ export class FramebufferPreview extends Control {
 
     protected _subscribeDraw() {
         if (!this.renderer || this._isDrawSubscribed) return;
-        this.renderer.events.on("draw", this._onDraw);
+        this.renderer.events.on("predraw", this._onDraw);
         this._isDrawSubscribed = true;
     }
 
     protected _unsubscribeDraw() {
         if (!this.renderer || !this._isDrawSubscribed) return;
-        this.renderer.events.off("draw", this._onDraw);
+        this.renderer.events.off("predraw", this._onDraw);
         this._isDrawSubscribed = false;
     }
 

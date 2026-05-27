@@ -20,7 +20,7 @@ export function createRendererEvents(renderer: Renderer) {
 export type RendererEventsType = [
     "projchanged",
     "changerelativecenter",
-    "draw",
+    "predraw",
     "forwardpass",
     "postforwardpass",
     "transparentpass",
@@ -1054,9 +1054,9 @@ const RENDERER_EVENTS: RendererEventsType = [
 
     /**
      * Triggered before the scene frame is rendered (before render nodes).
-     * @event draw
+     * @event predraw
      */
-    "draw",
+    "predraw",
 
     /**
      * Triggered for forward pass

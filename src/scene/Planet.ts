@@ -1144,7 +1144,7 @@ export class Planet extends Scene {
 
         this._normalMapCreator.init();
 
-        this.renderer!.events.on("draw", this._globalPreDraw, this, -100);
+        this.renderer!.events.on("predraw", this._globalPreDraw, this, -100);
 
         // Creating quad trees nodes
         this.quadTreeStrategy.init(this.camera);

@@ -97,7 +97,7 @@ export class SimpleNavigation extends Control {
         r.events.on("ldown", this._onMouseLeftButtonDown);
         r.events.on("lup", this._onMouseLeftButtonUp);
 
-        r.events.on("draw", this.onDraw, this, -1000);
+        r.events.on("predraw", this.onDraw, this, -1000);
     }
 
     public override ondeactivate() {
@@ -122,7 +122,7 @@ export class SimpleNavigation extends Control {
         r.events.off("ldown", this._onMouseLeftButtonDown);
         r.events.off("lup", this._onMouseLeftButtonUp);
 
-        r.events.off("draw", this.onDraw);
+        r.events.off("predraw", this.onDraw);
     }
 
     protected _onMouseLeftButtonDown = (e: IMouseState) => {

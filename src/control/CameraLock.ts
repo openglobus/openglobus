@@ -194,7 +194,7 @@ export class CameraLock extends Control {
         if (this.renderer) {
             this.renderer.events.on("mousewheel", this._onMouseWheel);
             this.renderer.events.on("mousemove", this._onMouseMove);
-            this.renderer.events.on("draw", this._onLockViewDraw);
+            this.renderer.events.on("predraw", this._onLockViewDraw);
         }
     }
 
@@ -203,7 +203,7 @@ export class CameraLock extends Control {
             this.renderer.events.off("mousewheel", this._onMouseWheel);
             this.renderer.events.off("mousemove", this._onMouseMove);
             if (this._lockEntity) {
-                this.renderer.events.off("draw", this._onLockViewDraw);
+                this.renderer.events.off("predraw", this._onLockViewDraw);
             }
         }
     }

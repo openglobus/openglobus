@@ -71,7 +71,7 @@ export class Sun extends Control {
         const renderer = this.renderer!;
         renderer._lightPosition.set([this._sunlightPosition.x, this._sunlightPosition.y, this._sunlightPosition.z]);
 
-        this.renderer!.events.on("draw", this._draw, this);
+        this.renderer!.events.on("predraw", this._draw, this);
 
         if (!this._clockPtr) {
             this._clockPtr = this.renderer!.handler.defaultClock;

@@ -158,7 +158,7 @@ export class TouchNavigation extends Control {
             this.renderer.events.on("doubletouch", this.onDoubleTouch, this);
             this.renderer.events.on("touchcancel", this.onTouchCancel, this);
             this.renderer.events.on("touchmove", this.onTouchMove, this);
-            this.renderer.events.on("draw", this.onDraw, this);
+            this.renderer.events.on("predraw", this.onDraw, this);
         }
     }
 

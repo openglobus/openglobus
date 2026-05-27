@@ -263,7 +263,7 @@ export class Navigation extends Control {
         r.events.on("lhold", this._onLHold);
         r.events.on("ldown", this._onLDown);
         r.events.on("lup", this._onLUp);
-        r.events.on("draw", this.onDraw, this, -1000);
+        r.events.on("predraw", this.onDraw, this, -1000);
         r.events.on("mousemove", this._onMouseMove);
         r.events.on("mouseleave", this._onMouseLeave);
         r.events.on("mouseenter", this._onMouseEnter);
@@ -278,7 +278,7 @@ export class Navigation extends Control {
         r.events.off("lhold", this._onLHold);
         r.events.off("ldown", this._onLDown);
         r.events.off("lup", this._onLUp);
-        r.events.off("draw", this.onDraw);
+        r.events.off("predraw", this.onDraw);
         r.events.off("mousemove", this._onMouseMove);
         r.events.off("mouseleave", this._onMouseLeave);
         r.events.off("mouseenter", this._onMouseEnter);
