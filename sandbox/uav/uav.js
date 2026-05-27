@@ -29,7 +29,8 @@ const globus = new Globe({
     terrain: new GlobusRgbTerrain(),
     layers: [new Bing(), new OpenStreetMap(), uavLayer, myObjects],
     atmosphereEnabled: true,
-    fontsSrc: "../../res/fonts"
+    fontsSrc: "../../res/fonts",
+    //reverseDepth: false
 });
 
 globus.planet.addControl(new control.TimelineControl());

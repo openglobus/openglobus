@@ -1359,17 +1359,20 @@ class Renderer {
         let rn = this._scenesArr;
         let k = frustums.length;
 
+        this.activeCamera.setCurrentFrustum(this.activeCamera.FARTHEST_FRUSTUM_INDEX);
+        let i = rn.length;
+        while (i--) {
+            rn[i].draw();
+        }
+
+        e.dispatch(e.draw, this);
+
         //
         // Scenes PASS
         //
         while (k--) {
             this.activeCamera.setCurrentFrustum(k);
             gl.clear(gl.DEPTH_BUFFER_BIT);
-
-            let i = rn.length;
-            while (i--) {
-                rn[i].draw();
-            }
 
             //
             // Deferred geometry pass for opaque objects
@@ -1418,9 +1421,8 @@ class Renderer {
             }
 
             this._drawDepthBuffer(0);
-
-            this._clearEntityCollectionQueue(0);
         }
+        this._clearEntityCollectionQueue(0);
 
         //
         // Depth-ordered EntityCollections passes

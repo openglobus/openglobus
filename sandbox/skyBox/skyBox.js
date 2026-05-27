@@ -88,7 +88,7 @@ let globe = new Globe({
     terrain: new GlobusRgbTerrain(),
     //skybox: skybox,
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer],
-    //reverseDepth: false,
+//    reverseDepth: false,
     //msaa: 0
 });
 

@@ -63,7 +63,7 @@ export class CameraFrameComposer extends Control {
     public override activate() {
         super.activate();
         if (this.renderer) {
-            this.renderer.events.on("predraw", this._onDraw, this, -200);
+            this.renderer.events.on("draw", this._onDraw, this, -200);
             this.renderer.addScene(this._cameraScene);
         }
     }
@@ -71,7 +71,7 @@ export class CameraFrameComposer extends Control {
     public override deactivate() {
         super.deactivate();
         if (this.renderer) {
-            this.renderer.events.off("predraw", this._onDraw);
+            this.renderer.events.off("draw", this._onDraw);
             this.renderer.removeNode(this._cameraScene);
         }
     }
