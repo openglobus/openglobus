@@ -769,10 +769,25 @@ export class Navigation extends Control {
                     }
                 }
             } else {
-                let d_v = this.vel.scaleTo(this.dt);
+                const eyeNorm = cam.eye.getNormal();
+                const right = cam.getRight();
+                const verticalSpeed = this.vel.dot(eyeNorm);
+                const sideSpeed = this.vel.dot(right);
+                let d_v = eyeNorm.scaleTo(verticalSpeed * this.dt).addA(right.scaleTo(sideSpeed * this.dt));
                 let newEye = cam.eye.add(d_v);
                 cam.eye.copy(newEye);
                 cam.checkTerrainCollision();
+
+                // Move forward correction
+                const collisionShift = cam.eye.sub(newEye);
+                let fwdTangent = Vec3.proj_b_to_plane(cam.getForward(), eyeNorm);
+                if (fwdTangent.length2() > 1e-12) {
+                    fwdTangent.normalize();
+                    const forwardShift = collisionShift.dot(fwdTangent);
+                    cam.eye.subA(fwdTangent.scaleTo(forwardShift));
+                    cam.checkTerrainCollision();
+                }
+
                 this._corrRoll();
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
             }
