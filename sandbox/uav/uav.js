@@ -125,13 +125,12 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         enabled: true,
         camera: depthCamera,
         framebuffer: depthHandler.framebuffer,
-        color: [1.0, 1.0, 0.1],
-        intensity: 1.0,
-        opacity: 0.45,
+        color: [1.0, 1.0, 1.0, 0.45],
         bias: 0.0005, //0.00003 .. 0.00008 - 0.0005
         normalBias: 0.1, // 0.2 .. 1.0
         depthEpsilon: 0.0002, //0.00015 .. 0.0005 - 0.0015
         mode: "color",
+        renderMode: "light",
         priority: 0
     });
     globus.planet.renderer.projectors.add(projector);

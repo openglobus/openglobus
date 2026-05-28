@@ -4,7 +4,7 @@ uniform int u_projectorCount;
 uniform int u_projectorLayer[MAX_PROJECTORS];
 uniform mat4 u_projectorViewProjRTE[MAX_PROJECTORS];
 uniform vec3 u_projectorEyeRel[MAX_PROJECTORS];
-uniform vec4 u_projectorColorIntensity[MAX_PROJECTORS];
+uniform vec4 u_projectorColor[MAX_PROJECTORS];
 uniform vec4 u_projectorParams[MAX_PROJECTORS];
 
 uniform highp sampler2DArray u_projectorDepthArray;
@@ -59,11 +59,25 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
 }
 
 vec3 applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal) {
-    float visibility = getProjectorVisibility(projectorIndex, rtcPos, normal);
-    vec4 colorIntensity = u_projectorColorIntensity[projectorIndex];
-    float opacity = u_projectorParams[projectorIndex].z;
 
-    return colorIntensity.rgb * colorIntensity.a * opacity * visibility;
+//    float visibility = getProjectorVisibility(projectorIndex, rtcPos, normal);
+//    vec4 colorIntensity = u_projectorColorIntensity[projectorIndex];
+//    float opacity = u_projectorParams[projectorIndex].z;
+//
+//    return colorIntensity.rgb * colorIntensity.a * opacity * visibility;
+
+
+    float visibility = getProjectorVisibility(projectorIndex, rtcPos, normal);
+    vec4 colorIntensity = u_projectorColor[projectorIndex];
+    float opacity = colorIntensity.a;
+    float renderMode = u_projectorParams[projectorIndex].z;
+
+    vec3 lightDir = normalize(u_projectorEyeRel[projectorIndex] - rtcPos);
+    float ndotl = max(dot(normalize(normal), lightDir), 0.0);
+    float lightMask = step(0.5, renderMode);
+    float strength = mix(1.0, ndotl, lightMask);
+
+    return colorIntensity.rgb * opacity * visibility * strength;
 }
 
 vec3 applyProjectors(vec3 rtcPos, vec3 normal) {

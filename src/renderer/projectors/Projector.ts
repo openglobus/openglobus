@@ -1,22 +1,28 @@
 import type { Camera } from "../../camera/Camera";
 import type { NumberArray3 } from "../../math/Vec3";
+import type { NumberArray4 } from "../../math/Vec4";
+import { linearToSrgbArr, srgbToLinear } from "../../utils/colorSpace";
+import { htmlColorToRgba, rgbToStringHTML, TypedArray } from "../../utils/shared";
 import type { Framebuffer } from "../../webgl/Framebuffer";
 import type { ProjectorManager } from "./ProjectorManager";
 
-export type ProjectorMode = "color" | "image" | "video" | "texture";
+export type ProjectorSourceType = "color" | "image" | "video" | "texture";
+export type ProjectorRenderMode = "color" | "light";
+export type ProjectorColor = NumberArray3 | NumberArray4 | TypedArray | string;
+export const PROJECTOR_RENDER_MODE_COLOR = 0;
+export const PROJECTOR_RENDER_MODE_LIGHT = 1;
 
 export interface IProjectorParams {
-    enabled: boolean;
+    enabled?: boolean;
     camera: Camera;
     framebuffer: Framebuffer; // Framebuffer that renders the depth map for this projector.
-    color: NumberArray3;
-    intensity: number;
-    opacity: number;
-    bias: number;
-    normalBias: number;
-    depthEpsilon?: number;
-    mode: ProjectorMode;
-    priority: number;
+    color?: ProjectorColor;
+    bias?: number; //0.00003 .. 0.00008 - 0.0005
+    normalBias?: number; // 0.2 .. 1.0
+    depthEpsilon?: number; //0.00015 .. 0.0005 - 0.0015
+    sourceType?: ProjectorSourceType;
+    renderMode?: ProjectorRenderMode;
+    priority?: number;
 }
 
 export class Projector {
@@ -26,13 +32,12 @@ export class Projector {
     public enabled: boolean;
     public camera: Camera;
     public framebuffer: Framebuffer;
-    public color: NumberArray3;
-    public intensity: number;
-    public opacity: number;
+    public color: Float32Array;
     public bias: number;
     public normalBias: number;
     public depthEpsilon: number;
-    public mode: ProjectorMode;
+    public sourceType: ProjectorSourceType;
+    public renderMode: number = PROJECTOR_RENDER_MODE_COLOR;
     public priority: number;
 
     /**
@@ -47,17 +52,64 @@ export class Projector {
 
     constructor(params: IProjectorParams) {
         this.id = Projector.__staticCounter__++;
-        this.enabled = params.enabled;
+        this.enabled = params.enabled ?? true;
         this.camera = params.camera;
         this.framebuffer = params.framebuffer;
-        this.color = [params.color[0], params.color[1], params.color[2]];
-        this.intensity = params.intensity;
-        this.opacity = params.opacity;
-        this.bias = params.bias;
-        this.normalBias = params.normalBias;
+        this.color = Projector._resolveColor(params.color);
+        this.bias = params.bias ?? 0.0;
+        this.normalBias = params.normalBias ?? 0.0;
         this.depthEpsilon = params.depthEpsilon ?? 0.001;
-        this.mode = params.mode;
-        this.priority = params.priority;
+        this.sourceType = params.sourceType || "color";
+        this.renderMode = params.renderMode === "color" ? PROJECTOR_RENDER_MODE_COLOR : PROJECTOR_RENDER_MODE_LIGHT;
+        this.priority = params.priority || 0;
+    }
+
+    protected static _resolveColor(color?: ProjectorColor): Float32Array {
+        if (typeof color === "string") {
+            const c = htmlColorToRgba(color);
+            return new Float32Array([srgbToLinear(c.x), srgbToLinear(c.y), srgbToLinear(c.z), c.w]);
+        }
+
+        if (color) {
+            return new Float32Array([
+                srgbToLinear(color[0] ?? 1.0),
+                srgbToLinear(color[1] ?? 1.0),
+                srgbToLinear(color[2] ?? 1.0),
+                color[3] ?? 1.0
+            ]);
+        }
+
+        return new Float32Array([1.0, 1.0, 1.0, 1.0]);
+    }
+
+    public setColorHTML(color: string): void {
+        const c = htmlColorToRgba(color);
+        this.setColor(c.x, c.y, c.z, c.w);
+    }
+
+    public setColor(r: number, g: number, b: number, a?: number): void {
+        this.color[0] = srgbToLinear(r);
+        this.color[1] = srgbToLinear(g);
+        this.color[2] = srgbToLinear(b);
+        a !== undefined && (this.color[3] = a);
+    }
+
+    public setOpacity(a: number): void {
+        this.color[3] = a;
+    }
+
+    public getColor(): string {
+        const srgb = linearToSrgbArr([this.color[0], this.color[1], this.color[2]]);
+        const htmlColor: NumberArray3 = [
+            Math.round(srgb[0] * 255),
+            Math.round(srgb[1] * 255),
+            Math.round(srgb[2] * 255)
+        ];
+        return rgbToStringHTML(htmlColor);
+    }
+
+    public getOpacity(): number {
+        return this.color[3];
     }
 
     /**
@@ -86,7 +138,3 @@ export class Projector {
         return this.framebuffer.textures[0] || null;
     }
 }
-
-// Backward-compatible aliases
-export type IRendererProjectorParams = IProjectorParams;
-export { Projector as RendererProjector };
