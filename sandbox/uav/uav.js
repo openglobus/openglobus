@@ -29,7 +29,7 @@ const globus = new Globe({
     terrain: new GlobusRgbTerrain(),
     layers: [new Bing(), new OpenStreetMap(), uavLayer, myObjects],
     atmosphereEnabled: true,
-    fontsSrc: "../../res/fonts",
+    fontsSrc: "../../res/fonts"
     //reverseDepth: false
 });
 
@@ -125,10 +125,10 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         enabled: true,
         camera: depthCamera,
         framebuffer: depthHandler.framebuffer,
-        color: [1.0, 1.0, 1.0, 0.45],
-        bias: 0.0005, //0.00003 .. 0.00008 - 0.0005
-        normalBias: 0.1, // 0.2 .. 1.0
-        depthEpsilon: 0.0002, //0.00015 .. 0.0005 - 0.0015
+        color: [1.0, 1.0, 0.0, 0.3],
+        bias: 0.00006, //0.00003 .. 0.00008 - 0.0005
+        normalBias: 0.45, // 0.2 .. 1.0
+        depthEpsilon: 0.00025, //0.00015 .. 0.0005 - 0.0015
         mode: "color",
         renderMode: "light",
         priority: 0

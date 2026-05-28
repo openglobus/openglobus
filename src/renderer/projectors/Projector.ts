@@ -56,9 +56,9 @@ export class Projector {
         this.camera = params.camera;
         this.framebuffer = params.framebuffer;
         this.color = Projector._resolveColor(params.color);
-        this.bias = params.bias ?? 0.0;
-        this.normalBias = params.normalBias ?? 0.0;
-        this.depthEpsilon = params.depthEpsilon ?? 0.001;
+        this.bias = params.bias ?? 0.00006;
+        this.normalBias = params.normalBias ?? 0.45;
+        this.depthEpsilon = params.depthEpsilon ?? 0.00025;
         this.sourceType = params.sourceType || "color";
         this.renderMode = params.renderMode === "color" ? PROJECTOR_RENDER_MODE_COLOR : PROJECTOR_RENDER_MODE_LIGHT;
         this.priority = params.priority || 0;
