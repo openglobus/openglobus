@@ -98,8 +98,11 @@ type CameraFlight = {
     startedAt: number;
 };
 
-const getHorizontalViewAngleByFov = (fov: number, aspect: number) =>
-    DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * fov) * aspect);
+const getHorizontalViewAngleByFov = (vFov: number, aspect: number) =>
+    DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * vFov) * aspect);
+
+const getVerticalViewAngleByHorizontalFov = (hFov: number, aspect: number) =>
+    DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * hFov) / Math.max(aspect, 1e-6));
 
 /**
  * Camera class.
@@ -849,6 +852,16 @@ class Camera {
      */
     public setViewAngle(angle: number) {
         this._viewAngle = angle;
+        this.refresh();
+    }
+
+    /**
+     * Sets camera horizontal view angle in degrees.
+     * @public
+     * @param {number} angle - Horizontal view angle.
+     */
+    public setHorizontalViewAngle(angle: number) {
+        this._viewAngle = getVerticalViewAngleByHorizontalFov(angle, this.getAspectRatio());
         this.refresh();
     }
 
