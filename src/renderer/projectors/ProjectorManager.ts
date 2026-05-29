@@ -359,7 +359,7 @@ export class ProjectorManager {
             size,
             size,
             MAX_PROJECTOR_LAYERS,
-            "NEAREST",
+            "LINEAR",
             "R32F",
             "CLAMP_TO_EDGE",
             1

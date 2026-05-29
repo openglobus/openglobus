@@ -60,8 +60,8 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
 const CAM_WIDTH = 512;
 const CAM_HEIGHT = 512;
 const PERIMETER_STEP_PX = 1;
-const DEPTH_NEAR = 500;
-const DEPTH_FAR = 200000;
+const DEPTH_NEAR = 100;
+const DEPTH_FAR = 100000;
 
 const POLYLINE_DEPTH_OFFSET = -100;
 

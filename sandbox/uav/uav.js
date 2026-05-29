@@ -43,6 +43,8 @@ const uavGltfPromise = Gltf.loadGlb("./uav.glb");
 const cameraFrustumObject3d = Object3d.createFrustum();
 const trackedCameraEntities = [];
 const skyCubeObject3d = Object3d.createCube(10000, 10000, 10000).setColor("white");
+const PROJECTOR_NEAR = 300.0;
+const PROJECTOR_FAR = 100000.0;
 
 myObjects.add(
     new Entity({
@@ -120,6 +122,8 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         return;
     }
     depthCamera.copy(cameraSnapshot);
+    depthCamera.setNearFar(PROJECTOR_NEAR, PROJECTOR_FAR);
+    depthCamera.update();
 
     const projector = new Projector({
         enabled: true,
@@ -128,7 +132,7 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         color: [1.0, 1.0, 0.0, 0.3],
         bias: 0.00006, //0.00003 .. 0.00008 - 0.0005
         normalBias: 0.45, // 0.2 .. 1.0
-        depthEpsilon: 0.00025, //0.00015 .. 0.0005 - 0.0015
+        depthEpsilon: 0.0001, //0.00015 .. 0.0005 - 0.0015
         mode: "color",
         renderMode: "light",
         priority: 0
