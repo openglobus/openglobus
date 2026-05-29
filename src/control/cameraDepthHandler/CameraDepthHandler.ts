@@ -237,11 +237,15 @@ export class CameraDepthHandler extends Control {
 
         let isEq = this.planet!.terrain!.equalizeVertices;
 
-        let rn = this._quadTreeStrategy!._renderedNodesInFrustum[camera.getCurrentFrustum()];
+        let quadTreeStrategy = this._quadTreeStrategy!;
+        //let quadTreeStrategy = this.planet!.quadTreeStrategy!;
+
+        let rn = quadTreeStrategy._renderedNodesInFrustum[camera.getCurrentFrustum()];
 
         let i = rn.length;
         while (i--) {
             let s = rn[i].segment;
+            if (!s.node) continue;
             if (s._transitionOpacity >= 1) {
                 isEq && s.equalize();
                 s.readyToEngage && s.engage();
@@ -251,8 +255,9 @@ export class CameraDepthHandler extends Control {
             }
         }
 
-        for (let i = 0; i < this._quadTreeStrategy!._fadingOpaqueSegments.length; ++i) {
-            let s = this._quadTreeStrategy!._fadingOpaqueSegments[i];
+        for (let i = 0; i < quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
+            let s = quadTreeStrategy._fadingOpaqueSegments[i];
+            if (!s.node) continue;
             isEq && s.equalize();
             s.readyToEngage && s.engage();
             s.ensureIndexBuffer();
@@ -294,6 +299,7 @@ export class CameraDepthHandler extends Control {
 
         this.renderer!.applyDepthForCamera(cam);
 
+        this._quadTreeStrategy.maxZoomLimit = this.planet.quadTreeStrategy.maxCurrZoom;
         this._quadTreeStrategy.collectRenderNodes(cam);
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
