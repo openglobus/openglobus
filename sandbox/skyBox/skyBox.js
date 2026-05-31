@@ -86,9 +86,9 @@ let globe = new Globe({
     name: "Earth",
     //frustums: [[1, 1e12]],
     terrain: new GlobusRgbTerrain(),
-    //skybox: skybox,
+    skybox: skybox,
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer],
-    //reverseDepth: false,
+//    reverseDepth: false,
     //msaa: 0
 });
 

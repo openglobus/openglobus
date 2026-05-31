@@ -125,7 +125,7 @@ export const geo_object_woit = (): ShaderProgram =>
             u_projectorLayer: "intxx",
             u_projectorViewProjRTE: "mat4",
             u_projectorEyeRel: "vec3",
-            u_projectorColorIntensity: "vec4",
+            u_projectorColor: "vec4",
             u_projectorParams: "vec4",
             u_projectorDepthArray: "sampler2darray"
         },
@@ -181,7 +181,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             u_projectorLayer: "intxx",
             u_projectorViewProjRTE: "mat4",
             u_projectorEyeRel: "vec3",
-            u_projectorColorIntensity: "vec4",
+            u_projectorColor: "vec4",
             u_projectorParams: "vec4",
             u_projectorDepthArray: "sampler2darray"
         },

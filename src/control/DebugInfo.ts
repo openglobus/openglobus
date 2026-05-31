@@ -199,7 +199,7 @@ export class DebugInfo extends Control {
             this.addWatch(temp[i]);
         }
         this._dialog.container?.appendChild(this.el);
-        this.renderer!.events.on("draw", this._frame, this);
+        this.renderer!.events.on("predraw", this._frame, this);
 
         let p = this.planet!;
 

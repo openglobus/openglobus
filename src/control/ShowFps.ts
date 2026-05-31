@@ -15,7 +15,7 @@ export class ShowFps extends Control {
         d.className = "defaultText ";
         d.id = "ogShowFpsControl";
         document.body.appendChild(d);
-        this.renderer!.events.on("draw", this._draw, this);
+        this.renderer!.events.on("predraw", this._draw, this);
     }
 
     protected _draw() {

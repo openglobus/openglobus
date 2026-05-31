@@ -770,17 +770,41 @@ class PlanetCamera extends Camera {
      */
     public checkTerrainCollision() {
         this._terrainAltitude = this._lonLat.height;
-        if (this._insideSegment && this._insideSegment.planet) {
-            this._terrainAltitude = this._insideSegment.getTerrainPoint(
-                this.eye,
-                this._insideSegment.getInsideLonLat(this),
-                this._terrainPoint
-            );
+        this.updateGeodeticPosition();
+        const insideSegment = this._getInsideCollisionSegment();
+        if (insideSegment) {
+            const insideLonLat = insideSegment.getInsideLonLat(this);
+            this._terrainAltitude = insideSegment.getTerrainPoint(this.eye, insideLonLat, this._terrainPoint);
             if (this._terrainAltitude < this.minAltitude && this._checkTerrainCollision) {
                 this.setAltitude(this.minAltitude);
             }
             return this._terrainPoint;
         }
+    }
+
+    protected _getInsideCollisionSegment(): Segment | null {
+        let seg = this._insideSegment;
+        if (seg && seg.planet) {
+            const insideLonLat = seg.getInsideLonLat(this);
+            if (seg._extent.isInside(insideLonLat)) {
+                return seg;
+            }
+        }
+
+        const renderedNodes = this.planet.quadTreeStrategy._renderedNodes;
+        for (let i = 0; i < renderedNodes.length; i++) {
+            const renderedSeg = renderedNodes[i].segment;
+            if (renderedSeg && renderedSeg.planet) {
+                const insideLonLat = renderedSeg.getInsideLonLat(this);
+                if (renderedSeg._extent.isInside(insideLonLat)) {
+                    this._insideSegment = renderedSeg;
+                    return renderedSeg;
+                }
+            }
+        }
+
+        this._insideSegment = null;
+        return null;
     }
 
     /**

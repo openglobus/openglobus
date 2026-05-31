@@ -30,6 +30,7 @@ const globus = new Globe({
     layers: [new Bing(), new OpenStreetMap(), uavLayer, myObjects],
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts"
+    //reverseDepth: false
 });
 
 globus.planet.addControl(new control.TimelineControl());
@@ -42,6 +43,8 @@ const uavGltfPromise = Gltf.loadGlb("./uav.glb");
 const cameraFrustumObject3d = Object3d.createFrustum();
 const trackedCameraEntities = [];
 const skyCubeObject3d = Object3d.createCube(10000, 10000, 10000).setColor("white");
+const PROJECTOR_NEAR = 300.0;
+const PROJECTOR_FAR = 100000.0;
 
 myObjects.add(
     new Entity({
@@ -94,7 +97,7 @@ function syncTrackedCameras() {
     }
 }
 
-globus.planet.renderer.events.on("draw", syncTrackedCameras, null, -300);
+globus.planet.renderer.events.on("predraw", syncTrackedCameras, null, -300);
 
 async function createTrackedCameraEntity(cameraSnapshot) {
     const uavGltf = await uavGltfPromise;
@@ -119,18 +122,19 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         return;
     }
     depthCamera.copy(cameraSnapshot);
+    depthCamera.setNearFar(PROJECTOR_NEAR, PROJECTOR_FAR);
+    depthCamera.update();
 
     const projector = new Projector({
         enabled: true,
         camera: depthCamera,
         framebuffer: depthHandler.framebuffer,
-        color: [1.0, 1.0, 0.1],
-        intensity: 1.0,
-        opacity: 0.45,
-        bias: 0.0005, //0.00003 .. 0.00008 - 0.0005
-        normalBias: 0.1, // 0.2 .. 1.0
-        depthEpsilon: 0.0002, //0.00015 .. 0.0005 - 0.0015
-        mode: "decal",
+        color: [1.0, 1.0, 0.0, 0.3],
+        bias: 0.00006, //0.00003 .. 0.00008 - 0.0005
+        normalBias: 0.45, // 0.2 .. 1.0
+        depthEpsilon: 0.0001, //0.00015 .. 0.0005 - 0.0015
+        mode: "color",
+        renderMode: "light",
         priority: 0
     });
     globus.planet.renderer.projectors.add(projector);

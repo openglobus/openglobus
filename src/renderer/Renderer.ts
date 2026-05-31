@@ -82,7 +82,7 @@ let _tempDepth_ = new Float32Array(2);
  *     - lightAmbient: Light ambient color `[r, g, b]`
  *     - lightDiffuse: Light diffuse color `[r, g, b]`
  *     - lightSpecular: Light specular `[r, g, b, shininess]`
- * @fires draw - Triggered before each frame is rendered.
+ * @fires predraw - Triggered before each frame is rendered.
  * @fires resize - Triggered when the canvas is resized.
  * @fires mousemove - Triggered when the mouse moves over the canvas.
  * @fires mousestop - Triggered when the mouse stops moving.
@@ -163,7 +163,7 @@ class Renderer {
     public activeCamera: Camera;
 
     /**
-     * Renderer events. Represents interface for setting events like mousemove, draw, keypress etc.
+     * Renderer events. Represents interface for setting events like mousemove, predraw, keypress etc.
      * @public
      * @type {RendererEvents}
      */
@@ -1349,15 +1349,18 @@ class Renderer {
 
         this.enableBlendDefault();
 
-        e.dispatch(e.draw, this);
+        e.dispatch(e.predraw, this);
 
         this.activeCamera.checkFly();
 
         let frustums = this.activeCamera.frustums;
 
         // Rendering scenes and entityCollections
-        let rn = this._scenesArr;
         let k = frustums.length;
+
+        this.activeCamera.setCurrentFrustum(this.activeCamera.FARTHEST_FRUSTUM_INDEX);
+
+        e.dispatch(e.draw, this);
 
         //
         // Scenes PASS
@@ -1365,11 +1368,6 @@ class Renderer {
         while (k--) {
             this.activeCamera.setCurrentFrustum(k);
             gl.clear(gl.DEPTH_BUFFER_BIT);
-
-            let i = rn.length;
-            while (i--) {
-                rn[i].draw();
-            }
 
             //
             // Deferred geometry pass for opaque objects
@@ -1418,9 +1416,8 @@ class Renderer {
             }
 
             this._drawDepthBuffer(0);
-
-            this._clearEntityCollectionQueue(0);
         }
+        this._clearEntityCollectionQueue(0);
 
         //
         // Depth-ordered EntityCollections passes

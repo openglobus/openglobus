@@ -60,8 +60,8 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
 const CAM_WIDTH = 512;
 const CAM_HEIGHT = 512;
 const PERIMETER_STEP_PX = 1;
-const DEPTH_NEAR = 500;
-const DEPTH_FAR = 200000;
+const DEPTH_NEAR = 100;
+const DEPTH_FAR = 100000;
 
 const POLYLINE_DEPTH_OFFSET = -100;
 
@@ -224,7 +224,7 @@ export class CameraDepthHandler extends Control {
         return this.framebuffer!.textures[0]!;
     }
 
-    protected _segmentsPass(camera: PlanetCamera) {
+    protected _segmentsPass(camera: PlanetCamera, quadTreeStrategy: QuadTreeStrategy) {
         const h = this.renderer!.handler;
         const gl = h.gl!;
 
@@ -237,11 +237,12 @@ export class CameraDepthHandler extends Control {
 
         let isEq = this.planet!.terrain!.equalizeVertices;
 
-        let rn = this._quadTreeStrategy!._renderedNodesInFrustum[camera.getCurrentFrustum()];
+        let rn = quadTreeStrategy._renderedNodesInFrustum[camera.getCurrentFrustum()];
 
         let i = rn.length;
         while (i--) {
             let s = rn[i].segment;
+            if (!s.node) continue;
             if (s._transitionOpacity >= 1) {
                 isEq && s.equalize();
                 s.readyToEngage && s.engage();
@@ -251,8 +252,9 @@ export class CameraDepthHandler extends Control {
             }
         }
 
-        for (let i = 0; i < this._quadTreeStrategy!._fadingOpaqueSegments.length; ++i) {
-            let s = this._quadTreeStrategy!._fadingOpaqueSegments[i];
+        for (let i = 0; i < quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
+            let s = quadTreeStrategy._fadingOpaqueSegments[i];
+            if (!s.node) continue;
             isEq && s.equalize();
             s.readyToEngage && s.engage();
             s.ensureIndexBuffer();
@@ -294,14 +296,19 @@ export class CameraDepthHandler extends Control {
 
         this.renderer!.applyDepthForCamera(cam);
 
-        this._quadTreeStrategy.collectRenderNodes(cam);
+        let quadTreeStrategy = this.planet!.quadTreeStrategy!;
+
+        if (!mainCam.containsPoint(cam.eye)) {
+            quadTreeStrategy = this._quadTreeStrategy!;
+            this._quadTreeStrategy.maxZoomLimit = this.planet.quadTreeStrategy.maxCurrZoom;
+            this._quadTreeStrategy.collectRenderNodes(cam);
+        }
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
 
-        // Inside this.planet! and this._quadTreeStrategy!
-        this._segmentsPass(cam);
+        this._segmentsPass(cam, quadTreeStrategy);
         this._geoObjectsPass(cam);
 
         gl.enable(gl.BLEND);

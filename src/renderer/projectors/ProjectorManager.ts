@@ -2,11 +2,10 @@ import { Mat4 } from "../../math/Mat4";
 import { cons } from "../../cons";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { Renderer } from "../Renderer";
-import { srgbToLinearArr } from "../../utils/colorSpace";
 import { Projector } from "./Projector";
 
-export type { ProjectorMode, IProjectorParams, IRendererProjectorParams } from "./Projector";
-export { Projector, RendererProjector } from "./Projector";
+export type { ProjectorSourceType, ProjectorRenderMode, IProjectorParams } from "./Projector";
+export { Projector } from "./Projector";
 
 /**
  * Maximum number of depth layers allocated in manager-owned projector array texture.
@@ -109,7 +108,7 @@ export class ProjectorManager {
 
         this._rebindFramebufferToLayer(projector);
 
-        this._projectors.push(this._prepareProjector(projector));
+        this._projectors.push(projector);
         this._updateActiveProjectors = true;
         return projector.id;
     }
@@ -161,7 +160,7 @@ export class ProjectorManager {
     public update(projector: Projector): boolean {
         const index = this._projectors.findIndex((p) => p.id === projector.id);
         if (index === -1) return false;
-        this._projectors[index] = this._prepareProjector(projector);
+        this._projectors[index] = projector;
         this._updateActiveProjectors = true;
         return true;
     }
@@ -258,11 +257,11 @@ export class ProjectorManager {
             this._colorIntensityData[vOffset] = color[0] ?? 1.0;
             this._colorIntensityData[vOffset + 1] = color[1] ?? 1.0;
             this._colorIntensityData[vOffset + 2] = color[2] ?? 1.0;
-            this._colorIntensityData[vOffset + 3] = pi.intensity;
+            this._colorIntensityData[vOffset + 3] = color[3] ?? 1.0;
 
             this._paramsData[vOffset] = pi.bias;
             this._paramsData[vOffset + 1] = pi.normalBias;
-            this._paramsData[vOffset + 2] = pi.opacity;
+            this._paramsData[vOffset + 2] = pi.renderMode;
             this._paramsData[vOffset + 3] = pi.depthEpsilon;
 
             this._layerData[i] = pi._slot;
@@ -272,7 +271,7 @@ export class ProjectorManager {
         gl.uniform1iv(u.u_projectorLayer!, this._layerData);
         gl.uniformMatrix4fv(u.u_projectorViewProjRTE!, false, this._viewProjData);
         gl.uniform3fv(u.u_projectorEyeRel!, this._eyeRelData);
-        gl.uniform4fv(u.u_projectorColorIntensity!, this._colorIntensityData);
+        gl.uniform4fv(u.u_projectorColor!, this._colorIntensityData);
         gl.uniform4fv(u.u_projectorParams!, this._paramsData);
 
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
@@ -324,8 +323,8 @@ export class ProjectorManager {
             pi.camera.eye.y - activeCameraEye.y,
             pi.camera.eye.z - activeCameraEye.z
         );
-        gl.uniform4f(u.u_projectorColorIntensity, color[0], color[1], color[2], pi.intensity);
-        gl.uniform4f(u.u_projectorParams, pi.bias, pi.normalBias, pi.opacity, pi.depthEpsilon);
+        gl.uniform4f(u.u_projectorColor, color[0], color[1], color[2], color[3]);
+        gl.uniform4f(u.u_projectorParams, pi.bias, pi.normalBias, pi.renderMode, pi.depthEpsilon);
         gl.uniformMatrix4fv(u.u_projectorInvViewProjRTE, false, this._tmpInverse._m);
 
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
@@ -360,7 +359,7 @@ export class ProjectorManager {
             size,
             size,
             MAX_PROJECTOR_LAYERS,
-            "NEAREST",
+            "LINEAR",
             "R32F",
             "CLAMP_TO_EDGE",
             1
@@ -394,11 +393,5 @@ export class ProjectorManager {
         this._updateActiveProjectors = false;
 
         return this._activeProjectors;
-    }
-
-    protected _prepareProjector(projector: Projector): Projector {
-        const linearColor = srgbToLinearArr(projector.color);
-        projector.color = [linearColor[0], linearColor[1], linearColor[2]];
-        return projector;
     }
 }
