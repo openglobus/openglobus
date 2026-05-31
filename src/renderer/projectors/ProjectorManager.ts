@@ -394,5 +394,4 @@ export class ProjectorManager {
 
         return this._activeProjectors;
     }
-
 }

@@ -178,12 +178,7 @@ export abstract class BaseTileMaterialLayer extends Layer {
         }
     }
 
-    protected _applyFastPassReadyLoading(
-        material: Material,
-        segment: Segment,
-        pn: Node,
-        forceLoading: boolean
-    ): void {
+    protected _applyFastPassReadyLoading(material: Material, segment: Segment, pn: Node, forceLoading: boolean): void {
         if (!segment.passReady) {
             return;
         }

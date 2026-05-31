@@ -271,6 +271,152 @@ export class XYZ extends BaseTileMaterialLayer {
         this._urlRewriteCallback = ur;
     }
 
+    //
+    // Befor baseTileMaterialLayer was added
+    //
+    // public override applyMaterial(material: Material, forceLoading: boolean = false): NumberArray4 {
+    //     if (this.waitForParentMaterial) {
+    //         return this._apllyMaterialDefault(material, forceLoading);
+    //     } else {
+    //         return this._applyMaterialFast(material, forceLoading);
+    //     }
+    // }
+    //
+    // protected _apllyMaterialDefault(material: Material, forceLoading: boolean = false): NumberArray4 {
+    //     if (material.isReady) {
+    //         return material.texOffset;
+    //     } else if (material.segment.tileZoom < this.minNativeZoom) {
+    //         material.textureNotExists();
+    //     } else {
+    //         let segment = material.segment;
+    //         let layerId = this.__id;
+    //
+    //         if (segment.passReady) {
+    //             let node = segment.node;
+    //             let targetNode = null;
+    //
+    //             while (node) {
+    //                 const seg = node.segment;
+    //
+    //                 if (seg.tileZoom <= this.maxNativeZoom) {
+    //                     const mat = seg.materials[layerId];
+    //                     if (!mat || !mat.isReady) {
+    //                         targetNode = node;
+    //                     }
+    //                 }
+    //
+    //                 node = node.parentNode!;
+    //             }
+    //
+    //             if (targetNode) {
+    //                 const seg = targetNode.segment;
+    //
+    //                 let mat = seg.materials[layerId];
+    //                 if (!mat) {
+    //                     mat = seg.materials[layerId] = this.createMaterial(seg);
+    //                 }
+    //
+    //                 if (!mat.isReady && !mat.isLoading) {
+    //                     this.loadMaterial(mat, targetNode === segment.node ? forceLoading : true);
+    //                 }
+    //             }
+    //         }
+    //
+    //         let pn = segment.node;
+    //         let psegm: Material | null = null;
+    //         while (pn) {
+    //             const pm = pn.segment.materials[layerId];
+    //             if (pm && pm.isReady && pm.textureExists) {
+    //                 psegm = pm;
+    //                 break;
+    //             }
+    //             pn = pn.parentNode!;
+    //         }
+    //
+    //         if (psegm && pn) {
+    //             material.appliedNode = pn;
+    //             material.appliedNodeId = pn.nodeId;
+    //             material.texture = psegm.texture;
+    //             let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+    //             material.texOffset[0] = segment.tileX * dZ2 - pn.segment.tileX;
+    //             material.texOffset[1] = segment.tileY * dZ2 - pn.segment.tileY;
+    //             material.texOffset[2] = dZ2;
+    //             material.texOffset[3] = dZ2;
+    //         } else {
+    //             material.texture = segment.planet.transparentTexture;
+    //             material.texOffset[0] = 0.0;
+    //             material.texOffset[1] = 0.0;
+    //             material.texOffset[2] = 1.0;
+    //             material.texOffset[3] = 1.0;
+    //         }
+    //     }
+    //
+    //     return material.texOffset;
+    // }
+    //
+    // protected _applyMaterialFast(material: Material, forceLoading: boolean = false): NumberArray4 {
+    //     if (material.isReady) {
+    //         return material.texOffset;
+    //     } else if (material.segment.tileZoom < this.minNativeZoom) {
+    //         material.textureNotExists();
+    //     } else {
+    //         let segment = material.segment,
+    //             pn = segment.node,
+    //             notEmpty = false;
+    //
+    //         let mId = this.__id;
+    //         let psegm = material;
+    //         while (pn.parentNode) {
+    //             pn = pn.parentNode;
+    //             psegm = pn.segment.materials[mId];
+    //             if (psegm && psegm.textureExists) {
+    //                 notEmpty = true;
+    //                 break;
+    //             }
+    //         }
+    //
+    //         if (segment.passReady) {
+    //             let maxNativeZoom = (material.layer as XYZ).maxNativeZoom;
+    //             if (pn.segment.tileZoom === maxNativeZoom) {
+    //                 material.textureNotExists();
+    //             } else if (material.segment.tileZoom <= maxNativeZoom) {
+    //                 !material.isLoading && !material.isReady && this.loadMaterial(material, forceLoading);
+    //             } else {
+    //                 let pn = segment.node;
+    //                 while (pn.segment.tileZoom > (material.layer as XYZ).maxNativeZoom) {
+    //                     pn = pn.parentNode!;
+    //                 }
+    //                 let pnm = pn.segment.materials[material.layer.__id];
+    //                 if (pnm) {
+    //                     !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm, true);
+    //                 } else {
+    //                     pnm = pn.segment.materials[material.layer.__id] = material.layer.createMaterial(pn.segment);
+    //                     this.loadMaterial(pnm, true);
+    //                 }
+    //             }
+    //         }
+    //
+    //         if (notEmpty) {
+    //             material.appliedNode = pn;
+    //             material.appliedNodeId = pn.nodeId;
+    //             material.texture = psegm.texture;
+    //             let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+    //             material.texOffset[0] = segment.tileX * dZ2 - pn.segment.tileX;
+    //             material.texOffset[1] = segment.tileY * dZ2 - pn.segment.tileY;
+    //             material.texOffset[2] = dZ2;
+    //             material.texOffset[3] = dZ2;
+    //         } else {
+    //             material.texture = segment.planet.transparentTexture;
+    //             material.texOffset[0] = 0.0;
+    //             material.texOffset[1] = 0.0;
+    //             material.texOffset[2] = 1.0;
+    //             material.texOffset[3] = 1.0;
+    //         }
+    //     }
+    //
+    //     return material.texOffset;
+    // }
+
     /**
      * @protected
      */
