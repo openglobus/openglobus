@@ -4,12 +4,12 @@ import { Handler } from "../webgl/Handler";
 import { Material } from "../layer/Material";
 import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Planet } from "../scene/Planet";
-import { RENDERING } from "../quadTree/quadTree";
+import { NOTRENDERING } from "../quadTree/quadTree";
 import { Vector } from "../layer/Vector";
 
 let tempArr = new Float32Array(2);
 
-const MAX_FRAME_TIME = 25.0;
+const MAX_FRAME_TIME = 50.0;
 
 export class VectorTileCreator {
     protected _width: number;
@@ -71,10 +71,10 @@ export class VectorTileCreator {
                 uniform vec4 extentParamsHigh;
                 uniform vec4 extentParamsLow;
                 varying vec4 vColor;
-                
+
                 vec2 proj(vec2 coordHigh, vec2 coordLow) {
                     vec2 highDiff = coordHigh - extentParamsHigh.xy;
-                    vec2 lowDiff = coordLow - extentParamsLow.xy;                    
+                    vec2 lowDiff = coordLow - extentParamsLow.xy;
                     return vec2(-1.0 + (highDiff * step(1.0, length(highDiff)) + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0);
                 }
 
@@ -98,7 +98,7 @@ export class VectorTileCreator {
                     }
                     return fallback;
                 }
-                
+
                 void main(){
                     vColor = color;
                     float eps = 2.0 / max(viewport.x, viewport.y);
@@ -127,17 +127,17 @@ export class VectorTileCreator {
                     vec2 sNext = _next;
                     vec2 sCurrent = _current;
                     vec2 sPrev = _prev;
-                    
+
                     vec2 dirNext = safeNormalize(sNext - sCurrent, vec2(1.0, 0.0), eps);
                     vec2 dirPrev = safeNormalize(sPrev - sCurrent, -dirNext, eps);
                     float dotNP = clamp(dot(dirNext, dirPrev), -1.0, 1.0);
-                    
+
                     vec2 normalNext = safeNormalize(vec2(-dirNext.y, dirNext.x), vec2(0.0, 1.0), eps);
                     vec2 normalPrev = safeNormalize(vec2(dirPrev.y, -dirPrev.x), vec2(0.0, 1.0), eps);
                     vec2 sideNormal = abs(order) == 1.0 ? normalPrev : normalNext;
                     float side = sign(order);
                     vec2 d = (thickness + thicknessOutline) * 0.5 * side / viewport;
-                    
+
                     vec2 m;
                     float lenNext = distance(sCurrent, sNext);
                     float lenPrev = distance(sCurrent, sPrev);
@@ -148,7 +148,7 @@ export class VectorTileCreator {
                     }else{
                         m = getIntersection(sCurrent + normalPrev * d, sPrev + normalPrev * d,
                                             sCurrent + normalNext * d, sNext + normalNext * d, eps);
-                        
+
                         if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){
                             float occw = order * sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);
                             if(occw == -1.0){
@@ -193,10 +193,10 @@ export class VectorTileCreator {
                         colors: "vec4"
                     },
                     vertexShader: `attribute vec2 coordinatesHigh;
-                attribute vec2 coordinatesLow; 
-                attribute vec4 colors; 
-                uniform vec4 extentParamsHigh; 
-                uniform vec4 extentParamsLow; 
+                attribute vec2 coordinatesLow;
+                attribute vec4 colors;
+                uniform vec4 extentParamsHigh;
+                uniform vec4 extentParamsLow;
                 varying vec4 color;
 
                 vec2 proj(vec2 coordHigh, vec2 coordLow) {
@@ -205,14 +205,14 @@ export class VectorTileCreator {
                     return vec2(-1.0 + (highDiff * step(1.0, length(highDiff)) + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0);
                 }
 
-                void main() { 
+                void main() {
                     color = colors;
-                    gl_Position = vec4(proj(coordinatesHigh, coordinatesLow), 0.0, 1.0); 
+                    gl_Position = vec4(proj(coordinatesHigh, coordinatesLow), 0.0, 1.0);
                 }`,
                     fragmentShader: `precision highp float;
                 varying vec4 color;
-                void main () {  
-                    gl_FragColor = color; 
+                void main () {
+                    gl_FragColor = color;
                 }`
                 })
             );
@@ -257,7 +257,7 @@ export class VectorTileCreator {
 
             while (this._queue.length && deltaTime < MAX_FRAME_TIME) {
                 let material = this._queue.shift()!;
-                if (material.isLoading && material.segment.node.getState() === RENDERING) {
+                if (material.isLoading && material.segment.node.getState() !== NOTRENDERING) {
                     let pickingEnabled = material.layer._pickingEnabled;
 
                     if (material.segment.tileZoom < 4) {
