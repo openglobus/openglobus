@@ -1670,7 +1670,8 @@ export class Planet extends Scene {
         sl: Layer[],
         sliceIndex: number,
         outTransparentSegments?: Segment[],
-        outOpaqueSegments?: Segment[]
+        outOpaqueSegments?: Segment[],
+        forcedOpacity?: number
     ) => {
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
@@ -1689,11 +1690,11 @@ export class Planet extends Scene {
                         isEq && f.equalize();
                         f.readyToEngage && f.engage();
                         f.updateRTCEyePosition(camera);
-                        f.screenRendering(sh, sl, sliceIndex);
+                        f.screenRendering(sh, sl, sliceIndex, undefined, false, forcedOpacity);
                         outOpaqueSegments!.push(f);
                     } else {
                         f.updateRTCEyePosition(camera);
-                        f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
+                        f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true, forcedOpacity);
                     }
                 }
             }
@@ -1901,11 +1902,31 @@ export class Planet extends Scene {
         gl.disable(gl.CULL_FACE);
 
         let nodes = new Map<number, boolean>();
-        let transparentSegments: Segment[] = [];
 
         let sl = this._visibleTileLayerSlices;
+        let sliceOrder: number[] = [];
+        const cameraHeight = camera.getHeight();
 
         for (let j = 1, len = sl.length; j < len; j++) {
+            sliceOrder.push(j);
+        }
+
+        // Fix blending visibility
+        sliceOrder.sort((a, b) => {
+            const ah = sl[a].length ? sl[a][0].getHeight() : 0.0;
+            const bh = sl[b].length ? sl[b][0].getHeight() : 0.0;
+            const ad = Math.abs(ah - cameraHeight);
+            const bd = Math.abs(bh - cameraHeight);
+
+            if (ad !== bd) return bd - ad;
+            if (ah !== bh) return ah - bh;
+            return a - b;
+        });
+
+        for (let p = 0; p < sliceOrder.length; p++) {
+            const j = sliceOrder[p];
+            let transparentSegments: Segment[] = [];
+
             if (camera.isFarthestFrustumActive) {
                 Planet.__refreshLayersFadingOpacity__(
                     sl[j],
@@ -1914,18 +1935,35 @@ export class Planet extends Scene {
                 );
             }
 
-            const polygonOffsetUnits = camera.reverseDepthActive ? j : -j;
+            const polygonOffsetUnits = camera.reverseDepthActive ? p + 1 : -(p + 1);
             gl.polygonOffset(0, polygonOffsetUnits);
             let i = renderedNodes.length;
             while (i--) {
                 let ri = renderedNodes[i];
-                this._renderingFadingNodes(camera, quadTreeStrategy, nodes, sh, ri, sl[j], j, transparentSegments);
+                this._renderingFadingNodes(
+                    camera,
+                    quadTreeStrategy,
+                    nodes,
+                    sh,
+                    ri,
+                    sl[j],
+                    j,
+                    transparentSegments,
+                    undefined,
+                    1.0
+                );
                 if (ri.segment._transitionOpacity < 1) {
-                    ri.segment.initSlice(j);
+                    transparentSegments.push(ri.segment);
                 } else {
                     ri.segment.updateRTCEyePosition(camera);
-                    ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
+                    ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true, 1.0);
                 }
+            }
+
+            for (let t = 0, tLen = transparentSegments.length; t < tLen; t++) {
+                let ts = transparentSegments[t];
+                ts.updateRTCEyePosition(camera);
+                ts.screenRendering(sh, sl[j], j, this.transparentTexture, true, 1.0);
             }
         }
 
