@@ -1257,8 +1257,11 @@ class Segment {
     }
 
     public clearSegment() {
+        this.passReady = false;
         this.plainReady = false;
         this.initialized = false;
+        this._slices.length = 0;
+        this._slices = [];
         this.deleteBuffers();
         this.deleteMaterials();
         this.deleteElevations();

@@ -123,7 +123,7 @@ void mainImage(out vec4 outColor)
 
         bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
 
-        if (intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 100000.0, distanceToGround) && hitGround)
+        if (intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 250000.0, distanceToGround) && hitGround)
         {
             discard;
 //            outColor = vec4(0.47, 0.47, 0.5, 1.0);

@@ -842,8 +842,10 @@ export class Planet extends Scene {
     public setHeightFactor(factor: number) {
         if (this._heightFactor !== factor) {
             this._heightFactor = factor;
+            this.layerLock.lock(this._memKey);
             this.quadTreeStrategy.destroyBranches();
             this.quadTreeStrategy.clearRenderedNodes();
+            this.layerLock.free(this._memKey);
         }
     }
 
