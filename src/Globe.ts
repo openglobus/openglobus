@@ -68,6 +68,9 @@ export interface IGlobeParams {
     navigation?: {
         active?: boolean;
         inertia?: number;
+        minInertia?: number;
+        maxInertia?: number;
+        minInertiaAltitude?: number;
         dragInertia?: number;
         minSlope?: number;
         mass?: number;
@@ -373,6 +376,15 @@ class Globe {
             }
             if (options.navigation.inertia !== undefined) {
                 this.navigation.inertia = options.navigation.inertia;
+            }
+            if (options.navigation.minInertia !== undefined) {
+                this.navigation.minInertia = options.navigation.minInertia;
+            }
+            if (options.navigation.maxInertia !== undefined) {
+                this.navigation.maxInertia = options.navigation.maxInertia;
+            }
+            if (options.navigation.minInertiaAltitude !== undefined) {
+                this.navigation.minInertiaAltitude = options.navigation.minInertiaAltitude;
             }
             if (options.navigation.dragInertia !== undefined) {
                 this.navigation.dragInertia = options.navigation.dragInertia;
