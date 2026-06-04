@@ -576,7 +576,7 @@ export class Navigation extends Control {
         if (this._grabbedPoint && this.planet) {
             let cam = this.planet.camera;
 
-            if (cam.isOrthographic) {
+            if (cam.isOrthographic && cam.slope <= this.minSlope) {
                 const nx = e.nx - this._grabbedScreenPoint.x;
                 const ny = e.ny - this._grabbedScreenPoint.y;
                 const f = cam.frustum;
@@ -586,8 +586,28 @@ export class Navigation extends Control {
 
                 this._targetDragPoint = this._grabbedPoint;
                 this.force = targetEye.sub(cam.eye).scale(this.dragInertia);
+            } else if (cam.isOrthographic) {
+                const dist = this._grabbedDist;
+                const p1 = new Vec3();
+                const dir = cam.unproject(e.x, e.y, dist, p1);
+
+                const p0 = p1.sub(dir.scaleTo(dist));
+                const _targetDragPoint = new Ray(p0, dir).hitSphere(this._grabbedSphere);
+
+                if (!_targetDragPoint) {
+                    return;
+                }
+
+                this._targetDragPoint = _targetDragPoint;
+
+                let rot = Quat.getRotationBetweenVectors(
+                    this._targetDragPoint.getNormal(),
+                    this._grabbedPoint.getNormal()
+                );
+
+                let newEye = rot.mulVec3(cam.eye);
+                this.force = newEye.sub(cam.eye).scale(this.dragInertia);
             } else if (cam.slope > this.minSlope) {
-                // Need distance for orthographic camera
                 this._grabbedDist = cam.eye.distance(this._grabbedPoint);
                 let dir = cam.unproject(e.x, e.y, this._grabbedDist);
                 let _targetDragPoint = new Ray(cam.eye, dir).hitSphere(this._grabbedSphere);
@@ -733,7 +753,7 @@ export class Navigation extends Control {
             this._velInertia = this._defaultVelInertia;
             let cam = this.planet!.camera;
 
-            if (cam.isOrthographic) {
+            if (cam.isOrthographic && cam.slope <= this.minSlope) {
                 const dt = this.dt;
                 const d_v = this.vel.scaleTo(dt);
                 const right = cam.getRight();
