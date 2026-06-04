@@ -146,7 +146,7 @@ class PlanetCamera extends Camera {
 
         this.minAltitude = options.minAltitude || 1;
 
-        this.maxAltitude = options.maxAltitude || 20000000;
+        this.maxAltitude = options.maxAltitude || 25000000;
 
         this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
 

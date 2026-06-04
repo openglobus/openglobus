@@ -18,7 +18,8 @@ const DEFAULT_RULES: IAltitudeNearPlaneRule[] = [
     { maxAltitude: 1000, near: 1.0 },
     { maxAltitude: 10000, near: 50.0 },
     { maxAltitude: 100000, near: 100.0 },
-    { maxAltitude: Number.POSITIVE_INFINITY, near: 1500.0 }
+    { maxAltitude: 2000000, near: 2000.0 },
+    { maxAltitude: Number.POSITIVE_INFINITY, near: 3500.0 }
 ];
 
 export class AltitudeNearPlaneStrategy implements INearPlaneStrategy {

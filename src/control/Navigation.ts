@@ -208,7 +208,7 @@ export class Navigation extends Control {
         this.mass = options.mass ?? 1;
         this.inertia = options.inertia ?? 1;
         this.minInertia = options.minInertia ?? 1;
-        this.maxInertia = options.maxInertia ?? 1.1;
+        this.maxInertia = options.maxInertia ?? 1.08;
         this.minInertiaAltitude = options.minInertiaAltitude ?? DEFAULT_MIN_INERTIA_ALTITUDE;
         this._defaultVelInertia = options.velInertia ?? DEFAULT_VELINERTIA;
         this._velInertia = this._defaultVelInertia;

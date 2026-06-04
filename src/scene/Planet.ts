@@ -408,13 +408,14 @@ export class Planet extends Scene {
 
         this.terrain = null;
 
+        const maxAltitude = options.maxAltitude || 25000000;
         this.camera = new PlanetCamera(this, {
             frustums: options.frustums,
-            eye: new Vec3(25000000, 0, 0),
+            eye: new Vec3(this.ellipsoid.getEquatorialSize() + maxAltitude, 0, 0),
             look: Vec3.ZERO,
             up: Vec3.NORTH,
             minAltitude: options.minAltitude,
-            maxAltitude: options.maxAltitude,
+            maxAltitude,
             reverseDepth: options.reverseDepth
         });
         this.nearPlaneStrategy = options.nearPlaneStrategy ?? new AltitudeNearPlaneStrategy();
