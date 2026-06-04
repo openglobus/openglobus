@@ -12,8 +12,8 @@ export class OpenStreetMap extends XYZ {
             defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
             shininess: 30,
             specular: [0.3, 0.3, 0.27],
-            ambient: [0.2, 0.2, 0.3],
-            diffuse: [0.9, 0.9, 0.9],
+            ambient: [0.1, 0.1, 0.2],
+            diffuse: [1.0, 1.0, 1.0],
             ...options
         });
     }

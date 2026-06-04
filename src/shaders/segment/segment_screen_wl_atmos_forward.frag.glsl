@@ -35,7 +35,7 @@ uniform int samplerCount;
 uniform float nightTextureCoefficient;
 
 uniform vec2 atmosFadeDist;
-uniform vec2 atmosMaxMinOpacity;
+uniform vec3 atmosMaxMinOpacity;
 uniform float camHeight;
 
 uniform float transitionOpacity;

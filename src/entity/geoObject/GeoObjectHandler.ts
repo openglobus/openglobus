@@ -519,7 +519,7 @@ export class GeoObjectHandler {
         gl.bindTexture(gl.TEXTURE_2D, atmosphere._scatteringBuffer!.textures[0]);
         gl.uniform1i(u.scatteringTexture, 2);
         gl.uniform2fv(u.atmosFadeDist, planet.atmosphereFadeDist);
-        gl.uniform2fv(u.atmosMaxMinOpacity, planet.atmosphereMaxMinOpacity);
+        gl.uniform3fv(u.atmosMaxMinOpacity, planet._atmosphereCurrentMaxMinOpacity);
 
         gl.activeTexture(gl.TEXTURE0);
     }

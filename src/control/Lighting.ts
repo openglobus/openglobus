@@ -113,6 +113,7 @@ export class Lighting extends Control {
 
     protected _atmosphereMaxOpacity: Slider;
     protected _atmosphereMinOpacity: Slider;
+    protected _atmosphereOpacityCurveShift: Slider;
 
     protected _simpleSkyBackgroundColorOne: Color;
     protected _simpleSkyBackgroundColorTwo: Color;
@@ -187,6 +188,13 @@ export class Lighting extends Control {
         this._atmosphereMinOpacity = new Slider({
             label: "Min.opacity",
             max: 5
+        });
+
+        this._atmosphereOpacityCurveShift = new Slider({
+            label: "Curve shift",
+            min: -2,
+            max: 3,
+            step: 0.01
         });
 
         this._simpleSkyBackgroundColorOne = new Color({
@@ -386,6 +394,7 @@ export class Lighting extends Control {
 
         this._atmosphereMaxOpacity.appendTo(this.$atmosphereOpacity!);
         this._atmosphereMinOpacity.appendTo(this.$atmosphereOpacity!);
+        this._atmosphereOpacityCurveShift.appendTo(this.$atmosphereOpacity!);
 
         this._simpleSkyBackgroundColorOne.appendTo(this.$simpleSkyBackground!);
         this._simpleSkyBackgroundColorTwo.appendTo(this.$simpleSkyBackground!);
@@ -428,6 +437,11 @@ export class Lighting extends Control {
         this._atmosphereMinOpacity.value = this.planet!.atmosphereMinOpacity;
         this._atmosphereMinOpacity.events.on("change", (val: number) => {
             this.planet!.atmosphereMinOpacity = val;
+        });
+
+        this._atmosphereOpacityCurveShift.value = this.planet!.atmosphereOpacityCurveShift;
+        this._atmosphereOpacityCurveShift.events.on("change", (val: number) => {
+            this.planet!.atmosphereOpacityCurveShift = val;
         });
 
         this._atmosphereMaxOpacity.value = this.planet!.atmosphereMaxOpacity;

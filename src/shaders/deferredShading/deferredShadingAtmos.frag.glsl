@@ -25,7 +25,7 @@ uniform vec3 lightDiffuse;
 uniform vec4 lightSpecular;
 uniform vec3 cameraPosition;
 uniform vec2 atmosFadeDist;
-uniform vec2 atmosMaxMinOpacity;
+uniform vec3 atmosMaxMinOpacity;
 
 layout (location = 0) out vec4 fragColor;
 

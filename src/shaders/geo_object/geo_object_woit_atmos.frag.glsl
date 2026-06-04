@@ -28,7 +28,7 @@ uniform mat3 normalMatrix;
 uniform sampler2D transmittanceTexture;
 uniform sampler2D scatteringTexture;
 uniform vec2 atmosFadeDist;
-uniform vec2 atmosMaxMinOpacity;
+uniform vec3 atmosMaxMinOpacity;
 
 #include "../atmos/lut_helpers.glsl"
 #include "../atmos/atmosGroundColor.glsl"

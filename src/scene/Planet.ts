@@ -34,6 +34,7 @@ import { Key, Lock } from "../Lock";
 import { Layer } from "../layer/Layer";
 import { Loader } from "../utils/Loader";
 import { LonLat } from "../LonLat";
+import { lerp } from "../math";
 import { Node } from "../quadTree/Node";
 import { NormalMapCreator } from "../utils/NormalMapCreator";
 import { PlainSegmentWorker } from "../utils/PlainSegmentWorker";
@@ -105,6 +106,10 @@ export type PlanetEventsList = [
  * @default
  */
 const DEFAULT_MAX_NODES = 400;
+
+const ATMOSPHERE_OPACITY_MIN_ALTITUDE = 1500000.0;
+const LOW_ALTITUDE_ATMOSPHERE_MIN_OPACITY = 0.1;
+const LOW_ALTITUDE_ATMOSPHERE_CURVE_SHIFT = 0.0;
 
 // Reserved early renderer priorities for the planet frame pipeline.
 const PLANET_DRAW_PRIORITY = -10000;
@@ -358,6 +363,7 @@ export class Planet extends Scene {
 
     protected _atmosphereEnabled: boolean;
     protected _atmosphereMaxMinOpacity: Float32Array;
+    public _atmosphereCurrentMaxMinOpacity: Float32Array;
     public atmosphereFadeDist: Float32Array;
     protected _atmosphereBottomRadius: number;
 
@@ -499,7 +505,8 @@ export class Planet extends Scene {
         //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
-        this._atmosphereMaxMinOpacity = new Float32Array([1.1, 0.11]);
+        this._atmosphereMaxMinOpacity = new Float32Array([1.15, 0.4, 2.3]);
+        this._atmosphereCurrentMaxMinOpacity = new Float32Array(this._atmosphereMaxMinOpacity);
         this.atmosphereFadeDist = new Float32Array(2);
         this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
@@ -586,9 +593,27 @@ export class Planet extends Scene {
     }
 
     /**
-     * Gets atmosphere opacity range `[max, min]`.
+     * Sets atmosphere opacity interpolation curve shift.
      * @public
-     * @returns {Float32Array} - Opacity range.
+     * @param {number} curveShift - Curve shift. Zero produces linear interpolation.
+     */
+    public set atmosphereOpacityCurveShift(curveShift: number) {
+        this._atmosphereMaxMinOpacity[2] = curveShift;
+    }
+
+    /**
+     * Gets atmosphere opacity interpolation curve shift.
+     * @public
+     * @returns {number} - Curve shift.
+     */
+    public get atmosphereOpacityCurveShift(): number {
+        return this._atmosphereMaxMinOpacity[2];
+    }
+
+    /**
+     * Gets target atmosphere opacity parameters `[max, min, curveShift]`.
+     * @public
+     * @returns {Float32Array} - Opacity parameters at maximum camera altitude.
      */
     public get atmosphereMaxMinOpacity(): Float32Array {
         return this._atmosphereMaxMinOpacity;
@@ -604,6 +629,34 @@ export class Planet extends Scene {
 
         this.atmosphereFadeDist[0] = minDist;
         this.atmosphereFadeDist[1] = distRange > 0.0 ? 1.0 / distRange : 0.0;
+    }
+
+    protected _updateAtmosphereMaxMinOpacity() {
+        const currentAltitude = this.camera.getHeight();
+        this._atmosphereCurrentMaxMinOpacity[0] = this._atmosphereMaxMinOpacity[0];
+
+        if (currentAltitude <= ATMOSPHERE_OPACITY_MIN_ALTITUDE) {
+            this._atmosphereCurrentMaxMinOpacity[1] = LOW_ALTITUDE_ATMOSPHERE_MIN_OPACITY;
+            this._atmosphereCurrentMaxMinOpacity[2] = LOW_ALTITUDE_ATMOSPHERE_CURVE_SHIFT;
+        } else if (currentAltitude >= this.camera.maxAltitude) {
+            this._atmosphereCurrentMaxMinOpacity[1] = this._atmosphereMaxMinOpacity[1];
+            this._atmosphereCurrentMaxMinOpacity[2] = this._atmosphereMaxMinOpacity[2];
+        } else {
+            const t =
+                (currentAltitude - ATMOSPHERE_OPACITY_MIN_ALTITUDE) /
+                (this.camera.maxAltitude - ATMOSPHERE_OPACITY_MIN_ALTITUDE);
+
+            this._atmosphereCurrentMaxMinOpacity[1] = lerp(
+                t,
+                this._atmosphereMaxMinOpacity[1],
+                LOW_ALTITUDE_ATMOSPHERE_MIN_OPACITY
+            );
+            this._atmosphereCurrentMaxMinOpacity[2] = lerp(
+                t,
+                this._atmosphereMaxMinOpacity[2],
+                LOW_ALTITUDE_ATMOSPHERE_CURVE_SHIFT
+            );
+        }
     }
 
     /**
@@ -1427,6 +1480,7 @@ export class Planet extends Scene {
 
         if (this._atmosphereEnabled) {
             this._calcAtmosphereFadeDist();
+            this._updateAtmosphereMaxMinOpacity();
         }
 
         // free memory
@@ -1653,7 +1707,7 @@ export class Planet extends Scene {
         gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
 
         gl.uniform2fv(shu.atmosFadeDist, this.atmosphereFadeDist);
-        gl.uniform2fv(shu.atmosMaxMinOpacity, this.atmosphereMaxMinOpacity);
+        gl.uniform3fv(shu.atmosMaxMinOpacity, this._atmosphereCurrentMaxMinOpacity);
         gl.uniform1f(shu.camHeight, cam.getHeight());
 
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);

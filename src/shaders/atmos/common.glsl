@@ -114,12 +114,13 @@ void getAtmosFadingOpacity(
     in vec3 _v_vertex,
     in vec3 _cameraPosition,
     in vec2 atmosFadeDist,
-    in vec2 atmosMaxMinOpacity,
+    in vec3 atmosMaxMinOpacity,
     out float opacity
 )
 {
     float vertDist = distance(_cameraPosition, _v_vertex);
     float t = clamp((vertDist - atmosFadeDist.x) * atmosFadeDist.y, 0.0, 1.0);
+    t = pow(t, exp2(atmosMaxMinOpacity.z));
     opacity = mix(atmosMaxMinOpacity.y, atmosMaxMinOpacity.x, t);
 }
 
