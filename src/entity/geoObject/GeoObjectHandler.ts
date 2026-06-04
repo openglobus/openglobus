@@ -520,6 +520,8 @@ export class GeoObjectHandler {
         gl.uniform1i(u.scatteringTexture, 2);
         gl.uniform2fv(u.atmosFadeDist, planet.atmosphereFadeDist);
         gl.uniform3fv(u.atmosMaxMinOpacity, planet._atmosphereCurrentMaxMinOpacity);
+        gl.uniform3fv(u.cameraForward, r.activeCamera.getForward().toArray());
+        gl.uniform1f(u.isOrthographic, r.activeCamera.isOrthographic ? 1.0 : 0.0);
 
         gl.activeTexture(gl.TEXTURE0);
     }

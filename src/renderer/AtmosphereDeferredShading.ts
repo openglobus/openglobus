@@ -51,6 +51,8 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         gl.uniform3fv(p.uniforms.lightDiffuse, r._lightDiffuse);
         gl.uniform4fv(p.uniforms.lightSpecular, r._lightSpecular);
         gl.uniform3f(p.uniforms.cameraPosition, r.activeCamera.eye.x, r.activeCamera.eye.y, r.activeCamera.eye.z);
+        gl.uniform3fv(p.uniforms.cameraForward, r.activeCamera.getForward().toArray());
+        gl.uniform1f(p.uniforms.isOrthographic, r.activeCamera.isOrthographic ? 1.0 : 0.0);
         gl.uniform2fv(p.uniforms.atmosFadeDist, this._atmosphere.planet!.atmosphereFadeDist);
         gl.uniform3fv(p.uniforms.atmosMaxMinOpacity, this._atmosphere.planet!._atmosphereCurrentMaxMinOpacity);
 

@@ -29,6 +29,8 @@ uniform sampler2D transmittanceTexture;
 uniform sampler2D scatteringTexture;
 uniform vec2 atmosFadeDist;
 uniform vec3 atmosMaxMinOpacity;
+uniform vec3 cameraForward;
+uniform float isOrthographic;
 
 #include "../atmos/lut_helpers.glsl"
 #include "../atmos/atmosGroundColor.glsl"
@@ -121,7 +123,10 @@ void main(void) {
         float ao = material.r;
         float specularMask = metallic * (1.0 - roughness);
         vec3 lightDir = normalize(sunPos);
-        vec3 viewDir = normalize(cameraPosition - vertex);
+        vec3 rayOrigin;
+        vec3 rayDirection;
+        getAtmosViewRay(vertex, cameraPosition, cameraForward, isOrthographic, rayOrigin, rayDirection);
+        vec3 viewDir = normalize(-rayDirection);
         vec3 sunIlluminance;
         vec4 lightWeighting;
         vec3 specularWeighting;
@@ -144,7 +149,7 @@ void main(void) {
         );
 
         vec4 atmosColor;
-        atmosGroundColor(vertex, normal, cameraPosition, sunPos, atmosColor);
+        atmosGroundColor(vertex, normal, rayOrigin, rayDirection, sunPos, atmosColor);
 
         getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
         specularWeighting *= sunIlluminance;

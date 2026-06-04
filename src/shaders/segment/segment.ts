@@ -114,6 +114,8 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
             cameraPosition: "vec3",
+            cameraForward: "vec3",
+            isOrthographic: "float",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             height: "float",

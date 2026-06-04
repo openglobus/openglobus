@@ -1711,6 +1711,8 @@ export class Planet extends Scene {
         gl.uniform1f(shu.camHeight, cam.getHeight());
 
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
+        gl.uniform3fv(shu.cameraForward, cam.getForward().toArray());
+        gl.uniform1f(shu.isOrthographic, cam.isOrthographic ? 1.0 : 0.0);
         renderer.projectors.bindForward(sh, this.SLICE_SIZE + 6);
 
         return sh;

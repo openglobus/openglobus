@@ -24,6 +24,8 @@ uniform vec3 lightAmbient;
 uniform vec3 lightDiffuse;
 uniform vec4 lightSpecular;
 uniform vec3 cameraPosition;
+uniform vec3 cameraForward;
+uniform float isOrthographic;
 uniform vec2 atmosFadeDist;
 uniform vec3 atmosMaxMinOpacity;
 
@@ -78,7 +80,10 @@ void main(void) {
         fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
     } else {
         vec3 lightDir = normalize(sunPos);
-        vec3 viewDir = normalize(-rtcPos);
+        vec3 rayOrigin;
+        vec3 rayDirection;
+        getAtmosViewRay(worldVertex, cameraPosition, cameraForward, isOrthographic, rayOrigin, rayDirection);
+        vec3 viewDir = normalize(-rayDirection);
         vec3 sunIlluminance;
         getSunIlluminance(worldVertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
 
@@ -99,7 +104,7 @@ void main(void) {
         );
 
         vec4 atmosColor;
-        atmosGroundColor(worldVertex, normal, cameraPosition, sunPos, atmosColor);
+        atmosGroundColor(worldVertex, normal, rayOrigin, rayDirection, sunPos, atmosColor);
 
         getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
         specularWeighting *= sunIlluminance;

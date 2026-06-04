@@ -177,6 +177,8 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             scatteringTexture: "sampler2D",
             atmosFadeDist: "vec2",
             atmosMaxMinOpacity: "vec3",
+            cameraForward: "vec3",
+            isOrthographic: "float",
             u_projectorCount: "int",
             u_projectorLayer: "intxx",
             u_projectorViewProjRTE: "mat4",
