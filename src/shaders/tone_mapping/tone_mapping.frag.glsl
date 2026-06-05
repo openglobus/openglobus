@@ -6,6 +6,17 @@ precision highp float;
 #define saturate(a) clamp(a, 0.0, 1.0)
 #endif
 
+#define TONE_MAPPING_LINEAR 0
+#define TONE_MAPPING_REINHARD_WHITE 1
+#define TONE_MAPPING_KHRONOS_PBR_NEUTRAL 2
+#define TONE_MAPPING_UNCHARTED2 3
+#define TONE_MAPPING_OPTIMIZED_CINEON 4
+#define TONE_MAPPING_ACES_FILMIC 5
+
+#ifndef TONE_MAPPING_OPERATOR
+#define TONE_MAPPING_OPERATOR TONE_MAPPING_REINHARD_WHITE
+#endif
+
 uniform sampler2D hdrBuffer;
 
 uniform float whitepoint;
@@ -21,13 +32,39 @@ vec3 LinearToneMapping(vec3 color) {
     return exposure * color;
 }
 
-vec3 ReinhardToneMapping2(vec3 color) {
-    return vec3(1.0) - exp(-color * exposure);
+vec3 reinhardWhite(vec3 color, float whitePoint) {
+    float w2 = whitePoint * whitePoint;
+    return (color * (1.0 + color / w2)) / (1.0 + color);
 }
 
-vec3 ReinhardToneMapping(vec3 color) {
+vec3 ReinhardWhiteToneMapping(vec3 color) {
     color *= exposure;
-    return saturate(color / (vec3(1.0) + color));
+    return saturate(reinhardWhite(color, max(whitepoint, 0.0001)));
+}
+
+// Khronos PBR Neutral Tone Mapper.
+// Input/output are linear Rec. 709; output is compressed to [0, 1].
+vec3 KhronosPBRNeutralToneMapping(vec3 color) {
+    const float startCompression = 0.8 - 0.04;
+    const float desaturation = 0.15;
+
+    color = max(color * exposure, vec3(0.0));
+
+    float x = min(color.r, min(color.g, color.b));
+    float offset = x < 0.08 ? x - 6.25 * x * x : 0.04;
+    color -= offset;
+
+    float peak = max(color.r, max(color.g, color.b));
+    if (peak < startCompression) {
+        return color;
+    }
+
+    const float d = 1.0 - startCompression;
+    float newPeak = 1.0 - d * d / (peak + d - startCompression);
+    color *= newPeak / peak;
+
+    float g = 1.0 - 1.0 / (desaturation * (peak - newPeak) + 1.0);
+    return mix(color, vec3(newPeak), g);
 }
 
 #define Uncharted2Helper(x) max(((x * (0.15 * x + 0.10 * 0.50) + 0.20 * 0.02) / (x * (0.15 * x + 0.50) + 0.20 * 0.30)) - 0.02 / 0.30, vec3(0.0))
@@ -48,15 +85,31 @@ vec3 ACESFilmicToneMapping(vec3 color) {
     return saturate((color * (2.51 * color + 0.03)) / (color * (2.43 * color + 0.59) + 0.14));
 }
 
+vec3 ApplyToneMapping(vec3 color) {
+#if TONE_MAPPING_OPERATOR == TONE_MAPPING_LINEAR
+    return LinearToneMapping(color);
+#elif TONE_MAPPING_OPERATOR == TONE_MAPPING_REINHARD_WHITE
+    return ReinhardWhiteToneMapping(color);
+#elif TONE_MAPPING_OPERATOR == TONE_MAPPING_KHRONOS_PBR_NEUTRAL
+    return KhronosPBRNeutralToneMapping(color);
+#elif TONE_MAPPING_OPERATOR == TONE_MAPPING_UNCHARTED2
+    return Uncharted2ToneMapping(color);
+#elif TONE_MAPPING_OPERATOR == TONE_MAPPING_OPTIMIZED_CINEON
+    return OptimizedCineonToneMapping(color);
+#elif TONE_MAPPING_OPERATOR == TONE_MAPPING_ACES_FILMIC
+    return ACESFilmicToneMapping(color);
+#else
+    return ReinhardWhiteToneMapping(color);
+#endif
+}
+
 layout (location = 0) out vec4 fragColor;
 
 void main(void) {
     ivec2 fragCoord = ivec2(gl_FragCoord.xy);
     vec4 hdrColor = texelFetch(hdrBuffer, fragCoord, 0);
 
-    float oneByWhitePoint = whitepoint / whitepoint;
-    vec3 mapped = ReinhardToneMapping2(hdrColor.rgb) * oneByWhitePoint;
-    //vec3 mapped = ACESFilmicToneMapping(hdrColor.rgb) * oneByWhitePoint;
+    vec3 mapped = ApplyToneMapping(hdrColor.rgb);
 
     mapped = pow(mapped, vec3(1.0 / gamma));
 
