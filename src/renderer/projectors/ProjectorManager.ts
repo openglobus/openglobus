@@ -12,6 +12,7 @@ export { Projector } from "./Projector";
  * Defines how many projectors can be added to the manager at once.
  */
 export const MAX_PROJECTOR_LAYERS = 64;
+const INITIAL_PROJECTOR_LAYERS = 8;
 
 /**
  * Maximum number of projectors processed in a single shader invocation.
@@ -39,6 +40,7 @@ export class ProjectorManager {
     protected _depthArrayTexture: WebGLTexture | null;
     /** Layer size of `_depthArrayTexture`. Determined by the first projector added. */
     protected _depthSize: number;
+    protected _depthCapacity: number;
     protected _freeSlots: number[];
 
     protected _tmpInverse: Mat4;
@@ -58,10 +60,8 @@ export class ProjectorManager {
 
         this._depthArrayTexture = null;
         this._depthSize = 0;
+        this._depthCapacity = 0;
         this._freeSlots = [];
-        for (let i = MAX_PROJECTOR_LAYERS - 1; i >= 0; i--) {
-            this._freeSlots.push(i);
-        }
 
         this._tmpInverse = new Mat4();
     }
@@ -84,7 +84,7 @@ export class ProjectorManager {
     public add(projector: Projector): number {
         if (projector._slot !== -1) return projector.id;
 
-        if (this._freeSlots.length === 0) {
+        if (this._freeSlots.length === 0 && this._depthCapacity >= MAX_PROJECTOR_LAYERS) {
             console.warn(`ProjectorManager.add(): max projector layers (${MAX_PROJECTOR_LAYERS}) reached`);
             return -1;
         }
@@ -101,12 +101,19 @@ export class ProjectorManager {
             return -1;
         }
 
-        if (!this._ensureDepthArrayTexture(fbW)) return -1;
+        if (!this._ensureDepthArrayTexture(fbW, this._depthCapacity || INITIAL_PROJECTOR_LAYERS)) return -1;
+        if (this._freeSlots.length === 0 && !this._growDepthArrayTexture()) return -1;
 
         projector._slot = this._freeSlots.pop()!;
         projector._manager = this;
 
-        this._rebindFramebufferToLayer(projector);
+        if (!this._rebindFramebufferToLayer(projector)) {
+            this._restoreFramebufferAttachment(projector);
+            this._freeSlots.push(projector._slot);
+            projector._slot = -1;
+            projector._manager = null;
+            return -1;
+        }
 
         this._projectors.push(projector);
         this._updateActiveProjectors = true;
@@ -120,19 +127,22 @@ export class ProjectorManager {
      * referenced inside framebuffer.textures[0] so framebuffer.destroy() can free it
      * normally — we never overwrite that slot with the shared array texture.
      */
-    protected _rebindFramebufferToLayer(projector: Projector): void {
+    protected _rebindFramebufferToLayer(projector: Projector): boolean {
         const gl = this._renderer.handler.gl;
-        if (!gl) return;
+        if (!gl) return false;
 
         const fb = projector.framebuffer;
-        if (!fb._fbo) return;
+        if (!fb._fbo) return false;
 
         const status = fb.attachLayer(this._depthArrayTexture, projector._slot);
 
         if (status !== gl.FRAMEBUFFER_COMPLETE) {
             console.warn(`ProjectorManager._rebindFramebufferToLayer(): framebuffer incomplete after framebufferTextureLayer
                 (status=${fb.statusToText(status)}, slot=${projector._slot}). Check float color-buffer support for R32F.`);
+            return false;
         }
+
+        return true;
     }
 
     /**
@@ -194,7 +204,7 @@ export class ProjectorManager {
         this._updateActiveProjectors = false;
 
         this._freeSlots.length = 0;
-        for (let i = MAX_PROJECTOR_LAYERS - 1; i >= 0; i--) {
+        for (let i = this._depthCapacity - 1; i >= 0; i--) {
             this._freeSlots.push(i);
         }
     }
@@ -207,6 +217,8 @@ export class ProjectorManager {
         }
         this._depthArrayTexture = null;
         this._depthSize = 0;
+        this._depthCapacity = 0;
+        this._freeSlots.length = 0;
     }
 
     /**
@@ -340,7 +352,7 @@ export class ProjectorManager {
      * projector to be added. All subsequent projectors must use the same size.
      * Returns false if a size mismatch is detected.
      */
-    protected _ensureDepthArrayTexture(size: number): boolean {
+    protected _ensureDepthArrayTexture(size: number, capacity: number): boolean {
         if (this._depthArrayTexture) {
             if (this._depthSize !== size) {
                 cons.logWrn(
@@ -352,14 +364,18 @@ export class ProjectorManager {
             return true;
         }
 
+        return this._createDepthArrayTexture(size, Math.min(capacity, MAX_PROJECTOR_LAYERS));
+    }
+
+    protected _createDepthArrayTexture(size: number, capacity: number): boolean {
         const gl = this._renderer.handler.gl as WebGL2RenderingContext;
         if (!gl) return false;
 
         const tex = this._renderer.handler.createEmptyTexture2DArrayExt(
             size,
             size,
-            MAX_PROJECTOR_LAYERS,
-            "LINEAR",
+            capacity,
+            "NEAREST",
             "R32F",
             "CLAMP_TO_EDGE",
             1
@@ -368,6 +384,52 @@ export class ProjectorManager {
 
         this._depthArrayTexture = tex;
         this._depthSize = size;
+        this._depthCapacity = capacity;
+        this._freeSlots.length = 0;
+        for (let i = capacity - 1; i >= this._projectors.length; i--) {
+            this._freeSlots.push(i);
+        }
+        return true;
+    }
+
+    protected _growDepthArrayTexture(): boolean {
+        if (!this._depthArrayTexture || !this._depthSize || this._depthCapacity >= MAX_PROJECTOR_LAYERS) {
+            return false;
+        }
+
+        const gl = this._renderer.handler.gl as WebGL2RenderingContext;
+        if (!gl) return false;
+
+        const oldTexture = this._depthArrayTexture;
+        const oldCapacity = this._depthCapacity;
+        const nextCapacity = Math.min(oldCapacity * 2, MAX_PROJECTOR_LAYERS);
+
+        if (!this._createDepthArrayTexture(this._depthSize, nextCapacity)) {
+            this._depthArrayTexture = oldTexture;
+            this._depthCapacity = oldCapacity;
+            return false;
+        }
+
+        for (let i = 0; i < this._projectors.length; i++) {
+            if (!this._rebindFramebufferToLayer(this._projectors[i])) {
+                gl.deleteTexture(this._depthArrayTexture);
+                this._depthArrayTexture = oldTexture;
+                this._depthCapacity = oldCapacity;
+                this._freeSlots.length = 0;
+                for (let j = 0; j < this._projectors.length; j++) {
+                    this._rebindFramebufferToLayer(this._projectors[j]);
+                }
+                return false;
+            }
+        }
+
+        gl.deleteTexture(oldTexture);
+
+        this._freeSlots.length = 0;
+        for (let i = nextCapacity - 1; i >= oldCapacity; i--) {
+            this._freeSlots.push(i);
+        }
+
         return true;
     }
 

@@ -18,6 +18,7 @@ const float GROUND_ALBEDO = float(${GROUND_ALBEDO}) / PI;
 const float BOTTOM_RADIUS = float(${BOTTOM_RADIUS});
 const float TOP_RADIUS = BOTTOM_RADIUS + ATMOS_HEIGHT;
 const float EQUATORIAL_RADIUS = float(${EQUATORIAL_RADIUS});
+const float ATMOSPHERE_SPHERE_INTERSECTION_EPSILON_SCALE = 1e-7;
 
 // Ellipsoid
 const vec3 bottomRadii = vec3(EQUATORIAL_RADIUS, EQUATORIAL_RADIUS, BOTTOM_RADIUS);
@@ -26,6 +27,35 @@ const vec3 topRadii = bottomRadii + ATMOS_HEIGHT;
 const vec3 SPHERE_TO_ELLIPSOID_SCALE = vec3(BOTTOM_RADIUS) / bottomRadii;
 
 const vec2 rayleighMieHeights = vec2(RAYLEIGH_SCALE, MIE_SCALE) * ATMOS_HEIGHT;
+
+bool isPointInsideAtmosphere(vec3 point)
+{
+    vec3 normalizedPoint = point / topRadii;
+    return dot(normalizedPoint, normalizedPoint) <= 1.0;
+}
+
+bool intersectAtmosphereSphere(vec3 rayOrigin, vec3 rayDirection, float radius, inout float t1, inout float t2)
+{
+    return intersectSphereRelaxed(
+        rayOrigin,
+        rayDirection,
+        radius,
+        radius * ATMOSPHERE_SPHERE_INTERSECTION_EPSILON_SCALE,
+        t1,
+        t2
+    );
+}
+
+bool intersectAtmosphereSphere(vec3 rayOrigin, vec3 rayDirection, float radius, inout float t)
+{
+    return intersectSphereRelaxed(
+        rayOrigin,
+        rayDirection,
+        radius,
+        radius * ATMOSPHERE_SPHERE_INTERSECTION_EPSILON_SCALE,
+        t
+    );
+}
 
 const vec3 rayleighScatteringCoefficient = vec3(float(${rayleighScatteringCoefficient_0}), float(${rayleighScatteringCoefficient_1}), float(${rayleighScatteringCoefficient_2})) * 1e-6;
 
@@ -86,7 +116,7 @@ vec3 opticalDepth(float height, float angle)
     vec3 rayDirection = vec3(sqrt(1.0 - angle * angle), angle, 0.0);
 
     float t1, t2;
-    intersectSphere(rayOrigin, rayDirection, TOP_RADIUS, t1, t2);
+    intersectAtmosphereSphere(rayOrigin, rayDirection, TOP_RADIUS, t1, t2);
     float segmentLength = t2 / float(SAMPLE_COUNT);
 
     float t = segmentLength * 0.5;
@@ -108,6 +138,24 @@ vec3 transmittance(float height, float angle)
 {
     vec3 opticalDepth = opticalDepth(height, angle);
     return exp(-(rayleighScatteringCoefficient * opticalDepth.x + mieExtinctionCoefficient * opticalDepth.y + ozoneAbsorptionCoefficient * opticalDepth.z));
+}
+
+void getAtmosViewRay(
+    in vec3 vertex,
+    in vec3 cameraPosition,
+    in vec3 cameraForward,
+    in float isOrthographic,
+    out vec3 rayOrigin,
+    out vec3 rayDirection
+)
+{
+    rayOrigin = cameraPosition;
+    rayDirection = vertex - cameraPosition;
+
+    if (isOrthographic != 0.0) {
+        rayDirection = cameraForward;
+        rayOrigin = vertex - rayDirection * dot(vertex - cameraPosition, rayDirection);
+    }
 }
 
 void getAtmosFadingOpacity(

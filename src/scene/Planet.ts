@@ -505,7 +505,7 @@ export class Planet extends Scene {
         //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
-        this._atmosphereMaxMinOpacity = new Float32Array([1.15, 0.4, 2.3]);
+        this._atmosphereMaxMinOpacity = new Float32Array([1.0, 0.4, 2.3]);
         this._atmosphereCurrentMaxMinOpacity = new Float32Array(this._atmosphereMaxMinOpacity);
         this.atmosphereFadeDist = new Float32Array(2);
         this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
@@ -1711,6 +1711,8 @@ export class Planet extends Scene {
         gl.uniform1f(shu.camHeight, cam.getHeight());
 
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
+        gl.uniform3fv(shu.cameraForward, cam.getForward().toArray());
+        gl.uniform1f(shu.isOrthographic, cam.isOrthographic ? 1.0 : 0.0);
         renderer.projectors.bindForward(sh, this.SLICE_SIZE + 6);
 
         return sh;

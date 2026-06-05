@@ -16,7 +16,7 @@ import { LabelWorker } from "../entity/label/LabelWorker";
 import { MAX_FLOAT, randomi } from "../math";
 import { Scene } from "../scene/Scene";
 import { screenFrame } from "../shaders/screenFrame";
-import { toneMapping } from "../shaders/tone_mapping/toneMapping";
+import { toneMappingProgram } from "../shaders/tone_mapping/toneMapping";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { ITransparencyPass } from "./ITransparencyPass";
 import { PhongDeferredShading } from "./PhongDeferredShading";
@@ -38,6 +38,7 @@ export interface IRendererParams {
     fontsSrc?: string;
     gamma?: number;
     exposure?: number;
+    toneMapping?: string;
     dpi?: number;
     clearColor?: [number, number, number, number];
     lightPosition?: NumberArray3;
@@ -76,6 +77,7 @@ let _tempDepth_ = new Float32Array(2);
  *     - fontsSrc: Path to font resources
  *     - gamma: Gamma correction value
  *     - exposure: HDR exposure value
+ *     - toneMapping: HDR tone mapping operator
  *     - dpi: Device pixel ratio
  *     - clearColor: RGBA clear color array
  *     - lightPosition: Light position `[x, y, z]`
@@ -139,6 +141,7 @@ class Renderer {
     public exposure: number;
     public gamma: number;
     public whitepoint: number;
+    protected _toneMapping: string;
     public brightThreshold: number;
 
     /**
@@ -311,6 +314,8 @@ class Renderer {
 
         this.whitepoint = 1.0;
 
+        this._toneMapping = params.toneMapping || "TONE_MAPPING_REINHARD_WHITE";
+
         this.brightThreshold = 0.9;
 
         this._scenesArr = [];
@@ -452,6 +457,35 @@ class Renderer {
     public get lightSpecular(): NumberArray4 {
         const srgb = linearToSrgbArr([this._lightSpecular[0], this._lightSpecular[1], this._lightSpecular[2]]);
         return [srgb[0], srgb[1], srgb[2], this._lightSpecular[3]];
+    }
+
+    /**
+     * Sets HDR tone mapping operator and recompiles tone mapping shader.
+     * @public
+     * @param {string} operator - Tone mapping operator name.
+     */
+    public setToneMapping(operator: string): this {
+        if (this._toneMapping === operator) {
+            return this;
+        }
+
+        this._toneMapping = operator;
+
+        if (this.handler.programs.toneMapping) {
+            this.handler.removeProgram("toneMapping");
+            this.handler.addProgram(toneMappingProgram(this._toneMapping));
+        }
+
+        return this;
+    }
+
+    /**
+     * Returns HDR tone mapping operator.
+     * @public
+     * @returns {string}
+     */
+    public getToneMapping(): string {
+        return this._toneMapping;
     }
 
     public enableBlendDefault() {
@@ -794,7 +828,7 @@ class Renderer {
             this._msaa = _maxMSAA;
         }
 
-        this.handler.addPrograms([toneMapping(), depth()]);
+        this.handler.addPrograms([toneMappingProgram(this._toneMapping), depth()]);
 
         let initWidth = this.handler.getWidth() * 0.5,
             initHeight = this.handler.getHeight() * 0.5;
@@ -1494,7 +1528,7 @@ class Renderer {
 
         gl.uniform1f(p.uniforms.gamma, this.gamma);
         gl.uniform1f(p.uniforms.exposure, this.exposure);
-        gl.uniform1f(p.uniforms.whitepoint, this.whitepoint);
+        p.uniforms.whitepoint && gl.uniform1f(p.uniforms.whitepoint, this.whitepoint);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         this.toneMappingFramebuffer!.deactivate();

@@ -39,14 +39,14 @@ bool intersectEllipsoidToSphere(in vec3 ro, in vec3 rd, in vec3 ellRadii, in flo
         vec3 hitEll = ro + rd * offset;
         vec3 nEll = normalEllipsoid(hitEll, ellRadii);
         float t = 0.0;
-        bool intersectsSphere = intersectSphere(hitEll, nEll, sphereRadius, t);
+        bool intersectsSphere = intersectAtmosphereSphere(hitEll, nEll, sphereRadius, t);
         vec3 hitSphere = hitEll + nEll * t;
         t1 = length(hitSphere - ro);
 
         hitEll = ro + rd * distanceToSpace;
         nEll = normalEllipsoid(hitEll, ellRadii);
         t = 0.0;
-        intersectsSphere = intersectSphere(hitEll, nEll, sphereRadius, t);
+        intersectsSphere = intersectAtmosphereSphere(hitEll, nEll, sphereRadius, t);
         hitSphere = hitEll + nEll * t;
         t2 = length(hitSphere - ro);
 
@@ -95,11 +95,15 @@ void mainImage(out vec4 outColor)
     cameraPosition *= SPHERE_TO_ELLIPSOID_SCALE;
     lightDirection = normalize(lightDirection * SPHERE_TO_ELLIPSOID_SCALE);
 
+    if (isOrthographic != 0.0) {
+        moveRayOriginNearSphere(cameraPosition, rayDirection, TOP_RADIUS);
+    }
+
     if (length(cameraPosition) < BOTTOM_RADIUS + 100.0) {
         cameraPosition = normalize(cameraPosition) * (BOTTOM_RADIUS + 100.0);
     }
 
-    if (intersectSphere(cameraPosition, rayDirection, TOP_RADIUS, offset, distanceToSpace))
+    if (intersectAtmosphereSphere(cameraPosition, rayDirection, TOP_RADIUS, offset, distanceToSpace))
     {
         vec3 rayOrigin = cameraPosition;
 
@@ -121,9 +125,9 @@ void mainImage(out vec4 outColor)
 
         float distanceToGround = 0.0;
 
-        bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
+        bool hitGround = intersectAtmosphereSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
 
-        if (intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 250000.0, distanceToGround) && hitGround)
+        if (intersectAtmosphereSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 250000.0, distanceToGround) && hitGround)
         {
             discard;
 //            outColor = vec4(0.47, 0.47, 0.5, 1.0);
@@ -180,7 +184,7 @@ void mainImage(out vec4 outColor)
     #if !DISABLE_SUN_DISK
     {
         float distanceToGround = 0.0;
-        bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
+        bool hitGround = intersectAtmosphereSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
         if (!hitGround)
         {
             vec3 sunLum;

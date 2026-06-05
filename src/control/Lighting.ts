@@ -54,6 +54,21 @@ const TEMPLATE = `<div class="og-lighing og-options-container">
 
          <div class="og-option og-gamma"></div>
          <div class="og-option og-exposure"></div>
+         <div class="og-option og-whitepoint"></div>
+
+         <div class="og-option">
+         <div class="og-layers">
+           <div class="og-caption">Tone mapping:</div>
+           <select id="toneMapping">
+             <option value="TONE_MAPPING_LINEAR">TONE_MAPPING_LINEAR</option>
+             <option value="TONE_MAPPING_REINHARD_WHITE">TONE_MAPPING_REINHARD_WHITE</option>
+             <option value="TONE_MAPPING_KHRONOS_PBR_NEUTRAL">TONE_MAPPING_KHRONOS_PBR_NEUTRAL</option>
+             <option value="TONE_MAPPING_UNCHARTED2">TONE_MAPPING_UNCHARTED2</option>
+             <option value="TONE_MAPPING_OPTIMIZED_CINEON">TONE_MAPPING_OPTIMIZED_CINEON</option>
+             <option value="TONE_MAPPING_ACES_FILMIC">TONE_MAPPING_ACES_FILMIC</option>
+           </select>
+         </div>
+         </div>
 
         <div class="og-lighting-emptyline"></div>
 
@@ -120,6 +135,7 @@ export class Lighting extends Control {
 
     protected _gamma: Slider;
     protected _exposure: Slider;
+    protected _whitepoint: Slider;
     protected _night: Slider;
     protected _opacity: Slider;
     protected _diffuse_r: Slider;
@@ -135,6 +151,7 @@ export class Lighting extends Control {
 
     public $gamma: HTMLElement | null;
     public $exposure: HTMLElement | null;
+    public $whitepoint: HTMLElement | null;
     public $night: HTMLElement | null;
     public $opacity: HTMLElement | null;
     public $diffuse: HTMLElement | null;
@@ -172,6 +189,7 @@ export class Lighting extends Control {
 
         this.$gamma = null;
         this.$exposure = null;
+        this.$whitepoint = null;
         this.$night = null;
         this.$opacity = null;
         this.$diffuse = null;
@@ -193,7 +211,7 @@ export class Lighting extends Control {
         this._atmosphereOpacityCurveShift = new Slider({
             label: "Curve shift",
             min: -2,
-            max: 3,
+            max: 5,
             step: 0.01
         });
 
@@ -212,6 +230,11 @@ export class Lighting extends Control {
 
         this._exposure = new Slider({
             label: "Exposure",
+            max: 5
+        });
+
+        this._whitepoint = new Slider({
+            label: "Whitepoint",
             max: 5
         });
 
@@ -306,6 +329,7 @@ export class Lighting extends Control {
             this.$simpleSkyBackground = this._panel.el.querySelector(".og-simpleskybackground");
             this.$gamma = this._panel.el.querySelector(".og-option.og-gamma");
             this.$exposure = this._panel.el.querySelector(".og-option.og-exposure");
+            this.$whitepoint = this._panel.el.querySelector(".og-option.og-whitepoint");
             this.$opacity = this._panel.el.querySelector(".og-option.og-opacity");
             this.$diffuse = this._panel.el.querySelector(".og-option.og-diffuse");
             this.$ambient = this._panel.el.querySelector(".og-option.og-ambient");
@@ -401,6 +425,7 @@ export class Lighting extends Control {
 
         this._gamma.appendTo(this.$gamma!);
         this._exposure.appendTo(this.$exposure!);
+        this._whitepoint.appendTo(this.$whitepoint!);
 
         this._night.appendTo(this.$night!);
         this._opacity.appendTo(this.$opacity!);
@@ -429,6 +454,17 @@ export class Lighting extends Control {
         this._exposure.value = this.planet!.renderer!.exposure;
         this._exposure.events.on("change", (val: number) => {
             this.planet!.renderer!.exposure = val;
+        });
+
+        this._whitepoint.value = this.planet!.renderer!.whitepoint;
+        this._whitepoint.events.on("change", (val: number) => {
+            this.planet!.renderer!.whitepoint = val;
+        });
+
+        let $toneMapping = this._panel.el!.querySelector<HTMLSelectElement>("#toneMapping")!;
+        $toneMapping.value = this.planet!.renderer!.getToneMapping();
+        $toneMapping.addEventListener("change", (e: Event) => {
+            this.planet!.renderer!.setToneMapping((e.target as HTMLSelectElement).value);
         });
 
         //

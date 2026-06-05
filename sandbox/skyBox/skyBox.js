@@ -86,7 +86,7 @@ let globe = new Globe({
     name: "Earth",
     //frustums: [[1, 1e12]],
     terrain: new GlobusRgbTerrain(),
-    skybox: skybox,
+    //skybox: skybox,
     // navigation: {
     //     minInertia: 1,
     //     maxInertia: 1.1,

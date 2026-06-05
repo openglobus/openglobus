@@ -29,6 +29,8 @@ uniform sampler2D transmittanceTexture;
 uniform sampler2D scatteringTexture;
 uniform vec2 atmosFadeDist;
 uniform vec3 atmosMaxMinOpacity;
+uniform vec3 cameraForward;
+uniform float isOrthographic;
 
 #include "../atmos/lut_helpers.glsl"
 #include "../atmos/atmosGroundColor.glsl"
@@ -88,22 +90,22 @@ void main(void) {
         material.g = mr.g;
         material.b = mr.b;
     }
-    vec3 vertex = v_vertex;
+
+    vec3 rtcPos = normalMatrix * v_viewPosition;
+    vec3 worldVertex = rtcPos + cameraPosition;
     vec3 sunPos = lightPosition;
 
     if (shade < SHADE_PBR) {
-        float metallic = material.b;
-        float roughness = material.g;
         float ao = material.r;
-        float specularMask = metallic * (1.0 - roughness);
+        float specularMask = material.b;
         vec4 lightWeighting;
         vec3 specularWeighting;
 
         // PHONG mode in atmosphere pass: apply only Phong lighting without atmospheric contribution.
         getPhongLighting(
-        vertex,
+        rtcPos,
         normal,
-        cameraPosition,
+        vec3(0.0),
         sunPos,
         lightAmbient,
         lightDiffuse,
@@ -116,22 +118,23 @@ void main(void) {
         color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
         color.rgb += projectorColor;
     } else {
-        float metallic = material.b;
-        float roughness = material.g;
         float ao = material.r;
-        float specularMask = metallic * (1.0 - roughness);
+        float specularMask = material.b;
         vec3 lightDir = normalize(sunPos);
-        vec3 viewDir = normalize(cameraPosition - vertex);
+        vec3 rayOrigin;
+        vec3 rayDirection;
+        getAtmosViewRay(worldVertex, cameraPosition, cameraForward, isOrthographic, rayOrigin, rayDirection);
+        vec3 viewDir = normalize(-rayDirection);
         vec3 sunIlluminance;
         vec4 lightWeighting;
         vec3 specularWeighting;
 
         // TODO: Real PBR lighting is not implemented yet. Keep Phong + atmosphere for PBR mode.
-        getSunIlluminance(vertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+        getSunIlluminance(worldVertex, lightDir, sunIlluminance);
         getPhongLighting(
-        vertex,
+        rtcPos,
         normal,
-        cameraPosition,
+        vec3(0.0),
         sunPos,
         lightAmbient,
         lightDiffuse,
@@ -144,15 +147,19 @@ void main(void) {
         );
 
         vec4 atmosColor;
-        atmosGroundColor(vertex, normal, cameraPosition, sunPos, atmosColor);
+        atmosGroundColor(worldVertex, normal, rayOrigin, rayDirection, sunPos, atmosColor);
 
-        getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
-        specularWeighting *= sunIlluminance;
+        getSunIlluminance(cameraPosition, viewDir, sunIlluminance);
+        specularWeighting *= mix(vec3(1.0), sunIlluminance, atmosColor.a);
 
         float fadingOpacity;
-        getAtmosFadingOpacity(vertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
+        getAtmosFadingOpacity(worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
+        fadingOpacity *= atmosColor.a;
 
-        color = mix(baseColor * lightWeighting, atmosColor * baseColor.a, fadingOpacity) + vec4(specularWeighting, 0.0);
+        color = vec4(
+        mix(baseColor.rgb * lightWeighting.rgb, atmosColor.rgb, fadingOpacity) + specularWeighting,
+        baseColor.a
+        );
         color.rgb += projectorColor;
     }
 
