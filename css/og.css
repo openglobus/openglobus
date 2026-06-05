@@ -808,7 +808,8 @@ input {
     padding-right: 10px;
 }
 
-.og-lighing #layers {
+.og-lighing #layers,
+.og-lighing #toneMapping {
     font-family: monospace;
     padding: 2px;
     margin-left: 21px;

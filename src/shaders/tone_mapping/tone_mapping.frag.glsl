@@ -14,14 +14,19 @@ precision highp float;
 #define TONE_MAPPING_ACES_FILMIC 5
 
 #ifndef TONE_MAPPING_OPERATOR
-#define TONE_MAPPING_OPERATOR TONE_MAPPING_REINHARD_WHITE
+#define TONE_MAPPING_OPERATOR ${operator}
 #endif
 
 uniform sampler2D hdrBuffer;
 
-uniform float whitepoint;
 uniform float exposure;
 uniform float gamma;
+
+#if TONE_MAPPING_OPERATOR == TONE_MAPPING_REINHARD_WHITE || TONE_MAPPING_OPERATOR == TONE_MAPPING_UNCHARTED2
+uniform float whitepoint;
+#else
+#define whitepoint 1.0
+#endif
 
 // Interleaved gradient noise for temporal-stable dithering in 8-bit targets.
 float interleavedGradientNoise(vec2 uv) {
