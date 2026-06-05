@@ -97,7 +97,7 @@ void main(void) {
     atmosGroundColor(v_worldVertex, normal, rayOrigin, rayDirection, lightPosition, atmosColor);
 
     vec3 sunIlluminance;
-    getSunIlluminance(v_worldVertex * SPHERE_TO_ELLIPSOID_SCALE, normalize(lightPosition) * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+    getSunIlluminance(v_worldVertex, normalize(lightPosition), sunIlluminance);
 
     if (shadeMode < SHADE_PBR) {
         // PHONG mode in atmosphere forward pass: keep atmosphere contribution.
@@ -134,8 +134,9 @@ void main(void) {
     }
 
     getAtmosFadingOpacity(v_worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
-    getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
-    specularWeighting *= sunIlluminance;
+    fadingOpacity *= atmosColor.a;
+    getSunIlluminance(cameraPosition, viewDir, sunIlluminance);
+    specularWeighting *= mix(vec3(1.0), sunIlluminance, atmosColor.a);
 
     diffuseColor = vec4(
     mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting + projectorColor,

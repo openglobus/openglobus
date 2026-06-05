@@ -12,6 +12,11 @@ void atmosGroundColor(
     out vec4 outColor
 )
 {
+    if (!isPointInsideAtmosphere(_v_vertex)) {
+        outColor = vec4(0.0);
+        return;
+    }
+
     if (length(_rayOrigin * SPHERE_TO_ELLIPSOID_SCALE) < BOTTOM_RADIUS + 1.0) {
         _rayOrigin = normalize(_rayOrigin * SPHERE_TO_ELLIPSOID_SCALE) * (BOTTOM_RADIUS + 1.0) / SPHERE_TO_ELLIPSOID_SCALE;
     }

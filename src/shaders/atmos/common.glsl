@@ -28,6 +28,12 @@ const vec3 SPHERE_TO_ELLIPSOID_SCALE = vec3(BOTTOM_RADIUS) / bottomRadii;
 
 const vec2 rayleighMieHeights = vec2(RAYLEIGH_SCALE, MIE_SCALE) * ATMOS_HEIGHT;
 
+bool isPointInsideAtmosphere(vec3 point)
+{
+    vec3 normalizedPoint = point / topRadii;
+    return dot(normalizedPoint, normalizedPoint) <= 1.0;
+}
+
 bool intersectAtmosphereSphere(vec3 rayOrigin, vec3 rayDirection, float radius, inout float t1, inout float t2)
 {
     return intersectSphereRelaxed(

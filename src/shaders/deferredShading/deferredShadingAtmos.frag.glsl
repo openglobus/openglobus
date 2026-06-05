@@ -85,7 +85,7 @@ void main(void) {
         getAtmosViewRay(worldVertex, cameraPosition, cameraForward, isOrthographic, rayOrigin, rayDirection);
         vec3 viewDir = normalize(-rayDirection);
         vec3 sunIlluminance;
-        getSunIlluminance(worldVertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+        getSunIlluminance(worldVertex, lightDir, sunIlluminance);
 
         // TODO: Real PBR deferred is not implemented yet. Keep Phong + atmosphere for PBR mode.
         getPhongLighting(
@@ -106,11 +106,12 @@ void main(void) {
         vec4 atmosColor;
         atmosGroundColor(worldVertex, normal, rayOrigin, rayDirection, sunPos, atmosColor);
 
-        getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
-        specularWeighting *= sunIlluminance;
+        getSunIlluminance(cameraPosition, viewDir, sunIlluminance);
+        specularWeighting *= mix(vec3(1.0), sunIlluminance, atmosColor.a);
 
         float fadingOpacity;
         getAtmosFadingOpacity(worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
+        fadingOpacity *= atmosColor.a;
 
         fragColor = vec4(
         mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,

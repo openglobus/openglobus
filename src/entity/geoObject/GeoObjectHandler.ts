@@ -511,13 +511,14 @@ export class GeoObjectHandler {
             atmosphere = r.controls.Atmosphere as Atmosphere,
             planet = this._scene as Planet;
 
-        gl.activeTexture(gl.TEXTURE1);
+        // Texture units 0..3 are rebound to GeoObject material textures before every draw.
+        gl.activeTexture(gl.TEXTURE4);
         gl.bindTexture(gl.TEXTURE_2D, atmosphere._transmittanceBuffer!.textures[0]);
-        gl.uniform1i(u.transmittanceTexture, 1);
+        gl.uniform1i(u.transmittanceTexture, 4);
 
-        gl.activeTexture(gl.TEXTURE2);
+        gl.activeTexture(gl.TEXTURE5);
         gl.bindTexture(gl.TEXTURE_2D, atmosphere._scatteringBuffer!.textures[0]);
-        gl.uniform1i(u.scatteringTexture, 2);
+        gl.uniform1i(u.scatteringTexture, 5);
         gl.uniform2fv(u.atmosFadeDist, planet.atmosphereFadeDist);
         gl.uniform3fv(u.atmosMaxMinOpacity, planet._atmosphereCurrentMaxMinOpacity);
         gl.uniform3fv(u.cameraForward, r.activeCamera.getForward().toArray());
