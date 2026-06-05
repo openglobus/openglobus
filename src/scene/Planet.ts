@@ -505,7 +505,7 @@ export class Planet extends Scene {
         //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
-        this._atmosphereMaxMinOpacity = new Float32Array([1.15, 0.4, 2.3]);
+        this._atmosphereMaxMinOpacity = new Float32Array([1.0, 0.4, 2.3]);
         this._atmosphereCurrentMaxMinOpacity = new Float32Array(this._atmosphereMaxMinOpacity);
         this.atmosphereFadeDist = new Float32Array(2);
         this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;

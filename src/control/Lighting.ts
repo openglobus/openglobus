@@ -235,7 +235,7 @@ export class Lighting extends Control {
 
         this._whitepoint = new Slider({
             label: "Whitepoint",
-            max: 10
+            max: 5
         });
 
         this._night = new Slider({
