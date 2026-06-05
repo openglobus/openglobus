@@ -74,6 +74,14 @@ variableHandlers.u[types.SAMPLERCUBE] = function (program: ShaderProgram, variab
     program._textureID++;
 };
 
+variableHandlers.u[types.SAMPLER3D] = function (program: ShaderProgram, variable: ProgramVariable) {
+    let pgl = program.gl!;
+    pgl.activeTexture(pgl.TEXTURE0 + program._textureID);
+    pgl.bindTexture(pgl.TEXTURE_3D, variable.value);
+    pgl.uniform1i(variable._pName, program._textureID);
+    program._textureID++;
+};
+
 variableHandlers.u[types.SAMPLER2DARRAY] = function (program: ShaderProgram, variable: ProgramVariable) {
     const value = variable.value as any;
 
