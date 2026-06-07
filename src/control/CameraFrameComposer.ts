@@ -35,7 +35,7 @@ export class CameraFrameComposer extends Control {
         });
 
         this._cameraLayer = new EntityCollection({
-            scaleByDistance: [100, 1000000, 1.0],
+            scaleByDistance: [100, 100000, 1.0],
             pickingEnabled: false
         });
 

@@ -56,7 +56,7 @@ export class CameraFrameHandler {
                   geoObject: {
                       //visibility: false,
                       tag: "frustum",
-                      color: "rgba(0,255,0,0.20)",
+                      color: "rgb(155, 155, 255, 0.88)",
                       object3d: cameraFrustumObj
                   }
               })
@@ -96,7 +96,7 @@ export class CameraFrameHandler {
             if (this.showFrustum && this.cameraEntity) {
                 let cam = this.camera;
                 let frustumScale = Object3d.getFrustumScaleByCameraAngles(
-                    100,
+                    2.5,
                     cam.horizontalViewAngle,
                     cam.verticalViewAngle
                 );
