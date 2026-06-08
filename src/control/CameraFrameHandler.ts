@@ -22,6 +22,8 @@ import { CameraFrameComposer } from "./CameraFrameComposer";
 
 let cameraFrustumObj = Object3d.createFrustum();
 
+const DEFAULT_CAMERA_FRUSTUM_LENGTH = 2.5;
+
 export type FrameHandlerFunc = (frameHandler: CameraFrameHandler) => void;
 
 export interface ICameraFrameHadler {
@@ -86,7 +88,7 @@ export class CameraFrameHandler {
 
     public get frustumScale(): Vec3 {
         return Object3d.getFrustumScaleByCameraAspectRatio(
-            1000,
+            DEFAULT_CAMERA_FRUSTUM_LENGTH,
             this.camera.getViewAngle(),
             this.camera.getAspectRatio()
         );
@@ -116,18 +118,16 @@ export class CameraFrameHandler {
                 let cameraEntityPitch = this.cameraEntity.getPitch();
                 let cameraEntityYaw = this.cameraEntity.getYaw();
                 let cameraEntityRoll = this.cameraEntity.getRoll();
-                let cameraPitch = cam.getPitch();
-                let cameraYaw = cam.getYaw();
-                let cameraRoll = cam.getRoll();
+                let cameraUpdated = false;
 
                 if (this._prevCameraPos.equal(cam.eye) && !this._prevCameraPos.equal(cameraEntityPos)) {
                     cam.eye.copy(cameraEntityPos);
-                    cam.update();
+                    cameraUpdated = true;
                 }
 
-                cameraPitch = cam.getPitch();
-                cameraYaw = cam.getYaw();
-                cameraRoll = cam.getRoll();
+                let cameraPitch = cam.getPitch();
+                let cameraYaw = cam.getYaw();
+                let cameraRoll = cam.getRoll();
 
                 if (
                     this._prevCameraPitch === cameraPitch &&
@@ -138,6 +138,16 @@ export class CameraFrameHandler {
                         this._prevCameraEntityRoll !== cameraEntityRoll)
                 ) {
                     cam.setPitchYawRoll(cameraEntityPitch, cameraEntityYaw, cameraEntityRoll);
+                    cameraUpdated = true;
+                }
+
+                if (
+                    cameraUpdated ||
+                    !this._prevCameraPos.equal(cam.eye) ||
+                    this._prevCameraPitch !== cam.getPitch() ||
+                    this._prevCameraYaw !== cam.getYaw() ||
+                    this._prevCameraRoll !== cam.getRoll()
+                ) {
                     cam.update();
                 }
             }
@@ -146,12 +156,8 @@ export class CameraFrameHandler {
 
             if (this.showFrustum && this.cameraEntity) {
                 let cam = this.camera;
-                let frustumScale = Object3d.getFrustumScaleByCameraAngles(
-                    2.5,
-                    cam.horizontalViewAngle,
-                    cam.verticalViewAngle
-                );
-                this.cameraEntity.setScale3v(frustumScale);
+
+                this.cameraEntity.setScale3v(this.frustumScale);
                 this.cameraEntity.setCartesian3v(cam.eye);
                 this.cameraEntity.setAbsolutePitch(cam.getPitch());
                 this.cameraEntity.setAbsoluteYaw(cam.getYaw());
@@ -161,6 +167,7 @@ export class CameraFrameHandler {
                 this._prevCameraYaw = cam.getYaw();
                 this._prevCameraRoll = cam.getRoll();
                 this._prevCameraPos.copy(cam.eye);
+
                 this._prevCameraEntityPos.copy(this.cameraEntity.getAbsoluteCartesian());
                 this._prevCameraEntityPitch = this.cameraEntity.getPitch();
                 this._prevCameraEntityYaw = this.cameraEntity.getYaw();
