@@ -41,6 +41,15 @@ export class CameraFrameHandler {
     public readonly cameraEntity: Entity | null;
     public showFrustum: boolean;
 
+    protected _prevCameraPos: Vec3;
+    protected _prevCameraPitch: number;
+    protected _prevCameraYaw: number;
+    protected _prevCameraRoll: number;
+    protected _prevCameraEntityPos: Vec3;
+    protected _prevCameraEntityPitch: number;
+    protected _prevCameraEntityYaw: number;
+    protected _prevCameraEntityRoll: number;
+
     constructor(params: ICameraFrameHadler) {
         this.camera = params.camera;
         this.frameBuffer = params.frameBuffer;
@@ -61,6 +70,16 @@ export class CameraFrameHandler {
                   }
               })
             : null;
+
+        this._prevCameraPos = new Vec3();
+        this._prevCameraPitch = 0;
+        this._prevCameraYaw = 0;
+        this._prevCameraRoll = 0;
+
+        this._prevCameraEntityPos = new Vec3();
+        this._prevCameraEntityPitch = 0;
+        this._prevCameraEntityYaw = 0;
+        this._prevCameraEntityRoll = 0;
 
         this.frameBuffer.init();
     }
@@ -101,10 +120,53 @@ export class CameraFrameHandler {
                     cam.verticalViewAngle
                 );
                 this.cameraEntity.setScale3v(frustumScale);
+
+                let cameraEntityPos = this.cameraEntity.getAbsoluteCartesian();
+                let cameraEntityPitch = this.cameraEntity.getPitch();
+                let cameraEntityYaw = this.cameraEntity.getYaw();
+                let cameraEntityRoll = this.cameraEntity.getRoll();
+                let cameraPitch = cam.getPitch();
+                let cameraYaw = cam.getYaw();
+                let cameraRoll = cam.getRoll();
+
+                if (this._prevCameraPos.equal(cam.eye) && !this._prevCameraPos.equal(cameraEntityPos)) {
+                    cam.eye.copy(cameraEntityPos);
+                    cam.update();
+                }
+
+                if (
+                    this._prevCameraPitch === cameraPitch &&
+                    this._prevCameraYaw === cameraYaw &&
+                    this._prevCameraRoll === cameraRoll &&
+                    (this._prevCameraEntityPitch !== cameraEntityPitch ||
+                        this._prevCameraEntityYaw !== cameraEntityYaw ||
+                        this._prevCameraEntityRoll !== cameraEntityRoll)
+                ) {
+                    cam.setPitchYawRoll(cameraEntityPitch, cameraEntityYaw, cameraEntityRoll);
+                    cam.update();
+                }
+
+                this._prevCameraPitch = cam.getPitch();
+                this._prevCameraYaw = cam.getYaw();
+                this._prevCameraRoll = cam.getRoll();
+                this._prevCameraPos.copy(cam.eye);
+                this._prevCameraEntityPos.copy(cameraEntityPos);
+
                 this.cameraEntity.setCartesian3v(cam.eye);
-                this.cameraEntity.setAbsolutePitch(cam.getAbsolutePitch());
-                this.cameraEntity.setAbsoluteYaw(cam.getAbsoluteYaw());
-                this.cameraEntity.setAbsoluteRoll(cam.getAbsoluteRoll());
+                this.cameraEntity.setAbsolutePitch(cam.getPitch());
+                this.cameraEntity.setAbsoluteYaw(cam.getYaw());
+                this.cameraEntity.setAbsoluteRoll(cam.getRoll());
+
+                this._prevCameraEntityPitch = this.cameraEntity.getPitch();
+                this._prevCameraEntityYaw = this.cameraEntity.getYaw();
+                this._prevCameraEntityRoll = this.cameraEntity.getRoll();
+
+                let planet = this._composer!.planet || null;
+                if (planet?.ellipsoid) {
+                    this.cameraEntity._lonLat.copy(
+                        planet.ellipsoid.cartesianToLonLat(this.cameraEntity.getAbsoluteCartesian())
+                    );
+                }
             }
         }
     }

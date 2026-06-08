@@ -17,6 +17,8 @@ import { Control, IControlParams } from "./Control";
 import { CameraFrameHandler } from "./CameraFrameHandler";
 import { EntityCollection } from "../entity";
 import { Scene } from "../scene/Scene";
+import { Vec3 } from "../math/Vec3";
+import { Quat } from "../math/Quat";
 
 export interface ICameraFrameComposerParams extends IControlParams {
     frameHandlers?: CameraFrameHandler[];
@@ -36,10 +38,10 @@ export class CameraFrameComposer extends Control {
 
         this._cameraLayer = new EntityCollection({
             scaleByDistance: [100, 100000, 1.0],
-            pickingEnabled: false
+            pickingEnabled: true
         });
 
-        this._cameraScene = new Scene("CameraScene");
+        this._cameraScene = new CameraFrameScene(this);
 
         this._frameHandlers = params.frameHandlers || [];
     }
@@ -81,4 +83,19 @@ export class CameraFrameComposer extends Control {
             this._frameHandlers[i].frame();
         }
     };
+}
+
+class CameraFrameScene extends Scene {
+    protected _composer: CameraFrameComposer;
+
+    constructor(composer: CameraFrameComposer) {
+        super("CameraScene");
+        this._composer = composer;
+    }
+
+    public override getFrameRotation(cartesian: Vec3): Quat {
+        return this._composer.planet
+            ? this._composer.planet.getFrameRotation(cartesian)
+            : super.getFrameRotation(cartesian);
+    }
 }
