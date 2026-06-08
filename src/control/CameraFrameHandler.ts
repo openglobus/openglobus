@@ -110,17 +110,8 @@ export class CameraFrameHandler {
 
     public frame() {
         if (this.frameHandler && this.frameBuffer.handler.gl) {
-            this.frameHandler(this);
-
             if (this.showFrustum && this.cameraEntity) {
                 let cam = this.camera;
-                let frustumScale = Object3d.getFrustumScaleByCameraAngles(
-                    2.5,
-                    cam.horizontalViewAngle,
-                    cam.verticalViewAngle
-                );
-                this.cameraEntity.setScale3v(frustumScale);
-
                 let cameraEntityPos = this.cameraEntity.getAbsoluteCartesian();
                 let cameraEntityPitch = this.cameraEntity.getPitch();
                 let cameraEntityYaw = this.cameraEntity.getYaw();
@@ -134,6 +125,10 @@ export class CameraFrameHandler {
                     cam.update();
                 }
 
+                cameraPitch = cam.getPitch();
+                cameraYaw = cam.getYaw();
+                cameraRoll = cam.getRoll();
+
                 if (
                     this._prevCameraPitch === cameraPitch &&
                     this._prevCameraYaw === cameraYaw &&
@@ -145,18 +140,28 @@ export class CameraFrameHandler {
                     cam.setPitchYawRoll(cameraEntityPitch, cameraEntityYaw, cameraEntityRoll);
                     cam.update();
                 }
+            }
 
-                this._prevCameraPitch = cam.getPitch();
-                this._prevCameraYaw = cam.getYaw();
-                this._prevCameraRoll = cam.getRoll();
-                this._prevCameraPos.copy(cam.eye);
-                this._prevCameraEntityPos.copy(cameraEntityPos);
+            this.frameHandler(this);
 
+            if (this.showFrustum && this.cameraEntity) {
+                let cam = this.camera;
+                let frustumScale = Object3d.getFrustumScaleByCameraAngles(
+                    2.5,
+                    cam.horizontalViewAngle,
+                    cam.verticalViewAngle
+                );
+                this.cameraEntity.setScale3v(frustumScale);
                 this.cameraEntity.setCartesian3v(cam.eye);
                 this.cameraEntity.setAbsolutePitch(cam.getPitch());
                 this.cameraEntity.setAbsoluteYaw(cam.getYaw());
                 this.cameraEntity.setAbsoluteRoll(cam.getRoll());
 
+                this._prevCameraPitch = cam.getPitch();
+                this._prevCameraYaw = cam.getYaw();
+                this._prevCameraRoll = cam.getRoll();
+                this._prevCameraPos.copy(cam.eye);
+                this._prevCameraEntityPos.copy(this.cameraEntity.getAbsoluteCartesian());
                 this._prevCameraEntityPitch = this.cameraEntity.getPitch();
                 this._prevCameraEntityYaw = this.cameraEntity.getYaw();
                 this._prevCameraEntityRoll = this.cameraEntity.getRoll();
