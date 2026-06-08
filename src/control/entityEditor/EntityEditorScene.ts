@@ -600,12 +600,7 @@ class EntityEditorScene extends Scene {
 
     protected _getEntityRotation(entity: Entity, cart: Vec3): Quat {
         return this._isPlanetEntity(entity)
-            ? new Quat().setPitchYawRoll(
-                  entity.getAbsolutePitch(),
-                  entity.getAbsoluteYaw(),
-                  entity.getAbsoluteRoll(),
-                  this.getFrameRotation(cart)
-              )
+            ? new Quat().setPitchYawRoll(0, entity.getAbsoluteYaw(), 0, this.getFrameRotation(cart))
             : entity.getAbsoluteRotation();
     }
 
@@ -639,9 +634,13 @@ class EntityEditorScene extends Scene {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityPitch + sig * angle;
-                let rot = Quat.axisAngleToQuat(norm, sig * angle).mul(this._selectedEntityRotation);
 
-                this._setEntityRotation(this._selectedEntity, rot, p0);
+                if (this._isPlanetEntity(this._selectedEntity)) {
+                    this._selectedEntity.setAbsolutePitch(deg);
+                } else {
+                    let rot = Quat.axisAngleToQuat(norm, sig * angle).mul(this._selectedEntityRotation);
+                    this._setEntityRotation(this._selectedEntity, rot, p0);
+                }
 
                 this.events.dispatch(this.events.pitch, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
@@ -669,9 +668,13 @@ class EntityEditorScene extends Scene {
                 let sig = Math.sign(c1.cross(c0).dot(norm));
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityYaw + sig * angle;
-                let rot = Quat.axisAngleToQuat(norm, -sig * angle).mul(this._selectedEntityRotation);
 
-                this._setEntityRotation(this._selectedEntity, rot, p0);
+                if (this._isPlanetEntity(this._selectedEntity)) {
+                    this._selectedEntity.setAbsoluteYaw(deg);
+                } else {
+                    let rot = Quat.axisAngleToQuat(norm, -sig * angle).mul(this._selectedEntityRotation);
+                    this._setEntityRotation(this._selectedEntity, rot, p0);
+                }
 
                 this.events.dispatch(this.events.yaw, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
@@ -699,9 +702,13 @@ class EntityEditorScene extends Scene {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityRoll + sig * angle;
-                let rot = Quat.axisAngleToQuat(norm, sig * angle).mul(this._selectedEntityRotation);
 
-                this._setEntityRotation(this._selectedEntity, rot, p0);
+                if (this._isPlanetEntity(this._selectedEntity)) {
+                    this._selectedEntity.setAbsoluteRoll(deg);
+                } else {
+                    let rot = Quat.axisAngleToQuat(norm, sig * angle).mul(this._selectedEntityRotation);
+                    this._setEntityRotation(this._selectedEntity, rot, p0);
+                }
 
                 this.events.dispatch(this.events.roll, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);

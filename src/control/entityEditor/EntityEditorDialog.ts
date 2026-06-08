@@ -403,28 +403,32 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
         this._refresh(entity);
     };
 
-    protected _onPitch = (a: number, entity: Entity) => {
+    protected _refreshRotation(entity: Entity) {
         this._pitchView.stopPropagation();
         this._pitchView.value = entity.getPitch() * DEGREES;
-
-        this._absolutePitchView.stopPropagation();
-        this._absolutePitchView.value = entity.getAbsolutePitch() * DEGREES;
-    };
-
-    protected _onYaw = (a: number, entity: Entity) => {
         this._yawView.stopPropagation();
         this._yawView.value = entity.getYaw() * DEGREES;
-
-        this._absoluteYawView.stopPropagation();
-        this._absoluteYawView.value = entity.getAbsoluteYaw() * DEGREES;
-    };
-
-    protected _onRoll = (a: number, entity: Entity) => {
         this._rollView.stopPropagation();
         this._rollView.value = entity.getRoll() * DEGREES;
 
+        this._absolutePitchView.stopPropagation();
+        this._absolutePitchView.value = entity.getAbsolutePitch() * DEGREES;
+        this._absoluteYawView.stopPropagation();
+        this._absoluteYawView.value = entity.getAbsoluteYaw() * DEGREES;
         this._absoluteRollView.stopPropagation();
         this._absoluteRollView.value = entity.getAbsoluteRoll() * DEGREES;
+    }
+
+    protected _onPitch = (a: number, entity: Entity) => {
+        this._refreshRotation(entity);
+    };
+
+    protected _onYaw = (a: number, entity: Entity) => {
+        this._refreshRotation(entity);
+    };
+
+    protected _onRoll = (a: number, entity: Entity) => {
+        this._refreshRotation(entity);
     };
 
     protected _onChangeLon = (val: string) => {
