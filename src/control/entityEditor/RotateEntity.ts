@@ -81,22 +81,16 @@ export class RotateEntity extends Entity {
         this.appendChild(roll);
     }
 
-    public override setCartesian3v(cart: Vec3, yaw: number = 0) {
+    public override setCartesian3v(cart: Vec3, rotation?: Quat) {
         super.setCartesian3v(cart);
 
         if (this._entityCollection && this._entityCollection.scene) {
             let rn = this._entityCollection.scene;
             let cam = rn.renderer!.activeCamera;
 
-            let qNorthFrame = rn.getFrameRotation(cart).conjugate();
             let radiusDist = cam.isOrthographic ? cam.focusDistance : cam.eye.distance(cart);
             let r = radiusDist * 0.15;
-
-            let qp = Quat.xRotation(0);
-            let qy = Quat.yRotation(yaw);
-            let qr = Quat.zRotation(0);
-
-            let qRot = qr.mul(qp).mul(qy).mul(rn.getFrameRotation(cart)).conjugate();
+            let qRot = rotation || rn.getFrameRotation(cart).conjugate();
 
             for (let i = 0, j = 0, step = 360 / SEG_SIZE; i < SEG_SIZE; i += step, j++) {
                 let a = i * RADIANS,
@@ -108,7 +102,7 @@ export class RotateEntity extends Entity {
                     .normalize()
                     .scale(r)
                     .add(cart);
-                let yaw_p = qNorthFrame
+                let yaw_p = qRot
                     .mulVec3(new Vec3(cos_a, 0, sin_a))
                     .normalize()
                     .scale(r)

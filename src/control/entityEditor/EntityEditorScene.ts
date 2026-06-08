@@ -89,6 +89,7 @@ class EntityEditorScene extends Scene {
 
     protected _selectedEntity: Entity | null;
     protected _selectedEntityCart: Vec3;
+    protected _selectedEntityRotation: Quat;
     protected _selectedEntityPitch: number;
     protected _selectedEntityYaw: number;
     protected _selectedEntityRoll: number;
@@ -145,6 +146,7 @@ class EntityEditorScene extends Scene {
         this._selectedEntity = null;
         this._clickPos = new Vec2();
         this._selectedEntityCart = new Vec3();
+        this._selectedEntityRotation = Quat.IDENTITY;
         this._selectedEntityPitch = 0;
         this._selectedEntityYaw = 0;
         this._selectedEntityRoll = 0;
@@ -324,6 +326,7 @@ class EntityEditorScene extends Scene {
 
         if (this._selectedEntity) {
             this._selectedEntityCart = this._selectedEntity.getAbsoluteCartesian();
+            this._selectedEntityRotation = this._getEntityRotation(this._selectedEntity, this._selectedEntityCart);
             if (this._selectedEntity) {
                 this._selectedEntityPitch = this._selectedEntity.getAbsolutePitch();
                 this._selectedEntityYaw = this._selectedEntity.getAbsoluteYaw();
@@ -421,7 +424,7 @@ class EntityEditorScene extends Scene {
             let cart = this._selectedEntity.getAbsoluteCartesian();
             this._axisEntity.setCartesian3v(cart);
             this._planeEntity.setCartesian3v(cart);
-            this._rotateEntity.setCartesian3v(cart, this._selectedEntity.getAbsoluteYaw());
+            this._rotateEntity.setCartesian3v(cart, this._getEntityRotation(this._selectedEntity, cart));
             this._axisTrackEntity.setCartesian3v(cart);
         }
     };
@@ -552,7 +555,7 @@ class EntityEditorScene extends Scene {
 
             if (this.ellipsoid) {
                 let lonLat = this.ellipsoid.cartesianToLonLat(px)!;
-                let height = this._selectedEntity.getLonLat().height;
+                let height = this.ellipsoid.cartesianToLonLat(p0)!.height;
 
                 this.ellipsoid.lonLatToCartesianRes(new LonLat(lonLat.lon, lonLat.lat, height), px);
             }
@@ -587,20 +590,41 @@ class EntityEditorScene extends Scene {
         return this._planet ? this._planet.getFrameRotation(cartesian) : super.getFrameRotation(cartesian);
     }
 
+    protected _isPlanetEntity(entity: Entity): boolean {
+        const scene = entity.entityCollection?.scene as Planet | undefined;
+        const hasPlanetScene = Boolean(scene?.ellipsoid);
+        const hasFallbackPlanet = Boolean(this._planet);
+
+        return hasPlanetScene || hasFallbackPlanet;
+    }
+
+    protected _getEntityRotation(entity: Entity, cart: Vec3): Quat {
+        return this._isPlanetEntity(entity)
+            ? new Quat().setPitchYawRoll(
+                  entity.getAbsolutePitch(),
+                  entity.getAbsoluteYaw(),
+                  entity.getAbsoluteRoll(),
+                  this.getFrameRotation(cart)
+              )
+            : entity.getAbsoluteRotation();
+    }
+
+    protected _setEntityRotation(entity: Entity, rotation: Quat, cart: Vec3) {
+        let rot = this._isPlanetEntity(entity)
+            ? this.getFrameRotation(cart).conjugate().inverse().mul(rotation)
+            : rotation;
+
+        entity.setAbsolutePitch(rot.getPitch());
+        entity.setAbsoluteYaw(rot.getYaw());
+        entity.setAbsoluteRoll(rot.getRoll());
+    }
+
     protected _rotatePitch = (e: IMouseState) => {
         if (!this._selectedEntity) return;
 
         let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
-
-        let qp = Quat.xRotation(0);
-        let qy = Quat.yRotation(this._selectedEntity.getYaw());
-        let qr = Quat.zRotation(0);
-
-        let qRot = qr.mul(qp).mul(qy).mul(this.getFrameRotation(p0)).conjugate();
-
-        //let norm = qNorthFrame.mulVec3(new Vec3(1, 0, 0)).normalize();
-        let norm = qRot.mulVec3(new Vec3(1, 0, 0)).normalize();
+        let norm = this._selectedEntityRotation.mulVec3(new Vec3(1, 0, 0)).normalize();
 
         let pl = new Plane(p0, norm);
 
@@ -615,7 +639,9 @@ class EntityEditorScene extends Scene {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityPitch + sig * angle;
-                this._selectedEntity.setAbsolutePitch(deg);
+                let rot = Quat.axisAngleToQuat(norm, sig * angle).mul(this._selectedEntityRotation);
+
+                this._setEntityRotation(this._selectedEntity, rot, p0);
 
                 this.events.dispatch(this.events.pitch, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
@@ -628,8 +654,7 @@ class EntityEditorScene extends Scene {
 
         let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
-        let qNorthFrame = this.getFrameRotation(p0).conjugate();
-        let norm = qNorthFrame.mulVec3(new Vec3(0, 1, 0)).normalize();
+        let norm = this._selectedEntityRotation.mulVec3(new Vec3(0, 1, 0)).normalize();
 
         let pl = new Plane(p0, norm);
 
@@ -644,7 +669,9 @@ class EntityEditorScene extends Scene {
                 let sig = Math.sign(c1.cross(c0).dot(norm));
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityYaw + sig * angle;
-                this._selectedEntity.setAbsoluteYaw(deg);
+                let rot = Quat.axisAngleToQuat(norm, -sig * angle).mul(this._selectedEntityRotation);
+
+                this._setEntityRotation(this._selectedEntity, rot, p0);
 
                 this.events.dispatch(this.events.yaw, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
@@ -657,16 +684,7 @@ class EntityEditorScene extends Scene {
 
         let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
-        //let qNorthFrame = this.getFrameRotation(p0).conjugate();
-
-        let qp = Quat.xRotation(0);
-        let qy = Quat.yRotation(this._selectedEntity.getYaw());
-        let qr = Quat.zRotation(0);
-
-        let qRot = qr.mul(qp).mul(qy).mul(this.getFrameRotation(p0)).conjugate();
-
-        //let norm = qNorthFrame.mulVec3(new Vec3(0, 0, 1)).normalize();
-        let norm = qRot.mulVec3(new Vec3(0, 0, 1)).normalize();
+        let norm = this._selectedEntityRotation.mulVec3(new Vec3(0, 0, 1)).normalize();
 
         let pl = new Plane(p0, norm);
 
@@ -681,7 +699,9 @@ class EntityEditorScene extends Scene {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityRoll + sig * angle;
-                this._selectedEntity.setAbsoluteRoll(deg);
+                let rot = Quat.axisAngleToQuat(norm, sig * angle).mul(this._selectedEntityRotation);
+
+                this._setEntityRotation(this._selectedEntity, rot, p0);
 
                 this.events.dispatch(this.events.roll, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
