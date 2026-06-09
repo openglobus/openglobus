@@ -39,6 +39,8 @@ export class QuadTreeStrategy {
     public projection: Proj;
     public readonly planet: Planet;
 
+    public lodCamera: PlanetCamera | null = null;
+
     /**
      * grid tree list.
      * @protected

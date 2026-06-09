@@ -204,6 +204,8 @@ export class CameraDepthHandler extends Control {
 
             this._quadTreeStrategy.init(this.camera as PlanetCamera);
 
+            this._quadTreeStrategy.lodCamera = this.planet.camera;
+
             this._quadTreeStrategy.preRender();
             this._quadTreeStrategy.clearRenderedNodes();
             this._quadTreeStrategy.preLoad();

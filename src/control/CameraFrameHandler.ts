@@ -69,6 +69,9 @@ export class CameraFrameHandler {
                       tag: "frustum",
                       color: "rgb(155, 155, 255, 0.88)",
                       object3d: cameraFrustumObj
+                  },
+                  properties: {
+                      camera: this.camera
                   }
               })
             : null;
