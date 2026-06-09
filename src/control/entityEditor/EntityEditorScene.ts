@@ -23,7 +23,14 @@ import { SHADE_UNLIT } from "../../shadeModeConstants";
 export interface IEntityEditorSceneParams {
     planet?: Planet;
     name?: string;
+    editMode?: EditModeName;
 }
+
+export const NATIVE_MODE = 0;
+export const YAW_MODE = 1;
+
+export type EditMode = typeof NATIVE_MODE | typeof YAW_MODE;
+export type EditModeName = "native" | "yaw";
 
 function dragSimpleRes(unit: Vec3, clickRay: Ray, currRay: Ray, p0: Vec3, res: Vec3) {
     let p1 = p0.add(Vec3.UP),
@@ -105,6 +112,7 @@ class EntityEditorScene extends Scene {
     protected _ops: Record<string, (mouseState: IMouseState) => void>;
 
     protected _axisTrackVisibility: boolean;
+    protected _editMode: EditMode;
 
     constructor(options: IEntityEditorSceneParams = {}) {
         super(options.name || "EntityEditorScene");
@@ -112,6 +120,7 @@ class EntityEditorScene extends Scene {
         this.events = createEvents(ENTITY_EDITOR_SCENE_EVENTS);
 
         this._planet = options.planet || null;
+        this._editMode = this._parseEditMode(options.editMode);
 
         this._startPos = null;
         this._startClick = new Vec2();
@@ -189,8 +198,30 @@ class EntityEditorScene extends Scene {
         return this._planet;
     }
 
+    get editMode(): EditMode {
+        return this._editMode;
+    }
+
+    set editMode(mode: EditMode) {
+        this._editMode = mode;
+        if (this._selectedEntity) {
+            let cart = this._selectedEntity.getAbsoluteCartesian();
+            this._selectedEntityRotation = this._getEntityRotation(this._selectedEntity, cart);
+            this._setRotateEntityCartesian3v(this._selectedEntity, cart);
+        }
+    }
+
     public bindPlanet(planet: Planet) {
         this._planet = planet;
+    }
+
+    protected _parseEditMode(mode: EditModeName | undefined): EditMode {
+        if (mode === "native") {
+            return NATIVE_MODE;
+        } else if (mode === "yaw") {
+            return YAW_MODE;
+        }
+        return NATIVE_MODE;
     }
 
     public override init() {
@@ -424,7 +455,7 @@ class EntityEditorScene extends Scene {
             let cart = this._selectedEntity.getAbsoluteCartesian();
             this._axisEntity.setCartesian3v(cart);
             this._planeEntity.setCartesian3v(cart);
-            this._rotateEntity.setCartesian3v(cart, this._getEntityRotation(this._selectedEntity, cart));
+            this._setRotateEntityCartesian3v(this._selectedEntity, cart);
             this._axisTrackEntity.setCartesian3v(cart);
         }
     };
@@ -598,10 +629,35 @@ class EntityEditorScene extends Scene {
         return hasPlanetScene || hasFallbackPlanet;
     }
 
+    protected _isYawMode(): boolean {
+        return this.editMode === YAW_MODE;
+    }
+
+    protected _getYawModeFrameRotation(entity: Entity, cart: Vec3): Quat {
+        const scene = entity.entityCollection?.scene as Planet | undefined;
+        if (scene?.ellipsoid) {
+            return scene.getFrameRotation(cart);
+        }
+
+        if (this._planet) {
+            return this._planet.getFrameRotation(cart);
+        }
+
+        return Quat.getLookRotation(Vec3.FORWARD, Vec3.UP);
+    }
+
     protected _getEntityRotation(entity: Entity, cart: Vec3): Quat {
-        return this._isPlanetEntity(entity)
-            ? new Quat().setPitchYawRoll(0, entity.getAbsoluteYaw(), 0, this.getFrameRotation(cart))
+        return this._isYawMode()
+            ? new Quat().setPitchYawRoll(0, entity.getAbsoluteYaw(), 0, this._getYawModeFrameRotation(entity, cart))
             : entity.getAbsoluteRotation();
+    }
+
+    protected _setRotateEntityCartesian3v(entity: Entity, cart: Vec3) {
+        if (this._isYawMode()) {
+            this._rotateEntity.setYawCartesian3v(cart, entity.getAbsoluteYaw());
+        } else {
+            this._rotateEntity.setCartesian3v(cart, this._getEntityRotation(entity, cart));
+        }
     }
 
     protected _setEntityRotation(entity: Entity, rotation: Quat, cart: Vec3) {
@@ -635,7 +691,7 @@ class EntityEditorScene extends Scene {
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityPitch + sig * angle;
 
-                if (this._isPlanetEntity(this._selectedEntity)) {
+                if (this._isYawMode()) {
                     this._selectedEntity.setAbsolutePitch(deg);
                 } else {
                     let rot = Quat.axisAngleToQuat(norm, sig * angle).mul(this._selectedEntityRotation);
@@ -669,7 +725,7 @@ class EntityEditorScene extends Scene {
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityYaw + sig * angle;
 
-                if (this._isPlanetEntity(this._selectedEntity)) {
+                if (this._isYawMode()) {
                     this._selectedEntity.setAbsoluteYaw(deg);
                 } else {
                     let rot = Quat.axisAngleToQuat(norm, -sig * angle).mul(this._selectedEntityRotation);
@@ -703,7 +759,7 @@ class EntityEditorScene extends Scene {
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityRoll + sig * angle;
 
-                if (this._isPlanetEntity(this._selectedEntity)) {
+                if (this._isYawMode()) {
                     this._selectedEntity.setAbsoluteRoll(deg);
                 } else {
                     let rot = Quat.axisAngleToQuat(norm, sig * angle).mul(this._selectedEntityRotation);

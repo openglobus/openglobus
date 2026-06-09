@@ -1,5 +1,5 @@
 import { Dialog, type IDialogParams } from "../../ui/Dialog";
-import { EntityEditorScene } from "./EntityEditorScene";
+import { EntityEditorScene, NATIVE_MODE, YAW_MODE } from "./EntityEditorScene";
 import { Entity } from "../../entity/Entity";
 import { Input } from "../../ui/Input";
 import { Checkbox } from "../../ui/Checkbox";
@@ -18,6 +18,7 @@ interface IEntityEditorDialog extends IDialogParams {
 
 export class EntityEditorDialog extends Dialog<EntityEditorScene> {
     protected _relativePositionView: Checkbox;
+    protected _yawModeView: Checkbox;
 
     protected _lonView: Input;
     protected _latView: Input;
@@ -62,6 +63,10 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
 
         this._relativePositionView = new Checkbox({
             label: "Relative position"
+        });
+
+        this._yawModeView = new Checkbox({
+            label: "Yaw mode"
         });
 
         this._lonView = new Input({
@@ -220,6 +225,7 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
         this.events.on("visibility", this._onVisibility);
 
         this._relativePositionView.appendTo(this.container!);
+        this._yawModeView.appendTo(this.container!);
 
         if (this.model.planet) {
             this._lonView.appendTo(this.container!);
@@ -249,6 +255,7 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
         this._opacityView.appendTo(this.container!);
 
         this._relativePositionView.events.on("change", this._onChangeRelativePosition);
+        this._yawModeView.events.on("change", this._onChangeYawMode);
 
         this._lonView.events.on("change", this._onChangeLon);
         this._latView.events.on("change", this._onChangeLat);
@@ -317,6 +324,11 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
         this._relativePositionView.disabled = !entity.parent;
         //this._relativePositionView.stopPropagation();
         this._relativePositionView.checked = entity.relativePosition;
+        const isYawMode = this.model.editMode === YAW_MODE;
+        if (this._yawModeView.checked !== isYawMode) {
+            this._yawModeView.events.stopPropagation();
+            this._yawModeView.checked = isYawMode;
+        }
 
         let ll = entity.getLonLat();
         this._lonView.stopPropagation();
@@ -397,6 +409,10 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
             entity.relativePosition = checked;
             this._refresh(entity);
         }
+    };
+
+    protected _onChangeYawMode = (checked: boolean) => {
+        this.model.editMode = checked ? YAW_MODE : NATIVE_MODE;
     };
 
     protected _onPosition = (pos: Vec3, entity: Entity) => {
