@@ -89,13 +89,14 @@ export class ProjectorManager {
             return -1;
         }
 
-        if (!projector.framebuffer || !projector.framebuffer._fbo) {
-            console.warn("ProjectorManager.add(): projector.framebuffer must be initialized before add()");
+        const framebuffer = projector.depthCamera.framebuffer;
+        if (!framebuffer._fbo) {
+            console.warn("ProjectorManager.add(): projector.depthCamera.framebuffer must be initialized before add()");
             return -1;
         }
 
-        const fbW = projector.framebuffer.width;
-        const fbH = projector.framebuffer.height;
+        const fbW = framebuffer.width;
+        const fbH = framebuffer.height;
         if (fbW !== fbH) {
             console.warn(`ProjectorManager.add(): projector framebuffer must be square (${fbW}x${fbH})`);
             return -1;
@@ -116,12 +117,13 @@ export class ProjectorManager {
         }
 
         this._projectors.push(projector);
+        projector.depthCamera.projector = projector;
         this._updateActiveProjectors = true;
         return projector.id;
     }
 
     /**
-     * Rebinds projector.framebuffer COLOR_ATTACHMENT0 from its own TEXTURE_2D
+     * Rebinds projector.depthCamera.framebuffer COLOR_ATTACHMENT0 from its own TEXTURE_2D
      * to (this._depthArrayTexture, projector._slot) so renders go directly into
      * the array layer without any per-frame copy. The original TEXTURE_2D stays
      * referenced inside framebuffer.textures[0] so framebuffer.destroy() can free it
@@ -131,7 +133,7 @@ export class ProjectorManager {
         const gl = this._renderer.handler.gl;
         if (!gl) return false;
 
-        const fb = projector.framebuffer;
+        const fb = projector.depthCamera.framebuffer;
         if (!fb._fbo) return false;
 
         const status = fb.attachLayer(this._depthArrayTexture, projector._slot);
@@ -146,15 +148,15 @@ export class ProjectorManager {
     }
 
     /**
-     * Restores projector.framebuffer COLOR_ATTACHMENT0 back to its original TEXTURE_2D
+     * Restores projector.depthCamera.framebuffer COLOR_ATTACHMENT0 back to its original TEXTURE_2D
      * so subsequent depth renders no longer touch the freed array layer.
      */
     protected _restoreFramebufferAttachment(projector: Projector): void {
         const gl = this._renderer.handler.gl;
         if (!gl) return;
 
-        const fb = projector.framebuffer;
-        if (!fb || !fb._fbo) return;
+        const fb = projector.depthCamera.framebuffer;
+        if (!fb._fbo) return;
 
         const orig = projector.depthTexture;
         gl.bindFramebuffer(gl.FRAMEBUFFER, fb._fbo);
@@ -187,6 +189,10 @@ export class ProjectorManager {
             projector._manager = null;
         }
 
+        if (projector.depthCamera.projector === projector) {
+            projector.depthCamera.projector = null;
+        }
+
         this._projectors.splice(index, 1);
         this._updateActiveProjectors = true;
         return true;
@@ -198,6 +204,9 @@ export class ProjectorManager {
             this._restoreFramebufferAttachment(p);
             p._slot = -1;
             p._manager = null;
+            if (p.depthCamera.projector === p) {
+                p.depthCamera.projector = null;
+            }
         }
         this._projectors.length = 0;
         this._activeProjectors.length = 0;
@@ -251,19 +260,20 @@ export class ProjectorManager {
 
         for (let i = 0; i < size; i++) {
             const pi = active[i];
+            const camera = pi.depthCamera.camera;
             const mOffset = i * 16;
             const eOffset = i * 3;
             const vOffset = i * 4;
 
-            const pvRTE = pi.camera.getProjectionViewRTEMatrix();
+            const pvRTE = camera.getProjectionViewRTEMatrix();
             this._viewProjData.set(pvRTE, mOffset);
 
             this._tmpInverse.set(pvRTE).inverseTo(this._tmpInverse);
             this._invViewProjData.set(this._tmpInverse._m, mOffset);
 
-            this._eyeRelData[eOffset] = pi.camera.eye.x - activeCameraEye.x;
-            this._eyeRelData[eOffset + 1] = pi.camera.eye.y - activeCameraEye.y;
-            this._eyeRelData[eOffset + 2] = pi.camera.eye.z - activeCameraEye.z;
+            this._eyeRelData[eOffset] = camera.eye.x - activeCameraEye.x;
+            this._eyeRelData[eOffset + 1] = camera.eye.y - activeCameraEye.y;
+            this._eyeRelData[eOffset + 2] = camera.eye.z - activeCameraEye.z;
 
             const color = pi.color;
             this._colorIntensityData[vOffset] = color[0] ?? 1.0;
@@ -319,8 +329,9 @@ export class ProjectorManager {
         }
 
         const pi = active[projectorIndex];
+        const camera = pi.depthCamera.camera;
         const activeCameraEye = this._renderer.activeCamera.eye;
-        const pvRTE = pi.camera.getProjectionViewRTEMatrix();
+        const pvRTE = camera.getProjectionViewRTEMatrix();
 
         this._tmpInverse.set(pvRTE).inverseTo(this._tmpInverse);
 
@@ -331,9 +342,9 @@ export class ProjectorManager {
         gl.uniformMatrix4fv(u.u_projectorViewProjRTE, false, pvRTE);
         gl.uniform3f(
             u.u_projectorEyeRel,
-            pi.camera.eye.x - activeCameraEye.x,
-            pi.camera.eye.y - activeCameraEye.y,
-            pi.camera.eye.z - activeCameraEye.z
+            camera.eye.x - activeCameraEye.x,
+            camera.eye.y - activeCameraEye.y,
+            camera.eye.z - activeCameraEye.z
         );
         gl.uniform4f(u.u_projectorColor, color[0], color[1], color[2], color[3]);
         gl.uniform4f(u.u_projectorParams, pi.bias, pi.normalBias, pi.renderMode, pi.depthEpsilon);

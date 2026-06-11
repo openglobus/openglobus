@@ -71,11 +71,12 @@ export class ProjectorsPass {
         viewportW: number,
         viewportH: number
     ): boolean {
-        const projPV = projector.camera.getProjectionViewRTEMatrix();
+        const projectorCamera = projector.depthCamera.camera;
+        const projPV = projectorCamera.getProjectionViewRTEMatrix();
         this._tmpInverse.set(projPV).inverseTo(this._tmpInverse);
         const inv = this._tmpInverse._m;
 
-        const projEye = projector.camera.eye;
+        const projEye = projectorCamera.eye;
         const dx = projEye.x - mainEye.x;
         const dy = projEye.y - mainEye.y;
         const dz = projEye.z - mainEye.z;

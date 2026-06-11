@@ -33,7 +33,6 @@ import type { HTMLDivElementExt } from "./renderer/Renderer";
 import { Scene } from "./scene/Scene";
 import { Extent } from "./Extent";
 import type { IAtmosphereParams } from "./control/atmosphere/Atmosphere";
-import { CameraFrameComposer } from "./control/CameraFrameComposer";
 import { QuadTreeStrategy } from "./quadTree";
 import type { ShadeModeInput } from "./shadeModeConstants";
 
@@ -330,8 +329,7 @@ class Globe {
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
-                new CompassButton(),
-                new CameraFrameComposer()
+                new CompassButton()
             ]);
         }
 

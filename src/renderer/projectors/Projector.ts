@@ -1,9 +1,8 @@
-import type { Camera } from "../../camera/Camera";
+import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
 import type { NumberArray3 } from "../../math/Vec3";
 import type { NumberArray4 } from "../../math/Vec4";
 import { linearToSrgbArr, srgbToLinear } from "../../utils/colorSpace";
 import { htmlColorToRgba, rgbToStringHTML, TypedArray } from "../../utils/shared";
-import type { Framebuffer } from "../../webgl/Framebuffer";
 import type { ProjectorManager } from "./ProjectorManager";
 
 export type ProjectorSourceType = "color" | "image" | "video" | "texture";
@@ -14,8 +13,7 @@ export const PROJECTOR_RENDER_MODE_LIGHT = 1;
 
 export interface IProjectorParams {
     enabled?: boolean;
-    camera: Camera;
-    framebuffer: Framebuffer; // Framebuffer that renders the depth map for this projector.
+    depthCamera: DepthCamera;
     color?: ProjectorColor;
     bias?: number; //0.00003 .. 0.00008 - 0.0005
     normalBias?: number; // 0.2 .. 1.0
@@ -30,8 +28,7 @@ export class Projector {
 
     public readonly id: number;
     public enabled: boolean;
-    public camera: Camera;
-    public framebuffer: Framebuffer;
+    public depthCamera: DepthCamera;
     public color: Float32Array;
     public bias: number;
     public normalBias: number;
@@ -53,8 +50,7 @@ export class Projector {
     constructor(params: IProjectorParams) {
         this.id = Projector.__staticCounter__++;
         this.enabled = params.enabled ?? true;
-        this.camera = params.camera;
-        this.framebuffer = params.framebuffer;
+        this.depthCamera = params.depthCamera;
         this.color = Projector._resolveColor(params.color);
         this.bias = params.bias ?? 0.00006;
         this.normalBias = params.normalBias ?? 0.45;
@@ -135,6 +131,6 @@ export class Projector {
      * but framebuffer.textures[0] remains the original texture reference.
      */
     public get depthTexture(): WebGLTexture | null {
-        return this.framebuffer.textures[0] || null;
+        return this.depthCamera.framebuffer.textures[0] || null;
     }
 }
