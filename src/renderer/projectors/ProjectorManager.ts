@@ -281,10 +281,10 @@ export class ProjectorManager {
             this._colorIntensityData[vOffset + 2] = color[2] ?? 1.0;
             this._colorIntensityData[vOffset + 3] = color[3] ?? 1.0;
 
-            this._paramsData[vOffset] = pi.bias;
-            this._paramsData[vOffset + 1] = pi.normalBias;
+            this._paramsData[vOffset] = pi.depthCamera.bias;
+            this._paramsData[vOffset + 1] = pi.depthCamera.normalBias;
             this._paramsData[vOffset + 2] = pi.renderMode;
-            this._paramsData[vOffset + 3] = pi.depthEpsilon;
+            this._paramsData[vOffset + 3] = pi.depthCamera.depthEpsilon;
 
             this._layerData[i] = pi._slot;
         }
@@ -347,7 +347,13 @@ export class ProjectorManager {
             camera.eye.z - activeCameraEye.z
         );
         gl.uniform4f(u.u_projectorColor, color[0], color[1], color[2], color[3]);
-        gl.uniform4f(u.u_projectorParams, pi.bias, pi.normalBias, pi.renderMode, pi.depthEpsilon);
+        gl.uniform4f(
+            u.u_projectorParams,
+            pi.depthCamera.bias,
+            pi.depthCamera.normalBias,
+            pi.renderMode,
+            pi.depthCamera.depthEpsilon
+        );
         gl.uniformMatrix4fv(u.u_projectorInvViewProjRTE, false, this._tmpInverse._m);
 
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);

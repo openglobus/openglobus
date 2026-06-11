@@ -119,7 +119,10 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         far: PROJECTOR_FAR,
         showFrustum: false,
         showFootprint: false,
-        excludeLayers: [uavLayer]
+        excludeLayers: [uavLayer],
+        bias: 0.00006, //0.00003 .. 0.00008 - 0.0005
+        normalBias: 0.45, // 0.2 .. 1.0
+        depthEpsilon: 0.0001 //0.00015 .. 0.0005 - 0.0015
     });
     depthCameraHandler.add(depthCamera);
 
@@ -131,9 +134,6 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         enabled: true,
         depthCamera,
         color: [1.0, 1.0, 0.0, 0.3],
-        bias: 0.00006, //0.00003 .. 0.00008 - 0.0005
-        normalBias: 0.45, // 0.2 .. 1.0
-        depthEpsilon: 0.0001, //0.00015 .. 0.0005 - 0.0015
         renderMode: "light",
         priority: 0
     });

@@ -15,9 +15,6 @@ export interface IProjectorParams {
     enabled?: boolean;
     depthCamera: DepthCamera;
     color?: ProjectorColor;
-    bias?: number; //0.00003 .. 0.00008 - 0.0005
-    normalBias?: number; // 0.2 .. 1.0
-    depthEpsilon?: number; //0.00015 .. 0.0005 - 0.0015
     sourceType?: ProjectorSourceType;
     renderMode?: ProjectorRenderMode;
     priority?: number;
@@ -30,9 +27,6 @@ export class Projector {
     public enabled: boolean;
     public depthCamera: DepthCamera;
     public color: Float32Array;
-    public bias: number;
-    public normalBias: number;
-    public depthEpsilon: number;
     public sourceType: ProjectorSourceType;
     public renderMode: number = PROJECTOR_RENDER_MODE_COLOR;
     public priority: number;
@@ -52,9 +46,6 @@ export class Projector {
         this.enabled = params.enabled ?? true;
         this.depthCamera = params.depthCamera;
         this.color = Projector._resolveColor(params.color);
-        this.bias = params.bias ?? 0.00006;
-        this.normalBias = params.normalBias ?? 0.45;
-        this.depthEpsilon = params.depthEpsilon ?? 0.00025;
         this.sourceType = params.sourceType || "color";
         this.renderMode = params.renderMode === "color" ? PROJECTOR_RENDER_MODE_COLOR : PROJECTOR_RENDER_MODE_LIGHT;
         this.priority = params.priority || 0;

@@ -2,6 +2,7 @@ import { Control, IControlParams } from "../Control";
 import { DepthCamera } from "./DepthCamera";
 import { depth_camera } from "./depth_camera";
 import { Vector } from "../../layer";
+import { SHADE_PHONG } from "../../shadeModeConstants";
 
 const DEPTH_CAMERA_HANDLER_PREDRAW_PRIORITY = 0;
 const POLYLINE_DEPTH_OFFSET = -100;
@@ -39,7 +40,9 @@ export class DepthCameraHandler extends Control {
             entities: [],
             pickingEnabled: true,
             receiveProjectors: false,
-            hideInLayerSwitcher: true
+            shadeMode: SHADE_PHONG,
+            hideInLayerSwitcher: true,
+            scaleByDistance: [100, 100000, 1.0]
         });
 
         if (params.depthCameras) {

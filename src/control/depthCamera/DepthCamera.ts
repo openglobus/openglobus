@@ -18,6 +18,9 @@ const CAM_WIDTH = 512;
 const CAM_HEIGHT = 512;
 const DEPTH_NEAR = 100;
 const DEPTH_FAR = 100000;
+const DEPTH_BIAS = 0.00006;
+const DEPTH_NORMAL_BIAS = 0.45;
+const DEPTH_EPSILON = 0.00025;
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
 const PERIMETER_STEP_PX = 1;
 const DEFAULT_CAMERA_FRUSTUM_LENGTH = 2.5;
@@ -40,6 +43,9 @@ export interface IDepthCameraParams {
     showFrustum?: boolean;
     showFootprint?: boolean;
     excludeLayers?: Vector[];
+    bias?: number; //0.00003 .. 0.00008 - 0.0005
+    normalBias?: number; // 0.2 .. 1.0
+    depthEpsilon?: number; //0.00015 .. 0.0005 - 0.0015
 }
 
 function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer: Framebuffer): number {
@@ -75,6 +81,9 @@ export class DepthCamera {
     public readonly verticalViewAngle: number;
     public readonly horizontalViewAngle?: number;
     public readonly excludeLayers: Vector[];
+    public bias: number;
+    public normalBias: number;
+    public depthEpsilon: number;
 
     public enabled: boolean;
 
@@ -117,6 +126,9 @@ export class DepthCamera {
         this.verticalViewAngle = params.verticalViewAngle ?? DEFAULT_VERTICAL_VIEW_ANGLE;
         this.horizontalViewAngle = params.horizontalViewAngle;
         this.excludeLayers = params.excludeLayers ? [...params.excludeLayers] : [];
+        this.bias = params.bias ?? DEPTH_BIAS;
+        this.normalBias = params.normalBias ?? DEPTH_NORMAL_BIAS;
+        this.depthEpsilon = params.depthEpsilon ?? DEPTH_EPSILON;
 
         this.projector = null;
 
