@@ -98,6 +98,7 @@ export class DepthCamera {
     protected _planet: Planet | null;
     protected _renderer: Renderer | null;
     protected _initialized: boolean;
+    protected _forceOwnQuadTreeStrategyPass: boolean;
     protected _showFrustum: boolean;
     protected _showFootprint: boolean;
 
@@ -135,6 +136,7 @@ export class DepthCamera {
         this._planet = null;
         this._renderer = null;
         this._initialized = false;
+        this._forceOwnQuadTreeStrategyPass = true;
         this._showFrustum = params.showFrustum ?? true;
         this._showFootprint = params.showFootprint ?? true;
 
@@ -227,6 +229,7 @@ export class DepthCamera {
         this.framebuffer.init();
 
         this.quadTreeStrategy = this._createQuadTreeStrategy(planet, this.camera as PlanetCamera);
+        this._forceOwnQuadTreeStrategyPass = true;
         this._initialized = true;
     }
 
@@ -486,9 +489,11 @@ export class DepthCamera {
         const planet = this._planet!;
         const mainCam = this._renderer!.activeCamera;
 
-        if (mainCam.containsPoint(depthCamera.eye)) {
+        if (!this._forceOwnQuadTreeStrategyPass && mainCam.containsPoint(depthCamera.eye)) {
             return planet.quadTreeStrategy;
         }
+
+        this._forceOwnQuadTreeStrategyPass = false;
 
         const quadTreeStrategy = this.quadTreeStrategy;
         quadTreeStrategy.maxZoomLimit = planet.quadTreeStrategy.maxCurrZoom;
