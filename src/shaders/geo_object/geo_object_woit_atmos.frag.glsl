@@ -64,19 +64,23 @@ void main(void) {
 
     if (uUseNormalTexture > 0.0) {
         normal = getNormalWorldFromTexture(
-        uNormalTexture,
-        vTexCoords,
-        normal,
-        v_viewPosition,
-        normalMatrix
+            uNormalTexture,
+            vTexCoords,
+            normal,
+            v_viewPosition,
+            normalMatrix
         );
     }
 
-    vec3 projectorColor = applyProjectors(v_rtcPos, normal) * uProjectorMask;
+    vec3 projectorEmission;
+    vec3 projectorLight;
+    applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
+    projectorEmission *= uProjectorMask;
+    projectorLight *= uProjectorMask;
 
     if (shade == SHADE_UNLIT) {
         color = baseColor;
-        color.rgb += projectorColor;
+        color.rgb += projectorEmission;
         weightedOITAccumulate(color, accumColor, accumAlpha);
         return;
     }
@@ -103,20 +107,20 @@ void main(void) {
 
         // PHONG mode in atmosphere pass: apply only Phong lighting without atmospheric contribution.
         getPhongLighting(
-        rtcPos,
-        normal,
-        vec3(0.0),
-        sunPos,
-        lightAmbient,
-        lightDiffuse,
-        lightSpecular,
-        specularMask,
-        ao,
-        specularWeighting,
-        lightWeighting
+            rtcPos,
+            normal,
+            vec3(0.0),
+            sunPos,
+            lightAmbient,
+            lightDiffuse,
+            lightSpecular,
+            specularMask,
+            ao,
+            specularWeighting,
+            lightWeighting
         );
-        color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
-        color.rgb += projectorColor;
+
+        color = vec4(baseColor.rgb * (lightWeighting.rgb + projectorLight) + specularWeighting + projectorEmission, baseColor.a);
     } else {
         float ao = material.r;
         float specularMask = material.b;
@@ -132,18 +136,18 @@ void main(void) {
         // TODO: Real PBR lighting is not implemented yet. Keep Phong + atmosphere for PBR mode.
         getSunIlluminance(worldVertex, lightDir, sunIlluminance);
         getPhongLighting(
-        rtcPos,
-        normal,
-        vec3(0.0),
-        sunPos,
-        lightAmbient,
-        lightDiffuse,
-        lightSpecular,
-        specularMask,
-        sunIlluminance,
-        ao,
-        specularWeighting,
-        lightWeighting
+            rtcPos,
+            normal,
+            vec3(0.0),
+            sunPos,
+            lightAmbient,
+            lightDiffuse,
+            lightSpecular,
+            specularMask,
+            sunIlluminance,
+            ao,
+            specularWeighting,
+            lightWeighting
         );
 
         vec4 atmosColor;
@@ -157,10 +161,13 @@ void main(void) {
         fadingOpacity *= atmosColor.a;
 
         color = vec4(
-        mix(baseColor.rgb * lightWeighting.rgb, atmosColor.rgb, fadingOpacity) + specularWeighting,
-        baseColor.a
+            mix(
+                baseColor.rgb * (lightWeighting.rgb + projectorLight),
+                atmosColor.rgb,
+                fadingOpacity
+            ) + specularWeighting + projectorEmission,
+            baseColor.a
         );
-        color.rgb += projectorColor;
     }
 
     weightedOITAccumulate(color, accumColor, accumAlpha);

@@ -47,7 +47,7 @@ export class Projector {
         this.depthCamera = params.depthCamera;
         this.color = Projector._resolveColor(params.color);
         this.sourceType = params.sourceType || "color";
-        this.renderMode = params.renderMode === "color" ? PROJECTOR_RENDER_MODE_COLOR : PROJECTOR_RENDER_MODE_LIGHT;
+        this.renderMode = params.renderMode === "light" ? PROJECTOR_RENDER_MODE_LIGHT : PROJECTOR_RENDER_MODE_COLOR;
         this.priority = params.priority || 0;
     }
 

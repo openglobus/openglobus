@@ -183,18 +183,22 @@ export class ProjectorsPass {
 
         gl.uniformMatrix3fv(u.u_normalMatrix, false, r.activeCamera.getNormalMatrix());
 
-        // G-buffer textures (slots 0..2 unused by projectors.bind starting at 6).
+        // G-buffer textures (slots 0..3 unused by projectors.bind starting at 6).
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, gBuffer.textures[1]);
-        gl.uniform1i(u.u_materialsTexture, 0);
+        gl.bindTexture(gl.TEXTURE_2D, gBuffer.textures[0]);
+        gl.uniform1i(u.u_baseTexture, 0);
 
         gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, gBuffer.textures[2]);
-        gl.uniform1i(u.u_normalTexture, 1);
+        gl.bindTexture(gl.TEXTURE_2D, gBuffer.textures[1]);
+        gl.uniform1i(u.u_materialsTexture, 1);
 
         gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, gBuffer.textures[2]);
+        gl.uniform1i(u.u_normalTexture, 2);
+
+        gl.activeTexture(gl.TEXTURE3);
         gl.bindTexture(gl.TEXTURE_2D, gBuffer.textures[3]);
-        gl.uniform1i(u.u_viewPositionTexture, 2);
+        gl.uniform1i(u.u_viewPositionTexture, 3);
 
         const mainPV = r.activeCamera.getProjectionViewRTEMatrix();
         const mainEye = r.activeCamera.eye;
