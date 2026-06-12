@@ -24,12 +24,12 @@ export class Projector {
     protected static __staticCounter__ = 0;
 
     public readonly id: number;
-    public enabled: boolean;
     public depthCamera: DepthCamera;
     public color: Float32Array;
     public sourceType: ProjectorSourceType;
     public renderMode: number = PROJECTOR_RENDER_MODE_COLOR;
     public priority: number;
+    protected _enabled: boolean;
 
     /**
      * Layer index in the manager-owned depth array texture. -1 if not yet added.
@@ -43,12 +43,23 @@ export class Projector {
 
     constructor(params: IProjectorParams) {
         this.id = Projector.__staticCounter__++;
-        this.enabled = params.enabled ?? true;
+        this._enabled = params.enabled ?? true;
         this.depthCamera = params.depthCamera;
         this.color = Projector._resolveColor(params.color);
         this.sourceType = params.sourceType || "color";
         this.renderMode = params.renderMode === "light" ? PROJECTOR_RENDER_MODE_LIGHT : PROJECTOR_RENDER_MODE_COLOR;
         this.priority = params.priority || 0;
+    }
+
+    public get enabled(): boolean {
+        return this._enabled;
+    }
+
+    public set enabled(enabled: boolean) {
+        if (this._enabled === enabled) return;
+
+        this._enabled = enabled;
+        this._manager?.update(this);
     }
 
     protected static _resolveColor(color?: ProjectorColor): Float32Array {

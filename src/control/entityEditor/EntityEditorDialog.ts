@@ -7,6 +7,7 @@ import { Vec3 } from "../../math/Vec3";
 import { ToggleButton } from "../../ui/ToggleButton";
 import { DEGREES, RADIANS } from "../../math";
 import { Slider } from "../../ui/Slider";
+import { CameraEditorView, hasEntityEditorDepthCamera } from "./CameraEditorView";
 
 const ICON_LOCK_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" id="filter-center-focus">
   <path d="M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
@@ -45,6 +46,7 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
     protected _scaleYView: Input;
     protected _scaleZView: Input;
     protected _opacityView: Slider;
+    protected _cameraView: CameraEditorView | null;
 
     constructor(params: IEntityEditorDialog) {
         super({
@@ -189,6 +191,8 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
             max: 1,
             value: 1
         });
+
+        this._cameraView = null;
     }
 
     public override render(params: any): this {
@@ -291,6 +295,7 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
     };
 
     public override remove(): void {
+        this._removeCameraView();
         super.remove();
         this._clearSceneEvents();
     }
@@ -385,6 +390,32 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
 
         this._opacityView.events.stopPropagation();
         this._opacityView.value = entity.getOpacity();
+
+        this._refreshCameraView(entity);
+    }
+
+    protected _refreshCameraView(entity: Entity): void {
+        if (!hasEntityEditorDepthCamera(entity)) {
+            this._removeCameraView();
+            return;
+        }
+
+        if (!this._cameraView) {
+            this._cameraView = new CameraEditorView({
+                entity
+            });
+            this._cameraView.appendTo(this.container!);
+        } else {
+            this._cameraView.bindEntity(entity);
+            this._cameraView.refresh();
+        }
+    }
+
+    protected _removeCameraView(): void {
+        if (this._cameraView) {
+            this._cameraView.remove();
+            this._cameraView = null;
+        }
     }
 
     protected _setDialogTitle(entity: Entity): void {
@@ -400,6 +431,7 @@ export class EntityEditorDialog extends Dialog<EntityEditorScene> {
     }
 
     protected _onUnselect = (entity: Entity) => {
+        this._removeCameraView();
         this.hide();
     };
 

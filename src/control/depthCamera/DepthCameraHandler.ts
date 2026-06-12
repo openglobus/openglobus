@@ -86,11 +86,6 @@ export class DepthCameraHandler extends Control {
             return false;
         }
 
-        if (this.renderer && depthCamera.projector) {
-            this.renderer.projectors.remove(depthCamera.projector);
-            depthCamera.projector = null;
-        }
-
         this._removeDepthCameraEntities(depthCamera);
         depthCamera.destroy();
 

@@ -117,7 +117,6 @@ export class ProjectorManager {
         }
 
         this._projectors.push(projector);
-        projector.depthCamera.projector = projector;
         this._updateActiveProjectors = true;
         return projector.id;
     }
@@ -189,10 +188,6 @@ export class ProjectorManager {
             projector._manager = null;
         }
 
-        if (projector.depthCamera.projector === projector) {
-            projector.depthCamera.projector = null;
-        }
-
         this._projectors.splice(index, 1);
         this._updateActiveProjectors = true;
         return true;
@@ -204,9 +199,6 @@ export class ProjectorManager {
             this._restoreFramebufferAttachment(p);
             p._slot = -1;
             p._manager = null;
-            if (p.depthCamera.projector === p) {
-                p.depthCamera.projector = null;
-            }
         }
         this._projectors.length = 0;
         this._activeProjectors.length = 0;

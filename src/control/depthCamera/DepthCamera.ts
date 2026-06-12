@@ -8,7 +8,6 @@ import { Vec4 } from "../../math/Vec4";
 import { Object3d } from "../../Object3d";
 import { QuadTreeStrategy } from "../../quadTree";
 import type { Renderer } from "../../renderer/Renderer";
-import type { Projector } from "../../renderer/projectors/Projector";
 import type { Planet } from "../../scene/Planet";
 import { Framebuffer } from "../../webgl";
 import { Vector } from "../../layer/Vector";
@@ -90,7 +89,6 @@ export class DepthCamera {
     public camera!: Camera;
     public framebuffer!: Framebuffer;
     public quadTreeStrategy!: QuadTreeStrategy;
-    public projector: Projector | null;
 
     public _handler: DepthCameraHandler | null;
     public _handlerIndex: number;
@@ -130,8 +128,6 @@ export class DepthCamera {
         this.bias = params.bias ?? DEPTH_BIAS;
         this.normalBias = params.normalBias ?? DEPTH_NORMAL_BIAS;
         this.depthEpsilon = params.depthEpsilon ?? DEPTH_EPSILON;
-
-        this.projector = null;
 
         this._planet = null;
         this._renderer = null;
