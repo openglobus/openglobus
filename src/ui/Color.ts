@@ -14,7 +14,10 @@ const COLOR_EVENTS: ColorEventsList = ["input"];
 
 const TEMPLATE = `<div class="og-color">
       <label for="{id}" class="og-color-label">{label}</label>
-      <input type="color" name="{id}" value="{value}"/>
+      <div class="og-color-controls">
+        <input class="og-color-picker" type="color" id="{id}" name="{id}" value="{value}"/>
+        <input class="og-color-value" type="text" value="{value}" placeholder="#ffffff"/>
+      </div>
     </div>`;
 
 let __labelCounter__ = 0;
@@ -24,24 +27,43 @@ class Color extends View<null> {
 
     protected _value: string;
     protected $label: HTMLElement | null;
-    protected $input: HTMLInputElement | null;
+    protected $pickerInput: HTMLInputElement | null;
+    protected $valueInput: HTMLInputElement | null;
 
     constructor(options: IColorParams = {}) {
+        const value = Color.normalizeColor(options.value) || "#000000";
+
         super({
             template: stringTemplate(TEMPLATE, {
                 id: `color-${__labelCounter__++}`,
                 label: options.label || "",
-                value: options.value || "#000000"
+                value
             })
         });
 
         //@ts-ignore
         this.events = this.events.registerNames(COLOR_EVENTS);
 
-        this._value = options.value || "blue";
+        this._value = value;
 
         this.$label = null;
-        this.$input = null;
+        this.$pickerInput = null;
+        this.$valueInput = null;
+    }
+
+    static normalizeColor(color: string | undefined): string | null {
+        if (!color) return null;
+
+        let value = color.trim();
+        const shortMatch = value.match(/^#([0-9a-fA-F]{3})$/);
+        if (shortMatch) {
+            value = `#${shortMatch[1]
+                .split("")
+                .map((ch) => ch + ch)
+                .join("")}`;
+        }
+
+        return /^#[0-9a-fA-F]{6}$/.test(value) ? value.toLowerCase() : null;
     }
 
     public override render(params: any): this {
@@ -51,7 +73,8 @@ class Color extends View<null> {
         if (this.$label.innerHTML === "") {
             this.$label.style.display = "none";
         }
-        this.$input = this.select<HTMLInputElement>("input");
+        this.$pickerInput = this.select<HTMLInputElement>(".og-color-picker");
+        this.$valueInput = this.select<HTMLInputElement>(".og-color-value");
 
         this._initEvents();
 
@@ -59,9 +82,11 @@ class Color extends View<null> {
     }
 
     public set value(val: string) {
-        if (val !== this._value) {
-            this._value = val;
-            this.$input!.value = this._value;
+        const color = Color.normalizeColor(val);
+        if (color && color !== this._value) {
+            this._value = color;
+            this.$pickerInput!.value = this._value;
+            this.$valueInput!.value = this._value;
             this.events.dispatch(this.events.input, this._value, this);
         }
     }
@@ -71,16 +96,24 @@ class Color extends View<null> {
     }
 
     protected _initEvents() {
-        this.$input!.addEventListener("input", this._onInput);
+        this.$pickerInput!.addEventListener("input", this._onPickerInput);
+        this.$valueInput!.addEventListener("input", this._onValueInput);
     }
 
     protected _clearEvents() {
-        this.$input!.removeEventListener("input", this._onInput);
+        this.$pickerInput!.removeEventListener("input", this._onPickerInput);
+        this.$valueInput!.removeEventListener("input", this._onValueInput);
     }
 
-    protected _onInput = (e: Event) => {
-        //@ts-ignore
-        this.value = e.target.value;
+    protected _onPickerInput = (e: Event) => {
+        this.value = (e.target as HTMLInputElement).value;
+    };
+
+    protected _onValueInput = (e: Event) => {
+        const color = Color.normalizeColor((e.target as HTMLInputElement).value);
+        if (color) {
+            this.value = color;
+        }
     };
 
     public override remove() {

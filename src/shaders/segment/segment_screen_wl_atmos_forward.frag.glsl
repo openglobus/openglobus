@@ -65,10 +65,12 @@ void main(void) {
 
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
-    vec3 projectorColor = applyProjectors(v_rtcPos, normal);
+    vec3 projectorEmission;
+    vec3 projectorLight;
+    applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
 
     if (shadeMode == SHADE_UNLIT) {
-        diffuseColor.rgb += projectorColor;
+        diffuseColor.rgb += projectorEmission;
         diffuseColor *= transitionOpacity;
         return;
     }
@@ -139,7 +141,11 @@ void main(void) {
     specularWeighting *= mix(vec3(1.0), sunIlluminance, atmosColor.a);
 
     diffuseColor = vec4(
-    mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting + projectorColor,
+    mix(
+    diffuseColor.rgb * (lightWeighting.rgb + projectorLight) + emission,
+    atmosColor.rgb,
+    fadingOpacity
+    ) + specularWeighting + projectorEmission,
     diffuseColor.a
     );
 

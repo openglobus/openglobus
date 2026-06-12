@@ -24,11 +24,19 @@ uniform highp sampler2DArray u_projectorDepthArray;
 #endif
 
 #ifndef PROJECTOR_GRAZING_FADE_MIN
-#define PROJECTOR_GRAZING_FADE_MIN 0.08
+#define PROJECTOR_GRAZING_FADE_MIN 0.12
 #endif
 
 #ifndef PROJECTOR_GRAZING_FADE_MAX
-#define PROJECTOR_GRAZING_FADE_MAX 0.24
+#define PROJECTOR_GRAZING_FADE_MAX 0.32
+#endif
+
+#ifndef PROJECTOR_SLOPE_DEPTH_BIAS
+#define PROJECTOR_SLOPE_DEPTH_BIAS 0.00008
+#endif
+
+#ifndef PROJECTOR_MAX_SLOPE_DEPTH_BIAS
+#define PROJECTOR_MAX_SLOPE_DEPTH_BIAS 0.0012
 #endif
 
 float sampleProjectorDepth(int index, vec2 uv) {
@@ -41,6 +49,9 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
     float depthBias = u_projectorParams[projectorIndex].x;
     float normalBiasWorld = u_projectorParams[projectorIndex].y;
     float depthEpsilon = u_projectorParams[projectorIndex].w;
+    vec3 projectorLightDir = normalize(u_projectorEyeRel[projectorIndex] - rtcPos);
+    float ndotl = max(dot(N, projectorLightDir), 0.0);
+    float slopeBias = min((1.0 - ndotl) / max(ndotl, 0.05) * PROJECTOR_SLOPE_DEPTH_BIAS, PROJECTOR_MAX_SLOPE_DEPTH_BIAS);
 
     vec3 biasedRtcPos = rtcPos + N * normalBiasWorld;
     vec3 projectorRelPos = biasedRtcPos - u_projectorEyeRel[projectorIndex];
@@ -76,7 +87,7 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
         return 0.0;
     }
 
-    float depthThreshold = depthBias + depthEpsilon;
+    float depthThreshold = depthBias + depthEpsilon + slopeBias;
 
     #if PROJECTOR_PCF
     float aliasingBoost = clamp((footprint - 1.0) * 0.75, 0.0, 2.0);
@@ -124,7 +135,7 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
     #endif
 }
 
-vec3 applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal) {
+void applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal, out vec3 projectorEmission, out vec3 projectorLight) {
     vec3 N = normalize(normal);
 
     float visibility = getProjectorVisibility(projectorIndex, rtcPos, N);
@@ -137,25 +148,30 @@ vec3 applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal) {
 
     float renderMode = u_projectorParams[projectorIndex].z;
     float lightMode = step(0.5, renderMode);
+    float colorMode = 1.0 - lightMode;
 
     vec3 lightDir = normalize(u_projectorEyeRel[projectorIndex] - rtcPos);
     float ndotl = max(dot(N, lightDir), 0.0);
     float grazingFade = smoothstep(PROJECTOR_GRAZING_FADE_MIN, PROJECTOR_GRAZING_FADE_MAX, ndotl);
-    float strength = mix(1.0, ndotl, lightMode);
+    vec3 projectedColor = color * opacity * visibility * grazingFade;
 
-    return color * opacity * visibility * strength * grazingFade;
+    projectorEmission = projectedColor * colorMode;
+    projectorLight = projectedColor * ndotl * lightMode;
 }
 
-vec3 applyProjectors(vec3 rtcPos, vec3 normal) {
-    vec3 contribution = vec3(0.0);
+void applyProjectors(vec3 rtcPos, vec3 normal, out vec3 projectorEmission, out vec3 projectorLight) {
+    projectorEmission = vec3(0.0);
+    projectorLight = vec3(0.0);
 
     for (int i = 0; i < MAX_PROJECTORS; i++) {
         if (i >= u_projectorCount) {
             break;
         }
 
-        contribution += applyProjector(i, rtcPos, normal);
+        vec3 projectorEmissionPart;
+        vec3 projectorLightPart;
+        applyProjector(i, rtcPos, normal, projectorEmissionPart, projectorLightPart);
+        projectorEmission += projectorEmissionPart;
+        projectorLight += projectorLightPart;
     }
-
-    return contribution;
 }

@@ -55,10 +55,12 @@ void main(void) {
 
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
-    vec3 projectorColor = applyProjectors(v_rtcPos, normal);
+    vec3 projectorEmission;
+    vec3 projectorLight;
+    applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
 
     if (shadeMode == SHADE_UNLIT) {
-        fragColor.rgb += projectorColor;
+        fragColor.rgb += projectorEmission;
         fragColor *= transitionOpacity;
         return;
     }
@@ -108,6 +110,12 @@ void main(void) {
         );
     }
 
-    fragColor = vec4(fragColor.rgb * lightWeighting.rgb + specularWeighting + emission + projectorColor, fragColor.a);
+    fragColor = vec4(
+    fragColor.rgb * (lightWeighting.rgb + projectorLight) +
+    specularWeighting +
+    emission +
+    projectorEmission,
+    fragColor.a
+    );
     fragColor *= transitionOpacity;
 }

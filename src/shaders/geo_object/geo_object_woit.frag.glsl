@@ -61,11 +61,15 @@ void main(void) {
         );
     }
 
-    vec3 projectorColor = applyProjectors(v_rtcPos, normal) * uProjectorMask;
+    vec3 projectorEmission;
+    vec3 projectorLight;
+    applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
+    projectorEmission *= uProjectorMask;
+    projectorLight *= uProjectorMask;
 
     if (shade == SHADE_UNLIT) {
         color = baseColor;
-        color.rgb += projectorColor;
+        color.rgb += projectorEmission;
         weightedOITAccumulate(color, accumColor, accumAlpha);
         return;
     }
@@ -105,8 +109,12 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
-        color.rgb += projectorColor;
+        color = vec4(
+        baseColor.rgb * (lightWeighting.rgb + projectorLight) +
+        specularWeighting +
+        projectorEmission,
+        baseColor.a
+        );
     } else {
         float metallic = material.b;
         float roughness = material.g;
@@ -132,8 +140,12 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
-        color.rgb += projectorColor;
+        color = vec4(
+        baseColor.rgb * (lightWeighting.rgb + projectorLight) +
+        specularWeighting +
+        projectorEmission,
+        baseColor.a
+        );
     }
 
     weightedOITAccumulate(color, accumColor, accumAlpha);

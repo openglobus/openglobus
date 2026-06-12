@@ -452,7 +452,7 @@ export class Planet extends Scene {
             transitionOpacityEnabled: options.transitionOpacityEnabled
         };
 
-        // Used in CameraDepthHandler
+        // Used by controls that need a planet-specific quad tree strategy instance.
         this.quadTreeStrategyPrototype = options.quadTreeStrategyPrototype || EarthQuadTreeStrategy;
         this.quadTreeStrategy = new this.quadTreeStrategyPrototype(quadTreeParams);
 

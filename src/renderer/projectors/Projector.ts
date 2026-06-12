@@ -1,9 +1,8 @@
-import type { Camera } from "../../camera/Camera";
+import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
 import type { NumberArray3 } from "../../math/Vec3";
 import type { NumberArray4 } from "../../math/Vec4";
 import { linearToSrgbArr, srgbToLinear } from "../../utils/colorSpace";
 import { htmlColorToRgba, rgbToStringHTML, TypedArray } from "../../utils/shared";
-import type { Framebuffer } from "../../webgl/Framebuffer";
 import type { ProjectorManager } from "./ProjectorManager";
 
 export type ProjectorSourceType = "color" | "image" | "video" | "texture";
@@ -14,12 +13,8 @@ export const PROJECTOR_RENDER_MODE_LIGHT = 1;
 
 export interface IProjectorParams {
     enabled?: boolean;
-    camera: Camera;
-    framebuffer: Framebuffer; // Framebuffer that renders the depth map for this projector.
+    depthCamera: DepthCamera;
     color?: ProjectorColor;
-    bias?: number; //0.00003 .. 0.00008 - 0.0005
-    normalBias?: number; // 0.2 .. 1.0
-    depthEpsilon?: number; //0.00015 .. 0.0005 - 0.0015
     sourceType?: ProjectorSourceType;
     renderMode?: ProjectorRenderMode;
     priority?: number;
@@ -29,16 +24,12 @@ export class Projector {
     protected static __staticCounter__ = 0;
 
     public readonly id: number;
-    public enabled: boolean;
-    public camera: Camera;
-    public framebuffer: Framebuffer;
+    public depthCamera: DepthCamera;
     public color: Float32Array;
-    public bias: number;
-    public normalBias: number;
-    public depthEpsilon: number;
     public sourceType: ProjectorSourceType;
-    public renderMode: number = PROJECTOR_RENDER_MODE_COLOR;
-    public priority: number;
+    protected _enabled: boolean;
+    protected _renderMode: number;
+    protected _priority: number;
 
     /**
      * Layer index in the manager-owned depth array texture. -1 if not yet added.
@@ -52,16 +43,45 @@ export class Projector {
 
     constructor(params: IProjectorParams) {
         this.id = Projector.__staticCounter__++;
-        this.enabled = params.enabled ?? true;
-        this.camera = params.camera;
-        this.framebuffer = params.framebuffer;
+        this._enabled = params.enabled ?? true;
+        this.depthCamera = params.depthCamera;
         this.color = Projector._resolveColor(params.color);
-        this.bias = params.bias ?? 0.00006;
-        this.normalBias = params.normalBias ?? 0.45;
-        this.depthEpsilon = params.depthEpsilon ?? 0.00025;
         this.sourceType = params.sourceType || "color";
-        this.renderMode = params.renderMode === "color" ? PROJECTOR_RENDER_MODE_COLOR : PROJECTOR_RENDER_MODE_LIGHT;
-        this.priority = params.priority || 0;
+        this._renderMode = params.renderMode === "light" ? PROJECTOR_RENDER_MODE_LIGHT : PROJECTOR_RENDER_MODE_COLOR;
+        this._priority = params.priority || 0;
+    }
+
+    public get enabled(): boolean {
+        return this._enabled;
+    }
+
+    public set enabled(enabled: boolean) {
+        if (this._enabled === enabled) return;
+
+        this._enabled = enabled;
+        this._manager?.update(this);
+    }
+
+    public get renderMode(): number {
+        return this._renderMode;
+    }
+
+    public set renderMode(renderMode: number) {
+        if (this._renderMode === renderMode) return;
+
+        this._renderMode = renderMode;
+        this._manager?.update(this);
+    }
+
+    public get priority(): number {
+        return this._priority;
+    }
+
+    public set priority(priority: number) {
+        if (this._priority === priority) return;
+
+        this._priority = priority;
+        this._manager?.update(this);
     }
 
     protected static _resolveColor(color?: ProjectorColor): Float32Array {
@@ -135,6 +155,6 @@ export class Projector {
      * but framebuffer.textures[0] remains the original texture reference.
      */
     public get depthTexture(): WebGLTexture | null {
-        return this.framebuffer.textures[0] || null;
+        return this.depthCamera.framebuffer.textures[0] || null;
     }
 }
