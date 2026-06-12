@@ -6,4 +6,5 @@ export * from "./Dialog";
 export * from "./Input";
 export * from "./Slider";
 export * from "./ToggleButton";
+export * from "./TitleBarView";
 export * from "./View";

@@ -2,16 +2,16 @@ import type { Camera } from "../../camera/Camera";
 import type { DepthCamera } from "../depthCamera/DepthCamera";
 import { Entity } from "../../entity/Entity";
 import { Object3d } from "../../Object3d";
+import { Checkbox } from "../../ui/Checkbox";
 import { Input } from "../../ui/Input";
+import { TitleBarView } from "../../ui/TitleBarView";
 import { View, type IViewParams } from "../../ui/View";
 
 interface ICameraEditorViewParams extends IViewParams {
     entity: Entity;
 }
 
-const TEMPLATE = `<div class="og-editor_camera">
-    <div class="og-editor_camera-title">Camera</div>
-</div>`;
+const TEMPLATE = `<div class="og-editor-panel"></div>`;
 
 function getNumber(value: string): number | null {
     const parsed = parseFloat(value);
@@ -29,10 +29,14 @@ export class CameraEditorView extends View<Entity> {
     protected _horizontalFovView: Input;
     protected _viewportWidthView: Input;
     protected _viewportHeightView: Input;
+    protected _showFrustumView: Checkbox;
+    protected _showFootprintView: Checkbox;
     protected _biasView: Input;
     protected _normalBiasView: Input;
     protected _depthEpsilonView: Input;
 
+    protected _titleBarView: TitleBarView;
+    protected _bodyEl: HTMLElement | null;
     protected _depthCamera: DepthCamera | null;
 
     constructor(params: ICameraEditorViewParams) {
@@ -87,6 +91,14 @@ export class CameraEditorView extends View<Entity> {
             maxFixed: 0
         });
 
+        this._showFrustumView = new Checkbox({
+            label: "Show frustum"
+        });
+
+        this._showFootprintView = new Checkbox({
+            label: "Show footprint"
+        });
+
         this._biasView = new Input({
             label: "Bias",
             type: "number",
@@ -104,10 +116,14 @@ export class CameraEditorView extends View<Entity> {
         this._depthEpsilonView = new Input({
             label: "Depth epsilon",
             type: "number",
-            step: 0.0001,
+            step: 0.00001,
             maxFixed: 8
         });
 
+        this._titleBarView = new TitleBarView({
+            title: "Camera"
+        });
+        this._bodyEl = null;
         this._depthCamera = null;
 
         this.bindEntity(params.entity);
@@ -121,15 +137,24 @@ export class CameraEditorView extends View<Entity> {
     public override render(params?: unknown): this {
         super.render(params);
 
-        this._nearView.appendTo(this.el!);
-        this._farView.appendTo(this.el!);
-        this._verticalFovView.appendTo(this.el!);
-        this._horizontalFovView.appendTo(this.el!);
-        this._viewportWidthView.appendTo(this.el!);
-        this._viewportHeightView.appendTo(this.el!);
-        this._biasView.appendTo(this.el!);
-        this._normalBiasView.appendTo(this.el!);
-        this._depthEpsilonView.appendTo(this.el!);
+        this._titleBarView.appendTo(this.el!);
+        this._titleBarView.events.on("change", this._onTitleBarChange);
+
+        this._bodyEl = document.createElement("div");
+        this._bodyEl.classList.add("og-editor-panel__body");
+        this.el!.appendChild(this._bodyEl);
+
+        this._nearView.appendTo(this._bodyEl);
+        this._farView.appendTo(this._bodyEl);
+        this._verticalFovView.appendTo(this._bodyEl);
+        this._horizontalFovView.appendTo(this._bodyEl);
+        this._viewportWidthView.appendTo(this._bodyEl);
+        this._viewportHeightView.appendTo(this._bodyEl);
+        this._showFrustumView.appendTo(this._bodyEl);
+        this._showFootprintView.appendTo(this._bodyEl);
+        this._biasView.appendTo(this._bodyEl);
+        this._normalBiasView.appendTo(this._bodyEl);
+        this._depthEpsilonView.appendTo(this._bodyEl);
 
         this._nearView.events.on("change", this._onChangeNear);
         this._farView.events.on("change", this._onChangeFar);
@@ -137,6 +162,8 @@ export class CameraEditorView extends View<Entity> {
         this._horizontalFovView.events.on("change", this._onChangeHorizontalFov);
         this._viewportWidthView.events.on("change", this._onChangeViewportWidth);
         this._viewportHeightView.events.on("change", this._onChangeViewportHeight);
+        this._showFrustumView.events.on("change", this._onChangeShowFrustum);
+        this._showFootprintView.events.on("change", this._onChangeShowFootprint);
         this._biasView.events.on("change", this._onChangeBias);
         this._normalBiasView.events.on("change", this._onChangeNormalBias);
         this._depthEpsilonView.events.on("change", this._onChangeDepthEpsilon);
@@ -168,11 +195,21 @@ export class CameraEditorView extends View<Entity> {
         this._viewportHeightView.value = camera.height;
 
         const depthCamera = this._depthCamera;
+        this._showFrustumView.visibility = !!depthCamera;
+        this._showFootprintView.visibility = !!depthCamera;
         this._biasView.visibility = !!depthCamera;
         this._normalBiasView.visibility = !!depthCamera;
         this._depthEpsilonView.visibility = !!depthCamera;
 
         if (depthCamera) {
+            if (this._showFrustumView.checked !== depthCamera.showFrustum) {
+                this._showFrustumView.stopPropagation();
+                this._showFrustumView.checked = depthCamera.showFrustum;
+            }
+            if (this._showFootprintView.checked !== depthCamera.showFootprint) {
+                this._showFootprintView.stopPropagation();
+                this._showFootprintView.checked = depthCamera.showFootprint;
+            }
             this._biasView.stopPropagation();
             this._biasView.value = depthCamera.bias;
             this._normalBiasView.stopPropagation();
@@ -193,11 +230,20 @@ export class CameraEditorView extends View<Entity> {
         this._horizontalFovView.remove();
         this._viewportWidthView.remove();
         this._viewportHeightView.remove();
+        this._showFrustumView.remove();
+        this._showFootprintView.remove();
         this._biasView.remove();
         this._normalBiasView.remove();
         this._depthEpsilonView.remove();
+        this._titleBarView.events.off("change", this._onTitleBarChange);
+        this._titleBarView.remove();
+        this._bodyEl = null;
         super.remove();
     }
+
+    protected _onTitleBarChange = (isCollapsed: boolean): void => {
+        this._bodyEl?.classList.toggle("og-editor-panel__body_collapsed", isCollapsed);
+    };
 
     protected _setNearFar(near: number, far: number): void {
         const camera = this._getCamera();
@@ -285,6 +331,18 @@ export class CameraEditorView extends View<Entity> {
         const camera = this._getCamera();
         if (height !== null && camera) {
             this._setViewportSize(camera.width, height);
+        }
+    };
+
+    protected _onChangeShowFrustum = (showFrustum: boolean): void => {
+        if (this._depthCamera) {
+            this._depthCamera.showFrustum = showFrustum;
+        }
+    };
+
+    protected _onChangeShowFootprint = (showFootprint: boolean): void => {
+        if (this._depthCamera) {
+            this._depthCamera.showFootprint = showFootprint;
         }
     };
 
