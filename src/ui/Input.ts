@@ -211,7 +211,6 @@ class Input extends View<null> {
                 target.value = nextValue;
             }
         }
-
     };
 
     protected _onKeyDown = (e: KeyboardEvent) => {
@@ -254,7 +253,7 @@ class Input extends View<null> {
         const committed = this._parseNumber(this._value);
         const base = current ?? committed ?? this._min ?? 0;
         this._setCommittedValue(this._formatNumber(base + direction * step), true);
-    };
+    }
 
     public override remove() {
         this._clearEvents();

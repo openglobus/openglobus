@@ -263,11 +263,7 @@ export class CameraEditorView extends View<Entity> {
 
         const length = this.model.getScale().z || 1.0;
         this.model.setScale3v(
-            Object3d.getFrustumScaleByCameraAngles(
-                length,
-                camera.horizontalViewAngle,
-                camera.verticalViewAngle
-            )
+            Object3d.getFrustumScaleByCameraAngles(length, camera.horizontalViewAngle, camera.verticalViewAngle)
         );
     }
 
