@@ -27,9 +27,9 @@ export class Projector {
     public depthCamera: DepthCamera;
     public color: Float32Array;
     public sourceType: ProjectorSourceType;
-    public renderMode: number = PROJECTOR_RENDER_MODE_COLOR;
-    public priority: number;
     protected _enabled: boolean;
+    protected _renderMode: number;
+    protected _priority: number;
 
     /**
      * Layer index in the manager-owned depth array texture. -1 if not yet added.
@@ -47,8 +47,8 @@ export class Projector {
         this.depthCamera = params.depthCamera;
         this.color = Projector._resolveColor(params.color);
         this.sourceType = params.sourceType || "color";
-        this.renderMode = params.renderMode === "light" ? PROJECTOR_RENDER_MODE_LIGHT : PROJECTOR_RENDER_MODE_COLOR;
-        this.priority = params.priority || 0;
+        this._renderMode = params.renderMode === "light" ? PROJECTOR_RENDER_MODE_LIGHT : PROJECTOR_RENDER_MODE_COLOR;
+        this._priority = params.priority || 0;
     }
 
     public get enabled(): boolean {
@@ -59,6 +59,28 @@ export class Projector {
         if (this._enabled === enabled) return;
 
         this._enabled = enabled;
+        this._manager?.update(this);
+    }
+
+    public get renderMode(): number {
+        return this._renderMode;
+    }
+
+    public set renderMode(renderMode: number) {
+        if (this._renderMode === renderMode) return;
+
+        this._renderMode = renderMode;
+        this._manager?.update(this);
+    }
+
+    public get priority(): number {
+        return this._priority;
+    }
+
+    public set priority(priority: number) {
+        if (this._priority === priority) return;
+
+        this._priority = priority;
         this._manager?.update(this);
     }
 

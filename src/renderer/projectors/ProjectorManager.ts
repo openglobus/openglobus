@@ -1,6 +1,7 @@
 import { Mat4 } from "../../math/Mat4";
 import { cons } from "../../cons";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
+import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
 import type { Renderer } from "../Renderer";
 import { Projector } from "./Projector";
 
@@ -174,6 +175,16 @@ export class ProjectorManager {
         this._projectors[index] = projector;
         this._updateActiveProjectors = true;
         return true;
+    }
+
+    public getByDepthCamera(depthCamera: DepthCamera): Projector | null {
+        for (let i = 0; i < this._projectors.length; i++) {
+            if (this._projectors[i].depthCamera === depthCamera) {
+                return this._projectors[i];
+            }
+        }
+
+        return null;
     }
 
     public remove(projector: Projector): boolean {
