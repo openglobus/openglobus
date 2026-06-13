@@ -30,6 +30,8 @@ export const TRANSLATE_BUFFER = 10;
 export const LOCALPOSITION_BUFFER = 11;
 
 const OPAQUE_ALPHA_THRESHOLD = 0.999999;
+const RECEIVE_PROJECTORS_MASK = 1;
+const RECEIVE_SHADOWS_MASK = 2;
 
 function setParametersToArray(
     arr: number[] | TypedArray,
@@ -478,7 +480,10 @@ export class GeoObjectHandler {
             r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
         );
         gl.uniform1f(u.shadeMode, ec._shadeMode);
-        gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
+        gl.uniform1f(
+            u.uReceiveMask,
+            (ec.receiveProjectors ? RECEIVE_PROJECTORS_MASK : 0) | (ec.receiveShadows ? RECEIVE_SHADOWS_MASK : 0)
+        );
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
@@ -569,6 +574,7 @@ export class GeoObjectHandler {
             this._bindAtmosphereParams(p);
         }
         r.projectors.bindForward(p);
+        r.shadows.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -586,6 +592,7 @@ export class GeoObjectHandler {
 
         this._bindCommon(p);
         this._bindForwardParams(p);
+        r.shadows.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -601,6 +608,7 @@ export class GeoObjectHandler {
 
         this._bindCommon(p);
         this._bindForwardParams(p);
+        r.shadows.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawForwardAll(p);
@@ -755,7 +763,7 @@ export class GeoObjectHandler {
     }
 
     public drawDepthCameraPass(camera: Camera) {
-        if (this._geoObjects.length && this._entityCollection.receiveProjectors) {
+        if (this._geoObjects.length && (this._entityCollection.receiveProjectors || this._entityCollection.receiveShadows)) {
             this._depthCameraPASS(camera);
         }
     }

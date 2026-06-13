@@ -32,7 +32,7 @@ export const geo_object_deferred = (): ShaderProgram =>
             uUseAOTexture: "float",
             materialProperties: "vec3",
             shadeMode: "float",
-            uProjectorMask: "float"
+            uReceiveMask: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -66,6 +66,15 @@ export const geo_object_forward = (): ShaderProgram =>
             lightAmbient: "vec3",
             lightDiffuse: "vec3",
             lightSpecular: "vec4",
+            u_shadowMapCount: "int",
+            u_shadowMapLayer: "intxx",
+            u_shadowMapViewProjRTE: "mat4",
+            u_shadowMapEyeRel: "vec3",
+            u_shadowMapForward: "vec3",
+            u_shadowMapColor: "vec4",
+            u_shadowMapParams: "vec4",
+            u_shadowMapDepthParams: "vec4",
+            u_shadowMapDepthArray: "sampler2darray",
             materialProperties: "vec3",
             uColorTexture: "sampler2d",
             uNormalTexture: "sampler2d",
@@ -75,7 +84,8 @@ export const geo_object_forward = (): ShaderProgram =>
             uUseNormalTexture: "float",
             uUseMetallicRoughnessTexture: "float",
             uUseAOTexture: "float",
-            shadeMode: "float"
+            shadeMode: "float",
+            uReceiveMask: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -119,7 +129,7 @@ export const geo_object_woit = (): ShaderProgram =>
             uUseMetallicRoughnessTexture: "float",
             uUseAOTexture: "float",
             shadeMode: "float",
-            uProjectorMask: "float",
+            uReceiveMask: "float",
             useReverseDepth: "float",
             u_projectorCount: "int",
             u_projectorLayer: "intxx",
@@ -127,7 +137,16 @@ export const geo_object_woit = (): ShaderProgram =>
             u_projectorEyeRel: "vec3",
             u_projectorColor: "vec4",
             u_projectorParams: "vec4",
-            u_projectorDepthArray: "sampler2darray"
+            u_projectorDepthArray: "sampler2darray",
+            u_shadowMapCount: "int",
+            u_shadowMapLayer: "intxx",
+            u_shadowMapViewProjRTE: "mat4",
+            u_shadowMapEyeRel: "vec3",
+            u_shadowMapForward: "vec3",
+            u_shadowMapColor: "vec4",
+            u_shadowMapParams: "vec4",
+            u_shadowMapDepthParams: "vec4",
+            u_shadowMapDepthArray: "sampler2darray"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -171,7 +190,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             uUseMetallicRoughnessTexture: "float",
             uUseAOTexture: "float",
             shadeMode: "float",
-            uProjectorMask: "float",
+            uReceiveMask: "float",
             useReverseDepth: "float",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
@@ -185,7 +204,16 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             u_projectorEyeRel: "vec3",
             u_projectorColor: "vec4",
             u_projectorParams: "vec4",
-            u_projectorDepthArray: "sampler2darray"
+            u_projectorDepthArray: "sampler2darray",
+            u_shadowMapCount: "int",
+            u_shadowMapLayer: "intxx",
+            u_shadowMapViewProjRTE: "mat4",
+            u_shadowMapEyeRel: "vec3",
+            u_shadowMapForward: "vec3",
+            u_shadowMapColor: "vec4",
+            u_shadowMapParams: "vec4",
+            u_shadowMapDepthParams: "vec4",
+            u_shadowMapDepthArray: "sampler2darray"
         },
         attributes: {
             aVertexPosition: "vec3",

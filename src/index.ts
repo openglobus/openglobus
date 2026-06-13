@@ -23,6 +23,8 @@ export type { IDeferredShadingPass } from "./renderer/IDeferredShadingPass";
 export type { ITransparencyPass } from "./renderer/ITransparencyPass";
 export type { ProjectorSourceType, ProjectorRenderMode, IProjectorParams } from "./renderer/projectors/Projector";
 export { Projector } from "./renderer/projectors/Projector";
+export type { IShadowMapParams, ShadowMapColor } from "./renderer/shadows/ShadowMap";
+export { ShadowMap } from "./renderer/shadows/ShadowMap";
 export type { IDepthCameraParams } from "./control/depthCamera/DepthCamera";
 export { DepthCamera } from "./control/depthCamera/DepthCamera";
 export type { IDepthCameraHandlerParams } from "./control/depthCamera/DepthCameraHandler";
@@ -32,6 +34,8 @@ export { AtmosphereDeferredShading } from "./renderer/AtmosphereDeferredShading"
 export { WOITPass } from "./renderer/WOITPass";
 export { ProjectorsPass } from "./renderer/projectors/ProjectorsPass";
 export { ProjectorManager } from "./renderer/projectors/ProjectorManager";
+export { ShadowPass } from "./renderer/shadows/ShadowPass";
+export { ShadowManager } from "./renderer/shadows/ShadowManager";
 export { SHADE_UNLIT, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "./shadeModeConstants";
 
 declare const __OG_VERSION__: string;

@@ -7,6 +7,7 @@ precision highp float;
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
 #include "../common/projectors.glsl"
+#include "../common/shadows.glsl"
 
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
@@ -22,8 +23,11 @@ uniform float uUseNormalTexture;
 uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform float shadeMode;
-uniform float uProjectorMask;
+uniform float uReceiveMask;
 uniform mat3 normalMatrix;
+
+const int RECEIVE_PROJECTORS = 1;
+const int RECEIVE_SHADOWS = 2;
 
 uniform sampler2D transmittanceTexture;
 uniform sampler2D scatteringTexture;
@@ -75,8 +79,12 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
-    projectorEmission *= uProjectorMask;
-    projectorLight *= uProjectorMask;
+    int receiveMask = int(uReceiveMask + 0.5);
+    float receiveProjectors = ((receiveMask & RECEIVE_PROJECTORS) != 0) ? 1.0 : 0.0;
+    float receiveShadows = ((receiveMask & RECEIVE_SHADOWS) != 0) ? 1.0 : 0.0;
+    projectorEmission *= receiveProjectors;
+    projectorLight *= receiveProjectors;
+    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal) * receiveShadows;
 
     if (shade == SHADE_UNLIT) {
         color = baseColor;
@@ -120,7 +128,12 @@ void main(void) {
             lightWeighting
         );
 
-        color = vec4(baseColor.rgb * (lightWeighting.rgb + projectorLight) + specularWeighting + projectorEmission, baseColor.a);
+        color = vec4(
+            baseColor.rgb * (lightWeighting.rgb + projectorLight + shadowLight) +
+            specularWeighting +
+            projectorEmission,
+            baseColor.a
+        );
     } else {
         float ao = material.r;
         float specularMask = material.b;
@@ -162,7 +175,7 @@ void main(void) {
 
         color = vec4(
             mix(
-                baseColor.rgb * (lightWeighting.rgb + projectorLight),
+                baseColor.rgb * (lightWeighting.rgb + projectorLight + shadowLight),
                 atmosColor.rgb,
                 fadingOpacity
             ) + specularWeighting + projectorEmission,

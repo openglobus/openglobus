@@ -28,6 +28,7 @@ interface IEntityCollectionParams {
     labelMaxLetters?: number;
     pickingEnabled?: boolean;
     receiveProjectors?: boolean;
+    receiveShadows?: boolean;
     scaleByDistance?: NumberArray3;
     pickingScale?: number | NumberArray3;
     opacity?: number;
@@ -47,6 +48,7 @@ interface IEntityCollectionParams {
  * @param {number} [options.labelMaxLetters] - Maximum label letters per line used by the label handler.
  * @param {boolean} [options.pickingEnabled] - Enables/disables picking for all entity handlers.
  * @param {boolean} [options.receiveProjectors=true] - Enables/disables projector effect reception for this collection.
+ * @param {boolean} [options.receiveShadows=true] - Enables/disables shadow map reception for this collection.
  * @param {Array.<number>} [options.scaleByDistance] - Entity scale by distance parameters. (exactly 3 entries)
  * First index - near distance to the entity, after entity becomes full scale.
  * Second index - far distance to the entity, when the entity becomes zero scale.
@@ -231,6 +233,14 @@ class EntityCollection {
     public receiveProjectors: boolean;
 
     /**
+     * Enables/disables shadow map reception for this collection.
+     * Uses the same G-buffer receive mask channel as projectors.
+     * @public
+     * @type {boolean}
+     */
+    public receiveShadows: boolean;
+
+    /**
      * Disables `gl.CULL_FACE` for geo objects rendering passes (opaque/transparent).
      * Useful for rendering models with inverted/inconsistent triangle winding.
      * @public
@@ -268,6 +278,7 @@ class EntityCollection {
         }
 
         this.receiveProjectors = options.receiveProjectors ?? true;
+        this.receiveShadows = options.receiveShadows ?? true;
 
         this._entities = [];
 
@@ -389,6 +400,15 @@ class EntityCollection {
      */
     public setReceiveProjectors(enable: boolean) {
         this.receiveProjectors = enable;
+    }
+
+    /**
+     * Sets whether this collection receives shadow map effects.
+     * @public
+     * @param {boolean} enable - `true` to receive shadow map effects, `false` to ignore them.
+     */
+    public setReceiveShadows(enable: boolean) {
+        this.receiveShadows = enable;
     }
 
     /**

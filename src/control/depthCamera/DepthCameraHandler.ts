@@ -30,6 +30,7 @@ export class DepthCameraHandler extends Control {
             entities: [],
             pickingEnabled: false,
             receiveProjectors: false,
+            receiveShadows: false,
             depthOffset: POLYLINE_DEPTH_OFFSET,
             hideInLayerSwitcher: true,
             clampToGround: true,
@@ -40,6 +41,7 @@ export class DepthCameraHandler extends Control {
             entities: [],
             pickingEnabled: true,
             receiveProjectors: false,
+            receiveShadows: false,
             shadeMode: SHADE_PHONG,
             hideInLayerSwitcher: true,
             scaleByDistance: [100, 100000, 1.0]

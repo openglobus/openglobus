@@ -9,6 +9,7 @@ precision highp float;
 #include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
 #include "../common/projectors.glsl"
+#include "../common/shadows.glsl"
 
 uniform vec4 specular;
 uniform vec3 diffuse;
@@ -68,6 +69,7 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
+    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
         diffuseColor.rgb += projectorEmission;
@@ -142,7 +144,7 @@ void main(void) {
 
     diffuseColor = vec4(
     mix(
-    diffuseColor.rgb * (lightWeighting.rgb + projectorLight) + emission,
+    diffuseColor.rgb * (lightWeighting.rgb + projectorLight + shadowLight) + emission,
     atmosColor.rgb,
     fadingOpacity
     ) + specularWeighting + projectorEmission,

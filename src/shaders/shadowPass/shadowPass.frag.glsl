@@ -5,6 +5,8 @@ precision highp sampler2DArray;
 
 #include "../common/shadows.glsl"
 
+const int RECEIVE_SHADOWS = 2;
+
 uniform sampler2D u_baseTexture;
 uniform sampler2D u_materialsTexture;
 uniform sampler2D u_normalTexture;
@@ -17,7 +19,8 @@ void main(void) {
     ivec2 fragCoord = ivec2(gl_FragCoord.xy);
 
     vec4 materials = texelFetch(u_materialsTexture, fragCoord, 0);
-    float receiveShadows = materials.a;
+    int receiveMask = int(materials.a + 0.5);
+    float receiveShadows = ((receiveMask & RECEIVE_SHADOWS) != 0) ? 1.0 : 0.0;
 
     if (receiveShadows < 0.001) discard;
 

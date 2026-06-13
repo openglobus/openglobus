@@ -84,6 +84,9 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
+        // Per-shadow-map additive shadowed light pass.
+        this._shadowPass.apply(this._framebuffer!);
+
         // Per-projector additive frustum-geometry pass.
         this._projectorPass.apply(this._framebuffer!);
 

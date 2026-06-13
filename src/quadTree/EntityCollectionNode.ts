@@ -77,7 +77,8 @@ class EntityCollectionNode {
                 ec = new EntityCollection({
                     pickingEnabled: l._pickingEnabled,
                     labelMaxLetters: l.labelMaxLetters,
-                    receiveProjectors: l.receiveProjectors
+                    receiveProjectors: l.receiveProjectors,
+                    receiveShadows: l.receiveShadows
                 });
                 ec._layer = this.layer;
                 ec.addTo(p, true);
@@ -279,6 +280,7 @@ class EntityCollectionNode {
         ec.pickingScale = l.pickingScale;
         ec.depthOffset = l.depthOffset;
         ec.receiveProjectors = l.receiveProjectors;
+        ec.receiveShadows = l.receiveShadows;
 
         outArr.push(ec);
 

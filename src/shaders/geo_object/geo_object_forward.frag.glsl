@@ -4,6 +4,7 @@ precision highp float;
 #include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
+#include "../common/shadows.glsl"
 
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
@@ -19,10 +20,14 @@ uniform float uUseNormalTexture;
 uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform float shadeMode;
+uniform float uReceiveMask;
 uniform mat3 normalMatrix;
+
+const int RECEIVE_SHADOWS = 2;
 
 in vec3 cameraPosition;
 in vec3 v_vertex;
+in vec3 v_rtcPos;
 in vec3 v_viewPosition;
 in vec4 vColor;
 in vec3 vNormal;
@@ -60,6 +65,10 @@ void main(void) {
         );
     }
 
+    int receiveMask = int(uReceiveMask + 0.5);
+    float receiveShadows = ((receiveMask & RECEIVE_SHADOWS) != 0) ? 1.0 : 0.0;
+    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal) * receiveShadows;
+
     vec3 material = materialProperties;
     if (uUseAOTexture > 0.0) {
         material.r = texture(uAOTexture, vTexCoords).r;
@@ -95,7 +104,7 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
+        fragColor = vec4(baseColor.rgb * (lightWeighting.rgb + shadowLight) + specularWeighting, baseColor.a);
     } else {
         float metallic = material.b;
         float roughness = material.g;
@@ -121,6 +130,6 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
+        fragColor = vec4(baseColor.rgb * (lightWeighting.rgb + shadowLight) + specularWeighting, baseColor.a);
     }
 }

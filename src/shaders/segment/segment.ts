@@ -96,7 +96,16 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             u_projectorEyeRel: "vec3",
             u_projectorColor: "vec4",
             u_projectorParams: "vec4",
-            u_projectorDepthArray: "sampler2darray"
+            u_projectorDepthArray: "sampler2darray",
+            u_shadowMapCount: "int",
+            u_shadowMapLayer: "intxx",
+            u_shadowMapViewProjRTE: "mat4",
+            u_shadowMapEyeRel: "vec3",
+            u_shadowMapForward: "vec3",
+            u_shadowMapColor: "vec4",
+            u_shadowMapParams: "vec4",
+            u_shadowMapDepthParams: "vec4",
+            u_shadowMapDepthArray: "sampler2darray"
         },
         attributes: {
             aVertexPositionHigh: "vec3",
@@ -147,7 +156,16 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             u_projectorEyeRel: "vec3",
             u_projectorColor: "vec4",
             u_projectorParams: "vec4",
-            u_projectorDepthArray: "sampler2darray"
+            u_projectorDepthArray: "sampler2darray",
+            u_shadowMapCount: "int",
+            u_shadowMapLayer: "intxx",
+            u_shadowMapViewProjRTE: "mat4",
+            u_shadowMapEyeRel: "vec3",
+            u_shadowMapForward: "vec3",
+            u_shadowMapColor: "vec4",
+            u_shadowMapParams: "vec4",
+            u_shadowMapDepthParams: "vec4",
+            u_shadowMapDepthArray: "sampler2darray"
         },
         attributes: {
             aVertexPositionHigh: "vec3",

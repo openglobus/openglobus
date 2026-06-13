@@ -41,6 +41,8 @@ export interface IDepthCameraParams {
     horizontalViewAngle?: number;
     showFrustum?: boolean;
     showFootprint?: boolean;
+    isOrthographic?: boolean;
+    focusDistance?: number;
     excludeLayers?: Vector[];
     bias?: number; //0.00003 .. 0.00008 - 0.0005
     normalBias?: number; // 0.2 .. 1.0
@@ -99,6 +101,9 @@ export class DepthCamera {
     protected _forceOwnQuadTreeStrategyPass: boolean;
     protected _showFrustum: boolean;
     protected _showFootprint: boolean;
+    protected _isOrthographic: boolean;
+    protected _focusDistance: number;
+    protected _lastPlanetHeightFactor: number;
 
     protected _cameraFrustumEntity: Entity | null;
     protected _cameraFootprintEntity: Entity | null;
@@ -135,6 +140,9 @@ export class DepthCamera {
         this._forceOwnQuadTreeStrategyPass = true;
         this._showFrustum = params.showFrustum ?? true;
         this._showFootprint = params.showFootprint ?? true;
+        this._isOrthographic = params.isOrthographic ?? false;
+        this._focusDistance = params.focusDistance ?? this.far;
+        this._lastPlanetHeightFactor = 1.0;
 
         this._cameraFootprintEntity = this._showFootprint ? this._createCameraFootprintEntity() : null;
         this._cameraFrustumEntity = this._showFrustum ? this._createCameraFrustumEntity() : null;
@@ -199,6 +207,37 @@ export class DepthCamera {
         }
     }
 
+    public get isOrthographic(): boolean {
+        return this._initialized ? this.camera.isOrthographic : this._isOrthographic;
+    }
+
+    public set isOrthographic(isOrthographic: boolean) {
+        this._isOrthographic = isOrthographic;
+        this._forceOwnQuadTreeStrategyPass = true;
+
+        if (this._initialized) {
+            if (isOrthographic) {
+                this.camera.focusDistance = this._focusDistance;
+            }
+            this.camera.isOrthographic = isOrthographic;
+        }
+    }
+
+    public get focusDistance(): number {
+        return this._initialized ? this.camera.focusDistance : this._focusDistance;
+    }
+
+    public set focusDistance(focusDistance: number) {
+        if (!Number.isFinite(focusDistance) || focusDistance <= 0) return;
+
+        this._focusDistance = focusDistance;
+        this._forceOwnQuadTreeStrategyPass = true;
+
+        if (this._initialized) {
+            this.camera.focusDistance = focusDistance;
+        }
+    }
+
     public get cameraFootprintEntity(): Entity | null {
         return this._cameraFootprintEntity;
     }
@@ -225,6 +264,7 @@ export class DepthCamera {
         this.framebuffer.init();
 
         this.quadTreeStrategy = this._createQuadTreeStrategy(planet, this.camera as PlanetCamera);
+        this._lastPlanetHeightFactor = planet._heightFactor;
         this._forceOwnQuadTreeStrategyPass = true;
         this._initialized = true;
     }
@@ -248,6 +288,7 @@ export class DepthCamera {
         const mainCam = this._renderer.activeCamera;
         const depthCamera = this.camera as PlanetCamera;
 
+        this._syncPlanetHeightFactor();
         this.prepareFrame();
 
         framebuffer.activate();
@@ -391,12 +432,29 @@ export class DepthCamera {
         return this.framebuffer.textures[0]!;
     }
 
+    protected _syncPlanetHeightFactor(): void {
+        const planet = this._planet;
+        if (!planet || this._lastPlanetHeightFactor === planet._heightFactor) return;
+
+        this._lastPlanetHeightFactor = planet._heightFactor;
+        this.quadTreeStrategy.destroyBranches();
+        this.quadTreeStrategy.clearRenderedNodes();
+        this._forceOwnQuadTreeStrategyPass = true;
+    }
+
     public getCartesianFromPixelTerrain(x: number, y: number): Vec3 | undefined {
         const distance = getDistanceFromPixel(x, y, this.camera, this.framebuffer);
         if (distance === 0) return;
 
         const nx = x / this.framebuffer.width;
         const ny = (this.framebuffer.height - y) / this.framebuffer.height;
+
+        if (this.camera.isOrthographic) {
+            const position = new Vec3();
+            this.camera.unproject(nx * this.camera.width, (1 - ny) * this.camera.height, distance, position);
+            return position;
+        }
+
         const direction = this.camera.unproject(nx * this.camera.width, (1 - ny) * this.camera.height);
         return direction.scaleTo(distance).addA(this.camera.eye);
     }
@@ -437,6 +495,8 @@ export class DepthCamera {
             width: this.width,
             height: this.height,
             viewAngle: this.verticalViewAngle,
+            isOrthographic: this._isOrthographic,
+            focusDistance: this._focusDistance,
             reverseDepth: false
         });
 
@@ -485,7 +545,7 @@ export class DepthCamera {
         const planet = this._planet!;
         const mainCam = this._renderer!.activeCamera;
 
-        if (!this._forceOwnQuadTreeStrategyPass && mainCam.containsPoint(depthCamera.eye)) {
+        if (!depthCamera.isOrthographic && !this._forceOwnQuadTreeStrategyPass && mainCam.containsPoint(depthCamera.eye)) {
             return planet.quadTreeStrategy;
         }
 
@@ -501,6 +561,7 @@ export class DepthCamera {
     protected _segmentsPass(camera: PlanetCamera, quadTreeStrategy: QuadTreeStrategy): void {
         const h = this._renderer!.handler;
         const gl = h.gl!;
+        const planet = this._planet!;
 
         h.programs.depth_camera.activate();
         const sh = h.programs.depth_camera;
@@ -509,7 +570,8 @@ export class DepthCamera {
         gl.uniformMatrix4fv(shu.viewMatrix, false, camera.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, camera.getProjectionMatrix());
 
-        const isEq = this._planet!.terrain!.equalizeVertices;
+        const isEq = planet.terrain!.equalizeVertices;
+        const baseLayerSlice = planet.visibleTileLayers.length ? [planet.visibleTileLayers[0]] : undefined;
         const rn = quadTreeStrategy._renderedNodesInFrustum[camera.getCurrentFrustum()];
 
         let i = rn.length;
@@ -521,7 +583,7 @@ export class DepthCamera {
                 s.readyToEngage && s.engage();
                 s.ensureIndexBuffer();
                 s.updateRTCEyePosition(camera);
-                s.depthRendering(sh);
+                s.depthRendering(sh, baseLayerSlice);
             }
         }
 
@@ -532,7 +594,7 @@ export class DepthCamera {
             s.readyToEngage && s.engage();
             s.ensureIndexBuffer();
             s.updateRTCEyePosition(camera);
-            s.depthRendering(sh);
+            s.depthRendering(sh, baseLayerSlice);
         }
     }
 

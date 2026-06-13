@@ -8,6 +8,7 @@ precision highp float;
 #include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
 #include "../common/projectors.glsl"
+#include "../common/shadows.glsl"
 
 uniform vec4 specular;
 uniform vec3 diffuse;
@@ -58,6 +59,7 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
+    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
         fragColor.rgb += projectorEmission;
@@ -111,7 +113,7 @@ void main(void) {
     }
 
     fragColor = vec4(
-    fragColor.rgb * (lightWeighting.rgb + projectorLight) +
+    fragColor.rgb * (lightWeighting.rgb + projectorLight + shadowLight) +
     specularWeighting +
     emission +
     projectorEmission,
