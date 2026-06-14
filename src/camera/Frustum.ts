@@ -28,6 +28,8 @@ interface IFrustumParams {
     aspect?: number;
     near?: number;
     far?: number;
+    isOrthographic?: boolean;
+    focusDistance?: number;
     reverseDepth?: boolean;
     depthZeroToOne?: boolean;
 }
@@ -170,8 +172,8 @@ class Frustum {
             options.aspect || 1.0,
             options.near || 1.0,
             options.far || 1000.0,
-            false,
-            10,
+            options.isOrthographic ?? false,
+            options.focusDistance ?? 10,
             options.reverseDepth,
             options.depthZeroToOne
         );
@@ -330,8 +332,7 @@ class Frustum {
      */
     public setNearFar(near: number, far: number = this.far) {
         if (this._isOrthographic) {
-            this.near = near;
-            this.far = far;
+            this._setFrustumParams(this.top, this.right, near, far);
             this.projectionMatrix.setOrthographic(this.left, this.right, this.bottom, this.top, this.near, this.far);
         } else {
             let h = near * this._tanViewAngle_hrad;

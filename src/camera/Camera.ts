@@ -821,6 +821,8 @@ class Camera {
                     aspect,
                     near,
                     far,
+                    isOrthographic: this._isOrthographic,
+                    focusDistance: this._focusDistance,
                     reverseDepth: this.reverseDepthActive,
                     depthZeroToOne: this.depthZeroToOne
                 });
@@ -833,6 +835,8 @@ class Camera {
         this.frustumColors.length = frustums.length * 3;
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
         this.setCurrentFrustum(0);
+        this._horizontalViewAngle = getHorizontalViewAngleByFov(this._viewAngle, aspect);
+        this._updateViewportParameters();
 
         this.events.dispatch(this.events.frustumschanged, this);
     }
