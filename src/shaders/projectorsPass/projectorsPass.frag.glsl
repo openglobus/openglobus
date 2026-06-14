@@ -21,7 +21,7 @@ void main(void) {
 
     vec4 materials = texelFetch(u_materialsTexture, fragCoord, 0);
     int receiveMask = int(materials.a + 0.5);
-    float receiveProjectors = ((receiveMask & RECEIVE_PROJECTORS) != 0) ? 1.0 : 0.0;
+    float receiveProjectors = float(receiveMask & RECEIVE_PROJECTORS) / float(RECEIVE_PROJECTORS);
 
     if (receiveProjectors < 0.001) discard;
 

@@ -222,6 +222,9 @@ export class ShadowManager {
             const eOffset = i * 3;
             const vOffset = i * 4;
             const forward = camera.getForward();
+            const texelWorldSize = camera.isOrthographic
+                ? Math.max(frustum.right - frustum.left, frustum.top - frustum.bottom) / sm.depthCamera.framebuffer.width
+                : 0.0;
 
             this._viewProjData.set(camera.getProjectionViewRTEMatrix(), mOffset);
 
@@ -241,7 +244,7 @@ export class ShadowManager {
 
             this._paramsData[vOffset] = sm.depthCamera.bias;
             this._paramsData[vOffset + 1] = sm.depthCamera.normalBias;
-            this._paramsData[vOffset + 2] = 0.0;
+            this._paramsData[vOffset + 2] = texelWorldSize;
             this._paramsData[vOffset + 3] = sm.depthCamera.depthEpsilon;
 
             this._depthParamsData[vOffset] = frustum.near;
@@ -294,6 +297,9 @@ export class ShadowManager {
         const pvRTE = camera.getProjectionViewRTEMatrix();
         const forward = camera.getForward();
         const color = sm.color;
+        const texelWorldSize = camera.isOrthographic
+            ? Math.max(frustum.right - frustum.left, frustum.top - frustum.bottom) / sm.depthCamera.framebuffer.width
+            : 0.0;
 
         gl.uniform1i(u.u_shadowMapCount, 1);
         gl.uniform1i(u.u_shadowMapLayer, sm._slot);
@@ -310,7 +316,7 @@ export class ShadowManager {
             u.u_shadowMapParams,
             sm.depthCamera.bias,
             sm.depthCamera.normalBias,
-            0.0,
+            texelWorldSize,
             sm.depthCamera.depthEpsilon
         );
         gl.uniform4f(

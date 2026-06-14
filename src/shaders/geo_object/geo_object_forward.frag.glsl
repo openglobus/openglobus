@@ -66,8 +66,8 @@ void main(void) {
     }
 
     int receiveMask = int(uReceiveMask + 0.5);
-    float receiveShadows = ((receiveMask & RECEIVE_SHADOWS) != 0) ? 1.0 : 0.0;
-    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal) * receiveShadows;
+    float receiveShadows = float(receiveMask & RECEIVE_SHADOWS) / float(RECEIVE_SHADOWS);
+    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal, lightDiffuse) * receiveShadows;
 
     vec3 material = materialProperties;
     if (uUseAOTexture > 0.0) {

@@ -69,7 +69,7 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
-    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal);
+    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal, diffuse);
 
     if (shadeMode == SHADE_UNLIT) {
         diffuseColor.rgb += projectorEmission;
@@ -143,11 +143,10 @@ void main(void) {
     specularWeighting *= mix(vec3(1.0), sunIlluminance, atmosColor.a);
 
     diffuseColor = vec4(
-    mix(
-    diffuseColor.rgb * (lightWeighting.rgb + projectorLight + shadowLight) + emission,
-    atmosColor.rgb,
-    fadingOpacity
-    ) + specularWeighting + projectorEmission,
+    mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) +
+    diffuseColor.rgb * (projectorLight + shadowLight) +
+    specularWeighting +
+    projectorEmission,
     diffuseColor.a
     );
 

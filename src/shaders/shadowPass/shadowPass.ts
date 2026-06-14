@@ -11,6 +11,7 @@ export function shadowPass(): ShaderProgram {
             u_materialsTexture: "sampler2d",
             u_normalTexture: "sampler2d",
             u_viewPositionTexture: "sampler2d",
+            u_lightDiffuse: "vec3",
             u_shadowMapCount: "int",
             u_shadowMapLayer: "intxx",
             u_shadowMapViewProjRTE: "mat4",

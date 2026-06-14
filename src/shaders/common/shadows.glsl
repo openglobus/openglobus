@@ -3,7 +3,7 @@ const int MAX_SHADOW_MAPS = 4;
 // u_shadowMapParams layout:
 // x = depthBias        // perspective: normalized depth bias; orthographic: world-space bias
 // y = normalBiasWorld  // bias along receiver normal in RTC/world units
-// z = reserved
+// z = texelWorldSize   // orthographic shadow-map texel size in world units
 // w = depthEpsilon     // perspective: normalized transition width; orthographic: world-space transition width
 
 uniform mat4 u_shadowMapViewProjRTE[MAX_SHADOW_MAPS];
@@ -41,12 +41,12 @@ uniform highp sampler2DArray u_shadowMapDepthArray;
 #define SHADOW_MAP_MAX_SLOPE_DEPTH_BIAS 0.0012
 #endif
 
-#ifndef SHADOW_MAP_ORTHO_SLOPE_DEPTH_BIAS
-#define SHADOW_MAP_ORTHO_SLOPE_DEPTH_BIAS 1.0
+#ifndef SHADOW_MAP_ORTHO_SLOPE_TEXEL_FACTOR
+#define SHADOW_MAP_ORTHO_SLOPE_TEXEL_FACTOR 2.0
 #endif
 
-#ifndef SHADOW_MAP_ORTHO_MAX_SLOPE_DEPTH_BIAS
-#define SHADOW_MAP_ORTHO_MAX_SLOPE_DEPTH_BIAS 32.0
+#ifndef SHADOW_MAP_ORTHO_MAX_SLOPE_TEXELS
+#define SHADOW_MAP_ORTHO_MAX_SLOPE_TEXELS 8.0
 #endif
 
 float sampleShadowMapDepth(int index, vec2 uv) {
@@ -75,12 +75,35 @@ float getShadowMapSlopeBias(int index, float ndotl) {
     float isOrthographic = getShadowMapIsOrthographic(index);
     float slope = (1.0 - ndotl) / max(ndotl, 0.05);
     float perspectiveSlopeBias = min(slope * SHADOW_MAP_SLOPE_DEPTH_BIAS, SHADOW_MAP_MAX_SLOPE_DEPTH_BIAS);
+    float texelWorldSize = max(u_shadowMapParams[index].z, 1e-6);
     float orthographicSlopeBiasWorld = min(
-        slope * SHADOW_MAP_ORTHO_SLOPE_DEPTH_BIAS,
-        SHADOW_MAP_ORTHO_MAX_SLOPE_DEPTH_BIAS
+        slope * texelWorldSize * SHADOW_MAP_ORTHO_SLOPE_TEXEL_FACTOR,
+        texelWorldSize * SHADOW_MAP_ORTHO_MAX_SLOPE_TEXELS
     );
     float orthographicSlopeBias = getShadowMapDepthBias(index, orthographicSlopeBiasWorld);
     return mix(perspectiveSlopeBias, orthographicSlopeBias, isOrthographic);
+}
+
+float getShadowMapReceiverPlaneDepth(
+    float receiverDepth,
+    vec2 tapOffset,
+    vec2 uvDx,
+    vec2 uvDy,
+    float zDx,
+    float zDy
+) {
+    float det = uvDx.x * uvDy.y - uvDx.y * uvDy.x;
+
+    if (abs(det) < 1e-8) {
+        return receiverDepth;
+    }
+
+    vec2 screenDelta = vec2(
+        (tapOffset.x * uvDy.y - tapOffset.y * uvDy.x) / det,
+        (uvDx.x * tapOffset.y - uvDx.y * tapOffset.x) / det
+    );
+
+    return receiverDepth + dot(vec2(zDx, zDy), screenDelta);
 }
 
 float getShadowMapVisibility(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
@@ -116,6 +139,10 @@ float getShadowMapVisibility(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     float footprint = max(footprintX, footprintY);
 
     float receiverDepthFwidth = fwidth(receiverDepth);
+    vec2 uvDx = dFdx(uv);
+    vec2 uvDy = dFdy(uv);
+    float zDx = dFdx(receiverDepth);
+    float zDy = dFdy(receiverDepth);
     #endif
 
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
@@ -153,8 +180,10 @@ float getShadowMapVisibility(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
 
             vec2 safeUv = clamp(uvOffset, vec2(0.0), vec2(1.0));
             float mapDepth = sampleShadowMapDepth(shadowMapIndex, safeUv);
-            float compareDelta = (mapDepth + depthThreshold) - receiverDepth;
+            float tapReceiverDepth = getShadowMapReceiverPlaneDepth(receiverDepth, tapOffset, uvDx, uvDy, zDx, zDy);
+            float compareDelta = (mapDepth + depthThreshold) - tapReceiverDepth;
             float sampleVisibility = smoothstep(-transitionWidth, transitionWidth, compareDelta);
+            sampleVisibility *= step(0.0, mapDepth);
 
             float wx = 3.0 - abs(float(x));
             float wy = 3.0 - abs(float(y));
@@ -168,11 +197,14 @@ float getShadowMapVisibility(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     return visibility / max(sampleCount, 0.0001);
     #else
     float mapDepth = sampleShadowMapDepth(shadowMapIndex, uv);
+    if (mapDepth <= 0.0) {
+        return 0.0;
+    }
     return step(receiverDepth, mapDepth + depthThreshold);
     #endif
 }
 
-vec3 applyShadowMap(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
+vec3 applyShadowMap(int shadowMapIndex, vec3 rtcPos, vec3 normal, vec3 lightDiffuse) {
     vec3 N = normalize(normal);
     vec3 lightDir = getShadowMapLightDirection(shadowMapIndex, rtcPos);
     float ndotl = max(dot(N, lightDir), 0.0);
@@ -180,10 +212,10 @@ vec3 applyShadowMap(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     float visibility = getShadowMapVisibility(shadowMapIndex, rtcPos, N);
     vec4 colorIntensity = u_shadowMapColor[shadowMapIndex];
 
-    return colorIntensity.rgb * colorIntensity.a * visibility * ndotl * grazingFade;
+    return lightDiffuse * colorIntensity.a * visibility * ndotl * grazingFade;
 }
 
-vec3 applyShadowMaps(vec3 rtcPos, vec3 normal) {
+vec3 applyShadowMaps(vec3 rtcPos, vec3 normal, vec3 lightDiffuse) {
     vec3 shadowLight = vec3(0.0);
 
     for (int i = 0; i < MAX_SHADOW_MAPS; i++) {
@@ -191,7 +223,7 @@ vec3 applyShadowMaps(vec3 rtcPos, vec3 normal) {
             break;
         }
 
-        shadowLight += applyShadowMap(i, rtcPos, normal);
+        shadowLight += applyShadowMap(i, rtcPos, normal, lightDiffuse);
     }
 
     return shadowLight;

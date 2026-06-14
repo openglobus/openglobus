@@ -59,7 +59,7 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
-    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal);
+    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal, diffuse);
 
     if (shadeMode == SHADE_UNLIT) {
         fragColor.rgb += projectorEmission;

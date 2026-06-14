@@ -158,6 +158,7 @@ export class ShadowPass {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
 
         gl.uniformMatrix3fv(u.u_normalMatrix, false, r.activeCamera.getNormalMatrix());
+        gl.uniform3fv(u.u_lightDiffuse, r._lightDiffuse);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, gBuffer.textures[0]);

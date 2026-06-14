@@ -80,11 +80,11 @@ void main(void) {
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
     int receiveMask = int(uReceiveMask + 0.5);
-    float receiveProjectors = ((receiveMask & RECEIVE_PROJECTORS) != 0) ? 1.0 : 0.0;
-    float receiveShadows = ((receiveMask & RECEIVE_SHADOWS) != 0) ? 1.0 : 0.0;
+    float receiveProjectors = float(receiveMask & RECEIVE_PROJECTORS) / float(RECEIVE_PROJECTORS);
+    float receiveShadows = float(receiveMask & RECEIVE_SHADOWS) / float(RECEIVE_SHADOWS);
     projectorEmission *= receiveProjectors;
     projectorLight *= receiveProjectors;
-    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal) * receiveShadows;
+    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal, lightDiffuse) * receiveShadows;
 
     if (shade == SHADE_UNLIT) {
         color = baseColor;
