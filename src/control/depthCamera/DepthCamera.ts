@@ -570,6 +570,9 @@ export class DepthCamera {
         gl.uniformMatrix4fv(shu.viewMatrix, false, camera.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, camera.getProjectionMatrix());
 
+        // @todo: optimization cam bottom is under terrain
+        gl.disable(gl.CULL_FACE);
+
         const isEq = planet.terrain!.equalizeVertices;
         const baseLayerSlice = planet.visibleTileLayers.length ? [planet.visibleTileLayers[0]] : undefined;
         const rn = quadTreeStrategy._renderedNodesInFrustum[camera.getCurrentFrustum()];
@@ -596,6 +599,8 @@ export class DepthCamera {
             s.updateRTCEyePosition(camera);
             s.depthRendering(sh, baseLayerSlice);
         }
+
+        gl.enable(gl.CULL_FACE);
     }
 
     protected _geoObjectsPass(camera: PlanetCamera): void {

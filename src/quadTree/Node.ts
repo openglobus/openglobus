@@ -323,22 +323,25 @@ class Node {
                 and not to go through nodes from the opposite of the globe*/
                 (seg.tileZoom < 6 && !seg.terrainReady);
 
-            if (cam.isOrthographic) {
-                let f = cam.getForward();
-                altVis =
-                    altVis ||
-                    f.dot(seg._sw.getNormal()) < -0 ||
-                    f.dot(seg._nw.getNormal()) < -0 ||
-                    f.dot(seg._ne.getNormal()) < -0 ||
-                    f.dot(seg._se.getNormal()) < -0;
-            } else {
-                altVis =
-                    altVis ||
-                    cam.eye.distance2(seg._sw) < horizonDist ||
-                    cam.eye.distance2(seg._nw) < horizonDist ||
-                    cam.eye.distance2(seg._ne) < horizonDist ||
-                    cam.eye.distance2(seg._se) < horizonDist;
-            }
+            //
+            // It brakes depth camera
+            //
+            // if (cam.isOrthographic) {
+            //     let f = cam.getForward();
+            //     altVis =
+            //         altVis ||
+            //         f.dot(seg._sw.getNormal()) < -0 ||
+            //         f.dot(seg._nw.getNormal()) < -0 ||
+            //         f.dot(seg._ne.getNormal()) < -0 ||
+            //         f.dot(seg._se.getNormal()) < -0;
+            // } else {
+            altVis =
+                altVis ||
+                cam.eye.distance2(seg._sw) < horizonDist ||
+                cam.eye.distance2(seg._nw) < horizonDist ||
+                cam.eye.distance2(seg._ne) < horizonDist ||
+                cam.eye.distance2(seg._se) < horizonDist;
+            //}
 
             if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
                 this.quadTreeStrategy.collectVisibleNode(this);
