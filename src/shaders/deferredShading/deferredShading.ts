@@ -14,7 +14,13 @@ export function deferredShading(): ShaderProgram {
             lightPosition: "vec3",
             lightAmbient: "vec3",
             lightDiffuse: "vec3",
-            lightSpecular: "vec4"
+            lightSpecular: "vec4",
+            u_shadowMapCount: "int",
+            u_shadowMapLayer: "intxx",
+            u_shadowMapViewProjRTE: "mat4",
+            u_shadowMapEyeRel: "vec3",
+            u_shadowMapParams: "vec4",
+            u_shadowMapDepthArray: "sampler2darray"
         },
         attributes: {
             corners: "vec3"

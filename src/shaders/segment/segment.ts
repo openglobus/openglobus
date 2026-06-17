@@ -101,10 +101,7 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             u_shadowMapLayer: "intxx",
             u_shadowMapViewProjRTE: "mat4",
             u_shadowMapEyeRel: "vec3",
-            u_shadowMapForward: "vec3",
-            u_shadowMapColor: "vec4",
             u_shadowMapParams: "vec4",
-            u_shadowMapDepthParams: "vec4",
             u_shadowMapDepthArray: "sampler2darray"
         },
         attributes: {
@@ -161,10 +158,7 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             u_shadowMapLayer: "intxx",
             u_shadowMapViewProjRTE: "mat4",
             u_shadowMapEyeRel: "vec3",
-            u_shadowMapForward: "vec3",
-            u_shadowMapColor: "vec4",
             u_shadowMapParams: "vec4",
-            u_shadowMapDepthParams: "vec4",
             u_shadowMapDepthArray: "sampler2darray"
         },
         attributes: {

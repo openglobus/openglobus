@@ -2,10 +2,12 @@
 
 precision highp float;
 precision highp sampler2D;
+precision highp sampler2DArray;
 
 #include "../common/shadeMode.glsl"
 #include "../atmos/common.glsl"
 #include "../common/lighting.glsl"
+#include "../common/shadows.glsl"
 
 uniform sampler2D baseTexture;
 uniform sampler2D materialsTexture;
@@ -28,6 +30,8 @@ uniform vec3 cameraForward;
 uniform float isOrthographic;
 uniform vec2 atmosFadeDist;
 uniform vec3 atmosMaxMinOpacity;
+
+const int RECEIVE_SHADOWS = 2;
 
 layout (location = 0) out vec4 fragColor;
 
@@ -56,6 +60,9 @@ void main(void) {
 
     float ao = materials.r;
     float specularMask = materials.b;
+    int receiveMask = int(materials.a + 0.5);
+    float receiveShadows = float(receiveMask & RECEIVE_SHADOWS) / float(RECEIVE_SHADOWS);
+    float shadowVisibility = mix(1.0, getShadowMapsDirectVisibility(rtcPos, normal), receiveShadows);
 
     vec3 sunPos = lightPosition;
 
@@ -77,6 +84,8 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
         fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
     } else {
         vec3 lightDir = normalize(sunPos);
@@ -102,6 +111,8 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
 
         vec4 atmosColor;
         atmosGroundColor(worldVertex, normal, rayOrigin, rayDirection, sunPos, atmosColor);

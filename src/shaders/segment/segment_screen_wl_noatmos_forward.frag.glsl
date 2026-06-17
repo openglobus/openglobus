@@ -59,7 +59,7 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
-    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal, diffuse);
+    float shadowVisibility = getShadowMapsDirectVisibility(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
         fragColor.rgb += projectorEmission;
@@ -111,9 +111,11 @@ void main(void) {
         lightWeighting
         );
     }
+    lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, ambient, 1.0, shadowVisibility);
+    specularWeighting *= shadowVisibility;
 
     fragColor = vec4(
-    fragColor.rgb * (lightWeighting.rgb + projectorLight + shadowLight) +
+    fragColor.rgb * (lightWeighting.rgb + projectorLight) +
     specularWeighting +
     emission +
     projectorEmission,

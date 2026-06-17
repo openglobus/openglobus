@@ -73,7 +73,7 @@ void main(void) {
     float receiveShadows = float(receiveMask & RECEIVE_SHADOWS) / float(RECEIVE_SHADOWS);
     projectorEmission *= receiveProjectors;
     projectorLight *= receiveProjectors;
-    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal, lightDiffuse) * receiveShadows;
+    float shadowVisibility = mix(1.0, getShadowMapsDirectVisibility(v_rtcPos, normal), receiveShadows);
 
     if (shade == SHADE_UNLIT) {
         color = baseColor;
@@ -117,8 +117,10 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
         color = vec4(
-        baseColor.rgb * (lightWeighting.rgb + projectorLight + shadowLight) +
+        baseColor.rgb * (lightWeighting.rgb + projectorLight) +
         specularWeighting +
         projectorEmission,
         baseColor.a
@@ -148,8 +150,10 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
         color = vec4(
-        baseColor.rgb * (lightWeighting.rgb + projectorLight + shadowLight) +
+        baseColor.rgb * (lightWeighting.rgb + projectorLight) +
         specularWeighting +
         projectorEmission,
         baseColor.a

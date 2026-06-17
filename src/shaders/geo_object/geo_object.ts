@@ -70,10 +70,7 @@ export const geo_object_forward = (): ShaderProgram =>
             u_shadowMapLayer: "intxx",
             u_shadowMapViewProjRTE: "mat4",
             u_shadowMapEyeRel: "vec3",
-            u_shadowMapForward: "vec3",
-            u_shadowMapColor: "vec4",
             u_shadowMapParams: "vec4",
-            u_shadowMapDepthParams: "vec4",
             u_shadowMapDepthArray: "sampler2darray",
             materialProperties: "vec3",
             uColorTexture: "sampler2d",
@@ -142,10 +139,7 @@ export const geo_object_woit = (): ShaderProgram =>
             u_shadowMapLayer: "intxx",
             u_shadowMapViewProjRTE: "mat4",
             u_shadowMapEyeRel: "vec3",
-            u_shadowMapForward: "vec3",
-            u_shadowMapColor: "vec4",
             u_shadowMapParams: "vec4",
-            u_shadowMapDepthParams: "vec4",
             u_shadowMapDepthArray: "sampler2darray"
         },
         attributes: {
@@ -209,10 +203,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             u_shadowMapLayer: "intxx",
             u_shadowMapViewProjRTE: "mat4",
             u_shadowMapEyeRel: "vec3",
-            u_shadowMapForward: "vec3",
-            u_shadowMapColor: "vec4",
             u_shadowMapParams: "vec4",
-            u_shadowMapDepthParams: "vec4",
             u_shadowMapDepthArray: "sampler2darray"
         },
         attributes: {

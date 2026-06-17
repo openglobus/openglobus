@@ -69,7 +69,7 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
-    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal, diffuse);
+    float shadowVisibility = getShadowMapsDirectVisibility(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
         diffuseColor.rgb += projectorEmission;
@@ -136,6 +136,8 @@ void main(void) {
         lightWeighting
         );
     }
+    lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, ambient, 1.0, shadowVisibility);
+    specularWeighting *= shadowVisibility;
 
     getAtmosFadingOpacity(v_worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
     fadingOpacity *= atmosColor.a;
@@ -144,7 +146,7 @@ void main(void) {
 
     diffuseColor = vec4(
     mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) +
-    diffuseColor.rgb * (projectorLight + shadowLight) +
+    diffuseColor.rgb * projectorLight +
     specularWeighting +
     projectorEmission,
     diffuseColor.a

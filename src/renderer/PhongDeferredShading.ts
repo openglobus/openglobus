@@ -2,7 +2,6 @@ import { Framebuffer } from "../webgl/Framebuffer";
 import { deferredShading } from "../shaders/deferredShading/deferredShading";
 import { applyDeferredDepth } from "../shaders/applyDeferredDepth";
 import { ProjectorsPass } from "./projectors/ProjectorsPass";
-import { ShadowPass } from "./shadows/ShadowPass";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { Renderer } from "./Renderer";
 
@@ -10,12 +9,10 @@ export class PhongDeferredShading implements IDeferredShadingPass {
     protected _renderer: Renderer;
     protected _framebuffer: Framebuffer | null = null;
     protected _projectorPass: ProjectorsPass;
-    protected _shadowPass: ShadowPass;
 
     constructor(renderer: Renderer) {
         this._renderer = renderer;
         this._projectorPass = new ProjectorsPass(renderer);
-        this._shadowPass = new ShadowPass(renderer);
     }
 
     public init() {
@@ -23,7 +20,6 @@ export class PhongDeferredShading implements IDeferredShadingPass {
 
         h.addProgram(deferredShading());
         h.addProgram(applyDeferredDepth());
-        this._shadowPass.init();
         this._projectorPass.init();
 
         this._framebuffer = new Framebuffer(h, {
@@ -82,7 +78,6 @@ export class PhongDeferredShading implements IDeferredShadingPass {
             this._framebuffer.destroy();
             this._framebuffer = null;
         }
-        this._shadowPass.dispose();
         this._projectorPass.dispose();
         this._renderer.handler.removeProgram("deferredShading");
         this._renderer.handler.removeProgram("applyDeferredDepth");
@@ -156,10 +151,9 @@ export class PhongDeferredShading implements IDeferredShadingPass {
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer!.textures[3]);
         gl.uniform1i(p.uniforms.viewPositionTexture, 3);
 
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        r.shadows.bindForward(p, 10);
 
-        // Per-shadow-map additive shadowed light pass.
-        this._shadowPass.apply(this._framebuffer!);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         // Per-projector additive frustum-geometry pass.
         this._projectorPass.apply(this._framebuffer!);

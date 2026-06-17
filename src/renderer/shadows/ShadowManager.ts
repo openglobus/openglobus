@@ -4,7 +4,7 @@ import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { Renderer } from "../Renderer";
 import { ShadowMap } from "./ShadowMap";
 
-export type { IShadowMapParams, ShadowMapColor } from "./ShadowMap";
+export type { IShadowMapParams } from "./ShadowMap";
 export { ShadowMap } from "./ShadowMap";
 
 export const MAX_SHADOW_MAPS = 4;
@@ -17,10 +17,7 @@ export class ShadowManager {
 
     protected _viewProjData: Float32Array;
     protected _eyeRelData: Float32Array;
-    protected _forwardData: Float32Array;
-    protected _colorIntensityData: Float32Array;
     protected _paramsData: Float32Array;
-    protected _depthParamsData: Float32Array;
     protected _layerData: Int32Array;
     protected _updateActiveShadowMaps: boolean;
 
@@ -35,10 +32,7 @@ export class ShadowManager {
 
         this._viewProjData = new Float32Array(MAX_SHADOW_MAPS * 16);
         this._eyeRelData = new Float32Array(MAX_SHADOW_MAPS * 3);
-        this._forwardData = new Float32Array(MAX_SHADOW_MAPS * 3);
-        this._colorIntensityData = new Float32Array(MAX_SHADOW_MAPS * 4);
         this._paramsData = new Float32Array(MAX_SHADOW_MAPS * 4);
-        this._depthParamsData = new Float32Array(MAX_SHADOW_MAPS * 4);
         this._layerData = new Int32Array(MAX_SHADOW_MAPS);
         this._updateActiveShadowMaps = true;
 
@@ -221,7 +215,8 @@ export class ShadowManager {
             const mOffset = i * 16;
             const eOffset = i * 3;
             const vOffset = i * 4;
-            const forward = camera.getForward();
+            const depthRange = Math.max(frustum.far - frustum.near, 1e-6);
+            const depthScale = camera.isOrthographic ? 1.0 / depthRange : 1.0;
             const texelWorldSize = camera.isOrthographic
                 ? Math.max(frustum.right - frustum.left, frustum.top - frustum.bottom) / sm.depthCamera.framebuffer.width
                 : 0.0;
@@ -232,25 +227,10 @@ export class ShadowManager {
             this._eyeRelData[eOffset + 1] = camera.eye.y - activeCameraEye.y;
             this._eyeRelData[eOffset + 2] = camera.eye.z - activeCameraEye.z;
 
-            this._forwardData[eOffset] = forward.x;
-            this._forwardData[eOffset + 1] = forward.y;
-            this._forwardData[eOffset + 2] = forward.z;
-
-            const color = sm.color;
-            this._colorIntensityData[vOffset] = color[0] ?? 1.0;
-            this._colorIntensityData[vOffset + 1] = color[1] ?? 1.0;
-            this._colorIntensityData[vOffset + 2] = color[2] ?? 1.0;
-            this._colorIntensityData[vOffset + 3] = color[3] ?? 1.0;
-
-            this._paramsData[vOffset] = sm.depthCamera.bias;
+            this._paramsData[vOffset] = sm.depthCamera.bias * depthScale;
             this._paramsData[vOffset + 1] = sm.depthCamera.normalBias;
-            this._paramsData[vOffset + 2] = texelWorldSize;
-            this._paramsData[vOffset + 3] = sm.depthCamera.depthEpsilon;
-
-            this._depthParamsData[vOffset] = frustum.near;
-            this._depthParamsData[vOffset + 1] = frustum.far;
-            this._depthParamsData[vOffset + 2] = camera.isOrthographic ? 1.0 : 0.0;
-            this._depthParamsData[vOffset + 3] = Math.max(frustum.far - frustum.near, 1e-6);
+            this._paramsData[vOffset + 2] = texelWorldSize * depthScale;
+            this._paramsData[vOffset + 3] = sm.depthCamera.depthEpsilon * depthScale;
 
             this._layerData[i] = sm._slot;
         }
@@ -259,10 +239,7 @@ export class ShadowManager {
         gl.uniform1iv(u.u_shadowMapLayer!, this._layerData);
         gl.uniformMatrix4fv(u.u_shadowMapViewProjRTE!, false, this._viewProjData);
         gl.uniform3fv(u.u_shadowMapEyeRel!, this._eyeRelData);
-        gl.uniform3fv(u.u_shadowMapForward!, this._forwardData);
-        gl.uniform4fv(u.u_shadowMapColor!, this._colorIntensityData);
         gl.uniform4fv(u.u_shadowMapParams!, this._paramsData);
-        gl.uniform4fv(u.u_shadowMapDepthParams!, this._depthParamsData);
 
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._depthArrayTexture);
@@ -295,8 +272,8 @@ export class ShadowManager {
         const frustum = camera.frustums[0];
         const activeCameraEye = this._renderer.activeCamera.eye;
         const pvRTE = camera.getProjectionViewRTEMatrix();
-        const forward = camera.getForward();
-        const color = sm.color;
+        const depthRange = Math.max(frustum.far - frustum.near, 1e-6);
+        const depthScale = camera.isOrthographic ? 1.0 / depthRange : 1.0;
         const texelWorldSize = camera.isOrthographic
             ? Math.max(frustum.right - frustum.left, frustum.top - frustum.bottom) / sm.depthCamera.framebuffer.width
             : 0.0;
@@ -310,21 +287,12 @@ export class ShadowManager {
             camera.eye.y - activeCameraEye.y,
             camera.eye.z - activeCameraEye.z
         );
-        gl.uniform3f(u.u_shadowMapForward, forward.x, forward.y, forward.z);
-        gl.uniform4f(u.u_shadowMapColor, color[0], color[1], color[2], color[3]);
         gl.uniform4f(
             u.u_shadowMapParams,
-            sm.depthCamera.bias,
+            sm.depthCamera.bias * depthScale,
             sm.depthCamera.normalBias,
-            texelWorldSize,
-            sm.depthCamera.depthEpsilon
-        );
-        gl.uniform4f(
-            u.u_shadowMapDepthParams,
-            frustum.near,
-            frustum.far,
-            camera.isOrthographic ? 1.0 : 0.0,
-            Math.max(frustum.far - frustum.near, 1e-6)
+            texelWorldSize * depthScale,
+            sm.depthCamera.depthEpsilon * depthScale
         );
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._depthArrayTexture);
@@ -382,8 +350,6 @@ export class ShadowManager {
 
             active.push(shadowMap);
         }
-
-        active.sort((a, b) => b.priority - a.priority);
 
         return active;
     }

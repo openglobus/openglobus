@@ -2,9 +2,11 @@
 
 precision highp float;
 precision highp sampler2D;
+precision highp sampler2DArray;
 
 #include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
+#include "../common/shadows.glsl"
 
 uniform sampler2D baseTexture;
 uniform sampler2D materialsTexture;
@@ -16,6 +18,8 @@ uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
 uniform vec3 lightDiffuse;
 uniform vec4 lightSpecular;
+
+const int RECEIVE_SHADOWS = 2;
 
 layout (location = 0) out vec4 fragColor;
 
@@ -43,6 +47,9 @@ void main(void) {
 
     float ao = materials.r;
     float specularMask = materials.b;
+    int receiveMask = int(materials.a + 0.5);
+    float receiveShadows = float(receiveMask & RECEIVE_SHADOWS) / float(RECEIVE_SHADOWS);
+    float shadowVisibility = mix(1.0, getShadowMapsDirectVisibility(rtcPos, normal), receiveShadows);
 
     vec4 lightWeighting;
     vec3 specularWeighting;
@@ -62,6 +69,8 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
         fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
     } else {
         // TODO: Real PBR deferred(no-atmos) is not implemented yet. Keep PBR as Phong for now.
@@ -78,6 +87,8 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
         fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
     }
 }

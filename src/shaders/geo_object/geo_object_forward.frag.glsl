@@ -67,7 +67,7 @@ void main(void) {
 
     int receiveMask = int(uReceiveMask + 0.5);
     float receiveShadows = float(receiveMask & RECEIVE_SHADOWS) / float(RECEIVE_SHADOWS);
-    vec3 shadowLight = applyShadowMaps(v_rtcPos, normal, lightDiffuse) * receiveShadows;
+    float shadowVisibility = mix(1.0, getShadowMapsDirectVisibility(v_rtcPos, normal), receiveShadows);
 
     vec3 material = materialProperties;
     if (uUseAOTexture > 0.0) {
@@ -104,7 +104,9 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = vec4(baseColor.rgb * (lightWeighting.rgb + shadowLight) + specularWeighting, baseColor.a);
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting, baseColor.a);
     } else {
         float metallic = material.b;
         float roughness = material.g;
@@ -130,6 +132,8 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = vec4(baseColor.rgb * (lightWeighting.rgb + shadowLight) + specularWeighting, baseColor.a);
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting, baseColor.a);
     }
 }

@@ -50,6 +50,12 @@ out vec4 outLightWeighting
     outLightWeighting = vec4(ambient * ao + sunIlluminance * diffuse * diffuseLightWeighting, 1.0);
 }
 
+vec3 applyDirectLightVisibility(in vec3 lightWeighting, in vec3 ambient, in float ao, in float visibility)
+{
+    vec3 ambientWeighting = ambient * ao;
+    return ambientWeighting + (lightWeighting - ambientWeighting) * visibility;
+}
+
 const float EMISSION_PACK_RANGE = 8.0;
 
 float packEmissionColor(in vec3 emissionColor)

@@ -114,8 +114,9 @@ export class CameraEditorView extends View<Entity> {
         });
 
         this._biasView = new Input({
-            label: "Bias",
+            label: "Depth bias",
             type: "number",
+            min: 0,
             step: 0.00001,
             maxFixed: 8
         });
@@ -123,6 +124,7 @@ export class CameraEditorView extends View<Entity> {
         this._normalBiasView = new Input({
             label: "Normal bias",
             type: "number",
+            min: 0,
             step: 0.01,
             maxFixed: 4
         });
@@ -130,6 +132,7 @@ export class CameraEditorView extends View<Entity> {
         this._depthEpsilonView = new Input({
             label: "Depth epsilon",
             type: "number",
+            min: 0,
             step: 0.00001,
             maxFixed: 8
         });
