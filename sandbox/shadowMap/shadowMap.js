@@ -10,24 +10,9 @@ import {
     input,
     Object3d,
     ShadowMap,
-    DepthCamera
+    DepthCamera,
+    Vec3
 } from "../../lib/og.es.js";
-
-const SHADOW_MAP_PARAMS = {
-    textureSize: 1024,
-    near: 1000,
-    far: 150000,
-    focusDistance: 100000,
-    viewAngle: 45,
-    bias: 40,
-    normalBias: 0,
-    depthEpsilon: 20,
-    geoObjectDepthPolygonOffsetFactor: 3,
-    geoObjectDepthPolygonOffsetUnits: 4,
-    intensity: 1,
-    position: new LonLat(10.0814898, 46.4864594, 10000),
-    look: new LonLat(9.0814898, 46.4864594, 0)
-};
 
 let myObjects = new Vector("myObjects", {
     scaleByDistance: [1, 1, 1]
@@ -43,7 +28,9 @@ const globus = new Globe({
     //reverseDepth: false
 });
 
-globus.planet.addControl(new control.TimelineControl());
+let timelineControl = new control.TimelineControl();
+
+globus.planet.addControl(timelineControl);
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.LayerSwitcher());
 globus.planet.addControl(new control.DrawingSwitcher());
@@ -72,32 +59,48 @@ const depthCameraHandler = new control.DepthCameraHandler();
 globus.planet.addControl(depthCameraHandler);
 
 const depthCamera = new DepthCamera({
-    width: SHADOW_MAP_PARAMS.textureSize,
-    height: SHADOW_MAP_PARAMS.textureSize,
-    near: SHADOW_MAP_PARAMS.near,
-    far: SHADOW_MAP_PARAMS.far,
-    verticalViewAngle: SHADOW_MAP_PARAMS.viewAngle,
+    textureSize: 1024,
+    near: 1000,
+    far: 150000,
+    focusDistance: 100000,
+    viewAngle: 45,
+    bias: 40,
+    normalBias: 0,
+    depthEpsilon: 20,
+    geoObjectDepthPolygonOffsetFactor: 3,
+    geoObjectDepthPolygonOffsetUnits: 4,
+    intensity: 1,
+    //position: new LonLat(10.0814898, 46.4864594, 10000),
+    //look: new LonLat(9.0814898, 46.4864594, 0),
     isOrthographic: true,
-    focusDistance: SHADOW_MAP_PARAMS.focusDistance,
     geoObjectDepthCullFace: "back",
-    geoObjectDepthPolygonOffsetFactor: SHADOW_MAP_PARAMS.geoObjectDepthPolygonOffsetFactor,
-    geoObjectDepthPolygonOffsetUnits: SHADOW_MAP_PARAMS.geoObjectDepthPolygonOffsetUnits,
     showFrustum: true,
-    showFootprint: true,
-    bias: SHADOW_MAP_PARAMS.bias,
-    normalBias: SHADOW_MAP_PARAMS.normalBias,
-    depthEpsilon: SHADOW_MAP_PARAMS.depthEpsilon
+    showFootprint: true
 });
+
 depthCameraHandler.add(depthCamera);
 
 const shadowCamera = depthCamera.camera;
-shadowCamera.setLonLat(SHADOW_MAP_PARAMS.position, SHADOW_MAP_PARAMS.look);
+shadowCamera.setLonLat(new LonLat(10.0814898, 46.4864594, 10000), new LonLat(9.0814898, 46.4864594, 0));
 shadowCamera.update();
+
+timelineControl.events.on("setcurrent", () => {
+    const direction = globus.planet.sun.getPosition().normal().scale(-1.0);
+    const look = shadowCamera.eye.add(direction);
+    let up = globus.planet.ellipsoid.getSurfaceNormal3v(shadowCamera.eye);
+
+    if (Math.abs(up.dot(direction)) > 0.999) {
+        up = Vec3.proj_b_to_plane(Vec3.NORTH, up, Vec3.UNIT_X).normalize();
+    }
+
+    shadowCamera.set(shadowCamera.eye, look, up);
+    shadowCamera.update();
+});
 
 const shadowMap = new ShadowMap({
     enabled: true,
     depthCamera,
-    color: [1.0, 1.0, 1.0, SHADOW_MAP_PARAMS.intensity],
+    color: [1.0, 1.0, 1.0, 1.0],
     priority: 0
 });
 globus.planet.renderer.shadows.add(shadowMap);
@@ -115,7 +118,6 @@ globus.planet.addControl(depthPreview);
 
 window.shadowMapSandbox = {
     globus,
-    params: SHADOW_MAP_PARAMS,
     depthCamera,
     shadowCamera,
     shadowMap

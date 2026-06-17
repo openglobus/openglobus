@@ -2,6 +2,29 @@ import { Dialog } from "../../ui/Dialog";
 import { ToggleButton } from "../../ui/ToggleButton";
 import { Control, type IControlParams } from "../Control";
 import { TimelineView } from "./TimelineView";
+import { createEvents, type EventsHandler } from "../../Events";
+
+type TimelineControlEventsList = [
+    "visibility",
+    "change",
+    "setcurrent",
+    "current",
+    "startdrag",
+    "stopdrag",
+    "startdragcurrent",
+    "stopdragcurrent"
+];
+
+const TIMELINECONTROL_EVENTS: TimelineControlEventsList = [
+    "visibility",
+    "change",
+    "setcurrent",
+    "current",
+    "startdrag",
+    "stopdrag",
+    "startdragcurrent",
+    "stopdragcurrent"
+];
 
 interface ITimelineControlParams extends IControlParams {
     name?: string;
@@ -29,11 +52,15 @@ class TimelineControl extends Control {
     protected _toggleBtn: ToggleButton;
     protected _dialog: Dialog<null>;
 
+    public events: EventsHandler<TimelineControlEventsList>;
+
     constructor(options: ITimelineControlParams = {}) {
         super({
             name: "timeline",
             ...options
         });
+
+        this.events = createEvents(TIMELINECONTROL_EVENTS);
 
         let currentDate = options.current || new Date();
         let startDate = options.rangeStart || addHours(currentDate, -12);
@@ -65,6 +92,7 @@ class TimelineControl extends Control {
 
         this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
+            this.events.dispatch(this.events.visibility, v);
         });
     }
 
@@ -90,24 +118,37 @@ class TimelineControl extends Control {
 
         this._timelineView.events.on("setcurrent", (d: Date) => {
             this.renderer && this.renderer.handler.defaultClock.setDate(d);
+            this.events.dispatch(this.events.setcurrent, d);
         });
 
-        this._timelineView.events.on("startdrag", () => {
+        this._timelineView.model.events.on("change", (...args: unknown[]) => {
+            this.events.dispatch(this.events.change, ...args);
+        });
+
+        this._timelineView.model.events.on("current", (d: Date) => {
+            this.events.dispatch(this.events.current, d);
+        });
+
+        this._timelineView.events.on("startdrag", (e: Event) => {
             this.planet?.sun!.stop();
             this.renderer && this.renderer.controls.navigation.deactivate();
+            this.events.dispatch(this.events.startdrag, e);
         });
 
-        this._timelineView.events.on("stopdrag", () => {
+        this._timelineView.events.on("stopdrag", (d: Date) => {
             this.renderer && this.renderer.controls.navigation.activate();
+            this.events.dispatch(this.events.stopdrag, d);
         });
 
-        this._timelineView.events.on("startdragcurrent", () => {
+        this._timelineView.events.on("startdragcurrent", (e: Event) => {
             this.planet?.sun!.stop();
             this.renderer && this.renderer.controls.navigation.deactivate();
+            this.events.dispatch(this.events.startdragcurrent, e);
         });
 
-        this._timelineView.events.on("stopdragcurrent", () => {
+        this._timelineView.events.on("stopdragcurrent", (d: Date) => {
             this.renderer && this.renderer.controls.navigation.activate();
+            this.events.dispatch(this.events.stopdragcurrent, d);
         });
     }
 }
