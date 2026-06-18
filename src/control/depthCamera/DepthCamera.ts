@@ -2,6 +2,7 @@ import { Camera } from "../../camera/Camera";
 import { PlanetCamera } from "../../camera/PlanetCamera";
 import { Entity } from "../../entity/Entity";
 import { LonLat } from "../../LonLat";
+import { RADIANS } from "../../math";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
 import { Vec4 } from "../../math/Vec4";
@@ -23,6 +24,7 @@ const DEPTH_EPSILON = 0.00025;
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
 const PERIMETER_STEP_PX = 1;
 const DEFAULT_CAMERA_FRUSTUM_LENGTH = 2.5;
+const RENDER_SKIRTS_MIN_PITCH = -10 * RADIANS;
 
 const cameraFrustumObj = Object3d.createFrustum();
 
@@ -43,6 +45,8 @@ export interface IDepthCameraParams {
     showFootprint?: boolean;
     isOrthographic?: boolean;
     focusDistance?: number;
+    enableSegmentSkirts?: boolean;
+    enableSegmentFaceCulling?: boolean;
     excludeLayers?: Vector[];
     bias?: number; //0.00003 .. 0.00008 - 0.0005
     normalBias?: number; // 0.2 .. 1.0
@@ -87,6 +91,8 @@ export class DepthCamera {
     public depthEpsilon: number;
 
     public enabled: boolean;
+    public enableSegmentSkirts: boolean;
+    public enableSegmentFaceCulling: boolean;
 
     public camera!: Camera;
     public framebuffer!: Framebuffer;
@@ -123,6 +129,8 @@ export class DepthCamera {
         this.id = DepthCamera.__counter__++;
 
         this.enabled = params.enabled ?? true;
+        this.enableSegmentSkirts = params.enableSegmentSkirts ?? false;
+        this.enableSegmentFaceCulling = params.enableSegmentFaceCulling ?? true;
         this.width = params.width ?? CAM_WIDTH;
         this.height = params.height ?? CAM_HEIGHT;
         this.near = params.near ?? DEPTH_NEAR;
@@ -545,7 +553,11 @@ export class DepthCamera {
         const planet = this._planet!;
         const mainCam = this._renderer!.activeCamera;
 
-        if (!depthCamera.isOrthographic && !this._forceOwnQuadTreeStrategyPass && mainCam.containsPoint(depthCamera.eye)) {
+        if (
+            //!depthCamera.isOrthographic &&
+            !this._forceOwnQuadTreeStrategyPass &&
+            mainCam.containsPoint(depthCamera.eye)
+        ) {
             return planet.quadTreeStrategy;
         }
 
@@ -561,7 +573,11 @@ export class DepthCamera {
     protected _segmentsPass(camera: PlanetCamera, quadTreeStrategy: QuadTreeStrategy): void {
         const h = this._renderer!.handler;
         const gl = h.gl!;
-        const planet = this._planet!;
+        const planet = this._planet;
+
+        if (!planet) return;
+
+        let checkPitch = camera.getPitch() > RENDER_SKIRTS_MIN_PITCH;
 
         h.programs.depth_camera.activate();
         const sh = h.programs.depth_camera;
@@ -570,12 +586,16 @@ export class DepthCamera {
         gl.uniformMatrix4fv(shu.viewMatrix, false, camera.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, camera.getProjectionMatrix());
 
-        // @todo: optimization cam bottom is under terrain
-        gl.disable(gl.CULL_FACE);
+        if (this.enableSegmentFaceCulling) {
+            gl.enable(gl.CULL_FACE);
+        } else if (checkPitch) {
+            gl.disable(gl.CULL_FACE);
+        }
 
         const isEq = planet.terrain!.equalizeVertices;
         const baseLayerSlice = planet.visibleTileLayers.length ? [planet.visibleTileLayers[0]] : undefined;
         const rn = quadTreeStrategy._renderedNodesInFrustum[camera.getCurrentFrustum()];
+        const renderSkirts = this.enableSegmentSkirts && checkPitch;
 
         let i = rn.length;
         while (i--) {
@@ -586,7 +606,7 @@ export class DepthCamera {
                 s.readyToEngage && s.engage();
                 s.ensureIndexBuffer();
                 s.updateRTCEyePosition(camera);
-                s.depthRendering(sh, baseLayerSlice);
+                s.depthRendering(sh, baseLayerSlice, renderSkirts);
             }
         }
 
@@ -597,7 +617,7 @@ export class DepthCamera {
             s.readyToEngage && s.engage();
             s.ensureIndexBuffer();
             s.updateRTCEyePosition(camera);
-            s.depthRendering(sh, baseLayerSlice);
+            s.depthRendering(sh, baseLayerSlice, renderSkirts);
         }
 
         gl.enable(gl.CULL_FACE);

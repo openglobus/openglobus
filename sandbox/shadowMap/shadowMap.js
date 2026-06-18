@@ -59,14 +59,16 @@ const depthCameraHandler = new control.DepthCameraHandler();
 globus.planet.addControl(depthCameraHandler);
 
 const depthCamera = new DepthCamera({
+    enableSegmentSkirts: true,
+    enableSegmentFaceCulling: false,
     textureSize: 1024,
     near: 1000,
     far: 150000,
     focusDistance: 100000,
     viewAngle: 45,
-    bias: 40,
+    bias: 1000,
     normalBias: 0,
-    depthEpsilon: 20,
+    depthEpsilon: 1000,
     geoObjectDepthPolygonOffsetFactor: 3,
     geoObjectDepthPolygonOffsetUnits: 4,
     intensity: 1,
