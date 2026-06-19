@@ -1,4 +1,5 @@
 import { ShaderProgram } from "../webgl/ShaderProgram";
+import shadowDefines from "./common/shadowDefines.glsl";
 
 export function varianceBlur(): ShaderProgram {
     return new ShaderProgram("varianceBlur", {
@@ -31,7 +32,7 @@ export function varianceBlur(): ShaderProgram {
             uniform int u_layer;
             uniform vec2 u_direction;
 
-            const int VARIANCE_BLUR_RADIUS = 2;
+            ${shadowDefines}
 
             void main(void) {
                 vec2 texelSize = 1.0 / vec2(textureSize(u_textureArray, 0).xy);
