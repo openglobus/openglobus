@@ -10,10 +10,15 @@
 #define VARIANCE_BLUR_RADIUS 3
 #endif
 
+// Lower bound for VSM depth variance.
+// Smaller values reduce light bleeding, but may
+// increase shadow acne/noise due to precision limits.
 #ifndef SHADOW_MAP_MIN_VARIANCE
 #define SHADOW_MAP_MIN_VARIANCE 0.000000001
 #endif
 
+// 0.2 - 0.8 is a good range for this parameter. Higher values
+// reduce light bleeding but can cause more shadow acne.
 #ifndef SHADOW_MAP_LIGHT_BLEEDING_REDUCTION
 #define SHADOW_MAP_LIGHT_BLEEDING_REDUCTION 0.5
 #endif
