@@ -9,9 +9,11 @@ import { Vec4 } from "../../math/Vec4";
 import { Object3d } from "../../Object3d";
 import { QuadTreeStrategy } from "../../quadTree";
 import type { Renderer } from "../../renderer/Renderer";
+import { VARIANCE_SHADOW_ENABLED } from "../../renderer/shadows/ShadowManager";
 import type { Planet } from "../../scene/Planet";
 import { Framebuffer } from "../../webgl";
 import { Vector } from "../../layer/Vector";
+import type { ShadowMap } from "../../renderer/shadows/ShadowMap";
 import type { DepthCameraHandler } from "./DepthCameraHandler";
 
 const CAM_WIDTH = 512;
@@ -97,6 +99,7 @@ export class DepthCamera {
     public camera!: Camera;
     public framebuffer!: Framebuffer;
     public quadTreeStrategy!: QuadTreeStrategy;
+    public shadowMap: ShadowMap | null;
 
     public _handler: DepthCameraHandler | null;
     public _handlerIndex: number;
@@ -160,6 +163,7 @@ export class DepthCamera {
 
         this._handler = null;
         this._handlerIndex = -1;
+        this.shadowMap = null;
 
         this._prevCameraPos = new Vec3();
         this._prevCameraPitch = 0;
@@ -305,7 +309,7 @@ export class DepthCamera {
 
         const quadTreeStrategy = this._getQuadTreeStrategy(depthCamera);
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
 
@@ -316,9 +320,13 @@ export class DepthCamera {
 
         framebuffer.deactivate();
 
-        this._renderer.applyDepthForCamera(mainCam);
-
         this.renderFootprint();
+
+        if (VARIANCE_SHADOW_ENABLED) {
+            this.shadowMap?.blur();
+        }
+
+        this._renderer.applyDepthForCamera(mainCam);
         this.finishFrame();
     }
 

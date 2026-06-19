@@ -1,7 +1,7 @@
 const int MAX_SHADOW_MAPS = 4;
 
 // u_shadowMapParams layout:
-// x = depthBias        // normalized shadow depth bias
+// x = depthBias        // normalized shadow depth bias, applied to receiver depth
 // y = normalBiasWorld  // bias along receiver normal in RTC/world units
 // z = orthoTexelDepthSize // 0.0 for perspective; orthographic texel size in normalized shadow depth units
 // w = depthEpsilon     // normalized shadow depth transition width
@@ -14,28 +14,30 @@ uniform int u_shadowMapCount;
 
 uniform highp sampler2DArray u_shadowMapDepthArray;
 
-#ifndef SHADOW_MAP_PCF
-#define SHADOW_MAP_PCF 3
-#endif
+#include "./shadowDefines.glsl"
 
-#ifndef SHADOW_MAP_SLOPE_DEPTH_BIAS
-#define SHADOW_MAP_SLOPE_DEPTH_BIAS 0.00008
-#endif
-
-#ifndef SHADOW_MAP_MAX_SLOPE_DEPTH_BIAS
-#define SHADOW_MAP_MAX_SLOPE_DEPTH_BIAS 0.0012
-#endif
-
-#ifndef SHADOW_MAP_ORTHO_SLOPE_TEXEL_FACTOR
-#define SHADOW_MAP_ORTHO_SLOPE_TEXEL_FACTOR 0.0
-#endif
-
-#ifndef SHADOW_MAP_ORTHO_MAX_SLOPE_TEXELS
-#define SHADOW_MAP_ORTHO_MAX_SLOPE_TEXELS 8.0
-#endif
+vec4 sampleShadowMapData(int index, vec2 uv) {
+    return texture(u_shadowMapDepthArray, vec3(uv, float(u_shadowMapLayer[index])));
+}
 
 float sampleShadowMapDepth(int index, vec2 uv) {
-    return texture(u_shadowMapDepthArray, vec3(uv, float(u_shadowMapLayer[index]))).r;
+    return sampleShadowMapData(index, uv).r;
+}
+
+float linstep(float minValue, float maxValue, float v) {
+    return clamp((v - minValue) / (maxValue - minValue), 0.0, 1.0);
+}
+
+float reduceShadowMapLightBleeding(float pMax) {
+    return linstep(SHADOW_MAP_LIGHT_BLEEDING_REDUCTION, 1.0, pMax);
+}
+
+float getShadowMapVsmVisibility(vec2 moments, float receiverDepth) {
+    float lit = step(receiverDepth, moments.x);
+    float variance = max(moments.y - moments.x * moments.x, SHADOW_MAP_MIN_VARIANCE);
+    float d = receiverDepth - moments.x;
+    float pMax = variance / (variance + d * d);
+    return max(lit, reduceShadowMapLightBleeding(pMax));
 }
 
 float getShadowMapIsOrthographic(int index) {
@@ -88,6 +90,50 @@ float getShadowMapReceiverPlaneDepth(
     return receiverDepth + dot(vec2(zDx, zDy), screenDelta);
 }
 
+#if VARIANCE_SHADOW_ENABLED == 1
+vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
+    vec3 N = normalize(normal);
+
+    float depthBias = u_shadowMapParams[shadowMapIndex].x;
+    float normalBiasWorld = u_shadowMapParams[shadowMapIndex].y;
+    float depthEpsilon = u_shadowMapParams[shadowMapIndex].w;
+    vec3 lightDir = getShadowMapLightDirection(shadowMapIndex, rtcPos);
+    float ndotl = max(dot(N, lightDir), 0.0);
+    float slopeBias = getShadowMapSlopeBias(shadowMapIndex, ndotl);
+
+    vec3 biasedRtcPos = rtcPos + N * normalBiasWorld;
+    vec3 shadowRelPos = biasedRtcPos - u_shadowMapEyeRel[shadowMapIndex];
+
+    vec4 clip = u_shadowMapViewProjRTE[shadowMapIndex] * vec4(shadowRelPos, 1.0);
+
+    if (clip.w <= 1e-6) {
+        return vec2(0.0, 0.0);
+    }
+
+    vec3 ndc = clip.xyz / clip.w;
+    vec2 uv = ndc.xy * 0.5 + 0.5;
+    float receiverDepth = ndc.z * 0.5 + 0.5;
+
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+        return vec2(0.0, 0.0);
+    }
+
+    if (receiverDepth < 0.0 || receiverDepth > 1.0) {
+        return vec2(0.0, 0.0);
+    }
+
+    vec4 shadowMapData = sampleShadowMapData(shadowMapIndex, uv);
+    float coverage = shadowMapData.a;
+    if (coverage <= 0.0) {
+        return vec2(0.0, 0.0);
+    }
+
+    vec2 moments = shadowMapData.rg / coverage;
+    float receiverDepthWithBias = receiverDepth - depthBias - slopeBias - depthEpsilon;
+    float visibility = getShadowMapVsmVisibility(moments, receiverDepthWithBias);
+    return vec2(visibility * coverage, coverage);
+}
+#else
 vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     vec3 N = normalize(normal);
 
@@ -156,10 +202,10 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
             vec2 uvOffset = uv + tapOffset;
 
             float inside =
-                step(0.0, uvOffset.x) *
-                step(uvOffset.x, 1.0) *
-                step(0.0, uvOffset.y) *
-                step(uvOffset.y, 1.0);
+            step(0.0, uvOffset.x) *
+            step(uvOffset.x, 1.0) *
+            step(0.0, uvOffset.y) *
+            step(uvOffset.y, 1.0);
 
             vec2 safeUv = clamp(uvOffset, vec2(0.0), vec2(1.0));
             float mapDepth = sampleShadowMapDepth(shadowMapIndex, safeUv);
@@ -189,10 +235,7 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     return vec2(step(receiverDepth, mapDepth + depthThreshold), 1.0);
     #endif
 }
-
-float getShadowMapVisibility(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
-    return getShadowMapVisibilityData(shadowMapIndex, rtcPos, normal).x;
-}
+#endif
 
 float getShadowMapsDirectVisibility(vec3 rtcPos, vec3 normal) {
     float directVisibility = 1.0;

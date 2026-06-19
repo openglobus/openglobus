@@ -1,5 +1,6 @@
 import { cons } from "../../cons";
 import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
+import { varianceBlur } from "../../shaders/varianceBlur";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { Renderer } from "../Renderer";
 import { ShadowMap } from "./ShadowMap";
@@ -9,6 +10,7 @@ export { ShadowMap } from "./ShadowMap";
 
 export const MAX_SHADOW_MAPS = 4;
 export const DEFAULT_SHADOW_TEXTURE_UNIT_START = 10;
+export const VARIANCE_SHADOW_ENABLED = true;
 
 export class ShadowManager {
     protected _renderer: Renderer;
@@ -23,6 +25,8 @@ export class ShadowManager {
 
     protected _depthArrayTexture: WebGLTexture | null;
     protected _depthSize: number;
+    protected _varianceBlurArrayTexture: WebGLTexture | null;
+    protected _varianceBlurArraySize: number;
     protected _freeSlots: number[];
 
     constructor(renderer: Renderer) {
@@ -38,8 +42,13 @@ export class ShadowManager {
 
         this._depthArrayTexture = null;
         this._depthSize = 0;
+        this._varianceBlurArrayTexture = null;
+        this._varianceBlurArraySize = 0;
         this._freeSlots = [];
 
+        if (VARIANCE_SHADOW_ENABLED) {
+            this._renderer.addProgram(varianceBlur());
+        }
     }
 
     public get activeCount(): number {
@@ -85,6 +94,9 @@ export class ShadowManager {
             this._freeSlots.push(shadowMap._slot);
             shadowMap._slot = -1;
             shadowMap._manager = null;
+            if (shadowMap.depthCamera.shadowMap === shadowMap) {
+                shadowMap.depthCamera.shadowMap = null;
+            }
             return -1;
         }
 
@@ -100,11 +112,14 @@ export class ShadowManager {
         const fb = shadowMap.depthCamera.framebuffer;
         if (!fb._fbo) return false;
 
-        const status = fb.attachLayer(this._depthArrayTexture, shadowMap._slot);
+        fb.activate();
+        fb.bindOutputTextureLayer(this._depthArrayTexture, shadowMap._slot);
+        const status = fb.checkStatus();
+        fb.deactivate();
 
         if (status !== gl.FRAMEBUFFER_COMPLETE) {
             console.warn(`ShadowManager._rebindFramebufferToLayer(): framebuffer incomplete after framebufferTextureLayer
-                (status=${fb.statusToText(status)}, slot=${shadowMap._slot}). Check float color-buffer support for R32F.`);
+                (status=${fb.statusToText(status)}, slot=${shadowMap._slot}). Check float color-buffer support for RGBA32F.`);
             return false;
         }
 
@@ -119,13 +134,13 @@ export class ShadowManager {
         if (!fb._fbo) return;
 
         const orig = shadowMap.depthTexture;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fb._fbo);
+        fb.activate();
         if (orig) {
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, orig, 0);
+            fb.bindOutputTexture(orig);
         } else {
-            gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 0);
+            fb.bindOutputTextureLayer(null, 0);
         }
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        fb.deactivate();
     }
 
     public update(shadowMap: ShadowMap): boolean {
@@ -158,6 +173,10 @@ export class ShadowManager {
             shadowMap._manager = null;
         }
 
+        if (shadowMap.depthCamera.shadowMap === shadowMap) {
+            shadowMap.depthCamera.shadowMap = null;
+        }
+
         this._shadowMaps.splice(index, 1);
         this._updateActiveShadowMaps = true;
         return true;
@@ -169,6 +188,9 @@ export class ShadowManager {
             this._restoreFramebufferAttachment(s);
             s._slot = -1;
             s._manager = null;
+            if (s.depthCamera.shadowMap === s) {
+                s.depthCamera.shadowMap = null;
+            }
         }
         this._shadowMaps.length = 0;
         this._activeShadowMaps.length = 0;
@@ -186,9 +208,82 @@ export class ShadowManager {
         if (gl && this._depthArrayTexture) {
             gl.deleteTexture(this._depthArrayTexture);
         }
+        if (gl && this._varianceBlurArrayTexture) {
+            gl.deleteTexture(this._varianceBlurArrayTexture);
+        }
         this._depthArrayTexture = null;
         this._depthSize = 0;
+        this._varianceBlurArrayTexture = null;
+        this._varianceBlurArraySize = 0;
         this._freeSlots.length = 0;
+    }
+
+    public blurShadowMap(shadowMap: ShadowMap): void {
+        if (shadowMap._slot === -1 || !this._depthArrayTexture) return;
+
+        const h = this._renderer.handler;
+        const gl = h.gl!;
+        const fb = shadowMap.depthCamera.framebuffer;
+        const size = fb.width;
+
+        if (!this._varianceBlurArrayTexture || this._varianceBlurArraySize !== size) {
+            if (this._varianceBlurArrayTexture) {
+                gl.deleteTexture(this._varianceBlurArrayTexture);
+            }
+
+            this._varianceBlurArrayTexture = h.createEmptyTexture2DArrayExt(
+                size,
+                size,
+                MAX_SHADOW_MAPS,
+                "LINEAR",
+                "RGBA32F",
+                "CLAMP_TO_EDGE",
+                1
+            );
+            this._varianceBlurArraySize = this._varianceBlurArrayTexture ? size : 0;
+        }
+
+        const blurArrayTexture = this._varianceBlurArrayTexture;
+        if (!blurArrayTexture) return;
+
+        const program = h.programs.varianceBlur;
+        const u = program.uniforms!;
+        const a = program.attributes!;
+
+        program.activate();
+
+        gl.disable(gl.BLEND);
+        gl.disable(gl.DEPTH_TEST);
+        gl.depthMask(false);
+        gl.disable(gl.CULL_FACE);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._renderer.screenFramePositionBuffer);
+        gl.vertexAttribPointer(a.corners, 2, gl.FLOAT, false, 0, 0);
+
+        gl.uniform1i(u.u_layer, shadowMap._slot);
+
+        fb.activate();
+        fb.bindOutputTextureLayer(blurArrayTexture, shadowMap._slot);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._depthArrayTexture);
+        gl.uniform1i(u.u_textureArray, 0);
+        gl.uniform2f(u.u_direction, 1.0, 0.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        fb.deactivate();
+
+        fb.activate();
+        fb.bindOutputTextureLayer(this._depthArrayTexture, shadowMap._slot);
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, blurArrayTexture);
+        gl.uniform2f(u.u_direction, 0.0, 1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        fb.deactivate();
+
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.depthMask(true);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+        gl.enable(gl.BLEND);
     }
 
     public bindForward(program: ShaderProgram, textureUnitStart: number = DEFAULT_SHADOW_TEXTURE_UNIT_START): number {
@@ -218,7 +313,8 @@ export class ShadowManager {
             const depthRange = Math.max(frustum.far - frustum.near, 1e-6);
             const depthScale = camera.isOrthographic ? 1.0 / depthRange : 1.0;
             const texelWorldSize = camera.isOrthographic
-                ? Math.max(frustum.right - frustum.left, frustum.top - frustum.bottom) / sm.depthCamera.framebuffer.width
+                ? Math.max(frustum.right - frustum.left, frustum.top - frustum.bottom) /
+                  sm.depthCamera.framebuffer.width
                 : 0.0;
 
             this._viewProjData.set(camera.getProjectionViewRTEMatrix(), mOffset);
@@ -321,15 +417,25 @@ export class ShadowManager {
         const gl = this._renderer.handler.gl as WebGL2RenderingContext;
         if (!gl) return false;
 
-        const tex = this._renderer.handler.createEmptyTexture2DArrayExt(
-            size,
-            size,
-            MAX_SHADOW_MAPS,
-            "NEAREST",
-            "R32F",
-            "CLAMP_TO_EDGE",
-            1
-        );
+        const tex = VARIANCE_SHADOW_ENABLED
+            ? this._renderer.handler.createEmptyTexture2DArrayExt(
+                size,
+                size,
+                MAX_SHADOW_MAPS,
+                "LINEAR",
+                "RGBA32F",
+                "CLAMP_TO_EDGE",
+                1
+            )
+            : this._renderer.handler.createEmptyTexture2DArrayExt(
+                size,
+                size,
+                MAX_SHADOW_MAPS,
+                "NEAREST",
+                "R32F",
+                "CLAMP_TO_EDGE",
+                1
+            );
         if (!tex) return false;
 
         this._depthArrayTexture = tex;

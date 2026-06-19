@@ -1,4 +1,6 @@
 import { ShaderProgram } from "../../webgl";
+import computeShadowMoments from "../../shaders/common/computeShadowMoments.glsl";
+import shadowDefines from "../../shaders/common/shadowDefines.glsl";
 
 export function depth_camera() {
     return new ShaderProgram("depth_camera", {
@@ -15,7 +17,7 @@ export function depth_camera() {
         },
 
         vertexShader: `#version 300 es
-            
+
             precision highp float;
 
             in vec3 aVertexPositionHigh;
@@ -38,18 +40,26 @@ export function depth_camera() {
 
                 vec3 highDiff = aVertexPositionHigh - rtcEyePositionHigh;
                 vec3 lowDiff = aVertexPositionLow - rtcEyePositionLow + nh;
-                 
-                gl_Position =  m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);    
+
+                gl_Position =  m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
             }`,
 
         fragmentShader: `#version 300 es
-            
-            precision highp float;        
+
+            precision highp float;
 
             layout(location = 0) out vec4 depthColor;
 
+            ${shadowDefines}
+            ${computeShadowMoments}
+
             void main(void) {
-                depthColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
+                #if VARIANCE_SHADOW_ENABLED == 1
+                    vec2 moments = computeShadowMoments(gl_FragCoord.z);
+                    depthColor = vec4(moments, 0.0, 1.0);
+                #else
+                    depthColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
+                #endif
             }`
     });
 }

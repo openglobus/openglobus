@@ -20,6 +20,7 @@ export class ShadowMap {
         this.id = ShadowMap.__staticCounter__++;
         this._enabled = params.enabled ?? true;
         this.depthCamera = params.depthCamera;
+        this.depthCamera.shadowMap = this;
     }
 
     public get enabled(): boolean {
@@ -43,5 +44,9 @@ export class ShadowMap {
 
     public get depthTexture(): WebGLTexture | null {
         return this.depthCamera.framebuffer.textures[0] || null;
+    }
+
+    public blur(): void {
+        this._manager?.blurShadowMap(this);
     }
 }
