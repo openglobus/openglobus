@@ -171,29 +171,35 @@ export class BaseFramebuffer {
     }
 
     /**
-     * Attaches texture array layer to framebuffer color attachment and returns framebuffer status.
+     * Binds a 2D texture to the active framebuffer color attachment.
      * @public
-     * @param {WebGLTexture | null} texture - Source texture array.
+     * @param {WebGLTexture} texture - Output texture.
+     * @param {number} [glAttachment=COLOR_ATTACHMENT0] - GL color attachment.
+     */
+    public bindOutputTexture(texture: WebGLTexture, glAttachment?: number): void {
+        const gl = this.handler.gl!;
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, glAttachment || gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+        gl.bindTexture(gl.TEXTURE_2D, null!);
+    }
+
+    /**
+     * Binds a texture array layer to the active framebuffer color attachment.
+     * Activate framebuffer before calling this method.
+     * @public
+     * @param {WebGLTexture | null} texture - Output texture array.
      * @param {number} layer - Array layer index.
      * @param {number} [colorAttachmentIndex=0] - Color attachment index.
      * @param {number} [level=0] - Mipmap level.
-     * @returns {number} - Framebuffer status enum.
      */
-    public attachLayer(
+    public bindOutputTextureLayer(
         texture: WebGLTexture | null,
         layer: number,
         colorAttachmentIndex: number = 0,
         level: number = 0
-    ): number {
+    ): void {
         const gl = this.handler.gl!;
-        if (!this._fbo) return -1;
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + colorAttachmentIndex, texture, level, layer);
-        const status = this.checkStatus();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-        return status;
     }
 
     /**
