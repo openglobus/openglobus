@@ -136,7 +136,10 @@ export class ProjectorManager {
         const fb = projector.depthCamera.framebuffer;
         if (!fb._fbo) return false;
 
-        const status = fb.attachLayer(this._depthArrayTexture, projector._slot);
+        fb.activate();
+        fb.bindOutputTextureLayer(this._depthArrayTexture, projector._slot);
+        const status = fb.checkStatus();
+        fb.deactivate();
 
         if (status !== gl.FRAMEBUFFER_COMPLETE) {
             console.warn(`ProjectorManager._rebindFramebufferToLayer(): framebuffer incomplete after framebufferTextureLayer
@@ -159,14 +162,13 @@ export class ProjectorManager {
         if (!fb._fbo) return;
 
         const orig = projector.depthTexture;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fb._fbo);
+        fb.activate();
         if (orig) {
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, orig, 0);
+            fb.bindOutputTexture(orig);
         } else {
-            // No original recorded — detach the array layer.
-            gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 0);
+            fb.bindOutputTextureLayer(null, 0);
         }
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        fb.deactivate();
     }
 
     public update(projector: Projector): boolean {
