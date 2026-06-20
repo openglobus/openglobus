@@ -2,7 +2,7 @@ import { Camera } from "../../camera/Camera";
 import { PlanetCamera } from "../../camera/PlanetCamera";
 import { Entity } from "../../entity/Entity";
 import { LonLat } from "../../LonLat";
-import { RADIANS } from "../../math";
+import { RADIANS, RADIANS_HALF } from "../../math";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
 import { Vec4 } from "../../math/Vec4";
@@ -23,6 +23,7 @@ const DEPTH_FAR = 100000;
 const DEPTH_BIAS = 0.00006;
 const DEPTH_NORMAL_BIAS = 0.45;
 const DEPTH_EPSILON = 0.00025;
+const TEXEL_SNAP_EPSILON = 1e-9;
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
 const PERIMETER_STEP_PX = 1;
 const DEFAULT_CAMERA_FRUSTUM_LENGTH = 2.5;
@@ -331,17 +332,21 @@ export class DepthCamera {
     }
 
     public prepareFrame(): void {
+        const cam = this.camera;
+        let cameraUpdated = this._snapOrthographicProjectionToTexelGrid();
+
         const cameraFrustumEntity = this._cameraFrustumEntity;
         if (!this._showFrustum || !cameraFrustumEntity) {
+            if (cameraUpdated) {
+                cam.update();
+            }
             return;
         }
 
-        const cam = this.camera;
         const cameraFrustumEntityPos = cameraFrustumEntity.getAbsoluteCartesian();
         const cameraFrustumEntityPitch = cameraFrustumEntity.getPitch();
         const cameraFrustumEntityYaw = cameraFrustumEntity.getYaw();
         const cameraFrustumEntityRoll = cameraFrustumEntity.getRoll();
-        let cameraUpdated = false;
 
         if (this._prevCameraPos.equal(cam.eye) && !this._prevCameraPos.equal(cameraFrustumEntityPos)) {
             cam.eye.copy(cameraFrustumEntityPos);
@@ -456,6 +461,51 @@ export class DepthCamera {
         this.quadTreeStrategy.destroyBranches();
         this.quadTreeStrategy.clearRenderedNodes();
         this._forceOwnQuadTreeStrategyPass = true;
+    }
+
+    protected _snapOrthographicProjectionToTexelGrid(): boolean {
+        const cam = this.camera;
+
+        if (!this._initialized || !cam.isOrthographic) {
+            return false;
+        }
+
+        const frustum = cam.frustums[0];
+        const framebuffer = this.framebuffer;
+
+        const baseTop = cam.focusDistance * Math.tan(cam.viewAngle * RADIANS_HALF);
+        const baseRight = baseTop * cam.getAspectRatio();
+
+        const frustumWidth = baseRight * 2.0;
+        const frustumHeight = baseTop * 2.0;
+
+        const worldUnitsPerTexelX = frustumWidth / framebuffer.width;
+        const worldUnitsPerTexelY = frustumHeight / framebuffer.height;
+
+        const baseLeft = -baseRight;
+        const baseBottom = -baseTop;
+
+        const eyeX = cam.eye.dot(cam._r);
+        const eyeY = cam.eye.dot(cam._u);
+
+        const snappedMinX = Math.floor((eyeX + baseLeft) / worldUnitsPerTexelX) * worldUnitsPerTexelX;
+        const snappedMinY = Math.floor((eyeY + baseBottom) / worldUnitsPerTexelY) * worldUnitsPerTexelY;
+
+        const left = snappedMinX - eyeX;
+        const right = left + frustumWidth;
+        const bottom = snappedMinY - eyeY;
+        const top = bottom + frustumHeight;
+
+        if (
+            Math.abs(left - frustum.left) <= TEXEL_SNAP_EPSILON &&
+            Math.abs(bottom - frustum.bottom) <= TEXEL_SNAP_EPSILON
+        ) {
+            return false;
+        }
+
+        frustum.setOrthoBounds(left, right, bottom, top);
+
+        return true;
     }
 
     public getCartesianFromPixelTerrain(x: number, y: number): Vec3 | undefined {
