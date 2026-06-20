@@ -1,4 +1,5 @@
 const int MAX_SHADOW_MAPS = 4;
+const float SHADOW_MAP_INTENSITY = 0.9;
 
 // u_shadowMapParams layout:
 // x = depthBias        // normalized shadow depth bias, applied to receiver depth
@@ -249,7 +250,7 @@ float getShadowMapsDirectVisibility(vec3 rtcPos, vec3 normal) {
         float visibility = clamp(visibilityData.x, 0.0, 1.0);
         float coverage = clamp(visibilityData.y, 0.0, 1.0);
 
-        directVisibility *= mix(1.0, visibility, coverage);
+        directVisibility *= mix(1.0, visibility, coverage * SHADOW_MAP_INTENSITY);
     }
 
     return clamp(directVisibility, 0.0, 1.0);
