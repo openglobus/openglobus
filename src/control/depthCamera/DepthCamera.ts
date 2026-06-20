@@ -469,8 +469,10 @@ export class DepthCamera {
     }
 
     protected _prepareOrthographicProjection(): void {
+        const cam = this.camera;
+        if (!cam.checkMoveEnd()) return;
         if (this._snapOrthographicProjectionToTexelGrid()) {
-            this.camera.update();
+            cam.update();
         }
     }
 

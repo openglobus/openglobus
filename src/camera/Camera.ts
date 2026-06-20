@@ -549,8 +549,9 @@ class Camera {
     /**
      * Checks whether the camera stopped moving and dispatches `moveend`.
      * @public
+     * @returns {boolean} `true` when the camera is moving after the check.
      */
-    public checkMoveEnd() {
+    public checkMoveEnd(): boolean {
         let r = this._r,
             u = this._u,
             b = this._b,
@@ -561,14 +562,17 @@ class Camera {
                 this.events.dispatch(this.events.moveend, this);
             }
             this.isMoving = false;
-        } else {
-            this.isMoving = true;
+            return false;
         }
+
+        this.isMoving = true;
 
         this._pr.copy(r);
         this._pu.copy(u);
         this._pb.copy(b);
         this._peye.copy(eye);
+
+        return true;
     }
 
     /**
