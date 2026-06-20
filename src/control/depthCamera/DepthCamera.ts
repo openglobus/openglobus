@@ -301,7 +301,6 @@ export class DepthCamera {
         const mainCam = this._renderer.activeCamera;
         const depthCamera = this.camera as PlanetCamera;
 
-        this._syncPlanetHeightFactor();
         this.prepareFrame();
 
         framebuffer.activate();
@@ -332,21 +331,23 @@ export class DepthCamera {
     }
 
     public prepareFrame(): void {
-        const cam = this.camera;
-        let cameraUpdated = this._snapOrthographicProjectionToTexelGrid();
+        this._syncPlanetHeightFactor();
+        this._prepareOrthographicProjection();
+        this._prepareCameraEntitySync();
+    }
 
+    protected _prepareCameraEntitySync(): void {
         const cameraFrustumEntity = this._cameraFrustumEntity;
         if (!this._showFrustum || !cameraFrustumEntity) {
-            if (cameraUpdated) {
-                cam.update();
-            }
             return;
         }
 
+        const cam = this.camera;
         const cameraFrustumEntityPos = cameraFrustumEntity.getAbsoluteCartesian();
         const cameraFrustumEntityPitch = cameraFrustumEntity.getPitch();
         const cameraFrustumEntityYaw = cameraFrustumEntity.getYaw();
         const cameraFrustumEntityRoll = cameraFrustumEntity.getRoll();
+        let cameraUpdated = false;
 
         if (this._prevCameraPos.equal(cam.eye) && !this._prevCameraPos.equal(cameraFrustumEntityPos)) {
             cam.eye.copy(cameraFrustumEntityPos);
@@ -380,7 +381,7 @@ export class DepthCamera {
         }
     }
 
-    public finishFrame(): void {
+    protected _finishCameraEntitySync(): void {
         const cameraFrustumEntity = this._cameraFrustumEntity;
         if (!this._showFrustum || !cameraFrustumEntity) return;
 
@@ -406,6 +407,10 @@ export class DepthCamera {
                 this._planet.ellipsoid.cartesianToLonLat(cameraFrustumEntity.getAbsoluteCartesian())
             );
         }
+    }
+
+    public finishFrame(): void {
+        this._finishCameraEntitySync();
     }
 
     public renderFootprint(): void {
@@ -463,10 +468,16 @@ export class DepthCamera {
         this._forceOwnQuadTreeStrategyPass = true;
     }
 
+    protected _prepareOrthographicProjection(): void {
+        if (this._snapOrthographicProjectionToTexelGrid()) {
+            this.camera.update();
+        }
+    }
+
     protected _snapOrthographicProjectionToTexelGrid(): boolean {
         const cam = this.camera;
 
-        if (!this._initialized || !cam.isOrthographic) {
+        if (!cam.isOrthographic) {
             return false;
         }
 
