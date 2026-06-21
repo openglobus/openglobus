@@ -10,7 +10,7 @@ export { ShadowMap } from "./ShadowMap";
 
 export const MAX_SHADOW_MAPS = 4;
 export const DEFAULT_SHADOW_TEXTURE_UNIT_START = 10;
-export const VARIANCE_SHADOW_ENABLED = true;
+export const VARIANCE_SHADOW_ENABLED = false;
 
 export class ShadowManager {
     protected _renderer: Renderer;

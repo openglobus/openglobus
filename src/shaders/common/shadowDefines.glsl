@@ -3,7 +3,7 @@
 */
 
 #ifndef VARIANCE_SHADOW_ENABLED
-#define VARIANCE_SHADOW_ENABLED 1
+#define VARIANCE_SHADOW_ENABLED 0
 #endif
 
 #ifndef VARIANCE_BLUR_RADIUS
@@ -28,7 +28,7 @@
 */
 
 #ifndef SHADOW_MAP_PCF
-#define SHADOW_MAP_PCF 3
+#define SHADOW_MAP_PCF 5
 #endif
 
 #ifndef SHADOW_MAP_SLOPE_DEPTH_BIAS
