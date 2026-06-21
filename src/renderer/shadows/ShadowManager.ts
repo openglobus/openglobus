@@ -431,7 +431,7 @@ export class ShadowManager {
                 size,
                 size,
                 MAX_SHADOW_MAPS,
-                "NEAREST",
+                "LINEAR",
                 "R32F",
                 "CLAMP_TO_EDGE",
                 1

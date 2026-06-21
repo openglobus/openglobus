@@ -397,7 +397,7 @@ export class ProjectorManager {
             size,
             size,
             capacity,
-            "NEAREST",
+            "LINEAR",
             "R32F",
             "CLAMP_TO_EDGE",
             1

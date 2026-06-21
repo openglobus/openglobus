@@ -78,7 +78,7 @@ const depthCamera = new DepthCamera({
     isOrthographic: true,
     geoObjectDepthCullFace: "back",
     showFrustum: true,
-    showFootprint: true
+    showFootprint: false
 });
 
 depthCameraHandler.add(depthCamera);
