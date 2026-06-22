@@ -663,6 +663,14 @@ class Camera {
     }
 
     /**
+     * Updates camera slope against the horizontal XZ plane.
+     * @public
+     */
+    public updateCameraSlope(): void {
+        this.slope = this._b.y;
+    }
+
+    /**
      * Updates camera view space
      * @public
      * @virtual
@@ -702,6 +710,8 @@ class Camera {
             this.frustums[i].setViewMatrix(this._viewMatrix);
             this.frustums[i].setProjectionViewRTEMatrix(this._viewMatrixRTE);
         }
+
+        this.updateCameraSlope();
 
         this.events.dispatch(this.events.viewchange, this);
     }

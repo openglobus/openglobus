@@ -27,7 +27,7 @@ const TEXEL_SNAP_EPSILON = 1e-9;
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
 const PERIMETER_STEP_PX = 1;
 const DEFAULT_CAMERA_FRUSTUM_LENGTH = 2.5;
-const RENDER_SKIRTS_MIN_PITCH = -10 * RADIANS;
+const RENDER_SKIRTS_SLOPE = 0.3;
 
 const cameraFrustumObj = Object3d.createFrustum();
 
@@ -633,6 +633,7 @@ export class DepthCamera {
         }
 
         this._forceOwnQuadTreeStrategyPass = false;
+        depthCamera.updateCameraSlope();
 
         const quadTreeStrategy = this.quadTreeStrategy;
         quadTreeStrategy.maxZoomLimit = planet.quadTreeStrategy.maxCurrZoom;
@@ -648,7 +649,7 @@ export class DepthCamera {
 
         if (!planet) return;
 
-        let checkPitch = camera.getPitch() > RENDER_SKIRTS_MIN_PITCH;
+        let checkSlope = camera.isOrthographic && camera.slope < RENDER_SKIRTS_SLOPE;
 
         h.programs.depth_camera.activate();
         const sh = h.programs.depth_camera;
@@ -659,14 +660,14 @@ export class DepthCamera {
 
         if (this.enableSegmentFaceCulling) {
             gl.enable(gl.CULL_FACE);
-        } else if (checkPitch) {
+        } else if (checkSlope) {
             gl.disable(gl.CULL_FACE);
         }
 
         const isEq = planet.terrain!.equalizeVertices;
         const baseLayerSlice = planet.visibleTileLayers.length ? [planet.visibleTileLayers[0]] : undefined;
         const rn = quadTreeStrategy._renderedNodesInFrustum[camera.getCurrentFrustum()];
-        const renderSkirts = this.enableSegmentSkirts && checkPitch;
+        const renderSkirts = this.enableSegmentSkirts && checkSlope;
 
         let i = rn.length;
         while (i--) {

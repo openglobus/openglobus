@@ -197,10 +197,16 @@ class PlanetCamera extends Camera {
 
         this.updateGeodeticPosition();
 
+        this.events.dispatch(this.events.viewchange, this);
+    }
+
+    /**
+     * Updates camera slope against the planet surface normal.
+     * @public
+     */
+    public override updateCameraSlope(): void {
         this.eyeNorm = this.eye.getNormal();
         this.slope = this._b.dot(this.eyeNorm);
-
-        this.events.dispatch(this.events.viewchange, this);
     }
 
     /**
