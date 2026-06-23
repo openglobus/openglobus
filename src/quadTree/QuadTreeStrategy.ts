@@ -41,6 +41,8 @@ export class QuadTreeStrategy {
 
     public lodCamera: PlanetCamera | null = null;
 
+    public disableNeighbors: boolean = false;
+
     /**
      * grid tree list.
      * @protected

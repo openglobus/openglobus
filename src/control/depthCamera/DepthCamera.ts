@@ -637,6 +637,7 @@ export class DepthCamera {
 
         const quadTreeStrategy = this.quadTreeStrategy;
         quadTreeStrategy.maxZoomLimit = planet.quadTreeStrategy.maxCurrZoom;
+        quadTreeStrategy.disableNeighbors = true;
         quadTreeStrategy.collectRenderNodes(depthCamera);
 
         return quadTreeStrategy;
@@ -664,17 +665,18 @@ export class DepthCamera {
             gl.disable(gl.CULL_FACE);
         }
 
-        const isEq = planet.terrain!.equalizeVertices;
+        //const isEq = planet.terrain!.equalizeVertices;
         const baseLayerSlice = planet.visibleTileLayers.length ? [planet.visibleTileLayers[0]] : undefined;
         const rn = quadTreeStrategy._renderedNodesInFrustum[camera.getCurrentFrustum()];
-        const renderSkirts = this.enableSegmentSkirts && checkSlope;
+        //const renderSkirts = this.enableSegmentSkirts && checkSlope;
+        const renderSkirts = true;
 
         let i = rn.length;
         while (i--) {
             const s = rn[i].segment;
             if (!s.node) continue;
             if (s._transitionOpacity >= 1) {
-                isEq && s.equalize();
+                //isEq && s.equalize();
                 s.readyToEngage && s.engage();
                 s.ensureIndexBuffer();
                 s.updateRTCEyePosition(camera);
@@ -685,7 +687,7 @@ export class DepthCamera {
         for (let j = 0; j < quadTreeStrategy._fadingOpaqueSegments.length; ++j) {
             const s = quadTreeStrategy._fadingOpaqueSegments[j];
             if (!s.node) continue;
-            isEq && s.equalize();
+            //isEq && s.equalize();
             s.readyToEngage && s.engage();
             s.ensureIndexBuffer();
             s.updateRTCEyePosition(camera);

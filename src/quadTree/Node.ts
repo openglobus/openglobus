@@ -623,6 +623,8 @@ class Node {
      * @public
      */
     public getRenderedNodesNeighbors(nodes: Node[]) {
+        if (this.quadTreeStrategy.disableNeighbors) return;
+
         for (let i = nodes.length - 1; i >= 0; --i) {
             let ni = nodes[i];
             let cs = this.getCommonSide(ni);

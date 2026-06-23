@@ -11,6 +11,7 @@ import {
     Object3d,
     ShadowMap,
     DepthCamera,
+    XYZ,
     Vec3
 } from "../../lib/og.es.js";
 
@@ -22,7 +23,14 @@ const globus = new Globe({
     target: "earth",
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
-    layers: [new Bing(), new OpenStreetMap(), myObjects],
+    layers: [
+        new XYZ("white", {
+            isBaseLayer: true
+        }),
+        new Bing(),
+        new OpenStreetMap(),
+        myObjects
+    ],
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts"
     //reverseDepth: false
