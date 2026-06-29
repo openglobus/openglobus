@@ -58,6 +58,11 @@ import { Segment } from "../segment/Segment";
 import type { AtmosphereParameters } from "../shaders/atmos/atmos";
 import { AtmosphereDeferredShading } from "../renderer/AtmosphereDeferredShading";
 import { PhongDeferredShading } from "../renderer/PhongDeferredShading";
+import {
+    TERRAIN_CASCADE_SHADOW_TEXTURE_UNIT_OFFSET,
+    TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET,
+    TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET
+} from "../renderer/textureUnits";
 import { normalizeShadeMode, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "../shadeModeConstants";
 
 export interface IPlanetParams {
@@ -1233,6 +1238,8 @@ export class Planet extends Scene {
         this.camera.events.on("frustumschanged", () => {
             this.camera.bindFrustumsPickingColors(this.renderer!);
         });
+
+        this.renderer!.cascadeShadowManager.bindPlanet(this);
     }
 
     /**
@@ -1644,10 +1651,11 @@ export class Planet extends Scene {
         gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
         gl.uniform1f(shu.camHeight, cam.getHeight());
-
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
-        renderer.projectors.bindForward(sh, this.SLICE_SIZE + 6);
-        renderer.shadows.bindForward(sh, this.SLICE_SIZE + 10);
+
+        renderer.projectors.bindForward(sh, this.SLICE_SIZE + TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET);
+        renderer.shadows.bindForward(sh, this.SLICE_SIZE + TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET);
+        renderer.cascadeShadowManager.bindForward(sh, this.SLICE_SIZE + TERRAIN_CASCADE_SHADOW_TEXTURE_UNIT_OFFSET);
 
         return sh;
     }
@@ -1714,8 +1722,10 @@ export class Planet extends Scene {
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
         gl.uniform3fv(shu.cameraForward, cam.getForward().toArray());
         gl.uniform1f(shu.isOrthographic, cam.isOrthographic ? 1.0 : 0.0);
-        renderer.projectors.bindForward(sh, this.SLICE_SIZE + 6);
-        renderer.shadows.bindForward(sh, this.SLICE_SIZE + 10);
+
+        renderer.projectors.bindForward(sh, this.SLICE_SIZE + TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET);
+        renderer.shadows.bindForward(sh, this.SLICE_SIZE + TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET);
+        renderer.cascadeShadowManager.bindForward(sh, this.SLICE_SIZE + TERRAIN_CASCADE_SHADOW_TEXTURE_UNIT_OFFSET);
 
         return sh;
     }
@@ -2515,6 +2525,7 @@ export class Planet extends Scene {
         if (this.renderer) {
             this.renderer.events.off("draw", this.onDraw);
             this.renderer.events.off("predraw", this.onPreDraw);
+            this.renderer.cascadeShadowManager.unbindPlanet();
         }
         this.memClear(true);
         this.quadTreeStrategy.destroyBranches();

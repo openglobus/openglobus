@@ -21,6 +21,7 @@ import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { ITransparencyPass } from "./ITransparencyPass";
 import { PhongDeferredShading } from "./PhongDeferredShading";
 import { ProjectorManager } from "./projectors/ProjectorManager";
+import { CascadeShadowManager } from "./cascadeShadows/CascadeShadowManager";
 import { ShadowManager } from "./shadows/ShadowManager";
 import { TextureResourceManager } from "../utils/TextureResourceManager";
 import type { RendererTextureRequest } from "../utils/TextureResourceManager";
@@ -275,6 +276,7 @@ class Renderer {
     public _lightDiffuse: Float32Array;
     public _lightSpecular: Float32Array;
     public projectors: ProjectorManager;
+    public cascadeShadowManager: CascadeShadowManager;
     public shadows: ShadowManager;
 
     //public lightColor: Float32Array;
@@ -305,6 +307,7 @@ class Renderer {
         this._lightDiffuse = new Float32Array(3);
         this._lightSpecular = new Float32Array(4);
         this.projectors = new ProjectorManager(this);
+        this.cascadeShadowManager = new CascadeShadowManager(this);
         this.shadows = new ShadowManager(this);
 
         this.lightAmbient = params.lightAmbient || [0.2, 0.2, 0.2];
@@ -898,6 +901,8 @@ class Renderer {
         this.outputTexture = this.screenTexture.screen;
 
         this._appendControlContainers();
+
+        this.cascadeShadowManager.init();
 
         this._initializeScenes();
 
@@ -1869,6 +1874,7 @@ class Renderer {
 
         this._textureResourceManager.clear();
         this.projectors.clear();
+        this.cascadeShadowManager.destroy();
         this.shadows.clear();
 
         this.handler.ONCANVASRESIZE = null;
