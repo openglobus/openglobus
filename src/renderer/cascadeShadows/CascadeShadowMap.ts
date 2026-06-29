@@ -28,8 +28,6 @@ const MIN_CASCADE_SPLIT_DISTANCE = 1e-6;
 const MIN_CASCADE_LIGHT_DISTANCE = 1e-3;
 const MIN_CASCADE_LIGHT_SIZE = 1e-3;
 
-export const MAX_CASCADE_SHADOW_MAPS = 4;
-
 /**
  * Cascade shadow map split configuration.
  * @property enabled - Enables the cascade.
@@ -52,13 +50,13 @@ export interface CascadeParams {
  * Cascade shadow map configuration options.
  * @property enabled - Enables cascade shadow rendering.
  * @property size - Shadow map texture size in pixels.
- * @property cascadeCount - Number of cascade splits. Clamped to [1, MAX_CASCADE_SHADOW_MAPS].
+ * @property cascadeCount - Number of generated cascade splits when cascades is not provided.
  * @property maxDistance - Maximum camera distance covered by all cascade splits.
  * @property splitLambda - Blend factor between uniform and logarithmic split distribution.
  * @property verticalViewAngle - Vertical view angle for the orthographic cascade camera.
  * @property casterMargin - Minimum light-space depth margin for shadow casters in world units.
  * @property excludeLayers - Vector layers excluded from cascade shadow rendering.
- * @property cascades - Per-cascade parameter overrides.
+ * @property cascades - Per-cascade parameter overrides. When provided, its length defines cascade count.
  */
 export interface ICascadeShadowMapParams {
     enabled?: boolean;
@@ -105,10 +103,12 @@ export class CascadeShadowMap {
         this._enabled = params.enabled ?? true;
 
         this.size = params.size || DEFAULT_CASCADE_SHADOW_SIZE;
-        const cascadeCount = Math.max(
-            1,
-            Math.min(params.cascadeCount || DEFAULT_CASCADE_COUNT, MAX_CASCADE_SHADOW_MAPS)
-        );
+
+        const cascadeCount =
+            params.cascades && params.cascades.length > 0
+                ? params.cascades.length
+                : params.cascadeCount || DEFAULT_CASCADE_COUNT;
+
         this.maxDistance = params.maxDistance || DEFAULT_CASCADE_MAX_DISTANCE;
         this.splitLambda = Math.max(0.0, Math.min(params.splitLambda ?? DEFAULT_CASCADE_SPLIT_LAMBDA, 1.0));
         this.verticalViewAngle = params.verticalViewAngle || DEFAULT_VERTICAL_VIEW_ANGLE;

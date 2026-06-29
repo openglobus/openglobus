@@ -3,7 +3,10 @@ import type { Planet } from "../../scene/Planet";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { Renderer } from "../Renderer";
 import { DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START } from "../textureUnits";
-import { CascadeShadowMap, MAX_CASCADE_SHADOW_MAPS } from "./CascadeShadowMap";
+import { CascadeShadowMap } from "./CascadeShadowMap";
+
+// Must match MAX_CASCADE_COUNT in cascadeShadows.glsl.
+const MAX_CASCADE_COUNT = 4;
 
 export class CascadeShadowManager {
     protected _renderer: Renderer;
@@ -26,12 +29,12 @@ export class CascadeShadowManager {
         this._cascadeShadowMaps = [];
         this._activeCascadeShadowMaps = [];
 
-        this._viewProjData = new Float32Array(MAX_CASCADE_SHADOW_MAPS * 16);
-        this._eyeRelData = new Float32Array(MAX_CASCADE_SHADOW_MAPS * 3);
-        this._paramsData = new Float32Array(MAX_CASCADE_SHADOW_MAPS * 4);
-        this._splitsData = new Float32Array(MAX_CASCADE_SHADOW_MAPS * 4);
+        this._viewProjData = new Float32Array(MAX_CASCADE_COUNT * 16);
+        this._eyeRelData = new Float32Array(MAX_CASCADE_COUNT * 3);
+        this._paramsData = new Float32Array(MAX_CASCADE_COUNT * 4);
+        this._splitsData = new Float32Array(MAX_CASCADE_COUNT * 4);
         this._viewForwardData = new Float32Array(3);
-        this._layerData = new Int32Array(MAX_CASCADE_SHADOW_MAPS);
+        this._layerData = new Int32Array(MAX_CASCADE_COUNT);
         this._updateActiveCascadeShadowMaps = true;
         this._initialized = false;
     }
@@ -157,7 +160,7 @@ export class CascadeShadowManager {
             return 0;
         }
 
-        const size = csm.cascades.length > MAX_CASCADE_SHADOW_MAPS ? MAX_CASCADE_SHADOW_MAPS : csm.cascades.length;
+        const size = Math.min(csm.cascades.length, MAX_CASCADE_COUNT);
         const activeCameraEye = this._renderer.activeCamera.eye;
 
         for (let i = 0; i < size; i++) {

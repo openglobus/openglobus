@@ -1,4 +1,4 @@
-const int MAX_CASCADE_SHADOW_MAPS = 4;
+const int MAX_CASCADE_COUNT = 4;
 
 // u_cascadeShadowParams layout:
 // x = depthBias        // normalized shadow depth bias, applied to receiver depth
@@ -11,11 +11,11 @@ const int MAX_CASCADE_SHADOW_MAPS = 4;
 // y = main camera split far distance
 // z,w reserved
 
-uniform mat4 u_cascadeShadowViewProjRTE[MAX_CASCADE_SHADOW_MAPS];
-uniform vec4 u_cascadeShadowParams[MAX_CASCADE_SHADOW_MAPS];
-uniform vec4 u_cascadeShadowSplits[MAX_CASCADE_SHADOW_MAPS];
-uniform vec3 u_cascadeShadowEyeRel[MAX_CASCADE_SHADOW_MAPS];
-uniform int u_cascadeShadowLayer[MAX_CASCADE_SHADOW_MAPS];
+uniform mat4 u_cascadeShadowViewProjRTE[MAX_CASCADE_COUNT];
+uniform vec4 u_cascadeShadowParams[MAX_CASCADE_COUNT];
+uniform vec4 u_cascadeShadowSplits[MAX_CASCADE_COUNT];
+uniform vec3 u_cascadeShadowEyeRel[MAX_CASCADE_COUNT];
+uniform int u_cascadeShadowLayer[MAX_CASCADE_COUNT];
 uniform int u_cascadeShadowCount;
 uniform vec3 u_cascadeShadowViewForward;
 
@@ -168,7 +168,7 @@ vec2 getCascadeShadowVisibilityData(int cascadeIndex, vec3 rtcPos, vec3 normal) 
 }
 
 int getCascadeShadowIndex(float viewDepth) {
-    for (int i = 0; i < MAX_CASCADE_SHADOW_MAPS; i++) {
+    for (int i = 0; i < MAX_CASCADE_COUNT; i++) {
         if (i >= u_cascadeShadowCount) {
             break;
         }
