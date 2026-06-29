@@ -1,5 +1,4 @@
 const int MAX_SHADOW_MAPS = 4;
-const float SHADOW_MAP_INTENSITY = 0.9;
 
 // u_shadowMapParams layout:
 // x = depthBias        // normalized shadow depth bias, applied to receiver depth

@@ -171,6 +171,35 @@ export class BaseFramebuffer {
     }
 
     /**
+     * Checks active framebuffer completeness and logs readable status on failure.
+     * @public
+     * @param {string} [message] - Warning message prefix.
+     * @returns {boolean} `true` when active framebuffer is complete.
+     */
+    public validateComplete(message?: string): boolean {
+        const gl = this.handler.gl;
+
+        if (!gl) {
+            return false;
+        }
+
+        const status = this.checkStatus();
+
+        if (status === gl.FRAMEBUFFER_COMPLETE) {
+            return true;
+        }
+
+        const statusText = `status=${this.statusToText(status)}`;
+        console.warn(
+            message
+                ? `${message} (${statusText})`
+                : `BaseFramebuffer.validateComplete(): framebuffer incomplete (${statusText}).`
+        );
+
+        return false;
+    }
+
+    /**
      * Binds a 2D texture to the active framebuffer color attachment.
      * @public
      * @param {WebGLTexture} texture - Output texture.

@@ -27,6 +27,11 @@
     PCF/Hard shadow map parameters
 */
 
+#ifndef SHADOW_MAP_INTENSITY_DEFINED
+#define SHADOW_MAP_INTENSITY_DEFINED
+const float SHADOW_MAP_INTENSITY = 0.9;
+#endif
+
 #ifndef SHADOW_MAP_PCF
 #define SHADOW_MAP_PCF 5
 #endif

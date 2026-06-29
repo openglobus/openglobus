@@ -3,10 +3,8 @@ import { cons } from "../../cons";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
 import type { Renderer } from "../Renderer";
+import { DEFAULT_PROJECTOR_TEXTURE_UNIT_START } from "../textureUnits";
 import { Projector } from "./Projector";
-
-export type { ProjectorSourceType, ProjectorRenderMode, IProjectorParams } from "./Projector";
-export { Projector } from "./Projector";
 
 /**
  * Maximum number of depth layers allocated in manager-owned projector array texture.
@@ -23,8 +21,6 @@ const INITIAL_PROJECTOR_LAYERS = 8;
 export const MAX_FORWARD_PROJECTORS = 8;
 
 /** Default texture unit where the depth array sampler is bound. */
-export const DEFAULT_PROJECTOR_TEXTURE_UNIT_START = 6;
-
 export class ProjectorManager {
     protected _renderer: Renderer;
     protected _projectors: Projector[];

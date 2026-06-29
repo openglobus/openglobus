@@ -68,8 +68,6 @@ export class QuadTreeStrategy {
 
     public _fadingNodes: Map<number, Node>;
 
-    public _fadingNodesInFrustum: Node[][];
-
     public _fadingOpaqueSegments: Segment[];
 
     public _transparentSegments: Segment[];
@@ -127,7 +125,6 @@ export class QuadTreeStrategy {
         this._renderedNodesInFrustum = [];
 
         this._fadingNodes = new Map<number, Node>();
-        this._fadingNodesInFrustum = [];
         this._fadingOpaqueSegments = [];
         this._transparentSegments = [];
 

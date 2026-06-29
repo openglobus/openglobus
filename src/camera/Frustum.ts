@@ -334,11 +334,28 @@ class Frustum {
      * @param {number} top - Top orthographic bound.
      */
     setOrthoBounds(left: number, right: number, bottom: number, top: number): void {
+        this.setOrthoProjection(left, right, bottom, top, this.near, this.far);
+    }
+
+    /**
+     * Updates orthographic projection bounds and clipping planes in one projection rebuild.
+     * @public
+     * @param {number} left - Left orthographic bound.
+     * @param {number} right - Right orthographic bound.
+     * @param {number} bottom - Bottom orthographic bound.
+     * @param {number} top - Top orthographic bound.
+     * @param {number} near - Near clipping plane distance.
+     * @param {number} far - Far clipping plane distance.
+     */
+    public setOrthoProjection(left: number, right: number, bottom: number, top: number, near: number, far: number): void {
         this.left = left;
         this.right = right;
         this.bottom = bottom;
         this.top = top;
-        this.projectionMatrix.setOrthographic(left, right, bottom, top, this.near, this.far);
+        this.near = near;
+        this.far = far;
+        this.depthOffsetNear = near * 1.001 + 1e-6;
+        this.projectionMatrix.setOrthographic(left, right, bottom, top, near, far);
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
     }
 

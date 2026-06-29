@@ -3,13 +3,10 @@ import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
 import { varianceBlur } from "../../shaders/varianceBlur";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { Renderer } from "../Renderer";
+import { DEFAULT_SHADOW_TEXTURE_UNIT_START } from "../textureUnits";
 import { ShadowMap } from "./ShadowMap";
 
-export type { IShadowMapParams } from "./ShadowMap";
-export { ShadowMap } from "./ShadowMap";
-
 export const MAX_SHADOW_MAPS = 4;
-export const DEFAULT_SHADOW_TEXTURE_UNIT_START = 10;
 export const VARIANCE_SHADOW_ENABLED = false;
 
 export class ShadowManager {

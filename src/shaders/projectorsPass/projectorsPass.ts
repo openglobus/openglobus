@@ -1,4 +1,5 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
+import { projectorUniforms } from "../common/uniforms";
 
 import vert from "./projectorsPass.vert.glsl";
 import frag from "./projectorsPass.frag.glsl";
@@ -11,13 +12,7 @@ export function projectorsPass(): ShaderProgram {
             u_materialsTexture: "sampler2d",
             u_normalTexture: "sampler2d",
             u_viewPositionTexture: "sampler2d",
-            u_projectorCount: "int",
-            u_projectorLayer: "intxx",
-            u_projectorViewProjRTE: "mat4",
-            u_projectorEyeRel: "vec3",
-            u_projectorColor: "vec4",
-            u_projectorParams: "vec4",
-            u_projectorDepthArray: "sampler2darray"
+            ...projectorUniforms
         },
         attributes: {
             a_corners: "vec3"
