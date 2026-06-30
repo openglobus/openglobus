@@ -7,6 +7,7 @@ precision highp float;
 #include "../common/normals.glsl"
 #include "../common/projectors.glsl"
 #include "../common/shadows.glsl"
+#include "../common/cascadeShadows.glsl"
 
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
@@ -73,7 +74,10 @@ void main(void) {
     float receiveShadows = float(receiveMask & RECEIVE_SHADOWS) / float(RECEIVE_SHADOWS);
     projectorEmission *= receiveProjectors;
     projectorLight *= receiveProjectors;
-    float shadowVisibility = mix(1.0, getShadowMapsDirectVisibility(v_rtcPos, normal), receiveShadows);
+    float directShadowVisibility =
+        getShadowMapsDirectVisibility(v_rtcPos, normal) *
+        getCascadeShadowDirectVisibility(v_rtcPos, normal);
+    float shadowVisibility = mix(1.0, directShadowVisibility, receiveShadows);
 
     if (shade == SHADE_UNLIT) {
         color = baseColor;

@@ -1,5 +1,6 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { stringTemplate2 } from "../../utils/shared";
+import { cascadeShadowUniforms, projectorUniforms, shadowMapUniforms } from "../common/uniforms";
 import type { AtmosphereParameters } from "../atmos/atmos";
 import { DEFAULT_PARAMS } from "../atmos/atmos";
 import geo_object_vert from "./geo_object.vert.glsl";
@@ -66,12 +67,6 @@ export const geo_object_forward = (): ShaderProgram =>
             lightAmbient: "vec3",
             lightDiffuse: "vec3",
             lightSpecular: "vec4",
-            u_shadowMapCount: "int",
-            u_shadowMapLayer: "intxx",
-            u_shadowMapViewProjRTE: "mat4",
-            u_shadowMapEyeRel: "vec3",
-            u_shadowMapParams: "vec4",
-            u_shadowMapDepthArray: "sampler2darray",
             materialProperties: "vec3",
             uColorTexture: "sampler2d",
             uNormalTexture: "sampler2d",
@@ -82,7 +77,9 @@ export const geo_object_forward = (): ShaderProgram =>
             uUseMetallicRoughnessTexture: "float",
             uUseAOTexture: "float",
             shadeMode: "float",
-            uReceiveMask: "float"
+            uReceiveMask: "float",
+            ...shadowMapUniforms,
+            ...cascadeShadowUniforms
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -128,19 +125,9 @@ export const geo_object_woit = (): ShaderProgram =>
             shadeMode: "float",
             uReceiveMask: "float",
             useReverseDepth: "float",
-            u_projectorCount: "int",
-            u_projectorLayer: "intxx",
-            u_projectorViewProjRTE: "mat4",
-            u_projectorEyeRel: "vec3",
-            u_projectorColor: "vec4",
-            u_projectorParams: "vec4",
-            u_projectorDepthArray: "sampler2darray",
-            u_shadowMapCount: "int",
-            u_shadowMapLayer: "intxx",
-            u_shadowMapViewProjRTE: "mat4",
-            u_shadowMapEyeRel: "vec3",
-            u_shadowMapParams: "vec4",
-            u_shadowMapDepthArray: "sampler2darray"
+            ...projectorUniforms,
+            ...shadowMapUniforms,
+            ...cascadeShadowUniforms
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -192,19 +179,9 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             atmosMaxMinOpacity: "vec3",
             cameraForward: "vec3",
             isOrthographic: "float",
-            u_projectorCount: "int",
-            u_projectorLayer: "intxx",
-            u_projectorViewProjRTE: "mat4",
-            u_projectorEyeRel: "vec3",
-            u_projectorColor: "vec4",
-            u_projectorParams: "vec4",
-            u_projectorDepthArray: "sampler2darray",
-            u_shadowMapCount: "int",
-            u_shadowMapLayer: "intxx",
-            u_shadowMapViewProjRTE: "mat4",
-            u_shadowMapEyeRel: "vec3",
-            u_shadowMapParams: "vec4",
-            u_shadowMapDepthArray: "sampler2darray"
+            ...projectorUniforms,
+            ...shadowMapUniforms,
+            ...cascadeShadowUniforms
         },
         attributes: {
             aVertexPosition: "vec3",

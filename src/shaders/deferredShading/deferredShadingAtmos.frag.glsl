@@ -8,6 +8,7 @@ precision highp sampler2DArray;
 #include "../atmos/common.glsl"
 #include "../common/lighting.glsl"
 #include "../common/shadows.glsl"
+#include "../common/cascadeShadows.glsl"
 
 uniform sampler2D baseTexture;
 uniform sampler2D materialsTexture;
@@ -62,7 +63,10 @@ void main(void) {
     float specularMask = materials.b;
     int receiveMask = int(materials.a + 0.5);
     float receiveShadows = float(receiveMask & RECEIVE_SHADOWS) / float(RECEIVE_SHADOWS);
-    float shadowVisibility = mix(1.0, getShadowMapsDirectVisibility(rtcPos, normal), receiveShadows);
+    float directShadowVisibility =
+        getShadowMapsDirectVisibility(rtcPos, normal) *
+        getCascadeShadowDirectVisibility(rtcPos, normal);
+    float shadowVisibility = mix(1.0, directShadowVisibility, receiveShadows);
 
     vec3 sunPos = lightPosition;
 

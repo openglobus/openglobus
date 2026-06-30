@@ -10,6 +10,7 @@ precision highp float;
 #include "../common/lighting.glsl"
 #include "../common/projectors.glsl"
 #include "../common/shadows.glsl"
+#include "../common/cascadeShadows.glsl"
 
 uniform vec4 specular;
 uniform vec3 diffuse;
@@ -69,7 +70,9 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
-    float shadowVisibility = getShadowMapsDirectVisibility(v_rtcPos, normal);
+    float shadowVisibility =
+        getShadowMapsDirectVisibility(v_rtcPos, normal) *
+        getCascadeShadowDirectVisibility(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
         diffuseColor.rgb += projectorEmission;

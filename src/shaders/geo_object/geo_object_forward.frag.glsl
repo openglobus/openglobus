@@ -5,6 +5,7 @@ precision highp float;
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
 #include "../common/shadows.glsl"
+#include "../common/cascadeShadows.glsl"
 
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
@@ -67,7 +68,10 @@ void main(void) {
 
     int receiveMask = int(uReceiveMask + 0.5);
     float receiveShadows = float(receiveMask & RECEIVE_SHADOWS) / float(RECEIVE_SHADOWS);
-    float shadowVisibility = mix(1.0, getShadowMapsDirectVisibility(v_rtcPos, normal), receiveShadows);
+    float directShadowVisibility =
+        getShadowMapsDirectVisibility(v_rtcPos, normal) *
+        getCascadeShadowDirectVisibility(v_rtcPos, normal);
+    float shadowVisibility = mix(1.0, directShadowVisibility, receiveShadows);
 
     vec3 material = materialProperties;
     if (uUseAOTexture > 0.0) {
