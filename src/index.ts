@@ -25,6 +25,7 @@ export type { ProjectorSourceType, ProjectorRenderMode, IProjectorParams } from 
 export { Projector } from "./renderer/projectors/Projector";
 export type { IShadowMapParams } from "./renderer/shadows/ShadowMap";
 export { ShadowMap } from "./renderer/shadows/ShadowMap";
+export { CascadeShadowMap } from "./renderer/cascadeShadows/CascadeShadowMap";
 export type { IDepthCameraParams } from "./control/depthCamera/DepthCamera";
 export { DepthCamera } from "./control/depthCamera/DepthCamera";
 export type { IDepthCameraHandlerParams } from "./control/depthCamera/DepthCameraHandler";

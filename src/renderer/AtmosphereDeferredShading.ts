@@ -1,5 +1,6 @@
 import { deferredShadingAtmos } from "../shaders/deferredShading/deferredShadingAtmos";
 import { PhongDeferredShading } from "./PhongDeferredShading";
+import { DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START, DEFAULT_SHADOW_TEXTURE_UNIT_START } from "./textureUnits";
 import type { Renderer } from "./Renderer";
 import type { Atmosphere } from "../control/atmosphere/Atmosphere";
 import type { AtmosphereParameters } from "../shaders/atmos/atmos";
@@ -82,7 +83,8 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         gl.bindTexture(gl.TEXTURE_2D, this._atmosphere._scatteringBuffer!.textures[0]);
         gl.uniform1i(p.uniforms.scatteringTexture, 5);
 
-        r.shadows.bindForward(p, 10);
+        r.shadows.bindForward(p, DEFAULT_SHADOW_TEXTURE_UNIT_START);
+        r.cascadeShadowManager.bindForward(p, DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 

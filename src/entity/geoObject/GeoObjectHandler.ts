@@ -575,6 +575,7 @@ export class GeoObjectHandler {
         }
         r.projectors.bindForward(p);
         r.shadows.bindForward(p);
+        r.cascadeShadowManager.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -593,6 +594,7 @@ export class GeoObjectHandler {
         this._bindCommon(p);
         this._bindForwardParams(p);
         r.shadows.bindForward(p);
+        r.cascadeShadowManager.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -609,6 +611,7 @@ export class GeoObjectHandler {
         this._bindCommon(p);
         this._bindForwardParams(p);
         r.shadows.bindForward(p);
+        r.cascadeShadowManager.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawForwardAll(p);
