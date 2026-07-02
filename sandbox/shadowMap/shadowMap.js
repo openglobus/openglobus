@@ -120,8 +120,8 @@ const depthPreview = new control.FramebufferPreview({
     title: `ShadowMap`,
     arrayTexture: shadowMap.arrayTexture,
     arrayLayer: shadowMap.slot,
-    width: depthCamera.framebuffer.width,
-    height: depthCamera.framebuffer.height,
+    width: 400,//depthCamera.framebuffer.width,
+    height: 400,//depthCamera.framebuffer.height,
     image: depthPreviewShader,
     flippedY: true
 });

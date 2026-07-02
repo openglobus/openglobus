@@ -50,8 +50,8 @@ export class FramebufferPreview extends Control {
 
         this._dialog = new Dialog<null>({
             title: params.title || "",
-            width: 580,
-            height: 340,
+            width: params.width ?? 580,
+            height: params.height ?? 340,
             left: params.left || 100,
             top: params.top || 100,
             useHide: true
