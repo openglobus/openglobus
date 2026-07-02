@@ -69,8 +69,8 @@ globus.planet.addControl(depthCameraHandler);
 const depthCamera = new DepthCamera({
     enableSegmentSkirts: true,
     enableSegmentFaceCulling: false,
-    width: 2048,
-    height: 2048,
+    width: 1024,
+    height: 1024,
     near: 10000,
     far: 150000,
     focusDistance: 100000,
