@@ -1,9 +1,11 @@
 import { Sphere } from "../../bv/Sphere";
 import { Camera } from "../../camera/Camera";
 import { PlanetCamera } from "../../camera/PlanetCamera";
+import { Entity } from "../../entity/Entity";
 import { Vector } from "../../layer/Vector";
 import { RADIANS_HALF } from "../../math";
 import { Vec3 } from "../../math/Vec3";
+import { Object3d } from "../../Object3d";
 import { QuadTreeStrategy } from "../../quadTree";
 import type { Node } from "../../quadTree/Node";
 import type { Renderer } from "../../renderer/Renderer";
@@ -24,9 +26,12 @@ const DEFAULT_CASCADE_ORTHOGRAPHIC_MARGIN_FACTOR = 0.02;
 const DEFAULT_CASCADE_CASTER_MARGIN = 0.0;
 const DEFAULT_CASCADE_CASTER_MARGIN_FACTOR = 0.25;
 const RENDER_SKIRTS_SLOPE = 0.3;
+const CAMERA_FRUSTUM_LENGTH = 2.5;
 const MIN_CASCADE_SPLIT_DISTANCE = 1e-6;
 const MIN_CASCADE_LIGHT_DISTANCE = 1e-3;
 const MIN_CASCADE_LIGHT_SIZE = 1e-3;
+
+const cascadeShadowCameraFrustumObj = Object3d.createFrustum();
 
 /**
  * Cascade shadow map split configuration.
@@ -82,6 +87,7 @@ export class CascadeShadowMap {
     public readonly excludeLayers: Vector[];
 
     public depthCamera: Camera;
+    public cameraFrustumEntity: Entity;
     public framebuffer: Framebuffer | null;
     public quadTreeStrategy: QuadTreeStrategy | null;
     public readonly cascades: CascadeParams[];
@@ -96,6 +102,15 @@ export class CascadeShadowMap {
     protected _lastPlanetHeightFactor: number;
     protected _cascadeBoundingSpheres: Sphere[];
     protected _depthCameraBoundingSphere: Sphere;
+    protected _useCameraFrustumEntityPose: boolean;
+    protected _prevCameraPos: Vec3;
+    protected _prevCameraPitch: number;
+    protected _prevCameraYaw: number;
+    protected _prevCameraRoll: number;
+    protected _prevCameraFrustumEntityPos: Vec3;
+    protected _prevCameraFrustumEntityPitch: number;
+    protected _prevCameraFrustumEntityYaw: number;
+    protected _prevCameraFrustumEntityRoll: number;
 
     constructor(params: ICascadeShadowMapParams = {}) {
         this.id = CascadeShadowMap.__counter__++;
@@ -116,6 +131,7 @@ export class CascadeShadowMap {
         this.excludeLayers = params.excludeLayers ? [...params.excludeLayers] : [];
         this.cascades = this._createCascadeParams(params, cascadeCount);
         this.depthCamera = this._createDepthCamera();
+        this.cameraFrustumEntity = this._createCameraFrustumEntity();
         this.framebuffer = null;
 
         this._cascadeBoundingSpheres = this._createCascadeBoundingSpheres();
@@ -128,6 +144,16 @@ export class CascadeShadowMap {
         this._depthArrayTexture = null;
         this._lastPlanetHeightFactor = 1.0;
         this.quadTreeStrategy = null;
+
+        this._useCameraFrustumEntityPose = false;
+        this._prevCameraPos = new Vec3();
+        this._prevCameraPitch = 0;
+        this._prevCameraYaw = 0;
+        this._prevCameraRoll = 0;
+        this._prevCameraFrustumEntityPos = new Vec3();
+        this._prevCameraFrustumEntityPitch = 0;
+        this._prevCameraFrustumEntityYaw = 0;
+        this._prevCameraFrustumEntityRoll = 0;
     }
 
     public get initialized(): boolean {
@@ -147,6 +173,14 @@ export class CascadeShadowMap {
 
     public get depthArrayTexture(): WebGLTexture | null {
         return this._depthArrayTexture;
+    }
+
+    public get frustumScale(): Vec3 {
+        return Object3d.getFrustumScaleByCameraAngles(
+            CAMERA_FRUSTUM_LENGTH,
+            this.depthCamera.horizontalViewAngle,
+            this.depthCamera.verticalViewAngle
+        );
     }
 
     public init(renderer: Renderer): void {
@@ -187,6 +221,7 @@ export class CascadeShadowMap {
         }
 
         this._planet = null;
+        this._useCameraFrustumEntityPose = false;
 
         if (this._initialized) {
             this.depthCamera = this._createDepthCamera();
@@ -221,6 +256,7 @@ export class CascadeShadowMap {
         this._depthArrayTexture = null;
         this._planet = null;
         this._renderer = null;
+        this._useCameraFrustumEntityPose = false;
         this._initialized = false;
     }
 
@@ -240,12 +276,13 @@ export class CascadeShadowMap {
 
     protected _prepareFrame(): void {
         this._syncPlanetHeightFactor();
+        const useCameraFrustumEntityPose = this._prepareCameraFrustumEntitySync();
         this._updateCascadeBounds();
-        this._updateDepthCamera();
+        this._updateDepthCamera(useCameraFrustumEntityPose);
     }
 
     protected _finishFrame(): void {
-        // Reserved for debug entities and future frame cleanup.
+        this._finishCameraFrustumEntitySync();
     }
 
     protected _createCascadeParams(params: ICascadeShadowMapParams, cascadeCount: number): CascadeParams[] {
@@ -303,6 +340,21 @@ export class CascadeShadowMap {
         }
 
         return spheres;
+    }
+
+    protected _createCameraFrustumEntity(): Entity {
+        return new Entity({
+            visibility: true,
+            scale: new Vec3(1, 1, 1),
+            geoObject: {
+                tag: "cascade-shadow-camera-frustum",
+                color: "rgba(255, 214, 0, 0.88)",
+                object3d: cascadeShadowCameraFrustumObj
+            },
+            properties: {
+                cascadeShadowMap: this
+            }
+        });
     }
 
     protected _createDepthCamera(planet?: Planet | null): Camera {
@@ -427,7 +479,72 @@ export class CascadeShadowMap {
         }
     }
 
-    protected _updateDepthCamera(): void {
+    protected _prepareCameraFrustumEntitySync(): boolean {
+        const cameraFrustumEntity = this.cameraFrustumEntity;
+        const cam = this.depthCamera;
+        const cameraFrustumEntityPos = cameraFrustumEntity.getAbsoluteCartesian();
+        const cameraFrustumEntityPitch = cameraFrustumEntity.getPitch();
+        const cameraFrustumEntityYaw = cameraFrustumEntity.getYaw();
+        const cameraFrustumEntityRoll = cameraFrustumEntity.getRoll();
+        let cameraUpdated = false;
+
+        if (this._prevCameraPos.equal(cam.eye) && !this._prevCameraFrustumEntityPos.equal(cameraFrustumEntityPos)) {
+            cam.eye.copy(cameraFrustumEntityPos);
+            cameraUpdated = true;
+        }
+
+        const cameraPitch = cam.getPitch();
+        const cameraYaw = cam.getYaw();
+        const cameraRoll = cam.getRoll();
+
+        if (
+            this._prevCameraPitch === cameraPitch &&
+            this._prevCameraYaw === cameraYaw &&
+            this._prevCameraRoll === cameraRoll &&
+            (this._prevCameraFrustumEntityPitch !== cameraFrustumEntityPitch ||
+                this._prevCameraFrustumEntityYaw !== cameraFrustumEntityYaw ||
+                this._prevCameraFrustumEntityRoll !== cameraFrustumEntityRoll)
+        ) {
+            cam.setPitchYawRoll(cameraFrustumEntityPitch, cameraFrustumEntityYaw, cameraFrustumEntityRoll);
+            cameraUpdated = true;
+        }
+
+        if (cameraUpdated) {
+            this._useCameraFrustumEntityPose = true;
+            cam.update();
+        }
+
+        return this._useCameraFrustumEntityPose;
+    }
+
+    protected _finishCameraFrustumEntitySync(): void {
+        const cameraFrustumEntity = this.cameraFrustumEntity;
+        const cam = this.depthCamera;
+
+        cameraFrustumEntity.setScale3v(this.frustumScale);
+        cameraFrustumEntity.setCartesian3v(cam.eye);
+        cameraFrustumEntity.setAbsolutePitch(cam.getPitch());
+        cameraFrustumEntity.setAbsoluteYaw(cam.getYaw());
+        cameraFrustumEntity.setAbsoluteRoll(cam.getRoll());
+
+        this._prevCameraPitch = cam.getPitch();
+        this._prevCameraYaw = cam.getYaw();
+        this._prevCameraRoll = cam.getRoll();
+        this._prevCameraPos.copy(cam.eye);
+
+        this._prevCameraFrustumEntityPos.copy(cameraFrustumEntity.getAbsoluteCartesian());
+        this._prevCameraFrustumEntityPitch = cameraFrustumEntity.getPitch();
+        this._prevCameraFrustumEntityYaw = cameraFrustumEntity.getYaw();
+        this._prevCameraFrustumEntityRoll = cameraFrustumEntity.getRoll();
+
+        if (this._planet && this._planet.ellipsoid) {
+            cameraFrustumEntity._lonLat.copy(
+                this._planet.ellipsoid.cartesianToLonLat(cameraFrustumEntity.getAbsoluteCartesian())
+            );
+        }
+    }
+
+    protected _updateDepthCamera(useCameraFrustumEntityPose: boolean = false): void {
         const maxCascadeRadius = this._computeDepthCameraBoundingSphere(this._depthCameraBoundingSphere);
         if (maxCascadeRadius < 0.0) {
             this.depthCamera.update();
@@ -459,7 +576,9 @@ export class CascadeShadowMap {
         const eye = target.add(lightDirection.scaleTo(lightDistance));
         const up = this._getDepthCameraUp(lightDirection);
 
-        this.depthCamera.set(eye, target, up);
+        if (!useCameraFrustumEntityPose) {
+            this.depthCamera.set(eye, target, up);
+        }
 
         for (let i = 0; i < this.cascades.length; i++) {
             const sphere = this._cascadeBoundingSpheres[i];

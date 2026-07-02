@@ -1,4 +1,5 @@
 import { cascade_shadow_depth } from "./cascade_shadow_depth";
+import { Vector } from "../../layer/Vector";
 import type { Planet } from "../../scene/Planet";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { Renderer } from "../Renderer";
@@ -14,6 +15,8 @@ export class CascadeShadowManager {
     protected _cascadeShadowMaps: CascadeShadowMap[];
     protected _activeCascadeShadowMaps: CascadeShadowMap[];
 
+    public readonly cameraFrustumLayer: Vector;
+
     protected _viewProjData: Float32Array;
     protected _eyeRelData: Float32Array;
     protected _paramsData: Float32Array;
@@ -28,6 +31,15 @@ export class CascadeShadowManager {
         this._planet = null;
         this._cascadeShadowMaps = [];
         this._activeCascadeShadowMaps = [];
+        this.cameraFrustumLayer = new Vector("cascadeShadowCameraFrustumLayer", {
+            entities: [],
+            pickingEnabled: true,
+            receiveProjectors: false,
+            receiveShadows: false,
+            shadeMode: "unlit",
+            hideInLayerSwitcher: true,
+            scaleByDistance: [100, 1000000, 1.0]
+        });
 
         this._viewProjData = new Float32Array(MAX_CASCADE_COUNT * 16);
         this._eyeRelData = new Float32Array(MAX_CASCADE_COUNT * 3);
@@ -53,6 +65,8 @@ export class CascadeShadowManager {
         this._renderer.addProgram(cascade_shadow_depth());
         this._renderer.events.on("predraw", this._onDraw, this, 0);
         this._initialized = true;
+        this._addCameraFrustumLayer();
+        this._syncCameraFrustumLayerEntities();
 
         for (let i = 0; i < this._cascadeShadowMaps.length; i++) {
             this._initCascadeShadowMap(this._cascadeShadowMaps[i]);
@@ -67,6 +81,8 @@ export class CascadeShadowManager {
         }
 
         this._planet = planet;
+        this._addCameraFrustumLayer();
+        this._syncCameraFrustumLayerEntities();
 
         for (let i = 0; i < this._cascadeShadowMaps.length; i++) {
             this._initCascadeShadowMap(this._cascadeShadowMaps[i]);
@@ -74,6 +90,8 @@ export class CascadeShadowManager {
     }
 
     public unbindPlanet(): void {
+        this._removeCameraFrustumLayer();
+
         for (let i = 0; i < this._cascadeShadowMaps.length; i++) {
             this._cascadeShadowMaps[i].unbindPlanet();
         }
@@ -88,6 +106,7 @@ export class CascadeShadowManager {
 
         cascadeShadowMap._manager = this;
         this._cascadeShadowMaps.push(cascadeShadowMap);
+        this._addCascadeShadowMapEntity(cascadeShadowMap);
         this._updateActiveCascadeShadowMaps = true;
 
         this._initCascadeShadowMap(cascadeShadowMap);
@@ -108,6 +127,7 @@ export class CascadeShadowManager {
         const index = this._cascadeShadowMaps.findIndex((s) => s.id === cascadeShadowMap.id);
         if (index === -1) return false;
 
+        this._removeCascadeShadowMapEntity(cascadeShadowMap);
         cascadeShadowMap.destroy();
         cascadeShadowMap._manager = null;
         this._cascadeShadowMaps.splice(index, 1);
@@ -118,6 +138,7 @@ export class CascadeShadowManager {
     public clear(): void {
         for (let i = 0; i < this._cascadeShadowMaps.length; i++) {
             const csm = this._cascadeShadowMaps[i];
+            this._removeCascadeShadowMapEntity(csm);
             csm.destroy();
             csm._manager = null;
         }
@@ -129,6 +150,7 @@ export class CascadeShadowManager {
 
     public destroy(): void {
         this.clear();
+        this._removeCameraFrustumLayer();
         this._planet = null;
 
         if (this._initialized) {
@@ -208,6 +230,32 @@ export class CascadeShadowManager {
         gl.activeTexture(gl.TEXTURE0);
 
         return size;
+    }
+
+    protected _addCameraFrustumLayer(): void {
+        if (this._planet && !this.cameraFrustumLayer.planet) {
+            this._planet.addLayer(this.cameraFrustumLayer);
+        }
+    }
+
+    protected _removeCameraFrustumLayer(): void {
+        if (this.cameraFrustumLayer.planet) {
+            this.cameraFrustumLayer.remove();
+        }
+    }
+
+    protected _addCascadeShadowMapEntity(cascadeShadowMap: CascadeShadowMap): void {
+        this.cameraFrustumLayer.add(cascadeShadowMap.cameraFrustumEntity);
+    }
+
+    protected _removeCascadeShadowMapEntity(cascadeShadowMap: CascadeShadowMap): void {
+        this.cameraFrustumLayer.removeEntity(cascadeShadowMap.cameraFrustumEntity);
+    }
+
+    protected _syncCameraFrustumLayerEntities(): void {
+        for (let i = 0; i < this._cascadeShadowMaps.length; i++) {
+            this._addCascadeShadowMapEntity(this._cascadeShadowMaps[i]);
+        }
     }
 
     protected _initCascadeShadowMap(cascadeShadowMap: CascadeShadowMap): void {
