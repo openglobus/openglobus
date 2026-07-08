@@ -71,8 +71,8 @@ const depthCamera = new DepthCamera({
     enableSegmentFaceCulling: false,
     width: 1024,
     height: 1024,
-    near: 10000,
-    far: 150000,
+    near: 1000,
+    far: 500000,
     focusDistance: 100000,
     verticalViewAngle: 45,
     bias: 1000,
@@ -86,27 +86,26 @@ const depthCamera = new DepthCamera({
     isOrthographic: true,
     geoObjectDepthCullFace: "back",
     showFrustum: true,
-    showFootprint: false
+    showFootprint: true
 });
 
 depthCameraHandler.add(depthCamera);
 
 const shadowCamera = depthCamera.camera;
-shadowCamera.setLonLat(new LonLat(10.0814898, 46.4864594, 10000), new LonLat(9.0814898, 46.4864594, 0));
-shadowCamera.update();
 
-timelineControl.events.on("setcurrent", () => {
-    const direction = globus.planet.sun.getPosition().normal().scale(-1.0);
-    const look = shadowCamera.eye.add(direction);
-    let up = globus.planet.ellipsoid.getSurfaceNormal3v(shadowCamera.eye);
+function updateShadowCamera() {
+    let mc = globus.planet.camera;
+    let direction = globus.planet.sun.getPosition().normal().scale(-1.0);
+    let up = mc.eye.getNormal();
+    let alt = mc.getHeight() - 8000;
+    let eye = mc.eye.sub(up.scaleTo(alt));
+    let look = eye.add(direction);
 
-    if (Math.abs(up.dot(direction)) > 0.999) {
-        up = Vec3.proj_b_to_plane(Vec3.NORTH, up, Vec3.UNIT_X).normalize();
-    }
-
-    shadowCamera.set(shadowCamera.eye, look, up);
+    shadowCamera.set(eye, look, up);
     shadowCamera.update();
-});
+}
+
+globus.planet.renderer.events.on("predraw", updateShadowCamera, null, -1);
 
 const shadowMap = new ShadowMap({
     enabled: true,
@@ -120,12 +119,13 @@ const depthPreview = new control.FramebufferPreview({
     title: `ShadowMap`,
     arrayTexture: shadowMap.arrayTexture,
     arrayLayer: shadowMap.slot,
-    width: 400,//depthCamera.framebuffer.width,
-    height: 400,//depthCamera.framebuffer.height,
+    width: 400, //depthCamera.framebuffer.width,
+    height: 400, //depthCamera.framebuffer.height,
     image: depthPreviewShader,
     flippedY: true
 });
 globus.planet.addControl(depthPreview);
+globus.planet.addControl(new control.ToggleWireframe());
 
 window.shadowMapSandbox = {
     globus,
