@@ -94,14 +94,20 @@ depthCameraHandler.add(depthCamera);
 const shadowCamera = depthCamera.camera;
 
 function updateShadowCamera() {
-    let mc = globus.planet.camera;
-    let direction = globus.planet.sun.getPosition().normal().scale(-1.0);
-    let up = mc.eye.getNormal();
-    let alt = mc.getHeight() - 8000;
-    let eye = mc.eye.sub(up.scaleTo(alt));
-    let look = eye.add(direction);
+    let mcam = globus.planet.camera;
+    let sunDir = globus.planet.sun.getPosition().normal().scale(-1.0);
+    let up = mcam.eye.getNormal();
+    let alt = mcam.getHeight() - 8000;
+    let eye = mcam.eye.sub(up.scaleTo(alt));
 
-    shadowCamera.set(eye, look, up);
+    let fov_h = (0.5 * mcam.verticalViewAngle * Math.PI) / 180.0;
+    let a = Math.acos(mcam.slope) - fov_h;
+    let offset_f = Math.tan(a) * alt;
+    let f = Vec3.proj_b_to_plane(mcam.getForward(), up).normalize();
+
+    eye.addA(f.scale(offset_f));
+
+    shadowCamera.set(eye, eye.add(sunDir), up);
     shadowCamera.update();
 }
 
