@@ -520,14 +520,14 @@ class Ellipsoid {
             w2 = w.dot(w);
             product = w2 * difference;
 
-            let eps = Math.abs(qw2 - product);
+            discriminant = qw2 - product;
+            let eps = EPS15 * Math.max(qw2, product);
 
-            if (eps > EPS15 && qw2 < product) {
+            if (discriminant < -eps) {
                 // Imaginary roots (0 intersections).
                 return undefined;
-            } else if (qw2 > product) {
+            } else if (discriminant > eps) {
                 // Distinct roots (2 intersections).
-                discriminant = qw * qw - product;
                 temp = -qw + Math.sqrt(discriminant); // Avoid cancellation.
                 var root0 = temp / w2;
                 var root1 = difference / temp;

@@ -2247,15 +2247,7 @@ export class Planet extends Scene {
         if (distance) {
             let cam = this.camera;
             let ray = cam.getRay(px.x, px.y);
-            let cart = ray.origin.add(ray.direction.scaleTo(distance));
-
-            // Reject points behind the geometric horizon.
-            const norm = this.ellipsoid.getSurfaceNormal3v(cart);
-            if (cam.eye.sub(cart).dot(norm) <= 0.0) {
-                return;
-            }
-
-            return cart;
+            return ray.origin.add(ray.direction.scaleTo(distance));
         }
     }
 
