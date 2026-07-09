@@ -2,7 +2,6 @@ import { Camera } from "../../camera/Camera";
 import { PlanetCamera } from "../../camera/PlanetCamera";
 import { Entity } from "../../entity/Entity";
 import { LonLat } from "../../LonLat";
-import { RADIANS, RADIANS_HALF } from "../../math";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
 import { Vec4 } from "../../math/Vec4";
@@ -486,23 +485,17 @@ export class DepthCamera {
         const frustum = cam.frustums[0];
         const framebuffer = this.framebuffer;
 
-        const baseTop = cam.focusDistance * Math.tan(cam.viewAngle * RADIANS_HALF);
-        const baseRight = baseTop * cam.getAspectRatio();
-
-        const frustumWidth = baseRight * 2.0;
-        const frustumHeight = baseTop * 2.0;
+        const frustumWidth = frustum.right - frustum.left;
+        const frustumHeight = frustum.top - frustum.bottom;
 
         const worldUnitsPerTexelX = frustumWidth / framebuffer.width;
         const worldUnitsPerTexelY = frustumHeight / framebuffer.height;
 
-        const baseLeft = -baseRight;
-        const baseBottom = -baseTop;
-
         const eyeX = cam.eye.dot(cam._r);
         const eyeY = cam.eye.dot(cam._u);
 
-        const snappedMinX = Math.floor((eyeX + baseLeft) / worldUnitsPerTexelX) * worldUnitsPerTexelX;
-        const snappedMinY = Math.floor((eyeY + baseBottom) / worldUnitsPerTexelY) * worldUnitsPerTexelY;
+        const snappedMinX = Math.floor((eyeX + frustum.left) / worldUnitsPerTexelX) * worldUnitsPerTexelX;
+        const snappedMinY = Math.floor((eyeY + frustum.bottom) / worldUnitsPerTexelY) * worldUnitsPerTexelY;
 
         const left = snappedMinX - eyeX;
         const right = left + frustumWidth;
@@ -623,6 +616,11 @@ export class DepthCamera {
     protected _getQuadTreeStrategy(depthCamera: PlanetCamera): QuadTreeStrategy {
         const planet = this._planet!;
         const mainCam = this._renderer!.activeCamera;
+
+        //
+        // @test
+        //
+        return planet.quadTreeStrategy;;
 
         if (
             //!depthCamera.isOrthographic &&

@@ -48,6 +48,13 @@ class Frustum {
     protected _depthZeroToOne: boolean;
 
     /**
+     * Reference distance used to compute orthographic frustum size.
+     * For orthographic frustums this value is synchronized with vertical bounds.
+     * @public
+     */
+    public focusDistance: number;
+
+    /**
      * Camera projection matrix.
      * @protected
      * @type {Mat4}
@@ -152,6 +159,8 @@ class Frustum {
         this._reverseDepth = false;
         this._depthZeroToOne = false;
 
+        this.focusDistance = options.focusDistance || 10;
+
         this.left = 0.0;
 
         this.right = 0.0;
@@ -173,7 +182,7 @@ class Frustum {
             options.near || 1.0,
             options.far || 1000.0,
             options.isOrthographic ?? false,
-            options.focusDistance ?? 10,
+            this.focusDistance,
             options.reverseDepth,
             options.depthZeroToOne
         );
@@ -277,7 +286,7 @@ class Frustum {
      * @param {number} near - Near clipping plane distance.
      * @param {number} far - Far clipping plane distance.
      * @param {boolean} [isOrthographic=false] - Enables orthographic projection mode.
-     * @param {number} [focusDistance=10] - Reference distance used to compute orthographic frustum size.
+     * @param {number} [focusDistance=this.focusDistance] - Reference distance used to compute orthographic frustum size.
      * @param {boolean} [reverseDepth=false] - Enables reverse-Z infinite perspective projection.
      * @param {boolean} [depthZeroToOne=false] - Uses `[0, 1]` NDC depth range for reverse-Z projection.
      */
@@ -287,7 +296,7 @@ class Frustum {
         near: number,
         far: number,
         isOrthographic: boolean = false,
-        focusDistance: number = 10,
+        focusDistance: number = this.focusDistance,
         reverseDepth: boolean = false,
         depthZeroToOne: boolean = false
     ) {
@@ -296,9 +305,10 @@ class Frustum {
         this._depthZeroToOne = depthZeroToOne;
         this._aspect = aspect;
         this._tanViewAngle_hrad = Math.tan(viewAngle * RADIANS_HALF);
+        this.focusDistance = focusDistance;
 
         if (this._isOrthographic) {
-            let h = focusDistance * this._tanViewAngle_hrad;
+            let h = this.focusDistance * this._tanViewAngle_hrad;
             let w = h * aspect;
             this._setFrustumParams(h, w, near, far);
             this.projectionMatrix.setOrthographic(this.left, this.right, this.bottom, this.top, this.near, this.far);
@@ -322,6 +332,23 @@ class Frustum {
         }
 
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
+    }
+
+    /**
+     * Sets reference distance used to compute orthographic bounds and rebuilds projection matrices.
+     * Keeps current near and far clipping planes unchanged.
+     * @public
+     * @param {number} focusDistance - Reference distance.
+     */
+    public setFocusDistance(focusDistance: number): void {
+        if (this.focusDistance !== focusDistance) {
+            this.focusDistance = focusDistance;
+            if (this._isOrthographic) {
+                const h = this.focusDistance * this._tanViewAngle_hrad;
+                const w = h * this._aspect;
+                this.setOrthoProjection(-w, w, -h, h, this.near, this.far);
+            }
+        }
     }
 
     /**
@@ -355,6 +382,9 @@ class Frustum {
         this.near = near;
         this.far = far;
         this.depthOffsetNear = near * 1.001 + 1e-6;
+        if (this._isOrthographic && this._tanViewAngle_hrad !== 0.0) {
+            this.focusDistance = (Math.abs(top - bottom) * 0.5) / this._tanViewAngle_hrad;
+        }
         this.projectionMatrix.setOrthographic(left, right, bottom, top, near, far);
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
     }
@@ -367,7 +397,9 @@ class Frustum {
      */
     public setNearFar(near: number, far: number = this.far) {
         if (this._isOrthographic) {
-            this._setFrustumParams(this.top, this.right, near, far);
+            this.near = near;
+            this.far = far;
+            this.depthOffsetNear = near * 1.001 + 1e-6;
             this.projectionMatrix.setOrthographic(this.left, this.right, this.bottom, this.top, this.near, this.far);
         } else {
             let h = near * this._tanViewAngle_hrad;

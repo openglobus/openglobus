@@ -133,8 +133,6 @@ class Camera {
 
     protected _isOrthographic: boolean;
 
-    protected _focusDistance: number;
-
     /**
      * Camera position.
      * @public
@@ -265,8 +263,6 @@ class Camera {
 
         this._isOrthographic = options.isOrthographic ?? false;
 
-        this._focusDistance = options.focusDistance != undefined ? options.focusDistance : 10;
-
         this._width = options.width || 1;
 
         this._height = options.height || 1;
@@ -318,7 +314,8 @@ class Camera {
             const [near = 1, far = MAX_FLOAT] = initFrustums[0] ?? [];
             initFrustums = [[near, far]];
         }
-        this.setFrustums(initFrustums);
+        const initialFocusDistance = options.focusDistance != undefined ? options.focusDistance : 10;
+        this.setFrustums(initFrustums, initialFocusDistance);
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
         this.currentFrustumIndex = 0;
@@ -401,7 +398,7 @@ class Camera {
      * @returns {number} Focus distance.
      */
     public get focusDistance(): number {
-        return this._focusDistance;
+        return this.frustum.focusDistance;
     }
 
     /**
@@ -410,11 +407,17 @@ class Camera {
      * @param {number} dist - Focus distance.
      */
     public set focusDistance(dist: number) {
-        if (dist !== this._focusDistance) {
-            this._focusDistance = dist;
-            if (this._isOrthographic) {
-                this.refresh();
+        let changed = false;
+        for (let i = 0, len = this.frustums.length; i < len; i++) {
+            let fi = this.frustums[i];
+            if (fi.focusDistance !== dist) {
+                fi.setFocusDistance(dist);
+                changed = true;
             }
+        }
+
+        if (changed && this._isOrthographic) {
+            this.update();
         }
     }
 
@@ -780,7 +783,7 @@ class Camera {
                 fi.near,
                 fi.far,
                 this._isOrthographic,
-                this._focusDistance,
+                fi.focusDistance,
                 this.reverseDepthActive,
                 this.depthZeroToOne
             );
@@ -805,7 +808,7 @@ class Camera {
      * @public
      * @param {Array.<NumberArray2>} frustums - Array of `[near, far]` ranges.
      */
-    public setFrustums(frustums: [number, number][]) {
+    public setFrustums(frustums: [number, number][], focusDistance: number = this.focusDistance) {
         if (this.reverseDepthActive && frustums.length > 1) {
             frustums = [frustums[0]];
         }
@@ -822,7 +825,7 @@ class Camera {
                     near,
                     far,
                     this._isOrthographic,
-                    this._focusDistance,
+                    this.frustums[i].focusDistance,
                     this.reverseDepthActive,
                     this.depthZeroToOne
                 );
@@ -836,7 +839,7 @@ class Camera {
                     near,
                     far,
                     isOrthographic: this._isOrthographic,
-                    focusDistance: this._focusDistance,
+                    focusDistance,
                     reverseDepth: this.reverseDepthActive,
                     depthZeroToOne: this.depthZeroToOne
                 });
