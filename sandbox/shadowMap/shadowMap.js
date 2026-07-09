@@ -19,6 +19,11 @@ let myObjects = new Vector("myObjects", {
     scaleByDistance: [1, 1, 1]
 });
 
+let horizonMarkers = new Vector("horizonMarkers", {
+    scaleByDistance: [1, 100000000, 0.003],
+    receiveShadows: false
+});
+
 const globus = new Globe({
     target: "earth",
     name: "Earth",
@@ -29,7 +34,8 @@ const globus = new Globe({
         }),
         new Bing(),
         new OpenStreetMap(),
-        myObjects
+        myObjects,
+        horizonMarkers
     ],
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts"
@@ -56,6 +62,94 @@ const skyCubeEntity = new Entity({
     }
 });
 myObjects.add(skyCubeEntity);
+
+const horizonMarkerLt = new Entity({
+    name: "horizon-marker-lt",
+    visibility: false,
+    independentPicking: true,
+    geoObject: {
+        tag: "horizon-marker-lt",
+        object3d: Object3d.createSphere(16, 16, 1).setColor("red")
+    }
+});
+horizonMarkers.add(horizonMarkerLt);
+
+const horizonMarkerRt = new Entity({
+    name: "horizon-marker-rt",
+    visibility: false,
+    independentPicking: true,
+    geoObject: {
+        tag: "horizon-marker-rt",
+        object3d: Object3d.createSphere(16, 16, 1).setColor("red")
+    }
+});
+horizonMarkers.add(horizonMarkerRt);
+
+const horizonMarkerLb = new Entity({
+    name: "horizon-marker-lb",
+    visibility: false,
+    independentPicking: true,
+    geoObject: {
+        tag: "horizon-marker-lb",
+        object3d: Object3d.createSphere(16, 16, 1).setColor("red")
+    }
+});
+horizonMarkers.add(horizonMarkerLb);
+
+const horizonMarkerRb = new Entity({
+    name: "horizon-marker-rb",
+    visibility: false,
+    independentPicking: true,
+    geoObject: {
+        tag: "horizon-marker-rb",
+        object3d: Object3d.createSphere(16, 16, 1).setColor("red")
+    }
+});
+horizonMarkers.add(horizonMarkerRb);
+
+const horizonLineTop = new Entity({
+    name: "horizon-line-top",
+    visibility: false,
+    polyline: {
+        path3v: [],
+        thickness: 3,
+        color: "red"
+    }
+});
+horizonMarkers.add(horizonLineTop);
+
+const horizonLineRight = new Entity({
+    name: "horizon-line-right",
+    visibility: false,
+    polyline: {
+        path3v: [],
+        thickness: 3,
+        color: "red"
+    }
+});
+horizonMarkers.add(horizonLineRight);
+
+const horizonLineBottom = new Entity({
+    name: "horizon-line-bottom",
+    visibility: false,
+    polyline: {
+        path3v: [],
+        thickness: 3,
+        color: "red"
+    }
+});
+horizonMarkers.add(horizonLineBottom);
+
+const horizonLineLeft = new Entity({
+    name: "horizon-line-left",
+    visibility: false,
+    polyline: {
+        path3v: [],
+        thickness: 3,
+        color: "red"
+    }
+});
+horizonMarkers.add(horizonLineLeft);
 
 const depthPreviewShader = `void mainImage(out vec4 fragColor, in vec2 fragCoord){
                 float depth = texture(inputTextureArray, vec3(fragCoord, float(u_arrayLayer))).r;
@@ -101,11 +195,84 @@ function updateShadowCamera() {
     let eye = mcam.eye.sub(up.scaleTo(alt));
 
     let fov_h = (0.5 * mcam.verticalViewAngle * Math.PI) / 180.0;
-    let a = Math.acos(mcam.slope) - fov_h;
-    let offset_f = Math.tan(a) * alt;
-    let f = Vec3.proj_b_to_plane(mcam.getForward(), up).normalize();
+    let slope = Math.max(-1.0, Math.min(1.0, mcam.slope));
+    let upSide = mcam.getUp().dot(up) < 0.0 ? -1.0 : 1.0;
+    let a = Math.acos(slope) - upSide * fov_h;
 
+    let f = Vec3.proj_b_to_plane(mcam.getForward(), up);
+    if (f.length2() < 1e-8) {
+        f = Vec3.proj_b_to_plane(mcam.getUp().scaleTo(upSide), up);
+    }
+    f.normalize();
+
+    let forward = mcam.getForward();
+    let right = mcam.getRight();
+
+    let rayLt = mcam.getRay(100, 100);
+    let hitLt = globus.planet.ellipsoid.hitRay(rayLt.origin, rayLt.direction);
+    horizonMarkerLt.setVisibility(Boolean(hitLt));
+    if (hitLt) {
+        horizonMarkerLt.setAbsoluteCartesian3v(hitLt);
+    }
+
+    let rayRt = mcam.getRay(mcam.width - 100, 100);
+    let hitRt = globus.planet.ellipsoid.hitRay(rayRt.origin, rayRt.direction);
+    horizonMarkerRt.setVisibility(Boolean(hitRt));
+    if (hitRt) {
+        horizonMarkerRt.setAbsoluteCartesian3v(hitRt);
+    }
+
+    let rayLb = mcam.getRay(100, mcam.height - 100);
+    let hitLb = globus.planet.ellipsoid.hitRay(rayLb.origin, rayLb.direction);
+    horizonMarkerLb.setVisibility(Boolean(hitLb));
+    if (hitLb) {
+        horizonMarkerLb.setAbsoluteCartesian3v(hitLb);
+    }
+
+    let rayRb = mcam.getRay(mcam.width - 100, mcam.height - 100);
+    let hitRb = globus.planet.ellipsoid.hitRay(rayRb.origin, rayRb.direction);
+    horizonMarkerRb.setVisibility(Boolean(hitRb));
+    if (hitRb) {
+        horizonMarkerRb.setAbsoluteCartesian3v(hitRb);
+    }
+
+    horizonLineTop.setVisibility(Boolean(hitLt && hitRt));
+    if (hitLt && hitRt) {
+        horizonLineTop.polyline.setPath3v([[hitLt, hitRt]], undefined, true);
+    }
+
+    horizonLineRight.setVisibility(Boolean(hitRt && hitRb));
+    if (hitRt && hitRb) {
+        horizonLineRight.polyline.setPath3v([[hitRt, hitRb]], undefined, true);
+    }
+
+    horizonLineBottom.setVisibility(Boolean(hitRb && hitLb));
+    if (hitRb && hitLb) {
+        horizonLineBottom.polyline.setPath3v([[hitRb, hitLb]], undefined, true);
+    }
+
+    horizonLineLeft.setVisibility(Boolean(hitLb && hitLt));
+    if (hitLb && hitLt) {
+        horizonLineLeft.polyline.setPath3v([[hitLb, hitLt]], undefined, true);
+    }
+
+    let isHorizonOnScreen = hitLt ? !hitRt || !hitLb || !hitRb : hitRt || hitLb || hitRb;
+    console.log(isHorizonOnScreen);
+
+    let offset_f = Math.tan(a) * alt;
     eye.addA(f.scale(offset_f));
+
+    let d = eye.sub(mcam.eye).dot(forward);
+    let eye_left = eye;
+    let eye_right = eye;
+    if (d > 0.0) {
+        let halfW = Math.tan(((mcam.horizontalViewAngle * Math.PI) / 180.0) * 0.5) * d;
+        eye_left = eye.add(right.scaleTo(-halfW));
+        eye_right = eye.add(right.scaleTo(halfW));
+        eye = eye_left.add(eye_right).scale(0.5);
+        let orthoHalfSize = eye_left.distance(eye_right) * 0.5;
+        shadowCamera.frustum.setOrthoBounds(-orthoHalfSize, orthoHalfSize, -orthoHalfSize, orthoHalfSize);
+    }
 
     shadowCamera.set(eye, eye.add(sunDir), up);
     shadowCamera.update();
