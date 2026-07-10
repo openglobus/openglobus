@@ -69,7 +69,7 @@ const horizonMarkerLt = new Entity({
     independentPicking: true,
     geoObject: {
         tag: "horizon-marker-lt",
-        object3d: Object3d.createSphere(16, 16, 1).setColor("red")
+        object3d: Object3d.createSphere(16, 16, 3).setColor("red")
     }
 });
 horizonMarkers.add(horizonMarkerLt);
@@ -80,7 +80,7 @@ const horizonMarkerRt = new Entity({
     independentPicking: true,
     geoObject: {
         tag: "horizon-marker-rt",
-        object3d: Object3d.createSphere(16, 16, 1).setColor("red")
+        object3d: Object3d.createSphere(16, 16, 3).setColor("red")
     }
 });
 horizonMarkers.add(horizonMarkerRt);
@@ -91,7 +91,7 @@ const horizonMarkerLb = new Entity({
     independentPicking: true,
     geoObject: {
         tag: "horizon-marker-lb",
-        object3d: Object3d.createSphere(16, 16, 1).setColor("red")
+        object3d: Object3d.createSphere(16, 16, 3).setColor("red")
     }
 });
 horizonMarkers.add(horizonMarkerLb);
@@ -102,7 +102,7 @@ const horizonMarkerRb = new Entity({
     independentPicking: true,
     geoObject: {
         tag: "horizon-marker-rb",
-        object3d: Object3d.createSphere(16, 16, 1).setColor("red")
+        object3d: Object3d.createSphere(16, 16, 3).setColor("red")
     }
 });
 horizonMarkers.add(horizonMarkerRb);
@@ -278,7 +278,7 @@ function updateShadowCamera() {
     shadowCamera.update();
 }
 
-globus.planet.renderer.events.on("predraw", updateShadowCamera, null, -1);
+globus.planet.renderer.events.on("draw", updateShadowCamera, null, -1);
 
 const shadowMap = new ShadowMap({
     enabled: true,
