@@ -126,7 +126,7 @@ class Object3d {
 
         if (data.indices) {
             this._indices = data.indices;
-            this._normals = data.normals || [];
+            this._normals = data.normals || Object3d.getNormals(this._vertices, this._indices);
         } else {
             this._normals = data.normals || Object3d.getNormals(this._vertices);
             this._indices = new Array(this._vertices.length / 3);
@@ -290,8 +290,63 @@ class Object3d {
         }
     }
 
-    static getNormals(vertices: number[]): number[] {
+    static getNormals(vertices: number[], indices?: number[]): number[] {
         let res = new Array(vertices.length);
+
+        if (indices) {
+            res.fill(0);
+
+            for (let i = 0; i < indices.length; i += 3) {
+                let t03 = indices[i] * 3,
+                    t13 = indices[i + 1] * 3,
+                    t23 = indices[i + 2] * 3,
+                    v0_x = vertices[t03],
+                    v0_y = vertices[t03 + 1],
+                    v0_z = vertices[t03 + 2],
+                    v1_x = vertices[t13],
+                    v1_y = vertices[t13 + 1],
+                    v1_z = vertices[t13 + 2],
+                    v2_x = vertices[t23],
+                    v2_y = vertices[t23 + 1],
+                    v2_z = vertices[t23 + 2],
+                    vv0_x = v1_x - v0_x,
+                    vv0_y = v1_y - v0_y,
+                    vv0_z = v1_z - v0_z,
+                    vv1_x = v2_x - v0_x,
+                    vv1_y = v2_y - v0_y,
+                    vv1_z = v2_z - v0_z,
+                    n_x = vv0_y * vv1_z - vv0_z * vv1_y,
+                    n_y = vv0_z * vv1_x - vv0_x * vv1_z,
+                    n_z = vv0_x * vv1_y - vv0_y * vv1_x;
+
+                res[t03] += n_x;
+                res[t03 + 1] += n_y;
+                res[t03 + 2] += n_z;
+
+                res[t13] += n_x;
+                res[t13 + 1] += n_y;
+                res[t13 + 2] += n_z;
+
+                res[t23] += n_x;
+                res[t23 + 1] += n_y;
+                res[t23 + 2] += n_z;
+            }
+
+            for (let i = 0; i < res.length; i += 3) {
+                let n_x = res[i],
+                    n_y = res[i + 1],
+                    n_z = res[i + 2],
+                    l = Math.sqrt(n_x * n_x + n_y * n_y + n_z * n_z);
+
+                if (l) {
+                    res[i] = n_x / l;
+                    res[i + 1] = n_y / l;
+                    res[i + 2] = n_z / l;
+                }
+            }
+
+            return res;
+        }
 
         for (let i = 0; i < vertices.length; i += 9) {
             let t03 = i,
