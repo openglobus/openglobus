@@ -187,6 +187,37 @@ depthCameraHandler.add(depthCamera);
 
 const shadowCamera = depthCamera.camera;
 
+const HORIZON_SCREEN_MARGIN = 100;
+
+function getEllipsoidHit(mcam, x, y) {
+    let ray = mcam.getRay(x, y);
+    return globus.planet.ellipsoid.hitRay(ray.origin, ray.direction);
+}
+
+function getHorizonPointByDirection(mcam, direction) {
+    let up = mcam.eye.getNormal();
+    let horizonDirection = Vec3.proj_b_to_plane(direction, up);
+
+    if (horizonDirection.length2() < 1e-8) {
+        return undefined;
+    }
+
+    horizonDirection.normalize();
+
+    let distanceToCamera = mcam.eye.length();
+    let radius = distanceToCamera - mcam.getHeight();
+
+    if (distanceToCamera <= radius) {
+        return undefined;
+    }
+
+    let tangentDistance = Math.sqrt(distanceToCamera * distanceToCamera - radius * radius);
+    let upDistance = (radius * radius) / distanceToCamera;
+    let horizonDistance = (radius * tangentDistance) / distanceToCamera;
+
+    return up.scaleTo(upDistance).addA(horizonDirection.scaleTo(horizonDistance));
+}
+
 function updateShadowCamera() {
     let mcam = globus.planet.camera;
     let sunDir = globus.planet.sun.getPosition().normal().scale(-1.0);
@@ -208,29 +239,46 @@ function updateShadowCamera() {
     let forward = mcam.getForward();
     let right = mcam.getRight();
 
-    let rayLt = mcam.getRay(100, 100);
-    let hitLt = globus.planet.ellipsoid.hitRay(rayLt.origin, rayLt.direction);
+    let screenLeft = HORIZON_SCREEN_MARGIN;
+    let screenRight = mcam.width - HORIZON_SCREEN_MARGIN;
+    let screenTop = HORIZON_SCREEN_MARGIN;
+    let screenBottom = mcam.height - HORIZON_SCREEN_MARGIN;
+
+    let rawHitLt = getEllipsoidHit(mcam, screenLeft, screenTop);
+    let rawHitRt = getEllipsoidHit(mcam, screenRight, screenTop);
+    let rawHitLb = getEllipsoidHit(mcam, screenLeft, screenBottom);
+    let rawHitRb = getEllipsoidHit(mcam, screenRight, screenBottom);
+    let rayLt = mcam.getRay(screenLeft, screenTop);
+    let rayRt = mcam.getRay(screenRight, screenTop);
+
+    let hitLt = rawHitLt;
+    let hitRt = rawHitRt;
+    let hitLb = rawHitLb;
+    let hitRb = rawHitRb;
+
+    if (!hitLt && hitLb) {
+        hitLt = getHorizonPointByDirection(mcam, rayLt.direction);
+    }
+
+    if (!hitRt && hitRb) {
+        hitRt = getHorizonPointByDirection(mcam, rayRt.direction);
+    }
+
     horizonMarkerLt.setVisibility(Boolean(hitLt));
     if (hitLt) {
         horizonMarkerLt.setAbsoluteCartesian3v(hitLt);
     }
 
-    let rayRt = mcam.getRay(mcam.width - 100, 100);
-    let hitRt = globus.planet.ellipsoid.hitRay(rayRt.origin, rayRt.direction);
     horizonMarkerRt.setVisibility(Boolean(hitRt));
     if (hitRt) {
         horizonMarkerRt.setAbsoluteCartesian3v(hitRt);
     }
 
-    let rayLb = mcam.getRay(100, mcam.height - 100);
-    let hitLb = globus.planet.ellipsoid.hitRay(rayLb.origin, rayLb.direction);
     horizonMarkerLb.setVisibility(Boolean(hitLb));
     if (hitLb) {
         horizonMarkerLb.setAbsoluteCartesian3v(hitLb);
     }
 
-    let rayRb = mcam.getRay(mcam.width - 100, mcam.height - 100);
-    let hitRb = globus.planet.ellipsoid.hitRay(rayRb.origin, rayRb.direction);
     horizonMarkerRb.setVisibility(Boolean(hitRb));
     if (hitRb) {
         horizonMarkerRb.setAbsoluteCartesian3v(hitRb);
@@ -256,8 +304,8 @@ function updateShadowCamera() {
         horizonLineLeft.polyline.setPath3v([[hitLb, hitLt]], undefined, true);
     }
 
-    let isHorizonOnScreen = hitLt ? !hitRt || !hitLb || !hitRb : hitRt || hitLb || hitRb;
-    console.log(isHorizonOnScreen);
+    let isHorizonOnScreen = rawHitLt ? !rawHitRt || !rawHitLb || !rawHitRb : rawHitRt || rawHitLb || rawHitRb;
+    //console.log(isHorizonOnScreen);
 
     let offset_f = Math.tan(a) * alt;
     eye.addA(f.scale(offset_f));
@@ -278,7 +326,7 @@ function updateShadowCamera() {
     shadowCamera.update();
 }
 
-globus.planet.renderer.events.on("draw", updateShadowCamera, null, -1);
+globus.planet.renderer.events.on("predraw", updateShadowCamera, null, -1);
 
 const shadowMap = new ShadowMap({
     enabled: true,
