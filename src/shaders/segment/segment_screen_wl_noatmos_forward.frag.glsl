@@ -7,6 +7,7 @@ precision highp float;
 #include "./common.glsl"
 #include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
+#include "../common/projectors.glsl"
 
 uniform vec4 specular;
 uniform vec3 diffuse;
@@ -33,6 +34,7 @@ uniform vec3 cameraPosition;
 
 in vec4 vTextureCoord;
 in vec3 v_worldVertex;
+in vec3 v_rtcPos;
 in vec2 vGlobalTextureCoord;
 in float v_height;
 
@@ -51,13 +53,17 @@ void main(void) {
     if (samplerCount > 3) blend(fragColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
     if (samplerCount > 4) blend(fragColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
 
+    vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
+    vec3 normal = normalize((texNormal - 0.5) * 2.0);
+    vec3 projectorEmission;
+    vec3 projectorLight;
+    applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
+
     if (shadeMode == SHADE_UNLIT) {
+        fragColor.rgb += projectorEmission;
         fragColor *= transitionOpacity;
         return;
     }
-
-    vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
-    vec3 normal = normalize((texNormal - 0.5) * 2.0);
 
     float specularMask = 0.0;
     vec3 emission = vec3(0.0);
@@ -104,6 +110,12 @@ void main(void) {
         );
     }
 
-    fragColor = vec4(fragColor.rgb * lightWeighting.rgb + specularWeighting + emission, fragColor.a);
+    fragColor = vec4(
+    fragColor.rgb * (lightWeighting.rgb + projectorLight) +
+    specularWeighting +
+    emission +
+    projectorEmission,
+    fragColor.a
+    );
     fragColor *= transitionOpacity;
 }

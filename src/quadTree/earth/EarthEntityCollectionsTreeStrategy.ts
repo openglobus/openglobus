@@ -85,6 +85,23 @@ export class EarthEntityCollectionsTreeStrategy extends EntityCollectionsTreeStr
             });
     }
 
+    public override setReceiveProjectors(receiveProjectors: boolean) {
+        this._entityCollectionsTree &&
+            this._entityCollectionsTree.traverseTree((node: EntityCollectionNode) => {
+                node.entityCollection!.setReceiveProjectors(receiveProjectors);
+            });
+
+        this._entityCollectionsTreeNorth &&
+            this._entityCollectionsTreeNorth.traverseTree((node: EarthEntityCollectionNodeLonLat) => {
+                node.entityCollection!.setReceiveProjectors(receiveProjectors);
+            });
+
+        this._entityCollectionsTreeSouth &&
+            this._entityCollectionsTreeSouth.traverseTree((node: EarthEntityCollectionNodeLonLat) => {
+                node.entityCollection!.setReceiveProjectors(receiveProjectors);
+            });
+    }
+
     public override dispose() {
         //@ts-ignore
         this._entityCollectionsTree = null;

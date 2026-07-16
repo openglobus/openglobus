@@ -1,7 +1,7 @@
 import { ShaderProgram } from "../../webgl";
 
-export function camera_depth() {
-    return new ShaderProgram("camera_depth", {
+export function depth_camera() {
+    return new ShaderProgram("depth_camera", {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",

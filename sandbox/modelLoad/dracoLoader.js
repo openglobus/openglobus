@@ -637,7 +637,7 @@ class MyScene extends Scene {
         //
 
         let wheelRoll = 0;
-        this.renderer.events.on("draw", () => {
+        this.renderer.events.on("predraw", () => {
             wheelFrontLeft.setRoll(wheelRoll * Math.PI / 180);
             wheelBackLeft.setRoll(wheelRoll * Math.PI / 180);
             wheelMiddleLeft.setRoll(wheelRoll * Math.PI / 180);

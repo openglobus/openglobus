@@ -6,16 +6,18 @@ import { EntityCollectionsTreeStrategy } from "../quadTree/EntityCollectionsTree
 import type { EventsHandler } from "../Events";
 import { GeometryHandler } from "../entity/geometry/GeometryHandler";
 import type { IMouseState, ITouchState } from "../renderer/RendererEvents";
-import { Layer } from "./Layer";
-import type { ILayerParams, LayerEventsList } from "./Layer";
+import { BaseTileMaterialLayer } from "./BaseTileMaterialLayer";
+import type { IBaseTileMaterialLayerParams } from "./BaseTileMaterialLayer";
+import type { LayerEventsList } from "./Layer";
 import type { NumberArray3 } from "../math/Vec3";
 import { Planet } from "../scene/Planet";
 import { Material } from "./Material";
+import { Segment } from "../segment/Segment";
 import type { NumberArray4 } from "../math/Vec4";
 import * as mercator from "../mercator";
 import { normalizeShadeMode, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "../shadeModeConstants";
 
-export interface IVectorParams extends ILayerParams {
+export interface IVectorParams extends IBaseTileMaterialLayerParams {
     entities?: Entity[] | IEntityParams[];
     depthOffset?: number;
     nodeCapacity?: number;
@@ -28,6 +30,7 @@ export interface IVectorParams extends ILayerParams {
     shadeMode?: ShadeModeInput;
     depthOrder?: number;
     disableCullFace?: boolean;
+    receiveProjectors?: boolean;
 }
 
 type VectorEventsList = [
@@ -59,7 +62,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
 
 /**
  * Vector layer is an alternative entity storage. Used for geospatial data rendering like
- * points, lines, polygons, geometry objects etc.
+ * points, lines, polygons, geometry objects, etc.
  * @class
  * @extends {Layer}
  * @param {string} [name="noname"] - Layer name.
@@ -91,6 +94,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * @param {number|string} [options.shadeMode=1] - Geo object shading: 0/none unlit, 0.5/phong, 1/pbr.
  * @param {number} [options.depthOrder=0] - Rendering order group for vector collections.
  * @param {boolean} [options.disableCullFace=false] - Disables back-face culling for geo object rendering.
+ * @param {boolean} [options.receiveProjectors=true] - Enables/disables projector effect reception for this layer entities.
  *
  * //@fires entitymove
  * @fires draw
@@ -100,7 +104,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * @fires entityremove
  * @fires visibilitychange
  */
-class Vector extends Layer {
+class Vector extends BaseTileMaterialLayer {
     public override events: VectorEventsType;
 
     protected _depthOrder: number;
@@ -152,7 +156,7 @@ class Vector extends Layer {
     /** todo: combine into one */
     protected _stripEntityCollection: EntityCollection;
     protected _polylineEntityCollection: EntityCollection;
-    protected _geoObjectEntityCollection: EntityCollection;
+    public _geoObjectEntityCollection: EntityCollection;
 
     public _geometryHandler: GeometryHandler;
 
@@ -174,6 +178,7 @@ class Vector extends Layer {
     protected _shadeMode: ShadeMode;
 
     protected _disableCullFace: boolean;
+    protected _receiveProjectors: boolean;
 
     constructor(name?: string | null, options: IVectorParams = {}) {
         super(name, options);
@@ -204,6 +209,8 @@ class Vector extends Layer {
 
         this.pickingScale = pickingScale;
 
+        this.waitForParentMaterial = options.waitForParentMaterial ?? false;
+
         this.async = options.async !== undefined ? options.async : true;
 
         this.clampToGround = options.clampToGround || false;
@@ -225,11 +232,13 @@ class Vector extends Layer {
         this._bindEventsDefault(this._polylineEntityCollection);
 
         this._disableCullFace = options.disableCullFace ?? false;
+        this._receiveProjectors = options.receiveProjectors ?? true;
 
         this._geoObjectEntityCollection = new EntityCollection({
             pickingEnabled: this.pickingEnabled,
             shadeMode: this._shadeMode,
-            disableCullFace: this._disableCullFace
+            disableCullFace: this._disableCullFace,
+            receiveProjectors: this._receiveProjectors
         });
         this._bindEventsDefault(this._geoObjectEntityCollection);
 
@@ -244,6 +253,7 @@ class Vector extends Layer {
         this.depthOffset = options.depthOffset != undefined ? options.depthOffset : 0.0;
 
         this.pickingEnabled = this._pickingEnabled;
+        this.receiveProjectors = this._receiveProjectors;
 
         this._depthOrder = options.depthOrder || 0;
     }
@@ -276,6 +286,28 @@ class Vector extends Layer {
     public set disableCullFace(v: boolean) {
         this._disableCullFace = v;
         this._geoObjectEntityCollection.disableCullFace = v;
+    }
+
+    /**
+     * Gets projector effect reception state for this vector layer entities.
+     * @public
+     * @returns {boolean}
+     */
+    public get receiveProjectors(): boolean {
+        return this._receiveProjectors;
+    }
+
+    /**
+     * Enables/disables projector effect reception for this vector layer entities.
+     * @public
+     * @param {boolean} v - `true` to receive projector effects, `false` to ignore them.
+     */
+    public set receiveProjectors(v: boolean) {
+        this._receiveProjectors = v;
+        this._stripEntityCollection.setReceiveProjectors(v);
+        this._polylineEntityCollection.setReceiveProjectors(v);
+        this._geoObjectEntityCollection.setReceiveProjectors(v);
+        this._entityCollectionsTreeStrategy?.setReceiveProjectors(v);
     }
 
     public get labelMaxLetters(): number {
@@ -838,7 +870,7 @@ class Vector extends Layer {
      * @virtual
      * @param {Material} material - Current material.
      */
-    public override loadMaterial(material: Material) {
+    public override loadMaterial(material: Material, _forceLoading: boolean = false) {
         const seg = material.segment;
 
         if (this._isBaseLayer) {
@@ -865,46 +897,77 @@ class Vector extends Layer {
         material.isReady = false;
     }
 
-    public override applyMaterial(material: Material): NumberArray4 {
-        if (material.isReady) {
-            return [0, 0, 1, 1];
+    public override applyMaterial(material: Material) {
+        return super.applyMaterial(material);
+    }
+    // @deprecated, now it gets algorithm from the parent class.
+    // public override applyMaterial(material: Material): NumberArray4 {
+    //     if (material.isReady) {
+    //         return [0, 0, 1, 1];
+    //     } else {
+    //         !material.isLoading && this.loadMaterial(material);
+    //
+    //         const segment = material.segment;
+    //         let pn = segment.node,
+    //             notEmpty = false;
+    //
+    //         let mId = this.__id;
+    //         let psegm = material;
+    //
+    //         while (pn.parentNode) {
+    //             if (psegm && psegm.isReady) {
+    //                 notEmpty = true;
+    //                 break;
+    //             }
+    //             pn = pn.parentNode;
+    //             psegm = pn.segment.materials[mId];
+    //         }
+    //
+    //         if (notEmpty) {
+    //             material.appliedNodeId = pn.nodeId;
+    //             material.texture = psegm.texture;
+    //             material.pickingMask = psegm.pickingMask;
+    //             const dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+    //             return [segment.tileX * dZ2 - pn.segment.tileX, segment.tileY * dZ2 - pn.segment.tileY, dZ2, dZ2];
+    //         } else {
+    //             if (material.textureExists && material._updateTexture) {
+    //                 material.texture = material._updateTexture;
+    //                 material.pickingMask = material._updatePickingMask;
+    //             } else {
+    //                 material.texture = segment.planet.transparentTexture;
+    //                 material.pickingMask = segment.planet.transparentTexture;
+    //             }
+    //             material.pickingReady = true;
+    //             return [0, 0, 1, 1];
+    //         }
+    //     }
+    // }
+
+    protected override _allowsLoadWithoutPassReady(): boolean {
+        return true;
+    }
+
+    protected override _hasParentMaterial(psegm: Material): boolean {
+        return psegm.isReady;
+    }
+
+    protected override _onParentMaterialApplied(material: Material, psegm: Material): void {
+        material.pickingMask = psegm.pickingMask;
+    }
+
+    protected override _applyNoParentMaterial(material: Material, segment: Segment): void {
+        if (material.textureExists && material._updateTexture) {
+            material.texture = material._updateTexture;
+            material.pickingMask = material._updatePickingMask;
         } else {
-            !material.isLoading && this.loadMaterial(material);
-
-            const segment = material.segment;
-            let pn = segment.node,
-                notEmpty = false;
-
-            let mId = this.__id;
-            let psegm = material;
-
-            while (pn.parentNode) {
-                if (psegm && psegm.isReady) {
-                    notEmpty = true;
-                    break;
-                }
-                pn = pn.parentNode;
-                psegm = pn.segment.materials[mId];
-            }
-
-            if (notEmpty) {
-                material.appliedNodeId = pn.nodeId;
-                material.texture = psegm.texture;
-                material.pickingMask = psegm.pickingMask;
-                const dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
-                return [segment.tileX * dZ2 - pn.segment.tileX, segment.tileY * dZ2 - pn.segment.tileY, dZ2, dZ2];
-            } else {
-                if (material.textureExists && material._updateTexture) {
-                    material.texture = material._updateTexture;
-                    material.pickingMask = material._updatePickingMask;
-                } else {
-                    material.texture = segment.planet.transparentTexture;
-                    material.pickingMask = segment.planet.transparentTexture;
-                }
-                material.pickingReady = true;
-                return [0, 0, 1, 1];
-            }
+            material.texture = segment.planet.transparentTexture;
+            material.pickingMask = segment.planet.transparentTexture;
         }
+        material.pickingReady = true;
+        material.texOffset[0] = 0.0;
+        material.texOffset[1] = 0.0;
+        material.texOffset[2] = 1.0;
+        material.texOffset[3] = 1.0;
     }
 
     public override clearMaterial(material: Material) {

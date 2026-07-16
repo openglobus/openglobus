@@ -3,26 +3,39 @@
 #ifndef ATMOS_GROUND_COLOR_GLSL
 #define ATMOS_GROUND_COLOR_GLSL
 
-void atmosGroundColor(in vec3 _v_vertex, in vec3 _normal, in vec3 _cameraPosition, in vec3 _sunPos, out vec4 outColor)
+void atmosGroundColor(
+    in vec3 _v_vertex,
+    in vec3 _normal,
+    in vec3 _rayOrigin,
+    in vec3 _rayDirection,
+    in vec3 _sunPos,
+    out vec4 outColor
+)
 {
-    if (length(_cameraPosition * SPHERE_TO_ELLIPSOID_SCALE) < BOTTOM_RADIUS + 1.0) {
-        _cameraPosition = normalize(_cameraPosition * SPHERE_TO_ELLIPSOID_SCALE) * (BOTTOM_RADIUS + 1.0) / SPHERE_TO_ELLIPSOID_SCALE;
+    if (!isPointInsideAtmosphere(_v_vertex)) {
+        outColor = vec4(0.0);
+        return;
     }
 
-    vec3 rayDirection = normalize(_v_vertex - _cameraPosition);
+    if (length(_rayOrigin * SPHERE_TO_ELLIPSOID_SCALE) < BOTTOM_RADIUS + 1.0) {
+        _rayOrigin = normalize(_rayOrigin * SPHERE_TO_ELLIPSOID_SCALE) * (BOTTOM_RADIUS + 1.0) / SPHERE_TO_ELLIPSOID_SCALE;
+    }
+
+    vec3 rayDirection = normalize(_rayDirection);
     vec3 lightDir = normalize(_sunPos);
 
     rayDirection = normalize(rayDirection * SPHERE_TO_ELLIPSOID_SCALE);
-    vec3 camPos = _cameraPosition * SPHERE_TO_ELLIPSOID_SCALE;
+    vec3 camPos = _rayOrigin * SPHERE_TO_ELLIPSOID_SCALE;
     lightDir = normalize(lightDir * SPHERE_TO_ELLIPSOID_SCALE);
 
+    moveRayOriginNearSphere(camPos, rayDirection, TOP_RADIUS);
 
     vec3 light = vec3(0.0);
     vec3 transmittanceFromCameraToSpace = vec3(1.0);
     float offset = 0.0;
     float distanceToSpace = 0.0;
 
-    intersectSphere(camPos, rayDirection, TOP_RADIUS, offset, distanceToSpace);
+    intersectAtmosphereSphere(camPos, rayDirection, TOP_RADIUS, offset, distanceToSpace);
 
     vec3 rayOrigin = camPos;
 
@@ -45,7 +58,7 @@ void atmosGroundColor(in vec3 _v_vertex, in vec3 _normal, in vec3 _cameraPositio
 
     float distanceToGround = 0.0;
 
-    bool hitGround = intersectSphere(camPos, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
+    bool hitGround = intersectAtmosphereSphere(camPos, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
     //intersectSphere(camPos, rayDirection, BOTTOM_RADIUS, distanceToGround);
 
     if (length(_v_vertex * SPHERE_TO_ELLIPSOID_SCALE) > BOTTOM_RADIUS) {

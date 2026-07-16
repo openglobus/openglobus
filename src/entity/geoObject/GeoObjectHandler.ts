@@ -12,6 +12,7 @@ import type { Renderer } from "../../renderer/Renderer";
 import type { Atmosphere } from "../../control/atmosphere/Atmosphere";
 import type { Planet } from "../../scene/Planet";
 import type { Scene } from "../../scene/Scene";
+import type { Camera } from "../../camera/Camera";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import { srgbToLinear } from "../../utils/colorSpace";
 
@@ -187,7 +188,8 @@ export class GeoObjectHandler {
                 shaders.geo_object_deferred(),
                 shaders.geo_object_woit(),
                 shaders.geo_object_picking(),
-                shaders.geo_object_depth()
+                shaders.geo_object_depth(),
+                shaders.geo_object_depth_camera()
             ];
             const atmosphereControl = (this._scene as Scene & { atmosphereControl?: Atmosphere }).atmosphereControl;
             if (atmosphereControl) {
@@ -476,6 +478,7 @@ export class GeoObjectHandler {
             r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
         );
         gl.uniform1f(u.shadeMode, ec._shadeMode);
+        gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
@@ -508,15 +511,18 @@ export class GeoObjectHandler {
             atmosphere = r.controls.Atmosphere as Atmosphere,
             planet = this._scene as Planet;
 
-        gl.activeTexture(gl.TEXTURE1);
+        // Texture units 0..3 are rebound to GeoObject material textures before every draw.
+        gl.activeTexture(gl.TEXTURE4);
         gl.bindTexture(gl.TEXTURE_2D, atmosphere._transmittanceBuffer!.textures[0]);
-        gl.uniform1i(u.transmittanceTexture, 1);
+        gl.uniform1i(u.transmittanceTexture, 4);
 
-        gl.activeTexture(gl.TEXTURE2);
+        gl.activeTexture(gl.TEXTURE5);
         gl.bindTexture(gl.TEXTURE_2D, atmosphere._scatteringBuffer!.textures[0]);
-        gl.uniform1i(u.scatteringTexture, 2);
+        gl.uniform1i(u.scatteringTexture, 5);
         gl.uniform2fv(u.atmosFadeDist, planet.atmosphereFadeDist);
-        gl.uniform2fv(u.atmosMaxMinOpacity, planet.atmosphereMaxMinOpacity);
+        gl.uniform3fv(u.atmosMaxMinOpacity, planet._atmosphereCurrentMaxMinOpacity);
+        gl.uniform3fv(u.cameraForward, r.activeCamera.getForward().toArray());
+        gl.uniform1f(u.isOrthographic, r.activeCamera.isOrthographic ? 1.0 : 0.0);
 
         gl.activeTexture(gl.TEXTURE0);
     }
@@ -562,6 +568,7 @@ export class GeoObjectHandler {
         if (useAtmos) {
             this._bindAtmosphereParams(p);
         }
+        r.projectors.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -676,6 +683,80 @@ export class GeoObjectHandler {
     public drawDepth() {
         if (this._geoObjects.length && this.pickingEnabled) {
             this._depthPASS();
+        }
+    }
+
+    protected _depthCameraPASS(camera: Camera) {
+        let r = this._renderer!,
+            sh = r.handler.programs.geo_object_depth_camera,
+            p = sh,
+            u = p.uniforms,
+            a = p.attributes,
+            gl = r.handler.gl!,
+            ec = this._entityCollection;
+
+        const rtcEyePosition = camera.eye.sub(this._relativeCenter);
+        Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
+
+        this.update();
+
+        sh.activate();
+
+        gl.uniform4f(
+            u.uScaleByDistance,
+            ec.scaleByDistance[0],
+            ec.scaleByDistance[1],
+            ec.scaleByDistance[2],
+            camera.isOrthographic ? camera.focusDistance : 0.0
+        );
+
+        gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
+
+        gl.uniformMatrix4fv(u.projectionMatrix, false, camera.getProjectionMatrix());
+        gl.uniformMatrix4fv(u.viewMatrix, false, camera.getViewMatrix());
+
+        for (let i = 0; i < this._instanceDataMapValues.length; i++) {
+            let tagData = this._instanceDataMapValues[i];
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._qRotBuffer!);
+            gl.vertexAttribPointer(a.qRot, tagData._qRotBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer!);
+            gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._translateBuffer!);
+            gl.vertexAttribPointer(a.aTranslate, tagData._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._localPositionBuffer!);
+            gl.vertexAttribPointer(a.aLocalPosition, tagData._localPositionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rtcPositionHighBuffer!);
+            gl.vertexAttribPointer(a.aRTCPositionHigh, tagData._rtcPositionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rtcPositionLowBuffer!);
+            gl.vertexAttribPointer(a.aRTCPositionLow, tagData._rtcPositionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._visibleBuffer!);
+            gl.vertexAttribPointer(a.aDispose, tagData._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer!);
+            gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer!);
+            p.drawElementsInstanced!(
+                gl.TRIANGLES,
+                tagData._indicesBuffer!.numItems,
+                gl.UNSIGNED_INT,
+                0,
+                tagData.numInstances
+            );
+        }
+    }
+
+    public drawDepthCameraPass(camera: Camera) {
+        if (this._geoObjects.length && this._entityCollection.receiveProjectors) {
+            this._depthCameraPASS(camera);
         }
     }
 

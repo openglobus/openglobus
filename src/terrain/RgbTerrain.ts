@@ -10,12 +10,49 @@ import type { TypedArray } from "../utils/shared";
 import { binarySearchFast } from "../utils/shared";
 import type { IResponse } from "../utils/Loader";
 
+export type RgbTerrainEncoding = "rgb" | "terrarium";
+
+function normalizeRgbTerrainEncoding(encoding?: string | null): RgbTerrainEncoding {
+    return encoding === "terrarium" ? "terrarium" : "rgb";
+}
+
+export type RgbToHeightFunc = (r: number, g: number, b: number, minHeight: number, resolution: number) => number;
+
+export function rgbToHeightRgb(r: number, g: number, b: number, minHeight: number, resolution: number): number {
+    if (r === 255) {
+        return minHeight;
+    }
+    return minHeight + resolution * (r * 256 * 256 + g * 256 + b);
+}
+
+export function rgbToHeightTerrarium(r: number, g: number, b: number, _minHeight: number, _resolution: number): number {
+    // minHeight = - 32768, resolution = 1 /256
+    return r * 256 + g + b / 256 - 32768;
+}
+
+export const rgbToHeightByEncoding: Record<RgbTerrainEncoding, RgbToHeightFunc> = {
+    rgb: rgbToHeightRgb,
+    terrarium: rgbToHeightTerrarium
+};
+
+export function resolveRgbToHeightFunc(
+    options: Pick<IRgbTerrainParams, "encoding" | "rgbToHeightFunc">
+): RgbToHeightFunc {
+    if (options.rgbToHeightFunc) {
+        return options.rgbToHeightFunc;
+    }
+    const encoding = normalizeRgbTerrainEncoding(options.encoding);
+    return rgbToHeightByEncoding[encoding];
+}
+
 export interface IRgbTerrainParams extends IGlobusTerrainParams {
     equalizeNormals?: boolean;
     key?: string;
     imageSize?: number;
     minHeight?: number;
     resolution?: number;
+    encoding?: RgbTerrainEncoding;
+    rgbToHeightFunc?: RgbToHeightFunc;
 }
 
 /**
@@ -28,6 +65,8 @@ export interface IRgbTerrainParams extends IGlobusTerrainParams {
  * @param {number} [options.imageSize=256] - Source image size.
  * @param {number} [options.minHeight=-10000] - Minimal height for RGB-to-height conversion.
  * @param {number} [options.resolution=0.1] - RGB-to-height conversion resolution.
+ * @param {RgbTerrainEncoding} [options.encoding="rgb"] - RGB elevation encoding: `"rgb"` (default) or `"terrarium"`. Ignored when `options.rgbToHeightFunc` is set.
+ * @param {RgbToHeightFunc} [options.rgbToHeightFunc] - Custom RGB-to-height decoder with signature `(r, g, b, minHeight, resolution) => number`. Defaults to `rgbToHeightByEncoding[options.encoding]`.
  */
 class RgbTerrain extends GlobusTerrain {
     protected _imageSize: number;
@@ -39,6 +78,8 @@ class RgbTerrain extends GlobusTerrain {
     protected _minHeight: number;
 
     protected _resolution: number;
+
+    protected _rgbToHeight: RgbToHeightFunc;
 
     constructor(name: string | null, options: IRgbTerrainParams = {}) {
         super(name || "RgbTerrain", {
@@ -68,6 +109,7 @@ class RgbTerrain extends GlobusTerrain {
 
         this._minHeight = options.minHeight || -10000.0;
         this._resolution = options.resolution || 0.1;
+        this._rgbToHeight = resolveRgbToHeightFunc(options);
     }
 
     static override checkNoDataValue(noDataValues: number[] | TypedArray, value: number): boolean {
@@ -78,11 +120,7 @@ class RgbTerrain extends GlobusTerrain {
     }
 
     public rgb2Height(r: number, g: number, b: number): number {
-        // Filter for "yellowish" pixels
-        if (r === 255) {
-            return this._minHeight;
-        }
-        return this._minHeight + this._resolution * (r * 256 * 256 + g * 256 + b);
+        return this._rgbToHeight(r, g, b, this._minHeight, this._resolution);
     }
 
     public override isBlur(segment: Segment): boolean {
@@ -303,7 +341,7 @@ class RgbTerrain extends GlobusTerrain {
             if (response.status === "ready") {
                 this._ctx.clearRect(0, 0, this._imageSize, this._imageSize);
                 this._ctx.drawImage(response.data, 0, 0);
-                let data = this._ctx.getImageData(0, 0, 256, 256).data;
+                let data = this._ctx.getImageData(0, 0, this._imageSize, this._imageSize).data;
                 this._imageDataCache[tileIndex] = data;
 
                 let height = this._heightFactor * this.rgb2Height(data[index], data[index + 1], data[index + 2]);

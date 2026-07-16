@@ -5,6 +5,7 @@ precision highp float;
 #include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
+#include "../common/projectors.glsl"
 
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
@@ -20,10 +21,12 @@ uniform float uUseNormalTexture;
 uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform float shadeMode;
+uniform float uProjectorMask;
 uniform mat3 normalMatrix;
 
 in vec3 cameraPosition;
 in vec3 v_vertex;
+in vec3 v_rtcPos;
 in vec3 v_viewPosition;
 in vec4 vColor;
 in vec3 vNormal;
@@ -46,13 +49,6 @@ void main(void) {
     vec4 color;
 
     float shade = shadeMode;
-
-    if (shade == SHADE_UNLIT) {
-        color = baseColor;
-        weightedOITAccumulate(color, accumColor, accumAlpha);
-        return;
-    }
-
     vec3 normal = normalize(vNormal);
 
     if (uUseNormalTexture > 0.0) {
@@ -63,6 +59,19 @@ void main(void) {
         v_viewPosition,
         normalMatrix
         );
+    }
+
+    vec3 projectorEmission;
+    vec3 projectorLight;
+    applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
+    projectorEmission *= uProjectorMask;
+    projectorLight *= uProjectorMask;
+
+    if (shade == SHADE_UNLIT) {
+        color = baseColor;
+        color.rgb += projectorEmission;
+        weightedOITAccumulate(color, accumColor, accumAlpha);
+        return;
     }
 
     vec3 material = materialProperties;
@@ -100,7 +109,12 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
+        color = vec4(
+        baseColor.rgb * (lightWeighting.rgb + projectorLight) +
+        specularWeighting +
+        projectorEmission,
+        baseColor.a
+        );
     } else {
         float metallic = material.b;
         float roughness = material.g;
@@ -126,7 +140,12 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        color = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
+        color = vec4(
+        baseColor.rgb * (lightWeighting.rgb + projectorLight) +
+        specularWeighting +
+        projectorEmission,
+        baseColor.a
+        );
     }
 
     weightedOITAccumulate(color, accumColor, accumAlpha);

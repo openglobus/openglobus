@@ -23,7 +23,7 @@ export class SegmentBoundVisualization extends Control {
     public override oninit() {
         this.planet!.addEntityCollection(this._boundingSphereCollection);
 
-        this.renderer!.events.on("draw", this._predraw, this);
+        this.renderer!.events.on("predraw", this._predraw, this);
         this.planet!.events.on("draw", this._draw, this);
     }
 

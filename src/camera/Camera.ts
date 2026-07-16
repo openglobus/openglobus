@@ -98,8 +98,11 @@ type CameraFlight = {
     startedAt: number;
 };
 
-const getHorizontalViewAngleByFov = (fov: number, aspect: number) =>
-    DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * fov) * aspect);
+const getHorizontalViewAngleByFov = (vFov: number, aspect: number) =>
+    DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * vFov) * aspect);
+
+const getVerticalViewAngleByHorizontalFov = (hFov: number, aspect: number) =>
+    DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * hFov) / Math.max(aspect, 1e-6));
 
 /**
  * Camera class.
@@ -853,6 +856,16 @@ class Camera {
     }
 
     /**
+     * Sets camera horizontal view angle in degrees.
+     * @public
+     * @param {number} angle - Horizontal view angle.
+     */
+    public setHorizontalViewAngle(angle: number) {
+        this._viewAngle = getVerticalViewAngleByHorizontalFov(angle, this.getAspectRatio());
+        this.refresh();
+    }
+
+    /**
      * Returns camera vertical view angle in degrees.
      * @public
      * @returns {number} View angle in degrees.
@@ -1228,7 +1241,7 @@ class Camera {
     }
 
     /**
-     * Rotates camera around center point by horizontal.
+     * Rotates camera around the center point by horizontal.
      * @public
      * @param {number} angle - Rotation angle in radians.
      * @param {boolean} [isArc] - If true camera up vector gets from current up vector every frame,
@@ -1241,7 +1254,7 @@ class Camera {
     }
 
     /**
-     * Rotates camera around center point by vertical.
+     * Rotates camera around the center point by vertical.
      * @param {number} angle - Rotation angle in radians.
      * @param {Vec3} [center] - Point that the camera rotates around.
      */
@@ -1251,7 +1264,7 @@ class Camera {
 
     /**
      * Gets 3d size factor. Uses in LOD distance calculation.
-     * It is very important function used in Node.ts
+     * It is a very important function used in Node.ts
      * @public
      * @param {Vec3} p - Point in 3d.
      * @param {Vec3} r - size.
@@ -1307,7 +1320,7 @@ class Camera {
     }
 
     /**
-     * Checks whether sphere intersects any camera frustum.
+     * Checks whether the sphere intersects any camera frustum.
      * @public
      * @param {Sphere} sphere - Bounding sphere.
      * @returns {boolean} `true` when visible in at least one frustum.
@@ -1315,6 +1328,21 @@ class Camera {
     public containsSphere(sphere: Sphere): boolean {
         for (let i = 0; i < this.frustums.length; i++) {
             if (this.frustums[i].containsSphere(sphere)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether a point is inside any camera frustum.
+     * @public
+     * @param {Vec3} point - Cartesian point.
+     * @returns {boolean} `true` when visible in at least one frustum.
+     */
+    public containsPoint(point: Vec3): boolean {
+        for (let i = 0; i < this.frustums.length; i++) {
+            if (this.frustums[i].containsPoint(point)) {
                 return true;
             }
         }

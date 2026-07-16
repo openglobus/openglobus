@@ -398,6 +398,43 @@ class Handler {
     }
 
     /**
+     * Creates an empty immutable 2D array texture (WebGL2).
+     * @public
+     * @param {number} [width=1] - Texture width in pixels.
+     * @param {number} [height=1] - Texture height in pixels.
+     * @param {number} [depth=1] - Number of array layers.
+     * @param {string} [filter="NEAREST"] - GL_TEXTURE_MIN_FILTER and GL_TEXTURE_MAG_FILTER value.
+     * @param {string} [internalFormat="RGBA8"] - Sized internal format (e.g. "RGBA8", "R32F").
+     * @param {string} [param="CLAMP_TO_EDGE"] - GL_TEXTURE_WRAP_S/T value.
+     * @param {number} [levels=1] - Number of mipmap levels (immutable storage).
+     * @returns {WebGLTexture | null} - Created WebGL texture object.
+     */
+    public createEmptyTexture2DArrayExt(
+        width: number = 1,
+        height: number = 1,
+        depth: number = 1,
+        filter: string = "NEAREST",
+        internalFormat: string = "RGBA8",
+        param: string = "CLAMP_TO_EDGE",
+        levels: number = 1
+    ): WebGLTexture | null {
+        const gl = this.gl as WebGL2RenderingContext;
+
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
+
+        gl.texStorage3D(gl.TEXTURE_2D_ARRAY, levels, (gl as any)[internalFormat.toUpperCase()], width, height, depth);
+
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, (gl as any)[filter.toUpperCase()]);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, (gl as any)[filter.toUpperCase()]);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, (gl as any)[param.toUpperCase()]);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, (gl as any)[param.toUpperCase()]);
+
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+        return texture;
+    }
+
+    /**
      * Creates Empty NEAREST filtered texture.
      * @public
      * @param {number} width - Empty texture width.

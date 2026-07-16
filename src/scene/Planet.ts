@@ -34,6 +34,7 @@ import { Key, Lock } from "../Lock";
 import { Layer } from "../layer/Layer";
 import { Loader } from "../utils/Loader";
 import { LonLat } from "../LonLat";
+import { lerp } from "../math";
 import { Node } from "../quadTree/Node";
 import { NormalMapCreator } from "../utils/NormalMapCreator";
 import { PlainSegmentWorker } from "../utils/PlainSegmentWorker";
@@ -77,6 +78,7 @@ export interface IPlanetParams {
     transitionOpacityEnabled?: boolean;
     atmosphereParameters?: IAtmosphereParams;
     minDistanceBeforeMemClear?: number;
+    disableMemClear?: boolean;
     vectorTileSize?: number;
     maxNodesCount?: number;
     transparentBackground?: boolean;
@@ -105,6 +107,14 @@ export type PlanetEventsList = [
  */
 const DEFAULT_MAX_NODES = 400;
 
+const ATMOSPHERE_OPACITY_MIN_ALTITUDE = 1500000.0;
+const LOW_ALTITUDE_ATMOSPHERE_MIN_OPACITY = 0.1;
+const LOW_ALTITUDE_ATMOSPHERE_CURVE_SHIFT = 0.0;
+
+// Reserved early renderer priorities for the planet frame pipeline.
+const PLANET_DRAW_PRIORITY = -10000;
+const PLANET_PREDRAW_PRIORITY = -9900;
+
 type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
 
 /**
@@ -130,6 +140,7 @@ type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
  * @param {boolean} [options.transitionOpacityEnabled] - Enables terrain transition opacity blending.
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
  * @param {number} [options.minDistanceBeforeMemClear] - Camera travel distance threshold before automatic memory cleanup.
+ * @param {boolean} [options.disableMemClear=false] - Disables automatic memory cleanup via memClear().
  * @param {number} [options.vectorTileSize] - Vector tile texture size for vector layer baking.
  * @param {boolean} [options.transparentBackground=false] - Enables transparent renderer background.
  * @param {INearPlaneStrategy} [options.nearPlaneStrategy] - Near-plane strategy implementation.
@@ -352,6 +363,7 @@ export class Planet extends Scene {
 
     protected _atmosphereEnabled: boolean;
     protected _atmosphereMaxMinOpacity: Float32Array;
+    public _atmosphereCurrentMaxMinOpacity: Float32Array;
     public atmosphereFadeDist: Float32Array;
     protected _atmosphereBottomRadius: number;
 
@@ -365,6 +377,7 @@ export class Planet extends Scene {
 
     protected _atmosphere: Atmosphere;
     private _minDistanceBeforeMemClear: number = 0;
+    public disableMemClear: boolean;
     private _maxNodes: number;
 
     protected _transparentBackground: boolean;
@@ -401,13 +414,14 @@ export class Planet extends Scene {
 
         this.terrain = null;
 
+        const maxAltitude = options.maxAltitude || 25000000;
         this.camera = new PlanetCamera(this, {
             frustums: options.frustums,
-            eye: new Vec3(25000000, 0, 0),
+            eye: new Vec3(this.ellipsoid.getEquatorialSize() + maxAltitude, 0, 0),
             look: Vec3.ZERO,
             up: Vec3.NORTH,
             minAltitude: options.minAltitude,
-            maxAltitude: options.maxAltitude,
+            maxAltitude,
             reverseDepth: options.reverseDepth
         });
         this.nearPlaneStrategy = options.nearPlaneStrategy ?? new AltitudeNearPlaneStrategy();
@@ -438,7 +452,7 @@ export class Planet extends Scene {
             transitionOpacityEnabled: options.transitionOpacityEnabled
         };
 
-        // Used in CameraDepthHandler
+        // Used by controls that need a planet-specific quad tree strategy instance.
         this.quadTreeStrategyPrototype = options.quadTreeStrategyPrototype || EarthQuadTreeStrategy;
         this.quadTreeStrategy = new this.quadTreeStrategyPrototype(quadTreeParams);
 
@@ -453,6 +467,8 @@ export class Planet extends Scene {
         this.SLICE_SIZE_3 = this.SLICE_SIZE * 3;
 
         this._maxNodes = options.maxNodesCount || DEFAULT_MAX_NODES;
+
+        this.disableMemClear = options.disableMemClear ?? false;
 
         this._pickingColorArr = new Float32Array(this.SLICE_SIZE_4);
         this._samplerArr = new Int32Array(this.SLICE_SIZE);
@@ -489,7 +505,8 @@ export class Planet extends Scene {
         //this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
-        this._atmosphereMaxMinOpacity = new Float32Array([1.1, 0.11]);
+        this._atmosphereMaxMinOpacity = new Float32Array([1.0, 0.4, 2.3]);
+        this._atmosphereCurrentMaxMinOpacity = new Float32Array(this._atmosphereMaxMinOpacity);
         this.atmosphereFadeDist = new Float32Array(2);
         this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
@@ -576,9 +593,27 @@ export class Planet extends Scene {
     }
 
     /**
-     * Gets atmosphere opacity range `[max, min]`.
+     * Sets atmosphere opacity interpolation curve shift.
      * @public
-     * @returns {Float32Array} - Opacity range.
+     * @param {number} curveShift - Curve shift. Zero produces linear interpolation.
+     */
+    public set atmosphereOpacityCurveShift(curveShift: number) {
+        this._atmosphereMaxMinOpacity[2] = curveShift;
+    }
+
+    /**
+     * Gets atmosphere opacity interpolation curve shift.
+     * @public
+     * @returns {number} - Curve shift.
+     */
+    public get atmosphereOpacityCurveShift(): number {
+        return this._atmosphereMaxMinOpacity[2];
+    }
+
+    /**
+     * Gets target atmosphere opacity parameters `[max, min, curveShift]`.
+     * @public
+     * @returns {Float32Array} - Opacity parameters at maximum camera altitude.
      */
     public get atmosphereMaxMinOpacity(): Float32Array {
         return this._atmosphereMaxMinOpacity;
@@ -594,6 +629,34 @@ export class Planet extends Scene {
 
         this.atmosphereFadeDist[0] = minDist;
         this.atmosphereFadeDist[1] = distRange > 0.0 ? 1.0 / distRange : 0.0;
+    }
+
+    protected _updateAtmosphereMaxMinOpacity() {
+        const currentAltitude = this.camera.getHeight();
+        this._atmosphereCurrentMaxMinOpacity[0] = this._atmosphereMaxMinOpacity[0];
+
+        if (currentAltitude <= ATMOSPHERE_OPACITY_MIN_ALTITUDE) {
+            this._atmosphereCurrentMaxMinOpacity[1] = LOW_ALTITUDE_ATMOSPHERE_MIN_OPACITY;
+            this._atmosphereCurrentMaxMinOpacity[2] = LOW_ALTITUDE_ATMOSPHERE_CURVE_SHIFT;
+        } else if (currentAltitude >= this.camera.maxAltitude) {
+            this._atmosphereCurrentMaxMinOpacity[1] = this._atmosphereMaxMinOpacity[1];
+            this._atmosphereCurrentMaxMinOpacity[2] = this._atmosphereMaxMinOpacity[2];
+        } else {
+            const t =
+                (currentAltitude - ATMOSPHERE_OPACITY_MIN_ALTITUDE) /
+                (this.camera.maxAltitude - ATMOSPHERE_OPACITY_MIN_ALTITUDE);
+
+            this._atmosphereCurrentMaxMinOpacity[1] = lerp(
+                t,
+                this._atmosphereMaxMinOpacity[1],
+                LOW_ALTITUDE_ATMOSPHERE_MIN_OPACITY
+            );
+            this._atmosphereCurrentMaxMinOpacity[2] = lerp(
+                t,
+                this._atmosphereMaxMinOpacity[2],
+                LOW_ALTITUDE_ATMOSPHERE_CURVE_SHIFT
+            );
+        }
     }
 
     /**
@@ -833,8 +896,10 @@ export class Planet extends Scene {
     public setHeightFactor(factor: number) {
         if (this._heightFactor !== factor) {
             this._heightFactor = factor;
+            this.layerLock.lock(this._memKey);
             this.quadTreeStrategy.destroyBranches();
             this.quadTreeStrategy.clearRenderedNodes();
+            this.layerLock.free(this._memKey);
         }
     }
 
@@ -866,7 +931,7 @@ export class Planet extends Scene {
      */
     public setTerrain(terrain: EmptyTerrain) {
         if (this._initialized) {
-            this.memClear();
+            this.memClear(true);
         }
 
         if (this.terrain) {
@@ -1139,7 +1204,8 @@ export class Planet extends Scene {
 
         this._normalMapCreator.init();
 
-        this.renderer!.events.on("draw", this._globalPreDraw, this, -100);
+        this.renderer!.events.on("predraw", this.onPreDraw, this, PLANET_PREDRAW_PRIORITY);
+        this.renderer!.events.on("draw", this.onDraw, this, PLANET_DRAW_PRIORITY);
 
         // Creating quad trees nodes
         this.quadTreeStrategy.init(this.camera);
@@ -1406,7 +1472,7 @@ export class Planet extends Scene {
         );
     }
 
-    protected _globalPreDraw() {
+    protected onPreDraw = () => {
         let cam = this.camera;
 
         this._distBeforeMemClear += this._prevCamEye.distance(cam.eye);
@@ -1414,10 +1480,15 @@ export class Planet extends Scene {
 
         if (this._atmosphereEnabled) {
             this._calcAtmosphereFadeDist();
+            this._updateAtmosphereMaxMinOpacity();
         }
 
         // free memory
-        if (this._createdNodesCount > this._maxNodes && this._distBeforeMemClear > this._minDistanceBeforeMemClear) {
+        if (
+            !this.disableMemClear &&
+            this._createdNodesCount > this._maxNodes &&
+            this._distBeforeMemClear > this._minDistanceBeforeMemClear
+        ) {
             this.terrain!.clearCache();
             this.memClear();
         }
@@ -1425,52 +1496,50 @@ export class Planet extends Scene {
         if (this._indexesCacheToRemoveCounter > 600) {
             this._clearIndexesCache();
         }
-    }
+    };
 
     /**
      * Render node callback.
      * @public
      */
-    public override preFrame() {
+    public onDraw = () => {
+        this.camera.update();
+
         if (this._updateLayers) {
             this._updateLayers = false;
             this._updateVisibleLayers();
         }
 
-        if (this.camera.isFarthestFrustumActive) {
-            this.camera.update();
-
-            if (this._collectRenderNodesIsActive) {
-                this.quadTreeStrategy.collectRenderNodes(this.camera);
-            }
-
-            //this.transformLights();
-
-            // creates terrain normal maps
-            this._normalMapCreator.frame();
-
-            // Creating geoImages textures.
-            this._geoImageCreator.frame();
-
-            // Vector tiles rasterization
-            this._vectorTileCreator.frame();
-
-            this.camera.checkTerrainCollision();
-            this.applyNear(this.camera);
-            this.camera.update();
-
-            // Here is the planet node dispatches a draw event before
-            // rendering begins, and we have got render nodes.
-            this.events.dispatch(this.events.draw, this);
-
-            // Collect entity collections from vector layers
-            this._collectVectorLayerCollections();
+        if (this._collectRenderNodesIsActive) {
+            this.quadTreeStrategy.collectRenderNodes(this.camera);
         }
+
+        //this.transformLights();
+
+        // creates terrain normal maps
+        this._normalMapCreator.frame();
+
+        // Creating geoImages textures.
+        this._geoImageCreator.frame();
+
+        // Vector tiles rasterization
+        this._vectorTileCreator.frame();
+
+        this.camera.checkTerrainCollision();
+        this.applyNear(this.camera);
+        this.camera.update();
+
+        // Here is the planet node dispatches a draw event before
+        // rendering begins, and we have got render nodes.
+        this.events.dispatch(this.events.draw, this);
+
+        // Collect entity collections from vector layers
+        this._collectVectorLayerCollections();
 
         for (let i = 0; i < this._visibleEntityCollections.length; i++) {
             this.drawEntityCollections(this._visibleEntityCollections[i], i);
         }
-    }
+    };
 
     /**
      * Pauses quadtree render-node collection and disables camera terrain collision checks.
@@ -1577,6 +1646,7 @@ export class Planet extends Scene {
         gl.uniform1f(shu.camHeight, cam.getHeight());
 
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
+        renderer.projectors.bindForward(sh, this.SLICE_SIZE + 6);
 
         return sh;
     }
@@ -1637,10 +1707,13 @@ export class Planet extends Scene {
         gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
 
         gl.uniform2fv(shu.atmosFadeDist, this.atmosphereFadeDist);
-        gl.uniform2fv(shu.atmosMaxMinOpacity, this.atmosphereMaxMinOpacity);
+        gl.uniform3fv(shu.atmosMaxMinOpacity, this._atmosphereCurrentMaxMinOpacity);
         gl.uniform1f(shu.camHeight, cam.getHeight());
 
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
+        gl.uniform3fv(shu.cameraForward, cam.getForward().toArray());
+        gl.uniform1f(shu.isOrthographic, cam.isOrthographic ? 1.0 : 0.0);
+        renderer.projectors.bindForward(sh, this.SLICE_SIZE + 6);
 
         return sh;
     }
@@ -1654,7 +1727,8 @@ export class Planet extends Scene {
         sl: Layer[],
         sliceIndex: number,
         outTransparentSegments?: Segment[],
-        outOpaqueSegments?: Segment[]
+        outOpaqueSegments?: Segment[],
+        forcedOpacity?: number
     ) => {
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
@@ -1662,8 +1736,8 @@ export class Planet extends Scene {
         for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
             let f = currentNode._fadingNodes[j].segment;
 
-            //if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[j].__id) && !nodes.has(f.node.__id)) {
-            if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
+            if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[j].__id) && !nodes.has(f.node.__id)) {
+                //if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
                 nodes.set(f.node.__id, true);
 
                 if (f._transitionOpacity < 1.0) {
@@ -1673,11 +1747,11 @@ export class Planet extends Scene {
                         isEq && f.equalize();
                         f.readyToEngage && f.engage();
                         f.updateRTCEyePosition(camera);
-                        f.screenRendering(sh, sl, sliceIndex);
+                        f.screenRendering(sh, sl, sliceIndex, undefined, false, forcedOpacity);
                         outOpaqueSegments!.push(f);
                     } else {
                         f.updateRTCEyePosition(camera);
-                        f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
+                        f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true, forcedOpacity);
                     }
                 }
             }
@@ -1885,11 +1959,31 @@ export class Planet extends Scene {
         gl.disable(gl.CULL_FACE);
 
         let nodes = new Map<number, boolean>();
-        let transparentSegments: Segment[] = [];
 
         let sl = this._visibleTileLayerSlices;
+        let sliceOrder: number[] = [];
+        const cameraHeight = camera.getHeight();
 
         for (let j = 1, len = sl.length; j < len; j++) {
+            sliceOrder.push(j);
+        }
+
+        // Fix blending visibility
+        sliceOrder.sort((a, b) => {
+            const ah = sl[a].length ? sl[a][0].getHeight() : 0.0;
+            const bh = sl[b].length ? sl[b][0].getHeight() : 0.0;
+            const ad = Math.abs(ah - cameraHeight);
+            const bd = Math.abs(bh - cameraHeight);
+
+            if (ad !== bd) return bd - ad;
+            if (ah !== bh) return ah - bh;
+            return a - b;
+        });
+
+        for (let p = 0; p < sliceOrder.length; p++) {
+            const j = sliceOrder[p];
+            let transparentSegments: Segment[] = [];
+
             if (camera.isFarthestFrustumActive) {
                 Planet.__refreshLayersFadingOpacity__(
                     sl[j],
@@ -1898,18 +1992,35 @@ export class Planet extends Scene {
                 );
             }
 
-            const polygonOffsetUnits = camera.reverseDepthActive ? j : -j;
+            const polygonOffsetUnits = camera.reverseDepthActive ? p + 1 : -(p + 1);
             gl.polygonOffset(0, polygonOffsetUnits);
             let i = renderedNodes.length;
             while (i--) {
                 let ri = renderedNodes[i];
-                this._renderingFadingNodes(camera, quadTreeStrategy, nodes, sh, ri, sl[j], j, transparentSegments);
+                this._renderingFadingNodes(
+                    camera,
+                    quadTreeStrategy,
+                    nodes,
+                    sh,
+                    ri,
+                    sl[j],
+                    j,
+                    transparentSegments,
+                    undefined,
+                    1.0
+                );
                 if (ri.segment._transitionOpacity < 1) {
-                    ri.segment.initSlice(j);
+                    transparentSegments.push(ri.segment);
                 } else {
                     ri.segment.updateRTCEyePosition(camera);
-                    ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
+                    ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true, 1.0);
                 }
+            }
+
+            for (let t = 0, tLen = transparentSegments.length; t < tLen; t++) {
+                let ts = transparentSegments[t];
+                ts.updateRTCEyePosition(camera);
+                ts.screenRendering(sh, sl[j], j, this.transparentTexture, true, 1.0);
             }
         }
 
@@ -2038,7 +2149,11 @@ export class Planet extends Scene {
      * Starts a clear memory thread.
      * @public
      */
-    public memClear() {
+    public memClear(force = false) {
+        if (this.disableMemClear && !force) {
+            return;
+        }
+
         this._distBeforeMemClear = 0;
 
         this.camera._insideSegment = null;
@@ -2395,7 +2510,11 @@ export class Planet extends Scene {
      * @public
      */
     public override onremove() {
-        this.memClear();
+        if (this.renderer) {
+            this.renderer.events.off("draw", this.onDraw);
+            this.renderer.events.off("predraw", this.onPreDraw);
+        }
+        this.memClear(true);
         this.quadTreeStrategy.destroyBranches();
         this.quadTreeStrategy.clearRenderedNodes();
     }

@@ -16,10 +16,11 @@ import { LabelWorker } from "../entity/label/LabelWorker";
 import { MAX_FLOAT, randomi } from "../math";
 import { Scene } from "../scene/Scene";
 import { screenFrame } from "../shaders/screenFrame";
-import { toneMapping } from "../shaders/tone_mapping/toneMapping";
+import { toneMappingProgram } from "../shaders/tone_mapping/toneMapping";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { ITransparencyPass } from "./ITransparencyPass";
 import { PhongDeferredShading } from "./PhongDeferredShading";
+import { ProjectorManager } from "./projectors/ProjectorManager";
 import { TextureResourceManager } from "../utils/TextureResourceManager";
 import type { RendererTextureRequest } from "../utils/TextureResourceManager";
 import { WOITPass } from "./WOITPass";
@@ -37,6 +38,7 @@ export interface IRendererParams {
     fontsSrc?: string;
     gamma?: number;
     exposure?: number;
+    toneMapping?: string;
     dpi?: number;
     clearColor?: [number, number, number, number];
     lightPosition?: NumberArray3;
@@ -75,13 +77,14 @@ let _tempDepth_ = new Float32Array(2);
  *     - fontsSrc: Path to font resources
  *     - gamma: Gamma correction value
  *     - exposure: HDR exposure value
+ *     - toneMapping: HDR tone mapping operator
  *     - dpi: Device pixel ratio
  *     - clearColor: RGBA clear color array
  *     - lightPosition: Light position `[x, y, z]`
  *     - lightAmbient: Light ambient color `[r, g, b]`
  *     - lightDiffuse: Light diffuse color `[r, g, b]`
  *     - lightSpecular: Light specular `[r, g, b, shininess]`
- * @fires draw - Triggered before each frame is rendered.
+ * @fires predraw - Triggered before each frame is rendered.
  * @fires resize - Triggered when the canvas is resized.
  * @fires mousemove - Triggered when the mouse moves over the canvas.
  * @fires mousestop - Triggered when the mouse stops moving.
@@ -138,6 +141,7 @@ class Renderer {
     public exposure: number;
     public gamma: number;
     public whitepoint: number;
+    protected _toneMapping: string;
     public brightThreshold: number;
 
     /**
@@ -162,7 +166,7 @@ class Renderer {
     public activeCamera: Camera;
 
     /**
-     * Renderer events. Represents interface for setting events like mousemove, draw, keypress etc.
+     * Renderer events. Represents interface for setting events like mousemove, predraw, keypress etc.
      * @public
      * @type {RendererEvents}
      */
@@ -269,6 +273,7 @@ class Renderer {
     public _lightAmbient: Float32Array;
     public _lightDiffuse: Float32Array;
     public _lightSpecular: Float32Array;
+    public projectors: ProjectorManager;
 
     //public lightColor: Float32Array;
     //public lightIntensity: number;
@@ -297,6 +302,7 @@ class Renderer {
         this._lightAmbient = new Float32Array(3);
         this._lightDiffuse = new Float32Array(3);
         this._lightSpecular = new Float32Array(4);
+        this.projectors = new ProjectorManager(this);
 
         this.lightAmbient = params.lightAmbient || [0.2, 0.2, 0.2];
         this.lightDiffuse = params.lightDiffuse || [1, 1, 1];
@@ -307,6 +313,8 @@ class Renderer {
         this.gamma = params.gamma || 2.2;
 
         this.whitepoint = 1.0;
+
+        this._toneMapping = params.toneMapping || "TONE_MAPPING_REINHARD_WHITE";
 
         this.brightThreshold = 0.9;
 
@@ -449,6 +457,35 @@ class Renderer {
     public get lightSpecular(): NumberArray4 {
         const srgb = linearToSrgbArr([this._lightSpecular[0], this._lightSpecular[1], this._lightSpecular[2]]);
         return [srgb[0], srgb[1], srgb[2], this._lightSpecular[3]];
+    }
+
+    /**
+     * Sets HDR tone mapping operator and recompiles tone mapping shader.
+     * @public
+     * @param {string} operator - Tone mapping operator name.
+     */
+    public setToneMapping(operator: string): this {
+        if (this._toneMapping === operator) {
+            return this;
+        }
+
+        this._toneMapping = operator;
+
+        if (this.handler.programs.toneMapping) {
+            this.handler.removeProgram("toneMapping");
+            this.handler.addProgram(toneMappingProgram(this._toneMapping));
+        }
+
+        return this;
+    }
+
+    /**
+     * Returns HDR tone mapping operator.
+     * @public
+     * @returns {string}
+     */
+    public getToneMapping(): string {
+        return this._toneMapping;
     }
 
     public enableBlendDefault() {
@@ -791,7 +828,7 @@ class Renderer {
             this._msaa = _maxMSAA;
         }
 
-        this.handler.addPrograms([toneMapping(), depth()]);
+        this.handler.addPrograms([toneMappingProgram(this._toneMapping), depth()]);
 
         let initWidth = this.handler.getWidth() * 0.5,
             initHeight = this.handler.getHeight() * 0.5;
@@ -1346,15 +1383,18 @@ class Renderer {
 
         this.enableBlendDefault();
 
-        e.dispatch(e.draw, this);
+        e.dispatch(e.predraw, this);
 
         this.activeCamera.checkFly();
 
         let frustums = this.activeCamera.frustums;
 
         // Rendering scenes and entityCollections
-        let rn = this._scenesArr;
         let k = frustums.length;
+
+        this.activeCamera.setCurrentFrustum(this.activeCamera.FARTHEST_FRUSTUM_INDEX);
+
+        e.dispatch(e.draw, this);
 
         //
         // Scenes PASS
@@ -1362,11 +1402,6 @@ class Renderer {
         while (k--) {
             this.activeCamera.setCurrentFrustum(k);
             gl.clear(gl.DEPTH_BUFFER_BIT);
-
-            let i = rn.length;
-            while (i--) {
-                rn[i].draw();
-            }
 
             //
             // Deferred geometry pass for opaque objects
@@ -1415,9 +1450,8 @@ class Renderer {
             }
 
             this._drawDepthBuffer(0);
-
-            this._clearEntityCollectionQueue(0);
         }
+        this._clearEntityCollectionQueue(0);
 
         //
         // Depth-ordered EntityCollections passes
@@ -1494,7 +1528,7 @@ class Renderer {
 
         gl.uniform1f(p.uniforms.gamma, this.gamma);
         gl.uniform1f(p.uniforms.exposure, this.exposure);
-        gl.uniform1f(p.uniforms.whitepoint, this.whitepoint);
+        p.uniforms.whitepoint && gl.uniform1f(p.uniforms.whitepoint, this.whitepoint);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         this.toneMappingFramebuffer!.deactivate();
@@ -1831,6 +1865,7 @@ class Renderer {
         this._entityCollections = [[]];
 
         this._textureResourceManager.clear();
+        this.projectors.clear();
 
         this.handler.ONCANVASRESIZE = null;
         this.handler.destroy();

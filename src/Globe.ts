@@ -33,7 +33,6 @@ import type { HTMLDivElementExt } from "./renderer/Renderer";
 import { Scene } from "./scene/Scene";
 import { Extent } from "./Extent";
 import type { IAtmosphereParams } from "./control/atmosphere/Atmosphere";
-import { CameraFrameComposer } from "./control/CameraFrameComposer";
 import { QuadTreeStrategy } from "./quadTree";
 import type { ShadeModeInput } from "./shadeModeConstants";
 
@@ -68,6 +67,9 @@ export interface IGlobeParams {
     navigation?: {
         active?: boolean;
         inertia?: number;
+        minInertia?: number;
+        maxInertia?: number;
+        minInertiaAltitude?: number;
         dragInertia?: number;
         minSlope?: number;
         mass?: number;
@@ -138,13 +140,13 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.autoActivate=true] - Globe rendering auto activation flag. True is default.
  * @param {HTMLElement} [options.attributionContainer] - Container for attribution list.
  * @param {number} [options.maxGridSize=128] = Maximal segment grid size. 128 is default
- * @param {string} [options.fontsSrc] -  Fonts collection url.
+ * @param {string} [options.fontsSrc] - Fonts collection url.
  * @param {string} [options.resourcesSrc] - Resources root src.
- * @param {string} [options.nightTextureSrc] - Night glowing image sources
+ * @param {string} [options.nightTextureSrc] - Night-glowing image sources
  * @param {string} [options.specularTextureSrc] - Specular water mask image sourcr
- * @param {number} [options.maxAltitude=15000000.0] - Maximal camera altitude above terrain
+ * @param {number} [options.maxAltitude] - Maximal camera altitude above terrain
  * @param {number} [options.minAltitude=1.0] - Minimal camera altitude above terrain
- * @param {number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen became the same zoom level
+ * @param {number} [options.maxEqualZoomAltitude] - Maximal altitude since segments on the screen became the same zoom level
  * @param {number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen became the same zoom level
  * @param {number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above the globe where segments on the screen became the same zoom level
  * @param {number} [options.loadingBatchSize=12] -
@@ -287,7 +289,7 @@ class Globe {
                     : options.specularTextureSrc ||
                       `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_SPEC_SRC}`,
             minAltitude: options.minAltitude,
-            maxAltitude: options.maxAltitude || 15000000,
+            maxAltitude: options.maxAltitude,
             maxEqualZoomAltitude: options.maxEqualZoomAltitude,
             minEqualZoomAltitude: options.minEqualZoomAltitude,
             minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
@@ -327,8 +329,7 @@ class Globe {
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
-                new CompassButton(),
-                new CameraFrameComposer()
+                new CompassButton()
             ]);
         }
 
@@ -373,6 +374,15 @@ class Globe {
             }
             if (options.navigation.inertia !== undefined) {
                 this.navigation.inertia = options.navigation.inertia;
+            }
+            if (options.navigation.minInertia !== undefined) {
+                this.navigation.minInertia = options.navigation.minInertia;
+            }
+            if (options.navigation.maxInertia !== undefined) {
+                this.navigation.maxInertia = options.navigation.maxInertia;
+            }
+            if (options.navigation.minInertiaAltitude !== undefined) {
+                this.navigation.minInertiaAltitude = options.navigation.minInertiaAltitude;
             }
             if (options.navigation.dragInertia !== undefined) {
                 this.navigation.dragInertia = options.navigation.dragInertia;

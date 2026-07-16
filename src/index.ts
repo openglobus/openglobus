@@ -21,9 +21,17 @@ export type { IControlParams } from "./control/Control";
 export type { ITouchState } from "./renderer/RendererEvents";
 export type { IDeferredShadingPass } from "./renderer/IDeferredShadingPass";
 export type { ITransparencyPass } from "./renderer/ITransparencyPass";
+export type { ProjectorSourceType, ProjectorRenderMode, IProjectorParams } from "./renderer/projectors/Projector";
+export { Projector } from "./renderer/projectors/Projector";
+export type { IDepthCameraParams } from "./control/depthCamera/DepthCamera";
+export { DepthCamera } from "./control/depthCamera/DepthCamera";
+export type { IDepthCameraHandlerParams } from "./control/depthCamera/DepthCameraHandler";
+export { DepthCameraHandler } from "./control/depthCamera/DepthCameraHandler";
 export { PhongDeferredShading } from "./renderer/PhongDeferredShading";
 export { AtmosphereDeferredShading } from "./renderer/AtmosphereDeferredShading";
 export { WOITPass } from "./renderer/WOITPass";
+export { ProjectorsPass } from "./renderer/projectors/ProjectorsPass";
+export { ProjectorManager } from "./renderer/projectors/ProjectorManager";
 export { SHADE_UNLIT, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "./shadeModeConstants";
 
 declare const __OG_VERSION__: string;
@@ -62,7 +70,18 @@ import { Object3d } from "./Object3d";
 
 import { Handler, ShaderProgram, Framebuffer, Multisample } from "./webgl/index";
 
-import { EmptyTerrain, GlobusTerrain, RgbTerrain, BilTerrain, GlobusRgbTerrain } from "./terrain/index";
+import {
+    EmptyTerrain,
+    GlobusTerrain,
+    RgbTerrain,
+    BilTerrain,
+    GlobusRgbTerrain,
+    MapterhornTerrain,
+    rgbToHeightByEncoding,
+    rgbToHeightRgb,
+    rgbToHeightTerrarium,
+    resolveRgbToHeightFunc
+} from "./terrain/index";
 
 import { MoveAxisEntity } from "./control/entityEditor/MoveAxisEntity";
 import { Gltf } from "./utils/gltf/gltfParser";
@@ -93,6 +112,11 @@ export {
     GlobusTerrain,
     RgbTerrain,
     GlobusRgbTerrain,
+    MapterhornTerrain,
+    rgbToHeightByEncoding,
+    rgbToHeightRgb,
+    rgbToHeightTerrarium,
+    resolveRgbToHeightFunc,
     BilTerrain,
     Camera,
     Ellipsoid,

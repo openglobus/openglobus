@@ -89,7 +89,14 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             camHeight: "float",
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
-            shadeMode: "float"
+            shadeMode: "float",
+            u_projectorCount: "int",
+            u_projectorLayer: "intxx",
+            u_projectorViewProjRTE: "mat4",
+            u_projectorEyeRel: "vec3",
+            u_projectorColor: "vec4",
+            u_projectorParams: "vec4",
+            u_projectorDepthArray: "sampler2darray"
         },
         attributes: {
             aVertexPositionHigh: "vec3",
@@ -107,6 +114,8 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
             cameraPosition: "vec3",
+            cameraForward: "vec3",
+            isOrthographic: "float",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             height: "float",
@@ -127,11 +136,18 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             atmosFadeDist: "vec2",
-            atmosMaxMinOpacity: "vec2",
+            atmosMaxMinOpacity: "vec3",
             camHeight: "float",
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
-            shadeMode: "float"
+            shadeMode: "float",
+            u_projectorCount: "int",
+            u_projectorLayer: "intxx",
+            u_projectorViewProjRTE: "mat4",
+            u_projectorEyeRel: "vec3",
+            u_projectorColor: "vec4",
+            u_projectorParams: "vec4",
+            u_projectorDepthArray: "sampler2darray"
         },
         attributes: {
             aVertexPositionHigh: "vec3",

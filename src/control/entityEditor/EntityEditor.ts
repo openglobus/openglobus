@@ -1,11 +1,13 @@
 import { Control, type IControlParams } from "../Control";
-import { EntityEditorScene } from "./EntityEditorScene";
+import { EntityEditorScene, type EditModeName } from "./EntityEditorScene";
 import { EntityEditorDialog } from "./EntityEditorDialog";
 import { CameraLock } from "../CameraLock";
 import { Entity } from "../../entity/Entity";
 import { Dialog } from "../../ui";
 
-export interface IEntityEditorParams extends IControlParams {}
+export interface IEntityEditorParams extends IControlParams {
+    editMode?: EditModeName;
+}
 
 export class EntityEditor extends Control {
     protected _entityEditorScene: EntityEditorScene;
@@ -18,7 +20,8 @@ export class EntityEditor extends Control {
         });
 
         this._entityEditorScene = new EntityEditorScene({
-            name: `entityEditorScene:${this.__id}`
+            name: `entityEditorScene:${this.__id}`,
+            editMode: options.editMode
         });
 
         this._dialog = new EntityEditorDialog({
