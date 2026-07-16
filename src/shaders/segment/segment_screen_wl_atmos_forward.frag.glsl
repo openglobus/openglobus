@@ -35,12 +35,14 @@ uniform int samplerCount;
 uniform float nightTextureCoefficient;
 
 uniform vec2 atmosFadeDist;
-uniform vec2 atmosMaxMinOpacity;
+uniform vec3 atmosMaxMinOpacity;
 uniform float camHeight;
 
 uniform float transitionOpacity;
 uniform float shadeMode;
 uniform vec3 cameraPosition;
+uniform vec3 cameraForward;
+uniform float isOrthographic;
 
 in vec4 vTextureCoord;
 in vec3 v_worldVertex;
@@ -63,10 +65,12 @@ void main(void) {
 
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
-    vec3 projectorColor = applyProjectors(v_rtcPos, normal);
+    vec3 projectorEmission;
+    vec3 projectorLight;
+    applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
 
     if (shadeMode == SHADE_UNLIT) {
-        diffuseColor.rgb += projectorColor;
+        diffuseColor.rgb += projectorEmission;
         diffuseColor *= transitionOpacity;
         return;
     }
@@ -87,12 +91,15 @@ void main(void) {
     float fadingOpacity;
     vec4 atmosColor;
 
-    vec3 viewDir = normalize(cameraPosition - v_worldVertex);
+    vec3 rayOrigin;
+    vec3 rayDirection;
+    getAtmosViewRay(v_worldVertex, cameraPosition, cameraForward, isOrthographic, rayOrigin, rayDirection);
+    vec3 viewDir = normalize(-rayDirection);
 
-    atmosGroundColor(v_worldVertex, normal, cameraPosition, lightPosition, atmosColor);
+    atmosGroundColor(v_worldVertex, normal, rayOrigin, rayDirection, lightPosition, atmosColor);
 
     vec3 sunIlluminance;
-    getSunIlluminance(v_worldVertex * SPHERE_TO_ELLIPSOID_SCALE, normalize(lightPosition) * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+    getSunIlluminance(v_worldVertex, normalize(lightPosition), sunIlluminance);
 
     if (shadeMode < SHADE_PBR) {
         // PHONG mode in atmosphere forward pass: keep atmosphere contribution.
@@ -129,11 +136,16 @@ void main(void) {
     }
 
     getAtmosFadingOpacity(v_worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
-    getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
-    specularWeighting *= sunIlluminance;
+    fadingOpacity *= atmosColor.a;
+    getSunIlluminance(cameraPosition, viewDir, sunIlluminance);
+    specularWeighting *= mix(vec3(1.0), sunIlluminance, atmosColor.a);
 
     diffuseColor = vec4(
-    mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting + projectorColor,
+    mix(
+    diffuseColor.rgb * (lightWeighting.rgb + projectorLight) + emission,
+    atmosColor.rgb,
+    fadingOpacity
+    ) + specularWeighting + projectorEmission,
     diffuseColor.a
     );
 

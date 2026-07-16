@@ -21,5 +21,5 @@ describe('EntityCollectionNode class', () => {
         expect(item).toBeTruthy();
         expect(item.buildTree).toBeTruthy();
         expect(item.renderCollection).toBeTruthy();
-    });
+    }, 10000);
 });

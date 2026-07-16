@@ -103,7 +103,7 @@ export class CompassButton extends Control {
 
         this._icon = btn.select(".og-button-icon");
 
-        this.renderer!.events!.on("draw", this._draw);
+        this.renderer!.events!.on("predraw", this._draw);
     }
 
     protected _onClick() {

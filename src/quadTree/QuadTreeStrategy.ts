@@ -33,9 +33,13 @@ export interface QuadTreeStrategyParams {
 export class QuadTreeStrategy {
     public events: EventsHandler<QuadTreeStrategyEventsList>;
 
+    public maxZoomLimit: number = 50;
+
     public name: string;
     public projection: Proj;
     public readonly planet: Planet;
+
+    public lodCamera: PlanetCamera | null = null;
 
     /**
      * grid tree list.

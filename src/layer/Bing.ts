@@ -33,7 +33,7 @@ export class Bing extends XYZ {
                 });
             },
             ambient: [0.15, 0.15, 0.25],
-            diffuse: [1.25, 1.25, 1.25],
+            diffuse: [1.3, 1.3, 1.3],
             shininess: 40,
             specular: [0.12, 0.12, 0.1],
             nightTextureCoefficient: 1,

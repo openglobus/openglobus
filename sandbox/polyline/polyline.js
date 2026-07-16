@@ -125,7 +125,7 @@ function test_setPoint3v(i, coords, index, segmentIndex) {
 
 // function test_start() {
 //     let counter = 0
-//     renderer.events.on("draw", () => {
+//     renderer.events.on("predraw", () => {
 //         if (counter % 2) {
 //             test_appendPath3v(1);
 //         } else {

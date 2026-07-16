@@ -1,18 +1,19 @@
 import { Mat4 } from "../../math/Mat4";
 import { cons } from "../../cons";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
+import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
 import type { Renderer } from "../Renderer";
-import { srgbToLinearArr } from "../../utils/colorSpace";
 import { Projector } from "./Projector";
 
-export type { ProjectorMode, IProjectorParams, IRendererProjectorParams } from "./Projector";
-export { Projector, RendererProjector } from "./Projector";
+export type { ProjectorSourceType, ProjectorRenderMode, IProjectorParams } from "./Projector";
+export { Projector } from "./Projector";
 
 /**
  * Maximum number of depth layers allocated in manager-owned projector array texture.
  * Defines how many projectors can be added to the manager at once.
  */
 export const MAX_PROJECTOR_LAYERS = 64;
+const INITIAL_PROJECTOR_LAYERS = 8;
 
 /**
  * Maximum number of projectors processed in a single shader invocation.
@@ -40,6 +41,7 @@ export class ProjectorManager {
     protected _depthArrayTexture: WebGLTexture | null;
     /** Layer size of `_depthArrayTexture`. Determined by the first projector added. */
     protected _depthSize: number;
+    protected _depthCapacity: number;
     protected _freeSlots: number[];
 
     protected _tmpInverse: Mat4;
@@ -59,10 +61,8 @@ export class ProjectorManager {
 
         this._depthArrayTexture = null;
         this._depthSize = 0;
+        this._depthCapacity = 0;
         this._freeSlots = [];
-        for (let i = MAX_PROJECTOR_LAYERS - 1; i >= 0; i--) {
-            this._freeSlots.push(i);
-        }
 
         this._tmpInverse = new Mat4();
     }
@@ -85,67 +85,78 @@ export class ProjectorManager {
     public add(projector: Projector): number {
         if (projector._slot !== -1) return projector.id;
 
-        if (this._freeSlots.length === 0) {
+        if (this._freeSlots.length === 0 && this._depthCapacity >= MAX_PROJECTOR_LAYERS) {
             console.warn(`ProjectorManager.add(): max projector layers (${MAX_PROJECTOR_LAYERS}) reached`);
             return -1;
         }
 
-        if (!projector.framebuffer || !projector.framebuffer._fbo) {
-            console.warn("ProjectorManager.add(): projector.framebuffer must be initialized before add()");
+        const framebuffer = projector.depthCamera.framebuffer;
+        if (!framebuffer._fbo) {
+            console.warn("ProjectorManager.add(): projector.depthCamera.framebuffer must be initialized before add()");
             return -1;
         }
 
-        const fbW = projector.framebuffer.width;
-        const fbH = projector.framebuffer.height;
+        const fbW = framebuffer.width;
+        const fbH = framebuffer.height;
         if (fbW !== fbH) {
             console.warn(`ProjectorManager.add(): projector framebuffer must be square (${fbW}x${fbH})`);
             return -1;
         }
 
-        if (!this._ensureDepthArrayTexture(fbW)) return -1;
+        if (!this._ensureDepthArrayTexture(fbW, this._depthCapacity || INITIAL_PROJECTOR_LAYERS)) return -1;
+        if (this._freeSlots.length === 0 && !this._growDepthArrayTexture()) return -1;
 
         projector._slot = this._freeSlots.pop()!;
         projector._manager = this;
 
-        this._rebindFramebufferToLayer(projector);
+        if (!this._rebindFramebufferToLayer(projector)) {
+            this._restoreFramebufferAttachment(projector);
+            this._freeSlots.push(projector._slot);
+            projector._slot = -1;
+            projector._manager = null;
+            return -1;
+        }
 
-        this._projectors.push(this._prepareProjector(projector));
+        this._projectors.push(projector);
         this._updateActiveProjectors = true;
         return projector.id;
     }
 
     /**
-     * Rebinds projector.framebuffer COLOR_ATTACHMENT0 from its own TEXTURE_2D
+     * Rebinds projector.depthCamera.framebuffer COLOR_ATTACHMENT0 from its own TEXTURE_2D
      * to (this._depthArrayTexture, projector._slot) so renders go directly into
      * the array layer without any per-frame copy. The original TEXTURE_2D stays
      * referenced inside framebuffer.textures[0] so framebuffer.destroy() can free it
      * normally — we never overwrite that slot with the shared array texture.
      */
-    protected _rebindFramebufferToLayer(projector: Projector): void {
+    protected _rebindFramebufferToLayer(projector: Projector): boolean {
         const gl = this._renderer.handler.gl;
-        if (!gl) return;
+        if (!gl) return false;
 
-        const fb = projector.framebuffer;
-        if (!fb._fbo) return;
+        const fb = projector.depthCamera.framebuffer;
+        if (!fb._fbo) return false;
 
         const status = fb.attachLayer(this._depthArrayTexture, projector._slot);
 
         if (status !== gl.FRAMEBUFFER_COMPLETE) {
             console.warn(`ProjectorManager._rebindFramebufferToLayer(): framebuffer incomplete after framebufferTextureLayer
                 (status=${fb.statusToText(status)}, slot=${projector._slot}). Check float color-buffer support for R32F.`);
+            return false;
         }
+
+        return true;
     }
 
     /**
-     * Restores projector.framebuffer COLOR_ATTACHMENT0 back to its original TEXTURE_2D
+     * Restores projector.depthCamera.framebuffer COLOR_ATTACHMENT0 back to its original TEXTURE_2D
      * so subsequent depth renders no longer touch the freed array layer.
      */
     protected _restoreFramebufferAttachment(projector: Projector): void {
         const gl = this._renderer.handler.gl;
         if (!gl) return;
 
-        const fb = projector.framebuffer;
-        if (!fb || !fb._fbo) return;
+        const fb = projector.depthCamera.framebuffer;
+        if (!fb._fbo) return;
 
         const orig = projector.depthTexture;
         gl.bindFramebuffer(gl.FRAMEBUFFER, fb._fbo);
@@ -161,9 +172,19 @@ export class ProjectorManager {
     public update(projector: Projector): boolean {
         const index = this._projectors.findIndex((p) => p.id === projector.id);
         if (index === -1) return false;
-        this._projectors[index] = this._prepareProjector(projector);
+        this._projectors[index] = projector;
         this._updateActiveProjectors = true;
         return true;
+    }
+
+    public getByDepthCamera(depthCamera: DepthCamera): Projector | null {
+        for (let i = 0; i < this._projectors.length; i++) {
+            if (this._projectors[i].depthCamera === depthCamera) {
+                return this._projectors[i];
+            }
+        }
+
+        return null;
     }
 
     public remove(projector: Projector): boolean {
@@ -195,7 +216,7 @@ export class ProjectorManager {
         this._updateActiveProjectors = false;
 
         this._freeSlots.length = 0;
-        for (let i = MAX_PROJECTOR_LAYERS - 1; i >= 0; i--) {
+        for (let i = this._depthCapacity - 1; i >= 0; i--) {
             this._freeSlots.push(i);
         }
     }
@@ -208,6 +229,8 @@ export class ProjectorManager {
         }
         this._depthArrayTexture = null;
         this._depthSize = 0;
+        this._depthCapacity = 0;
+        this._freeSlots.length = 0;
     }
 
     /**
@@ -240,30 +263,31 @@ export class ProjectorManager {
 
         for (let i = 0; i < size; i++) {
             const pi = active[i];
+            const camera = pi.depthCamera.camera;
             const mOffset = i * 16;
             const eOffset = i * 3;
             const vOffset = i * 4;
 
-            const pvRTE = pi.camera.getProjectionViewRTEMatrix();
+            const pvRTE = camera.getProjectionViewRTEMatrix();
             this._viewProjData.set(pvRTE, mOffset);
 
             this._tmpInverse.set(pvRTE).inverseTo(this._tmpInverse);
             this._invViewProjData.set(this._tmpInverse._m, mOffset);
 
-            this._eyeRelData[eOffset] = pi.camera.eye.x - activeCameraEye.x;
-            this._eyeRelData[eOffset + 1] = pi.camera.eye.y - activeCameraEye.y;
-            this._eyeRelData[eOffset + 2] = pi.camera.eye.z - activeCameraEye.z;
+            this._eyeRelData[eOffset] = camera.eye.x - activeCameraEye.x;
+            this._eyeRelData[eOffset + 1] = camera.eye.y - activeCameraEye.y;
+            this._eyeRelData[eOffset + 2] = camera.eye.z - activeCameraEye.z;
 
             const color = pi.color;
             this._colorIntensityData[vOffset] = color[0] ?? 1.0;
             this._colorIntensityData[vOffset + 1] = color[1] ?? 1.0;
             this._colorIntensityData[vOffset + 2] = color[2] ?? 1.0;
-            this._colorIntensityData[vOffset + 3] = pi.intensity;
+            this._colorIntensityData[vOffset + 3] = color[3] ?? 1.0;
 
-            this._paramsData[vOffset] = pi.bias;
-            this._paramsData[vOffset + 1] = pi.normalBias;
-            this._paramsData[vOffset + 2] = pi.opacity;
-            this._paramsData[vOffset + 3] = pi.depthEpsilon;
+            this._paramsData[vOffset] = pi.depthCamera.bias;
+            this._paramsData[vOffset + 1] = pi.depthCamera.normalBias;
+            this._paramsData[vOffset + 2] = pi.renderMode;
+            this._paramsData[vOffset + 3] = pi.depthCamera.depthEpsilon;
 
             this._layerData[i] = pi._slot;
         }
@@ -272,7 +296,7 @@ export class ProjectorManager {
         gl.uniform1iv(u.u_projectorLayer!, this._layerData);
         gl.uniformMatrix4fv(u.u_projectorViewProjRTE!, false, this._viewProjData);
         gl.uniform3fv(u.u_projectorEyeRel!, this._eyeRelData);
-        gl.uniform4fv(u.u_projectorColorIntensity!, this._colorIntensityData);
+        gl.uniform4fv(u.u_projectorColor!, this._colorIntensityData);
         gl.uniform4fv(u.u_projectorParams!, this._paramsData);
 
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
@@ -308,8 +332,9 @@ export class ProjectorManager {
         }
 
         const pi = active[projectorIndex];
+        const camera = pi.depthCamera.camera;
         const activeCameraEye = this._renderer.activeCamera.eye;
-        const pvRTE = pi.camera.getProjectionViewRTEMatrix();
+        const pvRTE = camera.getProjectionViewRTEMatrix();
 
         this._tmpInverse.set(pvRTE).inverseTo(this._tmpInverse);
 
@@ -320,12 +345,18 @@ export class ProjectorManager {
         gl.uniformMatrix4fv(u.u_projectorViewProjRTE, false, pvRTE);
         gl.uniform3f(
             u.u_projectorEyeRel,
-            pi.camera.eye.x - activeCameraEye.x,
-            pi.camera.eye.y - activeCameraEye.y,
-            pi.camera.eye.z - activeCameraEye.z
+            camera.eye.x - activeCameraEye.x,
+            camera.eye.y - activeCameraEye.y,
+            camera.eye.z - activeCameraEye.z
         );
-        gl.uniform4f(u.u_projectorColorIntensity, color[0], color[1], color[2], pi.intensity);
-        gl.uniform4f(u.u_projectorParams, pi.bias, pi.normalBias, pi.opacity, pi.depthEpsilon);
+        gl.uniform4f(u.u_projectorColor, color[0], color[1], color[2], color[3]);
+        gl.uniform4f(
+            u.u_projectorParams,
+            pi.depthCamera.bias,
+            pi.depthCamera.normalBias,
+            pi.renderMode,
+            pi.depthCamera.depthEpsilon
+        );
         gl.uniformMatrix4fv(u.u_projectorInvViewProjRTE, false, this._tmpInverse._m);
 
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
@@ -341,7 +372,7 @@ export class ProjectorManager {
      * projector to be added. All subsequent projectors must use the same size.
      * Returns false if a size mismatch is detected.
      */
-    protected _ensureDepthArrayTexture(size: number): boolean {
+    protected _ensureDepthArrayTexture(size: number, capacity: number): boolean {
         if (this._depthArrayTexture) {
             if (this._depthSize !== size) {
                 cons.logWrn(
@@ -353,13 +384,17 @@ export class ProjectorManager {
             return true;
         }
 
+        return this._createDepthArrayTexture(size, Math.min(capacity, MAX_PROJECTOR_LAYERS));
+    }
+
+    protected _createDepthArrayTexture(size: number, capacity: number): boolean {
         const gl = this._renderer.handler.gl as WebGL2RenderingContext;
         if (!gl) return false;
 
         const tex = this._renderer.handler.createEmptyTexture2DArrayExt(
             size,
             size,
-            MAX_PROJECTOR_LAYERS,
+            capacity,
             "NEAREST",
             "R32F",
             "CLAMP_TO_EDGE",
@@ -369,6 +404,52 @@ export class ProjectorManager {
 
         this._depthArrayTexture = tex;
         this._depthSize = size;
+        this._depthCapacity = capacity;
+        this._freeSlots.length = 0;
+        for (let i = capacity - 1; i >= this._projectors.length; i--) {
+            this._freeSlots.push(i);
+        }
+        return true;
+    }
+
+    protected _growDepthArrayTexture(): boolean {
+        if (!this._depthArrayTexture || !this._depthSize || this._depthCapacity >= MAX_PROJECTOR_LAYERS) {
+            return false;
+        }
+
+        const gl = this._renderer.handler.gl as WebGL2RenderingContext;
+        if (!gl) return false;
+
+        const oldTexture = this._depthArrayTexture;
+        const oldCapacity = this._depthCapacity;
+        const nextCapacity = Math.min(oldCapacity * 2, MAX_PROJECTOR_LAYERS);
+
+        if (!this._createDepthArrayTexture(this._depthSize, nextCapacity)) {
+            this._depthArrayTexture = oldTexture;
+            this._depthCapacity = oldCapacity;
+            return false;
+        }
+
+        for (let i = 0; i < this._projectors.length; i++) {
+            if (!this._rebindFramebufferToLayer(this._projectors[i])) {
+                gl.deleteTexture(this._depthArrayTexture);
+                this._depthArrayTexture = oldTexture;
+                this._depthCapacity = oldCapacity;
+                this._freeSlots.length = 0;
+                for (let j = 0; j < this._projectors.length; j++) {
+                    this._rebindFramebufferToLayer(this._projectors[j]);
+                }
+                return false;
+            }
+        }
+
+        gl.deleteTexture(oldTexture);
+
+        this._freeSlots.length = 0;
+        for (let i = nextCapacity - 1; i >= oldCapacity; i--) {
+            this._freeSlots.push(i);
+        }
+
         return true;
     }
 
@@ -394,11 +475,5 @@ export class ProjectorManager {
         this._updateActiveProjectors = false;
 
         return this._activeProjectors;
-    }
-
-    protected _prepareProjector(projector: Projector): Projector {
-        const linearColor = srgbToLinearArr(projector.color);
-        projector.color = [linearColor[0], linearColor[1], linearColor[2]];
-        return projector;
     }
 }

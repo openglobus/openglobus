@@ -36,6 +36,11 @@ class SkyBox extends Scene {
         this.texture = h.loadCubeMapTexture(this.params, gl.SRGB8_ALPHA8, gl.LINEAR);
         this._createBuffers();
         this.drawMode = gl.TRIANGLES;
+        this.renderer!.events.on("predraw", this._onPredraw, this);
+    }
+
+    public override onremove() {
+        this.renderer?.events.off("predraw", this._onPredraw);
     }
 
     public setSize(size: number) {
@@ -46,7 +51,7 @@ class SkyBox extends Scene {
         }
     }
 
-    public override preFrame() {
+    protected _onPredraw = () => {
         let h = this.renderer!.handler;
         let gl = h.gl!;
         let cam = this.renderer!.activeCamera!;
@@ -79,7 +84,7 @@ class SkyBox extends Scene {
 
         gl.drawArrays(this.drawMode, 0, buf.numItems);
         gl.enable(gl.DEPTH_TEST);
-    }
+    };
 
     protected _createBuffers() {
         const size = this.size;

@@ -11,7 +11,8 @@ import {
     input,
     Gltf,
     Object3d,
-    Projector
+    Projector,
+    DepthCamera
 } from "../../lib/og.es.js";
 
 let uavLayer = new Vector("UAV.Layer", {
@@ -30,6 +31,7 @@ const globus = new Globe({
     layers: [new Bing(), new OpenStreetMap(), uavLayer, myObjects],
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts"
+    //reverseDepth: false
 });
 
 globus.planet.addControl(new control.TimelineControl());
@@ -42,6 +44,8 @@ const uavGltfPromise = Gltf.loadGlb("./uav.glb");
 const cameraFrustumObject3d = Object3d.createFrustum();
 const trackedCameraEntities = [];
 const skyCubeObject3d = Object3d.createCube(10000, 10000, 10000).setColor("white");
+const PROJECTOR_NEAR = 300.0;
+const PROJECTOR_FAR = 100000.0;
 
 myObjects.add(
     new Entity({
@@ -73,6 +77,9 @@ let cameraObjectCounter = 0;
 const keyboardNavigation = new control.KeyboardNavigation();
 globus.planet.addControl(keyboardNavigation);
 
+const depthCameraHandler = new control.DepthCameraHandler();
+globus.planet.addControl(depthCameraHandler);
+
 function syncTrackedCameras() {
     for (let i = 0; i < trackedCameraEntities.length; i++) {
         const entity = trackedCameraEntities[i];
@@ -94,7 +101,7 @@ function syncTrackedCameras() {
     }
 }
 
-globus.planet.renderer.events.on("draw", syncTrackedCameras, null, -300);
+globus.planet.renderer.events.on("predraw", syncTrackedCameras, null, -300);
 
 async function createTrackedCameraEntity(cameraSnapshot) {
     const uavGltf = await uavGltfPromise;
@@ -107,40 +114,37 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     const rootName = uavObjects[0].name || "root";
     const objectId = cameraObjectCounter++;
 
-    const depthHandler = new control.CameraDepthHandler({
+    const depthCamera = new DepthCamera({
+        near: PROJECTOR_NEAR,
+        far: PROJECTOR_FAR,
         showFrustum: false,
         showFootprint: false,
-        excludeLayers: [uavLayer]
+        excludeLayers: [uavLayer],
+        bias: 0.00006, //0.00003 .. 0.00008 - 0.0005
+        normalBias: 0.45, // 0.2 .. 1.0
+        depthEpsilon: 0.0001 //0.00015 .. 0.0005 - 0.0015
     });
-    globus.planet.addControl(depthHandler);
+    depthCameraHandler.add(depthCamera);
 
-    const depthCamera = depthHandler.camera;
-    if (!depthCamera) {
-        return;
-    }
-    depthCamera.copy(cameraSnapshot);
+    const projectorCamera = depthCamera.camera;
+    projectorCamera.copy(cameraSnapshot);
+    projectorCamera.update();
 
     const projector = new Projector({
         enabled: true,
-        camera: depthCamera,
-        framebuffer: depthHandler.framebuffer,
-        color: [1.0, 1.0, 0.1],
-        intensity: 1.0,
-        opacity: 0.45,
-        bias: 0.0005, //0.00003 .. 0.00008 - 0.0005
-        normalBias: 0.1, // 0.2 .. 1.0
-        depthEpsilon: 0.0002, //0.00015 .. 0.0005 - 0.0015
-        mode: "decal",
+        depthCamera,
+        color: [1.0, 1.0, 0.0, 0.3],
+        renderMode: "color",
         priority: 0
     });
     globus.planet.renderer.projectors.add(projector);
 
     const depthPreview = new control.FramebufferPreview({
-        title: `depthHandler:${objectId}`,
+        title: `depthCamera:${objectId}`,
         arrayTexture: projector.arrayTexture,
         arrayLayer: projector.slot,
-        width: depthHandler.framebuffer.width,
-        height: depthHandler.framebuffer.height,
+        width: depthCamera.framebuffer.width,
+        height: depthCamera.framebuffer.height,
         image: depthPreviewShader,
         flippedY: true
     });
@@ -148,11 +152,11 @@ async function createTrackedCameraEntity(cameraSnapshot) {
 
     const uavModelRoot = new Entity({
         name: `uav:${objectId}`,
-        cartesian: depthCamera.eye.clone(),
+        cartesian: projectorCamera.eye.clone(),
         independentPicking: true,
         properties: {
-            camera: depthCamera,
-            depthHandler,
+            camera: projectorCamera,
+            depthCamera,
             depthPreview,
             projector
         },
@@ -161,7 +165,7 @@ async function createTrackedCameraEntity(cameraSnapshot) {
             object3d: uavObjects[0]
         }
     });
-    uavModelRoot.setAbsoluteYaw(depthCamera.getYaw());
+    uavModelRoot.setAbsoluteYaw(projectorCamera.getYaw());
 
     const frustumEntity = new Entity({
         name: `uav-frustum:${objectId}`,
@@ -177,19 +181,23 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     uavModelRoot.appendChild(frustumEntity);
 
     frustumEntity.setScale3v(
-        Object3d.getFrustumScaleByCameraAngles(3, depthCamera.horizontalViewAngle, depthCamera.verticalViewAngle)
+        Object3d.getFrustumScaleByCameraAngles(
+            3,
+            projectorCamera.horizontalViewAngle,
+            projectorCamera.verticalViewAngle
+        )
     );
 
-    frustumEntity.setAbsolutePitch(depthCamera.getPitch());
-    frustumEntity.setAbsoluteYaw(depthCamera.getYaw());
-    frustumEntity.setAbsoluteRoll(depthCamera.getRoll());
+    frustumEntity.setAbsolutePitch(projectorCamera.getPitch());
+    frustumEntity.setAbsoluteYaw(projectorCamera.getYaw());
+    frustumEntity.setAbsoluteRoll(projectorCamera.getRoll());
 
     uavModelRoot.properties.frustumEntity = frustumEntity;
 
     uavLayer.add(uavModelRoot);
     trackedCameraEntities.push(uavModelRoot);
 
-    //keyboardNavigation.bindCamera(depthCamera);
+    //keyboardNavigation.bindCamera(projectorCamera);
 }
 
 let tempCamera = new PlanetCamera(globus.planet);

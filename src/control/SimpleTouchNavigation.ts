@@ -71,7 +71,7 @@ export class SimpleTouchNavigation extends Control {
         //r.events.on('touchcancel', this.onTouchCancel);
         r.events.on("touchmove", this.onTouchMove);
 
-        r.events.on("draw", this.onDraw, this, -1000);
+        r.events.on("predraw", this.onDraw, this, -1000);
     }
 
     public override ondeactivate() {
@@ -83,7 +83,7 @@ export class SimpleTouchNavigation extends Control {
         //r.events.off('touchcancel', this.onTouchCancel);
         r.events.off("touchmove", this.onTouchMove);
 
-        r.events.off("draw", this.onDraw);
+        r.events.off("predraw", this.onDraw);
     }
 
     protected onTouchEnd = (e: ITouchState) => {

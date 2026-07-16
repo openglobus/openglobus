@@ -51,7 +51,7 @@ export class KeyboardNavigation extends Control {
         r.events.on("keypress", input.KEY_LEFT, this.onCameraYawLeft, this);
         r.events.on("keypress", input.KEY_RIGHT, this.onCameraYawRight, this);
 
-        r.events.on("draw", this.onDraw, this, -1000);
+        r.events.on("predraw", this.onDraw, this, -1000);
     }
 
     public override ondeactivate() {}
