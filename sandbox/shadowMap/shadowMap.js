@@ -188,6 +188,7 @@ depthCameraHandler.add(depthCamera);
 const shadowCamera = depthCamera.camera;
 
 const HORIZON_SCREEN_MARGIN = 100;
+const MAIN_CAMERA_ROLL_STEP = (1.5 * Math.PI) / 180.0;
 
 function getEllipsoidHit(mcam, x, y) {
     let ray = mcam.getRay(x, y);
@@ -383,6 +384,18 @@ globus.planet.renderer.events.on("charkeypress", input.KEY_C, (e) => {
         shadowCamera.set(shadowCamera.eye, mouseGroundPoint, upNormal);
         shadowCamera.update();
     }
+});
+
+globus.planet.renderer.events.on("keypress", input.KEY_Q, () => {
+    let mcam = globus.planet.camera;
+    mcam.setRoll(mcam.getRoll() - MAIN_CAMERA_ROLL_STEP);
+    mcam.update();
+});
+
+globus.planet.renderer.events.on("keypress", input.KEY_E, () => {
+    let mcam = globus.planet.camera;
+    mcam.setRoll(mcam.getRoll() + MAIN_CAMERA_ROLL_STEP);
+    mcam.update();
 });
 
 globus.planet.renderer.events.on("charkeypress", input.KEY_V, () => {});
