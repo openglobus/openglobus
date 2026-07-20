@@ -69,7 +69,7 @@ const horizonMarkerLt = new Entity({
     independentPicking: true,
     geoObject: {
         tag: "horizon-marker-lt",
-        object3d: Object3d.createSphere(16, 16, 3).setColor("red")
+        object3d: Object3d.createSphere(16, 16, 3).setColor("yellow")
     }
 });
 horizonMarkers.add(horizonMarkerLt);
@@ -80,7 +80,7 @@ const horizonMarkerRt = new Entity({
     independentPicking: true,
     geoObject: {
         tag: "horizon-marker-rt",
-        object3d: Object3d.createSphere(16, 16, 3).setColor("red")
+        object3d: Object3d.createSphere(16, 16, 3).setColor("yellow")
     }
 });
 horizonMarkers.add(horizonMarkerRt);
@@ -91,7 +91,7 @@ const horizonMarkerLb = new Entity({
     independentPicking: true,
     geoObject: {
         tag: "horizon-marker-lb",
-        object3d: Object3d.createSphere(16, 16, 3).setColor("red")
+        object3d: Object3d.createSphere(16, 16, 3).setColor("yellow")
     }
 });
 horizonMarkers.add(horizonMarkerLb);
@@ -102,7 +102,7 @@ const horizonMarkerRb = new Entity({
     independentPicking: true,
     geoObject: {
         tag: "horizon-marker-rb",
-        object3d: Object3d.createSphere(16, 16, 3).setColor("red")
+        object3d: Object3d.createSphere(16, 16, 3).setColor("yellow")
     }
 });
 horizonMarkers.add(horizonMarkerRb);
@@ -113,7 +113,7 @@ const horizonLineTop = new Entity({
     polyline: {
         path3v: [],
         thickness: 3,
-        color: "red"
+        color: "yellow"
     }
 });
 horizonMarkers.add(horizonLineTop);
@@ -124,7 +124,7 @@ const horizonLineRight = new Entity({
     polyline: {
         path3v: [],
         thickness: 3,
-        color: "red"
+        color: "yellow"
     }
 });
 horizonMarkers.add(horizonLineRight);
@@ -135,7 +135,7 @@ const horizonLineBottom = new Entity({
     polyline: {
         path3v: [],
         thickness: 3,
-        color: "red"
+        color: "yellow"
     }
 });
 horizonMarkers.add(horizonLineBottom);
@@ -146,7 +146,7 @@ const horizonLineLeft = new Entity({
     polyline: {
         path3v: [],
         thickness: 3,
-        color: "red"
+        color: "yellow"
     }
 });
 horizonMarkers.add(horizonLineLeft);
