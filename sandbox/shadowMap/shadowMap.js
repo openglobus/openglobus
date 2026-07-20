@@ -189,6 +189,7 @@ const shadowCamera = depthCamera.camera;
 
 const HORIZON_SCREEN_MARGIN = 100;
 const MAIN_CAMERA_ROLL_STEP = (1.5 * Math.PI) / 180.0;
+const FOOTPRINT_SCREEN_EDGE_SEARCH_STEPS = 4;
 
 function getEllipsoidHit(mcam, x, y) {
     let ray = mcam.getRay(x, y);
@@ -217,6 +218,117 @@ function getHorizonPointByDirection(mcam, direction) {
     let horizonDistance = (radius * tangentDistance) / distanceToCamera;
 
     return up.scaleTo(upDistance).addA(horizonDirection.scaleTo(horizonDistance));
+}
+
+function clampScreenX(x, screenLeft, screenRight) {
+    return Math.max(screenLeft, Math.min(screenRight, x));
+}
+
+function getFootprintBoundaryOnScreenSegment(mcam, hitX, missX, y) {
+    let x0 = hitX;
+    let x1 = missX;
+    let hit = getEllipsoidHit(mcam, x0, y);
+
+    if (!hit) {
+        return undefined;
+    }
+
+    for (let i = 0; i < FOOTPRINT_SCREEN_EDGE_SEARCH_STEPS; i++) {
+        let x = (x0 + x1) * 0.5;
+        let midHit = getEllipsoidHit(mcam, x, y);
+
+        if (midHit) {
+            x0 = x;
+            hit = midHit;
+        } else {
+            x1 = x;
+        }
+    }
+
+    return hit;
+}
+
+function getAlignedEdgeScreenY(
+    mcam,
+    leftPoint,
+    rightPoint,
+    leftRawHit,
+    rightRawHit,
+    fallbackY,
+    screenTop,
+    screenBottom
+) {
+    if (leftRawHit || rightRawHit) {
+        return fallbackY;
+    }
+
+    let y = fallbackY;
+
+    if (leftPoint && rightPoint) {
+        y = (mcam.project3v(leftPoint).y + mcam.project3v(rightPoint).y) * 0.5;
+    } else if (leftPoint) {
+        y = mcam.project3v(leftPoint).y;
+    } else if (rightPoint) {
+        y = mcam.project3v(rightPoint).y;
+    }
+
+    return Math.max(screenTop, Math.min(screenBottom, y));
+}
+
+function getScreenAlignedFootprintPoint(mcam, point, fallbackX, y, anchorPoint, screenLeft, screenRight) {
+    fallbackX = clampScreenX(fallbackX, screenLeft, screenRight);
+
+    let fallbackHit = getEllipsoidHit(mcam, fallbackX, y);
+    if (fallbackHit) {
+        return fallbackHit;
+    }
+
+    let anchorX = anchorPoint ? clampScreenX(mcam.project3v(anchorPoint).x, screenLeft, screenRight) : undefined;
+    let anchorHit = anchorX != undefined ? getEllipsoidHit(mcam, anchorX, y) : undefined;
+
+    if (anchorHit) {
+        return getFootprintBoundaryOnScreenSegment(mcam, anchorX, fallbackX, y);
+    }
+
+    let x = point ? clampScreenX(mcam.project3v(point).x, screenLeft, screenRight) : fallbackX;
+    let ray = mcam.getRay(x, y);
+    return globus.planet.ellipsoid.hitRay(ray.origin, ray.direction) || getHorizonPointByDirection(mcam, ray.direction);
+}
+
+function alignFootprintEdgeToScreenRow(
+    mcam,
+    leftPoint,
+    rightPoint,
+    leftRawHit,
+    rightRawHit,
+    fallbackY,
+    screenLeft,
+    screenRight,
+    screenTop,
+    screenBottom
+) {
+    let y = getAlignedEdgeScreenY(
+        mcam,
+        leftPoint,
+        rightPoint,
+        leftRawHit,
+        rightRawHit,
+        fallbackY,
+        screenTop,
+        screenBottom
+    );
+    let left = getScreenAlignedFootprintPoint(mcam, leftPoint, screenLeft, y, rightPoint, screenLeft, screenRight);
+    let right = getScreenAlignedFootprintPoint(mcam, rightPoint, screenRight, y, leftPoint, screenLeft, screenRight);
+
+    return left && right
+        ? {
+              left,
+              right
+          }
+        : {
+              left: leftPoint,
+              right: rightPoint
+          };
 }
 
 function updateShadowCamera() {
@@ -273,6 +385,41 @@ function updateShadowCamera() {
 
     if (!hitRb && (rawHitRt || rawHitLb)) {
         hitRb = getHorizonPointByDirection(mcam, rayRb.direction);
+    }
+
+    let isLeftColumnOnly = rawHitLt && rawHitLb && !rawHitRt && !rawHitRb;
+    let isRightColumnOnly = rawHitRt && rawHitRb && !rawHitLt && !rawHitLb;
+
+    if (isLeftColumnOnly || isRightColumnOnly) {
+        let topEdge = alignFootprintEdgeToScreenRow(
+            mcam,
+            hitLt,
+            hitRt,
+            rawHitLt,
+            rawHitRt,
+            screenTop,
+            screenLeft,
+            screenRight,
+            screenTop,
+            screenBottom
+        );
+        hitLt = topEdge.left;
+        hitRt = topEdge.right;
+
+        let bottomEdge = alignFootprintEdgeToScreenRow(
+            mcam,
+            hitLb,
+            hitRb,
+            rawHitLb,
+            rawHitRb,
+            screenBottom,
+            screenLeft,
+            screenRight,
+            screenTop,
+            screenBottom
+        );
+        hitLb = bottomEdge.left;
+        hitRb = bottomEdge.right;
     }
 
     horizonMarkerLt.setVisibility(Boolean(hitLt));
