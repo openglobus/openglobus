@@ -251,18 +251,28 @@ function updateShadowCamera() {
     let rawHitRb = getEllipsoidHit(mcam, screenRight, screenBottom);
     let rayLt = mcam.getRay(screenLeft, screenTop);
     let rayRt = mcam.getRay(screenRight, screenTop);
+    let rayLb = mcam.getRay(screenLeft, screenBottom);
+    let rayRb = mcam.getRay(screenRight, screenBottom);
 
     let hitLt = rawHitLt;
     let hitRt = rawHitRt;
     let hitLb = rawHitLb;
     let hitRb = rawHitRb;
 
-    if (!hitLt && hitLb) {
+    if (!hitLt && (rawHitLb || rawHitRt)) {
         hitLt = getHorizonPointByDirection(mcam, rayLt.direction);
     }
 
-    if (!hitRt && hitRb) {
+    if (!hitRt && (rawHitRb || rawHitLt)) {
         hitRt = getHorizonPointByDirection(mcam, rayRt.direction);
+    }
+
+    if (!hitLb && (rawHitLt || rawHitRb)) {
+        hitLb = getHorizonPointByDirection(mcam, rayLb.direction);
+    }
+
+    if (!hitRb && (rawHitRt || rawHitLb)) {
+        hitRb = getHorizonPointByDirection(mcam, rayRb.direction);
     }
 
     horizonMarkerLt.setVisibility(Boolean(hitLt));
