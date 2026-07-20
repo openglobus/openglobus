@@ -107,6 +107,30 @@ const horizonMarkerRb = new Entity({
 });
 horizonMarkers.add(horizonMarkerRb);
 
+function createFootprintGroundRay(name) {
+    return new Entity({
+        name,
+        visibility: false,
+        ray: {
+            startPosition: new Vec3(),
+            endPosition: new Vec3(),
+            startColor: "rgba(0,255,255,0.9)",
+            endColor: "rgba(0,255,255,0.15)",
+            thickness: 2.5
+        }
+    });
+}
+
+const footprintGroundRayLt = createFootprintGroundRay("footprint-ground-ray-lt");
+const footprintGroundRayRt = createFootprintGroundRay("footprint-ground-ray-rt");
+const footprintGroundRayLb = createFootprintGroundRay("footprint-ground-ray-lb");
+const footprintGroundRayRb = createFootprintGroundRay("footprint-ground-ray-rb");
+
+horizonMarkers.add(footprintGroundRayLt);
+horizonMarkers.add(footprintGroundRayRt);
+horizonMarkers.add(footprintGroundRayLb);
+horizonMarkers.add(footprintGroundRayRb);
+
 const horizonLineTop = new Entity({
     name: "horizon-line-top",
     visibility: false,
@@ -194,6 +218,21 @@ const FOOTPRINT_SCREEN_EDGE_SEARCH_STEPS = 4;
 function getEllipsoidHit(mcam, x, y) {
     let ray = mcam.getRay(x, y);
     return globus.planet.ellipsoid.hitRay(ray.origin, ray.direction);
+}
+
+function getFootprintGroundPoint(marker, point) {
+    let terrainPoint = new Vec3();
+    let terrainDistance = globus.planet.getEntityTerrainPoint(marker, terrainPoint);
+    return terrainDistance != undefined ? terrainPoint : globus.planet.ellipsoid.projToSurface(point);
+}
+
+function updateFootprintGroundRay(rayEntity, markerEntity, point) {
+    rayEntity.setVisibility(Boolean(point));
+
+    if (point) {
+        rayEntity.ray.setStartPosition3v(point);
+        rayEntity.ray.setEndPosition3v(getFootprintGroundPoint(markerEntity, point));
+    }
 }
 
 function getHorizonPointByDirection(mcam, direction) {
@@ -330,6 +369,11 @@ function updateShadowCamera() {
     if (hitRb) {
         horizonMarkerRb.setAbsoluteCartesian3v(hitRb);
     }
+
+    updateFootprintGroundRay(footprintGroundRayLt, horizonMarkerLt, hitLt);
+    updateFootprintGroundRay(footprintGroundRayRt, horizonMarkerRt, hitRt);
+    updateFootprintGroundRay(footprintGroundRayLb, horizonMarkerLb, hitLb);
+    updateFootprintGroundRay(footprintGroundRayRb, horizonMarkerRb, hitRb);
 
     horizonLineTop.setVisibility(Boolean(hitLt && hitRt));
     if (hitLt && hitRt) {
