@@ -1361,7 +1361,7 @@ class Renderer {
      */
     public draw() {
         this.activeCamera!.checkViewChanges();
-        
+
         let e = this.events;
         let pointerEvent = e.pointerEvent();
         let pointerFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown;
