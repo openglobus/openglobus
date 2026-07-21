@@ -192,8 +192,6 @@ class PlanetCamera extends Camera {
      * @virtual
      */
     public override update() {
-        this.events.stopPropagation();
-
         let maxAlt = this.maxAltitude + this.planet.ellipsoid.getEquatorialSize();
 
         if (this.eye.length() > maxAlt) {
@@ -206,8 +204,6 @@ class PlanetCamera extends Camera {
 
         this.eyeNorm = this.eye.getNormal();
         this.slope = this._b.dot(this.eyeNorm);
-
-        this.events.dispatch(this.events.viewchange, this);
     }
 
     /**
