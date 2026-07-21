@@ -1,9 +1,9 @@
-import { EmptyTerrain, Globe, LonLat, OpenStreetMap } from "../../lib/og.es.js";
+import { GlobusRgbTerrain, Globe, LonLat, OpenStreetMap } from "../../lib/og.es.js";
 
 const globe = new Globe({
     target: "earth",
     name: "Viewchange Event",
-    terrain: new EmptyTerrain(),
+    terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap()],
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts"
@@ -17,7 +17,7 @@ globe.planet.camera.events.on("viewchange", (camera) => {
     });
 });
 
-globe.planet.camera.flyLonLat(new LonLat(37.6173, 55.7558, 1000000), {
+globe.planet.camera.flyLonLat(new LonLat(7.4474, 46.948, 2000000), {
     duration: 3000,
     completeCallback: () => {
         console.log("flight completed", {
@@ -25,3 +25,6 @@ globe.planet.camera.flyLonLat(new LonLat(37.6173, 55.7558, 1000000), {
         });
     }
 });
+
+
+//globe.planet.camera.setLonLat(new LonLat(7.4474, 46.948, 2000000));
