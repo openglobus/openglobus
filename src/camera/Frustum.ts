@@ -374,7 +374,14 @@ class Frustum {
      * @param {number} near - Near clipping plane distance.
      * @param {number} far - Far clipping plane distance.
      */
-    public setOrthoProjection(left: number, right: number, bottom: number, top: number, near: number, far: number): void {
+    public setOrthoProjection(
+        left: number,
+        right: number,
+        bottom: number,
+        top: number,
+        near: number,
+        far: number
+    ): void {
         this.left = left;
         this.right = right;
         this.bottom = bottom;

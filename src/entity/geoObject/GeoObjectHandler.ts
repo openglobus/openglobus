@@ -766,7 +766,10 @@ export class GeoObjectHandler {
     }
 
     public drawDepthCameraPass(camera: Camera) {
-        if (this._geoObjects.length && (this._entityCollection.receiveProjectors || this._entityCollection.receiveShadows)) {
+        if (
+            this._geoObjects.length &&
+            (this._entityCollection.receiveProjectors || this._entityCollection.receiveShadows)
+        ) {
             this._depthCameraPASS(camera);
         }
     }

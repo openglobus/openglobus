@@ -620,7 +620,7 @@ export class DepthCamera {
         //
         // @test
         //
-        return planet.quadTreeStrategy;;
+        return planet.quadTreeStrategy;
 
         if (
             //!depthCamera.isOrthographic &&

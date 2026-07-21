@@ -416,23 +416,23 @@ export class ShadowManager {
 
         const tex = VARIANCE_SHADOW_ENABLED
             ? this._renderer.handler.createEmptyTexture2DArrayExt(
-                size,
-                size,
-                MAX_SHADOW_MAPS,
-                "LINEAR",
-                "RGBA32F",
-                "CLAMP_TO_EDGE",
-                1
-            )
+                  size,
+                  size,
+                  MAX_SHADOW_MAPS,
+                  "LINEAR",
+                  "RGBA32F",
+                  "CLAMP_TO_EDGE",
+                  1
+              )
             : this._renderer.handler.createEmptyTexture2DArrayExt(
-                size,
-                size,
-                MAX_SHADOW_MAPS,
-                "LINEAR",
-                "R32F",
-                "CLAMP_TO_EDGE",
-                1
-            );
+                  size,
+                  size,
+                  MAX_SHADOW_MAPS,
+                  "LINEAR",
+                  "R32F",
+                  "CLAMP_TO_EDGE",
+                  1
+              );
         if (!tex) return false;
 
         this._depthArrayTexture = tex;

@@ -201,8 +201,6 @@ class PlanetCamera extends Camera {
         super.update();
 
         this.updateGeodeticPosition();
-
-        this.events.dispatch(this.events.viewchange, this);
     }
 
     /**

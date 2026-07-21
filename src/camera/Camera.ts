@@ -218,7 +218,6 @@ class Camera {
     protected _pWidth: number;
     protected _pHeight: number;
     protected _pIsOrthographic: boolean;
-    protected _pFocusDistance: number;
 
     protected _tanViewAngle_hrad: number;
 
@@ -343,7 +342,6 @@ class Camera {
         this._pWidth = this._width;
         this._pHeight = this._height;
         this._pIsOrthographic = this._isOrthographic;
-        this._pFocusDistance = this._focusDistance;
     }
 
     /**
@@ -568,16 +566,16 @@ class Camera {
      * @public
      */
     public checkViewChanges() {
-        this._checkMoveEnd();
+        this.checkMoveEnd();
         this._checkViewChange();
     }
 
     /**
      * Checks whether the camera stopped moving and dispatches `moveend`.
-     * @protected
+     * @public
      * @returns {boolean} `true` when the camera is moving after the check.
      */
-    protected _checkMoveEnd(): boolean {
+    public checkMoveEnd(): boolean {
         let r = this._r,
             u = this._u,
             b = this._b,
@@ -612,8 +610,7 @@ class Camera {
             this._pAspect !== aspect ||
             this._pWidth !== this._width ||
             this._pHeight !== this._height ||
-            this._pIsOrthographic !== this._isOrthographic ||
-            (this._isOrthographic && this._pFocusDistance !== this._focusDistance);
+            this._pIsOrthographic !== this._isOrthographic;
 
         if (this.isMoving || projectionChanged) {
             this.events.dispatch(this.events.viewchange, this);
@@ -624,7 +621,6 @@ class Camera {
         this._pWidth = this._width;
         this._pHeight = this._height;
         this._pIsOrthographic = this._isOrthographic;
-        this._pFocusDistance = this._focusDistance;
     }
 
     /**
