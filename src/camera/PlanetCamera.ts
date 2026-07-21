@@ -16,7 +16,7 @@ import { Ray } from "../math/Ray";
 import { Vec3 } from "../math/Vec3";
 import { Extent } from "../Extent";
 import { Segment } from "../segment/Segment";
-import { RADIANS } from "../math";
+import { EPS12, RADIANS } from "../math";
 
 export interface IPlanetCameraParams extends ICameraParams {
     minAltitude?: number;
@@ -29,8 +29,15 @@ export interface IPlanetFlyCartesianParams extends IFlyCartesianParams {
     linearPath?: boolean;
 }
 
-export interface IPlanetFlyDistanceParams extends IPlanetFlyCartesianParams {
-    distance?: number;
+function getNorthAlignedUp(forward: Vec3): Vec3 {
+    let up = Vec3.proj_b_to_plane(Vec3.NORTH, forward);
+
+    if (up.length2() < EPS12) {
+        const fallback = Math.abs(forward.x) < Math.abs(forward.y) ? Vec3.UNIT_X : Vec3.UNIT_Y;
+        up = Vec3.proj_b_to_plane(fallback, forward);
+    }
+
+    return up.normalize();
 }
 
 /**
@@ -185,8 +192,6 @@ class PlanetCamera extends Camera {
      * @virtual
      */
     public override update() {
-        this.events.stopPropagation();
-
         let maxAlt = this.maxAltitude + this.planet.ellipsoid.getEquatorialSize();
 
         if (this.eye.length() > maxAlt) {
@@ -253,11 +258,12 @@ class PlanetCamera extends Camera {
      */
     public setLonLat(lonlat: LonLat, lookLonLat?: LonLat, up?: Vec3) {
         this.stopFlying();
-        this._lonLat.set(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
+        this._lonLat.set(lonlat.lon, lonlat.lat, lonlat.height != undefined ? lonlat.height : this._lonLat.height);
         let el = this.planet.ellipsoid;
         let newEye = el.lonLatToCartesian(this._lonLat);
         let newLook = lookLonLat ? el.lonLatToCartesian(lookLonLat) : Vec3.ZERO;
-        this.set(newEye, newLook, up || newEye.getNormal());
+        let forward = Vec3.sub(newLook, newEye).normalize();
+        this.set(newEye, newLook, up || getNorthAlignedUp(forward));
         this.update();
     }
 

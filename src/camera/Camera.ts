@@ -20,7 +20,7 @@ export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flys
 
 const EVENT_NAMES: CameraEvents = [
     /**
-     * When camera has been updated.
+     * When the camera view or projection has changed.
      * @event og.Camera#viewchange
      */
     "viewchange",
@@ -213,6 +213,13 @@ class Camera {
 
     public isMoving: boolean;
 
+    protected _pViewAngle: number;
+    protected _pAspect: number;
+    protected _pWidth: number;
+    protected _pHeight: number;
+    protected _pIsOrthographic: boolean;
+    protected _pFocusDistance: number;
+
     protected _tanViewAngle_hrad: number;
 
     public _tanViewAngle_hradOneByHeight: number;
@@ -330,6 +337,13 @@ class Camera {
             options.look || new Vec3(),
             options.up || new Vec3(0.0, 1.0, 0.0)
         );
+
+        this._pViewAngle = this._viewAngle;
+        this._pAspect = this.getAspectRatio();
+        this._pWidth = this._width;
+        this._pHeight = this._height;
+        this._pIsOrthographic = this._isOrthographic;
+        this._pFocusDistance = this._focusDistance;
     }
 
     /**
@@ -550,11 +564,20 @@ class Camera {
     }
 
     /**
-     * Checks whether the camera stopped moving and dispatches `moveend`.
+     * Checks camera movement and projection changes.
      * @public
+     */
+    public checkViewChanges() {
+        this._checkMoveEnd();
+        this._checkViewChange();
+    }
+
+    /**
+     * Checks whether the camera stopped moving and dispatches `moveend`.
+     * @protected
      * @returns {boolean} `true` when the camera is moving after the check.
      */
-    public checkMoveEnd(): boolean {
+    protected _checkMoveEnd(): boolean {
         let r = this._r,
             u = this._u,
             b = this._b,
@@ -576,6 +599,32 @@ class Camera {
         this._peye.copy(eye);
 
         return true;
+    }
+
+    /**
+     * Checks whether the camera view or projection changed and dispatches `viewchange`.
+     * @protected
+     */
+    protected _checkViewChange() {
+        const aspect = this.getAspectRatio();
+        const projectionChanged =
+            this._pViewAngle !== this._viewAngle ||
+            this._pAspect !== aspect ||
+            this._pWidth !== this._width ||
+            this._pHeight !== this._height ||
+            this._pIsOrthographic !== this._isOrthographic ||
+            (this._isOrthographic && this._pFocusDistance !== this._focusDistance);
+
+        if (this.isMoving || projectionChanged) {
+            this.events.dispatch(this.events.viewchange, this);
+        }
+
+        this._pViewAngle = this._viewAngle;
+        this._pAspect = aspect;
+        this._pWidth = this._width;
+        this._pHeight = this._height;
+        this._pIsOrthographic = this._isOrthographic;
+        this._pFocusDistance = this._focusDistance;
     }
 
     /**
@@ -715,8 +764,6 @@ class Camera {
         }
 
         this.updateCameraSlope();
-
-        this.events.dispatch(this.events.viewchange, this);
     }
 
     /**

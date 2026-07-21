@@ -82,7 +82,7 @@ void mainImage(out vec4 outColor)
         float fieldOfView = fov;
         float z = 1.0 / tan(fieldOfView * 0.5 * PI / 180.0);
         rayDirection = normalize(vec3(uv, -z));
-        vec4 rd = transpose(viewMatrix) * vec4(rayDirection, 1.0);
+        vec4 rd = transpose(viewMatrix) * vec4(rayDirection, 0.0);
         rayDirection = rd.xyz;
     }
 
@@ -191,7 +191,7 @@ void mainImage(out vec4 outColor)
             if (isOrthographic != 0.0) {
                 float z = 1.0 / tan(fov * 0.5 * PI / 180.0);
                 vec3 viewRay = normalize(vec3(uv, -z));
-                vec4 rd = transpose(viewMatrix) * vec4(viewRay, 1.0);
+                vec4 rd = transpose(viewMatrix) * vec4(viewRay, 0.0);
                 vec3 pseudoRayDirection = normalize(rd.xyz);
                 const float sunOrthoAngularScale = 2.0;
                 sunLum = sunWithBloomScaled(pseudoRayDirection, lightDirection, sunOrthoAngularScale) * vec3(1.0, 1.0, 0.8);
