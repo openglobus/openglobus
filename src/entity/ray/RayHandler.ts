@@ -211,7 +211,7 @@ class RayHandler {
     public reloadTextures() {
         for (let i = 0; i < this._rays.length; i++) {
             let ri = this._rays[i];
-            ri.setSrc(ri.getSrc());
+            ri.reloadTexture();
         }
     }
 
@@ -342,6 +342,7 @@ class RayHandler {
             this._addRayToArrays(ray);
             this._insertRayByOpacity(ray._handlerIndex, this._isRayOpaque(ray));
             this.refresh();
+            ray.reloadTexture();
         }
     }
 
