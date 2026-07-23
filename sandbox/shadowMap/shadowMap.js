@@ -283,26 +283,15 @@ function getFootprintBoundaryOnScreenSegment(mcam, hitX, missX, y) {
     return hit;
 }
 
-function updateShadowCamera() {
-    let mcam = globus.planet.camera;
-    let sunDir = globus.planet.sun.getPosition().normal().scale(-1.0);
-    let up = mcam.eye.getNormal();
-    let alt = mcam.getHeight() - 8000;
-    let eye = mcam.eye.sub(up.scaleTo(alt));
-
-    let fov_h = (0.5 * mcam.verticalViewAngle * Math.PI) / 180.0;
-    let slope = Math.max(-1.0, Math.min(1.0, mcam.slope));
-    let upSide = mcam.getUp().dot(up) < 0.0 ? -1.0 : 1.0;
-    let a = Math.acos(slope) - upSide * fov_h;
-
-    let f = Vec3.proj_b_to_plane(mcam.getForward(), up);
-    if (f.length2() < 1e-8) {
-        f = Vec3.proj_b_to_plane(mcam.getUp().scaleTo(upSide), up);
-    }
-    f.normalize();
-
-    let forward = mcam.getForward();
-    let right = mcam.getRight();
+function getCameraFootprint(mcam, hitLeftTop, hitRightTop, hitLeftBottom, hitRightBottom) {
+    // let up = mcam.eye.getNormal();
+    // let upSide = mcam.getUp().dot(up) < 0.0 ? -1.0 : 1.0;
+    //
+    // let f = Vec3.proj_b_to_plane(mcam.getForward(), up);
+    // if (f.length2() < 1e-8) {
+    //     f = Vec3.proj_b_to_plane(mcam.getUp().scaleTo(upSide), up);
+    // }
+    // f.normalize();
 
     let screenLeft = HORIZON_SCREEN_MARGIN;
     let screenRight = mcam.width - HORIZON_SCREEN_MARGIN;
@@ -313,6 +302,7 @@ function updateShadowCamera() {
     let rawHitRt = getEllipsoidHit(mcam, screenRight, screenTop);
     let rawHitLb = getEllipsoidHit(mcam, screenLeft, screenBottom);
     let rawHitRb = getEllipsoidHit(mcam, screenRight, screenBottom);
+
     let rayLt = mcam.getRay(screenLeft, screenTop);
     let rayRt = mcam.getRay(screenRight, screenTop);
     let rayLb = mcam.getRay(screenLeft, screenBottom);
@@ -349,6 +339,12 @@ function updateShadowCamera() {
         hitLt = getFootprintBoundaryOnScreenSegment(mcam, screenRight, screenLeft, screenTop) || hitLt;
         hitLb = getFootprintBoundaryOnScreenSegment(mcam, screenRight, screenLeft, screenBottom) || hitLb;
     }
+
+    return [hitLt, hitRt, hitLb, hitRb];
+}
+
+function updateShadowCamera() {
+    let [hitLt, hitRt, hitLb, hitRb] = getCameraFootprint(globus.planet.camera);
 
     horizonMarkerLt.setVisibility(Boolean(hitLt));
     if (hitLt) {
@@ -395,10 +391,32 @@ function updateShadowCamera() {
         horizonLineLeft.polyline.setPath3v([[hitLb, hitLt]], undefined, true);
     }
 
-    let isHorizonOnScreen = rawHitLt ? !rawHitRt || !rawHitLb || !rawHitRb : rawHitRt || rawHitLb || rawHitRb;
+    //let isHorizonOnScreen = rawHitLt ? !rawHitRt || !rawHitLb || !rawHitRb : rawHitRt || rawHitLb || rawHitRb;
     //console.log(isHorizonOnScreen);
 
+    let mcam = globus.planet.camera;
+    let up = mcam.eye.getNormal();
+    let sunDir = globus.planet.sun.getPosition().normal().scale(-1.0);
+    let alt = mcam.getHeight() - 8000;
+    let eye = mcam.eye.sub(up.scaleTo(alt));
+
+    let forward = mcam.getForward();
+    let right = mcam.getRight();
+
+    let upSide = mcam.getUp().dot(up) < 0.0 ? -1.0 : 1.0;
+
+    let fov_h = (0.5 * mcam.verticalViewAngle * Math.PI) / 180.0;
+    let slope = Math.max(-1.0, Math.min(1.0, mcam.slope));
+    let a = Math.acos(slope) - upSide * fov_h;
+
     let offset_f = Math.tan(a) * alt;
+
+    let f = Vec3.proj_b_to_plane(mcam.getForward(), up);
+    if (f.length2() < 1e-8) {
+        f = Vec3.proj_b_to_plane(mcam.getUp().scaleTo(upSide), up);
+    }
+    f.normalize();
+
     eye.addA(f.scale(offset_f));
 
     let d = eye.sub(mcam.eye).dot(forward);
