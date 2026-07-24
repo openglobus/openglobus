@@ -42,6 +42,7 @@ export interface IGlobeParams {
     skybox?: Scene;
     dpi?: number;
     msaa?: number;
+    deferredDisabled?: boolean;
     name?: string;
     frustums?: NumberArray2[];
     ellipsoid?: Ellipsoid;
@@ -152,6 +153,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {number} [options.loadingBatchSize=12] -
  * @param {number} [options.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
  * @param {number} [options.msaa=0] - MSAA antialiasing parameter: 2,4,8,16. Default is 0.
+ * @param {boolean} [options.deferredDisabled=false] - Disables deferred and WOIT pipelines and renders objects with forward shaders.
  * @param {number} [options.dpi] - Device pixel ratio. Default is current screen DPI.
  * @param {boolean} [options.atmosphereEnabled] - Enables atmosphere effect.
  * @param {boolean} [options.transtitionOpacityEnabled] - Enables terrain smooth opacity transition effect.
@@ -258,6 +260,7 @@ class Globe {
             {
                 autoActivate: false,
                 msaa: options.msaa,
+                deferredDisabled: options.deferredDisabled,
                 fontsSrc: options.fontsSrc,
                 gamma: options.gamma,
                 exposure: options.exposure,

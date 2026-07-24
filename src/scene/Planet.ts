@@ -1118,6 +1118,13 @@ export class Planet extends Scene {
         });
 
         this.renderer!.events.on("forwardpass", () => {
+            if (this.renderer!.deferredDisabled) {
+                if (this._atmosphereEnabled) {
+                    this._renderOpaqueScreenNodesForwardPASSAtmos();
+                } else {
+                    this._renderOpaqueScreenNodesForwardPASSNoAtmos();
+                }
+            }
             if (this._atmosphereEnabled) {
                 this._renderTransparentScreenNodesPASSAtmos();
             } else {
@@ -1426,6 +1433,30 @@ export class Planet extends Scene {
             cam,
             this.quadTreeStrategy,
             this._setUniformsDeferred(cam, this.renderer!.handler.programs.segment_screen_deferred),
+            this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
+        );
+    }
+
+    protected _renderOpaqueScreenNodesForwardPASSNoAtmos() {
+        let cam = this.camera;
+
+        // forward PASS
+        this._renderingOpaqueScreenNodes(
+            cam,
+            this.quadTreeStrategy,
+            this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.segment_screen_wl_forward, true),
+            this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
+        );
+    }
+
+    protected _renderOpaqueScreenNodesForwardPASSAtmos() {
+        let cam = this.camera;
+
+        // forward PASS
+        this._renderingOpaqueScreenNodes(
+            cam,
+            this.quadTreeStrategy,
+            this._setUniformsAtmos(cam, this.renderer!.handler.programs.segment_screen_wl_forward, true),
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
     }
