@@ -1,20 +1,20 @@
 import * as mercator from "../mercator";
-import {createEvents} from "../Events";
-import type {EventsHandler} from "../Events";
-import {createExtent, stringTemplate} from "../utils/shared";
-import type {TypedArray} from "../utils/shared";
-import {EmptyTerrain} from "./EmptyTerrain";
-import type {IEmptyTerrainParams, UrlRewriteFunc} from "./EmptyTerrain";
-import {Extent} from "../Extent";
-import {Layer} from "../layer/Layer";
-import {Loader} from "../utils/Loader";
-import type {FetchCache, IResponse} from "../utils/Loader";
-import {LonLat} from "../LonLat";
-import {NOTRENDERING} from "../quadTree/quadTree";
-import {Segment, TILEGROUP_COMMON} from "../segment/Segment";
+import { createEvents } from "../Events";
+import type { EventsHandler } from "../Events";
+import { createExtent, stringTemplate } from "../utils/shared";
+import type { TypedArray } from "../utils/shared";
+import { EmptyTerrain } from "./EmptyTerrain";
+import type { IEmptyTerrainParams, UrlRewriteFunc } from "./EmptyTerrain";
+import { Extent } from "../Extent";
+import { Layer } from "../layer/Layer";
+import { Loader } from "../utils/Loader";
+import type { FetchCache, IResponse } from "../utils/Loader";
+import { LonLat } from "../LonLat";
+import { NOTRENDERING } from "../quadTree/quadTree";
+import { Segment, TILEGROUP_COMMON } from "../segment/Segment";
 // import { QueueArray } from '../QueueArray';
-import {Ray} from "../math/Ray";
-import {Vec3} from "../math/Vec3";
+import { Ray } from "../math/Ray";
+import { Vec3 } from "../math/Vec3";
 
 export interface IGlobusTerrainParams extends IEmptyTerrainParams {
     subdomains?: string[];
@@ -33,32 +33,29 @@ export interface IGlobusTerrainParams extends IEmptyTerrainParams {
 }
 
 type TileData = {
-    heights: number[] | TypedArray | null,
-    extent: Extent | null
-}
+    heights: number[] | TypedArray | null;
+    extent: Extent | null;
+};
 
 /**
  * Class that loads segment elevation data, converts it to the array and passes it to the planet segment.
  * @class
- * @extends {GlobusTerrain}
+ * @extends {EmptyTerrain}
  * @param {string} [name=""] - Terrain provider name.
  * @param {IGlobusTerrainParams} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.
- * @param {number} [options.minZoom=14] - Maximal visible zoom index when terrain handler works.
- * @param {number} [options.minNativeZoom=14] - Maximal available terrain zoom level.
- * @param {string} [options.url="//openglobus.org/heights/srtm3/{z}/{y}/{x}.ddm"] - Terrain source path url template. Default is openglobus ddm elevation file.
- * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
+ * @param {number} [options.maxZoom=14] - Maximal visible zoom index when terrain handler works.
+ * @param {number} [options.maxNativeZoom=14] - Maximal available terrain zoom level.
+ * @param {string} [options.url="https://{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm"] - Terrain source URL template.
+ * @param {Array.<number>} [options.gridSizeByZoom] - Segment triangulation grid sizes where array index matches segment zoom index.
  * @param {number} [options.plainGridSize=32] - Elevation grid size. Default is 32x32. Must be power of two.
- * @param {string} [options.responseType="arraybuffer"] - Response type.
- * @param {number} [options.MAX_LOADING_TILES] - Maximum at one time loading tiles.
- * @param {Array.<number>} [gridSizeByZoom] - Array of values, where each value corresponds to the size of a tile(or segment) on the globe. Each value must be power of two.
- * @param {number} [heightFactor=1] - Elevation height multiplier.
+ * @param {number} [options.heightFactor=1] - Elevation height multiplier.
+ * @param {FetchCache} [options.cache="default"] - Fetch cache mode.
  *
- * @fires GlobusTerrainEvents#load
- * @fires GlobusTerrainEvents#loadend
+ * @fires load
+ * @fires loadend
  */
 class GlobusTerrain extends EmptyTerrain {
-
     public events: GlobusTerrainEvents;
 
     protected _s: string[];
@@ -95,9 +92,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     protected _cache: FetchCache;
 
-
     constructor(name: string = "", options: IGlobusTerrainParams = {}) {
-
         super({
             geoidSrc: "https://openglobus.org/geoid/egm84-30.pgm",
             maxNativeZoom: options.maxNativeZoom || 14,
@@ -187,7 +182,12 @@ class GlobusTerrain extends EmptyTerrain {
         return this._elevationCache[tileIndex];
     }
 
-    public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number, firstAttempt?: boolean): boolean {
+    public override getHeightAsync(
+        lonLat: LonLat,
+        callback: (h: number) => void,
+        zoom?: number,
+        firstAttempt?: boolean
+    ): boolean {
         if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
             callback(0);
             return true;
@@ -201,7 +201,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         let cache = this.getElevationCache(tileIndex);
 
-        let merc = mercator.forward(lonLat)
+        let merc = mercator.forward(lonLat);
 
         if (cache) {
             if (cache.heights) {
@@ -214,7 +214,9 @@ class GlobusTerrain extends EmptyTerrain {
             let def = this._fetchCache[tileIndex];
             if (!def) {
                 def = this._loader.fetch({
-                    src: this._urlRewriteCallback && this._urlRewriteCallback(x, y, z, tileGroup) || this.buildURL(x, y, z, tileGroup),
+                    src:
+                        (this._urlRewriteCallback && this._urlRewriteCallback(x, y, z, tileGroup)) ||
+                        this.buildURL(x, y, z, tileGroup),
                     type: this._dataType,
                     options: {
                         cache: this._cache
@@ -224,11 +226,9 @@ class GlobusTerrain extends EmptyTerrain {
             }
 
             def!.then((response: IResponse) => {
-
                 let extent = mercator.getTileExtent(x, y, z);
 
                 if (response.status === "ready") {
-
                     let cache: TileData = {
                         heights: this._createHeights(response.data, null, tileGroup, x, y, z, extent),
                         extent: extent
@@ -237,7 +237,6 @@ class GlobusTerrain extends EmptyTerrain {
                     this.setElevationCache(tileIndex, cache);
 
                     callback(this._getGroundHeightMerc(merc, cache));
-
                 } else if (response.status === "error") {
                     if (firstAttempt && z > this.maxNativeZoom) {
                         firstAttempt = false;
@@ -251,7 +250,6 @@ class GlobusTerrain extends EmptyTerrain {
                     });
 
                     callback(0);
-
                 } else {
                     // @ts-ignore
                     this._fetchCache[tileIndex] = null;
@@ -294,7 +292,11 @@ class GlobusTerrain extends EmptyTerrain {
             h2 = tileData.heights[v2Ind],
             h3 = tileData.heights[v3Ind];
 
-        let v0 = new Vec3(tileData.extent.southWest.lon + size * j, h0, tileData.extent.northEast.lat - size * i - size),
+        let v0 = new Vec3(
+                tileData.extent.southWest.lon + size * j,
+                h0,
+                tileData.extent.northEast.lat - size * i - size
+            ),
             v1 = new Vec3(v0.x + size, h1, v0.z),
             v2 = new Vec3(v0.x, h2, v0.z + size),
             v3 = new Vec3(v0.x + size, h3, v0.z + size);
@@ -330,7 +332,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @public
      * @param {string} url - Url template.
      * @example <caption>Default openglobus url template:</caption>:
-     * "http://earth3.openglobus.org/{z}/{y}/{x}.ddm"
+     * "https://{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm"
      */
     public setUrl(url: string) {
         this.url = url;
@@ -352,24 +354,22 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Starts to load segment elevation data.
      * @public
-     * @param {Segment} segment - Segment that wants a terrain data.
-     * @param {boolean} [forceLoading] -
+     * @param {Segment} segment - Segment that requests terrain data.
+     * @param {boolean} [forceLoading=false] - Forces loading even if default filter would skip it.
      */
     public override loadTerrain(segment: Segment, forceLoading: boolean = false) {
-
         if (this._planet!.terrainLock.isFree()) {
-
             segment.terrainReady = false;
             segment.terrainIsLoading = true;
 
             if (this.isReadyToLoad(segment)) {
-
                 let cache = this.getElevationCache(segment.tileIndex);
 
                 if (cache) {
                     this._applyElevationsData(segment, cache.heights);
                 } else {
-                    this._loader.load({
+                    this._loader.load(
+                        {
                             sender: this,
                             src: this._getHTTPRequestString(segment),
                             segment: segment,
@@ -377,10 +377,11 @@ class GlobusTerrain extends EmptyTerrain {
                             options: {
                                 cache: this._cache
                             },
-                            filter: () => (segment.plainReady && segment.node.getState() !== NOTRENDERING) || forceLoading
-                        }, (response: IResponse) => {
+                            filter: () =>
+                                (segment.plainReady && segment.node.getState() !== NOTRENDERING) || forceLoading
+                        },
+                        (response: IResponse) => {
                             if (response.status === "ready") {
-
                                 let heights = this._createHeights(
                                     response.data,
                                     segment,
@@ -398,7 +399,6 @@ class GlobusTerrain extends EmptyTerrain {
                                 });
 
                                 this._applyElevationsData(segment, heights);
-
                             } else if (response.status === "abort") {
                                 segment.terrainIsLoading = false;
                             } else if (response.status === "error") {
@@ -419,7 +419,11 @@ class GlobusTerrain extends EmptyTerrain {
 
     protected _getSubdomain(): string {
         this._requestCount++;
-        return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomain * this._s.length) / this._requestsPeerSubdomain)];
+        return this._s[
+            Math.floor(
+                (this._requestCount % (this._requestsPeerSubdomain * this._s.length)) / this._requestsPeerSubdomain
+            )
+        ];
     }
 
     public buildURL(x: number, y: number, z: number, tileGroup: number): string {
@@ -434,8 +438,8 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Creates default query url string.
      * @protected
-     * @param {Segment} segment -
-     * @returns {string} -
+     * @param {Segment} segment - Segment to create URL for.
+     * @returns {string} URL string.
      */
     protected _createUrl(segment: Segment): string {
         return this.buildURL(segment.tileX, segment.tileY, segment.tileZoom, segment._tileGroup);
@@ -444,12 +448,15 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Returns actual url query string.
      * @protected
-     * @param {Segment} segment - Segment that loads image data.
-     * @returns {string} - Url string.
+     * @param {Segment} segment - Segment that loads terrain data.
+     * @returns {string} URL string.
      */
     protected _getHTTPRequestString(segment: Segment): string {
         if (this._urlRewriteCallback) {
-            return this._urlRewriteCallback(segment.tileX, segment.tileY, segment.tileZoom, segment._tileGroup) || this._createUrl(segment);
+            return (
+                this._urlRewriteCallback(segment.tileX, segment.tileY, segment.tileZoom, segment._tileGroup) ||
+                this._createUrl(segment)
+            );
         } else {
             return this._createUrl(segment);
         }
@@ -467,9 +474,18 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Converts loaded data to segment elevation data type(column major elevation data array in meters)
      * @public
-     * @returns {Array.<number>} -
+     * @returns {Array.<number> | TypedArray} Column-major elevation data array in meters.
      */
-    protected _createHeights(data: any, segment?: Segment | null, tileGroup?: number, x?: number, y?: number, z?: number, extent?: Extent, isMaxZoom?: boolean): TypedArray | number[] {
+    protected _createHeights(
+        data: any,
+        segment?: Segment | null,
+        tileGroup?: number,
+        x?: number,
+        y?: number,
+        z?: number,
+        extent?: Extent,
+        isMaxZoom?: boolean
+    ): TypedArray | number[] {
         if (this._heightFactor !== 1) {
             let res = new Float32Array(data);
             for (let i = 0, len = res.length; i < len; i++) {
@@ -497,10 +513,7 @@ class GlobusTerrain extends EmptyTerrain {
     }
 }
 
-type GlobusTerrainEventsList = [
-    "load",
-    "loadend"
-];
+type GlobusTerrainEventsList = ["load", "loadend"];
 
 type GlobusTerrainEvents = EventsHandler<GlobusTerrainEventsList>;
 
@@ -518,5 +531,4 @@ const GLOBUSTERRAIN_EVENTS: GlobusTerrainEventsList = [
     "loadend"
 ];
 
-
-export {GlobusTerrain};
+export { GlobusTerrain };

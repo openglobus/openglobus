@@ -1,8 +1,8 @@
-import { Program } from '../webgl/Program';
+import { ShaderProgram } from "../webgl/ShaderProgram";
 
 //Picking is the same
-export function pointCloud(): Program {
-    return new Program("pointCloud", {
+export function pointCloud(): ShaderProgram {
+    return new ShaderProgram("pointCloud", {
         uniforms: {
             projectionViewMatrix: "mat4",
             opacity: "float",
@@ -12,8 +12,7 @@ export function pointCloud(): Program {
             coordinates: "vec3",
             colors: "vec3"
         },
-        vertexShader:
-            `attribute vec3 coordinates;
+        vertexShader: `attribute vec3 coordinates;
             attribute vec4 colors;
             uniform mat4 projectionViewMatrix;
             uniform float opacity;
@@ -25,8 +24,7 @@ export function pointCloud(): Program {
                 gl_Position = projectionViewMatrix * vec4(coordinates, 1.0);
                 gl_PointSize = pointSize;
             }`,
-        fragmentShader:
-            `precision highp float;
+        fragmentShader: `precision highp float;
             varying vec4 color;
             void main(void) {
                 gl_FragColor = color;

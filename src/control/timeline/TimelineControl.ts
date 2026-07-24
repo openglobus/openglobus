@@ -1,7 +1,7 @@
-import {Dialog} from "../../ui/Dialog";
-import {ToggleButton} from "../../ui/ToggleButton";
-import {Control, type IControlParams} from '../Control';
-import {TimelineView} from './TimelineView';
+import { Dialog } from "../../ui/Dialog";
+import { ToggleButton } from "../../ui/ToggleButton";
+import { Control, type IControlParams } from "../Control";
+import { TimelineView } from "./TimelineView";
 
 interface ITimelineControlParams extends IControlParams {
     name?: string;
@@ -69,11 +69,15 @@ class TimelineControl extends Control {
     }
 
     public override oninit() {
-
         let $container = this.renderer!.div!;
 
-        this._toggleBtn.appendTo($container);
+        this._toggleBtn.appendTo(this.renderer!.topLeftContainer());
         this._dialog.appendTo($container);
+        this._dialog.events.on("visibility", (v: boolean) => {
+            if (v) {
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
+            }
+        });
 
         this._toggleBtn.events.on("change", (isActive: boolean) => {
             this._dialog.setVisibility(isActive);
@@ -108,4 +112,4 @@ class TimelineControl extends Control {
     }
 }
 
-export {TimelineControl};
+export { TimelineControl };

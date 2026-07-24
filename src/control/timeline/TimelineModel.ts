@@ -1,9 +1,9 @@
-import {type EventsHandler, createEvents} from '../../Events';
-import {addSeconds} from "./timelineUtils";
+import { type EventsHandler, createEvents } from "../../Events";
+import { addSeconds } from "./timelineUtils";
 
 type TimelineEventsList = ["change", "current"];
 
-const TIMELINE_EVENTS: TimelineEventsList = ["change", "current"/*, "tick"*/];
+const TIMELINE_EVENTS: TimelineEventsList = ["change", "current" /*, "tick"*/];
 
 interface ITimelineParams {
     current?: Date;
@@ -11,7 +11,7 @@ interface ITimelineParams {
     rangeEnd?: Date;
     minDate?: Date | null;
     maxDate?: Date | null;
-    multiplier?: number
+    multiplier?: number;
 }
 
 class TimelineModel {
@@ -29,7 +29,6 @@ class TimelineModel {
     public dt: number;
 
     constructor(options: ITimelineParams = {}) {
-
         this.events = createEvents(TIMELINE_EVENTS);
 
         this._current = options.current || new Date();
@@ -83,7 +82,7 @@ class TimelineModel {
     }
 
     public get range(): number {
-        return this._range
+        return this._range;
     }
 
     public set(rangeStart: Date, rangeEnd: Date) {
@@ -149,4 +148,4 @@ class TimelineModel {
     }
 }
 
-export {TimelineModel};
+export { TimelineModel };

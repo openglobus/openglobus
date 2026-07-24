@@ -1,14 +1,13 @@
-import * as utils from '../utils/shared';
-import {BaseGeoImage} from "../layer/BaseGeoImage";
-import {Framebuffer} from '../webgl/Framebuffer';
-import {LonLat} from '../LonLat';
-import {Program} from '../webgl/Program';
-import {Planet} from "../scene/Planet";
-import {doubleToTwoFloats2} from "../math/coder";
-import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import * as utils from "../utils/shared";
+import { BaseGeoImage } from "../layer/BaseGeoImage";
+import { Framebuffer } from "../webgl/Framebuffer";
+import { LonLat } from "../LonLat";
+import { ShaderProgram } from "../webgl/ShaderProgram";
+import { Planet } from "../scene/Planet";
+import { doubleToTwoFloats2 } from "../math/coder";
+import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 
 export class GeoImageCreator {
-
     public MAX_FRAMES: number;
 
     protected _gridSize: number;
@@ -73,7 +72,6 @@ export class GeoImageCreator {
         let tempArr = new Float32Array(2);
 
         for (let i = 0; i <= gs; i++) {
-
             let P03i = new LonLat(c[0].lon + i * v03.lon, c[0].lat + i * v03.lat),
                 P12i = new LonLat(c[1].lon + i * v12.lon, c[1].lat + i * v12.lat);
 
@@ -122,7 +120,10 @@ export class GeoImageCreator {
 
         i = this._animate.length;
         while (i--) {
-            this._animate[i].rendering();
+            let ai = this._animate[i];
+            if (ai.getVisibility()) {
+                ai.rendering();
+            }
         }
     }
 
@@ -138,32 +139,31 @@ export class GeoImageCreator {
     }
 
     public remove(geoImage: BaseGeoImage) {
-        if (geoImage._isRendering) {
-            geoImage._creationProceeding = false;
-            geoImage._isRendering = false;
-            let arr: BaseGeoImage[];
-            if (geoImage._animate) {
-                arr = this._animate;
-            } else {
-                arr = this._queue;
+        geoImage._creationProceeding = false;
+        geoImage._isRendering = false;
+
+        for (let i = 0; i < this._queue.length; i++) {
+            if (this._queue[i].isEqual(geoImage)) {
+                this._queue.splice(i, 1);
+                break;
             }
-            for (let i = 0; i < arr.length; i++) {
-                if (arr[i].isEqual(geoImage)) {
-                    arr.splice(i, 1);
-                    return;
-                }
+        }
+
+        for (let i = 0; i < this._animate.length; i++) {
+            if (this._animate[i].isEqual(geoImage)) {
+                this._animate.splice(i, 1);
+                break;
             }
         }
     }
 
     protected _initBuffers() {
-
         let h = this._planet.renderer!.handler!;
 
-        this._framebuffer = new Framebuffer(h, {width: 2, height: 2, useDepth: false});
+        this._framebuffer = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
         this._framebuffer.init();
 
-        this._framebufferMercProj = new Framebuffer(h, {width: 2, height: 2, useDepth: false});
+        this._framebufferMercProj = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
         this._framebufferMercProj.init();
 
         let gs = Math.log2(this._gridSize);
@@ -177,44 +177,49 @@ export class GeoImageCreator {
     }
 
     protected _initShaders() {
-
-        this._planet.renderer!.handler.addProgram(new Program("geoImageTransform", {
-            uniforms: {
-                sourceTexture: "sampler2d",
-                extentParamsHigh: "vec4",
-                extentParamsLow: "vec4",
-                isFullExtent: "bool"
-            },
-            attributes: {
-                cornersHigh: "vec2",
-                cornersLow: "vec2",
-                texCoords: "vec2"
-            },
-            vertexShader:
-                `attribute vec2 cornersHigh; 
+        this._planet.renderer!.handler.addProgram(
+            new ShaderProgram("geoImageTransform", {
+                uniforms: {
+                    sourceTexture: "sampler2d",
+                    extentParamsHigh: "vec4",
+                    extentParamsLow: "vec4",
+                    isFullExtent: "bool",
+                    decodeSourceSRGB: "bool"
+                },
+                attributes: {
+                    cornersHigh: "vec2",
+                    cornersLow: "vec2",
+                    texCoords: "vec2"
+                },
+                vertexShader: `attribute vec2 cornersHigh;
                      attribute vec2 cornersLow;
-                      attribute vec2 texCoords; 
-                      uniform vec4 extentParamsHigh; 
-                      uniform vec4 extentParamsLow; 
+                      attribute vec2 texCoords;
+                      uniform vec4 extentParamsHigh;
+                      uniform vec4 extentParamsLow;
                       varying vec2 v_texCoords;
-                      void main() {                                                             
-                          v_texCoords = texCoords; 
+                      void main() {
+                          v_texCoords = texCoords;
                           vec2 highDiff = cornersHigh - extentParamsHigh.xy;
-                          vec2 lowDiff = cornersLow - extentParamsLow.xy;                                        
-                          gl_Position = vec4((-1.0 + (highDiff * step(1.0, length(highDiff)) + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0), 0.0, 1.0); 
+                          vec2 lowDiff = cornersLow - extentParamsLow.xy;
+                          gl_Position = vec4((-1.0 + (highDiff * step(1.0, length(highDiff)) + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0), 0.0, 1.0);
                       }`,
-            fragmentShader:
-                `precision highp float;
+                fragmentShader: `precision highp float;
                         uniform sampler2D sourceTexture;
                         uniform bool isFullExtent;
+                        uniform bool decodeSourceSRGB;
                         varying vec2 v_texCoords;
                         void main () {
                             if(!isFullExtent && (v_texCoords.x <= 0.001 || v_texCoords.x >= 0.999 ||
                                 v_texCoords.y <= 0.001 || v_texCoords.y >= 0.999)) {
                                 discard;
                             }
-                            gl_FragColor = texture2D(sourceTexture, v_texCoords);
+                            vec4 color = texture2D(sourceTexture, v_texCoords);
+                            if (decodeSourceSRGB) {
+                                color.rgb = pow(color.rgb, vec3(2.2));
+                            }
+                            gl_FragColor = color;
                         }`
-        }));
+            })
+        );
     }
 }

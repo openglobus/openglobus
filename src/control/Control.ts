@@ -1,9 +1,9 @@
-import {Planet} from "../scene/Planet";
-import {Renderer} from "../renderer/Renderer";
+import { Planet } from "../scene/Planet";
+import { Renderer } from "../renderer/Renderer";
 
 export interface IControlParams {
     name?: string;
-    autoActivate?: boolean
+    autoActivate?: boolean;
 }
 
 /**
@@ -49,7 +49,6 @@ export class Control {
     protected _deferredActive: boolean;
 
     constructor(options: IControlParams = {}) {
-
         this.__id = Control.__counter__++;
 
         this._name = options.name || `_control_${this.__id.toString()}`;
@@ -80,36 +79,31 @@ export class Control {
      * Control initialization function have to be overridden.
      * @public
      */
-    public oninit() {
-    }
+    public oninit() {}
 
     /**
      * Control renderer assigning function have to be overridden.
      * @public
      */
-    public onadd() {
-    }
+    public onadd() {}
 
     /**
      * Control remove function have to be overridden.
      * @public
      */
-    public onremove() {
-    }
+    public onremove() {}
 
     /**
      * Control activation function have to be overridden.
      * @public
      */
-    public onactivate() {
-    }
+    public onactivate() {}
 
     /**
      * Control deactivation function have to be overriden.
      * @public
      */
-    public ondeactivate() {
-    }
+    public ondeactivate() {}
 
     /**
      * Assign renderer to the control.
@@ -136,7 +130,6 @@ export class Control {
      * @public
      */
     public remove() {
-
         this.deactivate();
 
         this.onremove && this.onremove();

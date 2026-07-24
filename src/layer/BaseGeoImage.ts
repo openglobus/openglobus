@@ -1,24 +1,23 @@
 import * as mercator from "../mercator";
-import {doubleToTwoFloats2} from "../math/coder";
-import {Extent} from "../Extent";
-import type {EventCallback, EventsHandler} from "../Events";
-import {Layer} from "./Layer";
-import type {LayerEventsList, ILayerParams} from "./Layer";
-import {LonLat} from "../LonLat";
-import {Material} from "./Material";
-import type {NumberArray2} from "../math/Vec2";
-import type {NumberArray4} from "../math/Vec4";
-import {Planet} from "../scene/Planet";
-import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import { doubleToTwoFloats2 } from "../math/coder";
+import { Extent } from "../Extent";
+import type { EventCallback, EventsHandler } from "../Events";
+import { Layer } from "./Layer";
+import type { LayerEventsList, ILayerParams } from "./Layer";
+import { LonLat } from "../LonLat";
+import { Material } from "./Material";
+import type { NumberArray2 } from "../math/Vec2";
+import type { NumberArray4 } from "../math/Vec4";
+import { Planet } from "../scene/Planet";
+import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
+import { SRGB } from "../utils/colorSpace";
 
 export interface IBaseGeoImageParams extends ILayerParams {
     fullExtent?: boolean;
     corners?: NumberArray2[];
 }
 
-type BaseGeoImageEventsList = [
-    "loadend"
-];
+type BaseGeoImageEventsList = ["loadend"];
 
 const BASEGEOIMAGE_EVENTS: BaseGeoImageEventsList = [
     /**
@@ -28,17 +27,20 @@ const BASEGEOIMAGE_EVENTS: BaseGeoImageEventsList = [
     "loadend"
 ];
 
+const ANIMATED_MIPMAP_UPDATE_INTERVAL = 4;
+const LON_WRAP = 360.0;
+const LON_HALF_WRAP = 180.0;
+const FULL_WORLD_EDGE_EPS = 1e-6;
+
 export type BaseGeoImageEventsType = EventsHandler<BaseGeoImageEventsList> & EventsHandler<LayerEventsList>;
 
 /**
- * BaseGeoImage layer represents square imagery layer that
- * could be a static image, or animated video or webgl buffer
- * object displayed on the globe.
+ * BaseGeoImage represents a square imagery layer displayed on the globe.
+ * It can use a static image, animated video, or WebGL buffer as a source.
  * @class
  * @extends {Layer}
  */
 class BaseGeoImage extends Layer {
-
     public override events: BaseGeoImageEventsType;
 
     protected _projType: number;
@@ -73,6 +75,7 @@ class BaseGeoImage extends Layer {
     protected _cornersMerc: LonLat[];
 
     protected _isFullExtent: number;
+    protected _crossesAntimeridian: boolean;
 
     /**
      * rendering function pointer
@@ -81,6 +84,7 @@ class BaseGeoImage extends Layer {
     public rendering: Function;
 
     protected _onLoadend_: EventCallback | null;
+    protected _materialMipmapUpdateCounter: number;
 
     constructor(name: string | null, options: IBaseGeoImageParams = {}) {
         super(name, options);
@@ -120,6 +124,7 @@ class BaseGeoImage extends Layer {
         this._cornersMerc = [];
 
         this._isFullExtent = options.fullExtent ? 1 : 0;
+        this._crossesAntimeridian = false;
 
         /**
          * rendering function pointer
@@ -127,6 +132,7 @@ class BaseGeoImage extends Layer {
         this.rendering = this._renderingProjType0.bind(this);
 
         this._onLoadend_ = null;
+        this._materialMipmapUpdateCounter = 0;
 
         options.corners && this.setCorners(options.corners);
     }
@@ -148,6 +154,9 @@ class BaseGeoImage extends Layer {
     }
 
     public override remove() {
+        if (this._planet) {
+            this._planet._geoImageCreator.remove(this);
+        }
         this.events.off("loadend", this._onLoadend_);
         this._onLoadend_ = null;
         return super.remove();
@@ -160,7 +169,7 @@ class BaseGeoImage extends Layer {
     /**
      * Gets corners coordinates.
      * @public
-     * @return {Array.<LonLat>} - (exactly 4 entries)
+     * @returns {Array.<LonLat>} - (exactly 4 entries)
      */
     public getCornersLonLat(): LonLat[] {
         let c = this._cornersWgs84;
@@ -175,7 +184,7 @@ class BaseGeoImage extends Layer {
     /**
      * Gets corners coordinates.
      * @public
-     * @return {Array.<Array<number>>} - (exactly 3 entries)
+     * @returns {Array.<Array<number>>} - (exactly 4 entries)
      */
     public getCorners(): NumberArray2[] {
         let c = this._cornersWgs84;
@@ -190,9 +199,8 @@ class BaseGeoImage extends Layer {
     /**
      * Sets geoImage geographical corners coordinates.
      * @public
-     * @param {Array.<Array.<number>>} corners - GeoImage corners coordinates. Where first coordinate (exactly 3 entries)
-     * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom
-     * and fourth - left bottom image corner.
+     * @param {Array.<Array.<number>>} corners - GeoImage corner coordinates. Each coordinate has exactly 2 entries.
+     * The first corner is top-left, the second is top-right, the third is bottom-right, and the fourth is bottom-left.
      */
     public setCorners(corners: NumberArray2[]) {
         this.setCornersLonLat(LonLat.join(corners));
@@ -201,18 +209,20 @@ class BaseGeoImage extends Layer {
     /**
      * Sets geoImage geographical corners coordinates.
      * @public
-     * @param {Array.<LonLat>} corners - GeoImage corners coordinates. Where first coordinate
-     * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom
-     * and fourth - left bottom image corner. (exactly 4 entries)
+     * @param {Array.<LonLat>} corners - GeoImage corner coordinates.
+     * The first corner is top-left, the second is top-right, the third is bottom-right, and the fourth is bottom-left.
+     * (exactly 4 entries)
      */
     public setCornersLonLat(corners: LonLat[]) {
         this._refreshFrame = true;
+        const cornersUnwrapped = this._unwrapCornersLonLat(corners);
         this._cornersWgs84 = [
-            corners[0].clone(),
-            corners[1].clone(),
-            corners[2].clone(),
-            corners[3].clone()
+            cornersUnwrapped[0].clone(),
+            cornersUnwrapped[1].clone(),
+            cornersUnwrapped[2].clone(),
+            cornersUnwrapped[3].clone()
         ];
+        this._crossesAntimeridian = this._detectAntimeridianCrossing(this._cornersWgs84);
 
         for (let i = 0; i < this._cornersWgs84.length; i++) {
             if (this._cornersWgs84[i].lat >= 89.9) {
@@ -238,6 +248,62 @@ class BaseGeoImage extends Layer {
         }
     }
 
+    protected _isExplicitFullWorldLonEdge(lonA: number, lonB: number): boolean {
+        return Math.abs(Math.abs(lonB - lonA) - LON_WRAP) <= FULL_WORLD_EDGE_EPS;
+    }
+
+    protected _unwrapCornersLonLat(corners: LonLat[]): LonLat[] {
+        if (corners.length !== 4) {
+            return [corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone()];
+        }
+
+        const out = [corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone()];
+
+        for (let i = 1; i < out.length; i++) {
+            const prevLon = out[i - 1].lon;
+            const sourcePrevLon = corners[i - 1].lon;
+            const sourceCurrLon = corners[i].lon;
+
+            if (this._isExplicitFullWorldLonEdge(sourcePrevLon, sourceCurrLon)) {
+                out[i].lon = prevLon + (sourceCurrLon - sourcePrevLon);
+                continue;
+            }
+
+            let lon = sourceCurrLon;
+            let delta = lon - prevLon;
+
+            while (delta > LON_HALF_WRAP) {
+                lon -= LON_WRAP;
+                delta = lon - prevLon;
+            }
+
+            while (delta < -LON_HALF_WRAP) {
+                lon += LON_WRAP;
+                delta = lon - prevLon;
+            }
+
+            out[i].lon = lon;
+        }
+
+        return out;
+    }
+
+    protected _detectAntimeridianCrossing(corners: LonLat[]): boolean {
+        let minLon = 180.0;
+        let maxLon = -180.0;
+
+        for (let i = 0; i < corners.length; i++) {
+            let lon = corners[i].lon;
+            if (lon < -180.0 || lon > 180.0) {
+                lon = ((((lon + 180.0) % 360.0) + 360.0) % 360.0) - 180.0;
+            }
+            if (lon < minLon) minLon = lon;
+            if (lon > maxLon) maxLon = lon;
+        }
+
+        return maxLon - minLon > 180.0;
+    }
+
     /**
      * Creates geoImage frame.
      * @protected
@@ -260,7 +326,6 @@ class BaseGeoImage extends Layer {
         let tempArr = new Float32Array(2);
 
         if (this._projType === 0) {
-
             doubleToTwoFloats2(this._extentWgs84.southWest.lon, tempArr);
             this._extentWgs84ParamsHigh[0] = tempArr[0];
             this._extentWgs84ParamsLow[0] = tempArr[1];
@@ -271,9 +336,7 @@ class BaseGeoImage extends Layer {
 
             this._extentWgs84ParamsHigh[2] = 2.0 / this._extentWgs84.getWidth();
             this._extentWgs84ParamsHigh[3] = 2.0 / this._extentWgs84.getHeight();
-
         } else {
-
             doubleToTwoFloats2(this._extentMerc.southWest.lon, tempArr);
             this._extentMercParamsHigh[0] = tempArr[0];
             this._extentMercParamsLow[0] = tempArr[1];
@@ -294,8 +357,12 @@ class BaseGeoImage extends Layer {
 
             gl.deleteTexture(this._materialTexture as WebGLTexture);
             this._materialTexture = h.createEmptyTexture_l(this._frameWidth, this._frameHeight);
+            this._materialMipmapUpdateCounter = 0;
 
-            let gridBufferArr = this._planet._geoImageCreator.createGridBuffer(this._cornersWgs84, this._projType === 1);
+            let gridBufferArr = this._planet._geoImageCreator.createGridBuffer(
+                this._cornersWgs84,
+                this._projType === 1
+            );
 
             this._gridBufferHigh = gridBufferArr[0];
             this._gridBufferLow = gridBufferArr[1];
@@ -325,7 +392,7 @@ class BaseGeoImage extends Layer {
 
         if (p) {
             let gl = p.renderer!.handler.gl;
-            this._creationProceeding && p._geoImageCreator.remove(this);
+            p._geoImageCreator.remove(this);
             p._clearLayerMaterial(this);
 
             if (gl) {
@@ -380,10 +447,40 @@ class BaseGeoImage extends Layer {
         material.isReady = false;
     }
 
+    protected _getCyclicLonShift(sourceExtent: Extent, targetExtent: Extent, worldWidth: number): number {
+        const sourceCenter = (sourceExtent.southWest.lon + sourceExtent.northEast.lon) * 0.5;
+        const targetCenter = (targetExtent.southWest.lon + targetExtent.northEast.lon) * 0.5;
+        const sourceWidth = sourceExtent.northEast.lon - sourceExtent.southWest.lon;
+
+        if (worldWidth <= 0.0 || sourceWidth >= worldWidth) {
+            return 0.0;
+        }
+
+        const k0 = Math.round((targetCenter - sourceCenter) / worldWidth);
+        let bestShift = k0 * worldWidth;
+        let bestScore = Number.POSITIVE_INFINITY;
+
+        for (let dk = -1; dk <= 1; dk++) {
+            const shift = (k0 + dk) * worldWidth;
+            const shiftedSw = sourceExtent.southWest.lon + shift;
+            const shiftedNe = sourceExtent.northEast.lon + shift;
+            const shiftedCenter = (shiftedSw + shiftedNe) * 0.5;
+            const overlapsX = targetExtent.southWest.lon <= shiftedNe && targetExtent.northEast.lon >= shiftedSw;
+            const score = Math.abs(shiftedCenter - targetCenter) + (overlapsX ? 0.0 : worldWidth);
+
+            if (score < bestScore) {
+                bestScore = score;
+                bestShift = shift;
+            }
+        }
+
+        return bestShift;
+    }
+
     /**
      * @public
      * @override
-     * @returns {Array<number>} -
+     * @returns {NumberArray4}
      */
     public override applyMaterial(material: Material): NumberArray4 {
         let segment = material.segment;
@@ -395,18 +492,24 @@ class BaseGeoImage extends Layer {
             !this._creationProceeding && this.loadMaterial(material);
         }
 
-        let v0s, v0t;
+        let v0s: Extent, v0t: Extent, worldWidth: number;
         if (this._projType === 0) {
             v0s = this._extentWgs84;
             v0t = segment._extent;
+            worldWidth = 360.0;
         } else {
             v0s = this._extentMerc;
             v0t = segment.getExtentMerc();
+            worldWidth = mercator.POLE2;
         }
 
-        let sSize_x = v0s.northEast.lon - v0s.southWest.lon;
+        const lonShift = this._getCyclicLonShift(v0s, v0t, worldWidth);
+        const sourceSwLon = v0s.southWest.lon + lonShift;
+        const sourceNeLon = v0s.northEast.lon + lonShift;
+
+        let sSize_x = sourceNeLon - sourceSwLon;
         let sSize_y = v0s.northEast.lat - v0s.southWest.lat;
-        let dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
+        let dV0s_x = (v0t.southWest.lon - sourceSwLon) / sSize_x;
         let dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
         let dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
         let dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
@@ -417,7 +520,7 @@ class BaseGeoImage extends Layer {
     /**
      * Gets frame width size in pixels.
      * @public
-     * @returns {Number} Frame width.
+     * @returns {number} Frame width.
      */
     public get getFrameWidth(): number {
         return this._frameWidth;
@@ -426,7 +529,7 @@ class BaseGeoImage extends Layer {
     /**
      * Gets frame height size in pixels.
      * @public
-     * @returns {Number} Frame height.
+     * @returns {number} Frame height.
      */
     public get getFrameHeight(): number {
         return this._frameHeight;
@@ -438,6 +541,27 @@ class BaseGeoImage extends Layer {
      */
     protected _createSourceTexture() {
         //empty
+    }
+
+    protected _updateMaterialTextureMipmap() {
+        const p = this._planet;
+        if (!p || !this._materialTexture) return;
+
+        const gl = p.renderer!.handler.gl!;
+        const shouldUpdateMipmaps = !this._animate || this._materialMipmapUpdateCounter <= 0;
+
+        gl.bindTexture(gl.TEXTURE_2D, this._materialTexture as WebGLTexture);
+
+        if (shouldUpdateMipmaps) {
+            gl.generateMipmap(gl.TEXTURE_2D);
+            this._materialMipmapUpdateCounter = this._animate ? ANIMATED_MIPMAP_UPDATE_INTERVAL : 0;
+        } else {
+            this._materialMipmapUpdateCounter--;
+        }
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
     public _renderingProjType1() {
@@ -454,7 +578,7 @@ class BaseGeoImage extends Layer {
         f.activate();
 
         h.programs.geoImageTransform.activate();
-        let sh = h.programs.geoImageTransform._program;
+        let sh = h.programs.geoImageTransform;
         let sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -464,7 +588,9 @@ class BaseGeoImage extends Layer {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.uniform1i(shu.isFullExtent, this._isFullExtent);
+        // Keep edge-discard disabled for antimeridian-crossing images to avoid a seam on +/-180.
+        gl.uniform1i(shu.isFullExtent, this._isFullExtent || this._crossesAntimeridian ? 1 : 0);
+        gl.uniform1i(shu.decodeSourceSRGB, this._colorSpace === SRGB ? 1 : 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
 
@@ -485,6 +611,7 @@ class BaseGeoImage extends Layer {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer as WebGLBuffer);
         gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
         f.deactivate();
+        this._updateMaterialTextureMipmap();
 
         gl.enable(gl.CULL_FACE);
 
@@ -507,7 +634,7 @@ class BaseGeoImage extends Layer {
         f.activate();
 
         h.programs.geoImageTransform.activate();
-        let sh = h.programs.geoImageTransform._program;
+        let sh = h.programs.geoImageTransform;
         let sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -517,6 +644,8 @@ class BaseGeoImage extends Layer {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
+        gl.uniform1i(shu.isFullExtent, this._isFullExtent || this._crossesAntimeridian ? 1 : 0);
+        gl.uniform1i(shu.decodeSourceSRGB, this._colorSpace === SRGB ? 1 : 0);
 
         gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
@@ -536,6 +665,7 @@ class BaseGeoImage extends Layer {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer as WebGLBuffer);
         gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
         f.deactivate();
+        this._updateMaterialTextureMipmap();
 
         gl.enable(gl.CULL_FACE);
 
@@ -545,4 +675,4 @@ class BaseGeoImage extends Layer {
     }
 }
 
-export {BaseGeoImage};
+export { BaseGeoImage };

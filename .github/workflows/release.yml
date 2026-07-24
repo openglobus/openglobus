@@ -42,6 +42,26 @@ jobs:
           target-branch: master
           target-directory: docs
 
-      - run: npm publish
+      - name: Verify npm auth
+        run: |
+          npm whoami
+          npm config get registry
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to npm
+        shell: bash
+        run: |
+          PACKAGE_NAME="$(node -p "require('./package.json').name")"
+          VERSION="$(node -p "require('./package.json').version")"
+          if npm view "${PACKAGE_NAME}@${VERSION}" version --registry=https://registry.npmjs.org/ > /dev/null 2>&1; then
+            echo "Version ${PACKAGE_NAME}@${VERSION} is already published. Skipping npm publish."
+            exit 0
+          fi
+          if [[ "$VERSION" == *"-"* ]]; then
+            npm publish --access public --tag next
+          else
+            npm publish --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,4 +1,6 @@
-precision lowp float;
+#version 300 es
+
+precision highp float;
 
 #include "../../shaders/atmos/common.glsl"
 
@@ -16,6 +18,10 @@ uniform vec4 frustumParams;// x=left-right, y=top-bottom, z=right, w=top
 uniform sampler2D transmittanceTexture;
 uniform sampler2D scatteringTexture;
 
+#include "../../shaders/atmos/lut_helpers.glsl"
+
+layout (location = 0) out vec4 fragColor;
+
 float valueHSV(vec3 rgb) {
     return max(max(rgb.r, rgb.g), rgb.b);
 }
@@ -23,20 +29,6 @@ float valueHSV(vec3 rgb) {
 //float luma601(vec3 srgb) {
 //    return dot(srgb, vec3(0.299, 0.587, 0.114));
 //}
-
-vec3 transmittanceFromTexture(float height, float angle)
-{
-    float u = (angle + 1.0) * 0.5;
-    float v = height / ATMOS_HEIGHT;
-    return texture2D(transmittanceTexture, vec2(u, v)).xyz;
-}
-
-vec3 multipleScatteringContributionFromTexture(float height, float angle)
-{
-    float u = (angle + 1.0) * 0.5;
-    float v = height / ATMOS_HEIGHT;
-    return texture2D(scatteringTexture, vec2(u, v)).xyz;
-}
 
 bool intersectEllipsoidToSphere(in vec3 ro, in vec3 rd, in vec3 ellRadii, in float sphereRadius, out float t1, out float t2)
 {
@@ -47,14 +39,14 @@ bool intersectEllipsoidToSphere(in vec3 ro, in vec3 rd, in vec3 ellRadii, in flo
         vec3 hitEll = ro + rd * offset;
         vec3 nEll = normalEllipsoid(hitEll, ellRadii);
         float t = 0.0;
-        bool intersectsSphere = intersectSphere(hitEll, nEll, sphereRadius, t);
+        bool intersectsSphere = intersectAtmosphereSphere(hitEll, nEll, sphereRadius, t);
         vec3 hitSphere = hitEll + nEll * t;
         t1 = length(hitSphere - ro);
 
         hitEll = ro + rd * distanceToSpace;
         nEll = normalEllipsoid(hitEll, ellRadii);
         t = 0.0;
-        intersectsSphere = intersectSphere(hitEll, nEll, sphereRadius, t);
+        intersectsSphere = intersectAtmosphereSphere(hitEll, nEll, sphereRadius, t);
         hitSphere = hitEll + nEll * t;
         t2 = length(hitSphere - ro);
 
@@ -63,24 +55,7 @@ bool intersectEllipsoidToSphere(in vec3 ro, in vec3 rd, in vec3 ellRadii, in flo
     return false;
 }
 
-mat4 transpose(in mat4 m)
-{
-    vec4 i0 = m[0];
-    vec4 i1 = m[1];
-    vec4 i2 = m[2];
-    vec4 i3 = m[3];
-
-    mat4 outMatrix = mat4(
-    vec4(i0.x, i1.x, i2.x, i3.x),
-    vec4(i0.y, i1.y, i2.y, i3.y),
-    vec4(i0.z, i1.z, i2.z, i3.z),
-    vec4(i0.w, i1.w, i2.w, i3.w)
-    );
-
-    return outMatrix;
-}
-
-void mainImage(out vec4 fragColor)
+void mainImage(out vec4 outColor)
 {
     vec3 cameraPosition = camPos;
 
@@ -107,7 +82,7 @@ void mainImage(out vec4 fragColor)
         float fieldOfView = fov;
         float z = 1.0 / tan(fieldOfView * 0.5 * PI / 180.0);
         rayDirection = normalize(vec3(uv, -z));
-        vec4 rd = transpose(viewMatrix) * vec4(rayDirection, 1.0);
+        vec4 rd = transpose(viewMatrix) * vec4(rayDirection, 0.0);
         rayDirection = rd.xyz;
     }
 
@@ -120,11 +95,15 @@ void mainImage(out vec4 fragColor)
     cameraPosition *= SPHERE_TO_ELLIPSOID_SCALE;
     lightDirection = normalize(lightDirection * SPHERE_TO_ELLIPSOID_SCALE);
 
+    if (isOrthographic != 0.0) {
+        moveRayOriginNearSphere(cameraPosition, rayDirection, TOP_RADIUS);
+    }
+
     if (length(cameraPosition) < BOTTOM_RADIUS + 100.0) {
         cameraPosition = normalize(cameraPosition) * (BOTTOM_RADIUS + 100.0);
     }
 
-    if (intersectSphere(cameraPosition, rayDirection, TOP_RADIUS, offset, distanceToSpace))
+    if (intersectAtmosphereSphere(cameraPosition, rayDirection, TOP_RADIUS, offset, distanceToSpace))
     {
         vec3 rayOrigin = cameraPosition;
 
@@ -146,12 +125,13 @@ void mainImage(out vec4 fragColor)
 
         float distanceToGround = 0.0;
 
-        bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
+        bool hitGround = intersectAtmosphereSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
 
-        if (intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 100000.0, distanceToGround) && hitGround)
+        if (intersectAtmosphereSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 250000.0, distanceToGround) && hitGround)
         {
-            fragColor = vec4(0.47, 0.47, 0.5, 1.0);
-            return;
+            discard;
+//            outColor = vec4(0.47, 0.47, 0.5, 1.0);
+//            return;
         }
 
         float segmentLength = abs(((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(SAMPLE_COUNT));
@@ -204,14 +184,14 @@ void mainImage(out vec4 fragColor)
     #if !DISABLE_SUN_DISK
     {
         float distanceToGround = 0.0;
-        bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
+        bool hitGround = intersectAtmosphereSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
         if (!hitGround)
         {
             vec3 sunLum;
             if (isOrthographic != 0.0) {
                 float z = 1.0 / tan(fov * 0.5 * PI / 180.0);
                 vec3 viewRay = normalize(vec3(uv, -z));
-                vec4 rd = transpose(viewMatrix) * vec4(viewRay, 1.0);
+                vec4 rd = transpose(viewMatrix) * vec4(viewRay, 0.0);
                 vec3 pseudoRayDirection = normalize(rd.xyz);
                 const float sunOrthoAngularScale = 2.0;
                 sunLum = sunWithBloomScaled(pseudoRayDirection, lightDirection, sunOrthoAngularScale) * vec3(1.0, 1.0, 0.8);
@@ -226,12 +206,12 @@ void mainImage(out vec4 fragColor)
     }
     #endif
 
-    vec4 color = vec4(pow(opacity * light * 8.0, vec3(1.0 / 2.2)), valueHSV(light) * clamp(opacity, 0.0, 1.0));
+    vec4 color = vec4(opacity * light * 8.0, valueHSV(light) * clamp(opacity, 0.0, 1.0));
 
-    fragColor = color;
+    outColor = color;
 }
 
 void main(void)
 {
-    mainImage(gl_FragColor);
+    mainImage(fragColor);
 }

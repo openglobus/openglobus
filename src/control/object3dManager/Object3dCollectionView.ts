@@ -1,19 +1,15 @@
-import {IViewParams, View, type ViewEventsList} from "../../ui/View";
-import {IObject3dItem, Object3dCollection} from "./Object3dCollection";
-import {Object3dItemView} from "./Object3dItemView";
-import {type EventsHandler, createEvents} from "../../Events";
-import {Object3d} from "../../Object3d";
+import { IViewParams, View, type ViewEventsList } from "../../ui/View";
+import { IObject3dItem, Object3dCollection } from "./Object3dCollection";
+import { Object3dItemView } from "./Object3dItemView";
+import { type EventsHandler, createEvents } from "../../Events";
 
 type Object3dCollectionViewEvents = ["select"];
 
-const EVENT_NAMES: Object3dCollectionViewEvents = [
-    "select",
-];
+const EVENT_NAMES: Object3dCollectionViewEvents = ["select"];
 
 const TEMPLATE = `<div class="og-object3d-collection"></div>`;
 
 export class Object3dCollectionView extends View<Object3dCollection> {
-
     public override events: EventsHandler<Object3dCollectionViewEvents> & EventsHandler<ViewEventsList>;
 
     protected _activeView: Object3dItemView | null;
@@ -32,7 +28,7 @@ export class Object3dCollectionView extends View<Object3dCollection> {
     }
 
     protected _addItem(item: IObject3dItem) {
-        let itemView = new Object3dItemView({model: item});
+        let itemView = new Object3dItemView({ model: item });
         itemView.appendTo(this.el!);
         itemView.events.on("click", (item: IObject3dItem) => {
             if (this._activeView) {
@@ -62,5 +58,5 @@ export class Object3dCollectionView extends View<Object3dCollection> {
 
     protected _onAdd = (item: IObject3dItem) => {
         this._addItem(item);
-    }
+    };
 }

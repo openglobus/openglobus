@@ -1,11 +1,12 @@
 // import { QueueArray } from '../QueueArray.js';
-import {EPSG4326} from "../proj/EPSG4326";
-import {equi} from "../proj/equi";
-import {BaseWorker} from "./BaseWorker";
-import {Segment} from "../segment/Segment";
-import {Geoid} from "../terrain/Geoid";
+import { EPSG4326 } from "../proj/EPSG4326";
+import { equi } from "../proj/equi";
+import { BaseWorker } from "./BaseWorker";
+import { Segment } from "../segment/Segment";
+import { Geoid } from "../terrain/Geoid";
 //@ts-ignore
-import PlainSegmentWorkerImpl from './PlainSegmentWorker.worker.js?worker&inline';
+import PlainSegmentWorkerImpl from "./PlainSegmentWorker.worker.js?worker&inline";
+import type { NumberArray3 } from "../math/Vec3";
 
 export interface IPlainSegmentWorkerData {
     plainVertices: Float64Array | null;
@@ -16,13 +17,13 @@ export interface IPlainSegmentWorkerData {
 
     normalMapNormals: Float32Array | null;
     normalMapVertices: Float64Array | null;
-    normalMapVerticesHigh: Float32Array | null;
-    normalMapVerticesLow: Float32Array | null;
+
+    relativeCenter: NumberArray3;
 }
 
 type MessageEventExt = MessageEvent & {
-    data: IPlainSegmentWorkerData
-}
+    data: IPlainSegmentWorkerData;
+};
 
 class PlainSegmentWorker extends BaseWorker<Segment> {
     constructor(numWorkers: number = 2) {
@@ -38,14 +39,12 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
         e.data.plainNormals = null;
         e.data.normalMapNormals = null;
         e.data.normalMapVertices = null;
-        e.data.normalMapVerticesHigh = null;
-        e.data.normalMapVerticesLow = null;
+        e.data.relativeCenter = null;
 
-        this._source.delete(e.data.id)
+        this._source.delete(e.data.id);
     }
 
     public setGeoid(geoid: Geoid) {
-
         if (geoid.model) {
             let m = geoid.model;
             let model = {
@@ -62,12 +61,12 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
                 let rawfile = new Uint8Array(m.rawfile.length);
                 rawfile.set(m.rawfile);
 
-                w.postMessage({
+                w.postMessage(
+                    {
                         model: model,
                         rawfile: rawfile
-                    }, [
-                        rawfile.buffer
-                    ]
+                    },
+                    [rawfile.buffer]
                 );
             });
         } else {
@@ -86,33 +85,44 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
 
                 this._source.set(this._sourceId, segment);
 
-                let isLonLat = (segment._projection.id === EPSG4326.id || segment._projection.id === equi.id) ? 1.0 : 0.0;
+                let isLonLat = segment._projection.id === EPSG4326.id || segment._projection.id === equi.id ? 1.0 : 0.0;
 
                 let params = new Float64Array([
                     this._sourceId,
+
                     isLonLat,
+
                     segment.planet.terrain!.gridSizeByZoom[segment.tileZoom],
                     segment.planet.terrain!.plainGridSize,
+
                     segment._extent.southWest.lon,
                     segment._extent.southWest.lat,
                     segment._extent.northEast.lon,
                     segment._extent.northEast.lat,
+
                     // @ts-ignore
                     segment.planet.ellipsoid._e2,
                     segment.planet.ellipsoid.equatorialSize,
+
                     segment.planet.ellipsoid._invRadii2.x,
                     segment.planet.ellipsoid._invRadii2.y,
                     segment.planet.ellipsoid._invRadii2.z,
-                    segment.planet._heightFactor
+
+                    segment.planet._heightFactor,
+
+                    segment._relativeCenter.x,
+                    segment._relativeCenter.y,
+                    segment._relativeCenter.z
                 ]);
 
                 this._sourceId++;
 
-                w.postMessage({
-                    params: params
-                }, [
-                    params.buffer
-                ]);
+                w.postMessage(
+                    {
+                        params: params
+                    },
+                    [params.buffer]
+                );
             } else {
                 this._pendingQueue.push(segment);
             }
@@ -122,4 +132,4 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
     }
 }
 
-export {PlainSegmentWorker};
+export { PlainSegmentWorker };

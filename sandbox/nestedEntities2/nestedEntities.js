@@ -23,7 +23,7 @@ let globe = new Globe({
 });
 
 globe.planet.addControls([
-    new control.GeoObjectEditor(),
+    new control.EntityEditor(),
     new control.LayerSwitcher()
 ]);
 

@@ -1,15 +1,14 @@
-import {Vector} from "../../layer/Vector";
+import { Vector } from "../../layer/Vector";
 import * as quadTree from "../quadTree";
-import {Extent} from "../../Extent";
-import {Entity} from "../../entity/Entity";
-import {EntityCollection} from "../../entity/EntityCollection";
-import {EquiQuadTreeStrategy} from "./EquiQuadTreeStrategy";
-import {EntityCollectionsTreeStrategy} from "../EntityCollectionsTreeStrategy";
-import {EquiEntityCollectionNodeLonLat} from "./EquiEntityCollectionNodeLonLat";
-import {QuadTreeStrategy} from "../QuadTreeStrategy";
+import { Extent } from "../../Extent";
+import { Entity } from "../../entity/Entity";
+import { EntityCollection } from "../../entity/EntityCollection";
+import { EquiQuadTreeStrategy } from "./EquiQuadTreeStrategy";
+import { EntityCollectionsTreeStrategy } from "../EntityCollectionsTreeStrategy";
+import { EquiEntityCollectionNodeLonLat } from "./EquiEntityCollectionNodeLonLat";
+import { QuadTreeStrategy } from "../QuadTreeStrategy";
 
 export class EquiEntityCollectionsTreeStrategy extends EntityCollectionsTreeStrategy {
-
     protected _entityCollectionsTreeWest: EquiEntityCollectionNodeLonLat;
     protected _entityCollectionsTreeEast: EquiEntityCollectionNodeLonLat;
 
@@ -63,6 +62,16 @@ export class EquiEntityCollectionsTreeStrategy extends EntityCollectionsTreeStra
         });
     }
 
+    public override setReceiveProjectors(receiveProjectors: boolean) {
+        this._entityCollectionsTreeWest.traverseTree((node: EquiEntityCollectionNodeLonLat) => {
+            node.entityCollection!.setReceiveProjectors(receiveProjectors);
+        });
+
+        this._entityCollectionsTreeEast.traverseTree((node: EquiEntityCollectionNodeLonLat) => {
+            node.entityCollection!.setReceiveProjectors(receiveProjectors);
+        });
+    }
+
     public override dispose() {
         //@ts-ignore
         this._entityCollectionsTreeWest = null;
@@ -102,7 +111,11 @@ export class EquiEntityCollectionsTreeStrategy extends EntityCollectionsTreeStra
         this._entityCollectionsTreeWest.collectRenderCollectionsPASS1(pqs._visibleNodesWest, outArr);
         let i = this._secondPASS.length;
         while (i--) {
-            this._secondPASS[i].collectRenderCollectionsPASS2(pqs._visibleNodesWest, outArr, this._secondPASS[i].nodeId);
+            this._secondPASS[i].collectRenderCollectionsPASS2(
+                pqs._visibleNodesWest,
+                outArr,
+                this._secondPASS[i].nodeId
+            );
         }
 
         // East
@@ -110,7 +123,11 @@ export class EquiEntityCollectionsTreeStrategy extends EntityCollectionsTreeStra
         this._entityCollectionsTreeEast.collectRenderCollectionsPASS1(pqs._visibleNodesEast, outArr);
         i = this._secondPASS.length;
         while (i--) {
-            this._secondPASS[i].collectRenderCollectionsPASS2(pqs._visibleNodesEast, outArr, this._secondPASS[i].nodeId);
+            this._secondPASS[i].collectRenderCollectionsPASS2(
+                pqs._visibleNodesEast,
+                outArr,
+                this._secondPASS[i].nodeId
+            );
         }
     }
 }

@@ -1,7 +1,7 @@
 import * as math from "./math";
 import * as mercator from "./mercator";
-import {Ellipsoid} from "./ellipsoid/Ellipsoid";
-import {LonLat} from "./LonLat";
+import { Ellipsoid } from "./ellipsoid/Ellipsoid";
+import { LonLat } from "./LonLat";
 
 /**
  * Represents geographical coordinates extent.
@@ -85,9 +85,10 @@ export class Extent {
         y: number,
         z: number,
         width: number = mercator.POLE_DOUBLE,
-        height: number = mercator.POLE_DOUBLE): Extent {
-        const H = 1 << z;//Math.pow(2, z);
-        const W = H;//Math.pow(2, z);
+        height: number = mercator.POLE_DOUBLE
+    ): Extent {
+        const H = 1 << z; //Math.pow(2, z);
+        const W = H; //Math.pow(2, z);
         const lnSize = width / W;
         const ltSize = height / H;
 
@@ -133,10 +134,7 @@ export class Extent {
     public isInside(lonlat: LonLat): boolean {
         const sw = this.southWest;
         const ne = this.northEast;
-        return (
-            lonlat.lon >= sw.lon && lonlat.lon <= ne.lon &&
-            lonlat.lat >= sw.lat && lonlat.lat <= ne.lat
-        );
+        return lonlat.lon >= sw.lon && lonlat.lon <= ne.lon && lonlat.lat >= sw.lat && lonlat.lat <= ne.lat;
     }
 
     /**
@@ -317,8 +315,6 @@ export class Extent {
     }
 
     public toString(): string {
-        return (
-            `[${this.southWest.lon.toFixed(5)}, ${this.southWest.lat.toFixed(5)}, ${this.northEast.lon.toFixed(5)}, ${this.northEast.lat.toFixed(5)}]`
-        );
+        return `[${this.southWest.lon.toFixed(5)}, ${this.southWest.lat.toFixed(5)}, ${this.northEast.lon.toFixed(5)}, ${this.northEast.lat.toFixed(5)}]`;
     }
 }

@@ -25,7 +25,7 @@ import {
     Renderer,
     Vec3,
     Mat4,
-    RenderNode,
+    Scene,
     EntityCollection,
     scene,
     Gltf,
@@ -256,7 +256,7 @@ let renderer = new Renderer("frame", {
     autoActivate: true
 });
 
-class MyScene extends RenderNode {
+class MyScene extends Scene {
     constructor() {
         super("MyScene");
     }
@@ -637,7 +637,7 @@ class MyScene extends RenderNode {
         //
 
         let wheelRoll = 0;
-        this.renderer.events.on("draw", () => {
+        this.renderer.events.on("predraw", () => {
             wheelFrontLeft.setRoll(wheelRoll * Math.PI / 180);
             wheelBackLeft.setRoll(wheelRoll * Math.PI / 180);
             wheelMiddleLeft.setRoll(wheelRoll * Math.PI / 180);

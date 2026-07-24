@@ -3,7 +3,7 @@ import { Quat } from "../math/Quat";
 import { Vec3 } from "../math/Vec3";
 import * as astro from "./astro";
 import * as jd from "./jd";
-import type {JulianDate} from "./jd";
+import type { JulianDate } from "./jd";
 
 /**
  * Returns Sun position in the geocentric coordinate system by the time.
@@ -74,8 +74,7 @@ export function getSunPosition(jDate: JulianDate): Vec3 {
 
     // var L = math.rev(w + M); // Sun's mean longitude
 
-    var E =
-        M + math.DEGREES * e * Math.sin(M * math.RADIANS) * (1 + e * Math.cos(M * math.RADIANS)); // eccentric anomaly
+    var E = M + math.DEGREES * e * Math.sin(M * math.RADIANS) * (1 + e * Math.cos(M * math.RADIANS)); // eccentric anomaly
 
     // Sun rectangular coordinates, where the X axis points towards the perihelion
     var x = Math.cos(E * math.RADIANS) - e;
@@ -98,11 +97,7 @@ export function getSunPosition(jDate: JulianDate): Vec3 {
     var theta = math.TWO_PI * ((d * 24.0) / 23.9344694 - 259.853 / 360.0); // Siderial spin time
 
     return Quat.zRotation(-theta).mulVec3(
-        new Vec3(
-            -xequat * astro.AU_TO_METERS,
-            -yequat * astro.AU_TO_METERS,
-            zequat * astro.AU_TO_METERS
-        )
+        new Vec3(-xequat * astro.AU_TO_METERS, -yequat * astro.AU_TO_METERS, zequat * astro.AU_TO_METERS)
     );
 
     // Convert to RA and Decl

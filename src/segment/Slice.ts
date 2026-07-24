@@ -1,6 +1,6 @@
-import {Layer} from "../layer/Layer";
-import {Segment} from "./Segment";
-import {Material} from "../layer/Material";
+import { Layer } from "../layer/Layer";
+import { Segment } from "./Segment";
+import { Material } from "../layer/Material";
 
 class Slice {
     public segment: Segment;
@@ -44,8 +44,7 @@ class Slice {
         //slice.visibleExtentOffsetArr[n4 + 1] = arr[1];
         //slice.visibleExtentOffsetArr[n4 + 2] = arr[2];
         //slice.visibleExtentOffsetArr[n4 + 3] = arr[3];
-
     }
 }
 
-export {Slice}
+export { Slice };

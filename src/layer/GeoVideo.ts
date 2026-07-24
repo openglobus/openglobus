@@ -1,6 +1,6 @@
-import {BaseGeoImage} from "./BaseGeoImage";
-import type {IBaseGeoImageParams} from "./BaseGeoImage";
-import {Material} from "./Material";
+import { BaseGeoImage } from "./BaseGeoImage";
+import type { IBaseGeoImageParams } from "./BaseGeoImage";
+import { Material } from "./Material";
 
 export interface IGeoVideoParams extends IBaseGeoImageParams {
     videoElement?: HTMLVideoElement;
@@ -13,7 +13,6 @@ export interface IGeoVideoParams extends IBaseGeoImageParams {
  * @extends {BaseGeoImage}
  */
 class GeoVideo extends BaseGeoImage {
-
     /**
      * HTML5 video element object.
      * @protected
@@ -94,9 +93,9 @@ class GeoVideo extends BaseGeoImage {
         let gl = this._planet!.renderer!.handler.gl!;
         if (this._sourceCreated) {
             gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture!);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._video!);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, this._video!);
         } else {
-            this._sourceTexture = this._planet!.renderer!.handler.createTexture_n_webgl1(this._video!);
+            this._sourceTexture = this._planet!.renderer!.handler.createTexture_n(this._video!, gl.RGBA8);
             this._sourceCreated = true;
         }
     }
@@ -185,4 +184,4 @@ class GeoVideo extends BaseGeoImage {
     }
 }
 
-export {GeoVideo};
+export { GeoVideo };

@@ -1,6 +1,6 @@
-import {binaryInsert, stamp} from "./utils/shared";
+import { binaryInsert, stamp } from "./utils/shared";
 
-export type EventCallback = (((...args: any[]) => boolean) | ((...args: any[]) => void));
+export type EventCallback = ((...args: any[]) => boolean) | ((...args: any[]) => void);
 
 export type EventCallbackStamp = EventCallback & { _openglobus_id?: number; _openglobus_priority?: number };
 
@@ -8,8 +8,8 @@ type EventCallbacks = Array<EventCallback>;
 type EventCallbackHandler = { active: boolean; handlers: EventCallbacks };
 
 export type EventsMap<T extends string[]> = {
-    [K in T[number]]?: EventCallbackHandler
-}
+    [K in T[number]]?: EventCallbackHandler;
+};
 
 export type EventsHandler<T extends string[]> = Events<T> & EventsMap<T>;
 
@@ -24,7 +24,6 @@ export function createEvents<T extends string[]>(methodNames: T, sender?: any) {
  * @param {*} [sender]
  */
 export class Events<T extends string[]> {
-
     static __counter__: number = 0;
 
     protected __id: number;
@@ -47,7 +46,6 @@ export class Events<T extends string[]> {
     protected _stampCache: any;
 
     constructor(eventNames: T, sender?: any) {
-
         this.__id = Events.__counter__++;
 
         this._eventNames = [] as any;

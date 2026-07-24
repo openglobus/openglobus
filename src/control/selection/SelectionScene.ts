@@ -1,16 +1,11 @@
-﻿import { Entity } from '../../entity/Entity';
-import { Events } from '../../Events';
-import { Vector } from '../../layer/Vector';
-import { LonLat } from '../../LonLat';
-import { Object3d } from '../../Object3d';
-import { RenderNode } from '../../scene/RenderNode';
+﻿import { Entity } from "../../entity/Entity";
+import { Events } from "../../Events";
+import { Vector } from "../../layer/Vector";
+import { LonLat } from "../../LonLat";
+import { Object3d } from "../../Object3d";
+import { Scene } from "../../scene/Scene";
 
 const OUTLINE_COUNT = 120;
-
-const MAX_SCALE = 0.005;
-const MIN_SCALE = 0.001;
-const MAX_SCALE_HEIGHT = 3000.0;
-const MIN_SCALE_HEIGHT = 19000000.0;
 
 function distanceFormat(v: number) {
     if (v > 1000) {
@@ -22,7 +17,7 @@ function distanceFormat(v: number) {
     }
 }
 
-class SelectionScene extends RenderNode {
+class SelectionScene extends Scene {
     events: Events<string[]>;
     _ignoreTerrain = false;
     _onSelect: any;
@@ -40,7 +35,15 @@ class SelectionScene extends RenderNode {
     _onMouseLup_: any;
     _pickedCorner: any;
     _anchorLonLat: any;
-    constructor(options: { name?: string, ignoreTerrain?: boolean, onSelect?: any, autoSelectionHide?: boolean, planet?: any } = {}) {
+    constructor(
+        options: {
+            name?: string;
+            ignoreTerrain?: boolean;
+            onSelect?: any;
+            autoSelectionHide?: boolean;
+            planet?: any;
+        } = {}
+    ) {
         super(options.name);
 
         this.events = new Events(EVENT_NAMES);
@@ -58,8 +61,8 @@ class SelectionScene extends RenderNode {
         this._heading = 0;
 
         this._propsLabel = new Entity({
-            'name': 'propsLabel',
-            'label': {
+            name: "propsLabel",
+            label: {
                 text: "",
                 size: 11,
                 color: "rgba(455,455,455,1.0)",
@@ -76,14 +79,14 @@ class SelectionScene extends RenderNode {
             polyline: {
                 path3v: [],
                 thickness: 3.8,
-                color: "rgb(455,455,455)",
-                isClosed: false
+                color: ["rgb(455,455,455)"],
+                isClosed: [false]
             }
         } as any);
 
         (this._trackEntity as any).polyline.altitude = 0.01;
 
-        let obj3d = Object3d.createCylinder(1.1, 0, 2.7, 20, 1, true, false, 0, 0, 0)
+        let obj3d = Object3d.createCylinder(1.1, 0, 2.7, 20, 1, true, false, 0, 0, 0);
 
         this._cornerEntity = [
             new Entity({
@@ -115,7 +118,7 @@ class SelectionScene extends RenderNode {
         this._trackLayer = new Vector("track", {
             entities: [this._trackEntity, this._propsLabel],
             pickingEnabled: false,
-            polygonOffsetUnits: -1.0,
+            depthOffset: -100.0,
             relativeToGround: true,
             hideInLayerSwitcher: false
         });
@@ -159,11 +162,11 @@ class SelectionScene extends RenderNode {
 
         this._onMouseLup_ = this._onMouseLup.bind(this);
         this.renderer?.events.on("lup", this._onMouseLup_, this);
+        this.renderer?.events.on("forwardpass", this._onForwardpass, this);
 
         this._planet.addLayer(this._trackLayer);
 
         this._planet.addLayer(this._cornersLayer);
-
     }
 
     _deactivate() {
@@ -173,6 +176,7 @@ class SelectionScene extends RenderNode {
         this.renderer?.events.off("mousemove", this._onMouseMove_);
         this.renderer?.events.off("ldown", this._onMouseLdown_);
         this.renderer?.events.off("lup", this._onMouseLup_);
+        this.renderer?.events.off("forwardpass", this._onForwardpass);
 
         this.clear();
 
@@ -182,19 +186,15 @@ class SelectionScene extends RenderNode {
     }
 
     _onMouseLdown(e: any) {
-
         //workaround to show pointer, because ogGrabbingPoiner keep !importanti which override pointer style
-        e.renderer.handler.canvas.classList.remove('ogGrabbingPoiner');
+        e.renderer.handler.canvas.classList.remove("ogGrabbingPoiner");
 
-        e.renderer.handler.canvas.style.cursor = 'pointer';
+        e.renderer.handler.canvas.style.cursor = "pointer";
 
         if (!this._startLonLat) {
-
-
             this._propsLabel.label?.setVisibility(false);
 
             this._trackEntity.polyline?.setPath3v([]);
-
 
             this._cornerEntity[0].geoObject?.setVisibility(true);
             this._cornerEntity[1].geoObject?.setVisibility(true);
@@ -210,13 +210,12 @@ class SelectionScene extends RenderNode {
 
     _onMouseLup(e: any) {
         if (this._startLonLat) {
-
             this._pickedCorner = null;
             this._anchorLonLat = null;
 
             this._propsLabel.label?.setVisibility(true);
 
-            if (this._onSelect && typeof this._onSelect === 'function') {
+            if (this._onSelect && typeof this._onSelect === "function") {
                 let startLonLat = this._cornerEntity[0].getLonLat();
                 let endLonLat = this._cornerEntity[1].getLonLat();
 
@@ -235,12 +234,11 @@ class SelectionScene extends RenderNode {
 
             this._startLonLat = null;
         }
-        e.renderer.handler.canvas.style.cursor = 'default';
+        e.renderer.handler.canvas.style.cursor = "default";
         this.renderer?.controls.navigation?.activate();
     }
 
     _drawLine(startLonLat: any, endLonLat: any, startPos?: any) {
-
         if (!startPos) {
             startPos = this._planet.ellipsoid.lonLatToCartesian(startLonLat);
         }
@@ -264,7 +262,6 @@ class SelectionScene extends RenderNode {
             startPos
         ];
 
-
         path.push(startPos);
 
         let createPath = (sideA: any, sideB: any) => {
@@ -273,7 +270,7 @@ class SelectionScene extends RenderNode {
             dir.normalize();
 
             for (let i = 0; i < OUTLINE_COUNT; i++) {
-                let f = dir.scaleTo(i * dist / OUTLINE_COUNT).addA(sideA);
+                let f = dir.scaleTo((i * dist) / OUTLINE_COUNT).addA(sideA);
                 path.push(f);
             }
         };
@@ -294,8 +291,7 @@ class SelectionScene extends RenderNode {
         if (this._startLonLat) {
             this._propsLabel.label?.setVisibility(true);
             let endLonLat = this._planet.getLonLatFromPixelTerrain(e);
-            if (!endLonLat)
-                return;
+            if (!endLonLat) return;
             this._drawLine(this._startLonLat, endLonLat);
         }
     }
@@ -306,7 +302,7 @@ class SelectionScene extends RenderNode {
         this._cornerEntity[1].geoObject?.setVisibility(false);
     }
 
-    override frame() {
+    protected _onForwardpass = () => {
         let t = this._trackEntity.polyline?.getPath3v()[0];
         if (t) {
             if (!this._ignoreTerrain) {
@@ -319,7 +315,7 @@ class SelectionScene extends RenderNode {
                 this._propsLabel.label?.setText(`${distanceFormat(res)}, ${Math.round(this._heading)} deg`);
             }
         }
-    }
+    };
 
     get ellipsoid() {
         return this._planet ? this._planet.ellipsoid : null;

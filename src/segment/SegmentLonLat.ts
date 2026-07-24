@@ -1,14 +1,14 @@
 import * as mercator from "../mercator";
-import {EPSG4326} from "../proj/EPSG4326";
-import {Extent} from "../Extent";
-import {Layer} from "../layer/Layer";
-import {Node} from "../quadTree/Node";
-import {getTileCellIndex, Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH} from "./Segment";
-import {LonLat} from "../LonLat";
-import {Entity} from "../entity/Entity";
-import {PlanetCamera} from "../camera/PlanetCamera";
-import type {WebGLTextureExt} from "../webgl/Handler";
-import {QuadTreeStrategy} from "../quadTree";
+import { EPSG4326 } from "../proj/EPSG4326";
+import { Extent } from "../Extent";
+import { Layer } from "../layer/Layer";
+import { Node } from "../quadTree/Node";
+import { getTileCellIndex, Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "./Segment";
+import { LonLat } from "../LonLat";
+import { Entity } from "../entity/Entity";
+import { PlanetCamera } from "../camera/PlanetCamera";
+import type { WebGLTextureExt } from "../webgl/Handler";
+import { QuadTreeStrategy } from "../quadTree";
 
 const MAX_POLE_ZOOM = 7;
 export const POLE_PIECE_SIZE = (90.0 - mercator.MAX_LAT) / Math.pow(2, MAX_POLE_ZOOM);
@@ -26,10 +26,7 @@ class SegmentLonLat extends Segment {
 
         this._extentLonLat = this._extent;
 
-        this._extentMerc = new Extent(
-            extent.southWest.forwardMercatorEPS01(),
-            extent.northEast.forwardMercatorEPS01()
-        );
+        this._extentMerc = new Extent(extent.southWest.forwardMercatorEPS01(), extent.northEast.forwardMercatorEPS01());
 
         this._isNorth = this._extent.northEast.lat > 0;
 
@@ -80,7 +77,7 @@ class SegmentLonLat extends Segment {
     }
 
     protected _assignTileYIndexes(extent: Extent) {
-        const lat = extent.getCenter().lat;//extent.northEast.lat;
+        const lat = extent.getCenter().lat; //extent.northEast.lat;
         if (lat > 0) {
             this._tileGroup = TILEGROUP_NORTH;
             this.tileY = getTileCellIndex(lat, extent.getHeight(), 90.0);
@@ -111,20 +108,41 @@ class SegmentLonLat extends Segment {
      * @todo simplify layer._extentMerc in layer.getNativeExtent(this)
      *
      */
-    protected override _getLayerExtentOffset(layer: Layer): [number, number, number, number] {
-        const v0s = layer._extent;
-        const v0t = this._extent;
-        const sSize_x = v0s.northEast.lon - v0s.southWest.lon;
-        const sSize_y = v0s.northEast.lat - v0s.southWest.lat;
-        const dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
-        const dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
-        const dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
-        const dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
-        return [dV0s_x, dV0s_y, dSize_x, dSize_y];
-    }
+    // protected override _getLayerExtentOffset(layer: Layer): [number, number, number, number] {
+    //     const v0s = layer._extent;
+    //     const v0t = this._extent;
+    //     const lonShift = this._getCyclicLonShift(v0s, v0t, 360.0);
+    //     const sourceSwLon = v0s.southWest.lon + lonShift;
+    //     const sourceNeLon = v0s.northEast.lon + lonShift;
+    //     const sSize_x = sourceNeLon - sourceSwLon;
+    //     const sSize_y = v0s.northEast.lat - v0s.southWest.lat;
+    //     const dV0s_x = (v0t.southWest.lon - sourceSwLon) / sSize_x;
+    //     const dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
+    //     const dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
+    //     const dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
+    //     return [dV0s_x, dV0s_y, dSize_x, dSize_y];
+    // }
 
     public override layerOverlap(layer: Layer): boolean {
-        return this._extent.overlaps(layer._extent);
+        if (this._extent.overlaps(layer._extent)) {
+            return true;
+        }
+
+        const segmentExtent = this._extent;
+        const layerExtent = layer._extent;
+
+        if (
+            segmentExtent.southWest.lat > layerExtent.northEast.lat ||
+            segmentExtent.northEast.lat < layerExtent.southWest.lat
+        ) {
+            return false;
+        }
+
+        const lonShift = this._getCyclicLonShift(layerExtent, segmentExtent, 360.0);
+        const shiftedSwLon = layerExtent.southWest.lon + lonShift;
+        const shiftedNeLon = layerExtent.northEast.lon + lonShift;
+
+        return segmentExtent.southWest.lon <= shiftedNeLon && segmentExtent.northEast.lon >= shiftedSwLon;
     }
 
     public override getDefaultTexture(): WebGLTextureExt | null {
@@ -134,7 +152,6 @@ class SegmentLonLat extends Segment {
     public override getExtentLonLat(): Extent {
         return this._extent;
     }
-
 }
 
-export {SegmentLonLat};
+export { SegmentLonLat };

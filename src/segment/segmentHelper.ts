@@ -2,11 +2,10 @@
  * @module og/segment/SegmentHelper
  */
 
-import {N, W, S, E} from '../quadTree/quadTree';
+import { N, W, S, E } from "../quadTree/quadTree";
 
 type IndexTypeArray = Uint32Array;
 type IndexesTable = [IndexTypeArray[][], IndexTypeArray[][], IndexTypeArray[][], IndexTypeArray[][]];
-
 
 function NewIndexesTypedArray(arr: number[]): IndexTypeArray {
     return new Uint32Array(arr);
@@ -17,7 +16,6 @@ function NewIndexesTypedArrayEmpty(size: number): IndexTypeArray {
 }
 
 function createCenterBodyIndexes(size: number): IndexTypeArray {
-
     let indexes = [];
 
     let i0 = 1,
@@ -26,7 +24,9 @@ function createCenterBodyIndexes(size: number): IndexTypeArray {
     let i1 = 1,
         j1 = 1;
 
-    let ind1 = 0, ind2 = 0, nr = 0;
+    let ind1 = 0,
+        ind2 = 0,
+        nr = 0;
     for (let i = i0; i < size - 1 - i1; i++) {
         for (let j = j0; j < size - j1; j++) {
             ind1 = i * size + j;
@@ -55,7 +55,7 @@ function createWestNeighborSkirt(size: number, deltaGr: number): IndexTypeArray 
         indexes.push(lind, rind);
     }
 
-    if (deltaGr === (size - 1)) {
+    if (deltaGr === size - 1) {
         indexes.push(size);
         indexes.push(0);
     }
@@ -76,7 +76,7 @@ function createNorthNeighborSkirt(size: number, deltaGr: number): IndexTypeArray
         indexes.push(lind, rind);
     }
 
-    if (deltaGr === (size - 1)) {
+    if (deltaGr === size - 1) {
         indexes.push(size - 2);
         indexes.push(size - 1);
     }
@@ -97,7 +97,7 @@ function createEastNeighborSkirt(size: number, deltaGr: number): IndexTypeArray 
         indexes.push(lind, rind);
     }
 
-    if (deltaGr === (size - 1)) {
+    if (deltaGr === size - 1) {
         indexes.push(size * (size - 1) - 1);
         indexes.push(size * size - 1);
     }
@@ -120,7 +120,7 @@ function createSouthNeighborSkirt(size: number, deltaGr: number): IndexTypeArray
         indexes.push(lind, rind);
     }
 
-    if (deltaGr === (size - 1)) {
+    if (deltaGr === size - 1) {
         indexes.push(size * size - size + 1);
     }
     indexes.push(size * size - size);
@@ -146,7 +146,6 @@ function initIndexesBodySkirts(pow: number): IndexesTable {
             table[N][i][j] = createNorthNeighborSkirt(d1, dd);
             table[E][i][j] = createEastNeighborSkirt(d1, dd);
             table[S][i][j] = createSouthNeighborSkirt(d1, dd);
-
         }
     }
     return table;
@@ -166,22 +165,21 @@ function createTextureCoords(size: number): Uint16Array {
     let k = 0;
     for (let i = 0; i <= size; i++) {
         for (let j = 0; j <= size; j++) {
-            texCoords[k++] = j / size * 0xFFFF;
-            texCoords[k++] = i / size * 0xFFFF;
+            texCoords[k++] = (j / size) * 0xffff;
+            texCoords[k++] = (i / size) * 0xffff;
         }
     }
     return texCoords;
 }
 
 class SegmentHelper {
-
     protected _maxGridSize: number;
     public centerIndexesTable: IndexTypeArray[];
     public skirtsIndexesTable: IndexesTable;
 
     constructor(maxGridSize: number = 0) {
         this._maxGridSize = maxGridSize;
-        this.centerIndexesTable = initIndexBodiesTable(this._maxGridSize)
+        this.centerIndexesTable = initIndexBodiesTable(this._maxGridSize);
         this.skirtsIndexesTable = initIndexesBodySkirts(this._maxGridSize);
     }
 

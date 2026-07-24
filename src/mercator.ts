@@ -1,5 +1,5 @@
-import {Extent} from "./Extent";
-import {LonLat} from './LonLat';
+import { Extent } from "./Extent";
+import { LonLat } from "./LonLat";
 
 /**
  * Mercator size.
@@ -41,7 +41,11 @@ export const POLE_DOUBLE = 2.0 * POLE;
 export const ONE_BY_POLE_DOUBLE = 1.0 / POLE_DOUBLE;
 
 export function forward(lonLat: LonLat): LonLat {
-    return new LonLat(lonLat.lon * POLE / 180.0, Math.log(Math.tan((90.0 + lonLat.lat) * PI_BY_360)) * POLE_BY_PI, lonLat.height);
+    return new LonLat(
+        (lonLat.lon * POLE) / 180.0,
+        Math.log(Math.tan((90.0 + lonLat.lat) * PI_BY_360)) * POLE_BY_PI,
+        lonLat.height
+    );
 }
 
 /**
@@ -51,7 +55,7 @@ export function forward(lonLat: LonLat): LonLat {
  * @returns {number} -
  */
 export function forward_lon(lon: number): number {
-    return lon * POLE / 180.0;
+    return (lon * POLE) / 180.0;
 }
 
 /**
@@ -71,13 +75,13 @@ export function forward_lat(lat: number): number {
  * @returns {number} -
  */
 export function inverse_lon(lon: number): number {
-    return 180 * lon / POLE;
+    return (180 * lon) / POLE;
 }
 
 /**
  * Converts mercator latitude to degrees coordinate.
  * @function
- * @param {number} lon - Mercator latitude.
+ * @param {number} lat - Mercator latitude.
  * @returns {number} -
  */
 export function inverse_lat(lat: number): number {
@@ -93,7 +97,7 @@ export function inverse_lat(lat: number): number {
  * @returns {number}
  */
 export function getTileX(lon: number, zoom: number): number {
-    return Math.floor((lon + 180) / 360.0 * Math.pow(2, zoom));
+    return Math.floor(((lon + 180) / 360.0) * Math.pow(2, zoom));
 }
 
 /**
@@ -105,14 +109,18 @@ export function getTileX(lon: number, zoom: number): number {
  * @returns {number}
  */
 export function getTileY(lat: number, zoom: number): number {
-    return Math.floor((1.0 - Math.log(Math.tan(lat * PI_BY_180) + 1.0 / Math.cos(lat * PI_BY_180)) / Math.PI) * 0.5 * Math.pow(2, zoom));
+    return Math.floor(
+        (1.0 - Math.log(Math.tan(lat * PI_BY_180) + 1.0 / Math.cos(lat * PI_BY_180)) / Math.PI) *
+            0.5 *
+            Math.pow(2, zoom)
+    );
 }
 
 /**
  * Converts geodetic coordinate array to mercator coordinate array.
  * @function
- * @param {Array.<LonLat>} lonLatArr - LonLat array to convert.
- * @returns {Array.<LonLat>}
+ * @param {Array.<LonLat>} lonlatArr - LonLat array to convert.
+ * @returns {Array.<LonLat>} Converted mercator coordinates.
  */
 export function forwardArray(lonlatArr: LonLat[]): LonLat[] {
     let res: LonLat[] = [];
@@ -123,7 +131,7 @@ export function forwardArray(lonlatArr: LonLat[]): LonLat[] {
 }
 
 export function getTileExtent(x: number, y: number, z: number): Extent {
-    let size = POLE2 / (1 << z),//Math.pow(2, z),
+    let size = POLE2 / (1 << z), //Math.pow(2, z),
         sw = new LonLat(-POLE + x * size, POLE - y * size - size);
     return new Extent(sw, new LonLat(sw.lon + size, sw.lat + size));
 }

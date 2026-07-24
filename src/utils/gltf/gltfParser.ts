@@ -1,10 +1,12 @@
-import {DecoderModule} from "draco3d";
-import {Entity} from "../../entity";
-import {Quat} from "../../math/Quat";
-import {Vec3} from "../../math/Vec3";
-import {Mat4, NumberArray16} from "../../math/Mat4";
-import {Object3d} from "../../Object3d";
-import {Glb} from "./glbParser";
+import { DecoderModule } from "draco3d";
+import { Entity } from "../../entity";
+import { Quat } from "../../math/Quat";
+import { Vec3 } from "../../math/Vec3";
+import { Mat4, NumberArray16 } from "../../math/Mat4";
+import { Object3d } from "../../Object3d";
+import { fnv1a32, normalizeUri } from "../shared";
+import { setTextureResourceMeta } from "../textureResourceMeta";
+import { Glb } from "./glbParser";
 import {
     Accessor,
     AccessorComponentType,
@@ -30,18 +32,20 @@ export class Gltf {
 
     public static async loadGlb(url: string) {
         const data = await Glb.load(url);
-        return new Gltf(data);
+        return new Gltf(data, url);
     }
 
     private _materials: Material[] = [];
     private _images: TextureImage[] = [];
     public meshes: Mesh[] = [];
+    protected _gltfBaseUri?: string;
 
-    constructor(private gltf: GltfData) {
-        if (
-            gltf.gltf.extensionsRequired?.includes("KHR_draco_mesh_compression") &&
-            Gltf._dracoDecoderModule === null
-        ) {
+    constructor(
+        private gltf: GltfData,
+        gltfBaseUri?: string
+    ) {
+        this._gltfBaseUri = gltfBaseUri ? normalizeUri(gltfBaseUri) : undefined;
+        if (gltf.gltf.extensionsRequired?.includes("KHR_draco_mesh_compression") && Gltf._dracoDecoderModule === null) {
             throw new Error("Unable to import GLTF. Draco decoder module is not connected");
         }
         this._initImages();
@@ -83,7 +87,7 @@ export class Gltf {
         const entity = new Entity({
             name: node.name,
             cartesian: new Vec3(0, 0, 0),
-            relativePosition: parent !== undefined,
+            relativePosition: parent !== undefined
         });
         let meshEntity: Entity | null = null;
         if (node.mesh !== undefined) {
@@ -102,7 +106,9 @@ export class Gltf {
             entity.setCartesian(node.translation[0], node.translation[1], node.translation[2]);
         }
         if (node.rotation !== undefined && node.matrix === undefined) {
-            entity.setDirectQuaternionRotation(new Quat(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]));
+            entity.setDirectQuaternionRotation(
+                new Quat(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3])
+            );
         }
         if (node.scale !== undefined && node.matrix === undefined) {
             entity.setScale3v(new Vec3(node.scale[0], node.scale[1], node.scale[2]));
@@ -147,36 +153,127 @@ export class Gltf {
         if (!this.gltf.gltf.images) {
             return;
         }
-        for (const image of this.gltf.gltf.images) {
+        for (let imageIndex = 0; imageIndex < this.gltf.gltf.images.length; imageIndex++) {
+            const image = this.gltf.gltf.images[imageIndex];
+            const isDataUri = !!image.uri && this._isDataUri(image.uri);
+            const sourceUri = image.uri && !isDataUri ? normalizeUri(image.uri, this._gltfBaseUri) : undefined;
+            const resolvedUri = sourceUri || (isDataUri ? image.uri : undefined);
+            const element = this._getImage(image.mimeType, image.bufferView, resolvedUri);
+            const byteLength =
+                image.bufferView !== undefined
+                    ? this.gltf.gltf.bufferViews[image.bufferView]?.byteLength
+                    : isDataUri
+                      ? image.uri?.length
+                      : undefined;
+
+            const resourceKey = this._buildImageResourceKey(image.mimeType, image.bufferView, sourceUri, image.uri);
+
+            if (!resourceKey) {
+                console.warn(
+                    `[Gltf] Image at index ${imageIndex} has neither 'uri' nor 'bufferView'; texture resource key is unavailable.`
+                );
+            }
+
+            setTextureResourceMeta(element, {
+                resourceKey,
+                sourceUri,
+                mimeType: image.mimeType,
+                byteLength
+            });
+
             this._images.push({
-                src: image.uri,
-                element: this._getImage(image.mimeType, image.bufferView),
+                src: resolvedUri,
+                element,
                 mimeType: image.mimeType,
                 name: image.name
             });
         }
     }
 
-    private _getImage(mimeType?: MimeType, bufferView?: number): HTMLImageElement | undefined {
-        if (bufferView && mimeType) {
+    private _getImage(mimeType?: MimeType, bufferView?: number, sourceUri?: string): HTMLImageElement | undefined {
+        if (bufferView !== undefined && mimeType) {
             const view = this.gltf.gltf.bufferViews[bufferView];
             const url = URL.createObjectURL(
-                new Blob(
-                    [
-                        this.gltf.bin[view.buffer].slice(
-                            view.byteOffset,
-                            view.byteOffset + view.byteLength
-                        )
-                    ],
-                    {
-                        type: mimeType
-                    }
-                )
+                new Blob([this.gltf.bin[view.buffer].slice(view.byteOffset, view.byteOffset + view.byteLength)], {
+                    type: mimeType
+                })
             );
             const img = new Image();
             img.src = url;
             return img;
         }
+
+        if (sourceUri) {
+            const img = new Image();
+            img.src = sourceUri;
+            return img;
+        }
+    }
+
+    private _getTextureImage(textureIndex?: number): TextureImage | undefined {
+        if (textureIndex === undefined) {
+            return;
+        }
+        const texture = this.gltf.gltf.textures?.[textureIndex];
+        if (!texture) {
+            return;
+        }
+        const source = texture.source;
+        if (source === undefined) {
+            return;
+        }
+        return this._images[source];
+    }
+
+    protected _buildImageResourceKey(
+        mimeType?: MimeType,
+        bufferViewIndex?: number,
+        sourceUri?: string,
+        rawUri?: string
+    ): string | undefined {
+        if (rawUri && this._isDataUri(rawUri)) {
+            return [
+                "gltf-image",
+                `data:${this._hashString(rawUri)}`,
+                `mime:${mimeType ?? "none"}`,
+                `len:${rawUri.length}`
+            ].join("|");
+        }
+
+        if (sourceUri) {
+            return ["gltf-image", `uri:${sourceUri}`, `mime:${mimeType ?? "none"}`].join("|");
+        }
+
+        if (bufferViewIndex !== undefined) {
+            const bufferView = this.gltf.gltf.bufferViews[bufferViewIndex];
+            const bytes = this._getBufferViewBytes(bufferViewIndex);
+            return [
+                "gltf-image",
+                `bytes:${this._hashBytes(bytes)}`,
+                `mime:${mimeType ?? "none"}`,
+                `len:${bufferView?.byteLength ?? bytes.byteLength}`
+            ].join("|");
+        }
+
+        return undefined;
+    }
+
+    protected _getBufferViewBytes(bufferViewIndex: number): Uint8Array {
+        const view = this.gltf.gltf.bufferViews[bufferViewIndex];
+        const byteOffset = view.byteOffset || 0;
+        return new Uint8Array(this.gltf.bin[view.buffer], byteOffset, view.byteLength);
+    }
+
+    protected _hashBytes(bytes: Uint8Array): string {
+        return fnv1a32(bytes);
+    }
+
+    protected _hashString(value: string): string {
+        return fnv1a32(new TextEncoder().encode(value));
+    }
+
+    protected _isDataUri(uri: string): boolean {
+        return uri.startsWith("data:");
     }
 
     private _initMaterials() {
@@ -195,57 +292,87 @@ export class Gltf {
                 if (material.pbrMetallicRoughness.baseColorFactor) {
                     mat.baseColorFactor = material.pbrMetallicRoughness.baseColorFactor;
                 }
+                if (material.pbrMetallicRoughness.metallicFactor !== undefined) {
+                    mat.metallicFactor = material.pbrMetallicRoughness.metallicFactor;
+                }
+                if (material.pbrMetallicRoughness.roughnessFactor !== undefined) {
+                    mat.roughnessFactor = material.pbrMetallicRoughness.roughnessFactor;
+                }
                 if (material.pbrMetallicRoughness.baseColorTexture) {
-                    const source =
-                        this.gltf.gltf.textures[
-                            material.pbrMetallicRoughness.baseColorTexture.index
-                            ].source;
-                    if (source !== undefined) {
+                    const image = this._getTextureImage(material.pbrMetallicRoughness.baseColorTexture.index);
+                    if (image) {
                         mat.baseColorTexture = {
-                            image: this._images[source],
+                            image,
                             texCoord: material.pbrMetallicRoughness.baseColorTexture.texCoord
                         };
                     }
                 }
                 if (material.pbrMetallicRoughness.metallicRoughnessTexture) {
-                    const source =
-                        this.gltf.gltf.textures[
-                            material.pbrMetallicRoughness.metallicRoughnessTexture.index
-                            ].source;
-                    if (source !== undefined) {
+                    const image = this._getTextureImage(material.pbrMetallicRoughness.metallicRoughnessTexture.index);
+                    if (image) {
                         mat.metallicRoughnessTexture = {
-                            image: this._images[source],
-                            texCoord:
-                            material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord
+                            image,
+                            texCoord: material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord
                         };
                     }
                 }
             }
+            const specGloss = material.extensions?.KHR_materials_pbrSpecularGlossiness;
+            if (specGloss) {
+                if (!mat.baseColorFactor && specGloss.diffuseFactor) {
+                    mat.baseColorFactor = specGloss.diffuseFactor;
+                }
+                if (!mat.baseColorTexture && specGloss.diffuseTexture) {
+                    const image = this._getTextureImage(specGloss.diffuseTexture.index);
+                    if (image) {
+                        mat.baseColorTexture = {
+                            image,
+                            texCoord: specGloss.diffuseTexture.texCoord
+                        };
+                    }
+                }
+                if (mat.roughnessFactor === undefined && specGloss.glossinessFactor !== undefined) {
+                    mat.roughnessFactor = Math.min(Math.max(1 - specGloss.glossinessFactor, 0), 1);
+                }
+                if (specGloss.specularGlossinessTexture) {
+                    const image = this._getTextureImage(specGloss.specularGlossinessTexture.index);
+                    if (image) {
+                        mat.specularGlossinessTexture = {
+                            image,
+                            texCoord: specGloss.specularGlossinessTexture.texCoord
+                        };
+                        // Fallback: this renderer currently works with metallicRoughnessTexture only.
+                        if (!mat.metallicRoughnessTexture) {
+                            mat.metallicRoughnessTexture = mat.specularGlossinessTexture;
+                        }
+                    }
+                }
+            }
             if (material.normalTexture) {
-                const source = this.gltf.gltf.textures[material.normalTexture.index].source;
-                if (source !== undefined) {
+                const image = this._getTextureImage(material.normalTexture.index);
+                if (image) {
                     mat.normalTexture = {
-                        image: this._images[source],
+                        image,
                         texCoord: material.normalTexture.texCoord,
                         scale: material.normalTexture.scale
                     };
                 }
             }
             if (material.occlusionTexture) {
-                const source = this.gltf.gltf.textures[material.occlusionTexture.index].source;
-                if (source !== undefined) {
+                const image = this._getTextureImage(material.occlusionTexture.index);
+                if (image) {
                     mat.occlusionTexture = {
-                        image: this._images[source],
+                        image,
                         texCoord: material.occlusionTexture.texCoord,
                         strength: material.occlusionTexture.strength
                     };
                 }
             }
             if (material.emissiveTexture) {
-                const source = this.gltf.gltf.textures[material.emissiveTexture.index].source;
-                if (source !== undefined) {
+                const image = this._getTextureImage(material.emissiveTexture.index);
+                if (image) {
                     mat.emissiveTexture = {
-                        image: this._images[source],
+                        image,
                         texCoord: material.emissiveTexture.texCoord
                     };
                 }
@@ -263,22 +390,17 @@ export class Gltf {
                 primitives: []
             };
             for (let i = 0; i < meshData.primitives.length; i++) {
-                mesh.primitives.push(
-                    this._buildPrimitive(meshData, meshData.primitives[i], `${m}-${i}`)
-                );
+                mesh.primitives.push(this._buildPrimitive(meshData, meshData.primitives[i], `${m}-${i}`));
             }
             this.meshes.push(mesh);
         }
     }
 
-    private _buildPrimitive(
-        meshData: GltfMesh,
-        primitiveData: GltfPrimitive,
-        index: string
-    ): Primitive {
+    private _buildPrimitive(meshData: GltfMesh, primitiveData: GltfPrimitive, index: string): Primitive {
         let primitive: Primitive | null = null;
-        const material = this._materials[primitiveData.material || 0];
-        const texcoord = material.baseColorTexture?.texCoord
+        const material = this._materials[primitiveData.material ?? 0];
+        const materialName = material?.name ?? "material";
+        const texcoord = material?.baseColorTexture?.texCoord
             ? `TEXCOORD_${material.baseColorTexture.texCoord}`
             : `TEXCOORD_0`;
         if (primitiveData.extensions?.KHR_draco_mesh_compression) {
@@ -289,12 +411,7 @@ export class Gltf {
             const decoder = new draco.Decoder();
             const decoderBuffer = new draco.DecoderBuffer();
             decoderBuffer.Init(
-                new Int8Array(
-                    this.gltf.bin[bufferView.buffer].slice(
-                        bvOffset,
-                        bvOffset + bufferView.byteLength
-                    )
-                ),
+                new Int8Array(this.gltf.bin[bufferView.buffer].slice(bvOffset, bvOffset + bufferView.byteLength)),
                 bufferView.byteLength
             );
 
@@ -346,34 +463,30 @@ export class Gltf {
             draco.destroy(decoder);
 
             primitive = {
-                name: `${meshData.name}/${material.name}/${index}`,
+                name: `${meshData.name}/${materialName}/${index}`,
                 vertices: attributes.POSITION,
                 indices: indices,
                 mode: primitiveData.mode ? primitiveData.mode : PrimitiveMode.triangles,
-                material: this._materials[primitiveData.material || 0] || undefined,
-                normals: attributes.NORMAL,
+                material: material || undefined,
+                normals: attributes.NORMAL || undefined,
                 texCoords: undefined
             };
         } else {
             const texcoordAccessorKey = texcoord ? primitiveData.attributes[texcoord] : undefined;
-            const texcoordAccessor = texcoordAccessorKey
-                ? this.gltf.gltf.accessors[texcoordAccessorKey]
-                : undefined;
+            const texcoordAccessor = texcoordAccessorKey ? this.gltf.gltf.accessors[texcoordAccessorKey] : undefined;
             primitive = {
-                name: `${meshData.name}/${material.name}/${index}`,
-                indices: primitiveData.indices
-                    ? Gltf._access(this.gltf.gltf.accessors[primitiveData.indices], this.gltf)
-                    : undefined,
+                name: `${meshData.name}/${materialName}/${index}`,
+                indices:
+                    primitiveData.indices !== undefined
+                        ? Gltf._access(this.gltf.gltf.accessors[primitiveData.indices], this.gltf)
+                        : undefined,
                 mode: primitiveData.mode ? primitiveData.mode : PrimitiveMode.triangles,
-                material: this._materials[primitiveData.material || 0] || undefined,
-                vertices: Gltf._access(
-                    this.gltf.gltf.accessors[primitiveData.attributes.POSITION],
-                    this.gltf
-                ),
-                normals: Gltf._access(
-                    this.gltf.gltf.accessors[primitiveData.attributes.NORMAL],
-                    this.gltf
-                ),
+                material: material || undefined,
+                vertices: Gltf._access(this.gltf.gltf.accessors[primitiveData.attributes.POSITION], this.gltf),
+                normals:
+                    primitiveData.attributes.NORMAL !== undefined
+                        ? Gltf._access(this.gltf.gltf.accessors[primitiveData.attributes.NORMAL], this.gltf)
+                        : undefined,
                 texCoords: texcoordAccessor ? Gltf._access(texcoordAccessor, this.gltf) : undefined
             };
         }
@@ -388,17 +501,20 @@ export class Gltf {
         return new Object3d({
             name: primitive.name,
             vertices: Array.from(primitive.vertices as Float32Array),
-            normals: Array.from(primitive.normals as Float32Array),
-            texCoords: primitive.texCoords
-                ? Array.from(primitive.texCoords as Float32Array)
-                : undefined,
-            indices: Array.from(primitive.indices as Uint8Array),
+            normals: primitive.normals ? Array.from(primitive.normals as Float32Array) : undefined,
+            texCoords: primitive.texCoords ? Array.from(primitive.texCoords as Float32Array) : undefined,
+            indices: primitive.indices ? Array.from(primitive.indices as Uint8Array) : undefined,
             normalTextureImage: primitive.material?.normalTexture?.image.element,
             normalTextureSrc: primitive.material?.normalTexture?.image.src,
             colorTextureImage: primitive.material?.baseColorTexture?.image.element,
             colorTextureSrc: primitive.material?.baseColorTexture?.image.src,
-            metallicRoughnessTextureImage: primitive.material?.occlusionTexture?.image.element,
-            metallicRoughnessTextureSrc: primitive.material?.occlusionTexture?.image.src,
+            ambientOcclusionTextureImage: primitive.material?.occlusionTexture?.image.element,
+            ambientOcclusionTextureSrc: primitive.material?.occlusionTexture?.image.src,
+            metallicRoughnessTextureImage: primitive.material?.metallicRoughnessTexture?.image.element,
+            metallicRoughnessTextureSrc: primitive.material?.metallicRoughnessTexture?.image.src,
+            metallic: primitive.material?.metallicFactor,
+            roughness: primitive.material?.roughnessFactor,
+            ambientOcclusion: primitive.material?.occlusionTexture?.strength,
             color: primitive.material?.baseColorFactor
         });
     }

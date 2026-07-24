@@ -1,7 +1,7 @@
-import {LonLat} from "../LonLat";
-import {Quat} from "../math/Quat";
-import {Vec3} from "../math/Vec3";
-import {DEGREES, EPS1, EPS12, EPS15, RADIANS, zeroTwoPI} from "../math";
+import { LonLat } from "../LonLat";
+import { Quat } from "../math/Quat";
+import { Vec3 } from "../math/Vec3";
+import { DEGREES, EPS1, EPS12, EPS15, RADIANS, zeroTwoPI } from "../math";
 
 export interface IInverseResult {
     distance: number;
@@ -21,7 +21,6 @@ export interface IDirectResult {
  * @param {number} polarSize - Polar ellipsoid size.
  */
 class Ellipsoid {
-
     /**
      * Equatorial size
      * @type {number}
@@ -84,7 +83,7 @@ class Ellipsoid {
         const f2 = endLonLat.lat * RADIANS;
         const df = f2 - f1;
         let d = Math.abs(endLonLat.lon - startLonLat.lon) * RADIANS;
-        if (Math.abs(d) > Math.PI) d = d > 0 ? -(2 * Math.PI - d) : (2 * Math.PI + d);
+        if (Math.abs(d) > Math.PI) d = d > 0 ? -(2 * Math.PI - d) : 2 * Math.PI + d;
         const dd = Math.log(Math.tan(f2 / 2 + Math.PI / 4) / Math.tan(f1 / 2 + Math.PI / 4));
         const q = Math.abs(dd) > 10e-12 ? df / dd : Math.cos(f1);
         const t = Math.sqrt(df * df + q * q * d * d); // angular distance in radians
@@ -214,7 +213,6 @@ class Ellipsoid {
      * @returns {LonLat} -
      */
     public projToSurface(p: Vec3): Vec3 {
-
         let pX = p.x || 0.0,
             pY = p.y || 0.0,
             pZ = p.z || 0.0;
@@ -238,12 +236,14 @@ class Ellipsoid {
         let first = p.scaleTo(ratio);
 
         if (norm < EPS1) {
-            return !Number.isFinite(ratio) ? new Vec3() : first
+            return !Number.isFinite(ratio) ? new Vec3() : first;
         }
 
         let lambda = ((1.0 - ratio) * length) / first.mulA(this._invRadii2).length();
 
-        let m_X = 0.0, m_Y = 0.0, m_Z = 0.0;
+        let m_X = 0.0,
+            m_Y = 0.0,
+            m_Z = 0.0;
 
         do {
             m_X = 1.0 / (1.0 + lambda * invRadii2X);
@@ -264,8 +264,7 @@ class Ellipsoid {
                 m_Y3 = m_Y2 * m_Y,
                 m_Z3 = m_Z2 * m_Z;
 
-            lambda += 0.5 * func / (x2 * m_X3 * invRadii2X + y2 * m_Y3 * invRadii2Y + z2 * m_Z3 * invRadii2Z);
-
+            lambda += (0.5 * func) / (x2 * m_X3 * invRadii2X + y2 * m_Y3 * invRadii2Y + z2 * m_Z3 * invRadii2Z);
         } while (true); // eslint-disable-line
 
         return new Vec3(pX * m_X, pY * m_Y, pZ * m_Z);
@@ -337,44 +336,63 @@ class Ellipsoid {
      * @returns {IInverseResult} - Contains distance, initialAzimuth, and finalAzimuth values
      */
     public inverse(lonLat1: LonLat, lonLat2: LonLat): IInverseResult {
+        let a = this._a,
+            b = this._b,
+            f = this._flattening;
 
-        let a = this._a, b = this._b, f = this._flattening;
-
-        const fi1 = lonLat1.lat * RADIANS, lambda1 = lonLat1.lon * RADIANS;
-        const fi2 = lonLat2.lat * RADIANS, lambda2 = lonLat2.lon * RADIANS;
+        const fi1 = lonLat1.lat * RADIANS,
+            lambda1 = lonLat1.lon * RADIANS;
+        const fi2 = lonLat2.lat * RADIANS,
+            lambda2 = lonLat2.lon * RADIANS;
 
         const L = lambda2 - lambda1; // L = difference in longitude, U = reduced latitude, defined by tan U = (1-f)·tanφ.
-        const tanU1 = (1 - f) * Math.tan(fi1), cosU1 = 1 / Math.sqrt((1 + tanU1 * tanU1)), sinU1 = tanU1 * cosU1;
-        const tanU2 = (1 - f) * Math.tan(fi2), cosU2 = 1 / Math.sqrt((1 + tanU2 * tanU2)), sinU2 = tanU2 * cosU2;
+        const tanU1 = (1 - f) * Math.tan(fi1),
+            cosU1 = 1 / Math.sqrt(1 + tanU1 * tanU1),
+            sinU1 = tanU1 * cosU1;
+        const tanU2 = (1 - f) * Math.tan(fi2),
+            cosU2 = 1 / Math.sqrt(1 + tanU2 * tanU2),
+            sinU2 = tanU2 * cosU2;
 
         const antipodal = Math.abs(L) > Math.PI / 2 || Math.abs(fi2 - fi1) > Math.PI / 2;
 
-        let lmb = L, sinLmb = null, cosLmb = null; // lmb - difference in longitude on an auxiliary sphere
-        let s = antipodal ? Math.PI : 0, sin_s = 0, cos_s = antipodal ? -1 : 1, sinSqs = null; // s - angular distance lonLat1 lonLat2 on the sphere
-        let cos2sm = 1;                      // sm - angular distance on the sphere from the equator to the midpoint of the line
-        let cosSqa = 1;                      // a - azimuth of the geodesic at the equator
+        let lmb = L,
+            sinLmb = null,
+            cosLmb = null; // lmb - difference in longitude on an auxiliary sphere
+        let s = antipodal ? Math.PI : 0,
+            sin_s = 0,
+            cos_s = antipodal ? -1 : 1,
+            sinSqs = null; // s - angular distance lonLat1 lonLat2 on the sphere
+        let cos2sm = 1; // sm - angular distance on the sphere from the equator to the midpoint of the line
+        let cosSqa = 1; // a - azimuth of the geodesic at the equator
 
-        let lmb_ = null, iterations = 0;
+        let lmb_ = null,
+            iterations = 0;
         do {
             sinLmb = Math.sin(lmb);
             cosLmb = Math.cos(lmb);
             sinSqs = (cosU2 * sinLmb) ** 2 + (cosU1 * sinU2 - sinU1 * cosU2 * cosLmb) ** 2;
-            if (Math.abs(sinSqs) < 1e-24) break;  // co-incident/antipodal points (σ < ≈0.006mm)
+            if (Math.abs(sinSqs) < 1e-24) break; // co-incident/antipodal points (σ < ≈0.006mm)
             sin_s = Math.sqrt(sinSqs);
             cos_s = sinU1 * sinU2 + cosU1 * cosU2 * cosLmb;
             s = Math.atan2(sin_s, cos_s);
-            const sin_a = cosU1 * cosU2 * sinLmb / sin_s;
+            const sin_a = (cosU1 * cosU2 * sinLmb) / sin_s;
             cosSqa = 1 - sin_a * sin_a;
-            cos2sm = (cosSqa != 0) ? (cos_s - 2 * sinU1 * sinU2 / cosSqa) : 0; // on equatorial line cos²α = 0 (§6)
-            const C = f / 16 * cosSqa * (4 + f * (4 - 3 * cosSqa));
+            cos2sm = cosSqa != 0 ? cos_s - (2 * sinU1 * sinU2) / cosSqa : 0; // on equatorial line cos²α = 0 (§6)
+            const C = (f / 16) * cosSqa * (4 + f * (4 - 3 * cosSqa));
             lmb_ = lmb;
             lmb = L + (1 - C) * f * sin_a * (s + C * sin_s * (cos2sm + C * cos_s * (-1 + 2 * cos2sm * cos2sm)));
         } while (Math.abs(lmb - lmb_) > EPS12 && ++iterations < 1000);
 
-        const uSq = cosSqa * (a * a - b * b) / (b * b);
-        const A = 1 + uSq / 16384 * (4096 + uSq * (-768 + uSq * (320 - 175 * uSq)));
-        const B = uSq / 1024 * (256 + uSq * (-128 + uSq * (74 - 47 * uSq)));
-        const ds = B * sin_s * (cos2sm + B / 4 * (cos_s * (-1 + 2 * cos2sm * cos2sm) - B / 6 * cos2sm * (-3 + 4 * sin_s * sin_s) * (-3 + 4 * cos2sm * cos2sm)));
+        const uSq = (cosSqa * (a * a - b * b)) / (b * b);
+        const A = 1 + (uSq / 16384) * (4096 + uSq * (-768 + uSq * (320 - 175 * uSq)));
+        const B = (uSq / 1024) * (256 + uSq * (-128 + uSq * (74 - 47 * uSq)));
+        const ds =
+            B *
+            sin_s *
+            (cos2sm +
+                (B / 4) *
+                    (cos_s * (-1 + 2 * cos2sm * cos2sm) -
+                        (B / 6) * cos2sm * (-3 + 4 * sin_s * sin_s) * (-3 + 4 * cos2sm * cos2sm)));
 
         const dist = b * A * (s - ds); // s = length of the geodesic
 
@@ -382,8 +400,12 @@ class Ellipsoid {
         // atan2(0, 0) = 0 but atan2(ε, 0) = π/2 / 90°) - in which case bearing is always meridional,
         // due north (or due south!)
         // α = azimuths of the geodesic; α2 the direction P₁ P₂ produced
-        const a1 = Math.abs(sinSqs) < Number.EPSILON ? 0 : Math.atan2(cosU2 * sinLmb, cosU1 * sinU2 - sinU1 * cosU2 * cosLmb);
-        const a2 = Math.abs(sinSqs) < Number.EPSILON ? Math.PI : Math.atan2(cosU1 * sinLmb, -sinU1 * cosU2 + cosU1 * sinU2 * cosLmb);
+        const a1 =
+            Math.abs(sinSqs) < Number.EPSILON ? 0 : Math.atan2(cosU2 * sinLmb, cosU1 * sinU2 - sinU1 * cosU2 * cosLmb);
+        const a2 =
+            Math.abs(sinSqs) < Number.EPSILON
+                ? Math.PI
+                : Math.atan2(cosU1 * sinLmb, -sinU1 * cosU2 + cosU1 * sinU2 * cosLmb);
 
         return {
             distance: dist,
@@ -402,7 +424,6 @@ class Ellipsoid {
      * @returns {{destination: LonLat, finalAzimuth: number}} - Destination point coordinates
      */
     public direct(lonLat: LonLat, azimuth: number, dist: number): IDirectResult {
-
         let lon1 = lonLat.lon,
             lat1 = lonLat.lat;
 
@@ -434,12 +455,16 @@ class Ellipsoid {
             cos2SigmaM = Math.cos(2 * sigma1 + sigma);
             sinSigma = Math.sin(sigma);
             cosSigma = Math.cos(sigma);
-            deltaSigma = B * sinSigma *
-                (cos2SigmaM + (B / 4) *
-                    (
-                        cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
-                        (B / 6) * cos2SigmaM * (-3 + 4 * sinSigma * sinSigma) * (-3 + 4 * cos2SigmaM * cos2SigmaM)
-                    ));
+            deltaSigma =
+                B *
+                sinSigma *
+                (cos2SigmaM +
+                    (B / 4) *
+                        (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
+                            (B / 6) *
+                                cos2SigmaM *
+                                (-3 + 4 * sinSigma * sinSigma) *
+                                (-3 + 4 * cos2SigmaM * cos2SigmaM)));
             sigmaP = sigma;
             sigma = s / (b * A) + deltaSigma;
         }
@@ -449,12 +474,14 @@ class Ellipsoid {
                 sinU1 * cosSigma + cosU1 * sinSigma * cosAlpha1,
                 (1 - f) * Math.sqrt(sinAlpha * sinAlpha + tmp * tmp)
             ),
-            lambda = Math.atan2(
-                sinSigma * sinAlpha1,
-                cosU1 * cosSigma - sinU1 * sinSigma * cosAlpha1
-            ),
+            lambda = Math.atan2(sinSigma * sinAlpha1, cosU1 * cosSigma - sinU1 * sinSigma * cosAlpha1),
             C = (f / 16.0) * cosSqAlpha * (4.0 + f * (4.0 - 3.0 * cosSqAlpha)),
-            L = lambda - (1.0 - C) * f * sinAlpha * (sigma + C * sinSigma * (cos2SigmaM + C * cosSigma * (-1.0 + 2.0 * cos2SigmaM * cos2SigmaM))),
+            L =
+                lambda -
+                (1.0 - C) *
+                    f *
+                    sinAlpha *
+                    (sigma + C * sinSigma * (cos2SigmaM + C * cosSigma * (-1.0 + 2.0 * cos2SigmaM * cos2SigmaM))),
             revAz = Math.atan2(sinAlpha, -tmp);
 
         return {
@@ -462,7 +489,6 @@ class Ellipsoid {
             finalAzimuth: revAz * DEGREES
         };
     }
-
 
     /**
      * Returns cartesian coordinates of the intersection of a ray and an ellipsoid.
@@ -553,16 +579,14 @@ class Ellipsoid {
         var f1 = lonLat1.lat * RADIANS,
             l1 = nlon * RADIANS;
         var dR = distance / this._a;
-        var f2 = Math.asin(
-            Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing)
-        );
+        var f2 = Math.asin(Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing));
         return new LonLat(
             (l1 +
                 Math.atan2(
                     Math.sin(bearing) * Math.sin(dR) * Math.cos(f1),
                     Math.cos(dR) - Math.sin(f1) * Math.sin(f2)
                 )) *
-            DEGREES,
+                DEGREES,
             f2 * DEGREES
         );
     }
@@ -591,9 +615,7 @@ class Ellipsoid {
 
         var df = f2 - f1,
             dl = l2 - l1;
-        var a =
-            Math.sin(df / 2) * Math.sin(df / 2) +
-            Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+        var a = Math.sin(df / 2) * Math.sin(df / 2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2);
         var d = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         var A = Math.sin((1 - fraction) * d) / Math.sin(d);
@@ -612,8 +634,7 @@ class Ellipsoid {
     static getRhumbBearing(lonLat1: LonLat, lonLat2: LonLat): number {
         var dLon = (lonLat2.lon - lonLat1.lon) * RADIANS;
         var dPhi = Math.log(
-            Math.tan((lonLat2.lat * RADIANS) / 2 + Math.PI / 4) /
-            Math.tan((lonLat1.lat * RADIANS) / 2 + Math.PI / 4)
+            Math.tan((lonLat2.lat * RADIANS) / 2 + Math.PI / 4) / Math.tan((lonLat1.lat * RADIANS) / 2 + Math.PI / 4)
         );
         if (Math.abs(dLon) > Math.PI) {
             if (dLon > 0) {
@@ -640,9 +661,8 @@ class Ellipsoid {
             maxVisibleDistance = f;
         }
 
-        return maxVisibleDistance > look.length() &&
-            (!forward || forward.dot(look.normalize()) > 0.0);
+        return maxVisibleDistance > look.length() && (!forward || forward.dot(look.normalize()) > 0.0);
     }
 }
 
-export {Ellipsoid};
+export { Ellipsoid };

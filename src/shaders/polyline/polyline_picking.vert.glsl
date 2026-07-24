@@ -1,5 +1,7 @@
 precision highp float;
 
+#include "../common/getDepthOffsetScale.glsl"
+
 attribute vec3 prevHigh;
 attribute vec3 currentHigh;
 attribute vec3 nextHigh;
@@ -8,16 +10,18 @@ attribute vec3 prevLow;
 attribute vec3 currentLow;
 attribute vec3 nextLow;
 
+attribute vec3 pickingColor;
 attribute float order;
+attribute float thickness;
 
-uniform float thickness;
-uniform vec4 color;
+uniform float thicknessScale;
 uniform mat4 proj;
 uniform mat4 view;
 uniform vec2 viewport;
 uniform vec3 rtcEyePositionHigh;
 uniform vec3 rtcEyePositionLow;
 uniform float depthOffset;
+uniform float depthOffsetNear;
 
 varying vec4 vColor;
 varying vec3 vPos;
@@ -47,7 +51,7 @@ void main() {
 
     uCamPos = rtcEyePositionHigh + rtcEyePositionLow;
     vPos = currentHigh + currentLow;
-    vColor = color;
+    vColor = vec4(pickingColor, 1.0);
 
     vec3 highDiff, lowDiff;
 
@@ -68,6 +72,15 @@ void main() {
     highDiff = highDiff * step(1.0, length(highDiff));
     lowDiff = nextLow - rtcEyePositionLow;
     vec4 vNext = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+
+    if (depthOffset != 0.0) {
+        float vCurrentDepthOffsetScale = getDepthOffsetScale(depthOffset, vCurrent.xyz, depthOffsetNear);
+        float vPrevDepthOffsetScale = getDepthOffsetScale(depthOffset, vPrev.xyz, depthOffsetNear);
+        float vNextDepthOffsetScale = getDepthOffsetScale(depthOffset, vNext.xyz, depthOffsetNear);
+        vCurrent.xyz += vCurrent.xyz * vCurrentDepthOffsetScale;
+        vPrev.xyz += vPrev.xyz * vPrevDepthOffsetScale;
+        vNext.xyz += vNext.xyz * vNextDepthOffsetScale;
+    }
 
 /*Clip near plane*/
     if (vCurrent.z > NEAR) {
@@ -104,8 +117,10 @@ void main() {
 
     vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));
     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));
+    vec2 sideNormal = abs(order) == 1.0 ? normalPrev : normalNext;
 
-    float d = thickness * sign(order);
+    float side = sign(order);
+    float d = thickness * thicknessScale * side;
 
     vec2 m;
     if (dotNP >= 0.99991) {
@@ -127,8 +142,12 @@ void main() {
             }
         }
         else if (distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))) {
-            m = sCurrent + normalNext * d;
+            m = sCurrent + sideNormal * d;
         }
     }
-    gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
+
+    float sameSide = dot(m - sCurrent, sideNormal) * side;
+    float wrongSide = 1.0 - step(0.0, sameSide);
+    m = mix(m, sCurrent + sideNormal * d, wrongSide);
+    gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);
 }

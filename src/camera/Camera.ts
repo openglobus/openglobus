@@ -1,25 +1,26 @@
-import {type EventsHandler, createEvents} from "../Events";
-import {Frustum} from "./Frustum";
-import {Mat3} from "../math/Mat3";
-import type {NumberArray9} from "../math/Mat3";
-import {Mat4} from "../math/Mat4";
-import type {NumberArray16} from "../math/Mat4";
-import {Renderer} from "../renderer/Renderer";
-import {Vec2} from "../math/Vec2";
-import type {NumberArray2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
-import {Sphere} from "../bv/Sphere";
-import {Quat} from "../math/Quat";
-import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
-import {Easing, EasingFunction} from "../utils/easing";
-import {LonLat} from "../LonLat";
+import { type EventsHandler, createEvents } from "../Events";
+import { Frustum } from "./Frustum";
+import { Mat3 } from "../math/Mat3";
+import type { NumberArray9 } from "../math/Mat3";
+import { Mat4 } from "../math/Mat4";
+import type { NumberArray16 } from "../math/Mat4";
+import { Renderer } from "../renderer/Renderer";
+import { Vec2 } from "../math/Vec2";
+import type { NumberArray2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
+import { Vec4 } from "../math/Vec4";
+import { Sphere } from "../bv/Sphere";
+import { Ray } from "../math/Ray";
+import { Quat } from "../math/Quat";
+import { DEGREES_DOUBLE, MAX_FLOAT, RADIANS, RADIANS_HALF } from "../math";
+import { Easing, EasingFunction } from "../utils/easing";
+import { LonLat } from "../LonLat";
 
-export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flystop"];
+export type CameraEvents = ["viewchange", "moveend", "flystart", "flyend", "flystop", "frustumschanged"];
 
 const EVENT_NAMES: CameraEvents = [
     /**
-     * When camera has been updated.
+     * When the camera view or projection has changed.
      * @event og.Camera#viewchange
      */
     "viewchange",
@@ -46,7 +47,13 @@ const EVENT_NAMES: CameraEvents = [
      * Triggered when flight was stopped.
      * @event og.Camera#flystop
      */
-    "flystop"
+    "flystop",
+
+    /**
+     * Triggered when setFrustums called
+     * @event og.Camera#frustumschanged
+     */
+    "frustumschanged"
 ];
 
 export interface ICameraParams {
@@ -59,6 +66,7 @@ export interface ICameraParams {
     height?: number;
     isOrthographic?: boolean;
     focusDistance?: number;
+    reverseDepth?: boolean;
 }
 
 export interface IFlyCartesianParams extends IFlyBaseParams {
@@ -74,7 +82,7 @@ export interface IFlyBaseParams {
     frameCallback?: Function;
 }
 
-export const DEFAULT_FLIGHT_DURATION = 800;
+export const DEFAULT_FLIGHT_DURATION = 1000;
 export const DEFAULT_EASING = Easing.CubicInOut;
 
 type CameraFrame = {
@@ -90,8 +98,11 @@ type CameraFlight = {
     startedAt: number;
 };
 
-const getHorizontalViewAngleByFov = (fov: number, aspect: number) =>
-    DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * fov) * aspect);
+const getHorizontalViewAngleByFov = (vFov: number, aspect: number) =>
+    DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * vFov) * aspect);
+
+const getVerticalViewAngleByHorizontalFov = (hFov: number, aspect: number) =>
+    DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * hFov) / Math.max(aspect, 1e-6));
 
 /**
  * Camera class.
@@ -106,8 +117,8 @@ const getHorizontalViewAngleByFov = (fov: number, aspect: number) =>
  * @param {Vec3} [options.look=[0,0,0]] - Camera look position. Default (0,0,0)
  * @param {Vec3} [options.up=[0,1,0]] - Camera eye position. Default (0,1,0)
  *
- * @fires EventsHandler<CameraEvents>#viewchange
- * @fires EventsHandler<CameraEvents>#moveend
+ * @fires viewchange
+ * @fires moveend
  */
 class Camera {
     static __counter__: number = 0;
@@ -204,6 +215,13 @@ class Camera {
 
     public isMoving: boolean;
 
+    protected _pViewAngle: number;
+    protected _pAspect: number;
+    protected _pWidth: number;
+    protected _pHeight: number;
+    protected _pIsOrthographic: boolean;
+    protected _pFocusDistance: number;
+
     protected _tanViewAngle_hrad: number;
 
     public _tanViewAngle_hradOneByHeight: number;
@@ -220,7 +238,14 @@ class Camera {
 
     public frustumColorIndex: number;
 
-    public isFirstPass: boolean;
+    public isFarthestFrustumActive: boolean;
+
+    /**
+     * Reverse-Z depth: GREATER test, clear 0, infinite projection; single frustum with large `far` for culling.
+     * @protected
+     */
+    protected _reverseDepth: boolean;
+    protected _depthZeroToOne: boolean;
 
     public _width: number;
 
@@ -232,6 +257,8 @@ class Camera {
 
     protected _flying: boolean;
 
+    public slope: number;
+
     // public dirForwardNED: Vec3;
     // public dirUpNED: Vec3;
     // public dirRightNED: Vec3;
@@ -240,6 +267,8 @@ class Camera {
         this.__id = Camera.__counter__++;
 
         this.events = createEvents<CameraEvents>(EVENT_NAMES, this);
+
+        this.slope = 0;
 
         this._isOrthographic = options.isOrthographic ?? false;
 
@@ -288,52 +317,21 @@ class Camera {
 
         this.frustumColors = [];
 
-        if (options.frustums) {
-            for (let i = 0, len = options.frustums.length; i < len; i++) {
-                let fi = options.frustums[i];
+        this._reverseDepth = options.reverseDepth ?? true;
+        this._depthZeroToOne = false;
 
-                let fr = new Frustum({
-                    fov: this._viewAngle,
-                    aspect: this.getAspectRatio(), //this._aspect,
-                    near: fi[0],
-                    far: fi[1]
-                });
-
-                fr.cameraFrustumIndex = this.frustums.length;
-                this.frustums.push(fr);
-                //this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
-                this.frustumColors.push(
-                    fr._pickingColorU[0],
-                    fr._pickingColorU[1],
-                    fr._pickingColorU[2]
-                );
-            }
-        } else {
-            let near = 1,
-                far = 500.0;
-
-            let fr = new Frustum({
-                fov: this._viewAngle,
-                aspect: this.getAspectRatio(),
-                near: near,
-                far: far
-            });
-
-            fr.cameraFrustumIndex = this.frustums.length;
-            this.frustums.push(fr);
-            this.frustumColors.push(
-                fr._pickingColorU[0],
-                fr._pickingColorU[1],
-                fr._pickingColorU[2]
-            );
+        let initFrustums = options.frustums || [[0.01, 10000]];
+        if (this.reverseDepthActive) {
+            const [near = 1, far = MAX_FLOAT] = initFrustums[0] ?? [];
+            initFrustums = [[near, far]];
         }
+        this.setFrustums(initFrustums);
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
-
         this.currentFrustumIndex = 0;
         this.frustumColorIndex = 0;
 
-        this.isFirstPass = false;
+        this.isFarthestFrustumActive = false;
 
         this._projSizeConst = 0;
 
@@ -342,12 +340,68 @@ class Camera {
             options.look || new Vec3(),
             options.up || new Vec3(0.0, 1.0, 0.0)
         );
+
+        this._pViewAngle = this._viewAngle;
+        this._pAspect = this.getAspectRatio();
+        this._pWidth = this._width;
+        this._pHeight = this._height;
+        this._pIsOrthographic = this._isOrthographic;
+        this._pFocusDistance = this._focusDistance;
     }
 
+    /**
+     * Returns current projection mode.
+     * @public
+     * @returns {boolean} `true` when orthographic projection is enabled.
+     */
     public get isOrthographic(): boolean {
         return this._isOrthographic;
     }
 
+    /**
+     * Returns reverse depth flag.
+     * @public
+     * @returns {boolean} `true` when reverse depth mode is enabled.
+     */
+    public get reverseDepth(): boolean {
+        return this._reverseDepth;
+    }
+
+    /**
+     * Returns active reverse depth state.
+     * @public
+     * @returns {boolean} `true` for perspective reverse-Z mode.
+     */
+    public get reverseDepthActive(): boolean {
+        return this._reverseDepth && !this._isOrthographic;
+    }
+
+    /**
+     * Returns active depth range mode.
+     * @public
+     * @returns {boolean} `true` when ZERO_TO_ONE depth range is active.
+     */
+    public get depthZeroToOne(): boolean {
+        return this._depthZeroToOne && this.reverseDepthActive;
+    }
+
+    /**
+     * Enables or disables ZERO_TO_ONE depth range mode.
+     * @public
+     * @param {boolean} enabled - Depth range mode flag.
+     */
+    public setDepthZeroToOne(enabled: boolean) {
+        if (this._depthZeroToOne !== enabled) {
+            this._depthZeroToOne = enabled;
+            this.refresh();
+        }
+    }
+
+    /**
+     * Enables or disables orthographic projection mode.
+     * @public
+     * @param {boolean} isOrthographic - Orthographic mode flag.
+     */
     public set isOrthographic(isOrthographic: boolean) {
         if (this._isOrthographic !== isOrthographic) {
             this._isOrthographic = isOrthographic;
@@ -355,10 +409,20 @@ class Camera {
         }
     }
 
+    /**
+     * Returns focus distance used for orthographic projection size.
+     * @public
+     * @returns {number} Focus distance.
+     */
     public get focusDistance(): number {
         return this._focusDistance;
     }
 
+    /**
+     * Sets focus distance used for orthographic projection size.
+     * @public
+     * @param {number} dist - Focus distance.
+     */
     public set focusDistance(dist: number) {
         if (dist !== this._focusDistance) {
             this._focusDistance = dist;
@@ -368,6 +432,11 @@ class Camera {
         }
     }
 
+    /**
+     * Returns camera identifier.
+     * @public
+     * @returns {number} Camera id.
+     */
     public get id(): number {
         return this.__id;
     }
@@ -385,11 +454,9 @@ class Camera {
         params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
         const ease = params.ease || DEFAULT_EASING;
 
-        this._completeCallback = params.completeCallback || (() => {
-        });
+        this._completeCallback = params.completeCallback || (() => {});
 
-        this._frameCallback = params.frameCallback || (() => {
-        });
+        this._frameCallback = params.frameCallback || (() => {});
 
         if (params.startCallback) {
             params.startCallback.call(this);
@@ -433,7 +500,7 @@ class Camera {
             },
             duration: params.duration,
             startedAt: Date.now()
-        }
+        };
         this._flying = true;
         this.events.dispatch(this.events.flystart, this);
     }
@@ -458,10 +525,7 @@ class Camera {
      */
     public checkFly() {
         if (this._flying && this._flight !== null) {
-            let progress = Math.min(
-                (Date.now() - this._flight.startedAt) / this._flight.duration,
-                1
-            );
+            let progress = Math.min((Date.now() - this._flight.startedAt) / this._flight.duration, 1);
 
             const frame = this._flight.fly(progress);
             this.eye = frame.eye;
@@ -496,7 +560,20 @@ class Camera {
         return this._flying;
     }
 
-    public checkMoveEnd() {
+    /**
+     * Checks camera movement and projection changes.
+     * @public
+     */
+    public checkViewChanges() {
+        this._checkMoveEnd();
+        this._checkViewChange();
+    }
+
+    /**
+     * Checks whether the camera stopped moving and dispatches `moveend`.
+     * @protected
+     */
+    protected _checkMoveEnd() {
         let r = this._r,
             u = this._u,
             b = this._b,
@@ -517,8 +594,40 @@ class Camera {
         this._peye.copy(eye);
     }
 
+    /**
+     * Checks whether the camera view or projection changed and dispatches `viewchange`.
+     * @protected
+     */
+    protected _checkViewChange() {
+        const aspect = this.getAspectRatio();
+        const projectionChanged =
+            this._pViewAngle !== this._viewAngle ||
+            this._pAspect !== aspect ||
+            this._pWidth !== this._width ||
+            this._pHeight !== this._height ||
+            this._pIsOrthographic !== this._isOrthographic ||
+            (this._isOrthographic && this._pFocusDistance !== this._focusDistance);
+
+        if (this.isMoving || projectionChanged) {
+            this.events.dispatch(this.events.viewchange, this);
+        }
+
+        this._pViewAngle = this._viewAngle;
+        this._pAspect = aspect;
+        this._pWidth = this._width;
+        this._pHeight = this._height;
+        this._pIsOrthographic = this._isOrthographic;
+        this._pFocusDistance = this._focusDistance;
+    }
+
+    /**
+     * Binds picking colors for all frustums.
+     * @public
+     * @param {Renderer} renderer - Renderer instance.
+     */
     public bindFrustumsPickingColors(renderer: Renderer) {
         for (let i = 0; i < this.frustums.length; i++) {
+            renderer.clearPickingColor(this.frustums[i]);
             renderer.assignPickingColor<Frustum>(this.frustums[i]);
         }
     }
@@ -544,26 +653,56 @@ class Camera {
         );
     }
 
+    /**
+     * Returns up direction vector.
+     * @public
+     * @returns {Vec3} Up direction.
+     */
     public getUp(): Vec3 {
         return this._u.clone();
     }
 
+    /**
+     * Returns down direction vector.
+     * @public
+     * @returns {Vec3} Down direction.
+     */
     public getDown(): Vec3 {
         return this._u.negateTo();
     }
 
+    /**
+     * Returns right direction vector.
+     * @public
+     * @returns {Vec3} Right direction.
+     */
     public getRight(): Vec3 {
         return this._r.clone();
     }
 
+    /**
+     * Returns left direction vector.
+     * @public
+     * @returns {Vec3} Left direction.
+     */
     public getLeft(): Vec3 {
         return this._r.negateTo();
     }
 
+    /**
+     * Returns forward direction vector.
+     * @public
+     * @returns {Vec3} Forward direction.
+     */
     public getForward(): Vec3 {
         return this._f.clone();
     }
 
+    /**
+     * Returns backward direction vector.
+     * @public
+     * @returns {Vec3} Backward direction.
+     */
     public getBackward(): Vec3 {
         return this._b.clone();
     }
@@ -574,33 +713,40 @@ class Camera {
      * @virtual
      */
     public update() {
-        let u = this._r, v = this._u, n = this._b, eye = this.eye;
+        let u = this._r,
+            v = this._u,
+            n = this._b,
+            eye = this.eye;
 
         Vec3.doubleToTwoFloat32Array(eye, this.eyeHigh, this.eyeLow);
 
         this._viewMatrix.set([
-            u.x, v.x, n.x, 0.0,
-            u.y, v.y, n.y, 0.0,
-            u.z, v.z, n.z, 0.0,
-            -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
+            u.x,
+            v.x,
+            n.x,
+            0.0,
+            u.y,
+            v.y,
+            n.y,
+            0.0,
+            u.z,
+            v.z,
+            n.z,
+            0.0,
+            -eye.dot(u),
+            -eye.dot(v),
+            -eye.dot(n),
+            1.0
         ]);
 
-        this._viewMatrixRTE.set([
-            u.x, v.x, n.x, 0.0,
-            u.y, v.y, n.y, 0.0,
-            u.z, v.z, n.z, 0.0,
-            0, 0, 0, 1.0
-        ]);
+        this._viewMatrixRTE.set([u.x, v.x, n.x, 0.0, u.y, v.y, n.y, 0.0, u.z, v.z, n.z, 0.0, 0, 0, 0, 1.0]);
 
-        // do not clean up, someday it will be using
-        //this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
+        this._normalMatrix.set([u.x, u.y, u.z, v.x, v.y, v.z, n.x, n.y, n.z]);
 
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setViewMatrix(this._viewMatrix);
             this.frustums[i].setProjectionViewRTEMatrix(this._viewMatrixRTE);
         }
-
-        this.events.dispatch(this.events.viewchange, this);
     }
 
     /**
@@ -612,14 +758,30 @@ class Camera {
         this.update();
     }
 
+    /**
+     * Returns viewport width.
+     * @public
+     * @returns {number} Viewport width in pixels.
+     */
     public get width(): number {
         return this._width;
     }
 
+    /**
+     * Returns viewport height.
+     * @public
+     * @returns {number} Viewport height in pixels.
+     */
     public get height(): number {
         return this._height;
     }
 
+    /**
+     * Sets viewport size and updates projection.
+     * @public
+     * @param {number} width - Viewport width in pixels.
+     * @param {number} height - Viewport height in pixels.
+     */
     public setViewportSize(width: number, height: number) {
         this._width = width;
         this._height = height;
@@ -627,35 +789,107 @@ class Camera {
     }
 
     /**
-     * Returns aspect ratio
+     * Returns aspect ratio.
      * @public
-     * @returns {number} - Aspect ratio
+     * @returns {number} Aspect ratio.
      */
     public getAspectRatio(): number {
         return this._width / this._height;
     }
 
     /**
-     * Sets up camera projection
+     * Sets camera projection.
      * @public
-     * @param {number} viewAngle - Camera view angle
-     * @param {number} aspect - Screen aspect ratio
+     * @param {number} viewAngle - Camera view angle.
+     * @param {number} aspect - Screen aspect ratio.
      */
     protected _setProj(viewAngle: number, aspect: number) {
         this._viewAngle = viewAngle;
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             let fi = this.frustums[i];
-            fi.setProjectionMatrix(viewAngle, aspect, fi.near, fi.far, this._isOrthographic, this._focusDistance);
+            fi.setProjectionMatrix(
+                viewAngle,
+                aspect,
+                fi.near,
+                fi.far,
+                this._isOrthographic,
+                this._focusDistance,
+                this.reverseDepthActive,
+                this.depthZeroToOne
+            );
         }
         this._horizontalViewAngle = getHorizontalViewAngleByFov(viewAngle, aspect);
         this._updateViewportParameters();
+    }
+
+    /**
+     * Updates near/far planes for one frustum.
+     * @public
+     * @param {number} near - Near clipping plane distance.
+     * @param {number} [far] - Far clipping plane distance.
+     * @param {number} [frustumIndex=0] - Frustum index.
+     */
+    public setNearFar(near: number, far?: number, frustumIndex: number = 0) {
+        this.frustums[frustumIndex].setNearFar(near, far);
+    }
+
+    /**
+     * Replaces camera frustum ranges.
+     * @public
+     * @param {Array.<NumberArray2>} frustums - Array of `[near, far]` ranges.
+     */
+    public setFrustums(frustums: [number, number][]) {
+        if (this.reverseDepthActive && frustums.length > 1) {
+            frustums = [frustums[0]];
+        }
+
+        let aspect = this.getAspectRatio();
+
+        for (let i = 0; i < frustums.length; i++) {
+            if (this.frustums[i]) {
+                let near = frustums[i][0],
+                    far = frustums[i][1];
+                this.frustums[i].setProjectionMatrix(
+                    this._viewAngle,
+                    aspect,
+                    near,
+                    far,
+                    this._isOrthographic,
+                    this._focusDistance,
+                    this.reverseDepthActive,
+                    this.depthZeroToOne
+                );
+            } else {
+                let near = frustums[i][0],
+                    far = frustums[i][1];
+                let fi = new Frustum({
+                    cameraFrustumIndex: i,
+                    fov: this._viewAngle,
+                    aspect,
+                    near,
+                    far,
+                    reverseDepth: this.reverseDepthActive,
+                    depthZeroToOne: this.depthZeroToOne
+                });
+                this.frustums.push(fi);
+                this.frustumColors.push(fi._pickingColorU[0], fi._pickingColorU[1], fi._pickingColorU[2]);
+            }
+        }
+
+        this.frustums.length = frustums.length;
+        this.frustumColors.length = frustums.length * 3;
+        this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
+        this.setCurrentFrustum(0);
+
+        this.events.dispatch(this.events.frustumschanged, this);
     }
 
     protected _updateViewportParameters() {
         this._tanViewAngle_hrad = Math.tan(this._viewAngle * RADIANS_HALF);
         this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * (1.0 / this._height);
         this._projSizeConst =
-            Math.min(this._width < 512 ? 512 : this._width, this._height < 512 ? 512 : this._height) / (this._viewAngle * RADIANS);
+            Math.min(this._width < 512 ? 512 : this._width, this._height < 512 ? 512 : this._height) /
+            (this._viewAngle * RADIANS);
     }
 
     /**
@@ -669,22 +903,47 @@ class Camera {
     }
 
     /**
-     * Gets camera view angle in degrees
+     * Sets camera horizontal view angle in degrees.
      * @public
-     * @returns {number} angle -
+     * @param {number} angle - Horizontal view angle.
+     */
+    public setHorizontalViewAngle(angle: number) {
+        this._viewAngle = getVerticalViewAngleByHorizontalFov(angle, this.getAspectRatio());
+        this.refresh();
+    }
+
+    /**
+     * Returns camera vertical view angle in degrees.
+     * @public
+     * @returns {number} View angle in degrees.
      */
     public getViewAngle(): number {
         return this._viewAngle;
     }
 
+    /**
+     * Returns camera vertical view angle in degrees.
+     * @public
+     * @returns {number} Vertical view angle.
+     */
     public get viewAngle(): number {
         return this._viewAngle;
     }
 
+    /**
+     * Returns camera vertical view angle in degrees.
+     * @public
+     * @returns {number} Vertical view angle.
+     */
     public get verticalViewAngle(): number {
         return this._viewAngle;
     }
 
+    /**
+     * Returns camera horizontal view angle in degrees.
+     * @public
+     * @returns {number} Horizontal view angle.
+     */
     public get horizontalViewAngle(): number {
         return this._horizontalViewAngle;
     }
@@ -751,16 +1010,8 @@ class Camera {
         let cs = Math.cos(angle);
         let sn = Math.sin(angle);
         let t = this._r.clone();
-        this._r.set(
-            cs * t.x - sn * this._u.x,
-            cs * t.y - sn * this._u.y,
-            cs * t.z - sn * this._u.z
-        );
-        this._u.set(
-            sn * t.x + cs * this._u.x,
-            sn * t.y + cs * this._u.y,
-            sn * t.z + cs * this._u.z
-        );
+        this._r.set(cs * t.x - sn * this._u.x, cs * t.y - sn * this._u.y, cs * t.z - sn * this._u.z);
+        this._u.set(sn * t.x + cs * this._u.x, sn * t.y + cs * this._u.y, sn * t.z + cs * this._u.z);
     }
 
     /**
@@ -772,16 +1023,8 @@ class Camera {
         let cs = Math.cos(angle);
         let sn = Math.sin(angle);
         let t = this._b;
-        this._b.set(
-            cs * t.x - sn * this._u.x,
-            cs * t.y - sn * this._u.y,
-            cs * t.z - sn * this._u.z
-        );
-        this._u.set(
-            sn * t.x + cs * this._u.x,
-            sn * t.y + cs * this._u.y,
-            sn * t.z + cs * this._u.z
-        );
+        this._b.set(cs * t.x - sn * this._u.x, cs * t.y - sn * this._u.y, cs * t.z - sn * this._u.z);
+        this._u.set(sn * t.x + cs * this._u.x, sn * t.y + cs * this._u.y, sn * t.z + cs * this._u.z);
     }
 
     /**
@@ -793,55 +1036,94 @@ class Camera {
         let cs = Math.cos(angle);
         let sn = Math.sin(angle);
         let t = this._r;
-        this._r.set(
-            cs * t.x - sn * this._b.x,
-            cs * t.y - sn * this._b.y,
-            cs * t.z - sn * this._b.z
-        );
-        this._b.set(
-            sn * t.x + cs * this._b.x,
-            sn * t.y + cs * this._b.y,
-            sn * t.z + cs * this._b.z
-        );
+        this._r.set(cs * t.x - sn * this._b.x, cs * t.y - sn * this._b.y, cs * t.z - sn * this._b.z);
+        this._b.set(sn * t.x + cs * this._b.x, sn * t.y + cs * this._b.y, sn * t.z + cs * this._b.z);
     }
 
+    /**
+     * Sets camera orientation from Euler angles.
+     * @public
+     * @param {number} pitch - Pitch angle in radians.
+     * @param {number} yaw - Yaw angle in radians.
+     * @param {number} roll - Roll angle in radians.
+     */
     public setPitchYawRoll(pitch: number, yaw: number, roll: number) {
         let qRot = new Quat();
         qRot.setPitchYawRoll(pitch, yaw, roll);
         this.setRotation(qRot);
     }
 
+    /**
+     * Returns pitch angle.
+     * @public
+     * @returns {number} Pitch angle in radians.
+     */
     public getPitch(): number {
         return this.getRotation().getPitch();
     }
 
+    /**
+     * Returns yaw angle.
+     * @public
+     * @returns {number} Yaw angle in radians.
+     */
     public getYaw(): number {
         return this.getRotation().getYaw();
     }
 
+    /**
+     * Returns roll angle.
+     * @public
+     * @returns {number} Roll angle in radians.
+     */
     public getRoll(): number {
         return this.getRotation().getRoll();
     }
 
+    /**
+     * Returns absolute pitch angle.
+     * @public
+     * @returns {number} Absolute pitch angle in radians.
+     */
     public getAbsolutePitch(): number {
         return this.getRotation().getPitch();
     }
 
+    /**
+     * Returns absolute yaw angle.
+     * @public
+     * @returns {number} Absolute yaw angle in radians.
+     */
     public getAbsoluteYaw(): number {
         return this.getRotation().getYaw();
     }
 
+    /**
+     * Returns absolute roll angle.
+     * @public
+     * @returns {number} Absolute roll angle in radians.
+     */
     public getAbsoluteRoll(): number {
         return this.getRotation().getRoll();
     }
 
     /**
-     * Returns camera quaternion
+     * Returns camera rotation quaternion.
+     * @public
+     * @returns {Quat} Camera rotation quaternion.
      */
     public getRotation(): Quat {
         return Quat.getLookRotation(this._f, this._u).conjugate();
     }
 
+    /**
+     * Sets camera orientation from a quaternion.
+     * @public
+     * @param {Quat} rot - Rotation quaternion.
+     * @param {Vec3} [up] - Base up vector.
+     * @param {Vec3} [right] - Base right vector.
+     * @param {Vec3} [back] - Base backward vector.
+     */
     public setRotation(rot: Quat, up?: Vec3, right?: Vec3, back?: Vec3) {
         rot.mulVec3Res(up || new Vec3(0, 1, 0), this._u);
         rot.mulVec3Res(right || new Vec3(1, 0, 0), this._r);
@@ -849,6 +1131,11 @@ class Camera {
         this._f.set(-this._b.x, -this._b.y, -this._b.z);
     }
 
+    /**
+     * Rotates current camera basis by quaternion.
+     * @public
+     * @param {Quat} rot - Rotation quaternion.
+     */
     public rotate(rot: Quat) {
         rot.mulVec3Res(this._u, this._u);
         rot.mulVec3Res(this._r, this._r);
@@ -859,8 +1146,10 @@ class Camera {
     /**
      * Returns normal vector direction to the unprojected screen point from camera eye
      * @public
-     * @param {Vec2} pos - Screen X coordinate
-     * @returns {Vec3} - Direction vector
+     * @param {Vec2} pos - Screen coordinates in pixels.
+     * @param {number} [dist] - Optional projection distance for orthographic mode.
+     * @param {Vec3} [outPos] - Optional output world position for orthographic mode.
+     * @returns {Vec3} - Direction vector.
      */
     public unproject2v(pos: Vec2, dist?: number, outPos?: Vec3) {
         return this.unproject(pos.x, pos.y, dist, outPos);
@@ -869,9 +1158,11 @@ class Camera {
     /**
      * Returns normal vector direction to the unprojected screen point from camera eye
      * @public
-     * @param {number} x - Screen X coordinate
-     * @param {number} y - Screen Y coordinate
-     * @returns {Vec3} - Direction vector
+     * @param {number} x - Screen X coordinate in pixels.
+     * @param {number} y - Screen Y coordinate in pixels.
+     * @param {number} [dist] - Optional projection distance for orthographic mode.
+     * @param {Vec3} [outPos] - Optional output world position for orthographic mode.
+     * @returns {Vec3} - Direction vector.
      */
     public unproject(x: number, y: number, dist?: number, outPos?: Vec3) {
         let w = this._width * 0.5,
@@ -906,10 +1197,51 @@ class Camera {
             }
         } else {
             let invPV = f.inverseProjectionViewMatrix;
-            let nearPoint = invPV.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
+            let nearPoint: Vec4, farPoint: Vec4;
+            if (this.reverseDepthActive) {
+                nearPoint = invPV.mulVec4(new Vec4(px, py, 1.0, 1.0)).affinity();
+                farPoint = invPV.mulVec4(new Vec4(px, py, this.depthZeroToOne ? 0.5 : 0.0, 1.0)).affinity();
+            } else {
+                nearPoint = invPV.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity();
                 farPoint = invPV.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
+            }
             return farPoint.subA(nearPoint).toVec3().normalize();
         }
+    }
+
+    /**
+     * Returns a world-space ray corresponding to the given screen point.
+     * For perspective camera the ray shares camera eye as origin.
+     * For orthographic camera the origin is offset across the view plane,
+     * and the direction equals the camera forward vector.
+     * @public
+     * @param {number} x - Screen X coordinate in pixels.
+     * @param {number} y - Screen Y coordinate in pixels.
+     * @returns {Ray}
+     */
+    public getRay(x: number, y: number, res?: Ray): Ray {
+        if (this.isOrthographic) {
+            let w = this._width * 0.5,
+                h = this._height * 0.5;
+            let px = (x - w) / w,
+                py = -(y - h) / h;
+            let f = this.frustums[0];
+            let dx = 0.5 * (f.right - f.left) * px,
+                dy = 0.5 * (f.top - f.bottom) * py;
+            let origin = this.eye.add(this.getRight().scale(dx)).addA(this.getUp().scale(dy));
+            return res ? res.set(origin, this.getForward()) : new Ray(origin, this.getForward());
+        }
+        return res ? res.set(this.eye, this.unproject(x, y)) : new Ray(this.eye, this.unproject(x, y));
+    }
+
+    /**
+     * Returns a world-space ray corresponding to the given screen point.
+     * @public
+     * @param {Vec2} pos - Screen coordinates in pixels.
+     * @returns {Ray}
+     */
+    public getRay2v(pos: Vec2): Ray {
+        return this.getRay(pos.x, pos.y);
     }
 
     /**
@@ -944,12 +1276,7 @@ class Camera {
      * @param {Vec3} [center] - Point that the camera rotates around
      * @param {Vec3} [up] - Camera up vector
      */
-    public rotateAround(
-        angle: number,
-        isArc: boolean = false,
-        center: Vec3 = Vec3.ZERO,
-        up: Vec3 = Vec3.UP
-    ) {
+    public rotateAround(angle: number, isArc: boolean = false, center: Vec3 = Vec3.ZERO, up: Vec3 = Vec3.UP) {
         up = isArc ? this._u : up;
         let rot = Mat4.getRotation(angle, up);
         let trm = Mat4.getRotationAroundPoint(angle, center, up);
@@ -961,7 +1288,7 @@ class Camera {
     }
 
     /**
-     * Rotates camera around center point by horizontal.
+     * Rotates camera around the center point by horizontal.
      * @public
      * @param {number} angle - Rotation angle in radians.
      * @param {boolean} [isArc] - If true camera up vector gets from current up vector every frame,
@@ -974,7 +1301,7 @@ class Camera {
     }
 
     /**
-     * Rotates camera around center point by vertical.
+     * Rotates camera around the center point by vertical.
      * @param {number} angle - Rotation angle in radians.
      * @param {Vec3} [center] - Point that the camera rotates around.
      */
@@ -984,14 +1311,13 @@ class Camera {
 
     /**
      * Gets 3d size factor. Uses in LOD distance calculation.
-     * It is very important function used in Node.ts
+     * It is a very important function used in Node.ts
      * @public
      * @param {Vec3} p - Point in 3d.
      * @param {Vec3} r - size.
      * @returns {number} - Size factor.
      */
     public projectedSize(p: Vec3, r: number): number {
-
         // @todo: cleanup
         if (this.isOrthographic) {
             const m = this.frustums[0].projectionMatrix._m;
@@ -1012,24 +1338,40 @@ class Camera {
     }
 
     /**
-     * Returns normal matrix.
+     * Returns camera normal matrix.
      * @public
-     * @returns {NumberArray9} - Normal matrix.
+     * @returns {NumberArray9}
      */
     public getNormalMatrix(): NumberArray9 {
         return this._normalMatrix._m;
     }
 
+    /**
+     * Sets current active frustum index.
+     * @public
+     * @param {number} k - Frustum index.
+     */
     public setCurrentFrustum(k: number) {
         this.currentFrustumIndex = k;
         this.frustumColorIndex = ((k + 1) * 10.0) / 255.0;
-        this.isFirstPass = k === this.FARTHEST_FRUSTUM_INDEX;
+        this.isFarthestFrustumActive = k === this.FARTHEST_FRUSTUM_INDEX;
     }
 
+    /**
+     * Returns current active frustum index.
+     * @public
+     * @returns {number} Current frustum index.
+     */
     public getCurrentFrustum(): number {
         return this.currentFrustumIndex;
     }
 
+    /**
+     * Checks whether the sphere intersects any camera frustum.
+     * @public
+     * @param {Sphere} sphere - Bounding sphere.
+     * @returns {boolean} `true` when visible in at least one frustum.
+     */
     public containsSphere(sphere: Sphere): boolean {
         for (let i = 0; i < this.frustums.length; i++) {
             if (this.frustums[i].containsSphere(sphere)) {
@@ -1039,6 +1381,26 @@ class Camera {
         return false;
     }
 
+    /**
+     * Checks whether a point is inside any camera frustum.
+     * @public
+     * @param {Vec3} point - Cartesian point.
+     * @returns {boolean} `true` when visible in at least one frustum.
+     */
+    public containsPoint(point: Vec3): boolean {
+        for (let i = 0; i < this.frustums.length; i++) {
+            if (this.frustums[i].containsPoint(point)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns current active frustum.
+     * @public
+     * @returns {Frustum} Active frustum instance.
+     */
     public get frustum(): Frustum {
         return this.frustums[this.currentFrustumIndex];
     }
@@ -1046,34 +1408,34 @@ class Camera {
     /**
      * Returns projection matrix.
      * @public
-     * @returns {Mat4} - Projection matrix.
+     * @returns {NumberArray16} Projection matrix.
      */
     public getProjectionMatrix(): NumberArray16 {
         return this.frustum.projectionMatrix._m;
     }
 
     /**
-     * Returns projection and model matrix product.
+     * Returns projection-view matrix.
      * @public
-     * @return {Mat4} - Projection-view matrix.
+     * @returns {NumberArray16} Projection-view matrix.
      */
     public getProjectionViewMatrix(): NumberArray16 {
         return this.frustum.projectionViewMatrix._m;
     }
 
     /**
-     * Returns projection and model RTE matrix product.
+     * Returns projection-view RTE matrix.
      * @public
-     * @return {Mat4} - Projection-view matrix.
+     * @returns {NumberArray16} Projection-view RTE matrix.
      */
     public getProjectionViewRTEMatrix(): NumberArray16 {
         return this.frustum.projectionViewRTEMatrix._m;
     }
 
     /**
-     * Returns inverse projection and model matrix product.
+     * Returns inverse projection-view matrix.
      * @public
-     * @returns {Mat4} - Inverse projection-view matrix.
+     * @returns {NumberArray16} Inverse projection-view matrix.
      */
     public getInverseProjectionViewMatrix(): NumberArray16 {
         return this.frustum.inverseProjectionViewMatrix._m;
@@ -1082,18 +1444,29 @@ class Camera {
     /**
      * Returns inverse projection matrix.
      * @public
-     * @returns {Mat4} - Inverse projection-view matrix.
+     * @returns {NumberArray16} Inverse projection matrix.
      */
     public getInverseProjectionMatrix(): NumberArray16 {
         return this.frustum.inverseProjectionMatrix._m;
     }
 
+    /**
+     * Places camera at a fixed distance from a point and looks at it.
+     * @public
+     * @param {Vec3} cartesian - Target cartesian point.
+     * @param {number} [distance=10000.0] - Distance from the target.
+     */
     public viewDistance(cartesian: Vec3, distance: number = 10000.0) {
         let newPos = cartesian.add(this.getBackward().scaleTo(distance));
         this.set(newPos, cartesian);
         this.update();
     }
 
+    /**
+     * Copies camera pose and projection settings from another camera.
+     * @public
+     * @param {Camera} cam - Source camera.
+     */
     public copy(cam: Camera) {
         this.eye.copy(cam.eye);
         this._r.copy(cam._r);
@@ -1106,9 +1479,14 @@ class Camera {
         this.update();
     }
 
+    /**
+     * Returns camera altitude value for base camera.
+     * @public
+     * @returns {number} Camera `y` coordinate.
+     */
     public getAltitude(): number {
         return this.eye.y;
     }
 }
 
-export {Camera};
+export { Camera };

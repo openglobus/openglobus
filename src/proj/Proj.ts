@@ -28,7 +28,6 @@ METERS_PER_UNIT[Units.KILOMETERS] = 1000;
 let _counter = 0;
 
 class Proj {
-
     public id: number;
 
     /**
@@ -60,4 +59,4 @@ class Proj {
     }
 }
 
-export {Proj};
+export { Proj };

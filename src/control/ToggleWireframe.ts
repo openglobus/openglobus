@@ -1,6 +1,6 @@
-import {input} from "../input/input";
-import {Control} from "./Control";
-import type {IControlParams} from "./Control";
+import { input } from "../input/input";
+import { Control } from "./Control";
+import type { IControlParams } from "./Control";
 
 interface IToggleWireframe extends IControlParams {
     isActive?: boolean;
@@ -32,5 +32,5 @@ export class ToggleWireframe extends Control {
                 this.planet!.setDrawMode(this.renderer.handler.gl.LINE_STRIP);
             }
         }
-    }
+    };
 }

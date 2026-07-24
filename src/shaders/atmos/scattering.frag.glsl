@@ -46,10 +46,10 @@ void main(void)
             float offset = 0.0;
             float distanceToSpace = 0.0;
 
-            intersectSphere(rayOrigin, rayDirection, TOP_RADIUS, offset, distanceToSpace);
+            intersectAtmosphereSphere(rayOrigin, rayDirection, TOP_RADIUS, offset, distanceToSpace);
 
             float distanceToGround = 0.0;
-            bool hitGround = intersectSphere(rayOrigin, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
+            bool hitGround = intersectAtmosphereSphere(rayOrigin, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
             float segmentLength = (hitGround ? distanceToGround : distanceToSpace) / float(SAMPLE_COUNT);
             float t = segmentLength * 0.5;
 
@@ -65,7 +65,7 @@ void main(void)
                 float lightAngle = dot(up, lightDirection);
 
                 float distanceToGround;
-                float shadow = intersectSphere(position, lightDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;
+                float shadow = intersectAtmosphereSphere(position, lightDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;
                 vec3 transmittanceToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
 
                 transmittanceCamera = cameraBelow ? (transmittanceToSpace / transmittanceFromCameraToSpace) : (transmittanceFromCameraToSpace / transmittanceToSpace);

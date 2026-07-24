@@ -74,7 +74,7 @@ handler.addProgram(new Program("vectorMap", {
 var animCounter = 0,
     vertBuffer = handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
 
-globe.renderer.events.on("draw", function (r) {
+globe.renderer.events.on("predraw", function (r) {
 
     //Rendering vector field to geoTexture2d buffer
     frameBuffer.activate();

@@ -1,23 +1,25 @@
 import * as math from "../math";
-import {Entity} from "../entity/Entity";
-import type {IEntityParams} from "../entity/Entity";
-import {EntityCollection} from "../entity/EntityCollection";
-import {EntityCollectionsTreeStrategy} from "../quadTree/EntityCollectionsTreeStrategy";
-import type {EventsHandler} from "../Events";
-import {GeometryHandler} from "../entity/GeometryHandler";
-import type {IMouseState, ITouchState} from "../renderer/RendererEvents";
-import {Layer} from "./Layer";
-import type {ILayerParams, LayerEventsList} from "./Layer";
-import {Vec3} from "../math/Vec3";
-import type {NumberArray3} from "../math/Vec3";
-import {Planet} from "../scene/Planet";
-import {Material} from "./Material";
-import type {NumberArray4} from "../math/Vec4";
+import { Entity } from "../entity/Entity";
+import type { IEntityParams } from "../entity/Entity";
+import { EntityCollection } from "../entity/EntityCollection";
+import { EntityCollectionsTreeStrategy } from "../quadTree/EntityCollectionsTreeStrategy";
+import type { EventsHandler } from "../Events";
+import { GeometryHandler } from "../entity/geometry/GeometryHandler";
+import type { IMouseState, ITouchState } from "../renderer/RendererEvents";
+import { BaseTileMaterialLayer } from "./BaseTileMaterialLayer";
+import type { IBaseTileMaterialLayerParams } from "./BaseTileMaterialLayer";
+import type { LayerEventsList } from "./Layer";
+import type { NumberArray3 } from "../math/Vec3";
+import { Planet } from "../scene/Planet";
+import { Material } from "./Material";
+import { Segment } from "../segment/Segment";
+import type { NumberArray4 } from "../math/Vec4";
 import * as mercator from "../mercator";
+import { normalizeShadeMode, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "../shadeModeConstants";
 
-export interface IVectorParams extends ILayerParams {
+export interface IVectorParams extends IBaseTileMaterialLayerParams {
     entities?: Entity[] | IEntityParams[];
-    polygonOffsetUnits?: number;
+    depthOffset?: number;
     nodeCapacity?: number;
     relativeToGround?: boolean;
     clampToGround?: boolean;
@@ -25,8 +27,10 @@ export interface IVectorParams extends ILayerParams {
     pickingScale?: number | NumberArray3;
     scaleByDistance?: NumberArray3;
     labelMaxLetters?: number;
-    useLighting?: boolean;
+    shadeMode?: ShadeModeInput;
     depthOrder?: number;
+    disableCullFace?: boolean;
+    receiveProjectors?: boolean;
 }
 
 type VectorEventsList = [
@@ -34,7 +38,7 @@ type VectorEventsList = [
     "draw",
     "entityadd",
     "entityremove"
-]
+];
 
 export type VectorEventsType = EventsHandler<VectorEventsList> & EventsHandler<LayerEventsList>;
 
@@ -57,40 +61,50 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
 }
 
 /**
- * Vector layer represents alternative entities store. Used for geospatial data rendering like
- * points, lines, polygons, geometry objects etc.
+ * Vector layer is an alternative entity storage. Used for geospatial data rendering like
+ * points, lines, polygons, geometry objects, etc.
  * @class
  * @extends {Layer}
  * @param {string} [name="noname"] - Layer name.
  * @param {IVectorParams} [options] - Layer options:
- * @param {number} [options.minZoom=0] - Minimal visible zoom. 0 is default
- * @param {number} [options.maxZoom=50] - Maximal visible zoom. 50 is default.
+ * @param {number} [options.minZoom=0] - Minimal visible zoom.
+ * @param {number} [options.maxZoom=50] - Maximal visible zoom.
  * @param {string} [options.attribution] - Layer attribution.
- * @param {string} [options.zIndex=0] - Layer Z-order index. 0 is default.
- * @param {boolean} [options.visibility=true] - Layer visibility. True is default.
- * @param {boolean} [options.isBaseLayer=false] - Layer base layer. False is default.
- * @param {Array.<Entity>} [options.entities] - Entities array.
+ * @param {number} [options.zIndex=0] - Layer Z-order index.
+ * @param {boolean} [options.visibility=true] - Layer visibility.
+ * @param {boolean} [options.isBaseLayer=false] - Layer base layer.
+ * @param {number} [options.opacity=1.0] - Layer opacity.
+ * @param {boolean} [options.pickingEnabled=true] - Enables/disables picking.
+ * @param {boolean} [options.fading=false] - Enables layer fade-in/fade-out transition logic.
+ * @param {number} [options.height=0] - Layer height level used for rendering order.
+ * @param {Array.<Entity|IEntityParams>} [options.entities] - Entities array or entity init params.
  * @param {Array.<number>} [options.scaleByDistance] - Scale by distance parameters. (exactly 3 entries)
  *      First index - near distance to the entity, after entity becomes full scale.
  *      Second index - far distance to the entity, when entity becomes zero scale.
  *      Third index - far distance to the entity, when entity becomes invisible.
- *      Use [1.0, 1.0, 1.0] for real sized objects
- * @param {number} [options.nodeCapacity=30] - Maximum entities quantity in the tree node. Rendering optimization parameter. 30 is default.
- * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering. True for optimization huge data.
- * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
- * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
- * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset.
+ *      Default is `[MAX32, MAX32, MAX32]` (no distance scaling).
+ * @param {number|Array.<number>} [options.pickingScale=[1,1,1]] - Picking scale value or xyz scale array.
+ * @param {number} [options.nodeCapacity=60] - Maximum entities quantity in a quadtree node.
+ * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering.
+ * @param {boolean} [options.clampToGround=false] - Clamp vector data to the ground.
+ * @param {boolean} [options.relativeToGround=false] - Place vector data relative to the ground relief.
+ * @param {number} [options.labelMaxLetters=24] - Maximum label letters per line for label entities.
+ * @param {Number} [options.depthOffset=0.0] - Signed world-space depth offset along the camera ray.
+ * Negative values move geometry closer to the camera, positive values move it farther.
+ * @param {number|string} [options.shadeMode=1] - Geo object shading: 0/none unlit, 0.5/phong, 1/pbr.
+ * @param {number} [options.depthOrder=0] - Rendering order group for vector collections.
+ * @param {boolean} [options.disableCullFace=false] - Disables back-face culling for geo object rendering.
+ * @param {boolean} [options.receiveProjectors=true] - Enables/disables projector effect reception for this layer entities.
  *
- * //@fires EventsHandler<VectorEventsList>#entitymove
- * @fires EventsHandler<VectorEventsList>#draw
- * @fires EventsHandler<VectorEventsList>#add
- * @fires EventsHandler<VectorEventsList>#remove
- * @fires EventsHandler<VectorEventsList>#entityadd
- * @fires EventsHandler<VectorEventsList>#entityremove
- * @fires EventsHandler<VectorEventsList>#visibilitychange
+ * //@fires entitymove
+ * @fires draw
+ * @fires add
+ * @fires remove
+ * @fires entityadd
+ * @fires entityremove
+ * @fires visibilitychange
  */
-class Vector extends Layer {
-
+class Vector extends BaseTileMaterialLayer {
     public override events: VectorEventsType;
 
     protected _depthOrder: number;
@@ -142,7 +156,7 @@ class Vector extends Layer {
     /** todo: combine into one */
     protected _stripEntityCollection: EntityCollection;
     protected _polylineEntityCollection: EntityCollection;
-    protected _geoObjectEntityCollection: EntityCollection;
+    public _geoObjectEntityCollection: EntityCollection;
 
     public _geometryHandler: GeometryHandler;
 
@@ -151,15 +165,20 @@ class Vector extends Layer {
     //protected _pendingsQueue: Entity[];
 
     /**
-     * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
+     * Signed world-space depth offset along the camera ray.
+     * Negative values move geometry closer to the camera, positive values move it farther.
+     * 0.0 means no offset.
      * @public
      * @type {Number}
      */
-    public polygonOffsetUnits: number;
+    public depthOffset: number;
 
     protected _labelMaxLetters: number;
 
-    protected _useLighting: boolean;
+    protected _shadeMode: ShadeMode;
+
+    protected _disableCullFace: boolean;
+    protected _receiveProjectors: boolean;
 
     constructor(name?: string | null, options: IVectorParams = {}) {
         super(name, options);
@@ -173,8 +192,7 @@ class Vector extends Layer {
 
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 
-        this._useLighting = options.useLighting !== undefined ? options.useLighting : true;
-
+        this._shadeMode = normalizeShadeMode(options.shadeMode ?? SHADE_PBR);
 
         let pickingScale: Float32Array = new Float32Array([1.0, 1.0, 1.0]);
         if (options.pickingScale !== undefined) {
@@ -182,7 +200,7 @@ class Vector extends Layer {
                 pickingScale[0] = options.pickingScale[0] || pickingScale[0];
                 pickingScale[1] = options.pickingScale[1] || pickingScale[1];
                 pickingScale[2] = options.pickingScale[2] || pickingScale[2];
-            } else if (typeof options.pickingScale === 'number') {
+            } else if (typeof options.pickingScale === "number") {
                 pickingScale[0] = options.pickingScale;
                 pickingScale[1] = options.pickingScale;
                 pickingScale[2] = options.pickingScale;
@@ -190,6 +208,8 @@ class Vector extends Layer {
         }
 
         this.pickingScale = pickingScale;
+
+        this.waitForParentMaterial = options.waitForParentMaterial ?? false;
 
         this.async = options.async !== undefined ? options.async : true;
 
@@ -211,9 +231,14 @@ class Vector extends Layer {
         });
         this._bindEventsDefault(this._polylineEntityCollection);
 
+        this._disableCullFace = options.disableCullFace ?? false;
+        this._receiveProjectors = options.receiveProjectors ?? true;
+
         this._geoObjectEntityCollection = new EntityCollection({
             pickingEnabled: this.pickingEnabled,
-            useLighting: this._useLighting
+            shadeMode: this._shadeMode,
+            disableCullFace: this._disableCullFace,
+            receiveProjectors: this._receiveProjectors
         });
         this._bindEventsDefault(this._geoObjectEntityCollection);
 
@@ -225,9 +250,10 @@ class Vector extends Layer {
 
         this.setEntities(this._entities);
 
-        this.polygonOffsetUnits = options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
+        this.depthOffset = options.depthOffset != undefined ? options.depthOffset : 0.0;
 
         this.pickingEnabled = this._pickingEnabled;
+        this.receiveProjectors = this._receiveProjectors;
 
         this._depthOrder = options.depthOrder || 0;
     }
@@ -243,15 +269,45 @@ class Vector extends Layer {
         }
     }
 
-    public get useLighting(): boolean {
-        return this._useLighting;
+    public get shadeMode(): ShadeMode {
+        return this._shadeMode;
     }
 
-    public set useLighting(f: boolean) {
-        if (f !== this._useLighting) {
-            this._geoObjectEntityCollection.useLighting = f;
-            this._useLighting = f;
-        }
+    public set shadeMode(m: ShadeModeInput) {
+        let v = normalizeShadeMode(m);
+        this._shadeMode = v;
+        this._geoObjectEntityCollection.shadeMode = v;
+    }
+
+    public get disableCullFace(): boolean {
+        return this._disableCullFace;
+    }
+
+    public set disableCullFace(v: boolean) {
+        this._disableCullFace = v;
+        this._geoObjectEntityCollection.disableCullFace = v;
+    }
+
+    /**
+     * Gets projector effect reception state for this vector layer entities.
+     * @public
+     * @returns {boolean}
+     */
+    public get receiveProjectors(): boolean {
+        return this._receiveProjectors;
+    }
+
+    /**
+     * Enables/disables projector effect reception for this vector layer entities.
+     * @public
+     * @param {boolean} v - `true` to receive projector effects, `false` to ignore them.
+     */
+    public set receiveProjectors(v: boolean) {
+        this._receiveProjectors = v;
+        this._stripEntityCollection.setReceiveProjectors(v);
+        this._polylineEntityCollection.setReceiveProjectors(v);
+        this._geoObjectEntityCollection.setReceiveProjectors(v);
+        this._entityCollectionsTreeStrategy?.setReceiveProjectors(v);
     }
 
     public get labelMaxLetters(): number {
@@ -303,7 +359,7 @@ class Vector extends Layer {
     /**
      * Returns stored entities.
      * @public
-     * @returns {Array.<Entity>} -
+     * @returns {Array.<Entity>} Stored entities.
      */
     public getEntities(): Entity[] {
         return ([] as Entity[]).concat(this._entities);
@@ -375,9 +431,7 @@ class Vector extends Layer {
         if (this._planet) {
             if (entity.billboard || entity.label || entity.geoObject || entity.isEmpty) {
                 if (entity._cartesian.isZero() && !entity._lonLat.isZero()) {
-                    entity._setCartesian3vSilent(
-                        this._planet.ellipsoid.lonLatToCartesian(entity._lonLat)
-                    );
+                    entity._setCartesian3vSilent(this._planet.ellipsoid.lonLatToCartesian(entity._lonLat));
                 } else {
                     entity._lonLat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
 
@@ -424,9 +478,7 @@ class Vector extends Layer {
      * @returns {Vector} - Returns this layer.
      */
     public removeEntity(entity: Entity): this {
-
         if (entity._layer && this.isEqual(entity._layer)) {
-
             if (!entity.parent) {
                 this._entities.splice(entity._layerIndex, 1);
                 this._reindexEntitiesArray(entity._layerIndex);
@@ -436,7 +488,6 @@ class Vector extends Layer {
             entity._layerIndex = -1;
 
             if (entity._entityCollection) {
-
                 entity._entityCollection._removeEntitySilent(entity);
 
                 let node = entity._nodePtr;
@@ -446,11 +497,7 @@ class Vector extends Layer {
                     node = node.parentNode!;
                 }
 
-                if (
-                    entity._nodePtr &&
-                    entity._nodePtr.count === 0 &&
-                    entity._nodePtr.deferredEntities.length === 0
-                ) {
+                if (entity._nodePtr && entity._nodePtr.count === 0 && entity._nodePtr.deferredEntities.length === 0) {
                     entity._nodePtr.entityCollection = null;
                     //
                     // ...
@@ -486,7 +533,7 @@ class Vector extends Layer {
     }
 
     /**
-     * Set layer picking events active.
+     * Sets layer picking events active.
      * @public
      * @param {boolean} picking - Picking enable flag.
      */
@@ -549,7 +596,7 @@ class Vector extends Layer {
 
         this._entityCollectionsTreeStrategy?.dispose();
         this._entityCollectionsTreeStrategy = null;
-        this._geometryHandler.clear()
+        this._geometryHandler.clear();
     }
 
     /**
@@ -572,7 +619,6 @@ class Vector extends Layer {
      * @returns {Vector} - Returns layer instance.
      */
     public setEntities(entities: Entity[]): this {
-
         let temp: Entity[] = new Array(entities.length);
 
         for (let i = 0, len = entities.length; i < len; i++) {
@@ -621,7 +667,10 @@ class Vector extends Layer {
 
     protected _createEntityCollectionsTree(entitiesForTree: Entity[]) {
         if (this._planet) {
-            this._entityCollectionsTreeStrategy = this._planet.quadTreeStrategy.createEntityCollectionsTreeStrategy(this, this._nodeCapacity);
+            this._entityCollectionsTreeStrategy = this._planet.quadTreeStrategy.createEntityCollectionsTreeStrategy(
+                this,
+                this._nodeCapacity
+            );
             this._entityCollectionsTreeStrategy.insertEntities(entitiesForTree);
         }
     }
@@ -631,7 +680,6 @@ class Vector extends Layer {
      * @param entityCollection
      */
     public _bindEventsDefault(entityCollection: EntityCollection) {
-
         let ve = this.events;
 
         //
@@ -723,7 +771,7 @@ class Vector extends Layer {
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
-        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+        ec.depthOffset = this.depthOffset;
 
         outArr.push(ec);
     }
@@ -734,51 +782,14 @@ class Vector extends Layer {
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
-        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+        ec.depthOffset = this.depthOffset;
 
         outArr.push(ec);
 
         if (this.clampToGround || this.relativeToGround) {
-            let rtg = Number(this.relativeToGround);
-
             const nodes = this._planet!.quadTreeStrategy._renderedNodes;
             const visibleExtent = this._planet!.getViewExtent();
-            let e = ec._entities;
-            let e_i = e.length;
-            let res = new Vec3();
-
-            while (e_i--) {
-                let altModifier = e[e_i]._altitude || 0.0;
-                let p = e[e_i].polyline!;
-                if (p && visibleExtent.overlaps(p._extent)) {
-                    // TODO:this works only for mercator area.
-                    // needs to be working on poles.
-                    let coords = p._pathLonLatMerc,
-                        c_j = coords.length;
-                    while (c_j--) {
-                        let c_j_h = coords[c_j].length;
-                        while (c_j_h--) {
-                            let ll = coords[c_j][c_j_h],
-                                n_k = nodes.length;
-                            while (n_k--) {
-                                let seg = nodes[n_k].segment;
-                                if (seg._extent.isInside(ll)) {
-                                    let cart = p._path3v[c_j][c_j_h] as Vec3;
-                                    seg.getTerrainPoint(cart, ll, res);
-                                    let alt = (rtg && p.altitude) || altModifier;
-                                    if (alt) {
-                                        let n = this._planet!.ellipsoid.getSurfaceNormal3v(res);
-                                        p.setPoint3v(res.addA(n.scale(alt)), c_j_h, c_j, true);
-                                    } else {
-                                        p.setPoint3v(res, c_j_h, c_j, true);
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            ec.applyTerrainCollision(nodes, visibleExtent);
         }
     }
 
@@ -788,7 +799,8 @@ class Vector extends Layer {
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
-        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+        ec.depthOffset = this.depthOffset;
+        ec.disableCullFace = this._disableCullFace;
 
         outArr.push(ec);
 
@@ -858,7 +870,7 @@ class Vector extends Layer {
      * @virtual
      * @param {Material} material - Current material.
      */
-    public override loadMaterial(material: Material) {
+    public override loadMaterial(material: Material, _forceLoading: boolean = false) {
         const seg = material.segment;
 
         if (this._isBaseLayer) {
@@ -885,51 +897,77 @@ class Vector extends Layer {
         material.isReady = false;
     }
 
-    public override applyMaterial(material: Material): NumberArray4 {
-        if (material.isReady) {
-            return [0, 0, 1, 1];
+    public override applyMaterial(material: Material) {
+        return super.applyMaterial(material);
+    }
+    // @deprecated, now it gets algorithm from the parent class.
+    // public override applyMaterial(material: Material): NumberArray4 {
+    //     if (material.isReady) {
+    //         return [0, 0, 1, 1];
+    //     } else {
+    //         !material.isLoading && this.loadMaterial(material);
+    //
+    //         const segment = material.segment;
+    //         let pn = segment.node,
+    //             notEmpty = false;
+    //
+    //         let mId = this.__id;
+    //         let psegm = material;
+    //
+    //         while (pn.parentNode) {
+    //             if (psegm && psegm.isReady) {
+    //                 notEmpty = true;
+    //                 break;
+    //             }
+    //             pn = pn.parentNode;
+    //             psegm = pn.segment.materials[mId];
+    //         }
+    //
+    //         if (notEmpty) {
+    //             material.appliedNodeId = pn.nodeId;
+    //             material.texture = psegm.texture;
+    //             material.pickingMask = psegm.pickingMask;
+    //             const dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+    //             return [segment.tileX * dZ2 - pn.segment.tileX, segment.tileY * dZ2 - pn.segment.tileY, dZ2, dZ2];
+    //         } else {
+    //             if (material.textureExists && material._updateTexture) {
+    //                 material.texture = material._updateTexture;
+    //                 material.pickingMask = material._updatePickingMask;
+    //             } else {
+    //                 material.texture = segment.planet.transparentTexture;
+    //                 material.pickingMask = segment.planet.transparentTexture;
+    //             }
+    //             material.pickingReady = true;
+    //             return [0, 0, 1, 1];
+    //         }
+    //     }
+    // }
+
+    protected override _allowsLoadWithoutPassReady(): boolean {
+        return true;
+    }
+
+    protected override _hasParentMaterial(psegm: Material): boolean {
+        return psegm.isReady;
+    }
+
+    protected override _onParentMaterialApplied(material: Material, psegm: Material): void {
+        material.pickingMask = psegm.pickingMask;
+    }
+
+    protected override _applyNoParentMaterial(material: Material, segment: Segment): void {
+        if (material.textureExists && material._updateTexture) {
+            material.texture = material._updateTexture;
+            material.pickingMask = material._updatePickingMask;
         } else {
-            !material.isLoading && this.loadMaterial(material);
-
-            const segment = material.segment;
-            let pn = segment.node,
-                notEmpty = false;
-
-            let mId = this.__id;
-            let psegm = material;
-
-            while (pn.parentNode) {
-                if (psegm && psegm.isReady) {
-                    notEmpty = true;
-                    break;
-                }
-                pn = pn.parentNode;
-                psegm = pn.segment.materials[mId];
-            }
-
-            if (notEmpty) {
-                material.appliedNodeId = pn.nodeId;
-                material.texture = psegm.texture;
-                material.pickingMask = psegm.pickingMask;
-                const dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
-                return [
-                    segment.tileX * dZ2 - pn.segment.tileX,
-                    segment.tileY * dZ2 - pn.segment.tileY,
-                    dZ2,
-                    dZ2
-                ];
-            } else {
-                if (material.textureExists && material._updateTexture) {
-                    material.texture = material._updateTexture;
-                    material.pickingMask = material._updatePickingMask;
-                } else {
-                    material.texture = segment.planet.transparentTexture;
-                    material.pickingMask = segment.planet.transparentTexture;
-                }
-                material.pickingReady = true;
-                return [0, 0, 1, 1];
-            }
+            material.texture = segment.planet.transparentTexture;
+            material.pickingMask = segment.planet.transparentTexture;
         }
+        material.pickingReady = true;
+        material.texOffset[0] = 0.0;
+        material.texOffset[1] = 0.0;
+        material.texOffset[2] = 1.0;
+        material.texOffset[3] = 1.0;
     }
 
     public override clearMaterial(material: Material) {
@@ -994,4 +1032,4 @@ const VECTOR_EVENTS: VectorEventsList = [
     "entityremove"
 ];
 
-export {Vector};
+export { Vector };

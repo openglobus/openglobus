@@ -1,9 +1,7 @@
-import {Ruler, type IRulerParams} from "../ruler/Ruler";
-import {HeightRulerScene} from "./HeightRulerScene";
+import { Ruler, type IRulerParams } from "../ruler/Ruler";
+import { HeightRulerScene } from "./HeightRulerScene";
 
-interface IHeightRulerParams extends IRulerParams {
-
-}
+interface IHeightRulerParams extends IRulerParams {}
 
 export class HeightRuler extends Ruler {
     constructor(options: IHeightRulerParams = {}) {

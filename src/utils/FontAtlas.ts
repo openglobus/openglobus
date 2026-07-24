@@ -1,8 +1,9 @@
-import {Deferred} from '../Deferred';
-import {Rectangle} from '../Rectangle';
-import {TextureAtlas, TextureAtlasNode} from './TextureAtlas';
-import {Handler} from "../webgl/Handler";
-import type {HTMLImageElementExt} from "./ImagesCacheManager";
+import { Deferred } from "../Deferred";
+import { Rectangle } from "../Rectangle";
+import { TextureAtlasNode } from "./TextureAtlas";
+import type { ImageSource, WebGLTextureExt } from "../webgl/Handler";
+import { Handler } from "../webgl/Handler";
+import type { HTMLImageElementExt } from "./ImagesCacheManager";
 
 //@todo: get the value from shader module
 const MAX_SIZE = 11;
@@ -28,7 +29,7 @@ interface IKerning {
     amount: number;
 }
 
-export interface IFontParams {
+interface IFontBmParams {
     common: {
         scaleH: number;
         scaleW: number;
@@ -38,32 +39,82 @@ export interface IFontParams {
     };
     distanceField: {
         distanceRange: number;
-    }
-    chars: IChar[];
+        isMtsdf: boolean;
+    };
+    glyphs: IChar[];
     kernings: IKerning[];
-    pages: string[];
 }
 
-class FontTextureAtlas extends TextureAtlas {
+interface IMSDFAtlasBounds {
+    left: number;
+    bottom: number;
+    right: number;
+    top: number;
+}
+
+interface IMSDFGlyph {
+    index: string;
+    unicode?: number | string;
+    advance: number;
+    planeBounds: IMSDFAtlasBounds;
+    atlasBounds: IMSDFAtlasBounds;
+}
+
+interface IMSDFKerning {
+    index1: number;
+    index2: number;
+    advance: number;
+}
+
+export interface IMSDFAtlasParams {
+    atlas: {
+        type: string;
+        distanceRange: number;
+        distanceRangeMiddle: number;
+        size: number;
+        width: number;
+        height: number;
+        yOrigin: "top" | "bottom";
+    };
+    metrics: {
+        emSize: number;
+        lineHeight: number;
+        ascender: number;
+        descender: number;
+        underlineY: number;
+        underlineThickness: number;
+    };
+    glyphs: IMSDFGlyph[];
+    kerning: IMSDFKerning[];
+}
+
+class FontTextureAtlas {
     public width: number;
     public height: number;
     public gliphSize: number;
     public distanceRange: number;
-    public override nodes: Map<number, FontTextureAtlasNode>;
+    public isMtsdf: boolean;
+    public sourceImage: HTMLImageElementExt | null;
+    public nodes: Map<number, FontTextureAtlasNode>;
     public kernings: Record<number, Record<number, number>>;
 
-    constructor(width?: number, height?: number) {
-        super(width, height);
+    constructor() {
         this.width = 0;
         this.height = 0;
         this.gliphSize = 0;
         this.distanceRange = 0;
+        this.isMtsdf = false;
+        this.sourceImage = null;
         this.nodes = new Map<number, FontTextureAtlasNode>();
         this.kernings = {};
     }
 
-    public override get(key: number): FontTextureAtlasNode | undefined {
+    public get(key: number): FontTextureAtlasNode | undefined {
         return this.nodes.get(key);
+    }
+
+    public createTexture(img?: HTMLImageElementExt | null) {
+        this.sourceImage = img || null;
     }
 }
 
@@ -71,7 +122,7 @@ interface IMetrics extends IChar {
     nChar: string;
     nCode: number;
     nWidth: number;
-    nHeight: number
+    nHeight: number;
     nAdvance: number;
     nXOffset: number;
     nYOffset: number;
@@ -105,7 +156,7 @@ class FontTextureAtlasNode extends TextureAtlasNode {
             nAdvance: 0,
             nXOffset: 0,
             nYOffset: 0
-        }
+        };
     }
 }
 
@@ -113,12 +164,17 @@ class FontAtlas {
     public atlasesArr: FontTextureAtlas[];
     public samplerArr: Uint32Array;
     public sdfParamsArr: Float32Array;
+    public textureArray: WebGLTextureExt | null;
     public catalogSrc: string;
 
     protected atlasIndexes: Record<string, number>;
     protected atlasIndexesDeferred: Record<string, Deferred<number>>;
     protected tokenImageSize: number;
     protected _handler: Handler | null;
+    protected _textureArrayWidth: number;
+    protected _textureArrayHeight: number;
+    protected _textureArrayMismatchWarningShown: boolean;
+    protected _fontLoadWarningShown: Record<string, boolean>;
 
     constructor(catalogSrc?: string) {
         this.atlasesArr = [];
@@ -127,7 +183,12 @@ class FontAtlas {
         this.tokenImageSize = 64;
         this.samplerArr = new Uint32Array(MAX_SIZE);
         this.sdfParamsArr = new Float32Array(MAX_SIZE * 4);
+        this.textureArray = null;
         this._handler = null;
+        this._textureArrayWidth = 0;
+        this._textureArrayHeight = 0;
+        this._textureArrayMismatchWarningShown = false;
+        this._fontLoadWarningShown = {};
         this.catalogSrc = catalogSrc || "./";
     }
 
@@ -139,7 +200,7 @@ class FontAtlas {
         let fullName = this.getFullIndex(face);
 
         // Try to load font from the directory
-        if (!this.atlasIndexes[fullName]) {
+        if (this.atlasIndexes[fullName] === undefined) {
             this.loadFont(face, this.catalogSrc, `${face}.json`);
         }
 
@@ -153,13 +214,111 @@ class FontAtlas {
         return face.trim().toLowerCase();
     }
 
-    protected _applyFontDataToAtlas(atlas: FontTextureAtlas, data: IFontParams, index: number = 0) {
-        let chars = data.chars;
+    protected _normalizeMsdfAtlasParams(data: IMSDFAtlasParams, atlasUrl?: string): IFontBmParams {
+        const s = data.atlas.size || 1;
+        const atlasType = (data.atlas.type || "").toLowerCase();
+        const isMtsdf = atlasType === "mtsdf";
+        const yOrigin = data.atlas.yOrigin || "bottom";
+        const isTopOrigin = yOrigin === "top";
+        const glyphs: IChar[] = [];
+
+        for (let i = 0; i < data.glyphs.length; i++) {
+            const gi = data.glyphs[i];
+            const rawGlyphCode =
+                gi.unicode != undefined ? Number(gi.unicode) : gi.index != undefined ? Number(gi.index) : i;
+            const glyphIndex = Number.isFinite(rawGlyphCode) ? rawGlyphCode : i;
+
+            let x = 0;
+            let y = 0;
+            let width = 0;
+            let height = 0;
+            if (gi.atlasBounds) {
+                width = gi.atlasBounds.right - gi.atlasBounds.left;
+                x = gi.atlasBounds.left;
+                if (isTopOrigin) {
+                    height = gi.atlasBounds.bottom - gi.atlasBounds.top;
+                    y = gi.atlasBounds.top;
+                } else {
+                    height = gi.atlasBounds.top - gi.atlasBounds.bottom;
+                    y = data.atlas.height - gi.atlasBounds.top;
+                }
+            }
+
+            let xoffset = 0;
+            let yoffset = 0;
+            if (gi.planeBounds) {
+                let planeTop: number;
+                let planeBottom: number;
+                if (isTopOrigin) {
+                    planeTop = -gi.planeBounds.top;
+                    planeBottom = -gi.planeBounds.bottom;
+                } else {
+                    planeTop = gi.planeBounds.top;
+                    planeBottom = gi.planeBounds.bottom;
+                }
+                width = (gi.planeBounds.right - gi.planeBounds.left) * s;
+                height = (planeTop - planeBottom) * s;
+                xoffset = gi.planeBounds.left * s;
+                yoffset = (1.0 - planeTop) * s;
+            }
+
+            const char = glyphIndex <= 0x10ffff ? String.fromCodePoint(glyphIndex) : "";
+
+            glyphs.push({
+                id: glyphIndex,
+                index: glyphIndex,
+                char,
+                width,
+                height,
+                x,
+                y,
+                chnl: 15,
+                page: 0,
+                xadvance: gi.advance * s,
+                xoffset,
+                yoffset
+            });
+        }
+
+        const kernings: IKerning[] = [];
+        if (data.kerning) {
+            for (let i = 0; i < data.kerning.length; i++) {
+                const ki = data.kerning[i];
+                const first = ki.index1;
+                const second = ki.index2;
+                kernings.push({
+                    first,
+                    second,
+                    amount: ki.advance * s
+                });
+            }
+        }
+
+        return {
+            common: {
+                scaleH: data.atlas.height,
+                scaleW: data.atlas.width
+            },
+            info: {
+                size: s
+            },
+            distanceField: {
+                distanceRange: data.atlas.distanceRange,
+                isMtsdf
+            },
+            glyphs,
+            kernings
+        };
+    }
+
+    protected _applyFontDataToAtlas(atlas: FontTextureAtlas, data: IFontBmParams, index: number = 0) {
+        let glyphs = data.glyphs;
 
         atlas.height = data.common.scaleH;
         atlas.width = data.common.scaleW;
         atlas.gliphSize = data.info.size;
         atlas.distanceRange = data.distanceField.distanceRange;
+        atlas.isMtsdf = data.distanceField.isMtsdf;
 
         let w = atlas.width,
             h = atlas.height,
@@ -167,16 +326,14 @@ class FontAtlas {
 
         this.sdfParamsArr[index * 4] = w;
         this.sdfParamsArr[index * 4 + 1] = h;
-        this.sdfParamsArr[index * 4 + 2] = s;
+        // z is a shader flag: 1.0 for MTSDF atlas (alpha contains true SDF), 0.0 otherwise.
+        this.sdfParamsArr[index * 4 + 2] = atlas.isMtsdf ? 1.0 : 0.0;
         this.sdfParamsArr[index * 4 + 3] = atlas.distanceRange;
 
-        let idToChar: Record<number, string> = {};
+        atlas.nodes.clear();
 
-        for (let i = 0; i < chars.length; i++) {
-            let ci = chars[i];
-            let ti = ci.char;
-
-            idToChar[ci.id] = ti;
+        for (let i = 0; i < glyphs.length; i++) {
+            let ci = glyphs[i];
 
             let r = new Rectangle(ci.x, ci.y, ci.x + ci.width, ci.y + ci.height);
 
@@ -201,8 +358,8 @@ class FontAtlas {
             tc[11] = r.top / h;
 
             let taNode = new FontTextureAtlasNode(r, tc);
-            let ciNorm = ci.char.normalize('NFKC');
-            let ciCode = ciNorm.charCodeAt(0);
+            const ciNorm = ci.char.normalize("NFKC");
+            const ciCode = ciNorm.codePointAt(0) ?? ci.id;
 
             //taNode.metrics = ci;
 
@@ -231,7 +388,7 @@ class FontAtlas {
 
             taNode.emptySize = 1;
 
-            atlas.nodes.set(ciNorm.charCodeAt(0), taNode);
+            atlas.nodes.set(ciCode, taNode);
         }
 
         atlas.kernings = {};
@@ -242,15 +399,6 @@ class FontAtlas {
             let first = ki.first,
                 second = ki.second;
 
-            //let charFirst = idToChar[first],
-            //    charSecond = idToChar[second];
-
-            // if (!atlas.kernings[charFirst]) {
-            //     atlas.kernings[charFirst] = {};
-            // }
-            //
-            // atlas.kernings[charFirst][charSecond] = ki.amount / s;
-
             if (!atlas.kernings[first]) {
                 atlas.kernings[first] = {};
             }
@@ -259,7 +407,7 @@ class FontAtlas {
         }
     }
 
-    public initFont(faceName: string, dataJson: IFontParams, imageBase64: string) {
+    public initFont(faceName: string, dataJson: IMSDFAtlasParams, imageBase64: string) {
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
 
@@ -279,13 +427,12 @@ class FontAtlas {
         atlas.width = 0;
         atlas.gliphSize = 0;
         atlas.distanceRange = 0;
+        atlas.isMtsdf = false;
         atlas.kernings = {};
-
-        atlas.assignHandler(this._handler!);
 
         this.atlasesArr[index] = atlas;
 
-        this._applyFontDataToAtlas(atlas, dataJson, index);
+        this._applyFontDataToAtlas(atlas, this._normalizeMsdfAtlasParams(dataJson), index);
 
         let img = new Image();
         img.onload = () => {
@@ -297,12 +444,78 @@ class FontAtlas {
 
     protected _createTexture(atlas: FontTextureAtlas, img: HTMLImageElementExt) {
         atlas.createTexture(img);
+        this._updateTextureArrayLayer(atlas);
+    }
+
+    protected _ensureTextureArray(width: number, height: number): boolean {
+        if (!this._handler || !this._handler.isWebGl2() || !this._handler.gl) {
+            return false;
+        }
+
+        if (!this.textureArray) {
+            let gl = this._handler.gl;
+            this.textureArray = gl.createTexture() as WebGLTextureExt;
+            this._textureArrayWidth = width;
+            this._textureArrayHeight = height;
+
+            gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.textureArray);
+            gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.RGBA, width, height, MAX_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+        }
+
+        const isSameSize = this._textureArrayWidth === width && this._textureArrayHeight === height;
+        if (!isSameSize && !this._textureArrayMismatchWarningShown) {
+            this._textureArrayMismatchWarningShown = true;
+            console.warn("FontAtlas: all fonts must have identical atlas dimensions for sampler2DArray labels.");
+        }
+        return isSameSize;
+    }
+
+    protected _updateTextureArrayLayer(atlas: FontTextureAtlas) {
+        if (!this._handler || !this._handler.gl || !this._handler.isWebGl2()) {
+            return;
+        }
+
+        let index = this.atlasesArr.indexOf(atlas);
+        if (index === -1 || index >= MAX_SIZE) {
+            return;
+        }
+
+        if (!this._ensureTextureArray(atlas.width, atlas.height)) {
+            return;
+        }
+
+        let gl = this._handler.gl;
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.textureArray);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+        const uploadSource: ImageSource = atlas.sourceImage as ImageSource;
+        gl.texSubImage3D(
+            gl.TEXTURE_2D_ARRAY,
+            0,
+            0,
+            0,
+            index,
+            atlas.width,
+            atlas.height,
+            1,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            uploadSource
+        );
+        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.BROWSER_DEFAULT_WEBGL);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
     }
 
     public loadFont(faceName: string, srcDir: string, atlasUrl: string) {
-
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
+        const fontJsonUrl = `${srcDir}/${atlasUrl}`;
 
         this.atlasIndexes[fullName] = index;
 
@@ -313,28 +526,26 @@ class FontAtlas {
 
         this.samplerArr[this.atlasesArr.length] = index;
 
-        // TODO: FontTextureAtlas();
         let atlas = new FontTextureAtlas();
 
         atlas.height = 0;
         atlas.width = 0;
         atlas.gliphSize = 0;
         atlas.distanceRange = 0;
+        atlas.isMtsdf = false;
         atlas.kernings = {};
 
-        atlas.assignHandler(this._handler!);
         this.atlasesArr[index] = atlas;
 
-        fetch(`${srcDir}/${atlasUrl}`)
+        fetch(fontJsonUrl)
             .then((response: Response) => {
                 if (!response.ok) {
-                    throw Error(`Unable to load "${srcDir}/${atlasUrl}"`);
+                    throw Error(`Unable to load "${fontJsonUrl}"`);
                 }
-                //return response.json(response);
                 return response.json();
             })
-            .then((data: IFontParams) => {
-
+            .then((rawData: IMSDFAtlasParams) => {
+                const data = this._normalizeMsdfAtlasParams(rawData, atlasUrl);
                 this._applyFontDataToAtlas(atlas, data, index);
 
                 let img = new Image();
@@ -343,14 +554,23 @@ class FontAtlas {
                     def.resolve(index);
                 };
 
-                img.src = `${srcDir}/${data.pages[0]}`;
+                const atlasImageUrl = `${atlasUrl.slice(0, atlasUrl.length - 5)}.png`;
+                img.src = `${srcDir}/${atlasImageUrl}`;
                 img.crossOrigin = "Anonymous";
             })
-            .catch(err => {
-                def.reject();
-                return {'status': "error", 'msg': err.toString()};
+            .catch((err) => {
+                if (!this._fontLoadWarningShown[fullName]) {
+                    this._fontLoadWarningShown[fullName] = true;
+                    console.warn(
+                        `FontAtlas: font "${faceName}" not found or invalid (${fontJsonUrl}). Labels using this font may not render.`,
+                        err
+                    );
+                }
+                // Keep promise resolved to prevent unhandled rejections in label update loops.
+                def.resolve(index);
+                return { status: "error", msg: err.toString() };
             });
     }
 }
 
-export {FontAtlas};
+export { FontAtlas };

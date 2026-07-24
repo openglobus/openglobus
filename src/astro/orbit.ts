@@ -1,5 +1,5 @@
 import * as math from "../math";
-import {Mat3} from "../math/Mat3";
+import { Mat3 } from "../math/Mat3";
 
 type Func = (x: number) => number;
 
@@ -96,7 +96,11 @@ export function getTrueAnomaly(eccentricAnomaly: number, eccentricity: number): 
     return trueAnomaly + revs * math.TWO_PI;
 }
 
-export function getPerifocalToCartesianMatrix(argumentOfPeriapsis: number, inclination: number, rightAscension: number): Mat3 {
+export function getPerifocalToCartesianMatrix(
+    argumentOfPeriapsis: number,
+    inclination: number,
+    rightAscension: number
+): Mat3 {
     let res = new Mat3();
     let cosap = Math.cos(argumentOfPeriapsis),
         sinap = Math.sin(argumentOfPeriapsis),
