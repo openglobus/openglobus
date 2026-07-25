@@ -226,8 +226,8 @@ class Renderer {
     public forwardFramebuffer: Multisample | null;
     protected hdrFramebuffer: Framebuffer | null;
 
-    public deferredShadingPass: IDeferredShadingPass;
     public deferredDisabled: boolean;
+    public deferredShadingPass: IDeferredShadingPass;
     public transparencyPass: ITransparencyPass;
 
     protected toneMappingFramebuffer: Framebuffer | null;
@@ -371,8 +371,8 @@ class Renderer {
         this.forwardFramebuffer = null;
         this.hdrFramebuffer = null;
 
-        this.deferredShadingPass = new PhongDeferredShading(this);
         this.deferredDisabled = params.deferredDisabled ?? false;
+        this.deferredShadingPass = new PhongDeferredShading(this);
         this.transparencyPass = new WOITPass(this);
 
         this.toneMappingFramebuffer = null;
@@ -851,8 +851,10 @@ class Renderer {
 
         this.forwardFramebuffer.init();
 
-        this.deferredShadingPass.init();
-        this.transparencyPass.init();
+        if (!this.deferredDisabled) {
+            this.deferredShadingPass.init();
+            this.transparencyPass.init();
+        }
 
         this.hdrFramebuffer = new Framebuffer(this.handler, {
             width: initWidth,
@@ -930,8 +932,10 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(w, h);
         this.forwardFramebuffer!.setSize(w * 0.5, h * 0.5);
-        this.deferredShadingPass.resize(w * 0.5, h * 0.5);
-        this.transparencyPass.resize(w * 0.5, h * 0.5);
+        if (!this.deferredDisabled) {
+            this.deferredShadingPass.resize(w * 0.5, h * 0.5);
+            this.transparencyPass.resize(w * 0.5, h * 0.5);
+        }
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w * 0.5, h * 0.5, true);
     }
 
@@ -941,8 +945,10 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(w, h);
         this.forwardFramebuffer!.setSize(w, h);
-        this.deferredShadingPass.resize(w, h);
-        this.transparencyPass.resize(w, h);
+        if (!this.deferredDisabled) {
+            this.deferredShadingPass.resize(w, h);
+            this.transparencyPass.resize(w, h);
+        }
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w, h, true);
 
         this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(w, h, true);

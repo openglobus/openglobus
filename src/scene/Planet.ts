@@ -973,7 +973,9 @@ export class Planet extends Scene {
             h.removeProgram("segment_screen_wl_forward");
             h.addProgram(shaders.segment_screen_wl_forward_atmos(atmosParams));
 
-            this._swapDeferredShadingPass(atmosParams);
+            if (!this.renderer.deferredDisabled) {
+                this._swapDeferredShadingPass(atmosParams);
+            }
         }
     }
 
@@ -1006,7 +1008,9 @@ export class Planet extends Scene {
             this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
             h.addProgram(shaders.segment_screen_wl_forward_atmos(this._atmosphere.parameters));
-            this._swapDeferredShadingPass(this._atmosphere.parameters);
+            if (!this.renderer.deferredDisabled) {
+                this._swapDeferredShadingPass(this._atmosphere.parameters);
+            }
 
             if (!this._transparentBackground) {
                 if (this.renderer.controls.SimpleSkyBackground) {
@@ -1020,7 +1024,9 @@ export class Planet extends Scene {
 
             this._atmosphere.deactivate();
 
-            this._restoreDefaultDeferredShadingPass();
+            if (!this.renderer.deferredDisabled) {
+                this._restoreDefaultDeferredShadingPass();
+            }
 
             if (!this._transparentBackground) {
                 if (!this.renderer.controls.SimpleSkyBackground) {
@@ -1058,7 +1064,9 @@ export class Planet extends Scene {
         let r = this.renderer,
             h = r.handler;
 
-        h.addProgram(shaders.segment_screen_deferred());
+        if (!r.deferredDisabled) {
+            h.addProgram(shaders.segment_screen_deferred());
+        }
         h.addProgram(shaders.segment_colorPicking());
         h.addProgram(shaders.segment_depth());
 
