@@ -139,3 +139,5 @@ There are many ways to contribute back to the project:
 ## License
 
 ### Apache-2.0
+---
+OpenGlobus. Precision at all scales.
