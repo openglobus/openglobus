@@ -17,7 +17,7 @@
     "recurse" : true,
     "private" : false,
     "lenient" : true,
-    "template" : "./node_modules/clean-jsdoc-theme",
+    "template" : "./node_modules/clean-jsdoc-theme/dist",
     "theme_opts" : {
       "default_theme" : "dark",
       "base_url": "https://openglobus.github.io/docs/",
