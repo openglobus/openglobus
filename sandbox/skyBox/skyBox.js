@@ -87,6 +87,7 @@ let globe = new Globe({
     //frustums: [[1, 1e12]],
     terrain: new GlobusRgbTerrain(),
     deferredDisabled: true,
+    //pixelRatio: 0.5,
     //skybox: skybox,
     // navigation: {
     //     minInertia: 1,
