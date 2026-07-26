@@ -114,7 +114,10 @@ class LabelHandler extends BaseBillboardHandler {
 
     public override initProgram() {
         if (this._renderer && this._renderer.handler && this._renderer.handler.gl) {
-            this._renderer.addPrograms(shaders.label_webgl2(), shaders.label_woit(), shaders.labelPicking());
+            this._renderer.addPrograms(shaders.label_webgl2(), shaders.labelPicking());
+            if (!this._renderer.deferredDisabled) {
+                this._renderer.addPrograms(shaders.label_woit());
+            }
         }
     }
 
