@@ -4,6 +4,7 @@
         <title>OpenGlobus Transparent Background</title>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="./ar.js" type="module"></script>
         <link rel="stylesheet" href="../../css/og.css" type="text/css" />
         <style>
             html,
@@ -56,23 +57,46 @@
             #earth .og-inner {
                 background: transparent;
             }
+
+            .ar-controls {
+                position: absolute;
+                left: 24px;
+                bottom: 24px;
+                z-index: 2;
+                display: grid;
+                gap: 10px;
+                width: min(360px, calc(100% - 48px));
+                padding: 16px 18px;
+                border: 1px solid rgba(130, 225, 255, 0.42);
+                background: rgba(2, 8, 18, 0.72);
+                color: #e7f7ff;
+                font-size: 14px;
+                box-shadow: 0 0 32px rgba(87, 215, 255, 0.16);
+            }
+
+            .ar-controls label {
+                display: flex;
+                justify-content: space-between;
+                gap: 16px;
+                font-weight: 700;
+            }
+
+            .ar-controls input {
+                width: 100%;
+            }
         </style>
     </head>
 
     <body>
         <div class="html-background"></div>
         <div id="earth"></div>
+        <div class="ar-controls">
+            <label for="planetOpacity">
+                Planet opacity
+                <span id="planetOpacityValue">0.42</span>
+            </label>
+            <input id="planetOpacity" type="range" min="0" max="1" step="0.01" value="0.42" />
+        </div>
 
-        <script type="module" id="og-sandbox-script">
-            import { Globe, OpenStreetMap } from "../../lib/og.es.js";
-
-            window.globe = new Globe({
-                target: "earth",
-                name: "Earth",
-                transparentBackground: true,
-                controls: [],
-                layers: [new OpenStreetMap()]
-            });
-        </script>
     </body>
 </html>

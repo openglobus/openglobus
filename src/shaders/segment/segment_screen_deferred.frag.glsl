@@ -19,6 +19,7 @@ uniform vec3 lightPosition;
 uniform float layerOpacityArr[SLICE_SIZE];
 
 uniform float shadeMode;
+uniform float planetOpacity;
 uniform vec3 cameraPosition;
 
 uniform int samplerCount;
@@ -67,21 +68,37 @@ void main(void) {
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
     normalColor = vec4(normal * 0.5 + 0.5, shadeMode);
 
-    if (samplerCount == 0) return;
+    if (samplerCount == 0) {
+        diffuseColor *= planetOpacity;
+        return;
+    }
 
     vec4 src;
 
     blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
-    if (samplerCount == 1) return;
+    if (samplerCount == 1) {
+        diffuseColor *= planetOpacity;
+        return;
+    }
 
     blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
-    if (samplerCount == 2) return;
+    if (samplerCount == 2) {
+        diffuseColor *= planetOpacity;
+        return;
+    }
 
     blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
-    if (samplerCount == 3) return;
+    if (samplerCount == 3) {
+        diffuseColor *= planetOpacity;
+        return;
+    }
 
     blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
-    if (samplerCount == 4) return;
+    if (samplerCount == 4) {
+        diffuseColor *= planetOpacity;
+        return;
+    }
 
     blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
+    diffuseColor *= planetOpacity;
 }

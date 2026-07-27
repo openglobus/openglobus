@@ -82,6 +82,7 @@ export interface IPlanetParams {
     vectorTileSize?: number;
     maxNodesCount?: number;
     transparentBackground?: boolean;
+    opacity?: number;
     nearPlaneStrategy?: INearPlaneStrategy;
     shadeMode?: ShadeModeInput;
     reverseDepth?: boolean;
@@ -143,6 +144,7 @@ type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
  * @param {boolean} [options.disableMemClear=false] - Disables automatic memory cleanup via memClear().
  * @param {number} [options.vectorTileSize] - Vector tile texture size for vector layer baking.
  * @param {boolean} [options.transparentBackground=false] - Enables transparent renderer background.
+ * @param {number} [options.opacity=1.0] - Planet terrain surface opacity in transparent background mode.
  * @param {INearPlaneStrategy} [options.nearPlaneStrategy] - Near-plane strategy implementation.
  * @param {number|string} [options.shadeMode=0.5] - Terrain shading mode: `0|none|unlit`, `0.5|phong`, `1|pbr`.
  * @param {boolean} [options.reverseDepth=true] - Enables reverse-Z depth for the default planet camera in perspective mode.
@@ -381,6 +383,7 @@ export class Planet extends Scene {
     private _maxNodes: number;
 
     protected _transparentBackground: boolean;
+    protected _opacity: number;
 
     constructor(options: IPlanetParams = {}) {
         super(options.name);
@@ -517,6 +520,14 @@ export class Planet extends Scene {
         this._specularTextureSrc = options.specularTextureSrc || null;
 
         this._transparentBackground = options.transparentBackground || false;
+        this._opacity = Planet._clampOpacity(options.opacity ?? 1.0);
+    }
+
+    protected static _clampOpacity(opacity: number): number {
+        if (!Number.isFinite(opacity)) {
+            return 1.0;
+        }
+        return Math.max(0.0, Math.min(opacity, 1.0));
     }
 
     /**
@@ -681,6 +692,34 @@ export class Planet extends Scene {
     }
 
     /**
+     * Returns planet terrain surface opacity.
+     * @public
+     * @returns {number} - Opacity value in range `[0..1]`.
+     */
+    public get opacity(): number {
+        return this._opacity;
+    }
+
+    /**
+     * Sets planet terrain surface opacity. The value affects only segment rendering in transparent background mode.
+     * Billboards, labels, geo objects, and other entities keep their own opacity.
+     * @public
+     * @param {number} opacity - Opacity value in range `[0..1]`.
+     */
+    public set opacity(opacity: number) {
+        this._opacity = Planet._clampOpacity(opacity);
+    }
+
+    /**
+     * Returns effective terrain surface opacity for the current renderer mode.
+     * @public
+     * @returns {number} - `opacity` in transparent background mode, otherwise `1.0`.
+     */
+    public get surfaceOpacity(): number {
+        return this._getSurfaceOpacity();
+    }
+
+    /**
      * Returns active terrain shade mode.
      * @public
      * @returns {number} - Shade mode id.
@@ -696,6 +735,18 @@ export class Planet extends Scene {
      */
     public set shadeMode(m: ShadeModeInput) {
         this._shadeMode = normalizeShadeMode(m);
+    }
+
+    protected _getSurfaceOpacity(): number {
+        return this._transparentBackground ? this._opacity : 1.0;
+    }
+
+    protected _isTransparentSurfacePass(): boolean {
+        return this._getSurfaceOpacity() < 1.0;
+    }
+
+    protected _restoreSurfaceDepthMask() {
+        this.renderer!.handler.gl!.depthMask(true);
     }
 
     // public set diffuse(rgb: string | NumberArray3 | Vec3) {
@@ -1122,11 +1173,13 @@ export class Planet extends Scene {
         }
 
         this.renderer!.events.on("gbufferpass", () => {
-            this._renderOpaqueScreenNodesDeferredPASS();
+            if (!this._isTransparentSurfacePass()) {
+                this._renderOpaqueScreenNodesDeferredPASS();
+            }
         });
 
         this.renderer!.events.on("forwardpass", () => {
-            if (this.renderer!.deferredDisabled) {
+            if (this.renderer!.deferredDisabled || this._isTransparentSurfacePass()) {
                 if (this._atmosphereEnabled) {
                     this._renderOpaqueScreenNodesForwardPASSAtmos();
                 } else {
@@ -1138,6 +1191,7 @@ export class Planet extends Scene {
             } else {
                 this._renderTransparentScreenNodesPASSNoAtmos();
             }
+            this._restoreSurfaceDepthMask();
         });
 
         this.renderer!.events.on("postforwardpass", () => {
@@ -1146,6 +1200,7 @@ export class Planet extends Scene {
             } else {
                 this._renderScreenNodesWithHeightPASSNoAtmos();
             }
+            this._restoreSurfaceDepthMask();
         });
 
         // Initialize texture coordinates buffer pool
@@ -1611,11 +1666,13 @@ export class Planet extends Scene {
 
         gl.enable(gl.CULL_FACE);
         gl.disable(gl.BLEND);
+        gl.depthMask(true);
 
         program.activate();
         sh = program;
         shu = sh.uniforms;
 
+        gl.uniform1f(shu.planetOpacity, this._getSurfaceOpacity());
         gl.uniform1f(shu.shadeMode, this._atmosphereEnabled ? SHADE_PBR : this._shadeMode);
         gl.uniform3fv(shu.lightPosition, renderer._lightPosition);
 
@@ -1650,16 +1707,22 @@ export class Planet extends Scene {
 
         gl.enable(gl.CULL_FACE);
 
-        if (disableBlend) {
+        if (this._isTransparentSurfacePass()) {
+            renderer.enableBlendOneSrcAlpha();
+            gl.depthMask(false);
+        } else if (disableBlend) {
             gl.disable(gl.BLEND);
+            gl.depthMask(true);
         } else {
             renderer.enableBlendOneSrcAlpha();
+            gl.depthMask(true);
         }
 
         program.activate();
         sh = program;
         shu = sh.uniforms;
 
+        gl.uniform1f(shu.planetOpacity, this._getSurfaceOpacity());
         gl.uniform1f(shu.shadeMode, this._shadeMode);
 
         gl.uniform3fv(shu.lightPosition, renderer._lightPosition);
@@ -1698,10 +1761,15 @@ export class Planet extends Scene {
 
         gl.enable(gl.CULL_FACE);
 
-        if (disableBlend) {
+        if (this._isTransparentSurfacePass()) {
+            renderer.enableBlendOneSrcAlpha();
+            gl.depthMask(false);
+        } else if (disableBlend) {
             gl.disable(gl.BLEND);
+            gl.depthMask(true);
         } else {
             renderer.enableBlendOneSrcAlpha();
+            gl.depthMask(true);
         }
 
         let atmosphereControl = renderer.controls.Atmosphere as Atmosphere;
@@ -1710,6 +1778,7 @@ export class Planet extends Scene {
         sh = program;
         shu = sh.uniforms;
 
+        gl.uniform1f(shu.planetOpacity, this._getSurfaceOpacity());
         gl.uniform1f(shu.shadeMode, SHADE_PBR);
 
         if (!atmosphereControl.isReady) return program;

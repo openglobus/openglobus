@@ -50,6 +50,7 @@ export function segment_screen_deferred(): ShaderProgram {
             specularTexture: "sampler2d",
             lightPosition: "vec3",
             shadeMode: "float",
+            planetOpacity: "float",
             camHeight: "float",
             nightTextureCoefficient: "float"
         },
@@ -90,6 +91,7 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
             shadeMode: "float",
+            planetOpacity: "float",
             u_projectorCount: "int",
             u_projectorLayer: "intxx",
             u_projectorViewProjRTE: "mat4",
@@ -141,6 +143,7 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
             shadeMode: "float",
+            planetOpacity: "float",
             u_projectorCount: "int",
             u_projectorLayer: "intxx",
             u_projectorViewProjRTE: "mat4",
