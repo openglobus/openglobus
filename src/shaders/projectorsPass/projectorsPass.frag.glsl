@@ -12,6 +12,7 @@ uniform sampler2D u_materialsTexture;
 uniform sampler2D u_normalTexture;
 uniform sampler2D u_viewPositionTexture;
 uniform mat3 u_normalMatrix;
+uniform float frameOpacity;
 
 layout(location = 0) out vec4 fragColor;
 
@@ -36,7 +37,9 @@ void main(void) {
     vec3 projectorLight;
     applyProjectors(rtcPos, normal, projectorEmission, projectorLight);
 
-    vec3 contribution = projectorEmission + baseColor.rgb * projectorLight * litMask;
+    float frameTransparency = materialReceivesFrameTransparencyMask(materialFlags);
+    float receiverOpacity = mix(1.0, frameOpacity, frameTransparency);
+    vec3 contribution = (projectorEmission + baseColor.rgb * projectorLight * litMask) * receiverOpacity;
 
     fragColor = vec4(contribution, 0.0);
 }

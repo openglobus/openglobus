@@ -41,8 +41,8 @@ void main(void) {
     }
 
     // R = ambient occlusion, G = roughness, B = metallic, A = material flags
-    uint receiveProjectors = uProjectorMask > 0.5 ? 1u : 0u;
-    uint receiveFrameTransparency = uFrameTransparencyMask > 0.5 ? 1u : 0u;
+    uint receiveProjectors = uint(step(0.5, uProjectorMask));
+    uint receiveFrameTransparency = uint(step(0.5, uFrameTransparencyMask));
     materials = vec4(material, float(packMaterialFlags(receiveProjectors, receiveFrameTransparency)));
     positionColor = vec4(v_viewPosition, 0.0);
     vec3 normal = normalize(vNormal);

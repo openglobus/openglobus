@@ -33,7 +33,8 @@ void main(void) {
     vec4 viewPositionData = texelFetch(viewPositionTexture, fragCoord, 0);
     vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
     uint materialFlags = uint(materials.a + 0.5);
-    float outAlpha = baseColor.a * (materialReceivesFrameTransparency(materialFlags) ? frameOpacity : 1.0);
+    float frameTransparency = materialReceivesFrameTransparencyMask(materialFlags);
+    float outAlpha = baseColor.a * mix(1.0, frameOpacity, frameTransparency);
     vec3 viewPos = viewPositionData.xyz;
     vec3 emission = unpackEmissionColor(viewPositionData.a);
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);

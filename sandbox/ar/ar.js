@@ -78,8 +78,8 @@ let globe = new Globe({
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
     //deferredDisabled: true,
-    //transparentBackground: true,
-    //frameOpacity: 1,
+    transparentBackground: true,
+    frameOpacity: 1,
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer]
 });
 
