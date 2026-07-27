@@ -19,6 +19,8 @@ uniform float uUseNormalTexture;
 uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform float shadeMode;
+uniform float uFrameTransparencyMask;
+uniform float frameOpacity;
 uniform mat3 normalMatrix;
 
 in vec3 cameraPosition;
@@ -40,6 +42,7 @@ void main(void) {
     } else {
         baseColor = vColor;
     }
+    baseColor.a *= mix(1.0, frameOpacity, uFrameTransparencyMask);
 
     float shade = shadeMode;
 

@@ -93,7 +93,7 @@ export interface IGlobeParams {
     exposure?: number;
     maxNodesCount?: number;
     transparentBackground?: boolean;
-    opacity?: number;
+    frameOpacity?: number;
     shadeMode?: ShadeModeInput;
     reverseDepth?: boolean;
 }
@@ -162,7 +162,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {number} [options.gamma] - Gamma
  * @param {number} [options.exposure] - Exposure
  * @param {boolean} [options.transparentBackground=false] - Enables a transparent WebGL canvas background so HTML behind the globe container remains visible.
- * @param {number} [options.opacity=1.0] - Planet surface opacity in transparent background mode. Does not affect billboards, labels, geo objects, or other entities.
+ * @param {number} [options.frameOpacity=1.0] - Frame opacity applied by renderer transparency flags.
  * @param {boolean} [options.reverseDepth=true] - Enables reverse-Z depth for the planet camera perspective mode.
  */
 
@@ -267,6 +267,7 @@ class Globe {
                 fontsSrc: options.fontsSrc,
                 gamma: options.gamma,
                 exposure: options.exposure,
+                frameOpacity: options.frameOpacity,
                 ...(options.transparentBackground && { clearColor: [0, 0, 0, 0] })
             }
         );
@@ -308,7 +309,6 @@ class Globe {
             vectorTileSize: options.vectorTileSize,
             maxNodesCount: options.maxNodesCount,
             transparentBackground: options.transparentBackground,
-            opacity: options.opacity,
             shadeMode: options.shadeMode,
             reverseDepth: options.reverseDepth
         });

@@ -40,7 +40,7 @@ uniform float camHeight;
 
 uniform float transitionOpacity;
 uniform float shadeMode;
-uniform float planetOpacity;
+uniform float frameOpacity;
 uniform vec3 cameraPosition;
 uniform vec3 cameraForward;
 uniform float isOrthographic;
@@ -72,7 +72,7 @@ void main(void) {
 
     if (shadeMode == SHADE_UNLIT) {
         diffuseColor.rgb += projectorEmission;
-        diffuseColor *= transitionOpacity * planetOpacity;
+        applyPremultipliedSurfaceOpacity(diffuseColor, transitionOpacity, frameOpacity);
         return;
     }
 
@@ -150,5 +150,5 @@ void main(void) {
     diffuseColor.a
     );
 
-    diffuseColor *= transitionOpacity * planetOpacity;
+    applyPremultipliedSurfaceOpacity(diffuseColor, transitionOpacity, frameOpacity);
 }

@@ -6,6 +6,7 @@ precision highp sampler2D;
 #include "../common/shadeMode.glsl"
 #include "../atmos/common.glsl"
 #include "../common/lighting.glsl"
+#include "../common/materialFlags.glsl"
 
 uniform sampler2D baseTexture;
 uniform sampler2D materialsTexture;
@@ -28,6 +29,7 @@ uniform vec3 cameraForward;
 uniform float isOrthographic;
 uniform vec2 atmosFadeDist;
 uniform vec3 atmosMaxMinOpacity;
+uniform float frameOpacity;
 
 layout (location = 0) out vec4 fragColor;
 
@@ -41,6 +43,8 @@ void main(void) {
     float shadeMode = normalColor.a;
 
     vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
+    uint materialFlags = uint(materials.a + 0.5);
+    float outAlpha = baseColor.a * (materialReceivesFrameTransparency(materialFlags) ? frameOpacity : 1.0);
     vec4 viewPositionData = texelFetch(viewPositionTexture, fragCoord, 0);
     vec3 viewPos = viewPositionData.xyz;
     vec3 emission = unpackEmissionColor(viewPositionData.a);
@@ -50,7 +54,7 @@ void main(void) {
     vec3 worldVertex = rtcPos + cameraPosition;
 
     if (shadeMode == SHADE_UNLIT) {
-        fragColor = vec4(baseColor.rgb, baseColor.a);
+        fragColor = vec4(baseColor.rgb, outAlpha);
         return;
     }
 
@@ -77,7 +81,7 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, outAlpha);
     } else {
         vec3 lightDir = normalize(sunPos);
         vec3 rayOrigin;
@@ -115,7 +119,7 @@ void main(void) {
 
         fragColor = vec4(
         mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
-        baseColor.a
+        outAlpha
         );
     }
 }

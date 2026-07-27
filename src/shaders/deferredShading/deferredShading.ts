@@ -14,7 +14,8 @@ export function deferredShading(): ShaderProgram {
             lightPosition: "vec3",
             lightAmbient: "vec3",
             lightDiffuse: "vec3",
-            lightSpecular: "vec4"
+            lightSpecular: "vec4",
+            frameOpacity: "float"
         },
         attributes: {
             corners: "vec3"

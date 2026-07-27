@@ -275,7 +275,7 @@ export class Atmosphere extends Control {
         gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
         gl.uniform2fv(shu.iResolution, [r.viewportWidth, r.viewportHeight]);
         gl.uniform1f(shu.fov, cam.getViewAngle());
-        gl.uniform1f(shu.opacity, this.opacity * (this.planet?.surfaceOpacity ?? 1.0));
+        gl.uniform1f(shu.opacity, this.opacity * r.frameOpacity);
 
         let f = cam.frustum;
         gl.uniform1f(shu.isOrthographic, cam.isOrthographic ? 1.0 : 0.0);

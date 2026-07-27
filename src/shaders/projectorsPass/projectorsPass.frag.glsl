@@ -5,6 +5,7 @@ precision highp sampler2DArray;
 
 #include "../common/projectors.glsl"
 #include "../common/shadeMode.glsl"
+#include "../common/materialFlags.glsl"
 
 uniform sampler2D u_baseTexture;
 uniform sampler2D u_materialsTexture;
@@ -18,9 +19,9 @@ void main(void) {
     ivec2 fragCoord = ivec2(gl_FragCoord.xy);
 
     vec4 materials = texelFetch(u_materialsTexture, fragCoord, 0);
-    float receiveProjectors = materials.a;
+    uint materialFlags = uint(materials.a + 0.5);
 
-    if (receiveProjectors < 0.001) discard;
+    if (!materialReceivesProjectors(materialFlags)) discard;
 
     vec4 viewPositionData = texelFetch(u_viewPositionTexture, fragCoord, 0);
     vec4 normalColor = texelFetch(u_normalTexture, fragCoord, 0);
@@ -35,7 +36,7 @@ void main(void) {
     vec3 projectorLight;
     applyProjectors(rtcPos, normal, projectorEmission, projectorLight);
 
-    vec3 contribution = (projectorEmission + baseColor.rgb * projectorLight * litMask) * receiveProjectors;
+    vec3 contribution = projectorEmission + baseColor.rgb * projectorLight * litMask;
 
     fragColor = vec4(contribution, 0.0);
 }

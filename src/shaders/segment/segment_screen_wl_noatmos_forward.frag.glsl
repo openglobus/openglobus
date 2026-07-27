@@ -30,7 +30,7 @@ uniform float transitionOpacity;
 
 uniform float camHeight;
 uniform float shadeMode;
-uniform float planetOpacity;
+uniform float frameOpacity;
 uniform vec3 cameraPosition;
 
 in vec4 vTextureCoord;
@@ -62,7 +62,7 @@ void main(void) {
 
     if (shadeMode == SHADE_UNLIT) {
         fragColor.rgb += projectorEmission;
-        fragColor *= transitionOpacity * planetOpacity;
+        applyPremultipliedSurfaceOpacity(fragColor, transitionOpacity, frameOpacity);
         return;
     }
 
@@ -118,5 +118,5 @@ void main(void) {
     projectorEmission,
     fragColor.a
     );
-    fragColor *= transitionOpacity * planetOpacity;
+    applyPremultipliedSurfaceOpacity(fragColor, transitionOpacity, frameOpacity);
 }

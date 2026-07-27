@@ -72,6 +72,16 @@ export class EquiEntityCollectionsTreeStrategy extends EntityCollectionsTreeStra
         });
     }
 
+    public override setReceiveFrameTransparency(receiveFrameTransparency: boolean) {
+        this._entityCollectionsTreeWest.traverseTree((node: EquiEntityCollectionNodeLonLat) => {
+            node.entityCollection!.setReceiveFrameTransparency(receiveFrameTransparency);
+        });
+
+        this._entityCollectionsTreeEast.traverseTree((node: EquiEntityCollectionNodeLonLat) => {
+            node.entityCollection!.setReceiveFrameTransparency(receiveFrameTransparency);
+        });
+    }
+
     public override dispose() {
         //@ts-ignore
         this._entityCollectionsTreeWest = null;

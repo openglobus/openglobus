@@ -23,6 +23,8 @@ uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform float shadeMode;
 uniform float uProjectorMask;
+uniform float uFrameTransparencyMask;
+uniform float frameOpacity;
 uniform mat3 normalMatrix;
 
 uniform sampler2D transmittanceTexture;
@@ -56,6 +58,7 @@ void main(void) {
     } else {
         baseColor = vColor;
     }
+    baseColor.a *= mix(1.0, frameOpacity, uFrameTransparencyMask);
 
     vec4 color;
 

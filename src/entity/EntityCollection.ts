@@ -28,6 +28,7 @@ interface IEntityCollectionParams {
     labelMaxLetters?: number;
     pickingEnabled?: boolean;
     receiveProjectors?: boolean;
+    receiveFrameTransparency?: boolean;
     scaleByDistance?: NumberArray3;
     pickingScale?: number | NumberArray3;
     opacity?: number;
@@ -47,6 +48,7 @@ interface IEntityCollectionParams {
  * @param {number} [options.labelMaxLetters] - Maximum label letters per line used by the label handler.
  * @param {boolean} [options.pickingEnabled] - Enables/disables picking for all entity handlers.
  * @param {boolean} [options.receiveProjectors=true] - Enables/disables projector effect reception for this collection.
+ * @param {boolean} [options.receiveFrameTransparency=false] - Enables/disables frame transparency reception for this collection.
  * @param {Array.<number>} [options.scaleByDistance] - Entity scale by distance parameters. (exactly 3 entries)
  * First index - near distance to the entity, after entity becomes full scale.
  * Second index - far distance to the entity, when the entity becomes zero scale.
@@ -231,6 +233,13 @@ class EntityCollection {
     public receiveProjectors: boolean;
 
     /**
+     * Enables/disables frame transparency reception for this collection.
+     * @public
+     * @type {boolean}
+     */
+    public receiveFrameTransparency: boolean;
+
+    /**
      * Disables `gl.CULL_FACE` for geo objects rendering passes (opaque/transparent).
      * Useful for rendering models with inverted/inconsistent triangle winding.
      * @public
@@ -268,6 +277,7 @@ class EntityCollection {
         }
 
         this.receiveProjectors = options.receiveProjectors ?? true;
+        this.receiveFrameTransparency = options.receiveFrameTransparency ?? false;
 
         this._entities = [];
 
@@ -389,6 +399,15 @@ class EntityCollection {
      */
     public setReceiveProjectors(enable: boolean) {
         this.receiveProjectors = enable;
+    }
+
+    /**
+     * Sets whether this collection receives frame transparency.
+     * @public
+     * @param {boolean} enable - `true` to receive frame transparency, `false` to ignore it.
+     */
+    public setReceiveFrameTransparency(enable: boolean) {
+        this.receiveFrameTransparency = enable;
     }
 
     /**

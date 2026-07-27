@@ -24,7 +24,8 @@ export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT
             cameraForward: "vec3",
             isOrthographic: "float",
             atmosFadeDist: "vec2",
-            atmosMaxMinOpacity: "vec3"
+            atmosMaxMinOpacity: "vec3",
+            frameOpacity: "float"
         },
         attributes: {
             corners: "vec3"

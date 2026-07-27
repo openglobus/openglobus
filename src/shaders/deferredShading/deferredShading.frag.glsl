@@ -5,6 +5,7 @@ precision highp sampler2D;
 
 #include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
+#include "../common/materialFlags.glsl"
 
 uniform sampler2D baseTexture;
 uniform sampler2D materialsTexture;
@@ -16,6 +17,7 @@ uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
 uniform vec3 lightDiffuse;
 uniform vec4 lightSpecular;
+uniform float frameOpacity;
 
 layout (location = 0) out vec4 fragColor;
 
@@ -30,6 +32,8 @@ void main(void) {
 
     vec4 viewPositionData = texelFetch(viewPositionTexture, fragCoord, 0);
     vec4 materials = texelFetch(materialsTexture, fragCoord, 0);
+    uint materialFlags = uint(materials.a + 0.5);
+    float outAlpha = baseColor.a * (materialReceivesFrameTransparency(materialFlags) ? frameOpacity : 1.0);
     vec3 viewPos = viewPositionData.xyz;
     vec3 emission = unpackEmissionColor(viewPositionData.a);
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
@@ -37,7 +41,7 @@ void main(void) {
     vec3 rtcPos = normalMatrix * viewPos;
 
     if (shadeMode == SHADE_UNLIT) {
-        fragColor = vec4(baseColor.rgb, baseColor.a);
+        fragColor = vec4(baseColor.rgb, outAlpha);
         return;
     }
 
@@ -62,7 +66,7 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, outAlpha);
     } else {
         // TODO: Real PBR deferred(no-atmos) is not implemented yet. Keep PBR as Phong for now.
         getPhongLighting(
@@ -78,6 +82,6 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, baseColor.a);
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting + emission, outAlpha);
     }
 }

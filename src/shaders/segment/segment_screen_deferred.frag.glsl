@@ -4,6 +4,7 @@ precision highp float;
 
 #include "../common/utils.glsl"
 #include "../common/shadeMode.glsl"
+#include "../common/materialFlags.glsl"
 #include "./common.glsl"
 #include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
@@ -19,7 +20,6 @@ uniform vec3 lightPosition;
 uniform float layerOpacityArr[SLICE_SIZE];
 
 uniform float shadeMode;
-uniform float planetOpacity;
 uniform vec3 cameraPosition;
 
 uniform int samplerCount;
@@ -62,14 +62,13 @@ void main(void) {
         emission = overGround * getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight);
     }
 
-    // R = ambient occlusion, G = roughness, B = metallic(specular mask proxy)
-    materials = vec4(1.0, 0.0, specularMask, 1.0);
+    // R = ambient occlusion, G = roughness, B = metallic(specular mask proxy), A = material flags
+    materials = vec4(1.0, 0.0, specularMask, float(packMaterialFlags(1u, 1u)));
     positionColor = vec4(v_viewPosition, packEmissionColor(emission));
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
     normalColor = vec4(normal * 0.5 + 0.5, shadeMode);
 
     if (samplerCount == 0) {
-        diffuseColor *= planetOpacity;
         return;
     }
 
@@ -77,28 +76,23 @@ void main(void) {
 
     blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
     if (samplerCount == 1) {
-        diffuseColor *= planetOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
     if (samplerCount == 2) {
-        diffuseColor *= planetOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
     if (samplerCount == 3) {
-        diffuseColor *= planetOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
     if (samplerCount == 4) {
-        diffuseColor *= planetOpacity;
         return;
     }
 
     blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
-    diffuseColor *= planetOpacity;
 }

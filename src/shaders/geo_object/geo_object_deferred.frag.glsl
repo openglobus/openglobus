@@ -3,6 +3,7 @@ precision highp float;
 
 #include "../common/shadeMode.glsl"
 #include "../common/normals.glsl"
+#include "../common/materialFlags.glsl"
 
 uniform sampler2D uColorTexture;
 uniform sampler2D uNormalTexture;
@@ -15,6 +16,7 @@ uniform float uUseAOTexture;
 uniform vec3 materialProperties;
 uniform float shadeMode;
 uniform float uProjectorMask;
+uniform float uFrameTransparencyMask;
 uniform mat3 normalMatrix;
 
 in vec3 v_viewPosition;
@@ -38,8 +40,10 @@ void main(void) {
         material.b = mr.b;
     }
 
-    // R = ambient occlusion, G = roughness, B = metallic, A = projectorMask
-    materials = vec4(material, uProjectorMask);
+    // R = ambient occlusion, G = roughness, B = metallic, A = material flags
+    uint receiveProjectors = uProjectorMask > 0.5 ? 1u : 0u;
+    uint receiveFrameTransparency = uFrameTransparencyMask > 0.5 ? 1u : 0u;
+    materials = vec4(material, float(packMaterialFlags(receiveProjectors, receiveFrameTransparency)));
     positionColor = vec4(v_viewPosition, 0.0);
     vec3 normal = normalize(vNormal);
 

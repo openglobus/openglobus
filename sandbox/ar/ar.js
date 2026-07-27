@@ -12,7 +12,7 @@ import {
     Entity
 } from "../../lib/og.es.js";
 
-const INITIAL_PLANET_OPACITY = 0.42;
+const INITIAL_FRAME_OPACITY = 0.42;
 
 //
 // Geodetic grid
@@ -78,8 +78,8 @@ let globe = new Globe({
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
     //deferredDisabled: true,
-    transparentBackground: true,
-    opacity: INITIAL_PLANET_OPACITY,
+    //transparentBackground: true,
+    //frameOpacity: 1,
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer]
 });
 
@@ -88,12 +88,12 @@ window.globe = globe;
 const opacityInput = document.getElementById("planetOpacity");
 const opacityValue = document.getElementById("planetOpacityValue");
 
-opacityInput.value = INITIAL_PLANET_OPACITY.toString();
-opacityValue.textContent = INITIAL_PLANET_OPACITY.toFixed(2);
+opacityInput.value = INITIAL_FRAME_OPACITY.toString();
+opacityValue.textContent = INITIAL_FRAME_OPACITY.toFixed(2);
 
 opacityInput.addEventListener("input", () => {
     const opacity = Number(opacityInput.value);
-    globe.planet.opacity = opacity;
+    globe.renderer.frameOpacity = opacity;
     opacityValue.textContent = opacity.toFixed(2);
 });
 

@@ -481,6 +481,8 @@ export class GeoObjectHandler {
         );
         gl.uniform1f(u.shadeMode, ec._shadeMode);
         gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
+        gl.uniform1f(u.uFrameTransparencyMask, ec.receiveFrameTransparency ? 1.0 : 0.0);
+        gl.uniform1f(u.frameOpacity, r.frameOpacity);
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
