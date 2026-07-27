@@ -160,6 +160,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
  * @param {number} [options.gamma] - Gamma
  * @param {number} [options.exposure] - Exposure
+ * @param {boolean} [options.transparentBackground=false] - Enables a transparent WebGL canvas background so HTML behind the globe container remains visible.
  * @param {boolean} [options.reverseDepth=true] - Enables reverse-Z depth for the planet camera perspective mode.
  */
 

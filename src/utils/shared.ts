@@ -210,6 +210,7 @@ export function stringTemplate(template: string, params?: any): string {
 
 /**
  * Replace template substrings between '${...}' tokens.
+ * Also supports escaped '\${...}' tokens emitted by GLSL bundlers.
  * @param {string} template - String with templates in "${" and "}"
  * @param {Object} params - Template named object with subsrtings.
  * @returns {string} -
@@ -224,7 +225,7 @@ export function stringTemplate(template: string, params?: any): string {
  * //returns http://earth3.openglobus.org/8/15/12.ddm
  */
 export function stringTemplate2(template: string, params?: Record<string, any>): string {
-    return template.replace(/\$\{([^}]+)\}/g, (_, key) => {
+    return template.replace(/\\?\$\{([^}]+)\}/g, (_, key) => {
         return params?.[key.trim()] ?? "";
     });
 }
