@@ -30,8 +30,6 @@ export const TRANSLATE_BUFFER = 10;
 export const LOCALPOSITION_BUFFER = 11;
 
 const OPAQUE_ALPHA_THRESHOLD = 0.999999;
-const RECEIVE_PROJECTORS_MASK = 1;
-const RECEIVE_SHADOWS_MASK = 2;
 
 function setParametersToArray(
     arr: number[] | TypedArray,
@@ -482,13 +480,18 @@ export class GeoObjectHandler {
             r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
         );
         gl.uniform1f(u.shadeMode, ec._shadeMode);
-        gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
-        gl.uniform1f(u.uFrameTransparencyMask, ec.receiveFrameTransparency ? 1.0 : 0.0);
-        gl.uniform1f(u.frameOpacity, r.frameOpacity);
-        gl.uniform1f(
-            u.uReceiveMask,
-            (ec.receiveProjectors ? RECEIVE_PROJECTORS_MASK : 0) | (ec.receiveShadows ? RECEIVE_SHADOWS_MASK : 0)
-        );
+        if (u.uProjectorMask !== undefined) {
+            gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
+        }
+        if (u.uFrameTransparencyMask !== undefined) {
+            gl.uniform1f(u.uFrameTransparencyMask, ec.receiveFrameTransparency ? 1.0 : 0.0);
+        }
+        if (u.uShadowMask !== undefined) {
+            gl.uniform1f(u.uShadowMask, ec.receiveShadows ? 1.0 : 0.0);
+        }
+        if (u.frameOpacity !== undefined) {
+            gl.uniform1f(u.frameOpacity, r.frameOpacity);
+        }
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);

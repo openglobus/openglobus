@@ -22,8 +22,6 @@ uniform vec3 lightDiffuse;
 uniform vec4 lightSpecular;
 uniform float frameOpacity;
 
-const int RECEIVE_SHADOWS = 2;
-
 layout (location = 0) out vec4 fragColor;
 
 void main(void) {
@@ -53,8 +51,7 @@ void main(void) {
 
     float ao = materials.r;
     float specularMask = materials.b;
-    int receiveMask = int(materials.a + 0.5);
-    float receiveShadows = float(receiveMask & RECEIVE_SHADOWS) / float(RECEIVE_SHADOWS);
+    float receiveShadows = materialReceivesShadowsMask(materialFlags);
     float directShadowVisibility =
         getShadowMapsDirectVisibility(rtcPos, normal) *
         getCascadeShadowDirectVisibility(rtcPos, normal);

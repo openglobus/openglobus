@@ -35,7 +35,7 @@ export const geo_object_deferred = (): ShaderProgram =>
             shadeMode: "float",
             uProjectorMask: "float",
             uFrameTransparencyMask: "float",
-            uReceiveMask: "float"
+            uShadowMask: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -80,8 +80,8 @@ export const geo_object_forward = (): ShaderProgram =>
             uUseAOTexture: "float",
             shadeMode: "float",
             uFrameTransparencyMask: "float",
+            uShadowMask: "float",
             frameOpacity: "float",
-            uReceiveMask: "float",
             ...shadowMapUniforms,
             ...cascadeShadowUniforms
         },
@@ -130,7 +130,7 @@ export const geo_object_woit = (): ShaderProgram =>
             uProjectorMask: "float",
             uFrameTransparencyMask: "float",
             frameOpacity: "float",
-            uReceiveMask: "float",
+            uShadowMask: "float",
             useReverseDepth: "float",
             ...projectorUniforms,
             ...shadowMapUniforms,
@@ -181,7 +181,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             uProjectorMask: "float",
             uFrameTransparencyMask: "float",
             frameOpacity: "float",
-            uReceiveMask: "float",
+            uShadowMask: "float",
             useReverseDepth: "float",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",

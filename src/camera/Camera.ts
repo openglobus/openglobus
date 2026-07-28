@@ -218,6 +218,7 @@ class Camera {
     protected _pWidth: number;
     protected _pHeight: number;
     protected _pIsOrthographic: boolean;
+    protected _pFocusDistance: number;
 
     protected _tanViewAngle_hrad: number;
 
@@ -342,6 +343,7 @@ class Camera {
         this._pWidth = this._width;
         this._pHeight = this._height;
         this._pIsOrthographic = this._isOrthographic;
+        this._pFocusDistance = this.focusDistance;
     }
 
     /**
@@ -605,12 +607,14 @@ class Camera {
      */
     protected _checkViewChange() {
         const aspect = this.getAspectRatio();
+        const focusDistance = this.focusDistance;
         const projectionChanged =
             this._pViewAngle !== this._viewAngle ||
             this._pAspect !== aspect ||
             this._pWidth !== this._width ||
             this._pHeight !== this._height ||
-            this._pIsOrthographic !== this._isOrthographic;
+            this._pIsOrthographic !== this._isOrthographic ||
+            (this._isOrthographic && this._pFocusDistance !== focusDistance);
 
         if (this.isMoving || projectionChanged) {
             this.events.dispatch(this.events.viewchange, this);
@@ -621,6 +625,7 @@ class Camera {
         this._pWidth = this._width;
         this._pHeight = this._height;
         this._pIsOrthographic = this._isOrthographic;
+        this._pFocusDistance = focusDistance;
     }
 
     /**

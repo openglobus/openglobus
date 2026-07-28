@@ -15,9 +15,9 @@ uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform vec3 materialProperties;
 uniform float shadeMode;
-uniform float uReceiveMask;
 uniform float uProjectorMask;
 uniform float uFrameTransparencyMask;
+uniform float uShadowMask;
 uniform mat3 normalMatrix;
 
 in vec3 v_viewPosition;
@@ -41,10 +41,11 @@ void main(void) {
         material.b = mr.b;
     }
 
-    // R = ambient occlusion, G = roughness, B = metallic, A = projector/shadow receive bit mask
+    // R = ambient occlusion, G = roughness, B = metallic, A = material flags
     uint receiveProjectors = uint(step(0.5, uProjectorMask));
     uint receiveFrameTransparency = uint(step(0.5, uFrameTransparencyMask));
-    materials = vec4(material, float(packMaterialFlags(receiveProjectors, receiveFrameTransparency)));
+    uint receiveShadows = uint(step(0.5, uShadowMask));
+    materials = vec4(material, float(packMaterialFlags(receiveProjectors, receiveFrameTransparency, receiveShadows)));
     positionColor = vec4(v_viewPosition, 0.0);
     vec3 normal = normalize(vNormal);
 

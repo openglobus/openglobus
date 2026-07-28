@@ -63,7 +63,7 @@ void main(void) {
     }
 
     // R = ambient occlusion, G = roughness, B = metallic(specular mask proxy), A = material flags
-    materials = vec4(1.0, 0.0, specularMask, float(packMaterialFlags(1u, 1u)));
+    materials = vec4(1.0, 0.0, specularMask, float(packMaterialFlags(1u, 1u, 1u)));
     positionColor = vec4(v_viewPosition, packEmissionColor(emission));
     diffuseColor = texture(defaultTexture, vTextureCoord.xy);
     normalColor = vec4(normal * 0.5 + 0.5, shadeMode);

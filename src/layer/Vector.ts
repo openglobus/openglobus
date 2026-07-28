@@ -227,27 +227,33 @@ class Vector extends BaseTileMaterialLayer {
 
         this._labelMaxLetters = options.labelMaxLetters || 24;
 
-        this._stripEntityCollection = new EntityCollection({
-            pickingEnabled: this.pickingEnabled
-        });
-        this._bindEventsDefault(this._stripEntityCollection);
-
-        this._polylineEntityCollection = new EntityCollection({
-            pickingEnabled: this.pickingEnabled
-        });
-        this._bindEventsDefault(this._polylineEntityCollection);
-
         this._disableCullFace = options.disableCullFace ?? false;
         this._receiveProjectors = options.receiveProjectors ?? true;
         this._receiveFrameTransparency = options.receiveFrameTransparency ?? false;
         this._receiveShadows = options.receiveShadows ?? true;
+
+        this._stripEntityCollection = new EntityCollection({
+            pickingEnabled: this.pickingEnabled,
+            receiveProjectors: this._receiveProjectors,
+            receiveFrameTransparency: this._receiveFrameTransparency,
+            receiveShadows: this._receiveShadows
+        });
+        this._bindEventsDefault(this._stripEntityCollection);
+
+        this._polylineEntityCollection = new EntityCollection({
+            pickingEnabled: this.pickingEnabled,
+            receiveProjectors: this._receiveProjectors,
+            receiveFrameTransparency: this._receiveFrameTransparency,
+            receiveShadows: this._receiveShadows
+        });
+        this._bindEventsDefault(this._polylineEntityCollection);
 
         this._geoObjectEntityCollection = new EntityCollection({
             pickingEnabled: this.pickingEnabled,
             shadeMode: this._shadeMode,
             disableCullFace: this._disableCullFace,
             receiveProjectors: this._receiveProjectors,
-            receiveFrameTransparency: this._receiveFrameTransparency
+            receiveFrameTransparency: this._receiveFrameTransparency,
             receiveShadows: this._receiveShadows
         });
         this._bindEventsDefault(this._geoObjectEntityCollection);
@@ -355,7 +361,7 @@ class Vector extends BaseTileMaterialLayer {
 
     /**
      * Enables/disables shadow map reception for this vector layer entities.
-     * Uses the same deferred receive-mask channel as projectors.
+     * Stored in the same material flags channel as projectors and frame transparency.
      * @public
      * @param {boolean} v - `true` to receive shadow map effects, `false` to ignore them.
      */

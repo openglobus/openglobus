@@ -7,8 +7,6 @@ precision highp sampler2DArray;
 #include "../common/shadeMode.glsl"
 #include "../common/materialFlags.glsl"
 
-const int RECEIVE_PROJECTORS = 1;
-
 uniform sampler2D u_baseTexture;
 uniform sampler2D u_materialsTexture;
 uniform sampler2D u_normalTexture;
@@ -23,8 +21,6 @@ void main(void) {
 
     vec4 materials = texelFetch(u_materialsTexture, fragCoord, 0);
     uint materialFlags = uint(materials.a + 0.5);
-    int receiveMask = int(materials.a + 0.5);
-    float receiveProjectors = float(receiveMask & RECEIVE_PROJECTORS) / float(RECEIVE_PROJECTORS);
 
     if (!materialReceivesProjectors(materialFlags)) discard;
 

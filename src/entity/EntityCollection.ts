@@ -243,7 +243,7 @@ class EntityCollection {
 
     /**
      * Enables/disables shadow map reception for this collection.
-     * Uses the same G-buffer receive mask channel as projectors.
+     * Stored in the same material flags channel as projectors and frame transparency.
      * @public
      * @type {boolean}
      */

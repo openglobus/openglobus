@@ -1053,8 +1053,7 @@ class Renderer {
             }
 
             const samples = gl.getInternalformatParameter(gl.RENDERBUFFER, glInternalFormat, gl.SAMPLES) as
-                | number[]
-                | Int32Array;
+                number[] | Int32Array;
 
             if (!samples || samples.length === 0) {
                 return 0;
