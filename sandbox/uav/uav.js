@@ -30,7 +30,10 @@ const globus = new Globe({
     terrain: new GlobusRgbTerrain(),
     layers: [new Bing(), new OpenStreetMap(), uavLayer, myObjects],
     atmosphereEnabled: true,
-    fontsSrc: "../../res/fonts"
+    fontsSrc: "../../res/fonts",
+    //deferredDisabled: true,
+    transparentBackground: true,
+    frameOpacity: 0.3,
     //reverseDepth: false
 });
 

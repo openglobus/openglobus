@@ -482,6 +482,9 @@ export class GeoObjectHandler {
             r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
         );
         gl.uniform1f(u.shadeMode, ec._shadeMode);
+        gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
+        gl.uniform1f(u.uFrameTransparencyMask, ec.receiveFrameTransparency ? 1.0 : 0.0);
+        gl.uniform1f(u.frameOpacity, r.frameOpacity);
         gl.uniform1f(
             u.uReceiveMask,
             (ec.receiveProjectors ? RECEIVE_PROJECTORS_MASK : 0) | (ec.receiveShadows ? RECEIVE_SHADOWS_MASK : 0)

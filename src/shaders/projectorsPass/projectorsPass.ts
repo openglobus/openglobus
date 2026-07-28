@@ -12,6 +12,7 @@ export function projectorsPass(): ShaderProgram {
             u_materialsTexture: "sampler2d",
             u_normalTexture: "sampler2d",
             u_viewPositionTexture: "sampler2d",
+            frameOpacity: "float",
             ...projectorUniforms
         },
         attributes: {

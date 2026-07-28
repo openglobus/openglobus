@@ -22,6 +22,8 @@ uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform float shadeMode;
 uniform float uReceiveMask;
+uniform float uFrameTransparencyMask;
+uniform float frameOpacity;
 uniform mat3 normalMatrix;
 
 const int RECEIVE_SHADOWS = 2;
@@ -46,6 +48,7 @@ void main(void) {
     } else {
         baseColor = vColor;
     }
+    baseColor.a *= mix(1.0, frameOpacity, uFrameTransparencyMask);
 
     float shade = shadeMode;
 

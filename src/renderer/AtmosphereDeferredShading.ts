@@ -39,6 +39,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
 
         gl.disable(gl.DEPTH_TEST);
         gl.depthMask(false);
+        r.enableBlendDefault();
 
         gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -56,6 +57,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         gl.uniform1f(p.uniforms.isOrthographic, r.activeCamera.isOrthographic ? 1.0 : 0.0);
         gl.uniform2fv(p.uniforms.atmosFadeDist, this._atmosphere.planet!.atmosphereFadeDist);
         gl.uniform3fv(p.uniforms.atmosMaxMinOpacity, this._atmosphere.planet!._atmosphereCurrentMaxMinOpacity);
+        gl.uniform1f(p.uniforms.frameOpacity, r.frameOpacity);
 
         // G-buffer textures
         gl.activeTexture(gl.TEXTURE0);

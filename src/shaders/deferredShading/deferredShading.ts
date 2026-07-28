@@ -16,6 +16,7 @@ export function deferredShading(): ShaderProgram {
             lightAmbient: "vec3",
             lightDiffuse: "vec3",
             lightSpecular: "vec4",
+            frameOpacity: "float",
             ...shadowMapUniforms,
             ...cascadeShadowUniforms
         },

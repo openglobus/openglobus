@@ -41,6 +41,7 @@ export interface IRendererParams {
     fontsSrc?: string;
     gamma?: number;
     exposure?: number;
+    frameOpacity?: number;
     toneMapping?: string;
     dpi?: number;
     clearColor?: [number, number, number, number];
@@ -81,6 +82,7 @@ let _tempDepth_ = new Float32Array(2);
  *     - fontsSrc: Path to font resources
  *     - gamma: Gamma correction value
  *     - exposure: HDR exposure value
+ *     - frameOpacity: Scene objects opacity used with transparentBackground to achieve an AR effect
  *     - toneMapping: HDR tone mapping operator
  *     - dpi: Device pixel ratio
  *     - clearColor: RGBA clear color array
@@ -229,6 +231,7 @@ class Renderer {
     protected hdrFramebuffer: Framebuffer | null;
 
     public deferredDisabled: boolean;
+    public frameOpacity: number;
     public deferredShadingPass: IDeferredShadingPass;
     public transparencyPass: ITransparencyPass;
 
@@ -378,6 +381,7 @@ class Renderer {
         this.hdrFramebuffer = null;
 
         this.deferredDisabled = params.deferredDisabled ?? false;
+        this.frameOpacity = params.frameOpacity ?? 1.0;
         this.deferredShadingPass = new PhongDeferredShading(this);
         this.transparencyPass = new WOITPass(this);
 
