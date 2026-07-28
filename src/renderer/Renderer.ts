@@ -37,6 +37,7 @@ export interface IRendererParams {
     controls?: Control[];
     msaa?: number;
     autoActivate?: boolean;
+    deferredDisabled?: boolean;
     fontsSrc?: string;
     gamma?: number;
     exposure?: number;
@@ -76,6 +77,7 @@ let _tempDepth_ = new Float32Array(2);
  *     - controls: Control instances to add to the renderer
  *     - msaa: MSAA (Multi-Sample Anti-Aliasing) level
  *     - autoActivate: Start rendering automatically after creation
+ *     - deferredDisabled: Disable deferred shading pipeline and render deferred objects with forward shaders
  *     - fontsSrc: Path to font resources
  *     - gamma: Gamma correction value
  *     - exposure: HDR exposure value
@@ -226,6 +228,7 @@ class Renderer {
     public forwardFramebuffer: Multisample | null;
     protected hdrFramebuffer: Framebuffer | null;
 
+    public deferredDisabled: boolean;
     public deferredShadingPass: IDeferredShadingPass;
     public transparencyPass: ITransparencyPass;
 
@@ -374,6 +377,7 @@ class Renderer {
         this.forwardFramebuffer = null;
         this.hdrFramebuffer = null;
 
+        this.deferredDisabled = params.deferredDisabled ?? false;
         this.deferredShadingPass = new PhongDeferredShading(this);
         this.transparencyPass = new WOITPass(this);
 
@@ -853,8 +857,10 @@ class Renderer {
 
         this.forwardFramebuffer.init();
 
-        this.deferredShadingPass.init();
-        this.transparencyPass.init();
+        if (!this.deferredDisabled) {
+            this.deferredShadingPass.init();
+            this.transparencyPass.init();
+        }
 
         this.hdrFramebuffer = new Framebuffer(this.handler, {
             width: initWidth,
@@ -934,8 +940,10 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(w, h);
         this.forwardFramebuffer!.setSize(w * 0.5, h * 0.5);
-        this.deferredShadingPass.resize(w * 0.5, h * 0.5);
-        this.transparencyPass.resize(w * 0.5, h * 0.5);
+        if (!this.deferredDisabled) {
+            this.deferredShadingPass.resize(w * 0.5, h * 0.5);
+            this.transparencyPass.resize(w * 0.5, h * 0.5);
+        }
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w * 0.5, h * 0.5, true);
     }
 
@@ -945,8 +953,10 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(w, h);
         this.forwardFramebuffer!.setSize(w, h);
-        this.deferredShadingPass.resize(w, h);
-        this.transparencyPass.resize(w, h);
+        if (!this.deferredDisabled) {
+            this.deferredShadingPass.resize(w, h);
+            this.transparencyPass.resize(w, h);
+        }
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w, h, true);
 
         this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(w, h, true);
@@ -1105,7 +1115,7 @@ class Renderer {
 
             let i = ec.length;
 
-            if (depthOrder !== 0) {
+            if (depthOrder !== 0 || this.deferredDisabled) {
                 // GeoObjects
                 while (i--) {
                     let eci = ec[i];
@@ -1151,6 +1161,41 @@ class Renderer {
                 let eci = ec[i];
                 eci._fadingOpacity && eci.billboardHandler.drawForward();
             }
+
+            if (this.deferredDisabled) {
+                gl.depthMask(false);
+
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
+
+                i = ec.length;
+                while (i--) {
+                    ec[i]._fadingOpacity && ec[i].billboardHandler.drawTransparentForward();
+                }
+
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
+
+                // rays
+                i = ec.length;
+                while (i--) {
+                    ec[i]._fadingOpacity && ec[i].rayHandler.drawTransparentForward();
+                }
+
+                // Strip pass
+                i = ec.length;
+                while (i--) {
+                    ec[i]._fadingOpacity && ec[i].stripHandler.drawTransparentForward();
+                }
+
+                // polyline pass
+                i = ec.length;
+                while (i--) {
+                    ec[i]._fadingOpacity && ec[i].polylineHandler.drawTransparentForward();
+                }
+
+                gl.depthMask(true);
+            }
         }
     }
 
@@ -1170,6 +1215,17 @@ class Renderer {
             i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].labelHandler.drawForward();
+            }
+
+            if (this.deferredDisabled) {
+                gl.depthMask(false);
+
+                i = ec.length;
+                while (i--) {
+                    ec[i]._fadingOpacity && ec[i].labelHandler.drawTransparentForward();
+                }
+
+                gl.depthMask(true);
             }
         }
     }
@@ -1413,19 +1469,21 @@ class Renderer {
             gl.clear(gl.DEPTH_BUFFER_BIT);
 
             //
-            // Deferred geometry pass for opaque objects
+            // Opaque geometry pass
             //
-            this.deferredShadingPass.beginPass();
+            if (!this.deferredDisabled) {
+                this.deferredShadingPass.beginPass();
 
-            e.dispatch(e.gbufferpass, this);
-            this._drawGBufferEntityCollections(0);
+                e.dispatch(e.gbufferpass, this);
+                this._drawGBufferEntityCollections(0);
 
-            this.deferredShadingPass.endPass();
+                this.deferredShadingPass.endPass();
 
-            //
-            // Deferred shading pass (depth transfer + lighting)
-            //
-            this.deferredShadingPass.applyLighting();
+                //
+                // Deferred shading pass (depth transfer + lighting)
+                //
+                this.deferredShadingPass.applyLighting();
+            }
 
             //
             // Forward rendering and transparent object pass
@@ -1438,15 +1496,17 @@ class Renderer {
             //
             // Draw transparent objects
             //
-            this.transparencyPass.beginPass();
-            e.dispatch(e.transparentpass, this);
-            this._drawTransparentEntityCollections(0);
-            this.transparencyPass.endPass();
+            if (!this.deferredDisabled) {
+                this.transparencyPass.beginPass();
+                e.dispatch(e.transparentpass, this);
+                this._drawTransparentEntityCollections(0);
+                this.transparencyPass.endPass();
 
-            //
-            // Transparency resolve (composite into forwardFramebuffer)
-            //
-            this.transparencyPass.resolve();
+                //
+                // Transparency resolve (composite into forwardFramebuffer)
+                //
+                this.transparencyPass.resolve();
+            }
 
             this._drawLabelsForwardEntityCollections(0);
             e.dispatch(e.postforwardpass, this);

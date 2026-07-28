@@ -1,4 +1,5 @@
 import { Object3d } from "../../Object3d";
+import type { TypedArray } from "../shared";
 
 export interface GltfData {
     bin: ArrayBuffer[];
@@ -170,10 +171,10 @@ export interface Mesh {
 
 export interface Primitive {
     name: string;
-    indices?: ArrayBufferLike;
-    vertices: ArrayBufferLike;
-    normals?: ArrayBufferLike;
-    texCoords?: ArrayBufferLike;
+    indices?: TypedArray;
+    vertices: TypedArray;
+    normals?: TypedArray;
+    texCoords?: TypedArray;
     material?: Material;
     mode: PrimitiveMode;
     object3d?: Object3d;

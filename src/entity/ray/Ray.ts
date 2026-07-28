@@ -183,30 +183,8 @@ class Ray {
      */
     public setSrc(src: string | null) {
         this._src = src;
-        let bh = this._handler;
-        if (bh) {
-            let rn = bh._entityCollection.scene;
-            if (rn && rn.renderer) {
-                let ta = rn.renderer.strokeTextureAtlas;
-                if (src && src.length) {
-                    ta.loadImage(src, (img: HTMLImageElementExt) => {
-                        if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
-                            this._image = img;
-                            let taData = ta.get(img!.__nodeIndex!)!;
-                            bh!.setTexCoordArr(this._handlerIndex, taData.texCoords);
-                        } else {
-                            ta.addImage(img);
-                            ta.createTexture();
-                            this._image = img;
-                            rn!.updateStrokeTexCoords();
-                        }
-                    });
-                } else {
-                    bh!.setTextureDisabled(this._handlerIndex);
-                    rn!.updateStrokeTexCoords();
-                }
-            }
-        }
+        this._image = null;
+        this.reloadTexture();
     }
 
     public getSrc(): string | null {
@@ -219,11 +197,69 @@ class Ray {
      * @param {Object} image - JavaScript image object.
      */
     public setImage(image: HTMLImageElement) {
-        this.setSrc(image.src);
+        this._src = image.src;
+        this._image = image;
+        this.reloadTexture();
     }
 
     public getImage(): HTMLImageElementExt | null {
         return this._image;
+    }
+
+    protected _applyImageTexture(image: HTMLImageElementExt): void {
+        const bh = this._handler;
+        if (!bh) {
+            return;
+        }
+
+        const rn = bh._entityCollection.scene;
+        if (!rn || !rn.renderer) {
+            return;
+        }
+
+        const ta = rn.renderer.strokeTextureAtlas;
+        const taData = image.__nodeIndex != undefined ? ta.get(image.__nodeIndex) : undefined;
+        if (taData) {
+            bh.setTexCoordArr(this._handlerIndex, taData.texCoords);
+        } else {
+            ta.addImage(image);
+            ta.createTexture();
+            rn.updateStrokeTexCoords();
+        }
+    }
+
+    public reloadTexture(): void {
+        const bh = this._handler;
+        if (!bh) {
+            return;
+        }
+
+        const rn = bh._entityCollection.scene;
+        if (!rn || !rn.renderer) {
+            return;
+        }
+
+        const ta = rn.renderer.strokeTextureAtlas;
+        const image = this._image;
+
+        if (image) {
+            this._applyImageTexture(image);
+            return;
+        }
+
+        const src = this._src;
+        if (src && src.length) {
+            ta.loadImage(src, (img: HTMLImageElementExt) => {
+                if (this._src !== src || this._image) {
+                    return;
+                }
+                this._image = img;
+                this._applyImageTexture(img);
+            });
+        } else {
+            bh.setTextureDisabled(this._handlerIndex);
+            rn.updateStrokeTexCoords();
+        }
     }
 
     /**

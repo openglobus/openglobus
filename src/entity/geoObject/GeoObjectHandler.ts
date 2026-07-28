@@ -187,15 +187,17 @@ export class GeoObjectHandler {
         if (this._renderer && this._scene) {
             let programs = [
                 shaders.geo_object_forward(),
-                shaders.geo_object_deferred(),
-                shaders.geo_object_woit(),
                 shaders.geo_object_picking(),
                 shaders.geo_object_depth(),
                 shaders.geo_object_depth_camera()
             ];
-            const atmosphereControl = (this._scene as Scene & { atmosphereControl?: Atmosphere }).atmosphereControl;
-            if (atmosphereControl) {
-                programs.push(shaders.geo_object_woit_atmos(atmosphereControl.parameters));
+            if (!this._renderer.deferredDisabled) {
+                programs.push(shaders.geo_object_deferred(), shaders.geo_object_woit());
+
+                const atmosphereControl = (this._scene as Planet).atmosphereControl;
+                if (atmosphereControl) {
+                    programs.push(shaders.geo_object_woit_atmos(atmosphereControl.parameters));
+                }
             }
             this._renderer.addPrograms(programs);
         }

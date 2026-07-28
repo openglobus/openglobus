@@ -77,13 +77,10 @@ class PolylineHandler {
     protected _initProgram() {
         if (!this._renderer) return;
 
-        this._renderer.addPrograms(
-            shaders.polylineTex(),
-            shaders.polylineTexWoit(),
-            shaders.polylinePlain(),
-            shaders.polylineWoitPlain(),
-            shaders.polyline_picking()
-        );
+        this._renderer.addPrograms(shaders.polylineTex(), shaders.polylinePlain(), shaders.polyline_picking());
+        if (!this._renderer.deferredDisabled) {
+            this._renderer.addPrograms(shaders.polylineTexWoit(), shaders.polylineWoitPlain());
+        }
     }
 
     public bindScene(scene: Scene) {

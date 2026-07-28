@@ -22,6 +22,7 @@ import {
     GltfMesh,
     GltfPrimitive
 } from "./types";
+import type { TypedArray } from "../shared";
 
 export class Gltf {
     private static _dracoDecoderModule: DecoderModule | null = null;
@@ -500,10 +501,10 @@ export class Gltf {
     private static _toObject3d(primitive: Primitive): Object3d {
         return new Object3d({
             name: primitive.name,
-            vertices: Array.from(primitive.vertices as Float32Array),
-            normals: primitive.normals ? Array.from(primitive.normals as Float32Array) : undefined,
-            texCoords: primitive.texCoords ? Array.from(primitive.texCoords as Float32Array) : undefined,
-            indices: primitive.indices ? Array.from(primitive.indices as Uint8Array) : undefined,
+            vertices: Array.from(primitive.vertices),
+            normals: primitive.normals ? Array.from(primitive.normals) : undefined,
+            texCoords: primitive.texCoords ? Array.from(primitive.texCoords) : undefined,
+            indices: primitive.indices ? Array.from(primitive.indices) : undefined,
             normalTextureImage: primitive.material?.normalTexture?.image.element,
             normalTextureSrc: primitive.material?.normalTexture?.image.src,
             colorTextureImage: primitive.material?.baseColorTexture?.image.element,
@@ -519,7 +520,7 @@ export class Gltf {
         });
     }
 
-    private static _access(accessor: Accessor, gltf: GltfData): ArrayBufferLike {
+    private static _access(accessor: Accessor, gltf: GltfData): TypedArray {
         const bufferView = gltf.gltf.bufferViews[accessor.bufferView];
         const arrbuff = gltf.bin[bufferView.buffer];
         let offset = bufferView.byteOffset || 0;
@@ -551,7 +552,7 @@ export class Gltf {
         accessor: Accessor,
         numOfComponents: number,
         byteStride?: number // TODO: implement byteStride handling if data not tightly packed
-    ): ArrayBufferLike {
+    ): TypedArray {
         if (accessor.componentType === AccessorComponentType.ushort) {
             return new Uint16Array(buffer, 0, accessor.count * numOfComponents);
         }

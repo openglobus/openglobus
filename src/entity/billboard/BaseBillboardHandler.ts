@@ -219,11 +219,10 @@ class BaseBillboardHandler {
 
     public initProgram() {
         if (this._renderer && this._renderer.handler) {
-            this._renderer.addShaders(
-                shaders.billboard_screen(),
-                shaders.billboard_screen_woit(),
-                shaders.billboardPicking()
-            );
+            this._renderer.addShaders(shaders.billboard_screen(), shaders.billboardPicking());
+            if (!this._renderer.deferredDisabled) {
+                this._renderer.addShaders(shaders.billboard_screen_woit());
+            }
         }
     }
 
