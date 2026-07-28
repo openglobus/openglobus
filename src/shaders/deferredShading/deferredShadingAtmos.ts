@@ -26,6 +26,7 @@ export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT
             isOrthographic: "float",
             atmosFadeDist: "vec2",
             atmosMaxMinOpacity: "vec3",
+            frameOpacity: "float",
             ...shadowMapUniforms,
             ...cascadeShadowUniforms
         },

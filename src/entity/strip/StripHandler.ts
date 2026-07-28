@@ -55,7 +55,8 @@ class StripHandler {
         if (this._renderer && this._renderer.handler) {
             !this._renderer.handler.programs.stripForward && this._renderer.handler.addProgram(stripForward());
             if (!this._renderer.deferredDisabled) {
-                !this._renderer.handler.programs.stripTransparent && this._renderer.handler.addProgram(stripTransparent());
+                !this._renderer.handler.programs.stripTransparent &&
+                    this._renderer.handler.addProgram(stripTransparent());
             }
         }
     }

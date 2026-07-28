@@ -182,6 +182,7 @@ export class ProjectorsPass {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
 
         gl.uniformMatrix3fv(u.u_normalMatrix, false, r.activeCamera.getNormalMatrix());
+        gl.uniform1f(u.frameOpacity, r.frameOpacity);
 
         // G-buffer textures (slots 0..3 unused by projectors.bind starting at 6).
         gl.activeTexture(gl.TEXTURE0);

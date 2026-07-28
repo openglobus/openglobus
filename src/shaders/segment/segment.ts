@@ -91,6 +91,7 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
             shadeMode: "float",
+            frameOpacity: "float",
             ...projectorUniforms,
             ...shadowMapUniforms,
             ...cascadeShadowUniforms
@@ -138,6 +139,7 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
             shadeMode: "float",
+            frameOpacity: "float",
             ...projectorUniforms,
             ...shadowMapUniforms,
             ...cascadeShadowUniforms

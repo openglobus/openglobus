@@ -8,6 +8,7 @@ precision highp float;
 #include "../common/projectors.glsl"
 #include "../common/shadows.glsl"
 #include "../common/cascadeShadows.glsl"
+#include "../common/materialFlags.glsl"
 
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
@@ -23,11 +24,11 @@ uniform float uUseNormalTexture;
 uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform float shadeMode;
-uniform float uReceiveMask;
+uniform float uProjectorMask;
+uniform float uFrameTransparencyMask;
+uniform float frameOpacity;
+uniform float uShadowMask;
 uniform mat3 normalMatrix;
-
-const int RECEIVE_PROJECTORS = 1;
-const int RECEIVE_SHADOWS = 2;
 
 in vec3 cameraPosition;
 in vec3 v_vertex;
@@ -51,6 +52,13 @@ void main(void) {
         baseColor = vColor;
     }
 
+    uint materialFlags = packMaterialFlags(
+        uint(step(0.5, uProjectorMask)),
+        uint(step(0.5, uFrameTransparencyMask)),
+        uint(step(0.5, uShadowMask))
+    );
+    baseColor.a *= mix(1.0, frameOpacity, materialReceivesFrameTransparencyMask(materialFlags));
+
     vec4 color;
 
     float shade = shadeMode;
@@ -69,9 +77,8 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
-    int receiveMask = int(uReceiveMask + 0.5);
-    float receiveProjectors = float(receiveMask & RECEIVE_PROJECTORS) / float(RECEIVE_PROJECTORS);
-    float receiveShadows = float(receiveMask & RECEIVE_SHADOWS) / float(RECEIVE_SHADOWS);
+    float receiveProjectors = materialReceivesProjectorsMask(materialFlags);
+    float receiveShadows = materialReceivesShadowsMask(materialFlags);
     projectorEmission *= receiveProjectors;
     projectorLight *= receiveProjectors;
     float directShadowVisibility =

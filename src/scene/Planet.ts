@@ -703,36 +703,17 @@ export class Planet extends Scene {
         this._shadeMode = normalizeShadeMode(m);
     }
 
-    // public set diffuse(rgb: string | NumberArray3 | Vec3) {
-    //     let vec = createColorRGB(rgb);
-    //     if (this.renderer) {
-    //         let diffuse = new Float32Array(vec.toArray());
-    //         this.renderer.lightDiffuse.set(diffuse);
-    //     }
-    // }
-    //
-    // public set ambient(rgb: string | NumberArray3 | Vec3) {
-    //     let vec = createColorRGB(rgb);
-    //     if (this.renderer) {
-    //         let ambient = new Float32Array(vec.toArray());
-    //         this.renderer.lightAmbient.set(ambient);
-    //     }
-    // }
-    //
-    // public set specular(rgb: string | NumberArray3 | Vec3) {
-    //     let vec = createColorRGB(rgb);
-    //     if (this.renderer) {
-    //         this.renderer.lightSpecular[0] =vec.x;
-    //         this.renderer.lightSpecular[1] =vec.y;
-    //         this.renderer.lightSpecular[2] =vec.z;
-    //     }
-    // }
-    //
-    // public set shininess(v: number) {
-    //     if (this.renderer) {
-    //         this.renderer.lightSpecular[3] = v;
-    //     }
-    // }
+    protected _restoreSurfaceDepthMask() {
+        this.renderer!.handler.gl!.depthMask(true);
+    }
+
+    protected _enableTransparentSurfaceBlend() {
+        const gl = this.renderer!.handler.gl!;
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendColor(0.0, 0.0, 0.0, this.renderer!.frameOpacity);
+        gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.CONSTANT_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    }
 
     /**
      * Returns normal-map generator used by the planet.
@@ -1143,6 +1124,7 @@ export class Planet extends Scene {
             } else {
                 this._renderTransparentScreenNodesPASSNoAtmos();
             }
+            this._restoreSurfaceDepthMask();
         });
 
         this.renderer!.events.on("postforwardpass", () => {
@@ -1151,6 +1133,7 @@ export class Planet extends Scene {
             } else {
                 this._renderScreenNodesWithHeightPASSNoAtmos();
             }
+            this._restoreSurfaceDepthMask();
         });
 
         // Initialize texture coordinates buffer pool
@@ -1618,6 +1601,7 @@ export class Planet extends Scene {
 
         gl.enable(gl.CULL_FACE);
         gl.disable(gl.BLEND);
+        gl.depthMask(true);
 
         program.activate();
         sh = program;
@@ -1657,16 +1641,22 @@ export class Planet extends Scene {
 
         gl.enable(gl.CULL_FACE);
 
-        if (disableBlend) {
+        if (renderer.frameOpacity < 1.0) {
+            this._enableTransparentSurfaceBlend();
+            gl.depthMask(false);
+        } else if (disableBlend) {
             gl.disable(gl.BLEND);
+            gl.depthMask(true);
         } else {
             renderer.enableBlendOneSrcAlpha();
+            gl.depthMask(true);
         }
 
         program.activate();
         sh = program;
         shu = sh.uniforms;
 
+        gl.uniform1f(shu.frameOpacity, renderer.frameOpacity);
         gl.uniform1f(shu.shadeMode, this._shadeMode);
 
         gl.uniform3fv(shu.lightPosition, renderer._lightPosition);
@@ -1707,10 +1697,15 @@ export class Planet extends Scene {
 
         gl.enable(gl.CULL_FACE);
 
-        if (disableBlend) {
+        if (renderer.frameOpacity < 1.0) {
+            this._enableTransparentSurfaceBlend();
+            gl.depthMask(false);
+        } else if (disableBlend) {
             gl.disable(gl.BLEND);
+            gl.depthMask(true);
         } else {
             renderer.enableBlendOneSrcAlpha();
+            gl.depthMask(true);
         }
 
         let atmosphereControl = renderer.controls.Atmosphere as Atmosphere;
@@ -1719,6 +1714,7 @@ export class Planet extends Scene {
         sh = program;
         shu = sh.uniforms;
 
+        gl.uniform1f(shu.frameOpacity, renderer.frameOpacity);
         gl.uniform1f(shu.shadeMode, SHADE_PBR);
 
         if (!atmosphereControl.isReady) return program;
@@ -1779,7 +1775,8 @@ export class Planet extends Scene {
         sliceIndex: number,
         outTransparentSegments?: Segment[],
         outOpaqueSegments?: Segment[],
-        forcedOpacity?: number
+        forcedOpacity?: number,
+        transparentSurface: boolean = false
     ) => {
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
@@ -1790,6 +1787,25 @@ export class Planet extends Scene {
             if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[j].__id) && !nodes.has(f.node.__id)) {
                 //if (quadTreeStrategy._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
                 nodes.set(f.node.__id, true);
+
+                // In transparent background mode delayed terrain transition segments can
+                // blink over the current LOD. Draw fading terrain inline before current LOD.
+                if (transparentSurface) {
+                    if (isFirstPass) {
+                        isEq && f.equalize();
+                        f.readyToEngage && f.engage();
+                        f.updateRTCEyePosition(camera);
+                        f.screenRendering(sh, sl, sliceIndex, undefined, false, forcedOpacity);
+
+                        if (f._transitionOpacity >= 1.0) {
+                            outOpaqueSegments!.push(f);
+                        }
+                    } else {
+                        f.updateRTCEyePosition(camera);
+                        f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true, forcedOpacity);
+                    }
+                    continue;
+                }
 
                 if (f._transitionOpacity < 1.0) {
                     outTransparentSegments!.push(f);
@@ -1941,6 +1957,7 @@ export class Planet extends Scene {
 
         let isEq = this.terrain!.equalizeVertices;
         let i = renderedNodes.length;
+        const transparentSurface = this.renderer!.frameOpacity < 1.0;
 
         //
         // Collect fading opaque segments, because we need them in the framebuffer passes,
@@ -1966,7 +1983,9 @@ export class Planet extends Scene {
                 sl[0],
                 0,
                 quadTreeStrategy._transparentSegments,
-                quadTreeStrategy._fadingOpaqueSegments
+                quadTreeStrategy._fadingOpaqueSegments,
+                undefined,
+                transparentSurface
             );
 
             if (s._transitionOpacity < 1) {
@@ -2010,6 +2029,7 @@ export class Planet extends Scene {
         gl.disable(gl.CULL_FACE);
 
         let nodes = new Map<number, boolean>();
+        const transparentSurface = this.renderer!.frameOpacity < 1.0;
 
         let sl = this._visibleTileLayerSlices;
         let sliceOrder: number[] = [];
@@ -2058,7 +2078,8 @@ export class Planet extends Scene {
                     j,
                     transparentSegments,
                     undefined,
-                    1.0
+                    1.0,
+                    transparentSurface
                 );
                 if (ri.segment._transitionOpacity < 1) {
                     transparentSegments.push(ri.segment);

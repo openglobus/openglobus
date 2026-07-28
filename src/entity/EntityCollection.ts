@@ -29,6 +29,7 @@ interface IEntityCollectionParams {
     pickingEnabled?: boolean;
     receiveProjectors?: boolean;
     receiveShadows?: boolean;
+    receiveFrameTransparency?: boolean;
     scaleByDistance?: NumberArray3;
     pickingScale?: number | NumberArray3;
     opacity?: number;
@@ -48,6 +49,7 @@ interface IEntityCollectionParams {
  * @param {number} [options.labelMaxLetters] - Maximum label letters per line used by the label handler.
  * @param {boolean} [options.pickingEnabled] - Enables/disables picking for all entity handlers.
  * @param {boolean} [options.receiveProjectors=true] - Enables/disables projector effect reception for this collection.
+ * @param {boolean} [options.receiveFrameTransparency=false] - Enables/disables frame transparency reception for this collection.
  * @param {boolean} [options.receiveShadows=true] - Enables/disables shadow map reception for this collection.
  * @param {Array.<number>} [options.scaleByDistance] - Entity scale by distance parameters. (exactly 3 entries)
  * First index - near distance to the entity, after entity becomes full scale.
@@ -233,8 +235,15 @@ class EntityCollection {
     public receiveProjectors: boolean;
 
     /**
+     * Enables/disables frame transparency reception for this collection.
+     * @public
+     * @type {boolean}
+     */
+    public receiveFrameTransparency: boolean;
+
+    /**
      * Enables/disables shadow map reception for this collection.
-     * Uses the same G-buffer receive mask channel as projectors.
+     * Stored in the same material flags channel as projectors and frame transparency.
      * @public
      * @type {boolean}
      */
@@ -278,6 +287,7 @@ class EntityCollection {
         }
 
         this.receiveProjectors = options.receiveProjectors ?? true;
+        this.receiveFrameTransparency = options.receiveFrameTransparency ?? false;
         this.receiveShadows = options.receiveShadows ?? true;
 
         this._entities = [];
@@ -400,6 +410,15 @@ class EntityCollection {
      */
     public setReceiveProjectors(enable: boolean) {
         this.receiveProjectors = enable;
+    }
+
+    /**
+     * Sets whether this collection receives frame transparency.
+     * @public
+     * @param {boolean} enable - `true` to receive frame transparency, `false` to ignore it.
+     */
+    public setReceiveFrameTransparency(enable: boolean) {
+        this.receiveFrameTransparency = enable;
     }
 
     /**

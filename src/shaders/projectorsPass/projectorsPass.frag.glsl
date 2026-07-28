@@ -5,14 +5,14 @@ precision highp sampler2DArray;
 
 #include "../common/projectors.glsl"
 #include "../common/shadeMode.glsl"
-
-const int RECEIVE_PROJECTORS = 1;
+#include "../common/materialFlags.glsl"
 
 uniform sampler2D u_baseTexture;
 uniform sampler2D u_materialsTexture;
 uniform sampler2D u_normalTexture;
 uniform sampler2D u_viewPositionTexture;
 uniform mat3 u_normalMatrix;
+uniform float frameOpacity;
 
 layout(location = 0) out vec4 fragColor;
 
@@ -20,10 +20,9 @@ void main(void) {
     ivec2 fragCoord = ivec2(gl_FragCoord.xy);
 
     vec4 materials = texelFetch(u_materialsTexture, fragCoord, 0);
-    int receiveMask = int(materials.a + 0.5);
-    float receiveProjectors = float(receiveMask & RECEIVE_PROJECTORS) / float(RECEIVE_PROJECTORS);
+    uint materialFlags = uint(materials.a + 0.5);
 
-    if (receiveProjectors < 0.001) discard;
+    if (!materialReceivesProjectors(materialFlags)) discard;
 
     vec4 viewPositionData = texelFetch(u_viewPositionTexture, fragCoord, 0);
     vec4 normalColor = texelFetch(u_normalTexture, fragCoord, 0);
@@ -38,7 +37,9 @@ void main(void) {
     vec3 projectorLight;
     applyProjectors(rtcPos, normal, projectorEmission, projectorLight);
 
-    vec3 contribution = (projectorEmission + baseColor.rgb * projectorLight * litMask) * receiveProjectors;
+    float frameTransparency = materialReceivesFrameTransparencyMask(materialFlags);
+    float receiverOpacity = mix(1.0, frameOpacity, frameTransparency);
+    vec3 contribution = (projectorEmission + baseColor.rgb * projectorLight * litMask) * receiverOpacity;
 
     fragColor = vec4(contribution, 0.0);
 }
