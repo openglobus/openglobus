@@ -3,10 +3,8 @@ import { cons } from "../../cons";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
 import type { Renderer } from "../Renderer";
+import { DEFAULT_PROJECTOR_TEXTURE_UNIT_START } from "../textureUnits";
 import { Projector } from "./Projector";
-
-export type { ProjectorSourceType, ProjectorRenderMode, IProjectorParams } from "./Projector";
-export { Projector } from "./Projector";
 
 /**
  * Maximum number of depth layers allocated in manager-owned projector array texture.
@@ -23,8 +21,6 @@ const INITIAL_PROJECTOR_LAYERS = 8;
 export const MAX_FORWARD_PROJECTORS = 8;
 
 /** Default texture unit where the depth array sampler is bound. */
-export const DEFAULT_PROJECTOR_TEXTURE_UNIT_START = 6;
-
 export class ProjectorManager {
     protected _renderer: Renderer;
     protected _projectors: Projector[];
@@ -136,7 +132,10 @@ export class ProjectorManager {
         const fb = projector.depthCamera.framebuffer;
         if (!fb._fbo) return false;
 
-        const status = fb.attachLayer(this._depthArrayTexture, projector._slot);
+        fb.activate();
+        fb.bindOutputTextureLayer(this._depthArrayTexture, projector._slot);
+        const status = fb.checkStatus();
+        fb.deactivate();
 
         if (status !== gl.FRAMEBUFFER_COMPLETE) {
             console.warn(`ProjectorManager._rebindFramebufferToLayer(): framebuffer incomplete after framebufferTextureLayer
@@ -159,14 +158,13 @@ export class ProjectorManager {
         if (!fb._fbo) return;
 
         const orig = projector.depthTexture;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fb._fbo);
+        fb.activate();
         if (orig) {
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, orig, 0);
+            fb.bindOutputTexture(orig);
         } else {
-            // No original recorded — detach the array layer.
-            gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 0);
+            fb.bindOutputTextureLayer(null, 0);
         }
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        fb.deactivate();
     }
 
     public update(projector: Projector): boolean {
@@ -395,7 +393,7 @@ export class ProjectorManager {
             size,
             size,
             capacity,
-            "NEAREST",
+            "LINEAR",
             "R32F",
             "CLAMP_TO_EDGE",
             1

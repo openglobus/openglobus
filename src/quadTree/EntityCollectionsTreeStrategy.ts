@@ -41,6 +41,10 @@ export class EntityCollectionsTreeStrategy {
 
     public setReceiveProjectors(receiveProjectors: boolean) {}
 
+    public setReceiveShadows(receiveShadows: boolean) {}
+
+    public setReceiveFrameTransparency(receiveFrameTransparency: boolean) {}
+
     public dispose() {}
 
     public insertEntities(entitiesForTree: Entity[]) {}

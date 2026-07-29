@@ -9,6 +9,8 @@ precision highp float;
 #include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
 #include "../common/projectors.glsl"
+#include "../common/shadows.glsl"
+#include "../common/cascadeShadows.glsl"
 
 uniform vec4 specular;
 uniform vec3 diffuse;
@@ -40,6 +42,7 @@ uniform float camHeight;
 
 uniform float transitionOpacity;
 uniform float shadeMode;
+uniform float frameOpacity;
 uniform vec3 cameraPosition;
 uniform vec3 cameraForward;
 uniform float isOrthographic;
@@ -68,10 +71,13 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
+    float shadowVisibility =
+        getShadowMapsDirectVisibility(v_rtcPos, normal) *
+        getCascadeShadowDirectVisibility(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
         diffuseColor.rgb += projectorEmission;
-        diffuseColor *= transitionOpacity;
+        applyPremultipliedSurfaceOpacity(diffuseColor, transitionOpacity, frameOpacity);
         return;
     }
 
@@ -134,6 +140,8 @@ void main(void) {
         lightWeighting
         );
     }
+    lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, ambient, 1.0, shadowVisibility);
+    specularWeighting *= shadowVisibility;
 
     getAtmosFadingOpacity(v_worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
     fadingOpacity *= atmosColor.a;
@@ -141,13 +149,12 @@ void main(void) {
     specularWeighting *= mix(vec3(1.0), sunIlluminance, atmosColor.a);
 
     diffuseColor = vec4(
-    mix(
-    diffuseColor.rgb * (lightWeighting.rgb + projectorLight) + emission,
-    atmosColor.rgb,
-    fadingOpacity
-    ) + specularWeighting + projectorEmission,
+    mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) +
+    diffuseColor.rgb * projectorLight +
+    specularWeighting +
+    projectorEmission,
     diffuseColor.a
     );
 
-    diffuseColor *= transitionOpacity;
+    applyPremultipliedSurfaceOpacity(diffuseColor, transitionOpacity, frameOpacity);
 }

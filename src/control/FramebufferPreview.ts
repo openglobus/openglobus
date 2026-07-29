@@ -19,6 +19,8 @@ export interface IFramebufferDialogParams extends IControlParams {
     arrayLayer?: number;
     width?: number;
     height?: number;
+    left?: number;
+    top?: number;
     title?: string;
     common?: string;
     image?: string;
@@ -48,10 +50,10 @@ export class FramebufferPreview extends Control {
 
         this._dialog = new Dialog<null>({
             title: params.title || "",
-            width: 580,
-            height: 340,
-            left: 100,
-            top: 100,
+            width: params.width ?? 580,
+            height: params.height ?? 340,
+            left: params.left || 100,
+            top: params.top || 100,
             useHide: true
         });
         this._dialog.events.on("visibility", this._onDialogVisibilityChange);

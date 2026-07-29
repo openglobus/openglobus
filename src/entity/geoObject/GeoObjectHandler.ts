@@ -480,7 +480,18 @@ export class GeoObjectHandler {
             r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
         );
         gl.uniform1f(u.shadeMode, ec._shadeMode);
-        gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
+        if (u.uProjectorMask !== undefined) {
+            gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
+        }
+        if (u.uFrameTransparencyMask !== undefined) {
+            gl.uniform1f(u.uFrameTransparencyMask, ec.receiveFrameTransparency ? 1.0 : 0.0);
+        }
+        if (u.uShadowMask !== undefined) {
+            gl.uniform1f(u.uShadowMask, ec.receiveShadows ? 1.0 : 0.0);
+        }
+        if (u.frameOpacity !== undefined) {
+            gl.uniform1f(u.frameOpacity, r.frameOpacity);
+        }
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
@@ -571,6 +582,8 @@ export class GeoObjectHandler {
             this._bindAtmosphereParams(p);
         }
         r.projectors.bindForward(p);
+        r.shadows.bindForward(p);
+        r.cascadeShadowManager.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -588,6 +601,8 @@ export class GeoObjectHandler {
 
         this._bindCommon(p);
         this._bindForwardParams(p);
+        r.shadows.bindForward(p);
+        r.cascadeShadowManager.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -603,6 +618,8 @@ export class GeoObjectHandler {
 
         this._bindCommon(p);
         this._bindForwardParams(p);
+        r.shadows.bindForward(p);
+        r.cascadeShadowManager.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawForwardAll(p);
@@ -757,7 +774,10 @@ export class GeoObjectHandler {
     }
 
     public drawDepthCameraPass(camera: Camera) {
-        if (this._geoObjects.length && this._entityCollection.receiveProjectors) {
+        if (
+            this._geoObjects.length &&
+            (this._entityCollection.receiveProjectors || this._entityCollection.receiveShadows)
+        ) {
             this._depthCameraPASS(camera);
         }
     }

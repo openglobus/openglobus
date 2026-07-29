@@ -4,6 +4,9 @@ precision highp float;
 #include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
+#include "../common/shadows.glsl"
+#include "../common/cascadeShadows.glsl"
+#include "../common/materialFlags.glsl"
 
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
@@ -19,10 +22,14 @@ uniform float uUseNormalTexture;
 uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform float shadeMode;
+uniform float uFrameTransparencyMask;
+uniform float uShadowMask;
+uniform float frameOpacity;
 uniform mat3 normalMatrix;
 
 in vec3 cameraPosition;
 in vec3 v_vertex;
+in vec3 v_rtcPos;
 in vec3 v_viewPosition;
 in vec4 vColor;
 in vec3 vNormal;
@@ -40,6 +47,13 @@ void main(void) {
     } else {
         baseColor = vColor;
     }
+
+    uint materialFlags = packMaterialFlags(
+        0u,
+        uint(step(0.5, uFrameTransparencyMask)),
+        uint(step(0.5, uShadowMask))
+    );
+    baseColor.a *= mix(1.0, frameOpacity, materialReceivesFrameTransparencyMask(materialFlags));
 
     float shade = shadeMode;
 
@@ -59,6 +73,12 @@ void main(void) {
         normalMatrix
         );
     }
+
+    float receiveShadows = materialReceivesShadowsMask(materialFlags);
+    float directShadowVisibility =
+        getShadowMapsDirectVisibility(v_rtcPos, normal) *
+        getCascadeShadowDirectVisibility(v_rtcPos, normal);
+    float shadowVisibility = mix(1.0, directShadowVisibility, receiveShadows);
 
     vec3 material = materialProperties;
     if (uUseAOTexture > 0.0) {
@@ -95,7 +115,9 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting, baseColor.a);
     } else {
         float metallic = material.b;
         float roughness = material.g;
@@ -121,6 +143,8 @@ void main(void) {
         specularWeighting,
         lightWeighting
         );
-        fragColor = baseColor * lightWeighting + vec4(specularWeighting, 0.0);
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
+        fragColor = vec4(baseColor.rgb * lightWeighting.rgb + specularWeighting, baseColor.a);
     }
 }

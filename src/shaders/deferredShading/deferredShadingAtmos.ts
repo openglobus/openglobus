@@ -1,5 +1,6 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { stringTemplate2 } from "../../utils/shared";
+import { cascadeShadowUniforms, shadowMapUniforms } from "../common/uniforms";
 import type { AtmosphereParameters } from "../atmos/atmos";
 import { DEFAULT_PARAMS } from "../atmos/atmos";
 
@@ -24,7 +25,10 @@ export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT
             cameraForward: "vec3",
             isOrthographic: "float",
             atmosFadeDist: "vec2",
-            atmosMaxMinOpacity: "vec3"
+            atmosMaxMinOpacity: "vec3",
+            frameOpacity: "float",
+            ...shadowMapUniforms,
+            ...cascadeShadowUniforms
         },
         attributes: {
             corners: "vec3"

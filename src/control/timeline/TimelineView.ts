@@ -91,10 +91,7 @@ const TEMPLATE = `<div class="og-timeline">
 </div>`;
 
 type TimelineTouchMode =
-    | typeof TOUCH_MODE_NONE
-    | typeof TOUCH_MODE_CURRENT
-    | typeof TOUCH_MODE_PINCH
-    | typeof TOUCH_MODE_SCALE;
+    typeof TOUCH_MODE_NONE | typeof TOUCH_MODE_CURRENT | typeof TOUCH_MODE_PINCH | typeof TOUCH_MODE_SCALE;
 
 interface ITimelineTouchPointer {
     pointerId: number;

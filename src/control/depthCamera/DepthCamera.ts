@@ -8,9 +8,11 @@ import { Vec4 } from "../../math/Vec4";
 import { Object3d } from "../../Object3d";
 import { QuadTreeStrategy } from "../../quadTree";
 import type { Renderer } from "../../renderer/Renderer";
+import { VARIANCE_SHADOW_ENABLED } from "../../renderer/shadows/ShadowManager";
 import type { Planet } from "../../scene/Planet";
 import { Framebuffer } from "../../webgl";
 import { Vector } from "../../layer/Vector";
+import type { ShadowMap } from "../../renderer/shadows/ShadowMap";
 import type { DepthCameraHandler } from "./DepthCameraHandler";
 
 const CAM_WIDTH = 512;
@@ -20,9 +22,11 @@ const DEPTH_FAR = 100000;
 const DEPTH_BIAS = 0.00006;
 const DEPTH_NORMAL_BIAS = 0.45;
 const DEPTH_EPSILON = 0.00025;
+const TEXEL_SNAP_EPSILON = 1e-9;
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
 const PERIMETER_STEP_PX = 1;
 const DEFAULT_CAMERA_FRUSTUM_LENGTH = 2.5;
+const RENDER_SKIRTS_SLOPE = 0.3;
 
 const cameraFrustumObj = Object3d.createFrustum();
 
@@ -41,6 +45,10 @@ export interface IDepthCameraParams {
     horizontalViewAngle?: number;
     showFrustum?: boolean;
     showFootprint?: boolean;
+    isOrthographic?: boolean;
+    focusDistance?: number;
+    enableSegmentSkirts?: boolean;
+    enableSegmentFaceCulling?: boolean;
     excludeLayers?: Vector[];
     bias?: number; //0.00003 .. 0.00008 - 0.0005
     normalBias?: number; // 0.2 .. 1.0
@@ -85,10 +93,13 @@ export class DepthCamera {
     public depthEpsilon: number;
 
     public enabled: boolean;
+    public enableSegmentSkirts: boolean;
+    public enableSegmentFaceCulling: boolean;
 
     public camera!: Camera;
     public framebuffer!: Framebuffer;
     public quadTreeStrategy!: QuadTreeStrategy;
+    public shadowMap: ShadowMap | null;
 
     public _handler: DepthCameraHandler | null;
     public _handlerIndex: number;
@@ -99,6 +110,9 @@ export class DepthCamera {
     protected _forceOwnQuadTreeStrategyPass: boolean;
     protected _showFrustum: boolean;
     protected _showFootprint: boolean;
+    protected _isOrthographic: boolean;
+    protected _focusDistance: number;
+    protected _lastPlanetHeightFactor: number;
 
     protected _cameraFrustumEntity: Entity | null;
     protected _cameraFootprintEntity: Entity | null;
@@ -118,6 +132,8 @@ export class DepthCamera {
         this.id = DepthCamera.__counter__++;
 
         this.enabled = params.enabled ?? true;
+        this.enableSegmentSkirts = params.enableSegmentSkirts ?? false;
+        this.enableSegmentFaceCulling = params.enableSegmentFaceCulling ?? true;
         this.width = params.width ?? CAM_WIDTH;
         this.height = params.height ?? CAM_HEIGHT;
         this.near = params.near ?? DEPTH_NEAR;
@@ -135,6 +151,9 @@ export class DepthCamera {
         this._forceOwnQuadTreeStrategyPass = true;
         this._showFrustum = params.showFrustum ?? true;
         this._showFootprint = params.showFootprint ?? true;
+        this._isOrthographic = params.isOrthographic ?? false;
+        this._focusDistance = params.focusDistance ?? this.far;
+        this._lastPlanetHeightFactor = 1.0;
 
         this._cameraFootprintEntity = this._showFootprint ? this._createCameraFootprintEntity() : null;
         this._cameraFrustumEntity = this._showFrustum ? this._createCameraFrustumEntity() : null;
@@ -144,6 +163,7 @@ export class DepthCamera {
 
         this._handler = null;
         this._handlerIndex = -1;
+        this.shadowMap = null;
 
         this._prevCameraPos = new Vec3();
         this._prevCameraPitch = 0;
@@ -199,6 +219,37 @@ export class DepthCamera {
         }
     }
 
+    public get isOrthographic(): boolean {
+        return this._initialized ? this.camera.isOrthographic : this._isOrthographic;
+    }
+
+    public set isOrthographic(isOrthographic: boolean) {
+        this._isOrthographic = isOrthographic;
+        this._forceOwnQuadTreeStrategyPass = true;
+
+        if (this._initialized) {
+            if (isOrthographic) {
+                this.camera.focusDistance = this._focusDistance;
+            }
+            this.camera.isOrthographic = isOrthographic;
+        }
+    }
+
+    public get focusDistance(): number {
+        return this._initialized ? this.camera.focusDistance : this._focusDistance;
+    }
+
+    public set focusDistance(focusDistance: number) {
+        if (!Number.isFinite(focusDistance) || focusDistance <= 0) return;
+
+        this._focusDistance = focusDistance;
+        this._forceOwnQuadTreeStrategyPass = true;
+
+        if (this._initialized) {
+            this.camera.focusDistance = focusDistance;
+        }
+    }
+
     public get cameraFootprintEntity(): Entity | null {
         return this._cameraFootprintEntity;
     }
@@ -225,6 +276,7 @@ export class DepthCamera {
         this.framebuffer.init();
 
         this.quadTreeStrategy = this._createQuadTreeStrategy(planet, this.camera as PlanetCamera);
+        this._lastPlanetHeightFactor = planet._heightFactor;
         this._forceOwnQuadTreeStrategyPass = true;
         this._initialized = true;
     }
@@ -256,7 +308,7 @@ export class DepthCamera {
 
         const quadTreeStrategy = this._getQuadTreeStrategy(depthCamera);
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
 
@@ -267,13 +319,23 @@ export class DepthCamera {
 
         framebuffer.deactivate();
 
-        this._renderer.applyDepthForCamera(mainCam);
-
         this.renderFootprint();
+
+        if (VARIANCE_SHADOW_ENABLED) {
+            this.shadowMap?.blur();
+        }
+
+        this._renderer.applyDepthForCamera(mainCam);
         this.finishFrame();
     }
 
     public prepareFrame(): void {
+        this._syncPlanetHeightFactor();
+        this._prepareOrthographicProjection();
+        this._prepareCameraEntitySync();
+    }
+
+    protected _prepareCameraEntitySync(): void {
         const cameraFrustumEntity = this._cameraFrustumEntity;
         if (!this._showFrustum || !cameraFrustumEntity) {
             return;
@@ -318,7 +380,7 @@ export class DepthCamera {
         }
     }
 
-    public finishFrame(): void {
+    protected _finishCameraEntitySync(): void {
         const cameraFrustumEntity = this._cameraFrustumEntity;
         if (!this._showFrustum || !cameraFrustumEntity) return;
 
@@ -344,6 +406,10 @@ export class DepthCamera {
                 this._planet.ellipsoid.cartesianToLonLat(cameraFrustumEntity.getAbsoluteCartesian())
             );
         }
+    }
+
+    public finishFrame(): void {
+        this._finishCameraEntitySync();
     }
 
     public renderFootprint(): void {
@@ -391,12 +457,76 @@ export class DepthCamera {
         return this.framebuffer.textures[0]!;
     }
 
+    protected _syncPlanetHeightFactor(): void {
+        const planet = this._planet;
+        if (!planet || this._lastPlanetHeightFactor === planet._heightFactor) return;
+
+        this._lastPlanetHeightFactor = planet._heightFactor;
+        this.quadTreeStrategy.destroyBranches();
+        this.quadTreeStrategy.clearRenderedNodes();
+        this._forceOwnQuadTreeStrategyPass = true;
+    }
+
+    protected _prepareOrthographicProjection(): void {
+        const cam = this.camera;
+        if (!cam.checkMoveEnd()) return;
+        if (this._snapOrthographicProjectionToTexelGrid()) {
+            cam.update();
+        }
+    }
+
+    protected _snapOrthographicProjectionToTexelGrid(): boolean {
+        const cam = this.camera;
+
+        if (!cam.isOrthographic) {
+            return false;
+        }
+
+        const frustum = cam.frustums[0];
+        const framebuffer = this.framebuffer;
+
+        const frustumWidth = frustum.right - frustum.left;
+        const frustumHeight = frustum.top - frustum.bottom;
+
+        const worldUnitsPerTexelX = frustumWidth / framebuffer.width;
+        const worldUnitsPerTexelY = frustumHeight / framebuffer.height;
+
+        const eyeX = cam.eye.dot(cam._r);
+        const eyeY = cam.eye.dot(cam._u);
+
+        const snappedMinX = Math.floor((eyeX + frustum.left) / worldUnitsPerTexelX) * worldUnitsPerTexelX;
+        const snappedMinY = Math.floor((eyeY + frustum.bottom) / worldUnitsPerTexelY) * worldUnitsPerTexelY;
+
+        const left = snappedMinX - eyeX;
+        const right = left + frustumWidth;
+        const bottom = snappedMinY - eyeY;
+        const top = bottom + frustumHeight;
+
+        if (
+            Math.abs(left - frustum.left) <= TEXEL_SNAP_EPSILON &&
+            Math.abs(bottom - frustum.bottom) <= TEXEL_SNAP_EPSILON
+        ) {
+            return false;
+        }
+
+        frustum.setOrthoBounds(left, right, bottom, top);
+
+        return true;
+    }
+
     public getCartesianFromPixelTerrain(x: number, y: number): Vec3 | undefined {
         const distance = getDistanceFromPixel(x, y, this.camera, this.framebuffer);
         if (distance === 0) return;
 
         const nx = x / this.framebuffer.width;
         const ny = (this.framebuffer.height - y) / this.framebuffer.height;
+
+        if (this.camera.isOrthographic) {
+            const position = new Vec3();
+            this.camera.unproject(nx * this.camera.width, (1 - ny) * this.camera.height, distance, position);
+            return position;
+        }
+
         const direction = this.camera.unproject(nx * this.camera.width, (1 - ny) * this.camera.height);
         return direction.scaleTo(distance).addA(this.camera.eye);
     }
@@ -437,6 +567,8 @@ export class DepthCamera {
             width: this.width,
             height: this.height,
             viewAngle: this.verticalViewAngle,
+            isOrthographic: this._isOrthographic,
+            focusDistance: this._focusDistance,
             reverseDepth: false
         });
 
@@ -485,14 +617,25 @@ export class DepthCamera {
         const planet = this._planet!;
         const mainCam = this._renderer!.activeCamera;
 
-        if (!this._forceOwnQuadTreeStrategyPass && mainCam.containsPoint(depthCamera.eye)) {
+        //
+        // @test
+        //
+        return planet.quadTreeStrategy;
+
+        if (
+            //!depthCamera.isOrthographic &&
+            !this._forceOwnQuadTreeStrategyPass &&
+            mainCam.containsPoint(depthCamera.eye)
+        ) {
             return planet.quadTreeStrategy;
         }
 
         this._forceOwnQuadTreeStrategyPass = false;
+        depthCamera.updateCameraSlope();
 
         const quadTreeStrategy = this.quadTreeStrategy;
         quadTreeStrategy.maxZoomLimit = planet.quadTreeStrategy.maxCurrZoom;
+        quadTreeStrategy.disableNeighbors = true;
         quadTreeStrategy.collectRenderNodes(depthCamera);
 
         return quadTreeStrategy;
@@ -501,6 +644,11 @@ export class DepthCamera {
     protected _segmentsPass(camera: PlanetCamera, quadTreeStrategy: QuadTreeStrategy): void {
         const h = this._renderer!.handler;
         const gl = h.gl!;
+        const planet = this._planet;
+
+        if (!planet) return;
+
+        let checkSlope = camera.isOrthographic && camera.slope < RENDER_SKIRTS_SLOPE;
 
         h.programs.depth_camera.activate();
         const sh = h.programs.depth_camera;
@@ -509,31 +657,42 @@ export class DepthCamera {
         gl.uniformMatrix4fv(shu.viewMatrix, false, camera.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, camera.getProjectionMatrix());
 
-        const isEq = this._planet!.terrain!.equalizeVertices;
+        if (this.enableSegmentFaceCulling) {
+            gl.enable(gl.CULL_FACE);
+        } else if (checkSlope) {
+            gl.disable(gl.CULL_FACE);
+        }
+
+        //const isEq = planet.terrain!.equalizeVertices;
+        const baseLayerSlice = planet.visibleTileLayers.length ? [planet.visibleTileLayers[0]] : undefined;
         const rn = quadTreeStrategy._renderedNodesInFrustum[camera.getCurrentFrustum()];
+        //const renderSkirts = this.enableSegmentSkirts && checkSlope;
+        const renderSkirts = true;
 
         let i = rn.length;
         while (i--) {
             const s = rn[i].segment;
             if (!s.node) continue;
             if (s._transitionOpacity >= 1) {
-                isEq && s.equalize();
+                //isEq && s.equalize();
                 s.readyToEngage && s.engage();
                 s.ensureIndexBuffer();
                 s.updateRTCEyePosition(camera);
-                s.depthRendering(sh);
+                s.depthRendering(sh, baseLayerSlice, renderSkirts);
             }
         }
 
         for (let j = 0; j < quadTreeStrategy._fadingOpaqueSegments.length; ++j) {
             const s = quadTreeStrategy._fadingOpaqueSegments[j];
             if (!s.node) continue;
-            isEq && s.equalize();
+            //isEq && s.equalize();
             s.readyToEngage && s.engage();
             s.ensureIndexBuffer();
             s.updateRTCEyePosition(camera);
-            s.depthRendering(sh);
+            s.depthRendering(sh, baseLayerSlice, renderSkirts);
         }
+
+        gl.enable(gl.CULL_FACE);
     }
 
     protected _geoObjectsPass(camera: PlanetCamera): void {

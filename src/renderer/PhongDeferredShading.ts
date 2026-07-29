@@ -2,6 +2,7 @@ import { Framebuffer } from "../webgl/Framebuffer";
 import { deferredShading } from "../shaders/deferredShading/deferredShading";
 import { applyDeferredDepth } from "../shaders/applyDeferredDepth";
 import { ProjectorsPass } from "./projectors/ProjectorsPass";
+import { DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START, DEFAULT_SHADOW_TEXTURE_UNIT_START } from "./textureUnits";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { Renderer } from "./Renderer";
 
@@ -123,6 +124,7 @@ export class PhongDeferredShading implements IDeferredShadingPass {
 
         gl.disable(gl.DEPTH_TEST);
         gl.depthMask(false);
+        r.enableBlendDefault();
 
         gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -134,6 +136,7 @@ export class PhongDeferredShading implements IDeferredShadingPass {
         gl.uniform3fv(p.uniforms.lightAmbient, r._lightAmbient);
         gl.uniform3fv(p.uniforms.lightDiffuse, r._lightDiffuse);
         gl.uniform4fv(p.uniforms.lightSpecular, r._lightSpecular);
+        gl.uniform1f(p.uniforms.frameOpacity, r.frameOpacity);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer!.textures[0]);
@@ -150,6 +153,9 @@ export class PhongDeferredShading implements IDeferredShadingPass {
         gl.activeTexture(gl.TEXTURE3);
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer!.textures[3]);
         gl.uniform1i(p.uniforms.viewPositionTexture, 3);
+
+        r.shadows.bindForward(p, DEFAULT_SHADOW_TEXTURE_UNIT_START);
+        r.cascadeShadowManager.bindForward(p, DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 

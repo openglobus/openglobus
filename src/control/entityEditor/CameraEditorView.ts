@@ -25,10 +25,16 @@ export function hasEntityEditorDepthCamera(entity: Entity): boolean {
 export class CameraEditorView extends View<Entity> {
     protected _nearView: Input;
     protected _farView: Input;
+    protected _leftView: Input;
+    protected _rightView: Input;
+    protected _bottomView: Input;
+    protected _topView: Input;
     protected _verticalFovView: Input;
     protected _horizontalFovView: Input;
     protected _viewportWidthView: Input;
     protected _viewportHeightView: Input;
+    protected _orthographicView: Checkbox;
+    protected _focusDistanceView: Input;
     protected _showFrustumView: Checkbox;
     protected _showFootprintView: Checkbox;
     protected _biasView: Input;
@@ -56,6 +62,30 @@ export class CameraEditorView extends View<Entity> {
             label: "Far",
             type: "number",
             min: 0,
+            maxFixed: 4
+        });
+
+        this._leftView = new Input({
+            label: "Bounds left",
+            type: "number",
+            maxFixed: 4
+        });
+
+        this._rightView = new Input({
+            label: "Bounds right",
+            type: "number",
+            maxFixed: 4
+        });
+
+        this._bottomView = new Input({
+            label: "Bounds bottom",
+            type: "number",
+            maxFixed: 4
+        });
+
+        this._topView = new Input({
+            label: "Bounds top",
+            type: "number",
             maxFixed: 4
         });
 
@@ -91,6 +121,18 @@ export class CameraEditorView extends View<Entity> {
             maxFixed: 0
         });
 
+        this._orthographicView = new Checkbox({
+            label: "Orthographic"
+        });
+
+        this._focusDistanceView = new Input({
+            label: "Focus distance",
+            type: "number",
+            min: 0.000001,
+            step: 1,
+            maxFixed: 4
+        });
+
         this._showFrustumView = new Checkbox({
             label: "Show frustum"
         });
@@ -100,8 +142,9 @@ export class CameraEditorView extends View<Entity> {
         });
 
         this._biasView = new Input({
-            label: "Bias",
+            label: "Depth bias",
             type: "number",
+            min: 0,
             step: 0.00001,
             maxFixed: 8
         });
@@ -109,6 +152,7 @@ export class CameraEditorView extends View<Entity> {
         this._normalBiasView = new Input({
             label: "Normal bias",
             type: "number",
+            min: 0,
             step: 0.01,
             maxFixed: 4
         });
@@ -116,6 +160,7 @@ export class CameraEditorView extends View<Entity> {
         this._depthEpsilonView = new Input({
             label: "Depth epsilon",
             type: "number",
+            min: 0,
             step: 0.00001,
             maxFixed: 8
         });
@@ -146,10 +191,16 @@ export class CameraEditorView extends View<Entity> {
 
         this._nearView.appendTo(this._bodyEl);
         this._farView.appendTo(this._bodyEl);
+        this._leftView.appendTo(this._bodyEl);
+        this._topView.appendTo(this._bodyEl);
+        this._rightView.appendTo(this._bodyEl);
+        this._bottomView.appendTo(this._bodyEl);
         this._verticalFovView.appendTo(this._bodyEl);
         this._horizontalFovView.appendTo(this._bodyEl);
         this._viewportWidthView.appendTo(this._bodyEl);
         this._viewportHeightView.appendTo(this._bodyEl);
+        this._orthographicView.appendTo(this._bodyEl);
+        this._focusDistanceView.appendTo(this._bodyEl);
         this._showFrustumView.appendTo(this._bodyEl);
         this._showFootprintView.appendTo(this._bodyEl);
         this._biasView.appendTo(this._bodyEl);
@@ -158,10 +209,16 @@ export class CameraEditorView extends View<Entity> {
 
         this._nearView.events.on("change", this._onChangeNear);
         this._farView.events.on("change", this._onChangeFar);
+        this._leftView.events.on("change", this._onChangeLeft);
+        this._rightView.events.on("change", this._onChangeRight);
+        this._bottomView.events.on("change", this._onChangeBottom);
+        this._topView.events.on("change", this._onChangeTop);
         this._verticalFovView.events.on("change", this._onChangeVerticalFov);
         this._horizontalFovView.events.on("change", this._onChangeHorizontalFov);
         this._viewportWidthView.events.on("change", this._onChangeViewportWidth);
         this._viewportHeightView.events.on("change", this._onChangeViewportHeight);
+        this._orthographicView.events.on("change", this._onChangeOrthographic);
+        this._focusDistanceView.events.on("change", this._onChangeFocusDistance);
         this._showFrustumView.events.on("change", this._onChangeShowFrustum);
         this._showFootprintView.events.on("change", this._onChangeShowFootprint);
         this._biasView.events.on("change", this._onChangeBias);
@@ -183,6 +240,14 @@ export class CameraEditorView extends View<Entity> {
             this._nearView.value = frustum.near;
             this._farView.stopPropagation();
             this._farView.value = frustum.far;
+            this._leftView.stopPropagation();
+            this._leftView.value = frustum.left;
+            this._rightView.stopPropagation();
+            this._rightView.value = frustum.right;
+            this._bottomView.stopPropagation();
+            this._bottomView.value = frustum.bottom;
+            this._topView.stopPropagation();
+            this._topView.value = frustum.top;
         }
 
         this._verticalFovView.stopPropagation();
@@ -197,11 +262,19 @@ export class CameraEditorView extends View<Entity> {
         const depthCamera = this._depthCamera;
         this._showFrustumView.visibility = !!depthCamera;
         this._showFootprintView.visibility = !!depthCamera;
+        this._orthographicView.visibility = !!depthCamera;
+        this._focusDistanceView.visibility = !!depthCamera && depthCamera.isOrthographic;
         this._biasView.visibility = !!depthCamera;
         this._normalBiasView.visibility = !!depthCamera;
         this._depthEpsilonView.visibility = !!depthCamera;
 
         if (depthCamera) {
+            if (this._orthographicView.checked !== depthCamera.isOrthographic) {
+                this._orthographicView.stopPropagation();
+                this._orthographicView.checked = depthCamera.isOrthographic;
+            }
+            this._focusDistanceView.stopPropagation();
+            this._focusDistanceView.value = depthCamera.focusDistance;
             if (this._showFrustumView.checked !== depthCamera.showFrustum) {
                 this._showFrustumView.stopPropagation();
                 this._showFrustumView.checked = depthCamera.showFrustum;
@@ -226,10 +299,16 @@ export class CameraEditorView extends View<Entity> {
     public override remove(): void {
         this._nearView.remove();
         this._farView.remove();
+        this._leftView.remove();
+        this._rightView.remove();
+        this._bottomView.remove();
+        this._topView.remove();
         this._verticalFovView.remove();
         this._horizontalFovView.remove();
         this._viewportWidthView.remove();
         this._viewportHeightView.remove();
+        this._orthographicView.remove();
+        this._focusDistanceView.remove();
         this._showFrustumView.remove();
         this._showFootprintView.remove();
         this._biasView.remove();
@@ -254,6 +333,19 @@ export class CameraEditorView extends View<Entity> {
         this.refresh();
     }
 
+    protected _setBounds(left: number, right: number, bottom: number, top: number): void {
+        const camera = this._getCamera();
+        const frustum = camera?.frustums[0];
+        if (!camera || !frustum || !camera.isOrthographic || right <= left || top <= bottom) {
+            this.refresh();
+            return;
+        }
+
+        frustum.setOrthoBounds(left, right, bottom, top);
+        camera.update();
+        this.refresh();
+    }
+
     protected _syncFrustumEntityScale(): void {
         const camera = this._getCamera();
         if (!camera) return;
@@ -261,10 +353,14 @@ export class CameraEditorView extends View<Entity> {
         const tag = this.model.geoObject?.tag?.toLowerCase() || "";
         if (!tag.includes("frustum")) return;
 
-        const length = this.model.getScale().z || 1.0;
-        this.model.setScale3v(
-            Object3d.getFrustumScaleByCameraAngles(length, camera.horizontalViewAngle, camera.verticalViewAngle)
-        );
+        if (this._depthCamera) {
+            this.model.setScale3v(this._depthCamera.frustumScale);
+        } else {
+            const length = this.model.getScale().z || 1.0;
+            this.model.setScale3v(
+                Object3d.getFrustumScaleByCameraAngles(length, camera.horizontalViewAngle, camera.verticalViewAngle)
+            );
+        }
     }
 
     protected _onChangeNear = (value: string): void => {
@@ -280,6 +376,38 @@ export class CameraEditorView extends View<Entity> {
         const near = this._getCamera()?.frustums[0]?.near;
         if (far !== null && near != null) {
             this._setNearFar(near, far);
+        }
+    };
+
+    protected _onChangeLeft = (value: string): void => {
+        const left = getNumber(value);
+        const frustum = this._getCamera()?.frustums[0];
+        if (left !== null && frustum) {
+            this._setBounds(left, frustum.right, frustum.bottom, frustum.top);
+        }
+    };
+
+    protected _onChangeRight = (value: string): void => {
+        const right = getNumber(value);
+        const frustum = this._getCamera()?.frustums[0];
+        if (right !== null && frustum) {
+            this._setBounds(frustum.left, right, frustum.bottom, frustum.top);
+        }
+    };
+
+    protected _onChangeBottom = (value: string): void => {
+        const bottom = getNumber(value);
+        const frustum = this._getCamera()?.frustums[0];
+        if (bottom !== null && frustum) {
+            this._setBounds(frustum.left, frustum.right, bottom, frustum.top);
+        }
+    };
+
+    protected _onChangeTop = (value: string): void => {
+        const top = getNumber(value);
+        const frustum = this._getCamera()?.frustums[0];
+        if (top !== null && frustum) {
+            this._setBounds(frustum.left, frustum.right, frustum.bottom, top);
         }
     };
 
@@ -327,6 +455,23 @@ export class CameraEditorView extends View<Entity> {
         const camera = this._getCamera();
         if (height !== null && camera) {
             this._setViewportSize(camera.width, height);
+        }
+    };
+
+    protected _onChangeOrthographic = (isOrthographic: boolean): void => {
+        if (this._depthCamera) {
+            this._depthCamera.isOrthographic = isOrthographic;
+            this._syncFrustumEntityScale();
+            this.refresh();
+        }
+    };
+
+    protected _onChangeFocusDistance = (value: string): void => {
+        const focusDistance = getNumber(value);
+        if (this._depthCamera && focusDistance !== null) {
+            this._depthCamera.focusDistance = focusDistance;
+            this._syncFrustumEntityScale();
+            this.refresh();
         }
     };
 

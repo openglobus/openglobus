@@ -8,6 +8,8 @@ precision highp float;
 #include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
 #include "../common/projectors.glsl"
+#include "../common/shadows.glsl"
+#include "../common/cascadeShadows.glsl"
 
 uniform vec4 specular;
 uniform vec3 diffuse;
@@ -30,6 +32,7 @@ uniform float transitionOpacity;
 
 uniform float camHeight;
 uniform float shadeMode;
+uniform float frameOpacity;
 uniform vec3 cameraPosition;
 
 in vec4 vTextureCoord;
@@ -58,10 +61,13 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
+    float shadowVisibility =
+        getShadowMapsDirectVisibility(v_rtcPos, normal) *
+        getCascadeShadowDirectVisibility(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
         fragColor.rgb += projectorEmission;
-        fragColor *= transitionOpacity;
+        applyPremultipliedSurfaceOpacity(fragColor, transitionOpacity, frameOpacity);
         return;
     }
 
@@ -109,6 +115,8 @@ void main(void) {
         lightWeighting
         );
     }
+    lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, ambient, 1.0, shadowVisibility);
+    specularWeighting *= shadowVisibility;
 
     fragColor = vec4(
     fragColor.rgb * (lightWeighting.rgb + projectorLight) +
@@ -117,5 +125,5 @@ void main(void) {
     projectorEmission,
     fragColor.a
     );
-    fragColor *= transitionOpacity;
+    applyPremultipliedSurfaceOpacity(fragColor, transitionOpacity, frameOpacity);
 }

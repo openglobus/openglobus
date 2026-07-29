@@ -133,8 +133,6 @@ class Camera {
 
     protected _isOrthographic: boolean;
 
-    protected _focusDistance: number;
-
     /**
      * Camera position.
      * @public
@@ -272,8 +270,6 @@ class Camera {
 
         this._isOrthographic = options.isOrthographic ?? false;
 
-        this._focusDistance = options.focusDistance != undefined ? options.focusDistance : 10;
-
         this._width = options.width || 1;
 
         this._height = options.height || 1;
@@ -325,7 +321,8 @@ class Camera {
             const [near = 1, far = MAX_FLOAT] = initFrustums[0] ?? [];
             initFrustums = [[near, far]];
         }
-        this.setFrustums(initFrustums);
+        const initialFocusDistance = options.focusDistance != undefined ? options.focusDistance : 10;
+        this.setFrustums(initFrustums, initialFocusDistance);
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
         this.currentFrustumIndex = 0;
@@ -346,7 +343,7 @@ class Camera {
         this._pWidth = this._width;
         this._pHeight = this._height;
         this._pIsOrthographic = this._isOrthographic;
-        this._pFocusDistance = this._focusDistance;
+        this._pFocusDistance = this.focusDistance;
     }
 
     /**
@@ -415,7 +412,7 @@ class Camera {
      * @returns {number} Focus distance.
      */
     public get focusDistance(): number {
-        return this._focusDistance;
+        return this.frustum.focusDistance;
     }
 
     /**
@@ -424,11 +421,17 @@ class Camera {
      * @param {number} dist - Focus distance.
      */
     public set focusDistance(dist: number) {
-        if (dist !== this._focusDistance) {
-            this._focusDistance = dist;
-            if (this._isOrthographic) {
-                this.refresh();
+        let changed = false;
+        for (let i = 0, len = this.frustums.length; i < len; i++) {
+            let fi = this.frustums[i];
+            if (fi.focusDistance !== dist) {
+                fi.setFocusDistance(dist);
+                changed = true;
             }
+        }
+
+        if (changed && this._isOrthographic) {
+            this.update();
         }
     }
 
@@ -565,15 +568,16 @@ class Camera {
      * @public
      */
     public checkViewChanges() {
-        this._checkMoveEnd();
+        this.checkMoveEnd();
         this._checkViewChange();
     }
 
     /**
      * Checks whether the camera stopped moving and dispatches `moveend`.
-     * @protected
+     * @public
+     * @returns {boolean} `true` when the camera is moving after the check.
      */
-    protected _checkMoveEnd() {
+    public checkMoveEnd(): boolean {
         let r = this._r,
             u = this._u,
             b = this._b,
@@ -584,14 +588,17 @@ class Camera {
                 this.events.dispatch(this.events.moveend, this);
             }
             this.isMoving = false;
-        } else {
-            this.isMoving = true;
+            return false;
         }
+
+        this.isMoving = true;
 
         this._pr.copy(r);
         this._pu.copy(u);
         this._pb.copy(b);
         this._peye.copy(eye);
+
+        return true;
     }
 
     /**
@@ -600,13 +607,14 @@ class Camera {
      */
     protected _checkViewChange() {
         const aspect = this.getAspectRatio();
+        const focusDistance = this.focusDistance;
         const projectionChanged =
             this._pViewAngle !== this._viewAngle ||
             this._pAspect !== aspect ||
             this._pWidth !== this._width ||
             this._pHeight !== this._height ||
             this._pIsOrthographic !== this._isOrthographic ||
-            (this._isOrthographic && this._pFocusDistance !== this._focusDistance);
+            (this._isOrthographic && this._pFocusDistance !== focusDistance);
 
         if (this.isMoving || projectionChanged) {
             this.events.dispatch(this.events.viewchange, this);
@@ -617,7 +625,7 @@ class Camera {
         this._pWidth = this._width;
         this._pHeight = this._height;
         this._pIsOrthographic = this._isOrthographic;
-        this._pFocusDistance = this._focusDistance;
+        this._pFocusDistance = focusDistance;
     }
 
     /**
@@ -708,6 +716,14 @@ class Camera {
     }
 
     /**
+     * Updates camera slope against the horizontal XZ plane.
+     * @public
+     */
+    public updateCameraSlope(): void {
+        this.slope = this._b.y;
+    }
+
+    /**
      * Updates camera view space
      * @public
      * @virtual
@@ -747,6 +763,8 @@ class Camera {
             this.frustums[i].setViewMatrix(this._viewMatrix);
             this.frustums[i].setProjectionViewRTEMatrix(this._viewMatrixRTE);
         }
+
+        this.updateCameraSlope();
     }
 
     /**
@@ -813,7 +831,7 @@ class Camera {
                 fi.near,
                 fi.far,
                 this._isOrthographic,
-                this._focusDistance,
+                fi.focusDistance,
                 this.reverseDepthActive,
                 this.depthZeroToOne
             );
@@ -838,7 +856,7 @@ class Camera {
      * @public
      * @param {Array.<NumberArray2>} frustums - Array of `[near, far]` ranges.
      */
-    public setFrustums(frustums: [number, number][]) {
+    public setFrustums(frustums: [number, number][], focusDistance: number = this.focusDistance) {
         if (this.reverseDepthActive && frustums.length > 1) {
             frustums = [frustums[0]];
         }
@@ -855,7 +873,7 @@ class Camera {
                     near,
                     far,
                     this._isOrthographic,
-                    this._focusDistance,
+                    this.frustums[i].focusDistance,
                     this.reverseDepthActive,
                     this.depthZeroToOne
                 );
@@ -868,6 +886,8 @@ class Camera {
                     aspect,
                     near,
                     far,
+                    isOrthographic: this._isOrthographic,
+                    focusDistance,
                     reverseDepth: this.reverseDepthActive,
                     depthZeroToOne: this.depthZeroToOne
                 });
@@ -880,6 +900,8 @@ class Camera {
         this.frustumColors.length = frustums.length * 3;
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
         this.setCurrentFrustum(0);
+        this._horizontalViewAngle = getHorizontalViewAngleByFov(this._viewAngle, aspect);
+        this._updateViewportParameters();
 
         this.events.dispatch(this.events.frustumschanged, this);
     }

@@ -41,6 +41,8 @@ export class QuadTreeStrategy {
 
     public lodCamera: PlanetCamera | null = null;
 
+    public disableNeighbors: boolean = false;
+
     /**
      * grid tree list.
      * @protected
@@ -65,8 +67,6 @@ export class QuadTreeStrategy {
     public _renderedNodesInFrustum: Node[][];
 
     public _fadingNodes: Map<number, Node>;
-
-    public _fadingNodesInFrustum: Node[][];
 
     public _fadingOpaqueSegments: Segment[];
 
@@ -125,7 +125,6 @@ export class QuadTreeStrategy {
         this._renderedNodesInFrustum = [];
 
         this._fadingNodes = new Map<number, Node>();
-        this._fadingNodesInFrustum = [];
         this._fadingOpaqueSegments = [];
         this._transparentSegments = [];
 

@@ -21,6 +21,8 @@ import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { ITransparencyPass } from "./ITransparencyPass";
 import { PhongDeferredShading } from "./PhongDeferredShading";
 import { ProjectorManager } from "./projectors/ProjectorManager";
+import { CascadeShadowManager } from "./cascadeShadows/CascadeShadowManager";
+import { ShadowManager } from "./shadows/ShadowManager";
 import { TextureResourceManager } from "../utils/TextureResourceManager";
 import type { RendererTextureRequest } from "../utils/TextureResourceManager";
 import { WOITPass } from "./WOITPass";
@@ -39,6 +41,7 @@ export interface IRendererParams {
     fontsSrc?: string;
     gamma?: number;
     exposure?: number;
+    frameOpacity?: number;
     toneMapping?: string;
     dpi?: number;
     clearColor?: [number, number, number, number];
@@ -79,6 +82,7 @@ let _tempDepth_ = new Float32Array(2);
  *     - fontsSrc: Path to font resources
  *     - gamma: Gamma correction value
  *     - exposure: HDR exposure value
+ *     - frameOpacity: Scene objects opacity used with transparentBackground to achieve an AR effect
  *     - toneMapping: HDR tone mapping operator
  *     - dpi: Device pixel ratio
  *     - clearColor: RGBA clear color array
@@ -227,6 +231,7 @@ class Renderer {
     protected hdrFramebuffer: Framebuffer | null;
 
     public deferredDisabled: boolean;
+    public frameOpacity: number;
     public deferredShadingPass: IDeferredShadingPass;
     public transparencyPass: ITransparencyPass;
 
@@ -277,6 +282,8 @@ class Renderer {
     public _lightDiffuse: Float32Array;
     public _lightSpecular: Float32Array;
     public projectors: ProjectorManager;
+    public cascadeShadowManager: CascadeShadowManager;
+    public shadows: ShadowManager;
 
     //public lightColor: Float32Array;
     //public lightIntensity: number;
@@ -306,6 +313,8 @@ class Renderer {
         this._lightDiffuse = new Float32Array(3);
         this._lightSpecular = new Float32Array(4);
         this.projectors = new ProjectorManager(this);
+        this.cascadeShadowManager = new CascadeShadowManager(this);
+        this.shadows = new ShadowManager(this);
 
         this.lightAmbient = params.lightAmbient || [0.2, 0.2, 0.2];
         this.lightDiffuse = params.lightDiffuse || [1, 1, 1];
@@ -372,6 +381,7 @@ class Renderer {
         this.hdrFramebuffer = null;
 
         this.deferredDisabled = params.deferredDisabled ?? false;
+        this.frameOpacity = params.frameOpacity ?? 1.0;
         this.deferredShadingPass = new PhongDeferredShading(this);
         this.transparencyPass = new WOITPass(this);
 
@@ -902,6 +912,8 @@ class Renderer {
 
         this._appendControlContainers();
 
+        this.cascadeShadowManager.init();
+
         this._initializeScenes();
 
         this._initializeControls();
@@ -1041,8 +1053,7 @@ class Renderer {
             }
 
             const samples = gl.getInternalformatParameter(gl.RENDERBUFFER, glInternalFormat, gl.SAMPLES) as
-                | number[]
-                | Int32Array;
+                number[] | Int32Array;
 
             if (!samples || samples.length === 0) {
                 return 0;
@@ -1927,6 +1938,8 @@ class Renderer {
 
         this._textureResourceManager.clear();
         this.projectors.clear();
+        this.cascadeShadowManager.destroy();
+        this.shadows.clear();
 
         this.handler.ONCANVASRESIZE = null;
         this.handler.destroy();

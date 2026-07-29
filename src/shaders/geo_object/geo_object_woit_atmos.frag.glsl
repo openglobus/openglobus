@@ -7,6 +7,9 @@ precision highp float;
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
 #include "../common/projectors.glsl"
+#include "../common/shadows.glsl"
+#include "../common/cascadeShadows.glsl"
+#include "../common/materialFlags.glsl"
 
 uniform vec3 lightPosition;
 uniform vec3 lightAmbient;
@@ -23,6 +26,9 @@ uniform float uUseMetallicRoughnessTexture;
 uniform float uUseAOTexture;
 uniform float shadeMode;
 uniform float uProjectorMask;
+uniform float uFrameTransparencyMask;
+uniform float frameOpacity;
+uniform float uShadowMask;
 uniform mat3 normalMatrix;
 
 uniform sampler2D transmittanceTexture;
@@ -57,6 +63,13 @@ void main(void) {
         baseColor = vColor;
     }
 
+    uint materialFlags = packMaterialFlags(
+        uint(step(0.5, uProjectorMask)),
+        uint(step(0.5, uFrameTransparencyMask)),
+        uint(step(0.5, uShadowMask))
+    );
+    baseColor.a *= mix(1.0, frameOpacity, materialReceivesFrameTransparencyMask(materialFlags));
+
     vec4 color;
 
     float shade = shadeMode;
@@ -75,8 +88,14 @@ void main(void) {
     vec3 projectorEmission;
     vec3 projectorLight;
     applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
-    projectorEmission *= uProjectorMask;
-    projectorLight *= uProjectorMask;
+    float receiveProjectors = materialReceivesProjectorsMask(materialFlags);
+    float receiveShadows = materialReceivesShadowsMask(materialFlags);
+    projectorEmission *= receiveProjectors;
+    projectorLight *= receiveProjectors;
+    float directShadowVisibility =
+        getShadowMapsDirectVisibility(v_rtcPos, normal) *
+        getCascadeShadowDirectVisibility(v_rtcPos, normal);
+    float shadowVisibility = mix(1.0, directShadowVisibility, receiveShadows);
 
     if (shade == SHADE_UNLIT) {
         color = baseColor;
@@ -119,8 +138,15 @@ void main(void) {
             specularWeighting,
             lightWeighting
         );
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
 
-        color = vec4(baseColor.rgb * (lightWeighting.rgb + projectorLight) + specularWeighting + projectorEmission, baseColor.a);
+        color = vec4(
+            baseColor.rgb * (lightWeighting.rgb + projectorLight) +
+            specularWeighting +
+            projectorEmission,
+            baseColor.a
+        );
     } else {
         float ao = material.r;
         float specularMask = material.b;
@@ -149,6 +175,8 @@ void main(void) {
             specularWeighting,
             lightWeighting
         );
+        lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
+        specularWeighting *= shadowVisibility;
 
         vec4 atmosColor;
         atmosGroundColor(worldVertex, normal, rayOrigin, rayDirection, sunPos, atmosColor);

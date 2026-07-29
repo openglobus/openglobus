@@ -146,6 +146,16 @@ test('Test concatTypedArrays', () => {
 
 });
 
+test('Test stringTemplate2 replaces escaped placeholders', () => {
+    const res = shared.stringTemplate2('a/${x}/\\${operator}/${zero}', {
+        x: 12,
+        operator: 'TONE_MAPPING_REINHARD_WHITE',
+        zero: 0
+    });
+
+    expect(res).toBe('a/12/TONE_MAPPING_REINHARD_WHITE/0');
+});
+
 test('Test spliceTypedArray', () => {
 
     const startPos = 0;

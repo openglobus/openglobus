@@ -50,6 +50,8 @@ export const TILEGROUP_COMMON = 0;
 export const TILEGROUP_NORTH = 20;
 export const TILEGROUP_SOUTH = 300;
 
+const SKIRT_SIZE = 50000.0;
+
 export function getTileGroupByLat(lat: number, maxLat: number = MAX_LAT): number {
     if (lat > maxLat) {
         return TILEGROUP_NORTH;
@@ -273,6 +275,10 @@ class Segment {
     public vertexPositionBufferLow: WebGLBufferExt | null;
     public vertexTextureCoordBuffer: WebGLBufferExt | null;
 
+    public skirtVertexPositionBufferHigh: WebGLBufferExt | null;
+    public skirtVertexPositionBufferLow: WebGLBufferExt | null;
+    public skirtIndexBuffer: WebGLBufferExt | null;
+
     public _globalTextureCoordinates: Float32Array;
     public _inTheQueue: boolean;
     public _appliedNeighborsZoom: [number, number, number, number];
@@ -402,6 +408,10 @@ class Segment {
         this.vertexPositionBufferHigh = null;
         this.vertexPositionBufferLow = null;
         this.vertexTextureCoordBuffer = null;
+
+        this.skirtVertexPositionBufferHigh = null;
+        this.skirtVertexPositionBufferLow = null;
+        this.skirtIndexBuffer = null;
 
         this._globalTextureCoordinates = new Float32Array(4);
         this._inTheQueue = false;
@@ -708,6 +718,8 @@ class Segment {
             this.renderVertices = this.terrainVertices;
             this.renderVerticesHigh = this.terrainVerticesHigh;
             this.renderVerticesLow = this.terrainVerticesLow;
+
+            this._deleteSkirtBuffers();
 
             this.noDataVertices = null;
 
@@ -1070,6 +1082,8 @@ class Segment {
             this.renderVerticesHigh = this.terrainVerticesHigh;
             this.renderVerticesLow = this.terrainVerticesLow;
 
+            this._deleteSkirtBuffers();
+
             this.setBoundingVolumeArr(data.bounds);
 
             this.gridSize = Math.sqrt(this.terrainVertices!.length / 3) - 1;
@@ -1201,11 +1215,25 @@ class Segment {
         gl.deleteBuffer(this.vertexPositionBufferHigh!);
         gl.deleteBuffer(this.vertexPositionBufferLow!);
 
+        this._deleteSkirtBuffers();
+
         this.vertexNormalBuffer = null;
         this.vertexPositionBuffer = null;
         this.vertexPositionBufferHigh = null;
         this.vertexPositionBufferLow = null;
         this.vertexTextureCoordBuffer = null;
+    }
+
+    protected _deleteSkirtBuffers() {
+        const gl = this.handler.gl!;
+
+        gl.deleteBuffer(this.skirtVertexPositionBufferHigh!);
+        gl.deleteBuffer(this.skirtVertexPositionBufferLow!);
+        gl.deleteBuffer(this.skirtIndexBuffer!);
+
+        this.skirtVertexPositionBufferHigh = null;
+        this.skirtVertexPositionBufferLow = null;
+        this.skirtIndexBuffer = null;
     }
 
     public deleteMaterials() {
@@ -1230,6 +1258,8 @@ class Segment {
         this.renderVertices = null;
         this.renderVerticesHigh = null;
         this.renderVerticesLow = null;
+
+        this._deleteSkirtBuffers();
 
         this.terrainVertices = null;
         this.terrainVerticesHigh = null;
@@ -2091,7 +2121,141 @@ class Segment {
         }
     }
 
-    public depthRendering(sh: ShaderProgram, layerSlice?: Layer[]) {
+    protected _appendSkirtVertexPair(
+        vertices: Float64Array,
+        verticesHigh: Float32Array,
+        verticesLow: Float32Array,
+        vertexIndex: number,
+        out: number
+    ): number {
+        const rcx = this._relativeCenter.x;
+        const rcy = this._relativeCenter.y;
+        const rcz = this._relativeCenter.z;
+        const i3 = vertexIndex * 3;
+        const x = vertices[i3];
+        const y = vertices[i3 + 1];
+        const z = vertices[i3 + 2];
+        const wx = x + rcx;
+        const wy = y + rcy;
+        const wz = z + rcz;
+        const len = Math.sqrt(wx * wx + wy * wy + wz * wz);
+        const invLen = len > 0 ? 1.0 / len : 0.0;
+        const nx = wx * invLen;
+        const ny = wy * invLen;
+        const nz = wz * invLen;
+
+        _v0.set(x, y, z);
+        Vec3.doubleToTwoFloats(_v0, _tempHigh, _tempLow);
+
+        verticesHigh[out] = _tempHigh.x;
+        verticesLow[out++] = _tempLow.x;
+        verticesHigh[out] = _tempHigh.y;
+        verticesLow[out++] = _tempLow.y;
+        verticesHigh[out] = _tempHigh.z;
+        verticesLow[out++] = _tempLow.z;
+
+        _v0.set(x - nx * SKIRT_SIZE, y - ny * SKIRT_SIZE, z - nz * SKIRT_SIZE);
+        Vec3.doubleToTwoFloats(_v0, _tempHigh, _tempLow);
+
+        verticesHigh[out] = _tempHigh.x;
+        verticesLow[out++] = _tempLow.x;
+        verticesHigh[out] = _tempHigh.y;
+        verticesLow[out++] = _tempLow.y;
+        verticesHigh[out] = _tempHigh.z;
+        verticesLow[out++] = _tempLow.z;
+
+        return out;
+    }
+
+    protected _ensureSkirtBuffers(): boolean {
+        if (!this.renderVertices) {
+            return false;
+        }
+
+        const gsOne = this.gridSize + 1;
+        const sideVertexCount = gsOne * 2;
+        const vertexCount = sideVertexCount * 4;
+        const indexCount = vertexCount + 6;
+
+        if (this.skirtIndexBuffer?.numItems === indexCount) {
+            return true;
+        }
+
+        this._deleteSkirtBuffers();
+
+        const vertices = this.renderVertices;
+        const verticesHigh = new Float32Array(vertexCount * 3);
+        const verticesLow = new Float32Array(vertexCount * 3);
+        const indexes = new Uint32Array(indexCount);
+
+        let out = 0;
+
+        for (let j = 0; j < gsOne; j++) {
+            out = this._appendSkirtVertexPair(vertices, verticesHigh, verticesLow, j, out);
+        }
+
+        for (let i = 0; i < gsOne; i++) {
+            out = this._appendSkirtVertexPair(vertices, verticesHigh, verticesLow, i * gsOne + this.gridSize, out);
+        }
+
+        for (let j = this.gridSize; j >= 0; j--) {
+            out = this._appendSkirtVertexPair(vertices, verticesHigh, verticesLow, this.gridSize * gsOne + j, out);
+        }
+
+        for (let i = this.gridSize; i >= 0; i--) {
+            out = this._appendSkirtVertexPair(vertices, verticesHigh, verticesLow, i * gsOne, out);
+        }
+
+        const h = this.handler;
+        const gl = h.gl!;
+
+        let indexOffset = 0;
+        for (let side = 0; side < 4; side++) {
+            const firstIndex = side * sideVertexCount;
+            if (side > 0) {
+                indexes[indexOffset++] = firstIndex - 1;
+                indexes[indexOffset++] = firstIndex;
+            }
+            for (let i = 0; i < sideVertexCount; i++) {
+                indexes[indexOffset++] = firstIndex + i;
+            }
+        }
+
+        this.skirtVertexPositionBufferHigh = h.createArrayBuffer(verticesHigh, 3, vertexCount, gl.DYNAMIC_DRAW);
+        this.skirtVertexPositionBufferLow = h.createArrayBuffer(verticesLow, 3, vertexCount, gl.DYNAMIC_DRAW);
+        this.skirtIndexBuffer = h.createElementArrayBuffer(indexes, 1, indexCount, gl.DYNAMIC_DRAW);
+
+        return true;
+    }
+
+    protected _drawSkirts(gl: WebGL2RenderingContext, sha: { [id: string]: number }) {
+        if (!this._ensureSkirtBuffers()) return;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.skirtVertexPositionBufferHigh!);
+        gl.vertexAttribPointer(
+            sha.aVertexPositionHigh,
+            this.skirtVertexPositionBufferHigh!.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.skirtVertexPositionBufferLow!);
+        gl.vertexAttribPointer(
+            sha.aVertexPositionLow,
+            this.skirtVertexPositionBufferLow!.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.skirtIndexBuffer!);
+        gl.drawElements(gl.TRIANGLE_STRIP, this.skirtIndexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+    }
+
+    public depthRendering(sh: ShaderProgram, layerSlice?: Layer[], renderSkirts: boolean = false) {
         const gl = this.handler.gl!;
         const sha = sh.attributes;
         const shu = sh.uniforms;
@@ -2105,6 +2269,10 @@ class Segment {
 
         this._setRTCEyePositionUniforms(gl, shu);
         gl.uniform1f(shu.height, currHeight);
+
+        if (renderSkirts) {
+            this._drawSkirts(gl, sha);
+        }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh!);
         gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh!.itemSize, gl.FLOAT, false, 0, 0);
