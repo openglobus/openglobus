@@ -14,6 +14,7 @@ import segment_colorPicking_frag from "./segment_colorPicking.frag.glsl";
 import segment_depth_vert from "./segment_depth.vert.glsl";
 import segment_depth_frag from "./segment_depth.frag.glsl";
 import { stringTemplate2 } from "../../utils/shared";
+import { cascadeShadowUniforms, projectorUniforms, shadowMapUniforms } from "../common/uniforms";
 
 // REMEMBER!
 // src*(1)+dest*(1-src.alpha)
@@ -90,13 +91,10 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
             shadeMode: "float",
-            u_projectorCount: "int",
-            u_projectorLayer: "intxx",
-            u_projectorViewProjRTE: "mat4",
-            u_projectorEyeRel: "vec3",
-            u_projectorColor: "vec4",
-            u_projectorParams: "vec4",
-            u_projectorDepthArray: "sampler2darray"
+            frameOpacity: "float",
+            ...projectorUniforms,
+            ...shadowMapUniforms,
+            ...cascadeShadowUniforms
         },
         attributes: {
             aVertexPositionHigh: "vec3",
@@ -141,13 +139,10 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             nightTextureCoefficient: "float",
             transitionOpacity: "float",
             shadeMode: "float",
-            u_projectorCount: "int",
-            u_projectorLayer: "intxx",
-            u_projectorViewProjRTE: "mat4",
-            u_projectorEyeRel: "vec3",
-            u_projectorColor: "vec4",
-            u_projectorParams: "vec4",
-            u_projectorDepthArray: "sampler2darray"
+            frameOpacity: "float",
+            ...projectorUniforms,
+            ...shadowMapUniforms,
+            ...cascadeShadowUniforms
         },
         attributes: {
             aVertexPositionHigh: "vec3",

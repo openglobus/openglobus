@@ -100,13 +100,11 @@ class Geoid {
                 })
 
                 .then(function (rawfile: Uint8Array) {
-                    if (
-                        !(
-                            rawfile[0] === 80 &&
-                            rawfile[1] === 53 &&
-                            ((rawfile[2] === 13 && rawfile[3] === 10) || rawfile[2] === 10)
-                        )
-                    ) {
+                    if (!(
+                        rawfile[0] === 80 &&
+                        rawfile[1] === 53 &&
+                        ((rawfile[2] === 13 && rawfile[3] === 10) || rawfile[2] === 10)
+                    )) {
                         throw new Error("Geoid model file: no PGM header");
                     }
 

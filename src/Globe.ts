@@ -40,8 +40,9 @@ export interface IGlobeParams {
     attributionContainer?: HTMLElement;
     target?: string | HTMLElement;
     skybox?: Scene;
-    dpi?: number;
+    pixelRatio?: number;
     msaa?: number;
+    deferredDisabled?: boolean;
     name?: string;
     frustums?: NumberArray2[];
     ellipsoid?: Ellipsoid;
@@ -92,6 +93,7 @@ export interface IGlobeParams {
     exposure?: number;
     maxNodesCount?: number;
     transparentBackground?: boolean;
+    frameOpacity?: number;
     shadeMode?: ShadeModeInput;
     reverseDepth?: boolean;
 }
@@ -152,12 +154,15 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {number} [options.loadingBatchSize=12] -
  * @param {number} [options.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
  * @param {number} [options.msaa=0] - MSAA antialiasing parameter: 2,4,8,16. Default is 0.
- * @param {number} [options.dpi] - Device pixel ratio. Default is current screen DPI.
+ * @param {boolean} [options.deferredDisabled=false] - Disables deferred and WOIT pipelines and renders objects with forward shaders.
+ * @param {number} [options.pixelRatio] - Device pixel ratio. Default is current screen DPI.
  * @param {boolean} [options.atmosphereEnabled] - Enables atmosphere effect.
  * @param {boolean} [options.transtitionOpacityEnabled] - Enables terrain smooth opacity transition effect.
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
  * @param {number} [options.gamma] - Gamma
  * @param {number} [options.exposure] - Exposure
+ * @param {boolean} [options.transparentBackground=false] - Enables a transparent WebGL canvas background so HTML behind the globe container remains visible.
+ * @param {number} [options.frameOpacity=1.0] - Frame opacity applied by renderer transparency flags.
  * @param {boolean} [options.reverseDepth=true] - Enables reverse-Z depth for the planet camera perspective mode.
  */
 
@@ -247,7 +252,7 @@ class Globe {
         this.renderer = new Renderer(
             new Handler(this._canvas, {
                 autoActivate: false,
-                pixelRatio: options.dpi || window.devicePixelRatio > 1.25 ? 1.25 : window.devicePixelRatio,
+                pixelRatio: options.pixelRatio ?? Math.min(window.devicePixelRatio, 1.25),
                 context: {
                     alpha: options.transparentBackground,
                     antialias: false,
@@ -258,9 +263,11 @@ class Globe {
             {
                 autoActivate: false,
                 msaa: options.msaa,
+                deferredDisabled: options.deferredDisabled,
                 fontsSrc: options.fontsSrc,
                 gamma: options.gamma,
                 exposure: options.exposure,
+                frameOpacity: options.frameOpacity,
                 ...(options.transparentBackground && { clearColor: [0, 0, 0, 0] })
             }
         );

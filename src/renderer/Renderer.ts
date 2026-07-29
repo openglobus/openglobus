@@ -21,6 +21,8 @@ import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { ITransparencyPass } from "./ITransparencyPass";
 import { PhongDeferredShading } from "./PhongDeferredShading";
 import { ProjectorManager } from "./projectors/ProjectorManager";
+import { CascadeShadowManager } from "./cascadeShadows/CascadeShadowManager";
+import { ShadowManager } from "./shadows/ShadowManager";
 import { TextureResourceManager } from "../utils/TextureResourceManager";
 import type { RendererTextureRequest } from "../utils/TextureResourceManager";
 import { WOITPass } from "./WOITPass";
@@ -35,9 +37,11 @@ export interface IRendererParams {
     controls?: Control[];
     msaa?: number;
     autoActivate?: boolean;
+    deferredDisabled?: boolean;
     fontsSrc?: string;
     gamma?: number;
     exposure?: number;
+    frameOpacity?: number;
     toneMapping?: string;
     dpi?: number;
     clearColor?: [number, number, number, number];
@@ -74,9 +78,11 @@ let _tempDepth_ = new Float32Array(2);
  *     - controls: Control instances to add to the renderer
  *     - msaa: MSAA (Multi-Sample Anti-Aliasing) level
  *     - autoActivate: Start rendering automatically after creation
+ *     - deferredDisabled: Disable deferred shading pipeline and render deferred objects with forward shaders
  *     - fontsSrc: Path to font resources
  *     - gamma: Gamma correction value
  *     - exposure: HDR exposure value
+ *     - frameOpacity: Scene objects opacity used with transparentBackground to achieve an AR effect
  *     - toneMapping: HDR tone mapping operator
  *     - dpi: Device pixel ratio
  *     - clearColor: RGBA clear color array
@@ -224,6 +230,8 @@ class Renderer {
     public forwardFramebuffer: Multisample | null;
     protected hdrFramebuffer: Framebuffer | null;
 
+    public deferredDisabled: boolean;
+    public frameOpacity: number;
     public deferredShadingPass: IDeferredShadingPass;
     public transparencyPass: ITransparencyPass;
 
@@ -274,6 +282,8 @@ class Renderer {
     public _lightDiffuse: Float32Array;
     public _lightSpecular: Float32Array;
     public projectors: ProjectorManager;
+    public cascadeShadowManager: CascadeShadowManager;
+    public shadows: ShadowManager;
 
     //public lightColor: Float32Array;
     //public lightIntensity: number;
@@ -303,6 +313,8 @@ class Renderer {
         this._lightDiffuse = new Float32Array(3);
         this._lightSpecular = new Float32Array(4);
         this.projectors = new ProjectorManager(this);
+        this.cascadeShadowManager = new CascadeShadowManager(this);
+        this.shadows = new ShadowManager(this);
 
         this.lightAmbient = params.lightAmbient || [0.2, 0.2, 0.2];
         this.lightDiffuse = params.lightDiffuse || [1, 1, 1];
@@ -368,6 +380,8 @@ class Renderer {
         this.forwardFramebuffer = null;
         this.hdrFramebuffer = null;
 
+        this.deferredDisabled = params.deferredDisabled ?? false;
+        this.frameOpacity = params.frameOpacity ?? 1.0;
         this.deferredShadingPass = new PhongDeferredShading(this);
         this.transparencyPass = new WOITPass(this);
 
@@ -847,8 +861,10 @@ class Renderer {
 
         this.forwardFramebuffer.init();
 
-        this.deferredShadingPass.init();
-        this.transparencyPass.init();
+        if (!this.deferredDisabled) {
+            this.deferredShadingPass.init();
+            this.transparencyPass.init();
+        }
 
         this.hdrFramebuffer = new Framebuffer(this.handler, {
             width: initWidth,
@@ -896,6 +912,8 @@ class Renderer {
 
         this._appendControlContainers();
 
+        this.cascadeShadowManager.init();
+
         this._initializeScenes();
 
         this._initializeControls();
@@ -926,8 +944,10 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(w, h);
         this.forwardFramebuffer!.setSize(w * 0.5, h * 0.5);
-        this.deferredShadingPass.resize(w * 0.5, h * 0.5);
-        this.transparencyPass.resize(w * 0.5, h * 0.5);
+        if (!this.deferredDisabled) {
+            this.deferredShadingPass.resize(w * 0.5, h * 0.5);
+            this.transparencyPass.resize(w * 0.5, h * 0.5);
+        }
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w * 0.5, h * 0.5, true);
     }
 
@@ -937,8 +957,10 @@ class Renderer {
 
         this.activeCamera!.setViewportSize(w, h);
         this.forwardFramebuffer!.setSize(w, h);
-        this.deferredShadingPass.resize(w, h);
-        this.transparencyPass.resize(w, h);
+        if (!this.deferredDisabled) {
+            this.deferredShadingPass.resize(w, h);
+            this.transparencyPass.resize(w, h);
+        }
         this.hdrFramebuffer && this.hdrFramebuffer.setSize(w, h, true);
 
         this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(w, h, true);
@@ -1031,8 +1053,7 @@ class Renderer {
             }
 
             const samples = gl.getInternalformatParameter(gl.RENDERBUFFER, glInternalFormat, gl.SAMPLES) as
-                | number[]
-                | Int32Array;
+                number[] | Int32Array;
 
             if (!samples || samples.length === 0) {
                 return 0;
@@ -1097,7 +1118,7 @@ class Renderer {
 
             let i = ec.length;
 
-            if (depthOrder !== 0) {
+            if (depthOrder !== 0 || this.deferredDisabled) {
                 // GeoObjects
                 while (i--) {
                     let eci = ec[i];
@@ -1143,6 +1164,41 @@ class Renderer {
                 let eci = ec[i];
                 eci._fadingOpacity && eci.billboardHandler.drawForward();
             }
+
+            if (this.deferredDisabled) {
+                gl.depthMask(false);
+
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
+
+                i = ec.length;
+                while (i--) {
+                    ec[i]._fadingOpacity && ec[i].billboardHandler.drawTransparentForward();
+                }
+
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, this.strokeTextureAtlas.texture!);
+
+                // rays
+                i = ec.length;
+                while (i--) {
+                    ec[i]._fadingOpacity && ec[i].rayHandler.drawTransparentForward();
+                }
+
+                // Strip pass
+                i = ec.length;
+                while (i--) {
+                    ec[i]._fadingOpacity && ec[i].stripHandler.drawTransparentForward();
+                }
+
+                // polyline pass
+                i = ec.length;
+                while (i--) {
+                    ec[i]._fadingOpacity && ec[i].polylineHandler.drawTransparentForward();
+                }
+
+                gl.depthMask(true);
+            }
         }
     }
 
@@ -1162,6 +1218,17 @@ class Renderer {
             i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].labelHandler.drawForward();
+            }
+
+            if (this.deferredDisabled) {
+                gl.depthMask(false);
+
+                i = ec.length;
+                while (i--) {
+                    ec[i]._fadingOpacity && ec[i].labelHandler.drawTransparentForward();
+                }
+
+                gl.depthMask(true);
             }
         }
     }
@@ -1405,19 +1472,21 @@ class Renderer {
             gl.clear(gl.DEPTH_BUFFER_BIT);
 
             //
-            // Deferred geometry pass for opaque objects
+            // Opaque geometry pass
             //
-            this.deferredShadingPass.beginPass();
+            if (!this.deferredDisabled) {
+                this.deferredShadingPass.beginPass();
 
-            e.dispatch(e.gbufferpass, this);
-            this._drawGBufferEntityCollections(0);
+                e.dispatch(e.gbufferpass, this);
+                this._drawGBufferEntityCollections(0);
 
-            this.deferredShadingPass.endPass();
+                this.deferredShadingPass.endPass();
 
-            //
-            // Deferred shading pass (depth transfer + lighting)
-            //
-            this.deferredShadingPass.applyLighting();
+                //
+                // Deferred shading pass (depth transfer + lighting)
+                //
+                this.deferredShadingPass.applyLighting();
+            }
 
             //
             // Forward rendering and transparent object pass
@@ -1430,15 +1499,17 @@ class Renderer {
             //
             // Draw transparent objects
             //
-            this.transparencyPass.beginPass();
-            e.dispatch(e.transparentpass, this);
-            this._drawTransparentEntityCollections(0);
-            this.transparencyPass.endPass();
+            if (!this.deferredDisabled) {
+                this.transparencyPass.beginPass();
+                e.dispatch(e.transparentpass, this);
+                this._drawTransparentEntityCollections(0);
+                this.transparencyPass.endPass();
 
-            //
-            // Transparency resolve (composite into forwardFramebuffer)
-            //
-            this.transparencyPass.resolve();
+                //
+                // Transparency resolve (composite into forwardFramebuffer)
+                //
+                this.transparencyPass.resolve();
+            }
 
             this._drawLabelsForwardEntityCollections(0);
             e.dispatch(e.postforwardpass, this);
@@ -1867,6 +1938,8 @@ class Renderer {
 
         this._textureResourceManager.clear();
         this.projectors.clear();
+        this.cascadeShadowManager.destroy();
+        this.shadows.clear();
 
         this.handler.ONCANVASRESIZE = null;
         this.handler.destroy();

@@ -32,7 +32,7 @@ export class Glb {
         return this.parseChunks(chunks);
     }
 
-    private static getChunks(dv: DataView): GlbChunk[] {
+    private static getChunks(dv: DataView<ArrayBuffer>): GlbChunk[] {
         const chunks: GlbChunk[] = [];
         let currentOffset = 12; // skip magic, version and total length
         do {
@@ -43,7 +43,7 @@ export class Glb {
         return chunks;
     }
 
-    private static getChunk(dv: DataView, offset: number): GlbChunk {
+    private static getChunk(dv: DataView<ArrayBuffer>, offset: number): GlbChunk {
         const length = dv.getUint32(offset, true);
         const type = this.getChunkType(dv.getUint32(offset + 4, true));
         const chunkData = dv.buffer.slice(offset + 8, offset + 8 + length);

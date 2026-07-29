@@ -2,6 +2,37 @@ import { Dialog } from "../../ui/Dialog";
 import { ToggleButton } from "../../ui/ToggleButton";
 import { Control, type IControlParams } from "../Control";
 import { TimelineView } from "./TimelineView";
+import { createEvents, type EventsHandler } from "../../Events";
+
+type TimelineControlEventsList = [
+    "visibility",
+    "change",
+    "setcurrent",
+    "current",
+    "play",
+    "playback",
+    "pause",
+    "reset",
+    "startdrag",
+    "stopdrag",
+    "startdragcurrent",
+    "stopdragcurrent"
+];
+
+const TIMELINECONTROL_EVENTS: TimelineControlEventsList = [
+    "visibility",
+    "change",
+    "setcurrent",
+    "current",
+    "play",
+    "playback",
+    "pause",
+    "reset",
+    "startdrag",
+    "stopdrag",
+    "startdragcurrent",
+    "stopdragcurrent"
+];
 
 interface ITimelineControlParams extends IControlParams {
     name?: string;
@@ -28,12 +59,18 @@ class TimelineControl extends Control {
     protected _timelineView: TimelineView;
     protected _toggleBtn: ToggleButton;
     protected _dialog: Dialog<null>;
+    protected _defaultClockWasRunningBeforeDrag: boolean;
+
+    public events: EventsHandler<TimelineControlEventsList>;
 
     constructor(options: ITimelineControlParams = {}) {
         super({
             name: "timeline",
             ...options
         });
+
+        this.events = createEvents(TIMELINECONTROL_EVENTS);
+        this._defaultClockWasRunningBeforeDrag = false;
 
         let currentDate = options.current || new Date();
         let startDate = options.rangeStart || addHours(currentDate, -12);
@@ -65,11 +102,13 @@ class TimelineControl extends Control {
 
         this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
+            this.events.dispatch(this.events.visibility, v);
         });
     }
 
     public override oninit() {
         let $container = this.renderer!.div!;
+        const defaultClock = this.renderer!.handler.defaultClock;
 
         this._toggleBtn.appendTo(this.renderer!.topLeftContainer());
         this._dialog.appendTo($container);
@@ -87,27 +126,79 @@ class TimelineControl extends Control {
         });
 
         this._timelineView.appendTo(this._dialog.container!);
+        defaultClock.multiplier = this._timelineView.model.multiplier;
+        defaultClock.setDate(this._timelineView.model.current);
+        if (this._timelineView.model.stopped()) {
+            defaultClock.stop();
+        } else {
+            defaultClock.start();
+        }
 
         this._timelineView.events.on("setcurrent", (d: Date) => {
-            this.renderer && this.renderer.handler.defaultClock.setDate(d);
+            this.renderer && defaultClock.setDate(d);
+            this.events.dispatch(this.events.setcurrent, d);
         });
 
-        this._timelineView.events.on("startdrag", () => {
+        this._timelineView.model.events.on("change", (...args: unknown[]) => {
+            this.events.dispatch(this.events.change, ...args);
+        });
+
+        this._timelineView.model.events.on("current", (d: Date) => {
+            this.events.dispatch(this.events.current, d);
+        });
+
+        this._timelineView.events.on("play", (...args: unknown[]) => {
+            defaultClock.multiplier = this._timelineView.model.multiplier;
+            defaultClock.start();
+            this.events.dispatch(this.events.play, ...args);
+        });
+
+        this._timelineView.events.on("playback", (...args: unknown[]) => {
+            defaultClock.multiplier = this._timelineView.model.multiplier;
+            defaultClock.start();
+            this.events.dispatch(this.events.playback, ...args);
+        });
+
+        this._timelineView.events.on("pause", (...args: unknown[]) => {
+            defaultClock.stop();
+            this.events.dispatch(this.events.pause, ...args);
+        });
+
+        this._timelineView.events.on("reset", (...args: unknown[]) => {
+            defaultClock.stop();
+            this.events.dispatch(this.events.reset, ...args);
+        });
+
+        this._timelineView.events.on("startdrag", (e: Event) => {
+            this._defaultClockWasRunningBeforeDrag = !this._timelineView.model.stopped();
+            defaultClock.stop();
             this.planet?.sun!.stop();
             this.renderer && this.renderer.controls.navigation.deactivate();
+            this.events.dispatch(this.events.startdrag, e);
         });
 
-        this._timelineView.events.on("stopdrag", () => {
+        this._timelineView.events.on("stopdrag", (d: Date) => {
+            if (this._defaultClockWasRunningBeforeDrag) {
+                defaultClock.start();
+            }
             this.renderer && this.renderer.controls.navigation.activate();
+            this.events.dispatch(this.events.stopdrag, d);
         });
 
-        this._timelineView.events.on("startdragcurrent", () => {
+        this._timelineView.events.on("startdragcurrent", (e: Event) => {
+            this._defaultClockWasRunningBeforeDrag = !this._timelineView.model.stopped();
+            defaultClock.stop();
             this.planet?.sun!.stop();
             this.renderer && this.renderer.controls.navigation.deactivate();
+            this.events.dispatch(this.events.startdragcurrent, e);
         });
 
-        this._timelineView.events.on("stopdragcurrent", () => {
+        this._timelineView.events.on("stopdragcurrent", (d: Date) => {
+            if (this._defaultClockWasRunningBeforeDrag) {
+                defaultClock.start();
+            }
             this.renderer && this.renderer.controls.navigation.activate();
+            this.events.dispatch(this.events.stopdragcurrent, d);
         });
     }
 }

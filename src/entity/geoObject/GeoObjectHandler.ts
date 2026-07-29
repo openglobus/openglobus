@@ -185,15 +185,17 @@ export class GeoObjectHandler {
         if (this._renderer && this._scene) {
             let programs = [
                 shaders.geo_object_forward(),
-                shaders.geo_object_deferred(),
-                shaders.geo_object_woit(),
                 shaders.geo_object_picking(),
                 shaders.geo_object_depth(),
                 shaders.geo_object_depth_camera()
             ];
-            const atmosphereControl = (this._scene as Scene & { atmosphereControl?: Atmosphere }).atmosphereControl;
-            if (atmosphereControl) {
-                programs.push(shaders.geo_object_woit_atmos(atmosphereControl.parameters));
+            if (!this._renderer.deferredDisabled) {
+                programs.push(shaders.geo_object_deferred(), shaders.geo_object_woit());
+
+                const atmosphereControl = (this._scene as Planet).atmosphereControl;
+                if (atmosphereControl) {
+                    programs.push(shaders.geo_object_woit_atmos(atmosphereControl.parameters));
+                }
             }
             this._renderer.addPrograms(programs);
         }
@@ -478,7 +480,18 @@ export class GeoObjectHandler {
             r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
         );
         gl.uniform1f(u.shadeMode, ec._shadeMode);
-        gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
+        if (u.uProjectorMask !== undefined) {
+            gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
+        }
+        if (u.uFrameTransparencyMask !== undefined) {
+            gl.uniform1f(u.uFrameTransparencyMask, ec.receiveFrameTransparency ? 1.0 : 0.0);
+        }
+        if (u.uShadowMask !== undefined) {
+            gl.uniform1f(u.uShadowMask, ec.receiveShadows ? 1.0 : 0.0);
+        }
+        if (u.frameOpacity !== undefined) {
+            gl.uniform1f(u.frameOpacity, r.frameOpacity);
+        }
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
@@ -569,6 +582,8 @@ export class GeoObjectHandler {
             this._bindAtmosphereParams(p);
         }
         r.projectors.bindForward(p);
+        r.shadows.bindForward(p);
+        r.cascadeShadowManager.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -586,6 +601,8 @@ export class GeoObjectHandler {
 
         this._bindCommon(p);
         this._bindForwardParams(p);
+        r.shadows.bindForward(p);
+        r.cascadeShadowManager.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -601,6 +618,8 @@ export class GeoObjectHandler {
 
         this._bindCommon(p);
         this._bindForwardParams(p);
+        r.shadows.bindForward(p);
+        r.cascadeShadowManager.bindForward(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawForwardAll(p);
@@ -755,7 +774,10 @@ export class GeoObjectHandler {
     }
 
     public drawDepthCameraPass(camera: Camera) {
-        if (this._geoObjects.length && this._entityCollection.receiveProjectors) {
+        if (
+            this._geoObjects.length &&
+            (this._entityCollection.receiveProjectors || this._entityCollection.receiveShadows)
+        ) {
             this._depthCameraPASS(camera);
         }
     }

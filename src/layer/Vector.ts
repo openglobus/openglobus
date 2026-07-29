@@ -31,6 +31,8 @@ export interface IVectorParams extends IBaseTileMaterialLayerParams {
     depthOrder?: number;
     disableCullFace?: boolean;
     receiveProjectors?: boolean;
+    receiveFrameTransparency?: boolean;
+    receiveShadows?: boolean;
 }
 
 type VectorEventsList = [
@@ -95,6 +97,8 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * @param {number} [options.depthOrder=0] - Rendering order group for vector collections.
  * @param {boolean} [options.disableCullFace=false] - Disables back-face culling for geo object rendering.
  * @param {boolean} [options.receiveProjectors=true] - Enables/disables projector effect reception for this layer entities.
+ * @param {boolean} [options.receiveFrameTransparency=false] - Enables/disables frame transparency reception for this layer entities.
+ * @param {boolean} [options.receiveShadows=true] - Enables/disables shadow map reception for this layer entities.
  *
  * //@fires entitymove
  * @fires draw
@@ -179,6 +183,8 @@ class Vector extends BaseTileMaterialLayer {
 
     protected _disableCullFace: boolean;
     protected _receiveProjectors: boolean;
+    protected _receiveFrameTransparency: boolean;
+    protected _receiveShadows: boolean;
 
     constructor(name?: string | null, options: IVectorParams = {}) {
         super(name, options);
@@ -221,24 +227,34 @@ class Vector extends BaseTileMaterialLayer {
 
         this._labelMaxLetters = options.labelMaxLetters || 24;
 
+        this._disableCullFace = options.disableCullFace ?? false;
+        this._receiveProjectors = options.receiveProjectors ?? true;
+        this._receiveFrameTransparency = options.receiveFrameTransparency ?? false;
+        this._receiveShadows = options.receiveShadows ?? true;
+
         this._stripEntityCollection = new EntityCollection({
-            pickingEnabled: this.pickingEnabled
+            pickingEnabled: this.pickingEnabled,
+            receiveProjectors: this._receiveProjectors,
+            receiveFrameTransparency: this._receiveFrameTransparency,
+            receiveShadows: this._receiveShadows
         });
         this._bindEventsDefault(this._stripEntityCollection);
 
         this._polylineEntityCollection = new EntityCollection({
-            pickingEnabled: this.pickingEnabled
+            pickingEnabled: this.pickingEnabled,
+            receiveProjectors: this._receiveProjectors,
+            receiveFrameTransparency: this._receiveFrameTransparency,
+            receiveShadows: this._receiveShadows
         });
         this._bindEventsDefault(this._polylineEntityCollection);
-
-        this._disableCullFace = options.disableCullFace ?? false;
-        this._receiveProjectors = options.receiveProjectors ?? true;
 
         this._geoObjectEntityCollection = new EntityCollection({
             pickingEnabled: this.pickingEnabled,
             shadeMode: this._shadeMode,
             disableCullFace: this._disableCullFace,
-            receiveProjectors: this._receiveProjectors
+            receiveProjectors: this._receiveProjectors,
+            receiveFrameTransparency: this._receiveFrameTransparency,
+            receiveShadows: this._receiveShadows
         });
         this._bindEventsDefault(this._geoObjectEntityCollection);
 
@@ -254,6 +270,8 @@ class Vector extends BaseTileMaterialLayer {
 
         this.pickingEnabled = this._pickingEnabled;
         this.receiveProjectors = this._receiveProjectors;
+        this.receiveFrameTransparency = this._receiveFrameTransparency;
+        this.receiveShadows = this._receiveShadows;
 
         this._depthOrder = options.depthOrder || 0;
     }
@@ -308,6 +326,51 @@ class Vector extends BaseTileMaterialLayer {
         this._polylineEntityCollection.setReceiveProjectors(v);
         this._geoObjectEntityCollection.setReceiveProjectors(v);
         this._entityCollectionsTreeStrategy?.setReceiveProjectors(v);
+    }
+
+    /**
+     * Gets frame transparency reception state for this vector layer entities.
+     * @public
+     * @returns {boolean}
+     */
+    public get receiveFrameTransparency(): boolean {
+        return this._receiveFrameTransparency;
+    }
+
+    /**
+     * Enables/disables frame transparency reception for this vector layer entities.
+     * @public
+     * @param {boolean} v - `true` to receive frame transparency, `false` to ignore it.
+     */
+    public set receiveFrameTransparency(v: boolean) {
+        this._receiveFrameTransparency = v;
+        this._stripEntityCollection.setReceiveFrameTransparency(v);
+        this._polylineEntityCollection.setReceiveFrameTransparency(v);
+        this._geoObjectEntityCollection.setReceiveFrameTransparency(v);
+        this._entityCollectionsTreeStrategy?.setReceiveFrameTransparency(v);
+    }
+
+    /**
+     * Gets shadow map reception state for this vector layer entities.
+     * @public
+     * @returns {boolean}
+     */
+    public get receiveShadows(): boolean {
+        return this._receiveShadows;
+    }
+
+    /**
+     * Enables/disables shadow map reception for this vector layer entities.
+     * Stored in the same material flags channel as projectors and frame transparency.
+     * @public
+     * @param {boolean} v - `true` to receive shadow map effects, `false` to ignore them.
+     */
+    public set receiveShadows(v: boolean) {
+        this._receiveShadows = v;
+        this._stripEntityCollection.setReceiveShadows(v);
+        this._polylineEntityCollection.setReceiveShadows(v);
+        this._geoObjectEntityCollection.setReceiveShadows(v);
+        this._entityCollectionsTreeStrategy?.setReceiveShadows(v);
     }
 
     public get labelMaxLetters(): number {

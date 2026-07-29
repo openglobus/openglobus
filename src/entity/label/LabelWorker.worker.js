@@ -1,4 +1,3 @@
-/* eslint-env worker */
 "use strict";
 
 function concatTypedArrays(dest, index, source) {

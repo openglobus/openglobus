@@ -1,4 +1,3 @@
-/* eslint-env worker */
 "use strict";
 
 let model = null;

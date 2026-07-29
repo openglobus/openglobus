@@ -1,5 +1,6 @@
 import { deferredShadingAtmos } from "../shaders/deferredShading/deferredShadingAtmos";
 import { PhongDeferredShading } from "./PhongDeferredShading";
+import { DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START, DEFAULT_SHADOW_TEXTURE_UNIT_START } from "./textureUnits";
 import type { Renderer } from "./Renderer";
 import type { Atmosphere } from "../control/atmosphere/Atmosphere";
 import type { AtmosphereParameters } from "../shaders/atmos/atmos";
@@ -38,6 +39,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
 
         gl.disable(gl.DEPTH_TEST);
         gl.depthMask(false);
+        r.enableBlendDefault();
 
         gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -55,6 +57,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         gl.uniform1f(p.uniforms.isOrthographic, r.activeCamera.isOrthographic ? 1.0 : 0.0);
         gl.uniform2fv(p.uniforms.atmosFadeDist, this._atmosphere.planet!.atmosphereFadeDist);
         gl.uniform3fv(p.uniforms.atmosMaxMinOpacity, this._atmosphere.planet!._atmosphereCurrentMaxMinOpacity);
+        gl.uniform1f(p.uniforms.frameOpacity, r.frameOpacity);
 
         // G-buffer textures
         gl.activeTexture(gl.TEXTURE0);
@@ -81,6 +84,9 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         gl.activeTexture(gl.TEXTURE5);
         gl.bindTexture(gl.TEXTURE_2D, this._atmosphere._scatteringBuffer!.textures[0]);
         gl.uniform1i(p.uniforms.scatteringTexture, 5);
+
+        r.shadows.bindForward(p, DEFAULT_SHADOW_TEXTURE_UNIT_START);
+        r.cascadeShadowManager.bindForward(p, DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 

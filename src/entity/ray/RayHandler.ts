@@ -221,7 +221,10 @@ class RayHandler {
 
     public initProgram() {
         if (this._renderer) {
-            this._renderer.addShaders(shaders.rayScreen(), shaders.rayScreenWoit());
+            this._renderer.addShaders(shaders.rayScreen());
+            if (!this._renderer.deferredDisabled) {
+                this._renderer.addShaders(shaders.rayScreenWoit());
+            }
 
             // @todo: ray picking
             // if (!this._renderer.handler.programs.billboardPicking) {

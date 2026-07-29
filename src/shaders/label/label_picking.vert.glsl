@@ -56,14 +56,15 @@ void main() {
     vec3 lowDiff = a_positionsLow - eyePositionLow;
     vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
+    vec4 baseProjPos = projectionMatrix * posRTE;
+    vec2 screenPos = project(baseProjPos, viewport);
+
     if (depthOffset != 0.0) {
         float depthOffsetScale = getDepthOffsetScale(depthOffset, posRTE.xyz, depthOffsetNear);
         posRTE.xyz += posRTE.xyz * depthOffsetScale;
     }
 
     vec4 projPos = projectionMatrix * posRTE;
-
-    vec2 screenPos = project(projPos, viewport);
 
     vec2 vert = a_vertices;
     vec4 gp = a_gliphParam;

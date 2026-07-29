@@ -1,4 +1,5 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
+import { cascadeShadowUniforms, shadowMapUniforms } from "../common/uniforms";
 
 import deferred_vert from "./deferredShading.vert.glsl";
 import deferred_frag from "./deferredShading.frag.glsl";
@@ -14,7 +15,10 @@ export function deferredShading(): ShaderProgram {
             lightPosition: "vec3",
             lightAmbient: "vec3",
             lightDiffuse: "vec3",
-            lightSpecular: "vec4"
+            lightSpecular: "vec4",
+            frameOpacity: "float",
+            ...shadowMapUniforms,
+            ...cascadeShadowUniforms
         },
         attributes: {
             corners: "vec3"

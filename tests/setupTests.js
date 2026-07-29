@@ -1,4 +1,3 @@
-import "regenerator-runtime/runtime";
 import { Worker } from "./worker";
 
 

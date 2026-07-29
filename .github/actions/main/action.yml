@@ -3,23 +3,13 @@ runs:
   steps:
 
     - name: Setup node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
-        node-version: 22.12.0
+        node-version: 24
         cache: 'npm'
-        cache-dependency-path: '**/package-lock.json'
+        cache-dependency-path: package-lock.json
         registry-url: https://registry.npmjs.org/
         scope: '@openglobus'
-
-    - name: Cache node modules
-      uses: actions/cache@v3
-      env:
-        cache-name: cache-node-modules
-      with:
-        path: ~/.npm
-        key: ${{ runner.OS }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-           ${{ runner.OS }}-npm-cache-
 
     - name: Install dependencies
       shell: bash

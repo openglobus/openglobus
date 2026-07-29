@@ -201,7 +201,13 @@ class PlanetCamera extends Camera {
         super.update();
 
         this.updateGeodeticPosition();
+    }
 
+    /**
+     * Updates camera slope against the planet surface normal.
+     * @public
+     */
+    public override updateCameraSlope(): void {
         this.eyeNorm = this.eye.getNormal();
         this.slope = this._b.dot(this.eyeNorm);
     }
@@ -820,6 +826,19 @@ class PlanetCamera extends Camera {
     public getSurfaceVisibleDistance(d: number): number {
         let R = this.planet.ellipsoid.equatorialSize;
         return R * Math.acos(R / (R + this._lonLat.height + d));
+    }
+
+    /**
+     * Returns the ellipsoid intersection point for a screen-space ray.
+     * If the ray doesn't hit ellipsoid, it returns 'undefined'.
+     * @public
+     * @param {number} x - Screen X coordinate in pixels.
+     * @param {number} y - Screen Y coordinate in pixels.
+     * @returns {Vec3 | undefined} Cartesian intersection point.
+     */
+    public getRayIntersectionEllipsoid(x: number, y: number): Vec3 | undefined {
+        let ray = this.getRay(x, y);
+        return this.planet.getRayIntersectionEllipsoid(ray);
     }
 
     /**

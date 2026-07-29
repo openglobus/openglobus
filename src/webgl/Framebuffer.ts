@@ -364,19 +364,6 @@ export class Framebuffer extends BaseFramebuffer {
     }
 
     /**
-     * Bind buffer texture.
-     * @public
-     * @param {WebGLTexture} texture - Output texture.
-     * @param {number} [glAttachment=0] - color attachment index.
-     */
-    public bindOutputTexture(texture: WebGLTexture, glAttachment?: number) {
-        let gl = this.handler.gl!;
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, glAttachment || gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-        gl.bindTexture(gl.TEXTURE_2D, null!);
-    }
-
-    /**
      * Gets pixel RGBA color from framebuffer by coordinates.
      * @public
      * @param {TypedArray} res - Normalized x - coordinate.
