@@ -29,12 +29,16 @@ export interface IPlanetFlyCartesianParams extends IFlyCartesianParams {
     linearPath?: boolean;
 }
 
-function getNorthAlignedUp(forward: Vec3): Vec3 {
-    let up = Vec3.proj_b_to_plane(Vec3.NORTH, forward);
+function getAlignedUp(forward: Vec3, preferredUp: Vec3): Vec3 {
+    let up = Vec3.proj_b_to_plane(preferredUp, forward);
 
     if (up.length2() < EPS12) {
-        const fallback = Math.abs(forward.x) < Math.abs(forward.y) ? Vec3.UNIT_X : Vec3.UNIT_Y;
-        up = Vec3.proj_b_to_plane(fallback, forward);
+        up = Vec3.proj_b_to_plane(Vec3.NORTH, forward);
+
+        if (up.length2() < EPS12) {
+            const fallback = Math.abs(forward.x) < Math.abs(forward.y) ? Vec3.UNIT_X : Vec3.UNIT_Y;
+            up = Vec3.proj_b_to_plane(fallback, forward);
+        }
     }
 
     return up.normalize();
@@ -252,7 +256,7 @@ class PlanetCamera extends Camera {
      * @public
      * @param {LonLat} lonlat - New camera and camera view position.
      * @param {LonLat} [lookLonLat] - Look up coordinates.
-     * @param {Vec3} [up] - Camera UP vector. Default (0,1,0)
+     * @param {Vec3} [up] - Camera UP vector. Defaults to the local surface normal for an explicit look point.
      */
     public setLonLat(lonlat: LonLat, lookLonLat?: LonLat, up?: Vec3) {
         this.stopFlying();
@@ -261,7 +265,8 @@ class PlanetCamera extends Camera {
         let newEye = el.lonLatToCartesian(this._lonLat);
         let newLook = lookLonLat ? el.lonLatToCartesian(lookLonLat) : Vec3.ZERO;
         let forward = Vec3.sub(newLook, newEye).normalize();
-        this.set(newEye, newLook, up || getNorthAlignedUp(forward));
+        let preferredUp = lookLonLat ? el.getSurfaceNormal3v(newEye) : Vec3.NORTH;
+        this.set(newEye, newLook, up || getAlignedUp(forward, preferredUp));
         this.update();
     }
 
