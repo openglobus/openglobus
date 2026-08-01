@@ -1,3 +1,12 @@
+// Augmented reality configuration:
+// - transparentBackground enables the canvas alpha channel so a camera or video feed remains visible.
+// - frameOpacity controls globe content opacity from 0 (fully transparent) to 1 (fully opaque)
+//   and can be adjusted at runtime through globe.renderer.frameOpacity.
+//
+// Map interaction:
+// - Left click adds a marker.
+// - Ctrl + left click adds a text label.
+
 import {
     Globe,
     LonLat,
@@ -79,11 +88,14 @@ let globe = new Globe({
     terrain: new GlobusRgbTerrain(),
     //deferredDisabled: true,
     transparentBackground: true,
-    frameOpacity: 1,
-    layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer]
+    frameOpacity: INITIAL_FRAME_OPACITY,
+    layers: [new Bing(), new OpenStreetMap(), objLayer, collection, pointLayer]
 });
 
-window.globe = globe;
+globe.planet.camera.setLonLat(
+    new LonLat(-105.55573039522102, 39.62684661706047, 6939.131370203212),
+    new LonLat(-105.6324995, 39.6107935, 3851)
+);
 
 const opacityInput = document.getElementById("planetOpacity");
 const opacityValue = document.getElementById("planetOpacityValue");
@@ -101,12 +113,13 @@ const controlsList = [
     new control.EntityEditor(),
     new control.LayerSwitcher(),
     new control.ToggleWireframe(),
-    new control.TimelineControl()
+    new control.TimelineControl(),
+    new control.OrthoSwitcher(),
+    new control.RulerSwitcher(),
+    new control.ElevationProfileControl(),
+    new control.DebugInfo(),
+    new control.Lighting()
 ];
-
-if (control.OrthoSwitcher) {
-    controlsList.unshift(new control.OrthoSwitcher());
-}
 
 globe.planet.addControls(controlsList);
 
@@ -220,6 +233,7 @@ const pos = new LonLat(-105.6173319876, 39.615583413, 4057.9466);
 let parentEntity = new Entity({
     lonlat: pos,
     independentPicking: true,
+    scale: 3,
     geoObject: {
         instanced: true,
         tag: `baseObj`,
@@ -312,15 +326,3 @@ var strips = new Vector("Strips", {
 });
 
 globe.planet.addLayer(strips);
-
-globe.planet.addControl(new control.ElevationProfileControl());
-globe.planet.addControl(new control.DebugInfo());
-
-let ruler = new control.RulerSwitcher({
-    ignoreTerrain: false
-});
-
-globe.planet.addControl(ruler);
-
-globe.planet.addControl(new control.AtmosphereConfig());
-globe.planet.addControl(new control.Lighting());
