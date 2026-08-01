@@ -554,8 +554,9 @@ class PlanetCamera extends Camera {
             this.planet.normalMapCreator.lock(this._keyLock);
         }
         params.amplitude = params.amplitude != undefined ? params.amplitude : 1.0;
-        params.look = params.look || Vec3.ZERO;
-        params.up = params.up || Vec3.NORTH;
+        const hasExplicitLook = params.look != undefined;
+        const lookParam = params.look || Vec3.ZERO;
+        params.up = params.up || (hasExplicitLook ? this.planet.ellipsoid.getSurfaceNormal3v(cartesian) : Vec3.NORTH);
         params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
         const ease = params.ease || DEFAULT_EASING;
 
@@ -567,9 +568,7 @@ class PlanetCamera extends Camera {
             params.startCallback.call(this);
         }
 
-        if (params.look instanceof LonLat) {
-            params.look = this.planet.ellipsoid.lonLatToCartesian(params.look);
-        }
+        const look = lookParam instanceof LonLat ? this.planet.ellipsoid.lonLatToCartesian(lookParam) : lookParam;
 
         if (params.linearPath) {
             let ground_a = this.eye.clone();
@@ -579,11 +578,8 @@ class PlanetCamera extends Camera {
 
             let up_b = params.up;
             let ground_b = cartesian.clone();
-            let n_b = Vec3.sub(cartesian, params.look as Vec3);
-            let u_b = up_b.cross(n_b);
-            n_b.normalize();
-            u_b.normalize();
-            let v_b = n_b.cross(u_b);
+            let n_b = Vec3.sub(cartesian, look).normalize();
+            let v_b = getAlignedUp(n_b.negateTo(), up_b);
 
             this._flight = {
                 fly: (progress: number) => {
@@ -591,14 +587,10 @@ class PlanetCamera extends Camera {
                     let d = 1 - t;
                     let eye_i = ground_a.smerp(ground_b, d);
                     let up_i = v_a.smerp(v_b, d);
-                    let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
-
-                    let n = new Vec3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
-                    let u = up_i.cross(n);
+                    let n = n_a.slerp(Vec3.sub(eye_i, look).normalize(), t);
                     n.normalize();
-                    u.normalize();
-
-                    let v = n.cross(u);
+                    let v = getAlignedUp(n.negateTo(), up_i);
+                    let u = v.cross(n);
                     return {
                         eye: eye_i,
                         n: n,
@@ -622,11 +614,8 @@ class PlanetCamera extends Camera {
         let lonlat_b = this.planet.ellipsoid.cartesianToLonLat(cartesian);
         let up_b = params.up;
         let ground_b = this.planet.ellipsoid.lonLatToCartesian(new LonLat(lonlat_b.lon, lonlat_b.lat, 0));
-        let n_b = Vec3.sub(cartesian, params.look as Vec3);
-        let u_b = up_b.cross(n_b);
-        n_b.normalize();
-        u_b.normalize();
-        let v_b = n_b.cross(u_b);
+        let n_b = Vec3.sub(cartesian, look).normalize();
+        let v_b = getAlignedUp(n_b.negateTo(), up_b);
 
         let an = ground_a.getNormal();
         let bn = ground_b.getNormal();
@@ -663,14 +652,10 @@ class PlanetCamera extends Camera {
                 }
                 // orientation calculation
                 let up_i = v_a.smerp(v_b, d);
-                let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
-
-                let n = new Vec3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
-                let u = up_i.cross(n);
+                let n = n_a.slerp(Vec3.sub(eye_i, look).normalize(), t);
                 n.normalize();
-                u.normalize();
-
-                let v = n.cross(u);
+                let v = getAlignedUp(n.negateTo(), up_i);
+                let u = v.cross(n);
                 return {
                     eye: eye_i,
                     n: n,
