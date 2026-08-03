@@ -86,7 +86,7 @@ let globe = new Globe({
     name: "Earth",
     //frustums: [[1, 1e12]],
     terrain: new GlobusRgbTerrain(),
-    deferredDisabled: true,
+    //deferredDisabled: true,
     //pixelRatio: 0.5,
     //skybox: skybox,
     // navigation: {
@@ -94,6 +94,13 @@ let globe = new Globe({
     //     maxInertia: 1.1,
     //     minInertiaAltitude: 3000000
     // },
+    sun: {
+        dateTime: (() => {
+            const d = new Date();
+            d.setUTCHours(10, 0, 0, 0);
+            return d;
+        })()
+    },
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer]
     //    reverseDepth: false,
     //msaa: 0

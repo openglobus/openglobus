@@ -2,14 +2,25 @@ import { Control } from "./Control";
 import type { IControlParams } from "./Control";
 import { Clock } from "../Clock";
 import { getSunPosition } from "../astro/earth";
+import { DateToUTC } from "../astro/jd";
 import { Quat } from "../math/Quat";
 import { Vec3 } from "../math/Vec3";
+import type { PlanetCamera } from "../camera/PlanetCamera";
 
 interface ISunParams extends IControlParams {
     activationHeight?: number;
     offsetVertical?: number;
     offsetHorizontal?: number;
     stopped?: boolean;
+    /**
+     * Fixed UTC date/time to position the Sun by, instead of the default
+     * camera-following light, while the camera is below activationHeight
+     * and the control isn't stopped. The Clock is never touched by this;
+     * once something stops the Sun (e.g. TimelineControl while dragging),
+     * dateTime is ignored and the Clock-driven position takes over, same
+     * as when dateTime is left undefined/null.
+     */
+    dateTime?: Date | null;
 }
 
 /**
@@ -19,6 +30,15 @@ export class Sun extends Control {
     public activationHeight: number;
     public offsetVertical: number;
     public offsetHorizontal: number;
+
+    /**
+     * Fixed UTC date/time to position the Sun by while below
+     * activationHeight and not stopped, or null for the default
+     * camera-following light.
+     * @public
+     * @type {Date | null}
+     */
+    public dateTime: Date | null;
 
     protected _currDate: number;
     protected _prevDate: number;
@@ -39,6 +59,8 @@ export class Sun extends Control {
         this.offsetVertical = options.offsetVertical || -5000000;
 
         this.offsetHorizontal = options.offsetHorizontal || 5000000;
+
+        this.dateTime = options.dateTime || null;
 
         this._sunlightPosition = new Vec3();
 
@@ -101,11 +123,47 @@ export class Sun extends Control {
         return this._sunlightPosition.clone();
     }
 
+    /**
+     * Sets a fixed UTC date/time to position the Sun by while below
+     * activationHeight and not stopped. Pass null to restore the default
+     * camera-following light.
+     * @public
+     * @param {Date | null} date - Fixed UTC date/time, or null to disable.
+     */
+    public setDateTime(date: Date | null) {
+        this.dateTime = date;
+    }
+
     protected _setSunPosition3v(position: Vec3) {
         this._sunlightPosition.copy(position);
         this.renderer!._lightPosition[0] = position.x;
         this.renderer!._lightPosition[1] = position.y;
         this.renderer!._lightPosition[2] = position.z;
+    }
+
+    /**
+     * Camera-following light position: a point offset from the camera along its
+     * own up/right axes, used as a stand-in Sun position so nearby terrain always
+     * gets flattering, arbitrary lighting regardless of the true Sun direction.
+     * @protected
+     */
+    protected _getCameraFollowingPosition(cam: PlanetCamera): Vec3 {
+        let n = cam.eye.normal(),
+            u = cam.getForward();
+
+        u.scale(Math.sign(cam.getUp().dot(n))); // up
+
+        if (cam.slope > 0.99) {
+            u = cam.getUp();
+        }
+
+        let tu = Vec3.proj_b_to_plane(u, n, u).normalize().scale(this.offsetVertical);
+        let tr = Vec3.proj_b_to_plane(cam.getRight(), n, cam.getRight())
+            .normalize()
+            .scale(this.offsetHorizontal); // right
+
+        let d = tu.add(tr);
+        return cam.eye.add(d);
     }
 
     protected _draw() {
@@ -116,22 +174,11 @@ export class Sun extends Control {
             if (cam.getHeight() < this.activationHeight || !this._active) {
                 this._lightOn = true;
                 this._f = 1;
-                let n = cam.eye.normal(),
-                    u = cam.getForward();
 
-                u.scale(Math.sign(cam.getUp().dot(n))); // up
-
-                if (cam.slope > 0.99) {
-                    u = cam.getUp();
-                }
-
-                let tu = Vec3.proj_b_to_plane(u, n, u).normalize().scale(this.offsetVertical);
-                let tr = Vec3.proj_b_to_plane(cam.getRight(), n, cam.getRight())
-                    .normalize()
-                    .scale(this.offsetHorizontal); // right
-
-                let d = tu.add(tr);
-                let pos = cam.eye.add(d);
+                let pos =
+                    this.dateTime != null
+                        ? getSunPosition(DateToUTC(this.dateTime))
+                        : this._getCameraFollowingPosition(cam);
 
                 if (this._k > 0) {
                     this._k -= 0.001;
