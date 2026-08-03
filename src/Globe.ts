@@ -64,6 +64,7 @@ export interface IGlobeParams {
     sun?: {
         active?: boolean;
         stopped?: boolean;
+        localDateTime?: Date | null;
     };
     navigation?: {
         active?: boolean;
@@ -365,6 +366,9 @@ class Globe {
             }
             if (options.sun.stopped === true) {
                 this.sun.stop();
+            }
+            if (options.sun.localDateTime !== undefined) {
+                this.sun.setLocalDateTime(options.sun.localDateTime);
             }
         }
 
