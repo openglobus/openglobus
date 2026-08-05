@@ -32,8 +32,8 @@ const globus = new Globe({
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts",
     //deferredDisabled: true,
-    transparentBackground: true,
-    frameOpacity: 0.3,
+    //transparentBackground: true,
+    //frameOpacity: 0.3,
     //reverseDepth: false
 });
 
