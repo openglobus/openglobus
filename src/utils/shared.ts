@@ -1122,6 +1122,10 @@ export function getMatrixSubArrayBoundsExt(
                 if (y > outBounds.ymax) outBounds.ymax = y;
                 if (z < outBounds.zmin) outBounds.zmin = z;
                 if (z > outBounds.zmax) outBounds.zmax = z;
+
+                let r2 = x * x + y * y + z * z;
+                if (r2 < outBounds.r2min) outBounds.r2min = r2;
+                if (r2 > outBounds.r2max) outBounds.r2max = r2;
             } else {
                 outNoDataVertices[nInd] = 1;
             }
