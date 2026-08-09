@@ -22,6 +22,8 @@ export interface IFreeNavigationParams extends IControlParams {
     pitchLimit?: number;
     invertY?: boolean;
     pointerLock?: boolean;
+    toggleKey?: number;
+    showInfo?: boolean;
 }
 
 export type FreeNavigationEventsList = ["move", "rotate", "speedchange", "activate", "deactivate"];
@@ -66,8 +68,8 @@ const DEFAULT_MIN_SPEED = -DEFAULT_MAX_SPEED;
 // Mouse wheel step in meters per second near the zero speed
 const DEFAULT_SPEED_STEP = 1;
 
-// Relative speed increment per one mouse wheel step, i.e. 0.15 is 15% of the current speed
-const DEFAULT_SPEED_FACTOR = 0.15;
+// Relative speed increment per one mouse wheel step, i.e. 0.45 is 45% of the current speed
+const DEFAULT_SPEED_FACTOR = 0.45;
 
 // Camera rotation angle per one mouse move pixel
 const DEFAULT_LOOK_SENSITIVITY = 0.12 * RADIANS;
@@ -100,6 +102,7 @@ const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
  * - Q/E — roll
  * - Mouse — look around
  * - Mouse wheel — adjust movement speed
+ * - F — activate and deactivate the control, see `toggleKey`
  *
  * Yaw follows the local ellipsoid normal, while pitch uses the camera's right vector.
  * The camera preserves its orientation relative to the local horizon while moving.
@@ -118,7 +121,7 @@ const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
  * @param {number} [options.minSpeed] - Minimal selected movement speed in m/s. Default is -300
  * @param {number} [options.maxSpeed] - Maximal selected movement speed in m/s. Default is 1000000
  * @param {number} [options.speedStep] - Mouse wheel speed step near the zero speed in m/s. Default is 1
- * @param {number} [options.speedFactor] - Relative speed increment per one mouse wheel step. Default is 0.15
+ * @param {number} [options.speedFactor] - Relative speed increment per one mouse wheel step. Default is 0.45
  * @param {number} [options.lookSensitivity] - Camera rotation angle in radians per mouse move pixel
  * @param {number} [options.rollSpeed] - Q/E roll angular speed in radians per second
  * @param {number} [options.accelerationTime] - Acceleration smoothing time in seconds. Default is 0.6
@@ -126,6 +129,9 @@ const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
  * @param {number} [options.pitchLimit] - Maximal pitch angle above and below the local horizon in radians
  * @param {boolean} [options.invertY] - Inverts vertical mouse rotation direction. Default is false
  * @param {boolean} [options.pointerLock] - Locks and hides the mouse pointer. Default is true
+ * @param {number} [options.toggleKey] - Key code which activates and deactivates the control,
+ * it works while the control is inactive as well. Zero disables it. Default is `input.KEY_F`
+ * @param {boolean} [options.showInfo] - Shows the movement speed and the key hint. Default is false
  * @fires move
  * @fires rotate
  * @fires speedchange
@@ -146,6 +152,7 @@ export class FreeNavigation extends Control {
     public pitchLimit: number;
     public invertY: boolean;
     public pointerLock: boolean;
+    public toggleKey: number;
 
     /**
      * Current camera velocity in meters per second.
@@ -177,6 +184,8 @@ export class FreeNavigation extends Control {
     protected _lastFrameTime: number;
     protected _frameDeltaTime: number;
 
+    protected _infoEl: HTMLElement | null;
+
     protected _suspendedNavigation: Navigation[];
 
     constructor(options: IFreeNavigationParams = {}) {
@@ -199,6 +208,9 @@ export class FreeNavigation extends Control {
         this.pitchLimit = options.pitchLimit ?? DEFAULT_PITCH_LIMIT;
         this.invertY = options.invertY ?? false;
         this.pointerLock = options.pointerLock ?? true;
+        this.toggleKey = options.toggleKey ?? input.KEY_F;
+
+        this._infoEl = options.showInfo ? document.createElement("div") : null;
 
         this.vel = new Vec3();
 
@@ -229,10 +241,56 @@ export class FreeNavigation extends Control {
         }
     }
 
+    public override oninit() {
+        if (this.toggleKey) {
+            this.renderer!.events.on("keyfree", this.toggleKey, this._onToggleKey);
+        }
+
+        let div = this.renderer!.div;
+        if (this._infoEl && div) {
+            this._infoEl.className = "og-free-navigation-info";
+            div.appendChild(this._infoEl);
+            this._updateInfo();
+        }
+    }
+
     override onremove(): void {
         if (this.planet?.camera) {
             this.planet.camera.events.off("flystart", this._onCameraFly);
         }
+
+        if (this.toggleKey) {
+            this.renderer!.events.off("keyfree", this.toggleKey, this._onToggleKey);
+        }
+
+        if (this._infoEl) {
+            this._infoEl.remove();
+        }
+    }
+
+    /**
+     * Activates the control when it is inactive and deactivates it otherwise.
+     * @public
+     */
+    public toggle() {
+        if (this.isActive()) {
+            this.deactivate();
+        } else {
+            this.activate();
+        }
+    }
+
+    protected _onToggleKey = () => {
+        this.toggle();
+    };
+
+    protected _updateInfo() {
+        if (!this._infoEl) return;
+
+        this._infoEl.innerText = this.isActive()
+            ? `Free flight — W,S,A,D move, Space/Ctrl altitude, Q,E roll, wheel speed: ` +
+              `${this._speed} m/s (${Math.round(this._speed * 3.6)} km/h)`
+            : "Press F for the free flight";
     }
 
     public override onactivate() {
@@ -262,6 +320,8 @@ export class FreeNavigation extends Control {
         document.addEventListener("mousemove", this._onLockedMouseMove);
 
         this.requestPointerLock();
+
+        this._updateInfo();
 
         this.events.dispatch(this.events.activate, this);
     }
@@ -294,6 +354,8 @@ export class FreeNavigation extends Control {
 
         this._restoreNavigation();
 
+        this._updateInfo();
+
         this.events.dispatch(this.events.deactivate, this);
     }
 
@@ -324,6 +386,7 @@ export class FreeNavigation extends Control {
         let s = math.clamp(speed, this.minSpeed, this.maxSpeed);
         if (s !== this._speed) {
             this._speed = s;
+            this._updateInfo();
             this.events.dispatch(this.events.speedchange, this);
         }
     }

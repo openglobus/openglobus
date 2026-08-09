@@ -10,8 +10,7 @@ import {
     Bing,
     Vec2,
     Vec3,
-    Entity,
-    input
+    Entity
 } from "../../lib/og.es.js";
 
 //
@@ -352,32 +351,4 @@ globe.planet.addControl(ruler);
 globe.planet.addControl(new control.AtmosphereConfig());
 globe.planet.addControl(new control.Lighting());
 
-const freeNavigation = new control.FreeNavigation({ autoActivate: false });
-globe.planet.addControl(freeNavigation);
-
-const freeNavigationInfo = document.createElement("div");
-freeNavigationInfo.style.cssText =
-    "position:absolute;left:10px;bottom:10px;z-index:1000;padding:6px 10px;border-radius:4px;" +
-    "background:rgba(0,0,0,0.5);color:#fff;font:12px Arial,sans-serif;pointer-events:none";
-document.body.appendChild(freeNavigationInfo);
-
-function updateFreeNavigationInfo() {
-    freeNavigationInfo.innerText = freeNavigation.isActive()
-        ? `FreeNavigation ON (F or Esc to exit) — W,S,A,D move, Space/Ctrl altitude, Q,E roll, wheel speed: ` +
-          `${freeNavigation.speed} m/s (${Math.round(freeNavigation.speed * 3.6)} km/h)`
-        : "FreeNavigation OFF — press F to activate";
-}
-
-freeNavigation.events.on("speedchange", updateFreeNavigationInfo);
-freeNavigation.events.on("activate", updateFreeNavigationInfo);
-freeNavigation.events.on("deactivate", updateFreeNavigationInfo);
-
-globe.planet.renderer.events.on("keyfree", input.KEY_F, () => {
-    if (freeNavigation.isActive()) {
-        freeNavigation.deactivate();
-    } else {
-        freeNavigation.activate();
-    }
-});
-
-updateFreeNavigationInfo();
+globe.planet.addControl(new control.FreeNavigation({ autoActivate: false, showInfo: true }));
