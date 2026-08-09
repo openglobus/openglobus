@@ -1,0 +1,517 @@
+import type { IControlParams } from "./Control";
+import { Control } from "./Control";
+import type { IMouseState } from "../renderer/RendererEvents";
+import { Navigation } from "./Navigation";
+import { Quat } from "../math/Quat";
+import { Vec3 } from "../math/Vec3";
+import { input } from "../input/input";
+import { createEvents, type EventsHandler } from "../Events";
+import * as math from "../math";
+
+export interface IFreeNavigationParams extends IControlParams {
+    speed?: number;
+    minSpeed?: number;
+    maxSpeed?: number;
+    speedStep?: number;
+    lookSensitivity?: number;
+    rollSpeed?: number;
+    accelerationTime?: number;
+    decelerationTime?: number;
+    pitchLimit?: number;
+    invertY?: boolean;
+}
+
+export type FreeNavigationEventsList = ["move", "rotate", "speedchange"];
+
+const FREE_NAVIGATION_EVENTS: FreeNavigationEventsList = [
+    /**
+     * Triggered on camera movement.
+     * @event og.FreeNavigation#move
+     */
+    "move",
+
+    /**
+     * Triggered on camera rotation.
+     * @event og.FreeNavigation#rotate
+     */
+    "rotate",
+
+    /**
+     * Triggered when selected movement speed has been changed.
+     * @event og.FreeNavigation#speedchange
+     */
+    "speedchange"
+];
+
+const KMH_TO_MPS = 1.0 / 3.6;
+
+// Selected movement speed in kilometers per hour
+const DEFAULT_SPEED = 0;
+const DEFAULT_MIN_SPEED = -300;
+const DEFAULT_MAX_SPEED = 10000;
+
+// Mouse wheel step in kilometers per hour
+const DEFAULT_SPEED_STEP = 5;
+
+// Camera rotation angle per one mouse move pixel
+const DEFAULT_LOOK_SENSITIVITY = 0.12 * math.RADIANS;
+
+// Q/E roll angular speed in radians per second
+const DEFAULT_ROLL_SPEED = 60 * math.RADIANS;
+
+// Time in seconds the velocity needs to approach the selected speed
+const DEFAULT_ACCELERATION_TIME = 0.6;
+
+// Time in seconds the velocity needs to approach zero after keys have been released
+const DEFAULT_DECELERATION_TIME = 0.4;
+
+// Maximal camera pitch angle above and below the local horizon
+const DEFAULT_PITCH_LIMIT = 89.5 * math.RADIANS;
+
+// Velocity below this value in meters per second is treated as zero
+const MIN_VELOCITY = 1e-3;
+
+// Reserved early renderer priority for camera input integration.
+const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
+
+/**
+ * Free flight navigation. Uses W,S,A,D keys for the movement along the camera view direction,
+ * Q,E keys for the roll, mouse move for the camera rotation and mouse wheel for the movement
+ * speed selection. Camera keeps its orientation in the local planet frame, where the reference
+ * up direction is the ellipsoid surface normal under the camera.
+ *
+ * The control conflicts with the {@link Navigation} control, so an active {@link Navigation}
+ * is deactivated while the free navigation is active, and restored back on deactivation.
+ *
+ * @class
+ * @extends {Control}
+ * @param {IFreeNavigationParams} [options] - Free navigation options:
+ * @param {number} [options.speed] - Initial selected movement speed in km/h. Default is 0
+ * @param {number} [options.minSpeed] - Minimal selected movement speed in km/h. Default is -300
+ * @param {number} [options.maxSpeed] - Maximal selected movement speed in km/h. Default is 10000
+ * @param {number} [options.speedStep] - Mouse wheel movement speed step in km/h. Default is 5
+ * @param {number} [options.lookSensitivity] - Camera rotation angle in radians per mouse move pixel
+ * @param {number} [options.rollSpeed] - Q/E roll angular speed in radians per second
+ * @param {number} [options.accelerationTime] - Acceleration smoothing time in seconds. Default is 0.6
+ * @param {number} [options.decelerationTime] - Deceleration smoothing time in seconds. Default is 0.4
+ * @param {number} [options.pitchLimit] - Maximal pitch angle above and below the local horizon in radians
+ * @param {boolean} [options.invertY] - Inverts vertical mouse rotation direction. Default is false
+ * @fires move
+ * @fires rotate
+ * @fires speedchange
+ */
+export class FreeNavigation extends Control {
+    public events: EventsHandler<FreeNavigationEventsList>;
+
+    public minSpeed: number;
+    public maxSpeed: number;
+    public speedStep: number;
+    public lookSensitivity: number;
+    public rollSpeed: number;
+    public accelerationTime: number;
+    public decelerationTime: number;
+    public pitchLimit: number;
+    public invertY: boolean;
+
+    /**
+     * Current camera velocity in meters per second.
+     * @public
+     * @type {Vec3}
+     */
+    public vel: Vec3;
+
+    /**
+     * Selected movement speed in kilometers per hour.
+     * @protected
+     * @type {number}
+     */
+    protected _speed: number;
+
+    protected _moveForward: boolean;
+    protected _moveBackward: boolean;
+    protected _moveLeft: boolean;
+    protected _moveRight: boolean;
+
+    protected _rollDir: number;
+
+    protected _dx: number;
+    protected _dy: number;
+
+    protected _suspendedNavigation: Navigation[];
+
+    constructor(options: IFreeNavigationParams = {}) {
+        super({
+            name: "freeNavigation",
+            autoActivate: true,
+            ...options
+        });
+
+        this.events = createEvents<FreeNavigationEventsList>(FREE_NAVIGATION_EVENTS, this);
+
+        this.minSpeed = options.minSpeed ?? DEFAULT_MIN_SPEED;
+        this.maxSpeed = options.maxSpeed ?? DEFAULT_MAX_SPEED;
+        this.speedStep = options.speedStep ?? DEFAULT_SPEED_STEP;
+        this.lookSensitivity = options.lookSensitivity ?? DEFAULT_LOOK_SENSITIVITY;
+        this.rollSpeed = options.rollSpeed ?? DEFAULT_ROLL_SPEED;
+        this.accelerationTime = options.accelerationTime ?? DEFAULT_ACCELERATION_TIME;
+        this.decelerationTime = options.decelerationTime ?? DEFAULT_DECELERATION_TIME;
+        this.pitchLimit = options.pitchLimit ?? DEFAULT_PITCH_LIMIT;
+        this.invertY = options.invertY ?? false;
+
+        this.vel = new Vec3();
+
+        this._speed = math.clamp(options.speed ?? DEFAULT_SPEED, this.minSpeed, this.maxSpeed);
+
+        this._moveForward = false;
+        this._moveBackward = false;
+        this._moveLeft = false;
+        this._moveRight = false;
+
+        this._rollDir = 0;
+
+        this._dx = 0;
+        this._dy = 0;
+
+        this._suspendedNavigation = [];
+    }
+
+    override onadd(): void {
+        if (this.planet?.camera) {
+            this.planet.camera.events.on("flystart", this._onCameraFly);
+        }
+    }
+
+    override onremove(): void {
+        if (this.planet?.camera) {
+            this.planet.camera.events.off("flystart", this._onCameraFly);
+        }
+    }
+
+    public override onactivate() {
+        super.onactivate();
+
+        this._suspendNavigation();
+
+        let r = this.renderer!;
+        r.events.on("mousewheel", this._onMouseWheel);
+        r.events.on("mousemove", this._onMouseMove);
+        r.events.on("mouseleave", this._onMouseLeave);
+        r.events.on("keypress", input.KEY_W, this._onKeyForward);
+        r.events.on("keypress", input.KEY_S, this._onKeyBackward);
+        r.events.on("keypress", input.KEY_A, this._onKeyLeft);
+        r.events.on("keypress", input.KEY_D, this._onKeyRight);
+        r.events.on("keypress", input.KEY_Q, this._onKeyRollLeft);
+        r.events.on("keypress", input.KEY_E, this._onKeyRollRight);
+        r.events.on("predraw", this.onPreDraw, this, FREE_NAVIGATION_PREDRAW_PRIORITY);
+    }
+
+    public override ondeactivate() {
+        super.ondeactivate();
+
+        let r = this.renderer!;
+        r.events.off("mousewheel", this._onMouseWheel);
+        r.events.off("mousemove", this._onMouseMove);
+        r.events.off("mouseleave", this._onMouseLeave);
+        r.events.off("keypress", input.KEY_W, this._onKeyForward);
+        r.events.off("keypress", input.KEY_S, this._onKeyBackward);
+        r.events.off("keypress", input.KEY_A, this._onKeyLeft);
+        r.events.off("keypress", input.KEY_D, this._onKeyRight);
+        r.events.off("keypress", input.KEY_Q, this._onKeyRollLeft);
+        r.events.off("keypress", input.KEY_E, this._onKeyRollRight);
+        r.events.off("predraw", this.onPreDraw);
+
+        this.stop();
+
+        this._restoreNavigation();
+    }
+
+    /**
+     * Returns selected movement speed in kilometers per hour.
+     * @public
+     * @return {number} -
+     */
+    public get speed(): number {
+        return this._speed;
+    }
+
+    /**
+     * Sets selected movement speed in kilometers per hour.
+     * @public
+     * @param {number} speed - Speed in km/h.
+     */
+    public set speed(speed: number) {
+        this.setSpeed(speed);
+    }
+
+    /**
+     * Returns selected movement speed in meters per second.
+     * @public
+     * @return {number} -
+     */
+    public get speedMps(): number {
+        return this._speed * KMH_TO_MPS;
+    }
+
+    /**
+     * Sets selected movement speed in kilometers per hour, clamped to the min and max speed.
+     * @public
+     * @param {number} speed - Speed in km/h.
+     */
+    public setSpeed(speed: number) {
+        let s = math.clamp(speed, this.minSpeed, this.maxSpeed);
+        if (s !== this._speed) {
+            this._speed = s;
+            this.events.dispatch(this.events.speedchange, this);
+        }
+    }
+
+    /**
+     * Stops the camera movement.
+     * @public
+     */
+    public stop() {
+        this.vel.set(0, 0, 0);
+        this._resetInput();
+    }
+
+    protected onPreDraw() {
+        if (!this.planet) return;
+
+        if (this._hasInput()) {
+            this.planet.stopFlying();
+        }
+
+        this._handleRotation();
+        this._handleRoll();
+        this._handleMove();
+
+        this._resetInput();
+    }
+
+    protected _hasInput(): boolean {
+        return (
+            this._dx !== 0 ||
+            this._dy !== 0 ||
+            this._rollDir !== 0 ||
+            this._moveForward ||
+            this._moveBackward ||
+            this._moveLeft ||
+            this._moveRight
+        );
+    }
+
+    protected _resetInput() {
+        this._dx = 0;
+        this._dy = 0;
+        this._rollDir = 0;
+        this._moveForward = false;
+        this._moveBackward = false;
+        this._moveLeft = false;
+        this._moveRight = false;
+    }
+
+    private _onCameraFly = () => {
+        this.stop();
+    };
+
+    protected _onMouseMove = (e: IMouseState) => {
+        this._dx += e.x - e.prev_x;
+        this._dy += e.y - e.prev_y;
+    };
+
+    protected _onMouseLeave = () => {
+        this._dx = 0;
+        this._dy = 0;
+    };
+
+    protected _onMouseWheel = (e: IMouseState) => {
+        // Wheel selects the movement speed only, it never moves the camera
+        this.setSpeed(this._speed + Math.sign(e.wheelDelta) * this.speedStep);
+    };
+
+    protected _onKeyForward = () => {
+        this._moveForward = true;
+    };
+
+    protected _onKeyBackward = () => {
+        this._moveBackward = true;
+    };
+
+    protected _onKeyLeft = () => {
+        this._moveLeft = true;
+    };
+
+    protected _onKeyRight = () => {
+        this._moveRight = true;
+    };
+
+    protected _onKeyRollLeft = () => {
+        this._rollDir -= 1;
+    };
+
+    protected _onKeyRollRight = () => {
+        this._rollDir += 1;
+    };
+
+    /**
+     * Returns local reference frame up direction, i.e. the ellipsoid surface normal under the camera.
+     * @protected
+     * @param {Vec3} eye - Camera position.
+     * @return {Vec3} -
+     */
+    protected _getLocalUp(eye: Vec3): Vec3 {
+        return this.planet!.ellipsoid.getSurfaceNormal3v(eye);
+    }
+
+    /**
+     * Rotates the camera basis. Yaw is applied around the local reference frame up direction and
+     * pitch around the current camera right vector, so the current camera roll is preserved.
+     * @protected
+     */
+    protected _handleRotation() {
+        if (this._dx === 0 && this._dy === 0) {
+            return;
+        }
+
+        let cam = this.planet!.camera;
+        let localUp = this._getLocalUp(cam.eye);
+
+        let yaw = -this._dx * this.lookSensitivity;
+        let pitch = (this.invertY ? this._dy : -this._dy) * this.lookSensitivity;
+
+        if (yaw !== 0) {
+            cam.rotate(Quat.axisAngleToQuat(localUp, yaw));
+        }
+
+        if (pitch !== 0) {
+            pitch = this._limitPitch(pitch, cam.getForward(), cam.getRight(), localUp);
+            if (pitch !== 0) {
+                cam.rotate(Quat.axisAngleToQuat(cam.getRight(), pitch));
+            }
+        }
+
+        this.events.dispatch(this.events.rotate, this);
+    }
+
+    /**
+     * Skips the pitch rotation when the camera looks too close to the local reference frame axis.
+     * @protected
+     * @param {number} angle - Pitch angle in radians.
+     * @param {Vec3} forward - Camera forward vector.
+     * @param {Vec3} right - Camera right vector.
+     * @param {Vec3} localUp - Local reference frame up direction.
+     * @return {number} - Applicable pitch angle in radians.
+     */
+    protected _limitPitch(angle: number, forward: Vec3, right: Vec3, localUp: Vec3): number {
+        let maxSin = Math.sin(this.pitchLimit);
+        let newForward = Quat.axisAngleToQuat(right, angle).mulVec3(forward);
+        let sin = Math.abs(newForward.dot(localUp));
+        if (sin > maxSin && sin > Math.abs(forward.dot(localUp))) {
+            return 0;
+        }
+        return angle;
+    }
+
+    /**
+     * Rolls the camera around its forward axis.
+     * @protected
+     */
+    protected _handleRoll() {
+        if (this._rollDir === 0) {
+            return;
+        }
+
+        let cam = this.planet!.camera;
+        let angle = Math.sign(this._rollDir) * this.rollSpeed * this.dt;
+        cam.rotate(Quat.axisAngleToQuat(cam.getForward(), angle));
+
+        this.events.dispatch(this.events.rotate, this);
+    }
+
+    /**
+     * Moves the camera and keeps its orientation in the local reference frame.
+     * @protected
+     */
+    protected _handleMove() {
+        let cam = this.planet!.camera;
+        let dt = this.dt;
+
+        let dir = new Vec3();
+        if (this._moveForward) {
+            dir.addA(cam.getForward());
+        }
+        if (this._moveBackward) {
+            dir.subA(cam.getForward());
+        }
+        if (this._moveRight) {
+            dir.addA(cam.getRight());
+        }
+        if (this._moveLeft) {
+            dir.subA(cam.getRight());
+        }
+
+        // Diagonal movement must not be faster than a straight one
+        if (dir.length2() > 0) {
+            dir.normalize();
+        }
+
+        // Negative speed reverses the movement direction, zero speed keeps the camera in place
+        let targetVel = dir.scale(this.speedMps);
+
+        // Frame rate independent velocity smoothing
+        let time = targetVel.length2() > 0 ? this.accelerationTime : this.decelerationTime;
+        let k = time > 0 ? 1.0 - Math.exp(-dt / time) : 1.0;
+        this.vel.addA(targetVel.subA(this.vel).scale(k));
+
+        if (this.vel.length() < MIN_VELOCITY) {
+            this.vel.set(0, 0, 0);
+            return;
+        }
+
+        let prevUp = this._getLocalUp(cam.eye);
+
+        cam.eye.addA(this.vel.scaleTo(dt));
+
+        // Local reference frame follows the camera around the planet
+        let rot = Quat.getRotationBetweenVectors(prevUp, this._getLocalUp(cam.eye));
+        cam.rotate(rot);
+        this.vel.copy(rot.mulVec3(this.vel));
+
+        this.events.dispatch(this.events.move, this);
+    }
+
+    /**
+     * Deactivates conflicting navigation controls.
+     * @protected
+     */
+    protected _suspendNavigation() {
+        this._suspendedNavigation = [];
+
+        let controls = this.renderer?.controls;
+        if (!controls) return;
+
+        for (let name in controls) {
+            let c = controls[name];
+            if (c instanceof Navigation && c.isActive()) {
+                c.stop();
+                c.deactivate();
+                this._suspendedNavigation.push(c);
+            }
+        }
+    }
+
+    /**
+     * Restores navigation controls which have been deactivated on the control activation.
+     * @protected
+     */
+    protected _restoreNavigation() {
+        for (let i = 0; i < this._suspendedNavigation.length; i++) {
+            this._suspendedNavigation[i].activate();
+        }
+        this._suspendedNavigation = [];
+    }
+
+    protected get dt(): number {
+        return 0.001 * this.renderer!.handler.deltaTime;
+    }
+}

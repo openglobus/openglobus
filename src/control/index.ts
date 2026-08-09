@@ -3,6 +3,7 @@ export * from "./Control";
 export * from "./DebugInfo";
 export * from "./DrawingSwitcher";
 export * from "./EarthCoordinates";
+export * from "./FreeNavigation";
 export * from "./GeoImageDragControl";
 export * from "./KeyboardNavigation";
 export * from "./LayerAnimation";
