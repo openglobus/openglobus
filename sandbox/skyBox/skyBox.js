@@ -352,12 +352,6 @@ globe.planet.addControl(ruler);
 globe.planet.addControl(new control.AtmosphereConfig());
 globe.planet.addControl(new control.Lighting());
 
-//
-// Free flight navigation.
-// Press F to toggle it, then move the mouse to look around, W,S,A,D to move,
-// Q,E to roll and the mouse wheel to select the movement speed.
-// While it is active the default Navigation control is deactivated.
-//
 const freeNavigation = new control.FreeNavigation({ autoActivate: false });
 globe.planet.addControl(freeNavigation);
 
@@ -369,11 +363,14 @@ document.body.appendChild(freeNavigationInfo);
 
 function updateFreeNavigationInfo() {
     freeNavigationInfo.innerText = freeNavigation.isActive()
-        ? `FreeNavigation ON (F to exit) — W,S,A,D move, Q,E roll, wheel speed: ${freeNavigation.speed} km/h`
+        ? `FreeNavigation ON (F or Esc to exit) — W,S,A,D move, Space/Ctrl altitude, Q,E roll, wheel speed: ` +
+          `${freeNavigation.speed} m/s (${Math.round(freeNavigation.speed * 3.6)} km/h)`
         : "FreeNavigation OFF — press F to activate";
 }
 
 freeNavigation.events.on("speedchange", updateFreeNavigationInfo);
+freeNavigation.events.on("activate", updateFreeNavigationInfo);
+freeNavigation.events.on("deactivate", updateFreeNavigationInfo);
 
 globe.planet.renderer.events.on("keyfree", input.KEY_F, () => {
     if (freeNavigation.isActive()) {
@@ -381,7 +378,6 @@ globe.planet.renderer.events.on("keyfree", input.KEY_F, () => {
     } else {
         freeNavigation.activate();
     }
-    updateFreeNavigationInfo();
 });
 
 updateFreeNavigationInfo();

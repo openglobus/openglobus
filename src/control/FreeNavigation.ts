@@ -7,21 +7,24 @@ import { Vec3 } from "../math/Vec3";
 import { input } from "../input/input";
 import { createEvents, type EventsHandler } from "../Events";
 import * as math from "../math";
+import { RADIANS } from "../math";
 
 export interface IFreeNavigationParams extends IControlParams {
     speed?: number;
     minSpeed?: number;
     maxSpeed?: number;
     speedStep?: number;
+    speedFactor?: number;
     lookSensitivity?: number;
     rollSpeed?: number;
     accelerationTime?: number;
     decelerationTime?: number;
     pitchLimit?: number;
     invertY?: boolean;
+    pointerLock?: boolean;
 }
 
-export type FreeNavigationEventsList = ["move", "rotate", "speedchange"];
+export type FreeNavigationEventsList = ["move", "rotate", "speedchange", "activate", "deactivate"];
 
 const FREE_NAVIGATION_EVENTS: FreeNavigationEventsList = [
     /**
@@ -40,24 +43,37 @@ const FREE_NAVIGATION_EVENTS: FreeNavigationEventsList = [
      * Triggered when selected movement speed has been changed.
      * @event og.FreeNavigation#speedchange
      */
-    "speedchange"
+    "speedchange",
+
+    /**
+     * Triggered on the control activation.
+     * @event og.FreeNavigation#activate
+     */
+    "activate",
+
+    /**
+     * Triggered on the control deactivation, i.e. when the pointer lock has been released.
+     * @event og.FreeNavigation#deactivate
+     */
+    "deactivate"
 ];
 
-const KMH_TO_MPS = 1.0 / 3.6;
-
-// Selected movement speed in kilometers per hour
+// Selected movement speed in meters per second
 const DEFAULT_SPEED = 0;
 const DEFAULT_MIN_SPEED = -300;
-const DEFAULT_MAX_SPEED = 10000;
+const DEFAULT_MAX_SPEED = 1000000;
 
-// Mouse wheel step in kilometers per hour
-const DEFAULT_SPEED_STEP = 5;
+// Mouse wheel step in meters per second near the zero speed
+const DEFAULT_SPEED_STEP = 1;
+
+// Relative speed increment per one mouse wheel step, i.e. 0.15 is 15% of the current speed
+const DEFAULT_SPEED_FACTOR = 0.15;
 
 // Camera rotation angle per one mouse move pixel
-const DEFAULT_LOOK_SENSITIVITY = 0.12 * math.RADIANS;
+const DEFAULT_LOOK_SENSITIVITY = 0.12 * RADIANS;
 
 // Q/E roll angular speed in radians per second
-const DEFAULT_ROLL_SPEED = 60 * math.RADIANS;
+const DEFAULT_ROLL_SPEED = 60 * RADIANS;
 
 // Time in seconds the velocity needs to approach the selected speed
 const DEFAULT_ACCELERATION_TIME = 0.6;
@@ -66,19 +82,32 @@ const DEFAULT_ACCELERATION_TIME = 0.6;
 const DEFAULT_DECELERATION_TIME = 0.4;
 
 // Maximal camera pitch angle above and below the local horizon
-const DEFAULT_PITCH_LIMIT = 89.5 * math.RADIANS;
+const DEFAULT_PITCH_LIMIT = 89.5 * RADIANS;
 
-// Velocity below this value in meters per second is treated as zero
+// Maximal single pitch rotation step, the limit is checked before every step
+const MAX_PITCH_STEP = 1.0 * RADIANS;
+
+const MIN_HORIZONTAL2 = 1e-8;
 const MIN_VELOCITY = 1e-3;
-
-// Reserved early renderer priority for camera input integration.
+const MAX_FRAME_DELTA_TIME = 0.1;
 const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
 
 /**
- * Free flight navigation. Uses W,S,A,D keys for the movement along the camera view direction,
- * Q,E keys for the roll, mouse move for the camera rotation and mouse wheel for the movement
- * speed selection. Camera keeps its orientation in the local planet frame, where the reference
- * up direction is the ellipsoid surface normal under the camera.
+ * Free-flight camera navigation.
+ *
+ * - W/S — move forward/backward
+ * - A/D — strafe left/right
+ * - Space/Ctrl — increase/decrease altitude
+ * - Q/E — roll
+ * - Mouse — look around
+ * - Mouse wheel — adjust movement speed
+ *
+ * Yaw follows the local ellipsoid normal, while pitch uses the camera's right vector.
+ * The camera preserves its orientation relative to the local horizon while moving.
+ *
+ * By default, pointer lock allows unrestricted mouse rotation. Pressing Escape releases
+ * the pointer and deactivates the control. Set `pointerLock` to `false` to use regular
+ * mouse movement instead.
  *
  * The control conflicts with the {@link Navigation} control, so an active {@link Navigation}
  * is deactivated while the free navigation is active, and restored back on deactivation.
@@ -86,19 +115,23 @@ const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
  * @class
  * @extends {Control}
  * @param {IFreeNavigationParams} [options] - Free navigation options:
- * @param {number} [options.speed] - Initial selected movement speed in km/h. Default is 0
- * @param {number} [options.minSpeed] - Minimal selected movement speed in km/h. Default is -300
- * @param {number} [options.maxSpeed] - Maximal selected movement speed in km/h. Default is 10000
- * @param {number} [options.speedStep] - Mouse wheel movement speed step in km/h. Default is 5
+ * @param {number} [options.speed] - Initial selected movement speed in m/s. Default is 0
+ * @param {number} [options.minSpeed] - Minimal selected movement speed in m/s. Default is -300
+ * @param {number} [options.maxSpeed] - Maximal selected movement speed in m/s. Default is 1000000
+ * @param {number} [options.speedStep] - Mouse wheel speed step near the zero speed in m/s. Default is 1
+ * @param {number} [options.speedFactor] - Relative speed increment per one mouse wheel step. Default is 0.15
  * @param {number} [options.lookSensitivity] - Camera rotation angle in radians per mouse move pixel
  * @param {number} [options.rollSpeed] - Q/E roll angular speed in radians per second
  * @param {number} [options.accelerationTime] - Acceleration smoothing time in seconds. Default is 0.6
  * @param {number} [options.decelerationTime] - Deceleration smoothing time in seconds. Default is 0.4
  * @param {number} [options.pitchLimit] - Maximal pitch angle above and below the local horizon in radians
  * @param {boolean} [options.invertY] - Inverts vertical mouse rotation direction. Default is false
+ * @param {boolean} [options.pointerLock] - Locks and hides the mouse pointer. Default is true
  * @fires move
  * @fires rotate
  * @fires speedchange
+ * @fires activate
+ * @fires deactivate
  */
 export class FreeNavigation extends Control {
     public events: EventsHandler<FreeNavigationEventsList>;
@@ -106,12 +139,14 @@ export class FreeNavigation extends Control {
     public minSpeed: number;
     public maxSpeed: number;
     public speedStep: number;
+    public speedFactor: number;
     public lookSensitivity: number;
     public rollSpeed: number;
     public accelerationTime: number;
     public decelerationTime: number;
     public pitchLimit: number;
     public invertY: boolean;
+    public pointerLock: boolean;
 
     /**
      * Current camera velocity in meters per second.
@@ -121,7 +156,7 @@ export class FreeNavigation extends Control {
     public vel: Vec3;
 
     /**
-     * Selected movement speed in kilometers per hour.
+     * Selected movement speed in meters per second.
      * @protected
      * @type {number}
      */
@@ -131,11 +166,16 @@ export class FreeNavigation extends Control {
     protected _moveBackward: boolean;
     protected _moveLeft: boolean;
     protected _moveRight: boolean;
+    protected _moveUp: boolean;
+    protected _moveDown: boolean;
 
     protected _rollDir: number;
 
     protected _dx: number;
     protected _dy: number;
+
+    protected _lastFrameTime: number;
+    protected _frameDeltaTime: number;
 
     protected _suspendedNavigation: Navigation[];
 
@@ -151,12 +191,14 @@ export class FreeNavigation extends Control {
         this.minSpeed = options.minSpeed ?? DEFAULT_MIN_SPEED;
         this.maxSpeed = options.maxSpeed ?? DEFAULT_MAX_SPEED;
         this.speedStep = options.speedStep ?? DEFAULT_SPEED_STEP;
+        this.speedFactor = options.speedFactor ?? DEFAULT_SPEED_FACTOR;
         this.lookSensitivity = options.lookSensitivity ?? DEFAULT_LOOK_SENSITIVITY;
         this.rollSpeed = options.rollSpeed ?? DEFAULT_ROLL_SPEED;
         this.accelerationTime = options.accelerationTime ?? DEFAULT_ACCELERATION_TIME;
         this.decelerationTime = options.decelerationTime ?? DEFAULT_DECELERATION_TIME;
         this.pitchLimit = options.pitchLimit ?? DEFAULT_PITCH_LIMIT;
         this.invertY = options.invertY ?? false;
+        this.pointerLock = options.pointerLock ?? true;
 
         this.vel = new Vec3();
 
@@ -166,11 +208,16 @@ export class FreeNavigation extends Control {
         this._moveBackward = false;
         this._moveLeft = false;
         this._moveRight = false;
+        this._moveUp = false;
+        this._moveDown = false;
 
         this._rollDir = 0;
 
         this._dx = 0;
         this._dy = 0;
+
+        this._lastFrameTime = 0;
+        this._frameDeltaTime = 0;
 
         this._suspendedNavigation = [];
     }
@@ -192,17 +239,30 @@ export class FreeNavigation extends Control {
 
         this._suspendNavigation();
 
+        this._lastFrameTime = 0;
+
         let r = this.renderer!;
         r.events.on("mousewheel", this._onMouseWheel);
         r.events.on("mousemove", this._onMouseMove);
         r.events.on("mouseleave", this._onMouseLeave);
+        r.events.on("ldown", this._onLDown);
+        r.events.on("keyfree", input.KEY_ESC, this._onKeyEscape);
         r.events.on("keypress", input.KEY_W, this._onKeyForward);
         r.events.on("keypress", input.KEY_S, this._onKeyBackward);
         r.events.on("keypress", input.KEY_A, this._onKeyLeft);
         r.events.on("keypress", input.KEY_D, this._onKeyRight);
+        r.events.on("keypress", input.KEY_SPACE, this._onKeyUp);
+        r.events.on("keypress", input.KEY_CTRL, this._onKeyDown);
         r.events.on("keypress", input.KEY_Q, this._onKeyRollLeft);
         r.events.on("keypress", input.KEY_E, this._onKeyRollRight);
         r.events.on("predraw", this.onPreDraw, this, FREE_NAVIGATION_PREDRAW_PRIORITY);
+
+        document.addEventListener("pointerlockchange", this._onPointerLockChange);
+        document.addEventListener("mousemove", this._onLockedMouseMove);
+
+        this.requestPointerLock();
+
+        this.events.dispatch(this.events.activate, this);
     }
 
     public override ondeactivate() {
@@ -212,21 +272,32 @@ export class FreeNavigation extends Control {
         r.events.off("mousewheel", this._onMouseWheel);
         r.events.off("mousemove", this._onMouseMove);
         r.events.off("mouseleave", this._onMouseLeave);
+        r.events.off("ldown", this._onLDown);
+        r.events.off("keyfree", input.KEY_ESC, this._onKeyEscape);
         r.events.off("keypress", input.KEY_W, this._onKeyForward);
         r.events.off("keypress", input.KEY_S, this._onKeyBackward);
         r.events.off("keypress", input.KEY_A, this._onKeyLeft);
         r.events.off("keypress", input.KEY_D, this._onKeyRight);
+        r.events.off("keypress", input.KEY_SPACE, this._onKeyUp);
+        r.events.off("keypress", input.KEY_CTRL, this._onKeyDown);
         r.events.off("keypress", input.KEY_Q, this._onKeyRollLeft);
         r.events.off("keypress", input.KEY_E, this._onKeyRollRight);
         r.events.off("predraw", this.onPreDraw);
 
+        document.removeEventListener("pointerlockchange", this._onPointerLockChange);
+        document.removeEventListener("mousemove", this._onLockedMouseMove);
+
+        this.exitPointerLock();
+
         this.stop();
 
         this._restoreNavigation();
+
+        this.events.dispatch(this.events.deactivate, this);
     }
 
     /**
-     * Returns selected movement speed in kilometers per hour.
+     * Returns selected movement speed in meters per second.
      * @public
      * @return {number} -
      */
@@ -235,33 +306,94 @@ export class FreeNavigation extends Control {
     }
 
     /**
-     * Sets selected movement speed in kilometers per hour.
+     * Sets selected movement speed in meters per second.
      * @public
-     * @param {number} speed - Speed in km/h.
+     * @param {number} speed - Speed in m/s.
      */
     public set speed(speed: number) {
         this.setSpeed(speed);
     }
 
     /**
-     * Returns selected movement speed in meters per second.
+     * Sets selected movement speed in meters per second, clamped to the min and max speed.
      * @public
-     * @return {number} -
-     */
-    public get speedMps(): number {
-        return this._speed * KMH_TO_MPS;
-    }
-
-    /**
-     * Sets selected movement speed in kilometers per hour, clamped to the min and max speed.
-     * @public
-     * @param {number} speed - Speed in km/h.
+     * @param {number} speed - Speed in m/s.
      */
     public setSpeed(speed: number) {
         let s = math.clamp(speed, this.minSpeed, this.maxSpeed);
         if (s !== this._speed) {
             this._speed = s;
             this.events.dispatch(this.events.speedchange, this);
+        }
+    }
+
+    /**
+     * Changes the movement speed by the given number of wheel steps.
+     *
+     * The speed step increases with the current speed. Changes are reversible,
+     * and zero speed is always reachable.
+     * @public
+     * @param {number} steps - Number of the wheel steps, negative decreases the speed.
+     */
+    public stepSpeed(steps: number) {
+        if (steps === 0) return;
+
+        if (this.speedFactor <= 0) {
+            this.setSpeed(this._speed + steps * this.speedStep);
+            return;
+        }
+
+        let zeroStep = this.speedStep / this.speedFactor;
+        let s = this._speed;
+        let scaled = Math.sign(s) * Math.log(1.0 + Math.abs(s) / zeroStep) + steps * this.speedFactor;
+
+        let speed = Math.sign(scaled) * zeroStep * Math.expm1(Math.abs(scaled));
+        speed = Math.round(speed);
+
+        if (speed === this._speed) {
+            speed = this._speed + Math.sign(steps);
+        }
+
+        if (this._speed !== 0 && Math.sign(speed) !== Math.sign(this._speed)) {
+            speed = 0;
+        }
+
+        this.setSpeed(speed);
+    }
+
+    /**
+     * True when the mouse pointer is locked by the control.
+     * @public
+     * @return {boolean} -
+     */
+    public isPointerLocked(): boolean {
+        let canvas = this.renderer?.handler.canvas;
+        return !!canvas && document.pointerLockElement === canvas;
+    }
+
+    /**
+     * Locks and hides the mouse pointer over the canvas.
+     * @public
+     */
+    public requestPointerLock() {
+        if (!this.pointerLock || this.isPointerLocked()) return;
+
+        let canvas = this.renderer?.handler.canvas;
+        if (!canvas) return;
+
+        let request = canvas.requestPointerLock() as unknown as Promise<void> | undefined;
+        if (request && typeof request.catch === "function") {
+            request.catch(() => {});
+        }
+    }
+
+    /**
+     * Releases the mouse pointer.
+     * @public
+     */
+    public exitPointerLock() {
+        if (this.isPointerLocked()) {
+            document.exitPointerLock();
         }
     }
 
@@ -276,6 +408,8 @@ export class FreeNavigation extends Control {
 
     protected onPreDraw() {
         if (!this.planet) return;
+
+        this._updateFrameDeltaTime();
 
         if (this._hasInput()) {
             this.planet.stopFlying();
@@ -296,7 +430,9 @@ export class FreeNavigation extends Control {
             this._moveForward ||
             this._moveBackward ||
             this._moveLeft ||
-            this._moveRight
+            this._moveRight ||
+            this._moveUp ||
+            this._moveDown
         );
     }
 
@@ -308,6 +444,8 @@ export class FreeNavigation extends Control {
         this._moveBackward = false;
         this._moveLeft = false;
         this._moveRight = false;
+        this._moveUp = false;
+        this._moveDown = false;
     }
 
     private _onCameraFly = () => {
@@ -315,8 +453,38 @@ export class FreeNavigation extends Control {
     };
 
     protected _onMouseMove = (e: IMouseState) => {
+
+        if (this.isPointerLocked()) return;
+
         this._dx += e.x - e.prev_x;
         this._dy += e.y - e.prev_y;
+    };
+
+    protected _onLockedMouseMove = (e: MouseEvent) => {
+
+        if (!this.isPointerLocked()) return;
+
+        let pixelRatio = this.renderer!.handler.pixelRatio;
+
+        this._dx += e.movementX * pixelRatio;
+        this._dy += e.movementY * pixelRatio;
+    };
+
+    protected _onPointerLockChange = () => {
+        this._dx = 0;
+        this._dy = 0;
+
+        if (this._active && this.pointerLock && !this.isPointerLocked()) {
+            this.deactivate();
+        }
+    };
+
+    protected _onLDown = () => {
+        this.requestPointerLock();
+    };
+
+    protected _onKeyEscape = () => {
+        this.deactivate();
     };
 
     protected _onMouseLeave = () => {
@@ -325,8 +493,7 @@ export class FreeNavigation extends Control {
     };
 
     protected _onMouseWheel = (e: IMouseState) => {
-        // Wheel selects the movement speed only, it never moves the camera
-        this.setSpeed(this._speed + Math.sign(e.wheelDelta) * this.speedStep);
+        this.stepSpeed(Math.sign(e.wheelDelta));
     };
 
     protected _onKeyForward = () => {
@@ -345,6 +512,14 @@ export class FreeNavigation extends Control {
         this._moveRight = true;
     };
 
+    protected _onKeyUp = () => {
+        this._moveUp = true;
+    };
+
+    protected _onKeyDown = () => {
+        this._moveDown = true;
+    };
+
     protected _onKeyRollLeft = () => {
         this._rollDir -= 1;
     };
@@ -353,21 +528,10 @@ export class FreeNavigation extends Control {
         this._rollDir += 1;
     };
 
-    /**
-     * Returns local reference frame up direction, i.e. the ellipsoid surface normal under the camera.
-     * @protected
-     * @param {Vec3} eye - Camera position.
-     * @return {Vec3} -
-     */
     protected _getLocalUp(eye: Vec3): Vec3 {
         return this.planet!.ellipsoid.getSurfaceNormal3v(eye);
     }
 
-    /**
-     * Rotates the camera basis. Yaw is applied around the local reference frame up direction and
-     * pitch around the current camera right vector, so the current camera roll is preserved.
-     * @protected
-     */
     protected _handleRotation() {
         if (this._dx === 0 && this._dy === 0) {
             return;
@@ -375,6 +539,10 @@ export class FreeNavigation extends Control {
 
         let cam = this.planet!.camera;
         let localUp = this._getLocalUp(cam.eye);
+
+        if (cam.getUp().dot(localUp) < 0) {
+            localUp.negate();
+        }
 
         let yaw = -this._dx * this.lookSensitivity;
         let pitch = (this.invertY ? this._dy : -this._dy) * this.lookSensitivity;
@@ -384,32 +552,60 @@ export class FreeNavigation extends Control {
         }
 
         if (pitch !== 0) {
-            pitch = this._limitPitch(pitch, cam.getForward(), cam.getRight(), localUp);
-            if (pitch !== 0) {
-                cam.rotate(Quat.axisAngleToQuat(cam.getRight(), pitch));
-            }
+            this._applyPitch(pitch, localUp);
         }
+
+        this._orthonormalizeCamera();
 
         this.events.dispatch(this.events.rotate, this);
     }
 
     /**
-     * Skips the pitch rotation when the camera looks too close to the local reference frame axis.
+     * Rotates the camera around its right vector and stops at the pitch limit. Rotation is split
+     * into small steps, otherwise a fast mouse move jumps over the local vertical in one frame.
+     * @protected
+     * @param {number} angle - Pitch angle in radians.
+     * @param {Vec3} localUp - Local reference frame up direction.
+     */
+    protected _applyPitch(angle: number, localUp: Vec3) {
+        let cam = this.planet!.camera;
+        let steps = Math.max(1, Math.ceil(Math.abs(angle) / MAX_PITCH_STEP));
+        let step = angle / steps;
+
+        for (let i = 0; i < steps; i++) {
+            let right = cam.getRight();
+            if (!this._isPitchAllowed(step, cam.getForward(), right, localUp)) {
+                return;
+            }
+            cam.rotate(Quat.axisAngleToQuat(right, step));
+        }
+    }
+
+    /**
+     * Checks the pitch rotation keeps the camera pitch inside the [-90, 90] degrees range,
+     * limited by the `pitchLimit`.
      * @protected
      * @param {number} angle - Pitch angle in radians.
      * @param {Vec3} forward - Camera forward vector.
      * @param {Vec3} right - Camera right vector.
      * @param {Vec3} localUp - Local reference frame up direction.
-     * @return {number} - Applicable pitch angle in radians.
+     * @return {boolean} -
      */
-    protected _limitPitch(angle: number, forward: Vec3, right: Vec3, localUp: Vec3): number {
-        let maxSin = Math.sin(this.pitchLimit);
+    protected _isPitchAllowed(angle: number, forward: Vec3, right: Vec3, localUp: Vec3): boolean {
         let newForward = Quat.axisAngleToQuat(right, angle).mulVec3(forward);
-        let sin = Math.abs(newForward.dot(localUp));
-        if (sin > maxSin && sin > Math.abs(forward.dot(localUp))) {
-            return 0;
+
+        let horiz = Vec3.proj_b_to_plane(forward, localUp);
+        let newHoriz = Vec3.proj_b_to_plane(newForward, localUp);
+        if (horiz.length2() > MIN_HORIZONTAL2 && newHoriz.length2() > MIN_HORIZONTAL2 && horiz.dot(newHoriz) <= 0) {
+            return false;
         }
-        return angle;
+
+        let newSin = Math.abs(newForward.dot(localUp));
+        if (newSin <= Math.sin(this.pitchLimit)) {
+            return true;
+        }
+
+        return newSin < Math.abs(forward.dot(localUp));
     }
 
     /**
@@ -425,7 +621,17 @@ export class FreeNavigation extends Control {
         let angle = Math.sign(this._rollDir) * this.rollSpeed * this.dt;
         cam.rotate(Quat.axisAngleToQuat(cam.getForward(), angle));
 
+        this._orthonormalizeCamera();
+
         this.events.dispatch(this.events.rotate, this);
+    }
+
+    protected _orthonormalizeCamera() {
+        let cam = this.planet!.camera;
+        cam._b.normalize();
+        cam._r.copy(cam._u.cross(cam._b).normalize());
+        cam._u.copy(cam._b.cross(cam._r).normalize());
+        cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
     }
 
     /**
@@ -435,6 +641,7 @@ export class FreeNavigation extends Control {
     protected _handleMove() {
         let cam = this.planet!.camera;
         let dt = this.dt;
+        let localUp = this._getLocalUp(cam.eye);
 
         let dir = new Vec3();
         if (this._moveForward) {
@@ -450,13 +657,21 @@ export class FreeNavigation extends Control {
             dir.subA(cam.getRight());
         }
 
+        if (this._moveUp) {
+            dir.addA(localUp);
+        }
+
+        if (this._moveDown) {
+            dir.subA(localUp);
+        }
+
         // Diagonal movement must not be faster than a straight one
         if (dir.length2() > 0) {
             dir.normalize();
         }
 
         // Negative speed reverses the movement direction, zero speed keeps the camera in place
-        let targetVel = dir.scale(this.speedMps);
+        let targetVel = dir.scale(this._speed);
 
         // Frame rate independent velocity smoothing
         let time = targetVel.length2() > 0 ? this.accelerationTime : this.decelerationTime;
@@ -468,22 +683,18 @@ export class FreeNavigation extends Control {
             return;
         }
 
-        let prevUp = this._getLocalUp(cam.eye);
-
         cam.eye.addA(this.vel.scaleTo(dt));
 
-        // Local reference frame follows the camera around the planet
-        let rot = Quat.getRotationBetweenVectors(prevUp, this._getLocalUp(cam.eye));
+        // Follow the local surface normal without adding roll.
+        let rot = Quat.getRotationBetweenVectors(localUp, this._getLocalUp(cam.eye));
         cam.rotate(rot);
         this.vel.copy(rot.mulVec3(this.vel));
+
+        this._orthonormalizeCamera();
 
         this.events.dispatch(this.events.move, this);
     }
 
-    /**
-     * Deactivates conflicting navigation controls.
-     * @protected
-     */
     protected _suspendNavigation() {
         this._suspendedNavigation = [];
 
@@ -500,10 +711,6 @@ export class FreeNavigation extends Control {
         }
     }
 
-    /**
-     * Restores navigation controls which have been deactivated on the control activation.
-     * @protected
-     */
     protected _restoreNavigation() {
         for (let i = 0; i < this._suspendedNavigation.length; i++) {
             this._suspendedNavigation[i].activate();
@@ -511,7 +718,14 @@ export class FreeNavigation extends Control {
         this._suspendedNavigation = [];
     }
 
+    protected _updateFrameDeltaTime() {
+        let now = window.performance.now();
+        this._frameDeltaTime =
+            this._lastFrameTime > 0 ? math.clamp(0.001 * (now - this._lastFrameTime), 0, MAX_FRAME_DELTA_TIME) : 0;
+        this._lastFrameTime = now;
+    }
+
     protected get dt(): number {
-        return 0.001 * this.renderer!.handler.deltaTime;
+        return this._frameDeltaTime;
     }
 }
