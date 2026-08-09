@@ -60,8 +60,8 @@ const FREE_NAVIGATION_EVENTS: FreeNavigationEventsList = [
 
 // Selected movement speed in meters per second
 const DEFAULT_SPEED = 0;
-const DEFAULT_MIN_SPEED = -300;
 const DEFAULT_MAX_SPEED = 1000000;
+const DEFAULT_MIN_SPEED = -DEFAULT_MAX_SPEED;
 
 // Mouse wheel step in meters per second near the zero speed
 const DEFAULT_SPEED_STEP = 1;
@@ -84,10 +84,9 @@ const DEFAULT_DECELERATION_TIME = 0.4;
 // Maximal camera pitch angle above and below the local horizon
 const DEFAULT_PITCH_LIMIT = 89.5 * RADIANS;
 
-// Maximal single pitch rotation step, the limit is checked before every step
-const MAX_PITCH_STEP = 1.0 * RADIANS;
+// Maximal mouse movement of a single locked pointer event in pixels
+const MAX_POINTER_MOVEMENT = 400;
 
-const MIN_HORIZONTAL2 = 1e-8;
 const MIN_VELOCITY = 1e-3;
 const MAX_FRAME_DELTA_TIME = 0.1;
 const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
@@ -173,6 +172,7 @@ export class FreeNavigation extends Control {
 
     protected _dx: number;
     protected _dy: number;
+    protected _skipPointerMove: boolean;
 
     protected _lastFrameTime: number;
     protected _frameDeltaTime: number;
@@ -215,6 +215,7 @@ export class FreeNavigation extends Control {
 
         this._dx = 0;
         this._dy = 0;
+        this._skipPointerMove = true;
 
         this._lastFrameTime = 0;
         this._frameDeltaTime = 0;
@@ -381,9 +382,18 @@ export class FreeNavigation extends Control {
         let canvas = this.renderer?.handler.canvas;
         if (!canvas) return;
 
-        let request = canvas.requestPointerLock() as unknown as Promise<void> | undefined;
+        let lock = canvas.requestPointerLock as (options?: any) => Promise<void> | undefined;
+
+        // Fixed mouse jump.
+        let request = lock.call(canvas, { unadjustedMovement: true });
+
         if (request && typeof request.catch === "function") {
-            request.catch(() => {});
+            request.catch(() => {
+                let fallback = lock.call(canvas);
+                if (fallback && typeof fallback.catch === "function") {
+                    fallback.catch(() => {});
+                }
+            });
         }
     }
 
@@ -462,6 +472,15 @@ export class FreeNavigation extends Control {
     protected _onLockedMouseMove = (e: MouseEvent) => {
         if (!this.isPointerLocked()) return;
 
+        if (this._skipPointerMove) {
+            this._skipPointerMove = false;
+            return;
+        }
+
+        if (Math.abs(e.movementX) > MAX_POINTER_MOVEMENT || Math.abs(e.movementY) > MAX_POINTER_MOVEMENT) {
+            return;
+        }
+
         let pixelRatio = this.renderer!.handler.pixelRatio;
 
         this._dx += e.movementX * pixelRatio;
@@ -471,6 +490,7 @@ export class FreeNavigation extends Control {
     protected _onPointerLockChange = () => {
         this._dx = 0;
         this._dy = 0;
+        this._skipPointerMove = true;
 
         if (this._active && this.pointerLock && !this.isPointerLocked()) {
             this.deactivate();
@@ -538,10 +558,6 @@ export class FreeNavigation extends Control {
         let cam = this.planet!.camera;
         let localUp = this._getLocalUp(cam.eye);
 
-        if (cam.getUp().dot(localUp) < 0) {
-            localUp.negate();
-        }
-
         let yaw = -this._dx * this.lookSensitivity;
         let pitch = (this.invertY ? this._dy : -this._dy) * this.lookSensitivity;
 
@@ -550,7 +566,10 @@ export class FreeNavigation extends Control {
         }
 
         if (pitch !== 0) {
-            this._applyPitch(pitch, localUp);
+            pitch = this._limitPitch(pitch, cam.getForward(), cam.getRight(), localUp);
+            if (pitch !== 0) {
+                cam.rotate(Quat.axisAngleToQuat(cam.getRight(), pitch));
+            }
         }
 
         this._orthonormalizeCamera();
@@ -559,55 +578,45 @@ export class FreeNavigation extends Control {
     }
 
     /**
-     * Rotates the camera around its right vector and stops at the pitch limit. Rotation is split
-     * into small steps, otherwise a fast mouse move jumps over the local vertical in one frame.
-     * @protected
-     * @param {number} angle - Pitch angle in radians.
-     * @param {Vec3} localUp - Local reference frame up direction.
-     */
-    protected _applyPitch(angle: number, localUp: Vec3) {
-        let cam = this.planet!.camera;
-        let steps = Math.max(1, Math.ceil(Math.abs(angle) / MAX_PITCH_STEP));
-        let step = angle / steps;
-
-        for (let i = 0; i < steps; i++) {
-            let right = cam.getRight();
-            if (!this._isPitchAllowed(step, cam.getForward(), right, localUp)) {
-                return;
-            }
-            cam.rotate(Quat.axisAngleToQuat(right, step));
-        }
-    }
-
-    /**
-     * Checks the pitch rotation keeps the camera pitch inside the [-90, 90] degrees range,
-     * limited by the `pitchLimit`.
+     * Clamps the pitch rotation angle.
      * @protected
      * @param {number} angle - Pitch angle in radians.
      * @param {Vec3} forward - Camera forward vector.
      * @param {Vec3} right - Camera right vector.
      * @param {Vec3} localUp - Local reference frame up direction.
-     * @return {boolean} -
+     * @return {number} - Applicable pitch angle in radians.
      */
-    protected _isPitchAllowed(angle: number, forward: Vec3, right: Vec3, localUp: Vec3): boolean {
-        let newForward = Quat.axisAngleToQuat(right, angle).mulVec3(forward);
+    protected _limitPitch(angle: number, forward: Vec3, right: Vec3, localUp: Vec3): number {
+        let pitchSin = forward.dot(localUp);
+        let radius = Math.hypot(pitchSin, right.cross(forward).dot(localUp));
+        let limitSin = Math.sin(this.pitchLimit);
 
-        let horiz = Vec3.proj_b_to_plane(forward, localUp);
-        let newHoriz = Vec3.proj_b_to_plane(newForward, localUp);
-        if (horiz.length2() > MIN_HORIZONTAL2 && newHoriz.length2() > MIN_HORIZONTAL2 && horiz.dot(newHoriz) <= 0) {
-            return false;
+        if (radius <= limitSin) {
+            return angle;
         }
 
-        let newSin = Math.abs(newForward.dot(localUp));
-        if (newSin <= Math.sin(this.pitchLimit)) {
-            return true;
+        let dir = Math.sign(angle);
+        let pos = Math.atan2(pitchSin, right.cross(forward).dot(localUp));
+
+        let halfArc = Math.asin(limitSin / radius);
+        let center: number;
+
+        if (Math.abs(pitchSin) <= limitSin) {
+            center = Math.abs(pos) <= math.PI_TWO ? 0 : Math.sign(pos) * Math.PI;
+        } else {
+            let vertical = Math.sign(pos) * math.PI_TWO;
+            let away = Math.sign(pos - vertical);
+            if (away !== 0 && dir !== away) {
+                return 0;
+            }
+            center = vertical + dir * math.PI_TWO;
         }
 
-        return newSin < Math.abs(forward.dot(localUp));
+        return dir * Math.min(Math.abs(angle), Math.abs(center + dir * halfArc - pos));
     }
 
     /**
-     * Rolls the camera around its forward axis.
+     * Rollls the camera around its forward axis.
      * @protected
      */
     protected _handleRoll() {
