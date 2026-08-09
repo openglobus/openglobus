@@ -350,3 +350,5 @@ globe.planet.addControl(ruler);
 
 globe.planet.addControl(new control.AtmosphereConfig());
 globe.planet.addControl(new control.Lighting());
+
+globe.planet.addControl(new control.FreeNavigation({ autoActivate: false, showInfo: true }));

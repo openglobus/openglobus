@@ -816,6 +816,19 @@ input {
     width: 200px;
 }
 
+.og-free-navigation-info {
+    position: absolute;
+    bottom: 25px;
+    left: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: var(--grey5);
+    color: var(--grey8);
+    font-family: monospace;
+    font-size: 0.85em;
+    pointer-events: none;
+}
+
 .og-coordinates {
     position: absolute;
     bottom: 25px;
