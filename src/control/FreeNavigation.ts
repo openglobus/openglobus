@@ -453,7 +453,6 @@ export class FreeNavigation extends Control {
     };
 
     protected _onMouseMove = (e: IMouseState) => {
-
         if (this.isPointerLocked()) return;
 
         this._dx += e.x - e.prev_x;
@@ -461,7 +460,6 @@ export class FreeNavigation extends Control {
     };
 
     protected _onLockedMouseMove = (e: MouseEvent) => {
-
         if (!this.isPointerLocked()) return;
 
         let pixelRatio = this.renderer!.handler.pixelRatio;
