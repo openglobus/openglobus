@@ -315,7 +315,12 @@ export class DepthCamera {
 
         const quadTreeStrategy = this._getQuadTreeStrategy(depthCamera);
 
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        // Cleared to the far plane, not to zero. The depth array is sampled with LINEAR filtering, so a tap
+        // straddling the border between rendered geometry and empty map blends the two: with empty meaning
+        // zero - which in this encoding is as close to the light as a caster can get - that blend reads as a
+        // near caster and draws a thin dark line along every such border. Clearing to one makes the same
+        // blend read as far away, which is lit, see how shadows.glsl detects an empty texel.
+        gl.clearColor(1.0, 1.0, 1.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
 

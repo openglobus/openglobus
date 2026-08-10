@@ -14,7 +14,7 @@ import type { CascadeShadowManager } from "./CascadeShadowManager";
 
 const DEFAULT_CASCADE_SHADOW_SIZE = 1024;
 const DEFAULT_CASCADE_COUNT = 4;
-const DEFAULT_CASCADE_MAX_DISTANCE = 10000000;
+const DEFAULT_CASCADE_MAX_DISTANCE = 1000;
 const DEFAULT_CASCADE_SPLIT_LAMBDA = 0.65;
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
 const DEFAULT_CASCADE_BIAS = 10000;
@@ -22,6 +22,10 @@ const DEFAULT_CASCADE_NORMAL_BIAS = 100;
 const DEFAULT_CASCADE_DEPTH_EPSILON = 10000;
 const DEFAULT_CASCADE_ORTHOGRAPHIC_MARGIN_FACTOR = 0.02;
 const DEFAULT_CASCADE_CASTER_MARGIN = 0.0;
+const DEFAULT_CASCADE_CASTER_CLEARANCE = 1000.0;
+const DEFAULT_CASCADE_BIAS_TEXELS = 1.0;
+const DEFAULT_CASCADE_DEPTH_EPSILON_TEXELS = 1.0;
+const DEFAULT_CASCADE_NORMAL_BIAS_TEXELS = 1.5;
 const DEFAULT_CASCADE_CASTER_MARGIN_FACTOR = 0.25;
 const RENDER_SKIRTS_SLOPE = 0.3;
 const MIN_CASCADE_SPLIT_DISTANCE = 1e-6;
@@ -66,6 +70,10 @@ export interface ICascadeShadowMapParams {
     splitLambda?: number;
     verticalViewAngle?: number;
     casterMargin?: number;
+    casterClearance?: number;
+    biasTexels?: number;
+    depthEpsilonTexels?: number;
+    normalBiasTexels?: number;
     excludeLayers?: Vector[];
     cascades?: Partial<CascadeParams>[];
 }
@@ -79,6 +87,21 @@ export class CascadeShadowMap {
     public readonly splitLambda: number;
     public readonly verticalViewAngle: number;
     public readonly casterMargin: number;
+    /**
+     * Absolute light-space depth kept in front of every cascade, in world units. Deliberately
+     * independent of the fitted size: it buys caster coverage at no cost to shadow resolution,
+     * because moving an orthographic camera along its own forward leaves its bounds untouched.
+     */
+    public readonly casterClearance: number;
+
+    /**
+     * Depth biases of every cascade, in shadow texels of that cascade. Driven per frame from the
+     * fitted extent, since the same value in world units is harmless on a coarse cascade and ruins
+     * a fine one.
+     */
+    public readonly biasTexels: number;
+    public readonly depthEpsilonTexels: number;
+    public readonly normalBiasTexels: number;
     public readonly excludeLayers: Vector[];
 
     public depthCamera: Camera;
@@ -92,15 +115,18 @@ export class CascadeShadowMap {
     protected _renderer: Renderer | null;
     protected _initialized: boolean;
     protected _enabled: boolean;
+    protected _automaticSplits: boolean;
     protected _depthArrayTexture: WebGLTexture | null;
     protected _lastPlanetHeightFactor: number;
     protected _cascadeBoundingSpheres: Sphere[];
+    protected _cascadeCorners: Vec3[][];
     protected _depthCameraBoundingSphere: Sphere;
 
     constructor(params: ICascadeShadowMapParams = {}) {
         this.id = CascadeShadowMap.__counter__++;
 
         this._enabled = params.enabled ?? true;
+        this._automaticSplits = !params.cascades || params.cascades.length === 0;
 
         this.size = params.size || DEFAULT_CASCADE_SHADOW_SIZE;
 
@@ -109,16 +135,21 @@ export class CascadeShadowMap {
                 ? params.cascades.length
                 : params.cascadeCount || DEFAULT_CASCADE_COUNT;
 
-        this.maxDistance = params.maxDistance || DEFAULT_CASCADE_MAX_DISTANCE;
+        this.maxDistance = Math.max(params.maxDistance ?? DEFAULT_CASCADE_MAX_DISTANCE, MIN_CASCADE_LIGHT_DISTANCE);
         this.splitLambda = Math.max(0.0, Math.min(params.splitLambda ?? DEFAULT_CASCADE_SPLIT_LAMBDA, 1.0));
         this.verticalViewAngle = params.verticalViewAngle || DEFAULT_VERTICAL_VIEW_ANGLE;
         this.casterMargin = params.casterMargin ?? DEFAULT_CASCADE_CASTER_MARGIN;
+        this.casterClearance = params.casterClearance ?? DEFAULT_CASCADE_CASTER_CLEARANCE;
+        this.biasTexels = params.biasTexels ?? DEFAULT_CASCADE_BIAS_TEXELS;
+        this.depthEpsilonTexels = params.depthEpsilonTexels ?? DEFAULT_CASCADE_DEPTH_EPSILON_TEXELS;
+        this.normalBiasTexels = params.normalBiasTexels ?? DEFAULT_CASCADE_NORMAL_BIAS_TEXELS;
         this.excludeLayers = params.excludeLayers ? [...params.excludeLayers] : [];
         this.cascades = this._createCascadeParams(params, cascadeCount);
         this.depthCamera = this._createDepthCamera();
         this.framebuffer = null;
 
         this._cascadeBoundingSpheres = this._createCascadeBoundingSpheres();
+        this._cascadeCorners = this._createCascadeCorners();
         this._depthCameraBoundingSphere = new Sphere();
 
         this._manager = null;
@@ -250,8 +281,12 @@ export class CascadeShadowMap {
 
     protected _createCascadeParams(params: ICascadeShadowMapParams, cascadeCount: number): CascadeParams[] {
         const cascades: CascadeParams[] = [];
-        const splitDistributionNear =
+        const requestedNear =
             params.cascades && params.cascades.length > 0 ? (params.cascades[0].splitNear ?? 1.0) : 1.0;
+        const splitDistributionNear = Math.min(
+            Math.max(requestedNear, MIN_CASCADE_SPLIT_DISTANCE),
+            this.maxDistance
+        );
 
         for (let i = 0; i < cascadeCount; i++) {
             const splitNear = this._computeCascadeSplitDistance(i, splitDistributionNear, cascadeCount);
@@ -303,6 +338,16 @@ export class CascadeShadowMap {
         }
 
         return spheres;
+    }
+
+    protected _createCascadeCorners(): Vec3[][] {
+        const corners: Vec3[][] = [];
+
+        for (let i = 0; i < this.cascades.length; i++) {
+            corners.push(Array.from({ length: 8 }, () => new Vec3()));
+        }
+
+        return corners;
     }
 
     protected _createDepthCamera(planet?: Planet | null): Camera {
@@ -422,8 +467,31 @@ export class CascadeShadowMap {
     }
 
     protected _updateCascadeBounds(): void {
+        this._updateCascadeSplits();
+
         for (let i = 0; i < this.cascades.length; i++) {
-            this._computeCascadeBoundingSphere(this.cascades[i], this._cascadeBoundingSpheres[i]);
+            this._computeFrustumSliceBounds(
+                this.cascades[i],
+                this._cascadeBoundingSpheres[i],
+                this._cascadeCorners[i]
+            );
+        }
+    }
+
+    protected _updateCascadeSplits(): void {
+        if (!this._automaticSplits) {
+            return;
+        }
+
+        const cameraNear = this._renderer!.activeCamera.frustums[0].near;
+        const splitNear = Math.min(
+            Math.max(cameraNear, MIN_CASCADE_SPLIT_DISTANCE),
+            this.maxDistance
+        );
+
+        for (let i = 0; i < this.cascades.length; i++) {
+            this.cascades[i].splitNear = this._computeCascadeSplitDistance(i, splitNear, this.cascades.length);
+            this.cascades[i].splitFar = this._computeCascadeSplitDistance(i + 1, splitNear, this.cascades.length);
         }
     }
 
@@ -453,7 +521,15 @@ export class CascadeShadowMap {
         }
 
         const bounds = this._depthCameraBoundingSphere;
-        const maxCasterMargin = Math.max(maxCascadeRadius * DEFAULT_CASCADE_CASTER_MARGIN_FACTOR, this.casterMargin);
+        // Caster room may not be derived from the cascade radius alone. Tying it to the fitted size
+        // means that the tighter the fit, the less of the world can cast into it, which is backwards:
+        // moving an orthographic camera sunward leaves its bounds untouched and costs depth range
+        // only. So an absolute distance sets the floor and the radius may only raise it.
+        const maxCasterMargin = Math.max(
+            maxCascadeRadius * DEFAULT_CASCADE_CASTER_MARGIN_FACTOR,
+            this.casterMargin,
+            this.casterClearance
+        );
         const lightDistance = bounds.radius + maxCascadeRadius + maxCasterMargin + MIN_CASCADE_LIGHT_DISTANCE;
         const target = bounds.center;
         const eye = target.add(lightDirection.scaleTo(lightDistance));
@@ -462,29 +538,75 @@ export class CascadeShadowMap {
         this.depthCamera.set(eye, target, up);
 
         for (let i = 0; i < this.cascades.length; i++) {
-            const sphere = this._cascadeBoundingSpheres[i];
-            const radius = Math.max(sphere.radius, MIN_CASCADE_LIGHT_SIZE);
-            const xyMargin = Math.max(radius * DEFAULT_CASCADE_ORTHOGRAPHIC_MARGIN_FACTOR, MIN_CASCADE_LIGHT_SIZE);
-            const zMargin = Math.max(
-                radius * DEFAULT_CASCADE_CASTER_MARGIN_FACTOR,
-                this.casterMargin,
+            const corners = this._cascadeCorners[i];
+            const cameraEye = this.depthCamera.eye;
+            const cameraRight = this.depthCamera._r;
+            const cameraUp = this.depthCamera._u;
+            const cameraBack = this.depthCamera._b;
+            let minX = Number.POSITIVE_INFINITY;
+            let maxX = Number.NEGATIVE_INFINITY;
+            let minY = Number.POSITIVE_INFINITY;
+            let maxY = Number.NEGATIVE_INFINITY;
+            let minDepth = Number.POSITIVE_INFINITY;
+            let maxDepth = Number.NEGATIVE_INFINITY;
+
+            for (let j = 0; j < corners.length; j++) {
+                const corner = corners[j];
+                const relX = corner.x - cameraEye.x;
+                const relY = corner.y - cameraEye.y;
+                const relZ = corner.z - cameraEye.z;
+                const x = relX * cameraRight.x + relY * cameraRight.y + relZ * cameraRight.z;
+                const y = relX * cameraUp.x + relY * cameraUp.y + relZ * cameraUp.z;
+                const depth = -(relX * cameraBack.x + relY * cameraBack.y + relZ * cameraBack.z);
+
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);
+                minDepth = Math.min(minDepth, depth);
+                maxDepth = Math.max(maxDepth, depth);
+            }
+
+            const width = Math.max(maxX - minX, MIN_CASCADE_LIGHT_SIZE);
+            const height = Math.max(maxY - minY, MIN_CASCADE_LIGHT_SIZE);
+            const marginX = Math.max(width * DEFAULT_CASCADE_ORTHOGRAPHIC_MARGIN_FACTOR, MIN_CASCADE_LIGHT_SIZE);
+            const marginY = Math.max(height * DEFAULT_CASCADE_ORTHOGRAPHIC_MARGIN_FACTOR, MIN_CASCADE_LIGHT_SIZE);
+            const halfWidth = width * 0.5 + marginX;
+            const halfHeight = height * 0.5 + marginY;
+            const texelSizeX = (2.0 * halfWidth) / this.size;
+            const texelSizeY = (2.0 * halfHeight) / this.size;
+            const eyeX = cameraEye.dot(cameraRight);
+            const eyeY = cameraEye.dot(cameraUp);
+            const centerX = Math.round(((minX + maxX) * 0.5 + eyeX) / texelSizeX) * texelSizeX - eyeX;
+            const centerY = Math.round(((minY + maxY) * 0.5 + eyeY) / texelSizeY) * texelSizeY - eyeY;
+            const receiverDepthMargin = Math.max(
+                (maxDepth - minDepth) * DEFAULT_CASCADE_ORTHOGRAPHIC_MARGIN_FACTOR,
                 MIN_CASCADE_LIGHT_SIZE
             );
-            const rel = sphere.center.sub(this.depthCamera.eye);
-            const centerX = rel.dot(this.depthCamera._r);
-            const centerY = rel.dot(this.depthCamera._u);
-            const centerDistance = -rel.dot(this.depthCamera._b);
-            const near = Math.max(MIN_CASCADE_SPLIT_DISTANCE, centerDistance - radius - zMargin);
-            const far = Math.max(near + MIN_CASCADE_LIGHT_DISTANCE, centerDistance + radius + zMargin);
+            const casterDepthMargin = Math.max(
+                (maxDepth - minDepth) * DEFAULT_CASCADE_CASTER_MARGIN_FACTOR,
+                this.casterMargin,
+                this.casterClearance,
+                MIN_CASCADE_LIGHT_SIZE
+            );
+            const near = Math.max(MIN_CASCADE_SPLIT_DISTANCE, minDepth - casterDepthMargin);
+            const far = Math.max(near + MIN_CASCADE_LIGHT_DISTANCE, maxDepth + receiverDepthMargin);
 
             this.depthCamera.frustums[i].setOrthoProjection(
-                centerX - radius - xyMargin,
-                centerX + radius + xyMargin,
-                centerY - radius - xyMargin,
-                centerY + radius + xyMargin,
+                centerX - halfWidth,
+                centerX + halfWidth,
+                centerY - halfHeight,
+                centerY + halfHeight,
                 near,
                 far
             );
+
+            const texelWorldSize = Math.max(texelSizeX, texelSizeY);
+            const cascade = this.cascades[i];
+
+            cascade.bias = texelWorldSize * this.biasTexels;
+            cascade.depthEpsilon = texelWorldSize * this.depthEpsilonTexels;
+            cascade.normalBias = texelWorldSize * this.normalBiasTexels;
         }
 
         this.depthCamera.update();
@@ -562,32 +684,45 @@ export class CascadeShadowMap {
         return Vec3.UNIT_Y;
     }
 
-    /**
-     * Computes a minimum bounding sphere for the main camera perspective frustum slice.
-     * Cascade split distances are linear distances from the main camera eye.
-     */
-    protected _computeCascadeBoundingSphere(cascade: CascadeParams, outSphere: Sphere): void {
+    /** Computes the eight view-frustum corners used by the light-space crop matrix. */
+    protected _computeFrustumSliceBounds(cascade: CascadeParams, outSphere: Sphere, corners: Vec3[]): void {
         const mainCamera = this._renderer!.activeCamera;
         const eye = mainCamera.eye;
         const direction = mainCamera._f;
+        const right = mainCamera._r;
+        const up = mainCamera._u;
         const mainNear = mainCamera.frustums[0].near || MIN_CASCADE_SPLIT_DISTANCE;
         const dMin = Math.max(cascade.splitNear, mainNear, MIN_CASCADE_SPLIT_DISTANCE);
-        const dMax = cascade.splitFar;
+        const dMax = Math.max(cascade.splitFar, dMin + MIN_CASCADE_LIGHT_DISTANCE);
 
         const dirLenSq = direction.x * direction.x + direction.y * direction.y + direction.z * direction.z;
-
         const invDirLen = 1.0 / Math.sqrt(dirLenSq);
         const dirX = direction.x * invDirLen;
         const dirY = direction.y * invDirLen;
         const dirZ = direction.z * invDirLen;
+        const tanHalfFov = Math.tan(mainCamera.viewAngle * RADIANS_HALF);
+        const aspect = mainCamera.getAspectRatio();
 
-        const halfHeightAtNear = dMin * Math.tan(mainCamera.viewAngle * RADIANS_HALF);
-        const halfWidthAtNear = halfHeightAtNear * mainCamera.getAspectRatio();
-        const invDMin = 1.0 / dMin;
-        const r = halfWidthAtNear * invDMin;
-        const u = halfHeightAtNear * invDMin;
-        const slopeSq = r * r + u * u;
+        for (let plane = 0; plane < 2; plane++) {
+            const depth = plane === 0 ? dMin : dMax;
+            const halfHeight = depth * tanHalfFov;
+            const halfWidth = halfHeight * aspect;
+            const centerX = eye.x + dirX * depth;
+            const centerY = eye.y + dirY * depth;
+            const centerZ = eye.z + dirZ * depth;
 
+            for (let corner = 0; corner < 4; corner++) {
+                const xSign = corner & 1 ? 1.0 : -1.0;
+                const ySign = corner & 2 ? 1.0 : -1.0;
+                corners[plane * 4 + corner].set(
+                    centerX + right.x * halfWidth * xSign + up.x * halfHeight * ySign,
+                    centerY + right.y * halfWidth * xSign + up.y * halfHeight * ySign,
+                    centerZ + right.z * halfWidth * xSign + up.z * halfHeight * ySign
+                );
+            }
+        }
+
+        const slopeSq = tanHalfFov * tanHalfFov * (aspect * aspect + 1.0);
         let sphereCenterDistance = 0.5 * (dMin + dMax) * (1.0 + slopeSq);
         let radius: number;
 

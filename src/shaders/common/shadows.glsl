@@ -44,6 +44,33 @@ float getShadowMapIsOrthographic(int index) {
     return step(1e-12, u_shadowMapParams[index].z);
 }
 
+// Border, in texels of the map, over which a map hands its authority to the next one in order. Deliberately
+// a handful of texels and not a fraction of the map: the finer map has to win outright wherever it reaches,
+// because inside a wide handover its sharp shadow is averaged with the coarse one's blocky verdict and the
+// result reads as smeared. A few texels keep the boundary from aliasing into a hard line without letting the
+// two verdicts mix anywhere it matters. Texels rather than UV also makes the width independent of how much
+// ground the map covers - the same fraction of UV is metres on the near band and kilometres on the far one.
+#ifndef SHADOW_MAP_EDGE_FADE_TEXELS
+#define SHADOW_MAP_EDGE_FADE_TEXELS 4.0
+#endif
+
+// Depth above which a texel counts as empty - nothing was rendered along that ray, so it casts nothing.
+// The map is cleared to the far plane rather than to zero for this, see DepthCamera.frame: a texel meaning
+// "far" survives LINEAR filtering against a real caster as something still farther than the caster, which
+// reads as lit, whereas a texel meaning "near" turns every border between geometry and empty map into a
+// thin dark line. The threshold sits just below one so that filtering against the cleared value still
+// registers as empty over most of the blend.
+#ifndef SHADOW_MAP_EMPTY_DEPTH
+#define SHADOW_MAP_EMPTY_DEPTH 0.999
+#endif
+
+float getShadowMapEdgeFade(vec2 uv) {
+    vec2 texSize = vec2(textureSize(u_shadowMapDepthArray, 0).xy);
+    vec2 toEdgeInTexels = min(uv, vec2(1.0) - uv) * texSize;
+
+    return smoothstep(0.0, SHADOW_MAP_EDGE_FADE_TEXELS, min(toEdgeInTexels.x, toEdgeInTexels.y));
+}
+
 vec3 getShadowMapLightDirection(int index, vec3 rtcPos) {
     float isOrthographic = getShadowMapIsOrthographic(index);
     vec3 perspectiveDirection = normalize(u_shadowMapEyeRel[index] - rtcPos);
@@ -131,7 +158,8 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     vec2 moments = shadowMapData.rg / coverage;
     float receiverDepthWithBias = receiverDepth - depthBias - slopeBias - depthEpsilon;
     float visibility = getShadowMapVsmVisibility(moments, receiverDepthWithBias);
-    return vec2(visibility * coverage, coverage);
+    // Same contract as the PCF branch: visibility as it is, and a purely geometric handover weight.
+    return vec2(visibility, getShadowMapEdgeFade(uv));
 }
 #else
 vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
@@ -209,48 +237,65 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
 
             vec2 safeUv = clamp(uvOffset, vec2(0.0), vec2(1.0));
             float mapDepth = sampleShadowMapDepth(shadowMapIndex, safeUv);
-            float sampleCoverage = step(1e-8, mapDepth);
+            float sampleCoverage = step(mapDepth, SHADOW_MAP_EMPTY_DEPTH);
             float tapReceiverDepth = getShadowMapReceiverPlaneDepth(receiverDepth, tapOffset, uvDx, uvDy, zDx, zDy);
             float compareDelta = (mapDepth + depthThreshold) - tapReceiverDepth;
-            float sampleVisibility = smoothstep(-transitionWidth, transitionWidth, compareDelta);
-            sampleVisibility *= sampleCoverage;
+            // An empty texel means nothing was rendered along that ray, so the tap is lit. Reading it as
+            // no-data instead - which is what excluding it from the average amounts to - makes the map ask
+            // the next one in order about ground it has already answered for, and the coarser map then
+            // paints its blocky verdict over everything that is merely unshadowed, not just over the seams.
+            float sampleVisibility = mix(1.0, smoothstep(-transitionWidth, transitionWidth, compareDelta), sampleCoverage);
 
             float wx = 2.0 - abs(float(x));
             float wy = 2.0 - abs(float(y));
             float w = wx * wy;
 
             visibility += sampleVisibility * w * inside;
-            coverage += sampleCoverage * w * inside;
-            sampleCount += w * inside;
+            coverage += w * inside;
+            sampleCount += w;
         }
     }
 
-    float invSampleCount = 1.0 / max(sampleCount, 0.0001);
-    return vec2(visibility * invSampleCount, coverage * invSampleCount);
+    // The second component is now purely geometric: how much of the tap kernel fell inside this map, tapered
+    // towards its border. It is what the combiner hands over to the next map, and it no longer depends on
+    // what the depth texture happens to hold.
+    return vec2(visibility / max(coverage, 0.0001), (coverage / max(sampleCount, 0.0001)) * getShadowMapEdgeFade(uv));
     #else
     float mapDepth = sampleShadowMapDepth(shadowMapIndex, uv);
-    if (mapDepth <= 1e-8) {
-        return vec2(0.0, 0.0);
-    }
-    return vec2(step(receiverDepth, mapDepth + depthThreshold), 1.0);
+    // Empty texel means lit, not unknown - see the PCF branch.
+    float visibility = mapDepth > SHADOW_MAP_EMPTY_DEPTH ? 1.0 : step(receiverDepth, mapDepth + depthThreshold);
+    return vec2(visibility, getShadowMapEdgeFade(uv));
     #endif
 }
 #endif
 
+// Maps are consumed in order, finest first, each taking only the coverage the ones before it left. Where
+// several maps describe the same ground - which is the normal case for maps fitted to bands of one view,
+// since their orthographic boxes are axis aligned and overlap freely - the finest one that reaches a
+// fragment decides it, and the coarser ones only fill in what it could not reach.
+//
+// Multiplying instead, as this used to, is a logical OR over shadowing: an overlap where two maps agree on
+// shadow comes out darker than either alone, and a coarse map claiming shadow overrides a fine one claiming
+// light. Those are the two seams that make banded maps look stitched together.
+//
+// For a single map the result is unchanged: remaining is one, so this reduces to
+// 1 - (1 - visibility) * coverage * intensity, which is exactly what the old mix computed.
 float getShadowMapsDirectVisibility(vec3 rtcPos, vec3 normal) {
-    float directVisibility = 1.0;
+    float remaining = 1.0;
+    float shadow = 0.0;
 
     for (int i = 0; i < MAX_SHADOW_MAPS; i++) {
-        if (i >= u_shadowMapCount) {
+        if (i >= u_shadowMapCount || remaining <= 0.001) {
             break;
         }
 
         vec2 visibilityData = getShadowMapVisibilityData(i, rtcPos, normal);
         float visibility = clamp(visibilityData.x, 0.0, 1.0);
-        float coverage = clamp(visibilityData.y, 0.0, 1.0);
+        float weight = clamp(visibilityData.y, 0.0, 1.0) * remaining;
 
-        directVisibility *= mix(1.0, visibility, coverage * SHADOW_MAP_INTENSITY);
+        shadow += (1.0 - visibility) * weight;
+        remaining -= weight;
     }
 
-    return clamp(directVisibility, 0.0, 1.0);
+    return clamp(1.0 - shadow * SHADOW_MAP_INTENSITY, 0.0, 1.0);
 }
