@@ -75,7 +75,7 @@ const DEFAULT_SPEED_FACTOR = 0.45;
 // Camera rotation angle per one mouse move pixel
 const DEFAULT_LOOK_SENSITIVITY = 0.08 * RADIANS;
 
-// Q/E roll angular speed in radians per second
+// Q/E roll angular speed in radians per second the roll velocity approaches
 const DEFAULT_ROLL_SPEED = 60 * RADIANS;
 
 // Time in seconds the velocity needs to approach the selected speed
@@ -84,6 +84,12 @@ const DEFAULT_ACCELERATION_TIME = 0.6;
 // Time in seconds the velocity needs to approach zero after keys have been released
 const DEFAULT_DECELERATION_TIME = 0.4;
 
+// Time in seconds the roll angular velocity needs to approach the selected roll speed
+const ROLL_ACCELERATION_TIME = 0.2;
+
+// Time in seconds the roll angular velocity needs to approach zero after keys have been released
+const ROLL_DECELERATION_TIME = 0.15;
+
 // Maximal camera pitch angle above and below the local horizon
 const DEFAULT_PITCH_LIMIT = 89.5 * RADIANS;
 
@@ -91,6 +97,7 @@ const DEFAULT_PITCH_LIMIT = 89.5 * RADIANS;
 const MAX_POINTER_MOVEMENT = 400;
 
 const MIN_VELOCITY = 1e-3;
+const MIN_ROLL_VELOCITY = 1e-4;
 const MAX_FRAME_DELTA_TIME = 0.1;
 const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
 
@@ -125,7 +132,8 @@ const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
  * @param {number} [options.speedStep] - Mouse wheel speed step near the zero speed in m/s. Default is 1
  * @param {number} [options.speedFactor] - Relative speed increment per one mouse wheel step. Default is 0.45
  * @param {number} [options.lookSensitivity] - Camera rotation angle in radians per mouse move pixel
- * @param {number} [options.rollSpeed] - Q/E roll angular speed in radians per second
+ * @param {number} [options.rollSpeed] - Q/E roll angular speed in radians per second the smoothed
+ * roll velocity approaches
  * @param {number} [options.accelerationTime] - Acceleration smoothing time in seconds. Default is 0.6
  * @param {number} [options.decelerationTime] - Deceleration smoothing time in seconds. Default is 0.4
  * @param {number} [options.pitchLimit] - Maximal pitch angle above and below the local horizon in radians
@@ -162,6 +170,13 @@ export class FreeNavigation extends Control {
      * @type {Vec3}
      */
     public vel: Vec3;
+
+    /**
+     * Current camera roll angular velocity in radians per second.
+     * @public
+     * @type {number}
+     */
+    public rollVel: number;
 
     /**
      * Selected movement speed in meters per second.
@@ -218,6 +233,7 @@ export class FreeNavigation extends Control {
         this._infoEl = options.showInfo ? document.createElement("div") : null;
 
         this.vel = new Vec3();
+        this.rollVel = 0;
 
         this._speed = math.clamp(options.speed ?? DEFAULT_SPEED, this.minSpeed, this.maxSpeed);
 
@@ -531,6 +547,7 @@ export class FreeNavigation extends Control {
      */
     public stop() {
         this.vel.set(0, 0, 0);
+        this.rollVel = 0;
         this.unlockTarget();
         this._resetInput();
     }
@@ -808,17 +825,24 @@ export class FreeNavigation extends Control {
     }
 
     /**
-     * Rollls the camera around its forward axis.
+     * Rollls the camera around its forward axis and keeps its angular velocity smoothed.
      * @protected
      */
     protected _handleRoll() {
-        if (this._rollDir === 0) {
+        let dt = this.dt;
+        let targetVel = Math.sign(this._rollDir) * this.rollSpeed;
+
+        let time = targetVel !== 0 ? ROLL_ACCELERATION_TIME : ROLL_DECELERATION_TIME;
+        let k = time > 0 ? 1.0 - Math.exp(-dt / time) : 1.0;
+        this.rollVel += (targetVel - this.rollVel) * k;
+
+        if (Math.abs(this.rollVel) < MIN_ROLL_VELOCITY) {
+            this.rollVel = 0;
             return;
         }
 
         let cam = this.planet!.camera;
-        let angle = Math.sign(this._rollDir) * this.rollSpeed * this.dt;
-        cam.rotate(Quat.axisAngleToQuat(cam.getForward(), angle));
+        cam.rotate(Quat.axisAngleToQuat(cam.getForward(), this.rollVel * dt));
 
         this._orthonormalizeCamera();
 
