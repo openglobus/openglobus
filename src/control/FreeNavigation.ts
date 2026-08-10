@@ -3,6 +3,7 @@ import { Control } from "./Control";
 import type { IMouseState } from "../renderer/RendererEvents";
 import { Navigation } from "./Navigation";
 import { Quat } from "../math/Quat";
+import type { Vec2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
 import { input } from "../input/input";
 import { createEvents, type EventsHandler } from "../Events";
@@ -72,7 +73,7 @@ const DEFAULT_SPEED_STEP = 1;
 const DEFAULT_SPEED_FACTOR = 0.45;
 
 // Camera rotation angle per one mouse move pixel
-const DEFAULT_LOOK_SENSITIVITY = 0.12 * RADIANS;
+const DEFAULT_LOOK_SENSITIVITY = 0.08 * RADIANS;
 
 // Q/E roll angular speed in radians per second
 const DEFAULT_ROLL_SPEED = 60 * RADIANS;
@@ -102,6 +103,7 @@ const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
  * - Q/E — roll
  * - Mouse — look around
  * - Mouse wheel — adjust movement speed
+ * - Right mouse button — hold to keep the point under the screen center in the center
  * - F — activate and deactivate the control, see `toggleKey`
  *
  * Yaw follows the local ellipsoid normal, while pitch uses the camera's right vector.
@@ -181,6 +183,9 @@ export class FreeNavigation extends Control {
     protected _dy: number;
     protected _skipPointerMove: boolean;
 
+    protected _targetPoint: Vec3 | null;
+    protected _targetRequest: number;
+
     protected _lastFrameTime: number;
     protected _frameDeltaTime: number;
 
@@ -228,6 +233,9 @@ export class FreeNavigation extends Control {
         this._dx = 0;
         this._dy = 0;
         this._skipPointerMove = true;
+
+        this._targetPoint = null;
+        this._targetRequest = 0;
 
         this._lastFrameTime = 0;
         this._frameDeltaTime = 0;
@@ -288,7 +296,7 @@ export class FreeNavigation extends Control {
         if (!this._infoEl) return;
 
         this._infoEl.innerText = this.isActive()
-            ? `Free flight — W,S,A,D move, Space/Ctrl altitude, Q,E roll, wheel speed: ` +
+            ? `Free flight — W,S,A,D move, Space/Ctrl altitude, Q,E roll, RMB lock target, wheel speed: ` +
               `${this._speed} m/s (${Math.round(this._speed * 3.6)} km/h)`
             : "Press F for the free flight";
     }
@@ -305,6 +313,8 @@ export class FreeNavigation extends Control {
         r.events.on("mousemove", this._onMouseMove);
         r.events.on("mouseleave", this._onMouseLeave);
         r.events.on("ldown", this._onLDown);
+        r.events.on("rdown", this._onRDown);
+        r.events.on("rup", this._onRUp);
         r.events.on("keyfree", input.KEY_ESC, this._onKeyEscape);
         r.events.on("keypress", input.KEY_W, this._onKeyForward);
         r.events.on("keypress", input.KEY_S, this._onKeyBackward);
@@ -334,6 +344,8 @@ export class FreeNavigation extends Control {
         r.events.off("mousemove", this._onMouseMove);
         r.events.off("mouseleave", this._onMouseLeave);
         r.events.off("ldown", this._onLDown);
+        r.events.off("rdown", this._onRDown);
+        r.events.off("rup", this._onRUp);
         r.events.off("keyfree", input.KEY_ESC, this._onKeyEscape);
         r.events.off("keypress", input.KEY_W, this._onKeyForward);
         r.events.off("keypress", input.KEY_S, this._onKeyBackward);
@@ -471,11 +483,55 @@ export class FreeNavigation extends Control {
     }
 
     /**
-     * Stops the camera movement.
+     * Locked target point in the cartesian coordinates, or null when no target is locked.
+     * @public
+     * @return {Vec3 | null} -
+     */
+    public get targetPoint(): Vec3 | null {
+        return this._targetPoint;
+    }
+
+    /**
+     * Locks the target point, so the camera keeps looking at it wherever it moves,
+     * @public
+     * @param {Vec3} [point] - Target point in the cartesian coordinates.
+     */
+    public lockTarget(point?: Vec3 | null) {
+        this._targetRequest++;
+
+        if (point) {
+            this._targetPoint = point;
+            return;
+        }
+
+        let px = this._getTargetPixel();
+        let request = this._targetRequest;
+
+        this._targetPoint = this._pickTargetPoint(px);
+
+        this.renderer!.getCartesianFromPixelAsync(px).then((picked?: Vec3) => {
+            if (picked && request === this._targetRequest) {
+                this._targetPoint = picked;
+            }
+        });
+    }
+
+    /**
+     * Releases the locked target point.
+     * @public
+     */
+    public unlockTarget() {
+        this._targetRequest++;
+        this._targetPoint = null;
+    }
+
+    /**
+     * Stops the camera movement and releases the locked target point.
      * @public
      */
     public stop() {
         this.vel.set(0, 0, 0);
+        this.unlockTarget();
         this._resetInput();
     }
 
@@ -491,6 +547,7 @@ export class FreeNavigation extends Control {
         this._handleRotation();
         this._handleRoll();
         this._handleMove();
+        this._handleTargetLock();
 
         this._resetInput();
     }
@@ -564,6 +621,16 @@ export class FreeNavigation extends Control {
         this.requestPointerLock();
     };
 
+    protected _onRDown = () => {
+        this.planet?.stopFlying();
+
+        this.lockTarget();
+    };
+
+    protected _onRUp = () => {
+        this.unlockTarget();
+    };
+
     protected _onKeyEscape = () => {
         this.deactivate();
     };
@@ -613,7 +680,69 @@ export class FreeNavigation extends Control {
         return this.planet!.ellipsoid.getSurfaceNormal3v(eye);
     }
 
+    protected _getTargetPixel(): Vec2 {
+        let r = this.renderer!;
+        return this.isPointerLocked() ? r.handler.getCenter() : r.events.mouseState.pos.clone();
+    }
+
+    protected _pickTargetPoint(px: Vec2): Vec3 | null {
+        return this.planet?.getCartesianFromPixelTerrain(px) || null;
+    }
+
+    protected _handleTargetLock() {
+        if (!this._targetPoint) return;
+
+        let cam = this.planet!.camera;
+        let dir = this._targetPoint.sub(cam.eye);
+
+        if (dir.length2() === 0) {
+            return;
+        }
+
+        dir.normalize();
+
+        let localUp = this._getLocalUp(cam.eye);
+        let rotated = false;
+
+        let forwardProj = Vec3.proj_b_to_plane(cam.getForward(), localUp);
+        let dirProj = Vec3.proj_b_to_plane(dir, localUp);
+
+        if (forwardProj.length2() > 0 && dirProj.length2() > 0) {
+            forwardProj.normalize();
+            dirProj.normalize();
+
+            let yaw = Math.atan2(forwardProj.cross(dirProj).dot(localUp), forwardProj.dot(dirProj));
+
+            if (yaw !== 0) {
+                cam.rotate(Quat.axisAngleToQuat(localUp, yaw));
+                rotated = true;
+            }
+        }
+
+        // Pitch around the horizontal axis, which is the camera right vector when there is no roll
+        let forward = cam.getForward();
+        let axis = forward.cross(localUp);
+        axis = axis.length2() > 0 ? axis.normalize() : cam.getRight();
+
+        let pitch = Math.atan2(forward.cross(dir).dot(axis), forward.dot(dir));
+
+        if (pitch !== 0) {
+            cam.rotate(Quat.axisAngleToQuat(axis, pitch));
+            rotated = true;
+        }
+
+        if (!rotated) return;
+
+        this._orthonormalizeCamera();
+
+        this.events.dispatch(this.events.rotate, this);
+    }
+
     protected _handleRotation() {
+        if (this._targetPoint) {
+            return;
+        }
+
         if (this._dx === 0 && this._dy === 0) {
             return;
         }
