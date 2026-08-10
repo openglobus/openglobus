@@ -107,6 +107,7 @@ const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
  * - W/S — move forward/backward
  * - A/D — strafe left/right
  * - Space/Ctrl — increase/decrease altitude
+ * - Shift — hold to move without changing the camera height above the ellipsoid
  * - Q/E — roll
  * - Mouse — look around
  * - Mouse wheel — adjust movement speed
@@ -201,6 +202,8 @@ export class FreeNavigation extends Control {
     protected _targetPoint: Vec3 | null;
     protected _targetRequest: number;
 
+    protected _holdHeight: number | null;
+
     protected _lastFrameTime: number;
     protected _frameDeltaTime: number;
 
@@ -252,6 +255,8 @@ export class FreeNavigation extends Control {
 
         this._targetPoint = null;
         this._targetRequest = 0;
+
+        this._holdHeight = null;
 
         this._lastFrameTime = 0;
         this._frameDeltaTime = 0;
@@ -548,6 +553,7 @@ export class FreeNavigation extends Control {
     public stop() {
         this.vel.set(0, 0, 0);
         this.rollVel = 0;
+        this._holdHeight = null;
         this.unlockTarget();
         this._resetInput();
     }
@@ -564,6 +570,7 @@ export class FreeNavigation extends Control {
         this._handleRotation();
         this._handleRoll();
         this._handleMove();
+        this._handleHeightHold();
         this._handleTargetLock();
 
         this._resetInput();
@@ -880,6 +887,10 @@ export class FreeNavigation extends Control {
             dir.subA(cam.getRight());
         }
 
+        if (this._isHeightHold()) {
+            dir.copy(Vec3.proj_b_to_plane(dir, localUp));
+        }
+
         if (this._moveUp) {
             dir.addA(localUp);
         }
@@ -916,6 +927,34 @@ export class FreeNavigation extends Control {
         this._orthonormalizeCamera();
 
         this.events.dispatch(this.events.move, this);
+    }
+
+    protected _isHeightHold(): boolean {
+        return this.renderer!.events.isKeyPressed(input.KEY_SHIFT);
+    }
+
+    protected _handleHeightHold() {
+        if (!this._isHeightHold()) {
+            this._holdHeight = null;
+            return;
+        }
+
+        let cam = this.planet!.camera;
+        let ellipsoid = this.planet!.ellipsoid;
+        let lonLat = ellipsoid.cartesianToLonLat(cam.eye);
+
+        if (this._holdHeight === null) {
+            this._holdHeight = lonLat.height;
+            return;
+        }
+
+        this._holdHeight += this.vel.dot(this._getLocalUp(cam.eye)) * this.dt;
+
+        // Straight line movement above the curved surface changes the height as well
+        if (lonLat.height !== this._holdHeight) {
+            lonLat.height = this._holdHeight;
+            cam.eye.copy(ellipsoid.lonLatToCartesian(lonLat));
+        }
     }
 
     protected _suspendNavigation() {
