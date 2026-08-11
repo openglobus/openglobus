@@ -73,8 +73,9 @@ export class DebugInfo extends Control {
     protected _watch: IDebugInfoWatch[];
     protected _toggleBtn: ToggleButton;
     protected _dialog: Dialog<null>;
-
     protected _canvasTiles: CanvasTiles;
+
+    protected _drawnFrames: number;
 
     constructor(options: IDebugInfoParams = {}) {
         if (!options.name || options.name === "") {
@@ -83,6 +84,7 @@ export class DebugInfo extends Control {
         super(options);
         this.el = null;
         this._watch = options.watch || [];
+        this._drawnFrames = 0;
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-debuginfo_button"],
@@ -200,6 +202,11 @@ export class DebugInfo extends Control {
         }
         this._dialog.container?.appendChild(this.el);
         this.renderer!.events.on("predraw", this._frame, this);
+
+        this.addWatch({
+            label: "Drawn frames",
+            frame: () => this._drawnFrames
+        });
 
         let p = this.planet!;
 
@@ -364,6 +371,8 @@ export class DebugInfo extends Control {
     }
 
     protected _frame() {
+        this._drawnFrames++;
+
         this._watch.forEach((w) => {
             if (w.valEl) {
                 w.valEl.innerHTML = w.frame ? String(w.frame()) : "";
