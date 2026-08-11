@@ -118,6 +118,9 @@ export function htmlColorToRgba(htmlColor: string, opacity?: number): Vec4 {
     let hColor: any | undefined = colorTable[htmlColor];
     if (hColor) {
         htmlColor = hColor;
+    } else if (htmlColor[0] !== "#" && !htmlColor.includes("(")) {
+        console.warn(`Unknown color name "${htmlColor}", using lightgrey as fallback.`);
+        htmlColor = colorTable["lightgrey"];
     }
 
     if (htmlColor[0] === "#") {
@@ -164,6 +167,9 @@ export function htmlColorToRgb(htmlColor: string): Vec3 {
     let hColor: any | undefined = colorTable[htmlColor];
     if (hColor) {
         htmlColor = hColor;
+    } else if (htmlColor[0] !== "#" && !htmlColor.includes("(")) {
+        console.warn(`Unknown color name "${htmlColor}", using lightgrey as fallback.`);
+        htmlColor = colorTable["lightgrey"];
     }
 
     if (htmlColor[0] === "#") {

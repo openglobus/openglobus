@@ -171,3 +171,42 @@ test('Test spliceTypedArray', () => {
 
     expect(res).toEqual(tc);
 });
+
+test('Test htmlColorToRgba known color name', () => {
+
+    let res = shared.htmlColorToRgba('red');
+
+    expect(res.x).toBe(1);
+    expect(res.y).toBe(0);
+    expect(res.z).toBe(0);
+    expect(res.w).toBe(1);
+});
+
+test('Test htmlColorToRgba unknown color name fallback', () => {
+
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    let res = shared.htmlColorToRgba('dark_olive');
+
+    expect(res.x).toBeCloseTo(211 / 255);
+    expect(res.y).toBeCloseTo(211 / 255);
+    expect(res.z).toBeCloseTo(211 / 255);
+    expect(res.w).toBe(1);
+    expect(warn).toHaveBeenCalledWith('Unknown color name "dark_olive", using lightgrey as fallback.');
+
+    warn.mockRestore();
+});
+
+test('Test htmlColorToRgb unknown color name fallback', () => {
+
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    let res = shared.htmlColorToRgb('dark_olive');
+
+    expect(res.x).toBeCloseTo(211 / 255);
+    expect(res.y).toBeCloseTo(211 / 255);
+    expect(res.z).toBeCloseTo(211 / 255);
+    expect(warn).toHaveBeenCalledWith('Unknown color name "dark_olive", using lightgrey as fallback.');
+
+    warn.mockRestore();
+});
