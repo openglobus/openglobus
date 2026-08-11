@@ -271,7 +271,10 @@ export class Sun extends Control {
                     let r = rot.slerp(Quat.IDENTITY, this._f).normalize();
                     this._setSunPosition3v(r.mulVec3(this._sunlightPosition));
                 } else {
-                    if ((Math.abs(this._currDate - this._prevDate) > SUN_DATE_THRESHOLD && this._active) || this._lightOn) {
+                    if (
+                        (Math.abs(this._currDate - this._prevDate) > SUN_DATE_THRESHOLD && this._active) ||
+                        this._lightOn
+                    ) {
                         this._lightOn = false;
                         this._prevDate = this._currDate;
                         this._setSunPosition3v(getSunPosition(this._currDate));
