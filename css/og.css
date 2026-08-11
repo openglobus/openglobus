@@ -50,6 +50,19 @@
     flex: 0 0 auto;
 }
 
+/* ShowFps control. It looks like a map button, but it is a readout and not clickable */
+.og-fps-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    color: var(--grey8);
+    font-family: monospace;
+    font-size: 15px;
+    line-height: 1;
+    user-select: none;
+}
+
 .og-control-container__top-left {
     left: 10px;
     justify-content: flex-start;
@@ -108,10 +121,6 @@
     top: 0;
     left: 0;
     color: white;
-}
-
-#ogShowFpsControl {
-    color: red;
 }
 
 .ogGrabbingPoiner {

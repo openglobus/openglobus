@@ -151,11 +151,9 @@ globus.planet.addLayer(
     })
 );
 
-globus.planet.addControl(new control.ShowFps());
-globus.planet.addControl(new control.DebugInfo());
-
-
 const controls = [
+    new control.ShowFps(),
+    new control.DebugInfo(),
     new control.LayerSwitcher(),
     new control.ToggleWireframe(),
     new control.EntityEditor(),
