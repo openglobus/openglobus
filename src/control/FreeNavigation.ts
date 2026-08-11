@@ -565,6 +565,7 @@ export class FreeNavigation extends Control {
 
         if (this._hasInput()) {
             this.planet.stopFlying();
+            this.renderer!.requestRedraw();
         }
 
         this._handleRotation();

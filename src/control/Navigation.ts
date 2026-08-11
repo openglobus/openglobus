@@ -309,6 +309,19 @@ export class Navigation extends Control {
         this._handleZoom();
         this._handleDrag();
         this._handleRotation();
+
+        if (this.isMoving()) {
+            this.renderer!.requestRedraw();
+        }
+    }
+
+    /**
+     * Returns true while the inertia has not been damped yet.
+     * @public
+     * @returns {boolean}
+     */
+    public isMoving(): boolean {
+        return this.vel.length2() > 0 || this.vel_h !== 0 || this.vel_v !== 0 || this.vel_roll !== 0;
     }
 
     public _onShiftFree = () => {
@@ -972,6 +985,9 @@ export class Navigation extends Control {
         let acc = this.force_roll / this.mass;
         this.vel_roll += acc;
         this.vel_roll *= this.velocityInertia;
+        if (Math.abs(this.vel_roll) < 0.001) {
+            this.vel_roll = 0;
+        }
         this.force_roll = 0;
     }
 

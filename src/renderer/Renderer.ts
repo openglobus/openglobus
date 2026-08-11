@@ -49,6 +49,7 @@ export interface IRendererParams {
     lightAmbient?: NumberArray3;
     lightDiffuse?: NumberArray3;
     lightSpecular?: NumberArray4;
+    idleMode?: boolean;
 }
 
 interface IPickingObject {
@@ -144,11 +145,11 @@ class Renderer {
      */
     public handler: Handler;
 
-    public exposure: number;
-    public gamma: number;
-    public whitepoint: number;
+    protected _exposure: number;
+    protected _gamma: number;
+    protected _whitepoint: number;
     protected _toneMapping: string;
-    public brightThreshold: number;
+    protected _brightThreshold: number;
 
     /**
      * Render nodes drawing queue.
@@ -299,10 +300,14 @@ class Renderer {
 
         if (handler instanceof Handler) {
             this.handler = handler;
+            if (params.idleMode !== undefined) {
+                this.handler.idleMode = params.idleMode;
+            }
         } else {
             this.handler = new Handler(handler, {
                 pixelRatio: params.dpi || window.devicePixelRatio + 0.15,
-                autoActivate: true
+                autoActivate: true,
+                idleMode: params.idleMode
             });
         }
 
@@ -320,15 +325,15 @@ class Renderer {
         this.lightDiffuse = params.lightDiffuse || [1, 1, 1];
         this.lightSpecular = params.lightSpecular || [0.00063, 0.00055, 0.00032, 18.0];
 
-        this.exposure = params.exposure || 1;
+        this._exposure = params.exposure || 1;
 
-        this.gamma = params.gamma || 2.2;
+        this._gamma = params.gamma || 2.2;
 
-        this.whitepoint = 1.0;
+        this._whitepoint = 1.0;
 
         this._toneMapping = params.toneMapping || "TONE_MAPPING_REINHARD_WHITE";
 
-        this.brightThreshold = 0.9;
+        this._brightThreshold = 0.9;
 
         this._scenesArr = [];
 
@@ -341,6 +346,8 @@ class Renderer {
             look: new Vec3(0, 0, -1),
             up: new Vec3(0, 1, 0)
         });
+
+        this.activeCamera.onViewChange = () => this.requestRedraw();
 
         this.events = createRendererEvents(this);
 
@@ -443,6 +450,7 @@ class Renderer {
         this._lightAmbient[0] = linear[0];
         this._lightAmbient[1] = linear[1];
         this._lightAmbient[2] = linear[2];
+        this.requestRedraw();
     }
 
     public get lightAmbient(): NumberArray3 {
@@ -454,6 +462,7 @@ class Renderer {
         this._lightDiffuse[0] = linear[0];
         this._lightDiffuse[1] = linear[1];
         this._lightDiffuse[2] = linear[2];
+        this.requestRedraw();
     }
 
     public get lightDiffuse(): NumberArray3 {
@@ -466,11 +475,76 @@ class Renderer {
         this._lightSpecular[1] = linear[1];
         this._lightSpecular[2] = linear[2];
         this._lightSpecular[3] = lightSpecular[3];
+        this.requestRedraw();
     }
 
     public get lightSpecular(): NumberArray4 {
         const srgb = linearToSrgbArr([this._lightSpecular[0], this._lightSpecular[1], this._lightSpecular[2]]);
         return [srgb[0], srgb[1], srgb[2], this._lightSpecular[3]];
+    }
+
+    /**
+     * HDR exposure.
+     * @public
+     * @type {number}
+     */
+    public set exposure(exposure: number) {
+        if (this._exposure !== exposure) {
+            this._exposure = exposure;
+            this.requestRedraw();
+        }
+    }
+
+    public get exposure(): number {
+        return this._exposure;
+    }
+
+    /**
+     * Gamma correction value.
+     * @public
+     * @type {number}
+     */
+    public set gamma(gamma: number) {
+        if (this._gamma !== gamma) {
+            this._gamma = gamma;
+            this.requestRedraw();
+        }
+    }
+
+    public get gamma(): number {
+        return this._gamma;
+    }
+
+    /**
+     * Tone mapping white point.
+     * @public
+     * @type {number}
+     */
+    public set whitepoint(whitepoint: number) {
+        if (this._whitepoint !== whitepoint) {
+            this._whitepoint = whitepoint;
+            this.requestRedraw();
+        }
+    }
+
+    public get whitepoint(): number {
+        return this._whitepoint;
+    }
+
+    /**
+     * Bloom bright pass threshold.
+     * @public
+     * @type {number}
+     */
+    public set brightThreshold(brightThreshold: number) {
+        if (this._brightThreshold !== brightThreshold) {
+            this._brightThreshold = brightThreshold;
+            this.requestRedraw();
+        }
+    }
+
+    public get brightThreshold(): number {
+        return this._brightThreshold;
     }
 
     /**
@@ -489,6 +563,8 @@ class Renderer {
             this.handler.removeProgram("toneMapping");
             this.handler.addProgram(toneMappingProgram(this._toneMapping));
         }
+
+        this.requestRedraw();
 
         return this;
     }
@@ -539,6 +615,7 @@ class Renderer {
 
     public setRelativeCenter(c?: Vec3) {
         this.events.dispatch(this.events.changerelativecenter, c || this.activeCamera.eye);
+        this.requestRedraw();
     }
 
     /**
@@ -708,6 +785,7 @@ class Renderer {
      */
     public addControl(control: Control) {
         control.addTo(this);
+        this.requestRedraw();
     }
 
     /**
@@ -983,6 +1061,7 @@ class Renderer {
     public removeNode(scene: Scene) {
         // TODO: replace from Scene to this method
         scene.remove();
+        this.requestRedraw();
     }
 
     /**
@@ -995,6 +1074,7 @@ class Renderer {
             scene.assign(this);
             this._scenesArr.unshift(scene);
             this.scenes[scene.name] = scene;
+            this.requestRedraw();
         } else {
             cons.logWrn(`Scene name ${scene.name} already exists.`);
         }
@@ -1023,6 +1103,7 @@ class Renderer {
                 }
             }
             this._scenesArr.unshift(scene);
+            this.requestRedraw();
         } else {
             cons.logWrn(`Scene name ${scene.name} already exists.`);
         }
@@ -1090,6 +1171,7 @@ class Renderer {
      */
     public markForDepthRefresh(): void {
         this._depthRefreshRequired = true;
+        this.requestRedraw();
     }
 
     protected _drawGBufferEntityCollections(depthOrder: number) {
@@ -1423,11 +1505,31 @@ class Renderer {
     }
 
     /**
+     * Requests the next frame to be rendered.
+     * @public
+     */
+    public requestRedraw() {
+        this.handler.needRedraw = true;
+    }
+
+    /**
+     * Returns true when the renderer skips frames because nothing has been changed.
+     * @public
+     */
+    public get isIdle(): boolean {
+        return this.handler.isIdle;
+    }
+
+    /**
      * Draw nodes.
      * @public
      */
     public draw() {
         this.activeCamera!.checkViewChanges();
+
+        if (this.activeCamera!.isFlying()) {
+            this.requestRedraw();
+        }
 
         let e = this.events;
         let pointerEvent = e.pointerEvent();
@@ -1859,6 +1961,7 @@ class Renderer {
             }
             this.activeCamera.isOrthographic = isOrtho;
             this.events.dispatch(this.events.projchanged, this.activeCamera);
+            this.requestRedraw();
         }
     }
 

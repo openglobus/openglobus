@@ -45,6 +45,14 @@ class PointCloudHandler {
         this._pointClouds = [];
     }
 
+    /**
+     * Requests the next frame to be rendered.
+     * @public
+     */
+    public requestRedraw() {
+        this._renderer && (this._renderer.handler.needRedraw = true);
+    }
+
     protected _initProgram() {
         if (this._renderer && this._renderer.handler) {
             if (!this._renderer.handler.programs.pointCloud) {

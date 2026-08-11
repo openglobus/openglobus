@@ -445,6 +445,7 @@ class FontAtlas {
     protected _createTexture(atlas: FontTextureAtlas, img: HTMLImageElementExt) {
         atlas.createTexture(img);
         this._updateTextureArrayLayer(atlas);
+        this._handler && (this._handler.needRedraw = true);
     }
 
     protected _ensureTextureArray(width: number, height: number): boolean {

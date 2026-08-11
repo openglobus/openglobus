@@ -807,16 +807,16 @@ class PolylineBatchRenderer {
                 this._setSegmentEqualPath3v(path3v, segmentIndex);
             }
 
-            this._changedBuffers[VERTICES_BUFFER] = true;
+            this._setChangedBuffer(VERTICES_BUFFER);
         }
 
         this._rebuildIndexes();
         if (this._hasTexture(segmentIndex)) {
             this._updateTextureMetrics(segmentIndex);
-            this._changedBuffers[PATHPHASE_BUFFER] = true;
-            this._changedBuffers[BOUNDING_SPHERE_BUFFER] = true;
+            this._setChangedBuffer(PATHPHASE_BUFFER);
+            this._setChangedBuffer(BOUNDING_SPHERE_BUFFER);
         }
-        this._changedBuffers[INDEX_BUFFER] = true;
+        this._setChangedBuffer(INDEX_BUFFER);
     }
 
     public getSrc(): StrokeSource[] {
@@ -829,7 +829,7 @@ class PolylineBatchRenderer {
         }
         this._texCoordArr = [];
         PolylineBatchRenderer.setPathTexCoords(this._path3v, tCoordArrs, this._texCoordArr);
-        this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._setChangedBuffer(TEXCOORD_BUFFER);
     }
 
     public setTextureDisabled() {
@@ -1248,8 +1248,8 @@ class PolylineBatchRenderer {
         this._rebuildPathPhaseArr();
         this._rebuildBoundingSphereArr();
 
-        this._changedBuffers[PATHPHASE_BUFFER] = true;
-        this._changedBuffers[BOUNDING_SPHERE_BUFFER] = true;
+        this._setChangedBuffer(PATHPHASE_BUFFER);
+        this._setChangedBuffer(BOUNDING_SPHERE_BUFFER);
     }
 
     protected _updateTextureMetricsAfterPointChange(segmentIndex: number) {
@@ -1259,22 +1259,22 @@ class PolylineBatchRenderer {
 
         this._updateTextureMetrics(segmentIndex);
 
-        this._changedBuffers[PATHPHASE_BUFFER] = true;
-        this._changedBuffers[BOUNDING_SPHERE_BUFFER] = true;
+        this._setChangedBuffer(PATHPHASE_BUFFER);
+        this._setChangedBuffer(BOUNDING_SPHERE_BUFFER);
     }
 
     protected _markGeometryBuffersChanged(includeTexCoords: boolean) {
-        this._changedBuffers[VERTICES_BUFFER] = true;
-        this._changedBuffers[INDEX_BUFFER] = true;
-        this._changedBuffers[COLORS_BUFFER] = true;
-        this._changedBuffers[THICKNESS_BUFFER] = true;
-        this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
+        this._setChangedBuffer(VERTICES_BUFFER);
+        this._setChangedBuffer(INDEX_BUFFER);
+        this._setChangedBuffer(COLORS_BUFFER);
+        this._setChangedBuffer(THICKNESS_BUFFER);
+        this._setChangedBuffer(PICKINGCOLORS_BUFFER);
 
         if (this.isTextured) {
             this._updateAllTextureMetrics();
-            this._changedBuffers[TEXPARAM_BUFFER] = true;
+            this._setChangedBuffer(TEXPARAM_BUFFER);
             if (includeTexCoords) {
-                this._changedBuffers[TEXCOORD_BUFFER] = true;
+                this._setChangedBuffer(TEXCOORD_BUFFER);
             }
         }
     }
@@ -1301,14 +1301,14 @@ class PolylineBatchRenderer {
 
             if (this._hasTexture(segmentIndex)) {
                 this._updateTextureMetrics(segmentIndex);
-                this._changedBuffers[PATHPHASE_BUFFER] = true;
-                this._changedBuffers[BOUNDING_SPHERE_BUFFER] = true;
+                this._setChangedBuffer(PATHPHASE_BUFFER);
+                this._setChangedBuffer(BOUNDING_SPHERE_BUFFER);
             }
 
-            this._changedBuffers[VERTICES_BUFFER] = true;
+            this._setChangedBuffer(VERTICES_BUFFER);
 
             if (pathColors) {
-                this._changedBuffers[COLORS_BUFFER] = true;
+                this._setChangedBuffer(COLORS_BUFFER);
             }
 
             return true;
@@ -2783,7 +2783,7 @@ class PolylineBatchRenderer {
 
             this._updateTextureMetricsAfterPointChange(segmentIndex);
 
-            this._changedBuffers[VERTICES_BUFFER] = true;
+            this._setChangedBuffer(VERTICES_BUFFER);
         } else {
             let path = this._path3v[segmentIndex] as Vec3[];
             path[index].x = coordinates.x;
@@ -3614,7 +3614,7 @@ class PolylineBatchRenderer {
 
             writeQuadColor(c, k, color, opacity);
 
-            this._changedBuffers[COLORS_BUFFER] = true;
+            this._setChangedBuffer(COLORS_BUFFER);
         } else {
             let pathColors = this._pathColors[segmentIndex];
             pathColors[index] = color;
@@ -3678,7 +3678,7 @@ class PolylineBatchRenderer {
                 ta[i] = thickness;
             }
 
-            this._changedBuffers[THICKNESS_BUFFER] = true;
+            this._setChangedBuffer(THICKNESS_BUFFER);
         }
     }
 
@@ -3758,7 +3758,7 @@ class PolylineBatchRenderer {
             ta[i + 2] = resolvedTexOffsetSpeed;
         }
 
-        this._changedBuffers[TEXPARAM_BUFFER] = true;
+        this._setChangedBuffer(TEXPARAM_BUFFER);
     }
 
     public setPathTexOffset(texOffset: number, segmentIndex: number): void {
@@ -4043,7 +4043,7 @@ class PolylineBatchRenderer {
             pc[i + 2] = b;
         }
 
-        this._changedBuffers[PICKINGCOLORS_BUFFER] = true;
+        this._setChangedBuffer(PICKINGCOLORS_BUFFER);
     }
 
     /**
@@ -4128,7 +4128,7 @@ class PolylineBatchRenderer {
         const a = (currentColor[A] != undefined ? currentColor[A] : 1.0) * opacity;
         c[ck + 3] = c[ck + 7] = c[ck + 11] = c[ck + 15] = a;
 
-        this._changedBuffers[COLORS_BUFFER] = true;
+        this._setChangedBuffer(COLORS_BUFFER);
     }
 
     public setPathColors(pathColors: SegmentPathColor[]): void;
@@ -4156,7 +4156,7 @@ class PolylineBatchRenderer {
                 this._colors,
                 opacity
             );
-            this._changedBuffers[COLORS_BUFFER] = true;
+            this._setChangedBuffer(COLORS_BUFFER);
             return;
         }
 
@@ -4228,7 +4228,7 @@ class PolylineBatchRenderer {
 
         writeQuadColor(c, ck, currentColor, opacity);
 
-        this._changedBuffers[COLORS_BUFFER] = true;
+        this._setChangedBuffer(COLORS_BUFFER);
     }
 
     // /**
@@ -4394,9 +4394,9 @@ class PolylineBatchRenderer {
 
                 this._updateAllTextureMetrics();
 
-                this._changedBuffers[VERTICES_BUFFER] = true;
+                this._setChangedBuffer(VERTICES_BUFFER);
                 if (pathColors) {
-                    this._changedBuffers[COLORS_BUFFER] = true;
+                    this._setChangedBuffer(COLORS_BUFFER);
                 }
             } else {
                 if (pathColors) {
@@ -4464,9 +4464,9 @@ class PolylineBatchRenderer {
 
                 this._updateAllTextureMetrics();
 
-                this._changedBuffers[VERTICES_BUFFER] = true;
+                this._setChangedBuffer(VERTICES_BUFFER);
                 if (pathColors) {
-                    this._changedBuffers[COLORS_BUFFER] = true;
+                    this._setChangedBuffer(COLORS_BUFFER);
                 }
             } else {
                 if (pathColors) {
@@ -4699,8 +4699,13 @@ class PolylineBatchRenderer {
     protected _refresh() {
         let i = this._changedBuffers.length;
         while (i--) {
-            this._changedBuffers[i] = true;
+            this._setChangedBuffer(i);
         }
+    }
+
+    protected _setChangedBuffer(index: number) {
+        this._changedBuffers[index] = true;
+        this._handler && this._handler.requestRedraw();
     }
 
     /**
@@ -4919,9 +4924,9 @@ class PolylineBatchRenderer {
                 this._rebuildBoundingSphereArr();
             }
         }
-        this._changedBuffers[VERTICES_BUFFER] = true;
+        this._setChangedBuffer(VERTICES_BUFFER);
         if (this.isTextured) {
-            this._changedBuffers[BOUNDING_SPHERE_BUFFER] = true;
+            this._setChangedBuffer(BOUNDING_SPHERE_BUFFER);
         }
     }
 }

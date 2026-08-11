@@ -234,8 +234,18 @@ class BaseBillboardHandler {
     public refresh() {
         let i = this._changedBuffers.length;
         while (i--) {
-            this._changedBuffers[i] = true;
+            this._setChangedBuffer(i);
         }
+    }
+
+    /**
+     * Marks a buffer to be updated in the next frame and requests the frame to be rendered.
+     * @protected
+     * @param {number} index - Buffer index.
+     */
+    protected _setChangedBuffer(index: number) {
+        this._changedBuffers[index] = true;
+        this._renderer && this._renderer.requestRedraw();
     }
 
     protected _removeBillboards() {
@@ -649,7 +659,7 @@ class BaseBillboardHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        this._changedBuffers[POSITION_BUFFER] = true;
+        this._setChangedBuffer(POSITION_BUFFER);
     }
 
     public setPickingColorArr(index: number, color: Vec3) {
@@ -683,7 +693,7 @@ class BaseBillboardHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        this._changedBuffers[PICKINGCOLOR_BUFFER] = true;
+        this._setChangedBuffer(PICKINGCOLOR_BUFFER);
     }
 
     public setSizeArr(index: number, width: number, height: number) {
@@ -710,7 +720,7 @@ class BaseBillboardHandler {
         a[i + 10] = x;
         a[i + 11] = y;
 
-        this._changedBuffers[SIZE_BUFFER] = true;
+        this._setChangedBuffer(SIZE_BUFFER);
     }
 
     public setOffsetArr(index: number, offset: Vec2) {
@@ -737,7 +747,7 @@ class BaseBillboardHandler {
         a[i + 10] = x;
         a[i + 11] = y;
 
-        this._changedBuffers[OFFSET_BUFFER] = true;
+        this._setChangedBuffer(OFFSET_BUFFER);
     }
 
     public setRgbaArr(index: number, rgba: Vec4) {
@@ -782,7 +792,7 @@ class BaseBillboardHandler {
         if (opacityChanged) {
             this.refresh();
         } else {
-            this._changedBuffers[RGBA_BUFFER] = true;
+            this._setChangedBuffer(RGBA_BUFFER);
         }
     }
 
@@ -797,7 +807,7 @@ class BaseBillboardHandler {
         a[i + 4] = rotation;
         a[i + 5] = rotation;
 
-        this._changedBuffers[ROTATION_BUFFER] = true;
+        this._setChangedBuffer(ROTATION_BUFFER);
     }
 
     public setTexCoordArr(index: number, tcoordArr: number[] | TypedArray) {
@@ -822,7 +832,7 @@ class BaseBillboardHandler {
         a[i + 10] = tcoordArr[10];
         a[i + 11] = tcoordArr[11];
 
-        this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._setChangedBuffer(TEXCOORD_BUFFER);
     }
 
     public setVisibility(index: number, visibility: boolean) {
@@ -855,7 +865,7 @@ class BaseBillboardHandler {
         a[i + 10] = vertexArr[10];
         a[i + 11] = vertexArr[11];
 
-        this._changedBuffers[VERTEX_BUFFER] = true;
+        this._setChangedBuffer(VERTEX_BUFFER);
     }
 
     public createPositionBuffer() {
