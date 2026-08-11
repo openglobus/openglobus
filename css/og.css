@@ -50,17 +50,15 @@
     flex: 0 0 auto;
 }
 
-/* ShowFps control. It looks like a map button, but it is a readout and not clickable */
-.og-fps-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: default;
-    color: var(--grey8);
+.og-fps-button .og-button-text {
     font-family: monospace;
     font-size: 15px;
-    line-height: 1;
+    font-variant-numeric: tabular-nums;
     user-select: none;
+}
+
+.og-fps-button:hover {
+    background-color: var(--grey5);
 }
 
 .og-control-container__top-left {

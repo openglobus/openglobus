@@ -1,3 +1,4 @@
+import { Button } from "../ui/Button";
 import { Control } from "./Control";
 import type { IControlParams } from "./Control";
 
@@ -15,7 +16,8 @@ const MAX_MEASURE_TIME = UPDATE_INTERVAL * 4;
  * @extends {Control}
  */
 export class ShowFps extends Control {
-    public el: HTMLDivElement | null;
+    protected _btn: Button | null;
+    protected _text: HTMLElement | null;
 
     protected _frames: number;
     protected _measureStart: number;
@@ -23,18 +25,21 @@ export class ShowFps extends Control {
     constructor(options: IControlParams = {}) {
         super({ name: "ShowFps", ...options });
 
-        this.el = null;
+        this._btn = null;
+        this._text = null;
         this._frames = 0;
         this._measureStart = 0;
     }
 
     public override oninit() {
-        this.el = document.createElement("div");
-        this.el.classList.add("og-map-button", "og-fps-button");
-        this.el.title = "Frames per second";
-        this.el.innerText = "--";
+        this._btn = new Button({
+            classList: ["og-map-button", "og-fps-button"],
+            title: "Frames per second",
+            text: "--"
+        });
 
-        this.renderer!.topRightContainer().appendChild(this.el);
+        this._btn.appendTo(this.renderer!.topRightContainer());
+        this._text = this._btn.$text;
 
         this._frames = 0;
         this._measureStart = window.performance.now();
@@ -45,15 +50,13 @@ export class ShowFps extends Control {
     public override onremove() {
         this.renderer && this.renderer.events.off("predraw", this._draw);
 
-        if (this.el && this.el.parentNode) {
-            this.el.parentNode.removeChild(this.el);
-        }
-
-        this.el = null;
+        this._btn && this._btn.remove();
+        this._btn = null;
+        this._text = null;
     }
 
     protected _draw = () => {
-        if (!this.el) return;
+        if (!this._text) return;
 
         this._frames++;
 
@@ -62,7 +65,7 @@ export class ShowFps extends Control {
 
         if (elapsed >= UPDATE_INTERVAL) {
             if (elapsed <= MAX_MEASURE_TIME) {
-                this.el.innerText = ((this._frames * 1000) / elapsed).toFixed(0);
+                this._text.innerText = ((this._frames * 1000) / elapsed).toFixed(0);
             }
             this._frames = 0;
             this._measureStart = now;
