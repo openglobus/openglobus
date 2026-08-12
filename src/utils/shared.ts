@@ -108,6 +108,8 @@ export function rgbToStringHTML(rgb: NumberArray3 | Vec3): string {
     return `#${r}${g}${b}`;
 }
 
+const LIGHTGREY = 211 / 255;
+
 /**
  * Convert html color string to the RGBA number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
@@ -118,6 +120,9 @@ export function htmlColorToRgba(htmlColor: string, opacity?: number): Vec4 {
     let hColor: any | undefined = colorTable[htmlColor];
     if (hColor) {
         htmlColor = hColor;
+    } else if (htmlColor[0] !== "#" && !htmlColor.startsWith("rgb")) {
+        console.warn(`Invalid or unknown color "${htmlColor}", using lightgrey as fallback.`);
+        htmlColor = colorTable.lightgrey;
     }
 
     if (htmlColor[0] === "#") {
@@ -134,13 +139,18 @@ export function htmlColorToRgba(htmlColor: string, opacity?: number): Vec4 {
                 isEmpty(opacity) ? 1.0 : opacity
             );
         } else {
-            return new Vec4();
+            console.warn(`Invalid color "${htmlColor}", using lightgrey as fallback.`);
+            return new Vec4(LIGHTGREY, LIGHTGREY, LIGHTGREY, isEmpty(opacity) ? 1.0 : opacity);
         }
     } else {
         if (isEmpty(opacity)) {
             opacity = 1.0;
         }
         let m = htmlColor.split(",");
+        if (m.length < 3) {
+            console.warn(`Invalid color "${htmlColor}", using lightgrey as fallback.`);
+            return new Vec4(LIGHTGREY, LIGHTGREY, LIGHTGREY, opacity);
+        }
         return new Vec4(
             parseInt(m[0].split("(")[1]) / 255,
             parseInt(m[1]) / 255,
@@ -164,6 +174,9 @@ export function htmlColorToRgb(htmlColor: string): Vec3 {
     let hColor: any | undefined = colorTable[htmlColor];
     if (hColor) {
         htmlColor = hColor;
+    } else if (htmlColor[0] !== "#" && !htmlColor.startsWith("rgb")) {
+        console.warn(`Invalid or unknown color "${htmlColor}", using lightgrey as fallback.`);
+        htmlColor = colorTable.lightgrey;
     }
 
     if (htmlColor[0] === "#") {
@@ -179,10 +192,15 @@ export function htmlColorToRgb(htmlColor: string): Vec3 {
                 parseInt(result[3], 16) / 255
             );
         } else {
-            return new Vec3();
+            console.warn(`Invalid color "${htmlColor}", using lightgrey as fallback.`);
+            return new Vec3(LIGHTGREY, LIGHTGREY, LIGHTGREY);
         }
     } else {
         let m = htmlColor.split(",");
+        if (m.length < 3) {
+            console.warn(`Invalid color "${htmlColor}", using lightgrey as fallback.`);
+            return new Vec3(LIGHTGREY, LIGHTGREY, LIGHTGREY);
+        }
         return new Vec3(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255);
     }
 }
