@@ -16,6 +16,7 @@
 import { CompassButton } from "./control/CompassButton";
 import { Control } from "./control/Control";
 import { EarthCoordinates } from "./control/EarthCoordinates";
+import { FreeNavigation } from "./control/FreeNavigation";
 import { Ellipsoid } from "./ellipsoid/Ellipsoid";
 import { EmptyTerrain } from "./terrain/EmptyTerrain";
 import { Handler } from "./webgl/Handler";
@@ -337,7 +338,8 @@ class Globe {
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
-                new CompassButton()
+                new CompassButton(),
+                new FreeNavigation({ autoActivate: false, showInfo: false })
             ]);
         }
 
