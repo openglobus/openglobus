@@ -153,6 +153,8 @@ export class GeoImageCreator {
             } else {
                 this._queue.push(geoImage);
             }
+
+            this._planet.renderer?.requestRedraw();
         }
     }
 
