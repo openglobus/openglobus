@@ -98,6 +98,7 @@ export interface IGlobeParams {
     frameOpacity?: number;
     shadeMode?: ShadeModeInput;
     reverseDepth?: boolean;
+    idleMode?: boolean;
 }
 
 const DEFAULT_NIGHT_SRC = `/night.png`;
@@ -142,6 +143,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Array.<Layer>} [options.layers] - Planet layers.
  * @param {Extent | ExtentBoundingBox} [options.viewExtent] [options.viewExtent] - Viewable starting extent.
  * @param {boolean} [options.autoActivate=true] - Globe rendering auto activation flag. True is default.
+ * @param {boolean} [options.idleMode=false] - Skips a frame rendering when nothing has been changed. False is default.
  * @param {HTMLElement} [options.attributionContainer] - Container for attribution list.
  * @param {number} [options.maxGridSize=128] = Maximal segment grid size. 128 is default
  * @param {string} [options.fontsSrc] - Fonts collection url.
@@ -264,6 +266,7 @@ class Globe {
             }),
             {
                 autoActivate: false,
+                idleMode: options.idleMode,
                 msaa: options.msaa,
                 deferredDisabled: options.deferredDisabled,
                 fontsSrc: options.fontsSrc,

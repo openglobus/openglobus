@@ -368,6 +368,8 @@ class Strip {
 
     protected _createBuffers() {
         if (this._scene && this._scene.renderer && this._scene.renderer.isInitialized()) {
+            this._scene.renderer.requestRedraw();
+
             let gl = this._scene.renderer.handler.gl!;
 
             gl.deleteBuffer(this._indexBuffer as WebGLBuffer);

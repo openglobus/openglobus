@@ -486,7 +486,9 @@ class BaseGeoImage extends Layer {
         let segment = material.segment;
 
         if (this._ready) {
-            material.applyTexture(this._materialTexture);
+            if (!material.isReady || material.texture !== this._materialTexture) {
+                material.applyTexture(this._materialTexture);
+            }
         } else {
             material.texture = this._planet!.transparentTexture;
             !this._creationProceeding && this.loadMaterial(material);

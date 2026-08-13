@@ -24,6 +24,8 @@ class KeyboardHandler {
     protected _active: boolean;
     protected _stampCache: Record<string, number>;
 
+    public onKeyEvent: ((event: KeyboardEvent) => void) | null = null;
+
     constructor() {
         this._currentlyPressedKeys = {};
         this._pressedKeysCallbacks = {};
@@ -36,11 +38,13 @@ class KeyboardHandler {
 
         document.onkeydown = (event: KeyboardEvent) => {
             this._event = event;
+            this.onKeyEvent && this.onKeyEvent(event);
             this._active && this.handleKeyDown();
         };
 
         document.onkeyup = (event: KeyboardEvent) => {
             this._event = event;
+            this.onKeyEvent && this.onKeyEvent(event);
             this._active && this.handleKeyUp();
         };
     }

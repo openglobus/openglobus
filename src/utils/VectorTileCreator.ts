@@ -227,6 +227,15 @@ export class VectorTileCreator {
         this._framebuffer.init();
     }
 
+    /**
+     * Returns true when there is nothing left to rasterize.
+     * @public
+     * @returns {boolean}
+     */
+    public get isIdle(): boolean {
+        return this._queue.length === 0;
+    }
+
     public frame() {
         if (this._planet.layerLock.isFree() && this._queue.length) {
             let h = this._handler!,

@@ -1996,6 +1996,10 @@ class Segment {
             this._transitionOpacity = 2.0;
         }
 
+        if (this._transitionOpacity < 2.0) {
+            this.planet.renderer!.requestRedraw();
+        }
+
         let i = this.node._fadingNodes.length;
         while (i--) {
             let n = this.node._fadingNodes[i];
@@ -2020,6 +2024,10 @@ class Segment {
         this._transitionTimestamp = window.performance.now();
         if (this._transitionOpacity < 0.0) {
             this._transitionOpacity = 0;
+        }
+
+        if (this._transitionOpacity > 0.0) {
+            this.planet.renderer!.requestRedraw();
         }
     }
 

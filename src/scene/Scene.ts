@@ -300,6 +300,7 @@ class Scene {
         for (let i = 0; i < this.childNodes.length; i++) {
             this.childNodes[i].setDrawMode(mode);
         }
+        this.renderer && this.renderer.requestRedraw();
     }
 
     /*

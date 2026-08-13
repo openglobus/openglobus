@@ -568,6 +568,7 @@ export class Planet extends Scene {
      */
     public set atmosphereMaxOpacity(opacity: number) {
         this._atmosphereMaxMinOpacity[0] = opacity;
+        this.renderer?.requestRedraw();
     }
 
     /**
@@ -586,6 +587,7 @@ export class Planet extends Scene {
      */
     public set atmosphereMinOpacity(opacity: number) {
         this._atmosphereMaxMinOpacity[1] = opacity;
+        this.renderer?.requestRedraw();
     }
 
     /**
@@ -604,6 +606,7 @@ export class Planet extends Scene {
      */
     public set atmosphereOpacityCurveShift(curveShift: number) {
         this._atmosphereMaxMinOpacity[2] = curveShift;
+        this.renderer?.requestRedraw();
     }
 
     /**
@@ -673,6 +676,7 @@ export class Planet extends Scene {
         if (enabled != this._atmosphereEnabled) {
             this._atmosphereEnabled = enabled;
             this._initializeAtmosphere();
+            this.renderer?.requestRedraw();
         }
     }
 
@@ -701,6 +705,7 @@ export class Planet extends Scene {
      */
     public set shadeMode(m: ShadeModeInput) {
         this._shadeMode = normalizeShadeMode(m);
+        this.renderer?.requestRedraw();
     }
 
     protected _restoreSurfaceDepthMask() {
@@ -1229,6 +1234,7 @@ export class Planet extends Scene {
         }
 
         this.renderer!.activeCamera = this.camera;
+        this.camera.onViewChange = () => this.renderer!.requestRedraw();
 
         this.camera.bindFrustumsPickingColors(this.renderer!);
         this.camera.update();
@@ -1316,6 +1322,7 @@ export class Planet extends Scene {
      */
     public updateVisibleLayers() {
         this._updateLayers = true;
+        this.renderer && this.renderer.requestRedraw();
     }
 
     protected _updateVisibleLayers() {
@@ -1553,6 +1560,16 @@ export class Planet extends Scene {
 
         // Vector tiles rasterization
         this._vectorTileCreator.frame();
+
+        // Keeps the loop alive while something is still being rasterized or loaded
+        if (
+            !this._normalMapCreator.isIdle ||
+            !this._geoImageCreator.isIdle ||
+            !this._vectorTileCreator.isIdle ||
+            !this._tileLoader.isFree
+        ) {
+            this.renderer!.requestRedraw();
+        }
 
         this.camera.checkTerrainCollision();
         this.applyNear(this.camera);
