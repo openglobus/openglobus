@@ -601,8 +601,7 @@ class PlanetCamera extends Camera {
                 duration: params.duration,
                 startedAt: Date.now()
             };
-            this._flying = true;
-            this.events.dispatch(this.events.flystart, this);
+            this._startFlying();
             return;
         }
 
@@ -666,8 +665,7 @@ class PlanetCamera extends Camera {
             duration: params.duration,
             startedAt: Date.now()
         };
-        this._flying = true;
-        this.events.dispatch(this.events.flystart, this);
+        this._startFlying();
     }
 
     override stopFlying(): void {

@@ -232,7 +232,7 @@ class Renderer {
     protected hdrFramebuffer: Framebuffer | null;
 
     public deferredDisabled: boolean;
-    public frameOpacity: number;
+    protected _frameOpacity: number;
     public deferredShadingPass: IDeferredShadingPass;
     public transparencyPass: ITransparencyPass;
 
@@ -388,7 +388,7 @@ class Renderer {
         this.hdrFramebuffer = null;
 
         this.deferredDisabled = params.deferredDisabled ?? false;
-        this.frameOpacity = params.frameOpacity ?? 1.0;
+        this._frameOpacity = params.frameOpacity ?? 1.0;
         this.deferredShadingPass = new PhongDeferredShading(this);
         this.transparencyPass = new WOITPass(this);
 
@@ -529,6 +529,22 @@ class Renderer {
 
     public get whitepoint(): number {
         return this._whitepoint;
+    }
+
+    /**
+     * Scene objects opacity used with transparentBackground to achieve an AR effect.
+     * @public
+     * @type {number}
+     */
+    public set frameOpacity(frameOpacity: number) {
+        if (this._frameOpacity !== frameOpacity) {
+            this._frameOpacity = frameOpacity;
+            this.requestRedraw();
+        }
+    }
+
+    public get frameOpacity(): number {
+        return this._frameOpacity;
     }
 
     /**

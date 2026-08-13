@@ -512,8 +512,13 @@ class Camera {
             duration: params.duration,
             startedAt: Date.now()
         };
+        this._startFlying();
+    }
+
+    protected _startFlying() {
         this._flying = true;
         this.events.dispatch(this.events.flystart, this);
+        this.onViewChange && this.onViewChange();
     }
 
     /**
