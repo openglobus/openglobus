@@ -368,6 +368,15 @@ class EntityCollection {
         this._fadingOpacity = this._opacity * (visibility ? 1 : 0);
         this.scene?.updateEntityCollectionsDepthOrder();
         this.events.dispatch(this.events.visibilitychange, this);
+        this.requestRedraw();
+    }
+
+    /**
+     * Requests the next frame to be rendered.
+     * @public
+     */
+    public requestRedraw() {
+        this.scene && this.scene.renderer && this.scene.renderer.requestRedraw();
     }
 
     /**
@@ -386,6 +395,7 @@ class EntityCollection {
      */
     public setOpacity(opacity: number) {
         this._opacity = opacity;
+        this.requestRedraw();
     }
 
     /**
@@ -450,6 +460,7 @@ class EntityCollection {
         this.scaleByDistance[0] = near;
         this.scaleByDistance[1] = far;
         this.scaleByDistance[2] = farInvisible || math.MAX32;
+        this.requestRedraw();
     }
 
     public setVisibleSphere(p: Vec3, r: number) {
@@ -575,6 +586,7 @@ class EntityCollection {
             entity._entityCollectionIndex = this._entities.length;
             this._entities.push(entity);
             this._addRecursively(entity);
+            this.requestRedraw();
         }
         return this;
     }
@@ -665,12 +677,14 @@ class EntityCollection {
         if (this.belongs(entity)) {
             this._removeEntity(entity);
             this.events.dispatch(this.events.entityremove, entity);
+            this.requestRedraw();
         }
     }
 
     public _removeEntitySilent(entity: Entity) {
         if (this.belongs(entity)) {
             this._removeEntity(entity);
+            this.requestRedraw();
         }
     }
 
@@ -872,6 +886,8 @@ class EntityCollection {
         }
         this._entities.length = 0;
         this._entities = [];
+
+        this.requestRedraw();
     }
 
     /**

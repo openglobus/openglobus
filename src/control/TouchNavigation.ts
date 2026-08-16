@@ -399,6 +399,7 @@ export class TouchNavigation extends Control {
         if (this.scaleRot <= 0) {
             this.scaleRot = 0;
         } else {
+            r.requestRedraw();
             r.controlsBag.scaleRot = this.scaleRot;
             let rot = this.qRot.slerp(Quat.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
             if (!(rot.x || rot.y || rot.z)) {

@@ -73,3 +73,18 @@ describe("Camera viewchange", () => {
         expect(onViewChange).toHaveBeenCalledTimes(5);
     });
 });
+
+describe("Camera flight", () => {
+    test("wakes the renderer up when a flight starts", () => {
+        const camera = new Camera();
+        const onViewChange = vi.fn();
+
+        settleInitialCameraState(camera);
+        camera.onViewChange = onViewChange;
+
+        camera.flyCartesian(new Vec3(0, 0, 1000));
+
+        expect(camera.isFlying()).toBe(true);
+        expect(onViewChange).toHaveBeenCalled();
+    });
+});

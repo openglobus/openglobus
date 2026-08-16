@@ -323,6 +323,9 @@ export class SimpleNavigation extends Control {
     protected onDraw() {
         this._updateVel();
         this._handleMouseWheel();
+        if (this.vel.length() > 0.01 || Math.abs(this.focusVel) > 0.01) {
+            this.renderer!.requestRedraw();
+        }
     }
 
     protected get dt(): number {

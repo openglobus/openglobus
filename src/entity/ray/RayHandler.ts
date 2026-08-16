@@ -241,8 +241,13 @@ class RayHandler {
     public refresh() {
         let i = this._changedBuffers.length;
         while (i--) {
-            this._changedBuffers[i] = true;
+            this._setChangedBuffer(i);
         }
+    }
+
+    protected _setChangedBuffer(index: number) {
+        this._changedBuffers[index] = true;
+        this._renderer && this._renderer.requestRedraw();
     }
 
     protected _removeRays() {
@@ -752,7 +757,7 @@ class RayHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        this._changedBuffers[START_POSITION_BUFFER] = true;
+        this._setChangedBuffer(START_POSITION_BUFFER);
     }
 
     public setEndPositionArr(index: number, positionHigh: Vec3, positionLow: Vec3) {
@@ -818,7 +823,7 @@ class RayHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        this._changedBuffers[END_POSITION_BUFFER] = true;
+        this._setChangedBuffer(END_POSITION_BUFFER);
     }
 
     public setPickingColorArr(index: number, color: Vec3) {
@@ -852,7 +857,7 @@ class RayHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        this._changedBuffers[PICKINGCOLOR_BUFFER] = true;
+        this._setChangedBuffer(PICKINGCOLOR_BUFFER);
     }
 
     public setRgbaArr(index: number, startColor: Vec4, endColor: Vec4) {
@@ -901,7 +906,7 @@ class RayHandler {
         if (opacityChanged) {
             this.refresh();
         } else {
-            this._changedBuffers[RGBA_BUFFER] = true;
+            this._setChangedBuffer(RGBA_BUFFER);
         }
     }
 
@@ -916,7 +921,7 @@ class RayHandler {
         a[i + 4] = thickness;
         a[i + 5] = thickness;
 
-        this._changedBuffers[THICKNESS_BUFFER] = true;
+        this._setChangedBuffer(THICKNESS_BUFFER);
     }
 
     public setVisibility(index: number, visibility: boolean) {
@@ -949,7 +954,7 @@ class RayHandler {
         a[i + 10] = vertexArr[10];
         a[i + 11] = vertexArr[11];
 
-        this._changedBuffers[VERTEX_BUFFER] = true;
+        this._setChangedBuffer(VERTEX_BUFFER);
     }
 
     public createStartPositionBuffer() {
@@ -1090,7 +1095,7 @@ class RayHandler {
         a[i + 22] = minY;
         a[i + 23] = imgHeight;
 
-        this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._setChangedBuffer(TEXCOORD_BUFFER);
     }
 
     public setTextureDisabled(index: number) {
@@ -1104,7 +1109,7 @@ class RayHandler {
         a[i + 19] = 0;
         a[i + 23] = 0;
 
-        this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._setChangedBuffer(TEXCOORD_BUFFER);
     }
 
     public setTexOffsetArr(index: number, value: number) {
@@ -1118,7 +1123,7 @@ class RayHandler {
         a[i + 4] = value;
         a[i + 5] = value;
 
-        this._changedBuffers[TEXOFFSET_BUFFER] = true;
+        this._setChangedBuffer(TEXOFFSET_BUFFER);
     }
 
     public setStrokeSizeArr(index: number, value: number) {
@@ -1132,7 +1137,7 @@ class RayHandler {
         a[i + 4] = value;
         a[i + 5] = value;
 
-        this._changedBuffers[STROKESIZE_BUFFER] = true;
+        this._setChangedBuffer(STROKESIZE_BUFFER);
     }
 
     public refreshTexCoordsArr() {

@@ -9,6 +9,12 @@ import { Vec3 } from "../math/Vec3";
 import * as math from "../math";
 import type { PlanetCamera } from "../camera/PlanetCamera";
 
+/**
+ * Minimal julian date change that moves the sunlight position, about 30 seconds.
+ * @const {number}
+ */
+const SUN_DATE_THRESHOLD = 0.00034;
+
 interface ISunParams extends IControlParams {
     activationHeight?: number;
     offsetVertical?: number;
@@ -49,6 +55,9 @@ export class Sun extends Control {
 
     protected _currDate: number;
     protected _prevDate: number;
+
+    protected _redrawDate: number;
+
     protected _clockPtr: Clock | null;
     protected _lightOn: boolean;
     protected _stopped: boolean;
@@ -85,6 +94,8 @@ export class Sun extends Control {
          */
         this._prevDate = 0;
 
+        this._redrawDate = 0;
+
         this._clockPtr = null;
 
         this._lightOn = false;
@@ -105,7 +116,20 @@ export class Sun extends Control {
         if (!this._clockPtr) {
             this._clockPtr = this.renderer!.handler.defaultClock;
         }
+
+        this._redrawDate = this._clockPtr.currentDate;
+
+        this._clockPtr.events.on("tick", this._onClockTick, this);
     }
+
+    protected _onClockTick = () => {
+        if (!this._clockPtr) return;
+
+        if (Math.abs(this._clockPtr.currentDate - this._redrawDate) > SUN_DATE_THRESHOLD) {
+            this._redrawDate = this._clockPtr.currentDate;
+            this.renderer!.requestRedraw();
+        }
+    };
 
     public stop() {
         this._stopped = true;
@@ -214,6 +238,7 @@ export class Sun extends Control {
     protected _draw() {
         if (!this._clockPtr) return;
         this._currDate = this._clockPtr.currentDate;
+
         if (!this._stopped) {
             let cam = this.planet!.camera;
             if (cam.getHeight() < this.activationHeight || !this._active) {
@@ -226,6 +251,7 @@ export class Sun extends Control {
                         : this._getCameraFollowingPosition(cam);
 
                 if (this._k > 0) {
+                    this.renderer!.requestRedraw();
                     this._k -= 0.001;
                     let rot = Quat.getRotationBetweenVectors(this._sunlightPosition.normal(), pos.normal());
                     let r = rot.slerp(Quat.IDENTITY, this._k).normalize();
@@ -236,6 +262,7 @@ export class Sun extends Control {
             } else {
                 this._k = 1;
                 if (this._f > 0) {
+                    this.renderer!.requestRedraw();
                     this._f -= 0.001;
                     let rot = Quat.getRotationBetweenVectors(
                         this._sunlightPosition.normal(),
@@ -244,7 +271,10 @@ export class Sun extends Control {
                     let r = rot.slerp(Quat.IDENTITY, this._f).normalize();
                     this._setSunPosition3v(r.mulVec3(this._sunlightPosition));
                 } else {
-                    if ((Math.abs(this._currDate - this._prevDate) > 0.00034 && this._active) || this._lightOn) {
+                    if (
+                        (Math.abs(this._currDate - this._prevDate) > SUN_DATE_THRESHOLD && this._active) ||
+                        this._lightOn
+                    ) {
                         this._lightOn = false;
                         this._prevDate = this._currDate;
                         this._setSunPosition3v(getSunPosition(this._currDate));

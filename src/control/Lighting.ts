@@ -670,6 +670,9 @@ export class Lighting extends Control {
         const layer = this._selectedLayer;
         const planet = this.planet;
         const renderer = this.renderer;
+
+        renderer && renderer.requestRedraw();
+
         if (!layer || !planet || !renderer || !planet.baseLayer || !planet.baseLayer.isEqual(layer)) return;
 
         if (layer._ambient) {

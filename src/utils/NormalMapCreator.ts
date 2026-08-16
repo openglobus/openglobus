@@ -357,6 +357,15 @@ export class NormalMapCreator {
         this._framebuffer!.deactivate();
     }
 
+    /**
+     * Returns true when there is nothing left to rasterize.
+     * @public
+     * @returns {boolean}
+     */
+    public get isIdle(): boolean {
+        return this._queue.length === 0;
+    }
+
     public frame() {
         if (this._queue.length) {
             const h = this._handler!;

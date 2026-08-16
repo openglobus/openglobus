@@ -104,14 +104,14 @@ export class GeoObjectHandler {
     }
 
     protected _markPerInstanceBuffersChanged(tagData: InstanceData) {
-        tagData._changedBuffers[RTC_POSITION_BUFFER] = true;
-        tagData._changedBuffers[RGBA_BUFFER] = true;
-        tagData._changedBuffers[QROT_BUFFER] = true;
-        tagData._changedBuffers[SIZE_BUFFER] = true;
-        tagData._changedBuffers[PICKINGCOLOR_BUFFER] = true;
-        tagData._changedBuffers[VISIBLE_BUFFER] = true;
-        tagData._changedBuffers[TRANSLATE_BUFFER] = true;
-        tagData._changedBuffers[LOCALPOSITION_BUFFER] = true;
+        tagData.setChangedBuffer(RTC_POSITION_BUFFER);
+        tagData.setChangedBuffer(RGBA_BUFFER);
+        tagData.setChangedBuffer(QROT_BUFFER);
+        tagData.setChangedBuffer(SIZE_BUFFER);
+        tagData.setChangedBuffer(PICKINGCOLOR_BUFFER);
+        tagData.setChangedBuffer(VISIBLE_BUFFER);
+        tagData.setChangedBuffer(TRANSLATE_BUFFER);
+        tagData.setChangedBuffer(LOCALPOSITION_BUFFER);
     }
 
     protected _swapArrayItems(arr: number[] | TypedArray, itemSize: number, firstIndex: number, secondIndex: number) {
@@ -306,19 +306,19 @@ export class GeoObjectHandler {
         if (tagData) {
             if (object.vertices.length !== tagData._vertexArr.length) {
                 tagData._vertexArr = object.vertices;
-                tagData._changedBuffers[VERTEX_BUFFER] = true;
+                tagData.setChangedBuffer(VERTEX_BUFFER);
             }
             if (object.normals.length !== tagData._normalsArr.length) {
                 tagData._normalsArr = object.normals;
-                tagData._changedBuffers[NORMALS_BUFFER] = true;
+                tagData.setChangedBuffer(NORMALS_BUFFER);
             }
             if (object.indices.length !== tagData._indicesArr.length) {
                 tagData._indicesArr = object.indices;
-                tagData._changedBuffers[INDEX_BUFFER] = true;
+                tagData.setChangedBuffer(INDEX_BUFFER);
             }
             if (object.texCoords.length !== tagData._texCoordArr.length) {
                 tagData._texCoordArr = object.texCoords;
-                tagData._changedBuffers[TEXCOORD_BUFFER] = true;
+                tagData.setChangedBuffer(TEXCOORD_BUFFER);
             }
 
             tagData._colorTextureSrc = object.colorTextureSrc;
@@ -863,13 +863,13 @@ export class GeoObjectHandler {
 
     public setQRotArr(tagData: InstanceData, tagDataIndex: number, qRot: Quat) {
         setParametersToArray(tagData._qRotArr, tagDataIndex, 4, 4, qRot.x, qRot.y, qRot.z, qRot.w);
-        tagData._changedBuffers[QROT_BUFFER] = true;
+        tagData.setChangedBuffer(QROT_BUFFER);
         this._updateTag(tagData);
     }
 
     public setVisibility(tagData: InstanceData, tagDataIndex: number, visibility: boolean) {
         setParametersToArray(tagData._visibleArr, tagDataIndex, 1, 1, visibility ? 1 : 0);
-        tagData._changedBuffers[VISIBLE_BUFFER] = true;
+        tagData.setChangedBuffer(VISIBLE_BUFFER);
         this._updateTag(tagData);
     }
 
@@ -892,7 +892,7 @@ export class GeoObjectHandler {
             rtcPositionLow.y,
             rtcPositionLow.z
         );
-        tagData._changedBuffers[RTC_POSITION_BUFFER] = true;
+        tagData.setChangedBuffer(RTC_POSITION_BUFFER);
         this._updateTag(tagData);
     }
 
@@ -911,14 +911,14 @@ export class GeoObjectHandler {
         if (opacityChanged) {
             this._markPerInstanceBuffersChanged(tagData);
         } else {
-            tagData._changedBuffers[RGBA_BUFFER] = true;
+            tagData.setChangedBuffer(RGBA_BUFFER);
         }
         this._updateTag(tagData);
     }
 
     public setPickingColorArr(tagData: InstanceData, tagDataIndex: number, color: Vec3) {
         setParametersToArray(tagData._pickingColorArr, tagDataIndex, 3, 3, color.x / 255, color.y / 255, color.z / 255);
-        tagData._changedBuffers[PICKINGCOLOR_BUFFER] = true;
+        tagData.setChangedBuffer(PICKINGCOLOR_BUFFER);
         this._updateTag(tagData);
     }
 
@@ -930,13 +930,13 @@ export class GeoObjectHandler {
 
     public setScaleArr(tagData: InstanceData, tagDataIndex: number, scale: Vec3) {
         setParametersToArray(tagData._sizeArr, tagDataIndex, 3, 3, scale.x, scale.y, scale.z);
-        tagData._changedBuffers[SIZE_BUFFER] = true;
+        tagData.setChangedBuffer(SIZE_BUFFER);
         this._updateTag(tagData);
     }
 
     public setTranslateArr(tagData: InstanceData, tagDataIndex: number, translate: Vec3) {
         setParametersToArray(tagData._translateArr, tagDataIndex, 3, 3, translate.x, translate.y, translate.z);
-        tagData._changedBuffers[TRANSLATE_BUFFER] = true;
+        tagData.setChangedBuffer(TRANSLATE_BUFFER);
         this._updateTag(tagData);
     }
 
@@ -950,7 +950,7 @@ export class GeoObjectHandler {
             localPosition.y,
             localPosition.z
         );
-        tagData._changedBuffers[LOCALPOSITION_BUFFER] = true;
+        tagData.setChangedBuffer(LOCALPOSITION_BUFFER);
         this._updateTag(tagData);
     }
 

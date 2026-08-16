@@ -172,6 +172,7 @@ export class QuadTreeStrategy {
         this._curLodSize = currentLodSize;
         this._renderCompletedActivated = false;
         this._terrainCompletedActivated = false;
+        this.planet.renderer?.requestRedraw();
     }
 
     public createEntityCollectionsTreeStrategy(layer: Vector, nodeCapacity: number): EntityCollectionsTreeStrategy {
@@ -184,6 +185,7 @@ export class QuadTreeStrategy {
         for (let i = 0, len = this._quadTreeList.length; i < len; i++) {
             this._quadTreeList[i].destroyBranches();
         }
+        this.planet.renderer?.requestRedraw();
     }
 
     /**
@@ -213,7 +215,21 @@ export class QuadTreeStrategy {
         return this._terrainCompleted && this._terrainCompletedActivated;
     }
 
+    /**
+     * Returns true when every rendered segment has got its materials applied and
+     * the completion has already been announced.
+     * @public
+     * @returns {boolean}
+     */
+    public get renderReady(): boolean {
+        return this._renderCompleted && this._renderCompletedActivated;
+    }
+
     protected _checkRendercompleted() {
+        if (!this.renderReady || !this.terrainReady) {
+            this.planet.renderer!.requestRedraw();
+        }
+
         if (this._renderCompleted) {
             if (!this._renderCompletedActivated) {
                 this._renderCompletedActivated = true;
@@ -271,6 +287,7 @@ export class QuadTreeStrategy {
     public clearRenderedNodes() {
         this._clearRenderedNodeList();
         this._clearRenderNodesInFrustum();
+        this.planet.renderer?.requestRedraw();
     }
 
     protected _clearRenderedNodeList() {

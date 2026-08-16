@@ -156,7 +156,7 @@ class Layer {
 
     public createTexture: Function | null;
 
-    public nightTextureCoefficient: number;
+    protected _nightTextureCoefficient: number;
 
     protected _hasImageryTiles: boolean;
 
@@ -347,7 +347,7 @@ class Layer {
             this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
         }
 
-        this.nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
+        this._nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
 
         this.waitForParentMaterial = options.waitForParentMaterial ?? true;
     }
@@ -434,7 +434,24 @@ class Layer {
                 this._fadingOpacity = opacity;
             }
             this._opacity = opacity;
+            this._planet?.renderer?.requestRedraw();
         }
+    }
+
+    /**
+     * Night texture blending coefficient.
+     * @public
+     * @type {number}
+     */
+    public set nightTextureCoefficient(coefficient: number) {
+        if (this._nightTextureCoefficient !== coefficient) {
+            this._nightTextureCoefficient = coefficient;
+            this._planet?.renderer?.requestRedraw();
+        }
+    }
+
+    public get nightTextureCoefficient(): number {
+        return this._nightTextureCoefficient;
     }
 
     public set pickingEnabled(picking: boolean) {
@@ -580,6 +597,7 @@ class Layer {
     public clear() {
         if (this._planet) {
             this._planet._clearLayerMaterial(this);
+            this._planet.renderer?.requestRedraw();
         }
     }
 
@@ -798,6 +816,8 @@ class Layer {
         this._extentMerc = new Extent(sw.forwardMercator(), ne.forwardMercator());
 
         this._correctFullExtent();
+
+        this._planet?.renderer?.requestRedraw();
     }
 
     /**
@@ -867,6 +887,8 @@ class Layer {
 
     public _refreshFadingOpacity(minCurrZoom: number, maxCurrZoom: number) {
         let p = this._planet!;
+        let prevFadingOpacity = this._fadingOpacity;
+
         if (
             this._visibility &&
             p.getViewExtent().overlaps(this._extent) &&
@@ -881,15 +903,18 @@ class Layer {
             ) {
                 this._fadingOpacity = this._opacity;
             }
-
-            return false;
         } else {
             this._fadingOpacity -= this._fadingFactor;
             if (this._fadingOpacity <= 0) {
                 this._fadingOpacity = 0.0;
             }
-            return false;
         }
+
+        if (this._fadingOpacity !== prevFadingOpacity) {
+            p.renderer?.requestRedraw();
+        }
+
+        return false;
     }
 
     public createMaterial(segment: Segment): Material {

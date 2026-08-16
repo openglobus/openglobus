@@ -213,6 +213,14 @@ class Camera {
 
     public isMoving: boolean;
 
+    /**
+     * Fires when the camera view or projection has been changed. It is assigned by the renderer
+     * to wake it up from the idle mode.
+     * @public
+     * @type {(() => void) | null}
+     */
+    public onViewChange: (() => void) | null = null;
+
     protected _pViewAngle: number;
     protected _pAspect: number;
     protected _pWidth: number;
@@ -504,8 +512,13 @@ class Camera {
             duration: params.duration,
             startedAt: Date.now()
         };
+        this._startFlying();
+    }
+
+    protected _startFlying() {
         this._flying = true;
         this.events.dispatch(this.events.flystart, this);
+        this.onViewChange && this.onViewChange();
     }
 
     /**
@@ -618,6 +631,7 @@ class Camera {
 
         if (this.isMoving || projectionChanged) {
             this.events.dispatch(this.events.viewchange, this);
+            this.onViewChange && this.onViewChange();
         }
 
         this._pViewAngle = this._viewAngle;
@@ -774,6 +788,7 @@ class Camera {
     public refresh() {
         this._setProj(this._viewAngle, this.getAspectRatio());
         this.update();
+        this.onViewChange && this.onViewChange();
     }
 
     /**
