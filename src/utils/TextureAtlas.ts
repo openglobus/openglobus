@@ -254,6 +254,7 @@ class TextureAtlas {
                 this.canvas.drawImage(img, 0, 0, img.width, img.height);
             }
             this.texture = this._handler.createTexture_l(this.canvas.getCanvas(), this._internalFormat)!;
+            this._handler.needRedraw = true;
         }
     }
 

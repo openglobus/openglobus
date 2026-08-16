@@ -69,6 +69,7 @@ class Material {
             this.isLoading = false;
             this.appliedNodeId = this.segment.node.nodeId;
             this.texOffset = [0.0, 0.0, 1.0, 1.0];
+            this.segment.planet.renderer?.requestRedraw();
         }
     }
 
@@ -84,6 +85,7 @@ class Material {
             this.isLoading = false;
             this.appliedNodeId = this.segment.node.nodeId;
             this.texOffset = [0.0, 0.0, 1.0, 1.0];
+            this.segment.planet.renderer?.requestRedraw();
         }
     }
 
@@ -93,6 +95,7 @@ class Material {
             this.isLoading = false;
             this.isReady = true;
             this.textureExists = false;
+            this.segment.planet.renderer?.requestRedraw();
         }
     }
 

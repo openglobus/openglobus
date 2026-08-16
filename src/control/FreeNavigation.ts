@@ -3,6 +3,7 @@ import { Control } from "./Control";
 import type { IMouseState } from "../renderer/RendererEvents";
 import { Navigation } from "./Navigation";
 import { Quat } from "../math/Quat";
+import type { Vec2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
 import { input } from "../input/input";
 import { createEvents, type EventsHandler } from "../Events";
@@ -72,9 +73,9 @@ const DEFAULT_SPEED_STEP = 1;
 const DEFAULT_SPEED_FACTOR = 0.45;
 
 // Camera rotation angle per one mouse move pixel
-const DEFAULT_LOOK_SENSITIVITY = 0.12 * RADIANS;
+const DEFAULT_LOOK_SENSITIVITY = 0.08 * RADIANS;
 
-// Q/E roll angular speed in radians per second
+// Q/E roll angular speed in radians per second the roll velocity approaches
 const DEFAULT_ROLL_SPEED = 60 * RADIANS;
 
 // Time in seconds the velocity needs to approach the selected speed
@@ -83,6 +84,12 @@ const DEFAULT_ACCELERATION_TIME = 0.6;
 // Time in seconds the velocity needs to approach zero after keys have been released
 const DEFAULT_DECELERATION_TIME = 0.4;
 
+// Time in seconds the roll angular velocity needs to approach the selected roll speed
+const ROLL_ACCELERATION_TIME = 0.2;
+
+// Time in seconds the roll angular velocity needs to approach zero after keys have been released
+const ROLL_DECELERATION_TIME = 0.15;
+
 // Maximal camera pitch angle above and below the local horizon
 const DEFAULT_PITCH_LIMIT = 89.5 * RADIANS;
 
@@ -90,6 +97,7 @@ const DEFAULT_PITCH_LIMIT = 89.5 * RADIANS;
 const MAX_POINTER_MOVEMENT = 400;
 
 const MIN_VELOCITY = 1e-3;
+const MIN_ROLL_VELOCITY = 1e-4;
 const MAX_FRAME_DELTA_TIME = 0.1;
 const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
 
@@ -99,9 +107,11 @@ const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
  * - W/S — move forward/backward
  * - A/D — strafe left/right
  * - Space/Ctrl — increase/decrease altitude
+ * - Shift — hold to move without changing the camera height above the ellipsoid
  * - Q/E — roll
  * - Mouse — look around
  * - Mouse wheel — adjust movement speed
+ * - Right mouse button — hold to keep the point under the screen center in the center
  * - F — activate and deactivate the control, see `toggleKey`
  *
  * Yaw follows the local ellipsoid normal, while pitch uses the camera's right vector.
@@ -123,7 +133,8 @@ const FREE_NAVIGATION_PREDRAW_PRIORITY = -10000;
  * @param {number} [options.speedStep] - Mouse wheel speed step near the zero speed in m/s. Default is 1
  * @param {number} [options.speedFactor] - Relative speed increment per one mouse wheel step. Default is 0.45
  * @param {number} [options.lookSensitivity] - Camera rotation angle in radians per mouse move pixel
- * @param {number} [options.rollSpeed] - Q/E roll angular speed in radians per second
+ * @param {number} [options.rollSpeed] - Q/E roll angular speed in radians per second the smoothed
+ * roll velocity approaches
  * @param {number} [options.accelerationTime] - Acceleration smoothing time in seconds. Default is 0.6
  * @param {number} [options.decelerationTime] - Deceleration smoothing time in seconds. Default is 0.4
  * @param {number} [options.pitchLimit] - Maximal pitch angle above and below the local horizon in radians
@@ -162,6 +173,13 @@ export class FreeNavigation extends Control {
     public vel: Vec3;
 
     /**
+     * Current camera roll angular velocity in radians per second.
+     * @public
+     * @type {number}
+     */
+    public rollVel: number;
+
+    /**
      * Selected movement speed in meters per second.
      * @protected
      * @type {number}
@@ -180,6 +198,11 @@ export class FreeNavigation extends Control {
     protected _dx: number;
     protected _dy: number;
     protected _skipPointerMove: boolean;
+
+    protected _targetPoint: Vec3 | null;
+    protected _targetRequest: number;
+
+    protected _holdHeight: number | null;
 
     protected _lastFrameTime: number;
     protected _frameDeltaTime: number;
@@ -213,6 +236,7 @@ export class FreeNavigation extends Control {
         this._infoEl = options.showInfo ? document.createElement("div") : null;
 
         this.vel = new Vec3();
+        this.rollVel = 0;
 
         this._speed = math.clamp(options.speed ?? DEFAULT_SPEED, this.minSpeed, this.maxSpeed);
 
@@ -228,6 +252,11 @@ export class FreeNavigation extends Control {
         this._dx = 0;
         this._dy = 0;
         this._skipPointerMove = true;
+
+        this._targetPoint = null;
+        this._targetRequest = 0;
+
+        this._holdHeight = null;
 
         this._lastFrameTime = 0;
         this._frameDeltaTime = 0;
@@ -288,7 +317,7 @@ export class FreeNavigation extends Control {
         if (!this._infoEl) return;
 
         this._infoEl.innerText = this.isActive()
-            ? `Free flight — W,S,A,D move, Space/Ctrl altitude, Q,E roll, wheel speed: ` +
+            ? `Free flight — W,S,A,D move, Space/Ctrl altitude, Q,E roll, RMB lock target, wheel speed: ` +
               `${this._speed} m/s (${Math.round(this._speed * 3.6)} km/h)`
             : "Press F for the free flight";
     }
@@ -305,6 +334,8 @@ export class FreeNavigation extends Control {
         r.events.on("mousemove", this._onMouseMove);
         r.events.on("mouseleave", this._onMouseLeave);
         r.events.on("ldown", this._onLDown);
+        r.events.on("rdown", this._onRDown);
+        r.events.on("rup", this._onRUp);
         r.events.on("keyfree", input.KEY_ESC, this._onKeyEscape);
         r.events.on("keypress", input.KEY_W, this._onKeyForward);
         r.events.on("keypress", input.KEY_S, this._onKeyBackward);
@@ -334,6 +365,8 @@ export class FreeNavigation extends Control {
         r.events.off("mousemove", this._onMouseMove);
         r.events.off("mouseleave", this._onMouseLeave);
         r.events.off("ldown", this._onLDown);
+        r.events.off("rdown", this._onRDown);
+        r.events.off("rup", this._onRUp);
         r.events.off("keyfree", input.KEY_ESC, this._onKeyEscape);
         r.events.off("keypress", input.KEY_W, this._onKeyForward);
         r.events.off("keypress", input.KEY_S, this._onKeyBackward);
@@ -471,11 +504,57 @@ export class FreeNavigation extends Control {
     }
 
     /**
-     * Stops the camera movement.
+     * Locked target point in the cartesian coordinates, or null when no target is locked.
+     * @public
+     * @return {Vec3 | null} -
+     */
+    public get targetPoint(): Vec3 | null {
+        return this._targetPoint;
+    }
+
+    /**
+     * Locks the target point, so the camera keeps looking at it wherever it moves,
+     * @public
+     * @param {Vec3} [point] - Target point in the cartesian coordinates.
+     */
+    public lockTarget(point?: Vec3 | null) {
+        this._targetRequest++;
+
+        if (point) {
+            this._targetPoint = point;
+            return;
+        }
+
+        let px = this._getTargetPixel();
+        let request = this._targetRequest;
+
+        this._targetPoint = this._pickTargetPoint(px);
+
+        this.renderer!.getCartesianFromPixelAsync(px).then((picked?: Vec3) => {
+            if (picked && request === this._targetRequest) {
+                this._targetPoint = picked;
+            }
+        });
+    }
+
+    /**
+     * Releases the locked target point.
+     * @public
+     */
+    public unlockTarget() {
+        this._targetRequest++;
+        this._targetPoint = null;
+    }
+
+    /**
+     * Stops the camera movement and releases the locked target point.
      * @public
      */
     public stop() {
         this.vel.set(0, 0, 0);
+        this.rollVel = 0;
+        this._holdHeight = null;
+        this.unlockTarget();
         this._resetInput();
     }
 
@@ -486,11 +565,14 @@ export class FreeNavigation extends Control {
 
         if (this._hasInput()) {
             this.planet.stopFlying();
+            this.renderer!.requestRedraw();
         }
 
         this._handleRotation();
         this._handleRoll();
         this._handleMove();
+        this._handleHeightHold();
+        this._handleTargetLock();
 
         this._resetInput();
     }
@@ -564,6 +646,16 @@ export class FreeNavigation extends Control {
         this.requestPointerLock();
     };
 
+    protected _onRDown = () => {
+        this.planet?.stopFlying();
+
+        this.lockTarget();
+    };
+
+    protected _onRUp = () => {
+        this.unlockTarget();
+    };
+
     protected _onKeyEscape = () => {
         this.deactivate();
     };
@@ -613,7 +705,69 @@ export class FreeNavigation extends Control {
         return this.planet!.ellipsoid.getSurfaceNormal3v(eye);
     }
 
+    protected _getTargetPixel(): Vec2 {
+        let r = this.renderer!;
+        return this.isPointerLocked() ? r.handler.getCenter() : r.events.mouseState.pos.clone();
+    }
+
+    protected _pickTargetPoint(px: Vec2): Vec3 | null {
+        return this.planet?.getCartesianFromPixelTerrain(px) || null;
+    }
+
+    protected _handleTargetLock() {
+        if (!this._targetPoint) return;
+
+        let cam = this.planet!.camera;
+        let dir = this._targetPoint.sub(cam.eye);
+
+        if (dir.length2() === 0) {
+            return;
+        }
+
+        dir.normalize();
+
+        let localUp = this._getLocalUp(cam.eye);
+        let rotated = false;
+
+        let forwardProj = Vec3.proj_b_to_plane(cam.getForward(), localUp);
+        let dirProj = Vec3.proj_b_to_plane(dir, localUp);
+
+        if (forwardProj.length2() > 0 && dirProj.length2() > 0) {
+            forwardProj.normalize();
+            dirProj.normalize();
+
+            let yaw = Math.atan2(forwardProj.cross(dirProj).dot(localUp), forwardProj.dot(dirProj));
+
+            if (yaw !== 0) {
+                cam.rotate(Quat.axisAngleToQuat(localUp, yaw));
+                rotated = true;
+            }
+        }
+
+        // Pitch around the horizontal axis, which is the camera right vector when there is no roll
+        let forward = cam.getForward();
+        let axis = forward.cross(localUp);
+        axis = axis.length2() > 0 ? axis.normalize() : cam.getRight();
+
+        let pitch = Math.atan2(forward.cross(dir).dot(axis), forward.dot(dir));
+
+        if (pitch !== 0) {
+            cam.rotate(Quat.axisAngleToQuat(axis, pitch));
+            rotated = true;
+        }
+
+        if (!rotated) return;
+
+        this._orthonormalizeCamera();
+
+        this.events.dispatch(this.events.rotate, this);
+    }
+
     protected _handleRotation() {
+        if (this._targetPoint) {
+            return;
+        }
+
         if (this._dx === 0 && this._dy === 0) {
             return;
         }
@@ -679,17 +833,24 @@ export class FreeNavigation extends Control {
     }
 
     /**
-     * Rollls the camera around its forward axis.
+     * Rollls the camera around its forward axis and keeps its angular velocity smoothed.
      * @protected
      */
     protected _handleRoll() {
-        if (this._rollDir === 0) {
+        let dt = this.dt;
+        let targetVel = Math.sign(this._rollDir) * this.rollSpeed;
+
+        let time = targetVel !== 0 ? ROLL_ACCELERATION_TIME : ROLL_DECELERATION_TIME;
+        let k = time > 0 ? 1.0 - Math.exp(-dt / time) : 1.0;
+        this.rollVel += (targetVel - this.rollVel) * k;
+
+        if (Math.abs(this.rollVel) < MIN_ROLL_VELOCITY) {
+            this.rollVel = 0;
             return;
         }
 
         let cam = this.planet!.camera;
-        let angle = Math.sign(this._rollDir) * this.rollSpeed * this.dt;
-        cam.rotate(Quat.axisAngleToQuat(cam.getForward(), angle));
+        cam.rotate(Quat.axisAngleToQuat(cam.getForward(), this.rollVel * dt));
 
         this._orthonormalizeCamera();
 
@@ -725,6 +886,10 @@ export class FreeNavigation extends Control {
         }
         if (this._moveLeft) {
             dir.subA(cam.getRight());
+        }
+
+        if (this._isHeightHold()) {
+            dir.copy(Vec3.proj_b_to_plane(dir, localUp));
         }
 
         if (this._moveUp) {
@@ -763,6 +928,34 @@ export class FreeNavigation extends Control {
         this._orthonormalizeCamera();
 
         this.events.dispatch(this.events.move, this);
+    }
+
+    protected _isHeightHold(): boolean {
+        return this.renderer!.events.isKeyPressed(input.KEY_SHIFT);
+    }
+
+    protected _handleHeightHold() {
+        if (!this._isHeightHold()) {
+            this._holdHeight = null;
+            return;
+        }
+
+        let cam = this.planet!.camera;
+        let ellipsoid = this.planet!.ellipsoid;
+        let lonLat = ellipsoid.cartesianToLonLat(cam.eye);
+
+        if (this._holdHeight === null) {
+            this._holdHeight = lonLat.height;
+            return;
+        }
+
+        this._holdHeight += this.vel.dot(this._getLocalUp(cam.eye)) * this.dt;
+
+        // Straight line movement above the curved surface changes the height as well
+        if (lonLat.height !== this._holdHeight) {
+            lonLat.height = this._holdHeight;
+            cam.eye.copy(ellipsoid.lonLatToCartesian(lonLat));
+        }
     }
 
     protected _suspendNavigation() {

@@ -249,6 +249,7 @@ class PointCloud {
      */
     public setVisibility(visibility: boolean) {
         this.visibility = visibility;
+        this._handler && this._handler.requestRedraw();
     }
 
     /**
@@ -267,7 +268,7 @@ class PointCloud {
             this._points[i].color.w = clampedOpacity * 255.0;
         }
 
-        this._changedBuffers[COLOR_BUFFER] = true;
+        this._setChangedBuffer(COLOR_BUFFER);
     }
 
     /**
@@ -339,33 +340,33 @@ class PointCloud {
             }
         }
 
-        this._changedBuffers[COORDINATES_BUFFER] = true;
-        this._changedBuffers[COLOR_BUFFER] = true;
-        this._changedBuffers[PICKING_COLOR_BUFFER] = true;
+        this._setChangedBuffer(COORDINATES_BUFFER);
+        this._setChangedBuffer(COLOR_BUFFER);
+        this._setChangedBuffer(PICKING_COLOR_BUFFER);
     }
 
     public setPointPosition(index: number, x: number, y: number, z: number) {
         // TODO: ...
-        this._changedBuffers[COORDINATES_BUFFER] = true;
+        this._setChangedBuffer(COORDINATES_BUFFER);
     }
 
     public setPointColor(index: number, r: number, g: number, b: number, a: number) {
         // TODO: ...
-        this._changedBuffers[COLOR_BUFFER] = true;
+        this._setChangedBuffer(COLOR_BUFFER);
     }
 
     public addPoints(points: Poi[]) {
         // TODO: ...
-        this._changedBuffers[COORDINATES_BUFFER] = true;
-        this._changedBuffers[COLOR_BUFFER] = true;
-        this._changedBuffers[PICKING_COLOR_BUFFER] = true;
+        this._setChangedBuffer(COORDINATES_BUFFER);
+        this._setChangedBuffer(COLOR_BUFFER);
+        this._setChangedBuffer(PICKING_COLOR_BUFFER);
     }
 
     public addPoint(index: number, point: Poi) {
         // TODO: ...
-        this._changedBuffers[COORDINATES_BUFFER] = true;
-        this._changedBuffers[COLOR_BUFFER] = true;
-        this._changedBuffers[PICKING_COLOR_BUFFER] = true;
+        this._setChangedBuffer(COORDINATES_BUFFER);
+        this._setChangedBuffer(COLOR_BUFFER);
+        this._setChangedBuffer(PICKING_COLOR_BUFFER);
     }
 
     /**
@@ -380,16 +381,16 @@ class PointCloud {
 
     public removePoint(index: number) {
         // TODO: ...
-        this._changedBuffers[COORDINATES_BUFFER] = true;
-        this._changedBuffers[COLOR_BUFFER] = true;
-        this._changedBuffers[PICKING_COLOR_BUFFER] = true;
+        this._setChangedBuffer(COORDINATES_BUFFER);
+        this._setChangedBuffer(COLOR_BUFFER);
+        this._setChangedBuffer(PICKING_COLOR_BUFFER);
     }
 
     public insertPoint(index: number, point: Poi) {
         // TODO: ...
-        this._changedBuffers[COORDINATES_BUFFER] = true;
-        this._changedBuffers[COLOR_BUFFER] = true;
-        this._changedBuffers[PICKING_COLOR_BUFFER] = true;
+        this._setChangedBuffer(COORDINATES_BUFFER);
+        this._setChangedBuffer(COLOR_BUFFER);
+        this._setChangedBuffer(PICKING_COLOR_BUFFER);
     }
 
     public draw() {
@@ -446,6 +447,11 @@ class PointCloud {
 
             gl.drawArrays(gl.POINTS, 0, this._coordinatesBuffer!.numItems);
         }
+    }
+
+    protected _setChangedBuffer(index: number) {
+        this._changedBuffers[index] = true;
+        this._handler && this._handler.requestRedraw();
     }
 
     /**
@@ -523,7 +529,7 @@ class PointCloud {
                     1.0
                 );
             }
-            this._changedBuffers[PICKING_COLOR_BUFFER] = true;
+            this._setChangedBuffer(PICKING_COLOR_BUFFER);
         }
     }
 }

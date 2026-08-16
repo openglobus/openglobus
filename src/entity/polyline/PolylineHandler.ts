@@ -74,6 +74,14 @@ class PolylineHandler {
         this._transparentTexRenderer.setVisibleSphere(p, r);
     }
 
+    /**
+     * Requests the next frame to be rendered.
+     * @public
+     */
+    public requestRedraw() {
+        this._renderer && (this._renderer.handler.needRedraw = true);
+    }
+
     protected _initProgram() {
         if (!this._renderer) return;
 

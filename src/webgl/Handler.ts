@@ -52,6 +52,7 @@ export interface IHandlerParameters {
     };
     extensions?: string[];
     autoActivate?: boolean;
+    idleMode?: boolean;
 }
 
 export interface Texture3DParams {
@@ -214,6 +215,9 @@ class Handler {
     protected _clipControlZeroToOne: boolean = false;
     public clipControl: ((origin: number, depth: number) => void) | undefined = undefined;
 
+    protected _idleMode: boolean;
+    public needRedraw: boolean;
+
     protected _getMipmapLevels(width: number, height: number): number {
         return Math.max(1, Math.floor(Math.log2(Math.max(width, height))) + 1);
     }
@@ -249,6 +253,9 @@ class Handler {
             context: params.context || {}
         };
 
+        this._idleMode = params.idleMode || false;
+        this.needRedraw = true;
+
         //this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
 
         this.extensions = {};
@@ -283,6 +290,28 @@ class Handler {
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.initialize();
         }
+    }
+
+    /**
+     * Idle mode skips a frame rendering when nothing has been changed since the previous frame.
+     * @public
+     */
+    public set idleMode(isEnabled: boolean) {
+        this._idleMode = isEnabled;
+        this.needRedraw = true;
+    }
+
+    public get idleMode(): boolean {
+        return this._idleMode;
+    }
+
+    /**
+     * Returns true when the idle mode is on and nothing has requested a frame yet, i.e.
+     * the next frame is going to be skipped.
+     * @public
+     */
+    public get isIdle(): boolean {
+        return this._idleMode && !this.needRedraw;
     }
 
     public set frameDelay(delay: number) {
@@ -853,6 +882,7 @@ class Handler {
 
     protected _toggleVisibilityChange(visibility: boolean) {
         if (visibility) {
+            this.needRedraw = true;
             this.start();
             this.ONCANVASRESIZE && this.ONCANVASRESIZE();
             this.events.dispatch(this.events.visibilitychange, true);
@@ -1045,6 +1075,7 @@ class Handler {
             this.gl && this.gl.viewport(0, 0, w, h);
             this.ONCANVASRESIZE && this.ONCANVASRESIZE(this.canvas);
             this.events.dispatch(this.events.resize, this);
+            this.needRedraw = true;
         }
     }
 
@@ -1133,6 +1164,12 @@ class Handler {
             }
         }
 
+        if (this._idleMode && !this.needRedraw) {
+            return;
+        }
+
+        this.needRedraw = false;
+
         /** Draw frame */
         this._frameCallback();
     };
@@ -1153,6 +1190,7 @@ class Handler {
      */
     public start() {
         if (!this._requestAnimationFrameId && this._initialized) {
+            this.needRedraw = true;
             this._animationFrameCallback();
         }
     }

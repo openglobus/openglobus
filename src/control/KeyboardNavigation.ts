@@ -105,11 +105,18 @@ export class KeyboardNavigation extends Control {
             let acc = this.force.scale(1.0 / this.mass);
             this.vel.addA(acc);
             this.vel.scale(0.96);
+            if (this.vel.length() < 0.001) {
+                this.vel.set(0, 0, 0);
+            }
             this.force.set(0, 0, 0);
 
             let cam = this._camera;
             cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
             cam.update();
+
+            if (this.vel.length2() > 0) {
+                this.renderer.requestRedraw();
+            }
         }
     }
 }
