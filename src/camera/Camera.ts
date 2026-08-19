@@ -217,7 +217,7 @@ class Camera {
      * Fires when the camera view or projection has been changed. It is assigned by the renderer
      * to wake it up from the idle mode.
      * @public
-     * @type {(() => void) | null}
+     * @type {?function(): void}
      */
     public onViewChange: (() => void) | null = null;
 
