@@ -526,8 +526,7 @@ class Vector extends BaseTileMaterialLayer {
      * @returns {Vector} - Returns this layer.
      */
     public addEntities(entities: Entity[]): Vector {
-        let i = entities.length;
-        while (i--) {
+        for (let i = 0, len = entities.length; i < len; i++) {
             this.add(entities[i]);
         }
         return this;
