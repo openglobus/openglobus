@@ -164,8 +164,8 @@ function createAreaDepthCamera(index) {
         // framebuffer - width * height * 4 floats - so 2048 here costs 67 MB a camera and four of those
         // fail to allocate. Four maps at 1024 hold the same total as the single 2048 map did, and
         // ShadowManager requires every map to share one size anyway.
-        width: 1024*2,
-        height: 1024*2,
+        width: 1024,
+        height: 1024,
         // Footprint markers, ground rays and horizon lines are debug visualization, they may not cast.
         excludeLayers: [horizonMarkers],
         near: 1000,
