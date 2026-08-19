@@ -36,6 +36,12 @@ const STR2ALIGN: Record<string, number> = {
     center: ALIGN.CENTER
 };
 
+const ALIGN2STR: Record<number, string> = {
+    [ALIGN.LEFT]: "left",
+    [ALIGN.RIGHT]: "right",
+    [ALIGN.CENTER]: "center"
+};
+
 /**
  * Billboard text label.
  * @class
@@ -232,7 +238,8 @@ class Label extends BaseBillboard {
      * @param {string} align - Text align.
      */
     public setAlign(align: string) {
-        this._align = STR2ALIGN[align.trim().toLowerCase()] as number;
+        const alignValue = STR2ALIGN[align.trim().toLowerCase()];
+        this._align = alignValue != undefined ? alignValue : ALIGN.LEFT;
         if (this._isReady && this._handler) {
             this._handler.setText(
                 this._handlerIndex,
@@ -252,8 +259,8 @@ class Label extends BaseBillboard {
      * @public
      * @returns {string}
      */
-    public getAlign(): number {
-        return this._align;
+    public getAlign(): string {
+        return ALIGN2STR[this._align];
     }
 
     /**
