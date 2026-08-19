@@ -8,7 +8,16 @@ test('Testing Label', () => {
     expect(label.getText()).toBe("test");
 
     label.setAlign('left');
-    expect(label.getAlign()).toBe(1);
+    expect(label.getAlign()).toBe('left');
+
+    label.setAlign('center');
+    expect(label.getAlign()).toBe('center');
+
+    label.setAlign('right');
+    expect(label.getAlign()).toBe('right');
+
+    label.setAlign('invalid');
+    expect(label.getAlign()).toBe('left');
 
     label.setFace('arial');
     expect(label.getFace()).toBe('arial');
