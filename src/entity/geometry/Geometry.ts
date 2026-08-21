@@ -436,6 +436,33 @@ class Geometry {
         return this.setLineColor(rgba.x, rgba.y, rgba.z, rgba.w);
     }
 
+    /**
+     * Gets geometry fill color.
+     * @public
+     * @returns {Vec4} Copy of the normalized RGBA fill color.
+     */
+    public getFillColor4v(): Vec4 {
+        return this._style.fillColor.clone();
+    }
+
+    /**
+     * Gets geometry line color.
+     * @public
+     * @returns {Vec4} Copy of the normalized RGBA line color.
+     */
+    public getLineColor4v(): Vec4 {
+        return this._style.lineColor.clone();
+    }
+
+    /**
+     * Gets geometry stroke color.
+     * @public
+     * @returns {Vec4} Copy of the normalized RGBA stroke color.
+     */
+    public getStrokeColor4v(): Vec4 {
+        return this._style.strokeColor.clone();
+    }
+
     public setStrokeOpacity(opacity: number): Geometry {
         let c = this._style.strokeColor;
         c.w = opacity;

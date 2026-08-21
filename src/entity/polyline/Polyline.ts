@@ -3,6 +3,7 @@ import { LonLat } from "../../LonLat";
 import { Vec3 } from "../../math/Vec3";
 import type { NumberArray3 } from "../../math/Vec3";
 import type { NumberArray2 } from "../../math/Vec2";
+import { Vec4 } from "../../math/Vec4";
 import type { NumberArray4 } from "../../math/Vec4";
 import type { HTMLImageElementExt } from "../../utils/ImagesCacheManager";
 import { htmlColorToRgba } from "../../utils/shared";
@@ -989,6 +990,28 @@ class Polyline {
                 this._batchRenderer.setColor(htmlColor, this._batchRendererIndexes[i], this._opacity);
             }
         }
+    }
+
+    /**
+     * Gets polyline HTML color.
+     * @public
+     * @param {number} [index=0] - Segment index.
+     * @returns {string | undefined} HTML color, or undefined when no color is set.
+     */
+    public getColorHTML(index: number = 0): string | undefined {
+        return this._getDefaultHtmlColor(index);
+    }
+
+    /**
+     * Gets polyline color as a normalized RGBA vector.
+     * @public
+     * @param {number} [index=0] - Segment index.
+     * @returns {Vec4 | undefined} Normalized RGBA color, or undefined when no color is set.
+     */
+    public getColor4v(index: number = 0): Vec4 | undefined {
+        const htmlColor = this._getDefaultHtmlColor(index);
+        if (!htmlColor) return;
+        return htmlColorToRgba(htmlColor);
     }
 
     // ─── Lifecycle ──────────────────────────────────────────────────────
