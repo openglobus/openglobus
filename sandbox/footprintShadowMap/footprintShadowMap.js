@@ -43,148 +43,49 @@ const globus = new Globe({
     sun: {
         localDateTime: new Date(2026, 7, 4, 18, 0)
     }
-    //reverseDepth: false
 });
 
-let timelineControl = new control.TimelineControl();
-
-globus.planet.addControl(timelineControl);
+globus.planet.addControl(new control.TimelineControl());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.LayerSwitcher());
 globus.planet.addControl(new control.DrawingSwitcher());
 globus.planet.addControl(new control.EntityEditor());
+globus.planet.addControl(new control.ToggleWireframe());
 
-const skyCubeObject3d = Object3d.createCube(10000, 10000, 10000).setColor("white");
+// Casters standing well above the ground, which is what the caster volume has to reach up to: the tallest
+// sits at 10 km, the height MAX_SHADOW_CASTER_HEIGHT is cut for.
+const SKY_CUBES = [
+    { name: "sky-cube", lonLat: new LonLat(9.0814898, 46.4864594, 10000), size: 10000 },
+    { name: "sky-cube-medium", lonLat: new LonLat(9.2314898, 46.4864594, 6000), size: 6000 },
+    { name: "sky-cube-small", lonLat: new LonLat(8.9514898, 46.4864594, 3000), size: 3000 }
+];
 
-const skyCubeEntity = new Entity({
-    name: "sky-cube",
-    lonlat: new LonLat(9.0814898, 46.4864594, 10000),
-    independentPicking: true,
-    geoObject: {
-        tag: "sky-cube",
-        object3d: skyCubeObject3d
-    }
-});
+for (let i = 0; i < SKY_CUBES.length; i++) {
+    let cube = SKY_CUBES[i];
 
-myObjects.add(skyCubeEntity);
-
-const mediumSkyCubeEntity = new Entity({
-    name: "sky-cube-medium",
-    lonlat: new LonLat(9.2314898, 46.4864594, 6000),
-    independentPicking: true,
-    geoObject: {
-        tag: "sky-cube-medium",
-        object3d: Object3d.createCube(6000, 6000, 6000).setColor("white")
-    }
-});
-myObjects.add(mediumSkyCubeEntity);
-
-const smallSkyCubeEntity = new Entity({
-    name: "sky-cube-small",
-    lonlat: new LonLat(8.9514898, 46.4864594, 3000),
-    independentPicking: true,
-    geoObject: {
-        tag: "sky-cube-small",
-        object3d: Object3d.createCube(3000, 3000, 3000).setColor("white")
-    }
-});
-myObjects.add(smallSkyCubeEntity);
-
-// Debug pool for the fitted area: corner markers on the reference surface, rays dropping to the terrain
-// under them, and one closed contour through the terrain points. The fitted area is always a plain quad,
-// see getAreaQuad.
-const MAX_FOOTPRINT_AREA_POINTS = 4;
-
-function createFootprintMarker(name) {
-    return new Entity({
-        name,
-        visibility: false,
-        independentPicking: true,
-        geoObject: {
-            tag: name,
-            object3d: Object3d.createSphere(16, 16, 3).setColor("yellow")
-        }
-    });
+    myObjects.add(
+        new Entity({
+            name: cube.name,
+            lonlat: cube.lonLat,
+            independentPicking: true,
+            geoObject: {
+                tag: cube.name,
+                object3d: Object3d.createCube(cube.size, cube.size, cube.size).setColor("white")
+            }
+        })
+    );
 }
 
-function createFootprintGroundRay(name) {
-    return new Entity({
-        name,
-        visibility: false,
-        ray: {
-            startPosition: new Vec3(),
-            endPosition: new Vec3(),
-            startColor: "rgba(0,255,255,0.9)",
-            endColor: "rgba(0,255,255,0.15)",
-            thickness: 2.5
-        }
-    });
-}
-
-const footprintMarkers = [];
-const footprintGroundRays = [];
-
-for (let i = 0; i < MAX_FOOTPRINT_AREA_POINTS; i++) {
-    footprintMarkers.push(createFootprintMarker(`footprint-marker-${i}`));
-    footprintGroundRays.push(createFootprintGroundRay(`footprint-ground-ray-${i}`));
-    horizonMarkers.add(footprintMarkers[i]);
-    horizonMarkers.add(footprintGroundRays[i]);
-}
-
-const footprintContour = new Entity({
-    name: "footprint-contour",
-    visibility: false,
-    polyline: {
-        path3v: [],
-        thickness: 3,
-        color: "yellow"
-    }
-});
-horizonMarkers.add(footprintContour);
-
-const depthPreviewShader = `void mainImage(out vec4 fragColor, in vec2 fragCoord){
-                float depth = texture(inputTextureArray, vec3(fragCoord, float(u_arrayLayer))).r;
-                float normalized = depth <= 0.0 ? 0.0 : pow(1.0 - depth, 0.65);
-                fragColor = vec4(vec3(clamp(normalized, 0.0, 1.0)), 1.0);
-            }`;
-
-const depthCameraHandler = new control.DepthCameraHandler();
-globus.planet.addControl(depthCameraHandler);
-
-const MAX_AREA_COUNT = 4;
-
-function createAreaDepthCamera() {
-    return new DepthCamera({
-        enableSegmentSkirts: true,
-        enableSegmentFaceCulling: false,
-        width: 1024,
-        height: 1024,
-        excludeLayers: [horizonMarkers],
-        near: 1000,
-        far: 500000,
-        focusDistance: 100000,
-        verticalViewAngle: 45,
-        intensity: 1,
-        isOrthographic: true,
-        //geoObjectDepthCullFace: "back",
-        showFrustum: true,
-        showFootprint: false
-    });
-}
-
-const depthCameras = [];
-const shadowCameras = [];
-
-for (let i = 0; i < MAX_AREA_COUNT; i++) {
-    depthCameras.push(createAreaDepthCamera(i));
-    depthCameraHandler.add(depthCameras[i]);
-    shadowCameras.push(depthCameras[i].camera);
-}
-
-// Band 0 drives everything that is measured once per frame rather than per band.
-const depthCamera = depthCameras[0];
-
-const HORIZON_SCREEN_MARGIN = 0; //100
+// Side of every shadow map. The fit reads the resolution from here rather than from a framebuffer: all
+// bands are built by one factory, so they all share it.
+const SHADOW_MAP_SIZE = 1024;
+// Bands the footprint divides into once the split triggers, nearest to the camera first, see
+// getFootprintAreas. One shadow map each, so this cannot exceed the library's MAX_SHADOW_MAPS.
+const AREA_COUNT = 3;
+// Corners of a band. It is always a plain quad, see getAreaQuad.
+const AREA_QUAD_POINTS = 4;
+// Near plane of every shadow camera. The far plane is fitted per band and per frame.
+const SHADOW_CAMERA_NEAR = 1000;
 const FOOTPRINT_SCREEN_EDGE_SEARCH_STEPS = 4;
 // Hysteresis on the rail pairing, see updateAreaRails: the other pairing has to span this much more of
 // the distance gradient before the rails flip to it, so terrain jitter cannot flap the bands at the
@@ -202,16 +103,24 @@ const SHADOW_CASTER_RELIEF_FACTOR = 1.25;
 const SHADOW_CASTER_HEIGHT_FACTOR = 0.25;
 const MIN_SHADOW_CASTER_HEIGHT = 100;
 const MAX_SHADOW_CASTER_HEIGHT = 10000;
-// Rungs per octave the caster height is quantized onto. One, so it moves in doublings and rarely.
-const SHADOW_CASTER_HEIGHT_STEPS = 1;
+// Light space depth kept in front of the caster volume, the larger of an absolute distance and a multiple
+// of the caster volume height. Everything within it still casts. Moving the camera sunward leaves the
+// orthographic bounds untouched, so this buys caster coverage at no cost to shadow resolution: it only
+// widens the depth range, and the depth target is 32 bit float.
+const SHADOW_CASTER_CLEARANCE = 100000;
+const SHADOW_CASTER_CLEARANCE_FACTOR = 6.0;
 const SHADOW_DEPTH_BIAS_TEXELS = 100.0;
 const SHADOW_DEPTH_EPSILON_TEXELS = 1.0;
 // Floor on the light-space depth reserved behind the farthest shadow receiver, for terrain that goes
-// below the footprint reference level. The measured descent raises it, see receiverDepthPadding.
+// below the footprint reference level. The measured descent raises it, see fitAreaCamera.
 const SHADOW_RECEIVER_DEPTH_PADDING = 500;
 // PCF taps reach this far outside the sampled texel, and a tap that lands outside the map reads as
 // uncovered, so the fit needs this much border.
 const SHADOW_ORTHO_TEXEL_PADDING = 3;
+// Fractional margin added to each side of the fitted orthographic bounds, on top of the texel border.
+// Covers what the fit itself cannot: the footprint is sampled at the four screen corners only, so the
+// real ground boundary bulges outside the polygon they define, by an amount no measurement here sees.
+const SHADOW_ORTHO_MARGIN_FACTOR = 0.01;
 // Rungs per octave of the texel size ladder the orthographic extent is quantized onto, the ratio
 // between neighbouring rungs, and the extra slack below the release band. See quantizeOrthoTexelSize.
 const ORTHO_TEXEL_QUANTIZATION_STEPS = 4;
@@ -222,140 +131,158 @@ const MIN_SHADOW_ORTHO_SIZE = 1.0;
 // Terrain height under the camera is quantized to this step, in world units, before the footprint
 // ellipsoid is rebuilt, so that the footprint does not jitter while flying over rough terrain.
 const TERRAIN_ELLIPSOID_HEIGHT_STEP = 1.0;
-// Squared length below which a projected light up vector counts as degenerate, see getStableLightUp.
-const MIN_LIGHT_UP_LENGTH2 = 1e-12;
+// How much ground a metre of relief may buy along a view ray, as the reciprocal of the smallest ray slope
+// the relief walk accepts. Rays grazing the horizon trade a metre of height for kilometres of ground, and
+// the relief driving the walk is only ever an estimate, so the walk is flattened out near the horizon
+// instead of following the true grazing geometry.
+const MIN_FOOTPRINT_RAY_SLOPE = 0.1;
+// How far the outward half of the relief walk - terrain below the reference level - may enlarge the
+// footprint sideways, as a fraction of its radius. Only that sideways part is capped, the rest of the
+// walk is depth. The inward half needs no cap, the eye bounds it.
+//
+// The one value here that trades coverage for resolution rather than buying both. Ground descending away
+// from the camera is seen much further than the reference level suggests, and near the ground that descent
+// is easily a multiple of the footprint, so a tight cap leaves the far part of such a view outside the map.
+// It still has to stay a fraction of the footprint: a camera metres above a plateau has a footprint metres
+// across, and whatever a coarse ancestor tile reports about terrain a kilometre below it cannot be visible
+// from there.
+const RELIEF_LATERAL_FACTOR = 0.5;
+// Sanity clamps on the terrain range read out of the quad tree, in world units. While tiles load, a fresh
+// segment reports the range of the coarse ancestor it borrows geometry from, so the range can briefly
+// describe a continent rather than the view.
+const MAX_RELIEF_UP = 12000;
+const MAX_RELIEF_DOWN = 2000;
 
-// Live tunables, exposed as window.shadowMapSandbox.params for console experiments. Add a field
-// here and read it where the constant used to be to make anything else tunable the same way.
+// The live knobs, exposed as window.shadowMapSandbox.params for console experiments. Everything else that
+// shapes the fit is a constant above.
 const shadowParams = {
-    // Fractional margin added to each side of the fitted orthographic bounds, on top of the texel
-    // border. Covers what the fit itself cannot: the footprint is sampled at the four screen corners
-    // only, so the real ground boundary bulges outside the polygon they define, by an amount no
-    // measurement here sees.
-    orthoMarginFactor: 0.01,
-    // Light-space depth kept in front of the caster volume, the larger of an absolute distance and a
-    // multiple of the caster volume height. Everything within it still casts. Moving the camera
-    // sunward leaves the orthographic bounds untouched, so this buys caster coverage at no cost to
-    // shadow resolution: it only widens the depth range, and the depth target is 32 bit float.
-    casterClearance: 100000,
-    casterClearanceFactor: 6.0,
-    // How much ground a metre of relief may buy along a view ray, as the reciprocal of the smallest
-    // ray slope the relief walk accepts. Rays grazing the horizon trade a metre of height for
-    // kilometres of ground, and the relief driving the walk is only ever an estimate, so the walk is
-    // flattened out near the horizon instead of following the true grazing geometry.
-    minFootprintRaySlope: 0.1,
-    // How far the outward half of the relief walk - terrain below the reference level - may enlarge the
-    // footprint sideways, as a fraction of its radius. Only that sideways part is capped, the rest of
-    // the walk is depth. The inward half needs no cap, the eye bounds it.
-    //
-    // The one knob here that trades coverage for resolution rather than buying both. Ground descending
-    // away from the camera is seen much further than the reference level suggests, and near the ground
-    // that descent is easily a multiple of the footprint, so a tight cap leaves the far part of such a
-    // view outside the map. It still has to stay a fraction of the footprint: a camera metres above a
-    // plateau has a footprint metres across, and whatever a coarse ancestor tile reports about terrain
-    // a kilometre below it cannot be visible from there.
-    reliefLateralFactor: 0.5,
-    // Sanity clamps on the terrain range read out of the quad tree, in world units. While tiles load,
-    // a fresh segment reports the range of the coarse ancestor it borrows geometry from, so the range
-    // can briefly describe a continent rather than the view.
-    maxReliefUp: 12000,
-    maxReliefDown: 2000,
-    // Lowers the reference ellipsoid the footprint rays are cast against, in world units. A manual knob
-    // only: the measured relief already reaches below that level along the rays themselves, see
-    // getReceiverBoundsPoints.
-    footprintDrop: 0,
-    // How many equal bands along the view direction the footprint divides into once the split triggers:
-    // 2 means halves, 3 thirds, 4 quarters, see getFootprintArea. The fit - shadow camera, markers, rays,
-    // the yellow contour - goes to band areaIndex, 0 being the nearest to the camera. One camera on one
-    // band at a time: handing the other bands their own cameras is the next step, and only makes sense
-    // once the nearest band demonstrably fits well.
-    areaCount: 4,
-    areaIndex: 0,
-    // How the band boundaries distribute between the near and the far end of the footprint: 0 spaces them
-    // evenly along the rails, 1 geometrically in eye distance, in between blends the two.
-    //
-    // Even spacing is the wrong distribution and it is worth knowing why. A rail runs from the near corner
-    // to the far corner, and toward the horizon its far half is tens of kilometres, so an even quarter
-    // already swallows a 20 km deep band across a footprint that has fanned out to 40 km - which is why
-    // even spacing needs hundreds of bands before the nearest one is sharp. A band's texel grows in
-    // proportion to its distance, so equal distance *ratios* are what hand every band the same screen
-    // space quality, and four of those cover what hundreds of even ones could not.
-    areaSplitLambda: 1.0,
     // The reference texel, in world units on the ground: the footprint stays whole while its own texel
-    // keeps this, and divides into areaCount bands once it does not. Ground rather than light space so
+    // keeps this, and divides into AREA_COUNT bands once it does not. Ground rather than light space so
     // that the sun cannot influence the split, see getAreaSpread - and the fitted light space texel then
     // comes out at or below it, since the sun can only compress ground onto the map, never stretch it.
     //
-    // Set to 0 to take the trigger out of the way and always divide into areaCount - the way to see what a
-    // given division does before deciding what the reference should be.
+    // Set to 0 to take the trigger out of the way and always divide - the way to see what the division
+    // does before deciding what the reference should be.
     targetTexelSize: 1.5,
-    // Pins the depth pass to the depth camera's own quad tree traversal, see pinQuadTreeTraversal.
-    forceOwnQuadTreeTraversal: true,
-    // Puts the fitted bounds on a world fixed texel grid, see snapOrthographicBounds. Anchoring both
-    // axes of that grid needs a light space basis that holds still, see getStableLightUp; quantizing
-    // the extent works under either basis.
-    snapToTexelGrid: true,
-    // Aligns the light space basis with the local horizon under the footprint instead of with the light
-    // alone. Tighter bounds, at the price of a basis that turns with the camera and takes the X anchor
-    // of the grid above down with it, see getStableLightUp.
-    cameraAlignedLightUp: false,
-    // Frames of camera displacement carried into the bounds padding, see cameraStep. Covers the one
-    // frame the fit runs behind the view. Off by default: it makes the fitted size track camera speed,
-    // and a size that changes every frame drags the snapped grid along with it, which costs more in
-    // crawling than the lag costs in coverage. Raise it if a strip at the near edge of a fast moving
-    // view goes unshadowed.
-    motionMarginFrames: 0.0,
-    // Flat addition to the depth bias and epsilon, in world units, on top of the texel derived terms.
-    // Expensive to leave switched on: the bias is light-space depth, so it slides every shadow away
-    // from its caster along the ground by offset / tan(sunElevation). At 500 with the sun 20 degrees up
-    // that is 1.4 km of ground losing its shadow, which near the ground swallows the whole view and
-    // reads as shadows simply missing at the foot of everything.
-    depthBiasOffset: 0
+    // Which band the debug overlay follows, 0 being the nearest to the camera. Nothing but the overlay
+    // reads it, see updateAreaDebug.
+    areaIndex: 0
 };
 
-// Last frame measurements of the fit, exposed as window.shadowMapSandbox.stats.
-const shadowStats = {
-    texelWorldSize: 0.0,
-    footprintRadius: 0.0,
-    // The split, see getFootprintAreas. footprintTexelSize against areaTexelTarget is the trigger: equal or
-    // below and the footprint stays whole, above and it splits into areaCount bands. The per band arrays
-    // hold the ground texel of each band and the light space texel its camera ended up with - use logBands.
-    areaCount: 0,
-    areaNearDistance: 0.0,
-    areaFarDistance: 0.0,
-    footprintTexelSize: 0.0,
-    areaTexelTarget: 0.0,
-    areaTexelSizes: [],
-    texelWorldSizes: [],
-    cornerHeightSpread: 0.0,
-    reliefUp: 0.0,
-    reliefDown: 0.0,
-    depthReliefUp: 0.0,
-    depthReliefDown: 0.0,
-    casterHeight: 0.0,
-    cameraStep: 0.0
-};
+const depthPreviewShader = `void mainImage(out vec4 fragColor, in vec2 fragCoord){
+                float depth = texture(inputTextureArray, vec3(fragCoord, float(u_arrayLayer))).r;
+                float normalized = depth <= 0.0 ? 0.0 : pow(1.0 - depth, 0.65);
+                fragColor = vec4(vec3(clamp(normalized, 0.0, 1.0)), 1.0);
+            }`;
+
+const depthCameraHandler = new control.DepthCameraHandler();
+globus.planet.addControl(depthCameraHandler);
+
+const depthCameras = [];
+
+for (let i = 0; i < AREA_COUNT; i++) {
+    depthCameras.push(
+        depthCameraHandler.add(
+            new DepthCamera({
+                width: SHADOW_MAP_SIZE,
+                height: SHADOW_MAP_SIZE,
+                near: SHADOW_CAMERA_NEAR,
+                isOrthographic: true,
+                enableSegmentSkirts: true,
+                enableSegmentFaceCulling: false,
+                excludeLayers: [horizonMarkers],
+                showFootprint: false
+            })
+        )
+    );
+}
+
+// One map per band, added nearest first. ShadowManager keeps insertion order, and shadows.glsl multiplies
+// every active map into the fragment, so all bands shade the ground at once.
+const shadowMaps = [];
+
+for (let i = 0; i < AREA_COUNT; i++) {
+    let shadowMap = new ShadowMap({
+        enabled: i === 0,
+        depthCamera: depthCameras[i]
+    });
+
+    globus.planet.renderer.shadows.add(shadowMap);
+    shadowMaps.push(shadowMap);
+
+    globus.planet.addControl(
+        new control.FramebufferPreview({
+            title: `Band ${i}`,
+            arrayTexture: shadowMap.arrayTexture,
+            arrayLayer: shadowMap.slot,
+            width: 220,
+            height: 220,
+            image: depthPreviewShader,
+            flippedY: true
+        })
+    );
+}
+
+// Debug overlay of one band: corner markers on the reference surface, rays dropping to the terrain under
+// them, and one closed contour through the terrain points.
+const footprintMarkers = [];
+const footprintGroundRays = [];
+
+for (let i = 0; i < AREA_QUAD_POINTS; i++) {
+    let markerName = `footprint-marker-${i}`;
+
+    footprintMarkers.push(
+        new Entity({
+            name: markerName,
+            visibility: false,
+            independentPicking: true,
+            geoObject: {
+                tag: markerName,
+                object3d: Object3d.createSphere(16, 16, 3).setColor("yellow")
+            }
+        })
+    );
+
+    footprintGroundRays.push(
+        new Entity({
+            name: `footprint-ground-ray-${i}`,
+            visibility: false,
+            ray: {
+                startPosition: new Vec3(),
+                endPosition: new Vec3(),
+                startColor: "rgba(0,255,255,0.9)",
+                endColor: "rgba(0,255,255,0.15)",
+                thickness: 2.5
+            }
+        })
+    );
+
+    horizonMarkers.add(footprintMarkers[i]);
+    horizonMarkers.add(footprintGroundRays[i]);
+}
+
+const footprintContour = new Entity({
+    name: "footprint-contour",
+    visibility: false,
+    polyline: {
+        path3v: [],
+        thickness: 3,
+        color: "yellow"
+    }
+});
+horizonMarkers.add(footprintContour);
 
 // The footprint is sampled against the base ellipsoid raised to the terrain level. Without terrain
 // data getAltitude() falls back to the geodetic height and this is the base ellipsoid.
 let footprintEllipsoid = globus.planet.ellipsoid;
 let footprintEllipsoidHeight = 0.0;
 
-// Camera position the previous fit was built from, and the distance moved since. The map is rendered
-// during predraw, while the navigation only moves the main camera at the end of predraw and the planet
-// only updates it during draw, so a fit is always built from the pose of the frame before the one it is
-// sampled in. That lag does not distort anything - the map and the matrix that samples it agree, so the
-// shadow stays glued to the terrain - it only risks the view running past the near edge of the fitted
-// region while moving.
-let lastCameraEye = new Vec3();
-let cameraStep = 0.0;
-
 // Texel size each band's extent was last quantized to, per axis. Carried between frames so that a
 // shrinking extent holds its rung until it has clearly left it, see quantizeOrthoTexelSize. Per band,
 // because the rungs are hysteresis state and sharing them across bands would make each band drag the
 // others onto its own rung.
-const orthoTexelSizeX = new Array(MAX_AREA_COUNT).fill(0.0);
-const orthoTexelSizeY = new Array(MAX_AREA_COUNT).fill(0.0);
+const orthoTexelSizeX = new Array(AREA_COUNT).fill(0.0);
+const orthoTexelSizeY = new Array(AREA_COUNT).fill(0.0);
 
 // Rail pairing of the previous frame, held by hysteresis - see updateAreaRails. 0 runs the rails along
 // the screen side edges, 1 along the top and bottom ones.
@@ -364,25 +291,22 @@ let currentAreaCutPairing = 0;
 // Whether the footprint was split last frame, held by hysteresis - see AREA_SPLIT_TRIGGER_SLACK.
 let currentAreaSplitActive = false;
 
-
-// Level to raise the footprint ellipsoid to: the terrain right under the camera, and nothing else. It
-// must not follow the lowest rendered terrain as well - that covers a lateral miss with a global
-// vertical term, and it feeds back into itself once the drop is capped against the footprint the drop
-// has grown. The far part of the visible ground, which a camera standing above the ground it looks at
-// meets past a reference surface raised over it, is reached along the view rays instead, see
-// getReceiverBoundsPoints, which leaves the footprint independent of the tile loading state.
-function getFootprintTerrainHeight(mcam) {
-    return mcam.getHeight() - mcam.getAltitude() - shadowParams.footprintDrop;
-}
-
+// The footprint ellipsoid is raised to the terrain right under the camera, and to nothing else. It must
+// not follow the lowest rendered terrain as well - that covers a lateral miss with a global vertical term,
+// and it feeds back into itself once the drop is capped against the footprint the drop has grown. The far
+// part of the visible ground, which a camera standing above the ground it looks at meets past a reference
+// surface raised over it, is reached along the view rays instead, see getReceiverBoundsPoints, which
+// leaves the footprint independent of the tile loading state.
 function updateFootprintEllipsoid(mcam) {
-    let baseEllipsoid = globus.planet.ellipsoid;
     let terrainHeight =
-        Math.round(getFootprintTerrainHeight(mcam) / TERRAIN_ELLIPSOID_HEIGHT_STEP) * TERRAIN_ELLIPSOID_HEIGHT_STEP;
+        Math.round((mcam.getHeight() - mcam.getAltitude()) / TERRAIN_ELLIPSOID_HEIGHT_STEP) *
+        TERRAIN_ELLIPSOID_HEIGHT_STEP;
 
     if (terrainHeight === footprintEllipsoidHeight) {
         return;
     }
+
+    let baseEllipsoid = globus.planet.ellipsoid;
 
     footprintEllipsoidHeight = terrainHeight;
     footprintEllipsoid =
@@ -399,18 +323,30 @@ function getEllipsoidHit(mcam, x, y) {
     return hitFootprintEllipsoid(mcam.getRay(x, y));
 }
 
-// Terrain point under a footprint corner, taken from the segments that are actually rendered, so it is
-// the ground the view sees rather than the ground the terrain source would eventually report. Falls back
-// to the reference surface where no rendered segment covers the corner - horizon points, mostly - and for
-// a corner already on that surface the projection returns it unchanged, so the fallback loses nothing.
-function getFootprintGroundPoint(marker, point) {
-    if (!point) {
-        return undefined;
+// Terrain points under the corners of a band, taken from the segments that are actually rendered, so they
+// are the ground the view sees rather than the ground the terrain source would eventually report. Falls
+// back to the reference surface where no rendered segment covers a corner - horizon points, mostly - and
+// for a corner already on that surface the projection returns it unchanged, so the fallback loses nothing.
+//
+// The markers are the probes: the lookup finds its segment from the entity's own coordinates, so a marker
+// has to be moved onto the corner before it. They are the debug overlay as well, which is why the overlay
+// is drawn after every band has been fitted, see updateShadowCamera.
+function getAreaGroundPoints(areaPoints) {
+    let grounds = [];
+
+    for (let i = 0; i < areaPoints.length; i++) {
+        let marker = footprintMarkers[i];
+        let terrainPoint = new Vec3();
+
+        marker.setVisibility(true);
+        marker.setAbsoluteCartesian3v(areaPoints[i]);
+
+        let terrainDistance = globus.planet.getEntityTerrainPoint(marker, terrainPoint);
+
+        grounds.push(terrainDistance != undefined ? terrainPoint : footprintEllipsoid.projToSurface(areaPoints[i]));
     }
 
-    let terrainPoint = new Vec3();
-    let terrainDistance = globus.planet.getEntityTerrainPoint(marker, terrainPoint);
-    return terrainDistance != undefined ? terrainPoint : footprintEllipsoid.projToSurface(point);
+    return grounds;
 }
 
 function getAveragePoint(points) {
@@ -438,48 +374,18 @@ function getBaseFootprint(points) {
     return { center, points, normals, radius };
 }
 
-function projectPerpendicular(vector, axis) {
-    return vector.sub(axis.scaleTo(vector.dot(axis)));
-}
-
-// World axis the direction leans on least. Its |cos| is at most 1/sqrt(3), so projecting it onto the
-// plane perpendicular to that direction always leaves length squared of 2/3 or more - which is what
-// makes it a fallback that provably cannot degenerate, rather than one more link in a chain.
-function getLeastAlignedAxis(direction) {
-    let x = Math.abs(direction.x);
-    let y = Math.abs(direction.y);
-    let z = Math.abs(direction.z);
-
-    if (x <= y && x <= z) {
-        return Vec3.UNIT_X;
-    }
-
-    return y <= z ? Vec3.UNIT_Y : Vec3.UNIT_Z;
-}
-
-// Up vector of the light space basis. Two seeds, and they differ in more than tightness.
+// Up vector of the light space basis, seeded from the polar axis so that the basis owes the camera nothing
+// and turns only as the sun does. That is what gives both axes of the texel snap a grid fixed in the world,
+// see snapOrthographicBounds.
 //
-// The surface normal under the footprint center is the tightest: it aligns the bounds with the local
-// horizon, so the fitted rectangle wastes the least area. It also turns with the camera, since the
-// footprint center does. With this seed the right axis comes out as cross(up, light), perpendicular to
-// the plane the center itself lies in, so center . right is identically zero - measured, not argued:
-// zero or a few times 1e-10 of float noise, at every sun elevation and heading. That is the anchor the
-// texel snap floors against on X, so on X there is nothing to anchor to and the bounds track the
-// footprint. The Y anchor is center . up, millions of metres and moving, so on Y the snap does bite.
+// Seeding it from the surface normal under the footprint center instead fits tighter bounds, by up to
+// sqrt(2) in the worst orientation, and costs the X anchor: with that seed right = cross(up, light) is
+// perpendicular to the plane the center lies in, so center . right is identically zero - measured, not
+// argued - and there is nothing on X for the snap to floor against.
 //
-// Seeded from the light, the basis owes the camera nothing and turns only as the sun does, so both axes
-// get a grid that stays put in the world. It costs area, up to sqrt(2) in the worst orientation.
-function getStableLightUp(lightDirection, footprintCenter) {
-    let seed = shadowParams.cameraAlignedLightUp
-        ? footprintEllipsoid.getSurfaceNormal3v(footprintCenter)
-        : Vec3.NORTH;
-    let projected = projectPerpendicular(seed, lightDirection);
-
-    if (projected.length2() <= MIN_LIGHT_UP_LENGTH2) {
-        projected = projectPerpendicular(getLeastAlignedAxis(lightDirection), lightDirection);
-    }
-
-    return projected.normalize();
+// The sun never comes within 66 degrees of the polar axis, so the projection cannot degenerate.
+function getStableLightUp(lightDirection) {
+    return Vec3.proj_b_to_plane(Vec3.NORTH, lightDirection).normalize();
 }
 
 // How far a traversal's rendered terrain reaches above and below a reference radius, as two positive
@@ -516,16 +422,16 @@ function getCornerRadiusRange(footprintPoints) {
 // twice and pay for it in texels. What is left is terrain rising above the highest corner or dropping
 // below the lowest - interior relief the polygon points cannot see - which falls to zero on its own as soon
 // as the corners happen to span the range.
-function getTerrainRelief(mcam, footprint) {
+function getTerrainRelief(mcam, footprint, depthCamera) {
     let corners = getCornerRadiusRange(footprint.points);
     // The receivers, and the only thing the fit may be sized by. Measured from the corners themselves, so
     // a corner standing on a summit asks for no upward walk at all.
     let view = getStrategyRelief(globus.planet.quadTreeStrategy, corners.max, corners.min);
-    // What the shadow map is actually filled with. The depth camera traverses its own quad tree from the
-    // light's side, so this covers terrain the main camera never looks at, casters behind the eye among
-    // them, and it decides whether the depth interval holds everything in the map. It lags a frame, since
-    // that traversal only happens inside DepthCamera.frame(), and it feeds the depth interval alone: a
-    // range measured through a frustum must never size that same frustum sideways, or culling and fitting
+    // What this band's shadow map is actually filled with. The depth camera traverses its own quad tree
+    // from the light's side, so this covers terrain the main camera never looks at, casters behind the eye
+    // among them, and it decides whether the depth interval holds everything in the map. It lags a frame,
+    // since that traversal only happens inside DepthCamera.frame(), and it feeds the depth interval alone:
+    // a range measured through a frustum must never size that same frustum sideways, or culling and fitting
     // chase each other. In depth it cannot, because the view range is a floor owing nothing to the shadow
     // camera. Measured from the reference surface, which is all the corners can say about terrain the main
     // camera never looked at.
@@ -533,11 +439,9 @@ function getTerrainRelief(mcam, footprint) {
     let map = getStrategyRelief(depthCamera.quadTreeStrategy, referenceRadius, referenceRadius);
 
     return {
-        up: Math.min(shadowParams.maxReliefUp, view.up),
-        down: Math.min(shadowParams.maxReliefDown, view.down),
-        depthUp: Math.min(shadowParams.maxReliefUp, Math.max(view.up, map.up)),
-        depthDown: Math.min(shadowParams.maxReliefDown, Math.max(view.down, map.down)),
-        cornerSpread: corners.max - corners.min
+        up: Math.min(MAX_RELIEF_UP, view.up),
+        down: Math.min(MAX_RELIEF_DOWN, view.down),
+        depthDown: Math.min(MAX_RELIEF_DOWN, Math.max(view.down, map.down))
     };
 }
 
@@ -566,7 +470,7 @@ function getReceiverBoundsPoints(mcam, footprint, relief) {
         return points;
     }
 
-    let lateralLimit = footprint.radius * shadowParams.reliefLateralFactor;
+    let lateralLimit = footprint.radius * RELIEF_LATERAL_FACTOR;
 
     for (let i = 0; i < footprint.points.length; i++) {
         let point = footprint.points[i];
@@ -580,7 +484,7 @@ function getReceiverBoundsPoints(mcam, footprint, relief) {
         let direction = toPoint.scale(1.0 / distance);
         // Height a ray loses per unit travelled. Corners that fell back to a horizon point are
         // tangent to the surface and have no slope at all, hence the floor.
-        let slope = Math.max(-direction.dot(footprint.normals[i]), shadowParams.minFootprintRaySlope);
+        let slope = Math.max(-direction.dot(footprint.normals[i]), MIN_FOOTPRINT_RAY_SLOPE);
 
         if (relief.up > 0.0) {
             // Toward the camera, and never past it: a ray carries no terrain behind the eye. Nothing
@@ -592,9 +496,7 @@ function getReceiverBoundsPoints(mcam, footprint, relief) {
         if (relief.down > 0.0) {
             // Only the part of a walk that runs along the surface enlarges the footprint; the part
             // along the normal is depth, and depth is free here. So the cap is on the tangential
-            // component alone. It has to be able to cut into an honest descent, not just an over
-            // reported one: a camera a few metres above a plateau has a footprint metres across, and
-            // whatever the terrain does a kilometre below it cannot be visible in one.
+            // component alone, see RELIEF_LATERAL_FACTOR.
             let tangential = Math.sqrt(Math.max(0.0, 1.0 - slope * slope));
             let limit = tangential > 0.0 ? lateralLimit / tangential : Infinity;
 
@@ -625,8 +527,8 @@ function quantizeUpToOctaveLadder(value, steps) {
 // Measured: 216 rung changes over 400 frames, at any noise amplitude down to 0.1%. That is the map pulsing
 // by the full ratio, 19%, which reads as flicker rather than as a resolution change. The slack costs
 // holding a rung up to RATIO * (1 + slack) coarser than the fit asks before letting go.
-function quantizeOrthoTexelSize(extent, resolution, prevTexelSize) {
-    let texelSize = extent / resolution;
+function quantizeOrthoTexelSize(extent, prevTexelSize) {
+    let texelSize = extent / SHADOW_MAP_SIZE;
 
     if (!(texelSize > 0.0)) {
         return 0.0;
@@ -641,12 +543,13 @@ function quantizeOrthoTexelSize(extent, resolution, prevTexelSize) {
     return quantizeUpToOctaveLadder(texelSize, ORTHO_TEXEL_QUANTIZATION_STEPS);
 }
 
-// Quantized coarsely, because this height places the shadow camera eye through getCasterMinZ, and that
-// eye must not move by kilometres every time the tile loader revises the terrain range. DepthCamera picks
-// which quad tree traversal to render from by testing whether the eye falls inside the main frustum, so a
-// jittering eye can flip the whole depth pass between two different sets of segments, skirts toggling
-// along with it - the map blinking rather than changing resolution. Nothing downstream needs this height
-// precise: casterClearance is an absolute hundred kilometres and swallows it whole.
+// Quantized coarsely - in doublings - because this height places the shadow camera eye through
+// getCasterMinZ, and that eye must not move by kilometres every time the tile loader revises the terrain
+// range. DepthCamera picks which quad tree traversal to render from by testing whether the eye falls
+// inside the main frustum, so a jittering eye can flip the whole depth pass between two different sets of
+// segments, skirts toggling along with it - the map blinking rather than changing resolution. Nothing
+// downstream needs this height precise: the caster clearance is an absolute hundred kilometres and
+// swallows it whole.
 function getCasterHeight(footprintRadius, terrainRelief) {
     let height = Math.max(
         footprintRadius * SHADOW_CASTER_HEIGHT_FACTOR * (globus.planet._heightFactor || 1.0),
@@ -654,7 +557,7 @@ function getCasterHeight(footprintRadius, terrainRelief) {
     );
     let clamped = Math.min(MAX_SHADOW_CASTER_HEIGHT, Math.max(MIN_SHADOW_CASTER_HEIGHT, height));
 
-    return Math.min(MAX_SHADOW_CASTER_HEIGHT, quantizeUpToOctaveLadder(clamped, SHADOW_CASTER_HEIGHT_STEPS));
+    return Math.min(MAX_SHADOW_CASTER_HEIGHT, quantizeUpToOctaveLadder(clamped, 1));
 }
 
 // Light space depth of the closest point of the caster volume, which is the footprint raised by the
@@ -702,15 +605,12 @@ function getLightSpaceBounds(origin, right, up, forward, points) {
 function expandOrthographicBounds(bounds) {
     let width = bounds.maxX - bounds.minX;
     let height = bounds.maxY - bounds.minY;
-    let textureWidth = depthCamera.framebuffer.width;
-    let textureHeight = depthCamera.framebuffer.height;
-    let motionPadding = cameraStep * shadowParams.motionMarginFrames;
     let paddingX = Math.max(
-        width * shadowParams.orthoMarginFactor + (width / textureWidth) * SHADOW_ORTHO_TEXEL_PADDING + motionPadding,
+        width * SHADOW_ORTHO_MARGIN_FACTOR + (width / SHADOW_MAP_SIZE) * SHADOW_ORTHO_TEXEL_PADDING,
         MIN_SHADOW_ORTHO_SIZE
     );
     let paddingY = Math.max(
-        height * shadowParams.orthoMarginFactor + (height / textureHeight) * SHADOW_ORTHO_TEXEL_PADDING + motionPadding,
+        height * SHADOW_ORTHO_MARGIN_FACTOR + (height / SHADOW_MAP_SIZE) * SHADOW_ORTHO_TEXEL_PADDING,
         MIN_SHADOW_ORTHO_SIZE
     );
 
@@ -731,21 +631,12 @@ function expandOrthographicBounds(bounds) {
 // forward is perpendicular to both axes. Quantizing rounds the extent up, so the snapped rectangle is
 // never smaller than the fitted one - it only shifts by under a texel, which the texel border covers.
 //
-// How much of this bites depends on the basis, see getStableLightUp. Under the default light seeded one
-// both axes get a grid fixed in the world. Turn cameraAlignedLightUp on and the X anchor degenerates to
-// identically zero, leaving X to track the footprint and only Y anchored, with the extent quantization
-// carrying the rest. DepthCamera carries the same machinery, gated behind `camera.isMoving` - which the
-// renderer only ever sets on its active camera, so a depth camera never reports motion and the snap there
-// never runs. Leave it that way; whatever runs there would also have to be fitted first, and it is not.
+// DepthCamera carries the same machinery, gated behind `camera.isMoving` - which the renderer only ever
+// sets on its active camera, so a depth camera never reports motion and the snap there never runs. Leave
+// it that way; whatever runs there would also have to be fitted first, and it is not.
 function snapOrthographicBounds(bounds, right, up, anchor, index) {
-    if (!shadowParams.snapToTexelGrid) {
-        return bounds;
-    }
-
-    let resolutionX = depthCameras[index].framebuffer.width;
-    let resolutionY = depthCameras[index].framebuffer.height;
-    let texelSizeX = quantizeOrthoTexelSize(bounds.right - bounds.left, resolutionX, orthoTexelSizeX[index]);
-    let texelSizeY = quantizeOrthoTexelSize(bounds.top - bounds.bottom, resolutionY, orthoTexelSizeY[index]);
+    let texelSizeX = quantizeOrthoTexelSize(bounds.right - bounds.left, orthoTexelSizeX[index]);
+    let texelSizeY = quantizeOrthoTexelSize(bounds.top - bounds.bottom, orthoTexelSizeY[index]);
 
     if (texelSizeX <= 0.0 || texelSizeY <= 0.0) {
         return bounds;
@@ -754,8 +645,8 @@ function snapOrthographicBounds(bounds, right, up, anchor, index) {
     orthoTexelSizeX[index] = texelSizeX;
     orthoTexelSizeY[index] = texelSizeY;
 
-    let width = texelSizeX * resolutionX;
-    let height = texelSizeY * resolutionY;
+    let width = texelSizeX * SHADOW_MAP_SIZE;
+    let height = texelSizeY * SHADOW_MAP_SIZE;
     let anchorX = anchor.dot(right);
     let anchorY = anchor.dot(up);
     let centerX = (bounds.left + bounds.right) * 0.5;
@@ -764,36 +655,6 @@ function snapOrthographicBounds(bounds, right, up, anchor, index) {
     let bottom = Math.floor((anchorY + centerY - height * 0.5) / texelSizeY) * texelSizeY - anchorY;
 
     return { left, right: left + width, bottom, top: bottom + height };
-}
-
-function updateFootprintMarker(markerEntity, point) {
-    markerEntity.setVisibility(Boolean(point));
-
-    if (point) {
-        markerEntity.setAbsoluteCartesian3v(point);
-    }
-}
-
-// Hides the debug pool from the given index on; from zero also drops the contour, so the bail path
-// clears everything with one call.
-function hideFootprintDebug(fromIndex) {
-    for (let i = fromIndex; i < MAX_FOOTPRINT_AREA_POINTS; i++) {
-        updateFootprintMarker(footprintMarkers[i], undefined);
-        updateFootprintGroundRay(footprintGroundRays[i], undefined, undefined);
-    }
-
-    if (fromIndex === 0) {
-        footprintContour.setVisibility(false);
-    }
-}
-
-function updateFootprintGroundRay(rayEntity, point, groundPoint) {
-    rayEntity.setVisibility(Boolean(point && groundPoint));
-
-    if (point && groundPoint) {
-        rayEntity.ray.setStartPosition3v(point);
-        rayEntity.ray.setEndPosition3v(groundPoint);
-    }
 }
 
 // Returns the horizon point in the given direction: the tangency point of the line drawn from the
@@ -850,10 +711,10 @@ function getFootprintBoundaryOnScreenSegment(mcam, hitX, missX, y) {
 }
 
 function getCameraFootprint(mcam) {
-    let screenLeft = HORIZON_SCREEN_MARGIN;
-    let screenRight = mcam.width - HORIZON_SCREEN_MARGIN;
-    let screenTop = HORIZON_SCREEN_MARGIN;
-    let screenBottom = mcam.height - HORIZON_SCREEN_MARGIN;
+    let screenLeft = 0;
+    let screenTop = 0;
+    let screenRight = mcam.width;
+    let screenBottom = mcam.height;
 
     // One ray per corner, reused for the hit and for the horizon fallback below. Unprojecting each corner
     // twice is the same answer twice over.
@@ -973,8 +834,8 @@ function getAreaQuad(rails, t0, t1) {
     ];
 }
 
-// Eye distance of the band boundary at t, taken midway between the rails - what the split distribution
-// and the stats are quoted against.
+// Eye distance of the band boundary at t, taken midway between the rails - what the split distribution is
+// quoted against.
 function getBoundaryDistance(rails, eye, t) {
     return lerpPoint(rails[0][0], rails[0][1], t)
         .addA(lerpPoint(rails[1][0], rails[1][1], t))
@@ -982,11 +843,18 @@ function getBoundaryDistance(rails, eye, t) {
         .distance(eye);
 }
 
-// Rail parameter of boundary i of count, blended between even spacing and a geometric progression in eye
-// distance, see areaSplitLambda. Distance runs near enough to linearly along a rail for the inverse to be
-// this plain expression, which keeps the split free of roots and of the degeneracies they bring. Boundary
-// 0 lands on 0 and boundary count on 1 exactly, so the bands still tile the whole footprint. When the two
-// ends sit at one distance - the nadir - there is no progression to build and even spacing is the answer.
+// Rail parameter of boundary i of count, distributed as a geometric progression in eye distance. Distance
+// runs near enough to linearly along a rail for the inverse to be this plain expression, which keeps the
+// split free of roots and of the degeneracies they bring. Boundary 0 lands on 0 and boundary count on 1
+// exactly, so the bands still tile the whole footprint. When the two ends sit at one distance - the nadir
+// - there is no progression to build and even spacing is the answer.
+//
+// Even spacing is the wrong distribution everywhere else, and it is worth knowing why. A rail runs from
+// the near corner to the far corner, and toward the horizon its far half is tens of kilometres, so an even
+// quarter already swallows a 20 km deep band across a footprint that has fanned out to 40 km - which is
+// why even spacing needs hundreds of bands before the nearest one is sharp. A band's texel grows in
+// proportion to its distance, so equal distance *ratios* are what hand every band the same screen space
+// quality, and four of those cover what hundreds of even ones could not.
 function getAreaBoundaryT(index, count, nearDistance, farDistance) {
     let uniform = index / count;
 
@@ -994,31 +862,23 @@ function getAreaBoundaryT(index, count, nearDistance, farDistance) {
         return uniform;
     }
 
-    let geometric =
-        (nearDistance * Math.pow(farDistance / nearDistance, uniform) - nearDistance) / (farDistance - nearDistance);
-    let lambda = Math.min(1.0, Math.max(0.0, shadowParams.areaSplitLambda));
-
-    return uniform * (1.0 - lambda) + geometric * lambda;
+    return (nearDistance * Math.pow(farDistance / nearDistance, uniform) - nearDistance) / (farDistance - nearDistance);
 }
 
-// Ground quad the shadow camera is fitted to.
+// Every band of the split, nearest first - one ground quad each, and together they tile the whole
+// footprint.
 //
 // The footprint is used whole while its own ground texel - its size over the shadow map resolution - keeps
-// the reference target. Once it does not, the footprint divides into areaCount equal bands along the rails
-// and band areaIndex is taken, 0 being the nearest to the camera. Equal bands along the rails means equal
-// depth per band, so their texels are comparable. A zero target divides unconditionally.
-//
-// The split is a function of the camera and the footprint only: the rails follow the eye distance
-// gradient, so it survives roll and pitch, and the sun is kept out of the measure, see getAreaSpread. One
-// area is the original footprint corners exactly, by construction of getAreaQuad - no degenerate case to
-// fall into.
-// Every band of the split, nearest first - one ground quad each, and together they tile the whole
-// footprint. A single band is the footprint corners verbatim, by construction of getAreaQuad.
+// the reference target, see targetTexelSize. Once it does not, it divides into AREA_COUNT bands along the
+// rails. The split is a function of the camera and the footprint only: the rails follow the eye distance
+// gradient, so it survives roll and pitch, and the sun is kept out of the measure, see getAreaSpread. A
+// single band is the original footprint corners exactly, by construction of getAreaQuad - no degenerate
+// case to fall into.
 function getFootprintAreas(mcam, corners) {
     let eye = mcam.eye;
     let rails = updateAreaRails(corners, eye);
     let footprintQuad = getAreaQuad(rails, 0.0, 1.0);
-    let footprintTexel = getAreaSpread(footprintQuad) / depthCameras[0].framebuffer.width;
+    let footprintTexel = getAreaSpread(footprintQuad) / SHADOW_MAP_SIZE;
     let target = shadowParams.targetTexelSize;
 
     if (!(target > 0.0)) {
@@ -1029,108 +889,47 @@ function getFootprintAreas(mcam, corners) {
             : footprintTexel > target * AREA_SPLIT_TRIGGER_SLACK;
     }
 
-    let count = currentAreaSplitActive
-        ? Math.min(MAX_AREA_COUNT, Math.max(1, Math.round(shadowParams.areaCount)))
-        : 1;
-    let footprintNear = getBoundaryDistance(rails, eye, 0.0);
-    let footprintFar = getBoundaryDistance(rails, eye, 1.0);
+    let count = currentAreaSplitActive ? AREA_COUNT : 1;
+    let nearDistance = getBoundaryDistance(rails, eye, 0.0);
+    let farDistance = getBoundaryDistance(rails, eye, 1.0);
     let areas = [];
 
     for (let i = 0; i < count; i++) {
-        let t0 = getAreaBoundaryT(i, count, footprintNear, footprintFar);
-        let t1 = getAreaBoundaryT(i + 1, count, footprintNear, footprintFar);
+        let t0 = getAreaBoundaryT(i, count, nearDistance, farDistance);
+        let t1 = getAreaBoundaryT(i + 1, count, nearDistance, farDistance);
 
         areas.push(count === 1 ? footprintQuad : getAreaQuad(rails, t0, t1));
     }
 
-    shadowStats.areaCount = count;
-    shadowStats.areaNearDistance = getBoundaryDistance(rails, eye, 0.0);
-    shadowStats.areaFarDistance = getBoundaryDistance(rails, eye, 1.0);
-    shadowStats.footprintTexelSize = footprintTexel;
-    shadowStats.areaTexelTarget = target;
-    shadowStats.areaTexelSizes = areas.map(
-        (quad, i) => getAreaSpread(quad) / depthCameras[i].framebuffer.width
-    );
-
     return areas;
-}
-
-function updateShadowCamera() {
-    let mcam = globus.planet.camera;
-
-    cameraStep = lastCameraEye.isZero() ? 0.0 : mcam.eye.distance(lastCameraEye);
-    lastCameraEye.copy(mcam.eye);
-
-    updateFootprintEllipsoid(mcam);
-
-    let hits = getCameraFootprint(mcam);
-
-    if (!(hits[0] && hits[1] && hits[2] && hits[3])) {
-        hideFootprintDebug(0);
-        return;
-    }
-
-    let areas = getFootprintAreas(mcam, hits);
-
-    for (let i = 0; i < MAX_AREA_COUNT; i++) {
-        // A map with no band of its own is switched off rather than left holding a stale fit: shadows.glsl
-        // multiplies every active map in, so a leftover would keep darkening ground it no longer describes.
-        shadowMaps[i].enabled = i < areas.length;
-
-        if (i < areas.length) {
-            fitAreaCamera(mcam, areas[i], i);
-        }
-    }
-
-    shadowStats.cameraStep = cameraStep;
-    pinQuadTreeTraversal();
 }
 
 // The proven single area fit, applied to one band. Each band owns its camera outright - its own light space
 // basis, its own eye, its own snap rung - so nothing here has to be shared or reconciled across bands.
 function fitAreaCamera(mcam, areaPoints, index) {
-    let depthCameraI = depthCameras[index];
-    let shadowCamera = shadowCameras[index];
+    let depthCamera = depthCameras[index];
+    let shadowCamera = depthCamera.camera;
 
-    // Points on the terrain rather than on the reference surface the area was cut on. The quad only picks
-    // the ground positions; the elevations come from the rendered segments, so the area stands on the
-    // ground. A marker has to be placed before the lookup - that is how the lookup finds its segment -
-    // which is why each iteration sets the marker first. Only the inspected band drives the markers, the
-    // rest reuse them purely as lookup probes.
-    let grounds = [];
-
-    for (let i = 0; i < areaPoints.length; i++) {
-        updateFootprintMarker(footprintMarkers[i], areaPoints[i]);
-        grounds.push(getFootprintGroundPoint(footprintMarkers[i], areaPoints[i]));
-    }
-
-    if (index === getInspectedAreaIndex()) {
-        for (let i = 0; i < areaPoints.length; i++) {
-            updateFootprintGroundRay(footprintGroundRays[i], areaPoints[i], grounds[i]);
-        }
-
-        hideFootprintDebug(areaPoints.length);
-        footprintContour.setVisibility(true);
-        footprintContour.polyline.setPath3v([[...grounds, grounds[0]]], undefined, true);
-    }
-
-    // The shadow camera is fitted to the ground polygon, and then to the visible terrain band around it,
+    // The quad only picks the ground positions; the elevations come from the rendered segments, so the
+    // band stands on the terrain rather than on the reference surface it was cut on.
+    //
+    // The shadow camera is then fitted to that ground polygon, and to the visible terrain band around it,
     // sampled by walking each point along its own view ray through whatever relief the points do not
-    // already account for, see getReceiverBoundsPoints. Terrain above can only pull that band toward
-    // the camera, so it never widens the bounds; as a caster it only pushes the camera sunward, see
+    // already account for, see getReceiverBoundsPoints. Terrain above can only pull that band toward the
+    // camera, so it never widens the bounds; as a caster it only pushes the camera sunward, see
     // getCasterMinZ.
-    let footprint = getBaseFootprint(grounds);
+    let footprint = getBaseFootprint(getAreaGroundPoints(areaPoints));
     let lightDirection = globus.planet.sun.getPosition().normal().scale(-1.0);
-    let lightUp = getStableLightUp(lightDirection, footprint.center);
+    let lightUp = getStableLightUp(lightDirection);
 
-    // Light space basis only depends on the light direction, so the camera is aimed first and moved
+    // The light space basis only depends on the light direction, so the camera is aimed first and moved
     // into its final place below, once the caster bounds are known.
     shadowCamera.set(footprint.center.sub(lightDirection), footprint.center, lightUp);
 
-    let relief = getTerrainRelief(mcam, footprint);
+    let relief = getTerrainRelief(mcam, footprint, depthCamera);
     // Deliberately the view relief and not the depth one. What the depth camera's own traversal reports
     // depends on the bounds this height helps place, so feeding it back here closes a loop for no gain:
-    // casterClearance is an absolute hundred kilometres and swallows this term whole anyway.
+    // the caster clearance is an absolute hundred kilometres and swallows this term whole anyway.
     let casterHeight = getCasterHeight(footprint.radius, relief.up);
 
     let forward = shadowCamera.getForward();
@@ -1145,27 +944,22 @@ function fitAreaCamera(mcam, areaPoints, index) {
         getReceiverBoundsPoints(mcam, footprint, relief)
     );
 
-    let orthoBounds = snapOrthographicBounds(
-        expandOrthographicBounds(bounds),
-        right,
-        up,
-        footprint.center,
-        index
-    );
-    let near = depthCameraI.near;
+    let orthoBounds = snapOrthographicBounds(expandOrthographicBounds(bounds), right, up, footprint.center, index);
     let casterMinZ = getCasterMinZ(footprint, forward, casterHeight);
-    let casterClearance = Math.max(shadowParams.casterClearance, casterHeight * shadowParams.casterClearanceFactor);
+    let casterClearance = Math.max(SHADOW_CASTER_CLEARANCE, casterHeight * SHADOW_CASTER_CLEARANCE_FACTOR);
 
     // Sunward offset from the footprint center that puts the near plane in front of the whole caster
     // volume. Bounds are measured from the center, so the offset is negative. This costs depth range
     // only: an orthographic camera moved along its own forward keeps the very same bounds.
-    let eyeOffset = casterMinZ - near - casterClearance;
+    let eyeOffset = casterMinZ - SHADOW_CAMERA_NEAR - casterClearance;
     let eye = footprint.center.add(forward.scaleTo(eyeOffset));
     // The outward walk is capped laterally, the far plane is not: depth costs nothing here, so the
     // whole measured descent is reserved behind the receivers on top of the floor, whatever the walk
     // itself was allowed to reach, and from whichever of the two traversals reaches lower.
-    let receiverDepthPadding = SHADOW_RECEIVER_DEPTH_PADDING + relief.depthDown;
-    let far = Math.max(near + MIN_SHADOW_ORTHO_SIZE, bounds.maxZ + receiverDepthPadding - eyeOffset);
+    let far = Math.max(
+        SHADOW_CAMERA_NEAR + MIN_SHADOW_ORTHO_SIZE,
+        bounds.maxZ + SHADOW_RECEIVER_DEPTH_PADDING + relief.depthDown - eyeOffset
+    );
 
     shadowCamera.set(eye, eye.add(forward), lightUp);
     shadowCamera.frustum.setOrthoProjection(
@@ -1173,28 +967,22 @@ function fitAreaCamera(mcam, areaPoints, index) {
         orthoBounds.right,
         orthoBounds.bottom,
         orthoBounds.top,
-        near,
+        SHADOW_CAMERA_NEAR,
         far
     );
     shadowCamera.update();
 
-    updateShadowBiases(orthoBounds, index);
-
-    if (index === 0) {
-        shadowStats.footprintRadius = footprint.radius;
-        // Spread of the ground points in elevation. Zero means they all landed on the reference surface, so
-        // no rendered segment covered them and the terrain lookup fell back - the footprint is flat again.
-        shadowStats.cornerHeightSpread = relief.cornerSpread;
-        shadowStats.reliefUp = relief.up;
-        shadowStats.reliefDown = relief.down;
-        shadowStats.depthReliefUp = relief.depthUp;
-        shadowStats.depthReliefDown = relief.depthDown;
-        shadowStats.casterHeight = casterHeight;
-    }
+    updateShadowBiases(depthCamera, orthoBounds);
 }
 
-function getInspectedAreaIndex() {
-    return Math.min(Math.max(0, Math.round(shadowParams.areaIndex)), Math.max(0, shadowStats.areaCount - 1));
+// Both biases scale with the texel, and ShadowManager takes the same maximum side as the shadow texel
+// size, see its texelWorldSize.
+function updateShadowBiases(depthCamera, orthoBounds) {
+    let texelWorldSize =
+        Math.max(orthoBounds.right - orthoBounds.left, orthoBounds.top - orthoBounds.bottom) / SHADOW_MAP_SIZE;
+
+    depthCamera.bias = texelWorldSize * SHADOW_DEPTH_BIAS_TEXELS;
+    depthCamera.depthEpsilon = texelWorldSize * SHADOW_DEPTH_EPSILON_TEXELS;
 }
 
 // DepthCamera picks between two quad tree traversals per frame: its own, walked from the light, and the
@@ -1218,33 +1006,73 @@ function getInspectedAreaIndex() {
 // traversal would be missing anyway. It also settles `updateCameraSlope` and the skirt decision riding on
 // it. The proper fix belongs in the library - a depth pass has no business honouring a colour cross-fade,
 // since depth does not blend and drawing both sides of a fade is harmless when the test keeps the nearer.
+//
+// The flag is consumed by the pass it pins, so it has to be set every frame, and per band: the planet's
+// list is indexed by the main camera's frustums and would hand a band the wrong slice of nodes.
 function pinQuadTreeTraversal() {
-    if (!shadowParams.forceOwnQuadTreeTraversal) {
-        return;
-    }
-
-    // Per band, so every band keeps its own traversal - the planet's is indexed by the main camera's
-    // frustums and would hand a band the wrong slice of nodes.
     for (let i = 0; i < depthCameras.length; i++) {
         depthCameras[i]._forceOwnQuadTreeStrategyPass = true;
     }
 }
 
-// ShadowManager takes the same maximum side as the shadow texel size, see its texelWorldSize.
-function updateShadowBiases(orthoBounds, index) {
-    let camera = depthCameras[index];
-    let texelWorldSize =
-        Math.max(orthoBounds.right - orthoBounds.left, orthoBounds.top - orthoBounds.bottom) /
-        camera.framebuffer.width;
+// Corner markers on the reference surface, cyan rays dropping to the terrain under them, and the yellow
+// contour through the terrain points, for one band.
+function updateAreaDebug(areaPoints) {
+    let grounds = getAreaGroundPoints(areaPoints);
 
-    shadowStats.texelWorldSizes[index] = texelWorldSize;
+    for (let i = 0; i < areaPoints.length; i++) {
+        let rayEntity = footprintGroundRays[i];
 
-    if (index === 0) {
-        shadowStats.texelWorldSize = texelWorldSize;
+        rayEntity.setVisibility(true);
+        rayEntity.ray.setStartPosition3v(areaPoints[i]);
+        rayEntity.ray.setEndPosition3v(grounds[i]);
     }
 
-    camera.bias = texelWorldSize * SHADOW_DEPTH_BIAS_TEXELS + shadowParams.depthBiasOffset;
-    camera.depthEpsilon = texelWorldSize * SHADOW_DEPTH_EPSILON_TEXELS + shadowParams.depthBiasOffset;
+    footprintContour.setVisibility(true);
+    footprintContour.polyline.setPath3v([[...grounds, grounds[0]]], undefined, true);
+}
+
+function hideFootprintDebug() {
+    for (let i = 0; i < AREA_QUAD_POINTS; i++) {
+        footprintMarkers[i].setVisibility(false);
+        footprintGroundRays[i].setVisibility(false);
+    }
+
+    footprintContour.setVisibility(false);
+}
+
+function updateShadowCamera() {
+    let mcam = globus.planet.camera;
+
+    updateFootprintEllipsoid(mcam);
+
+    let corners = getCameraFootprint(mcam);
+
+    if (!(corners[0] && corners[1] && corners[2] && corners[3])) {
+        hideFootprintDebug();
+        return;
+    }
+
+    let areas = getFootprintAreas(mcam, corners);
+
+    for (let i = 0; i < AREA_COUNT; i++) {
+        let isActive = i < areas.length;
+
+        // A band with no area of its own is switched off rather than left holding a stale fit: shadows.glsl
+        // multiplies every active map in, so a leftover would keep darkening ground it no longer describes.
+        // Its depth camera goes with it, so an unsplit frame renders one map instead of AREA_COUNT.
+        shadowMaps[i].enabled = isActive;
+        depthCameras[i].enabled = isActive;
+
+        if (isActive) {
+            fitAreaCamera(mcam, areas[i], i);
+        }
+    }
+
+    // Last, because every band moves the markers onto its own corners to read the terrain under them, see
+    // getAreaGroundPoints.
+    updateAreaDebug(areas[Math.min(Math.max(0, Math.round(shadowParams.areaIndex)), areas.length - 1)]);
+    pinQuadTreeTraversal();
 }
 
 // Where the fit sits among the predraw handlers, which run in descending priority order. Both placements
@@ -1261,68 +1089,6 @@ const SHADOW_CAMERA_PREDRAW_PRIORITY = -1;
 
 globus.planet.renderer.events.on("predraw", updateShadowCamera, null, SHADOW_CAMERA_PREDRAW_PRIORITY);
 
-// One map per band, added nearest first. ShadowManager keeps insertion order, and shadows.glsl multiplies
-// every active map into the fragment, so all four bands shade the ground at once.
-const shadowMaps = [];
-
-for (let i = 0; i < MAX_AREA_COUNT; i++) {
-    shadowMaps.push(
-        new ShadowMap({
-            enabled: i === 0,
-            depthCamera: depthCameras[i]
-        })
-    );
-    globus.planet.renderer.shadows.add(shadowMaps[i]);
-}
-
-for (let i = 0; i < MAX_AREA_COUNT; i++) {
-    globus.planet.addControl(
-        new control.FramebufferPreview({
-            title: `Band ${i}`,
-            arrayTexture: shadowMaps[i].arrayTexture,
-            arrayLayer: shadowMaps[i].slot,
-            width: 220,
-            height: 220,
-            image: depthPreviewShader,
-            flippedY: true
-        })
-    );
-}
-
-globus.planet.addControl(new control.ToggleWireframe());
-
-const shadowCamera = shadowCameras[0];
-
-window.shadowMapSandbox = {
-    globus,
-    depthCameras,
-    shadowCameras,
-    shadowMaps,
-    depthCamera,
-    shadowCamera,
-    params: shadowParams,
-    stats: shadowStats,
-    logBands: () =>
-        console.table(
-            shadowMaps.map((map, i) => ({
-                band: i,
-                enabled: map.enabled,
-                slot: map.slot,
-                texel: Number((shadowStats.texelWorldSizes[i] || 0).toFixed(2)),
-                areaTexel: Number((shadowStats.areaTexelSizes[i] || 0).toFixed(2))
-            }))
-        )
-};
-
-globus.planet.renderer.events.on("charkeypress", input.KEY_C, (e) => {
-    let mouseGroundPoint = globus.planet.getCartesianFromMouseTerrain();
-    if (mouseGroundPoint) {
-        const upNormal = globus.planet.ellipsoid.getSurfaceNormal3v(shadowCamera.eye);
-        shadowCamera.set(shadowCamera.eye, mouseGroundPoint, upNormal);
-        shadowCamera.update();
-    }
-});
-
 const MAIN_CAMERA_ROLL_STEP = (1.5 * Math.PI) / 180.0;
 
 globus.planet.renderer.events.on("keypress", input.KEY_Q, () => {
@@ -1337,4 +1103,9 @@ globus.planet.renderer.events.on("keypress", input.KEY_E, () => {
     mcam.update();
 });
 
-globus.planet.renderer.events.on("charkeypress", input.KEY_V, () => {});
+window.shadowMapSandbox = {
+    globus,
+    depthCameras,
+    shadowMaps,
+    params: shadowParams
+};

@@ -670,7 +670,7 @@ export class DepthCamera {
         //
         // @test
         //
-        return planet.quadTreeStrategy;
+        //return planet.quadTreeStrategy;
         //
         // @test
         //
