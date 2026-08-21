@@ -151,35 +151,23 @@ const depthPreviewShader = `void mainImage(out vec4 fragColor, in vec2 fragCoord
 const depthCameraHandler = new control.DepthCameraHandler();
 globus.planet.addControl(depthCameraHandler);
 
-// One depth camera and one shadow map per footprint band, all through the same path the single map
-// sandbox uses: DepthCameraHandler renders them, ShadowManager samples them, shadows.glsl combines them.
-// ShadowManager holds four maps at most, which is the cap on the split.
 const MAX_AREA_COUNT = 4;
 
-function createAreaDepthCamera(index) {
+function createAreaDepthCamera() {
     return new DepthCamera({
         enableSegmentSkirts: true,
         enableSegmentFaceCulling: false,
-        // Per band, and there are four of them. DepthCamera allocates a CPU side readback buffer per
-        // framebuffer - width * height * 4 floats - so 2048 here costs 67 MB a camera and four of those
-        // fail to allocate. Four maps at 1024 hold the same total as the single 2048 map did, and
-        // ShadowManager requires every map to share one size anyway.
         width: 1024,
         height: 1024,
-        // Footprint markers, ground rays and horizon lines are debug visualization, they may not cast.
         excludeLayers: [horizonMarkers],
         near: 1000,
         far: 500000,
         focusDistance: 100000,
         verticalViewAngle: 45,
-        // Driven per frame from the shadow texel size, see updateShadowBiases.
-        geoObjectDepthPolygonOffsetFactor: 3,
-        geoObjectDepthPolygonOffsetUnits: 4,
         intensity: 1,
         isOrthographic: true,
-        geoObjectDepthCullFace: "back",
-        // Only the nearest band shows its frustum, otherwise four wireframes bury the view.
-        showFrustum: index === 0,
+        //geoObjectDepthCullFace: "back",
+        showFrustum: true,
         showFootprint: false
     });
 }
@@ -216,11 +204,7 @@ const MIN_SHADOW_CASTER_HEIGHT = 100;
 const MAX_SHADOW_CASTER_HEIGHT = 10000;
 // Rungs per octave the caster height is quantized onto. One, so it moves in doublings and rarely.
 const SHADOW_CASTER_HEIGHT_STEPS = 1;
-// Depth biases of an orthographic shadow camera are in world units: ShadowManager divides them by
-// the shadow depth range before they reach the shader. A constant value therefore detaches the
-// shadow from the foot of every slope by (bias + epsilon) * cos(sunElevation), so both follow the
-// shadow texel size instead, in texels.
-const SHADOW_DEPTH_BIAS_TEXELS = 1.0;
+const SHADOW_DEPTH_BIAS_TEXELS = 100.0;
 const SHADOW_DEPTH_EPSILON_TEXELS = 1.0;
 // Floor on the light-space depth reserved behind the farthest shadow receiver, for terrain that goes
 // below the footprint reference level. The measured descent raises it, see receiverDepthPadding.
