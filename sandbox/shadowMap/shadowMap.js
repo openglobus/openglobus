@@ -12,7 +12,8 @@ import {
     ShadowMap,
     DepthCamera,
     XYZ,
-    Vec3
+    Vec3,
+    getCameraFootprint
 } from "../../lib/og.es.js";
 
 let myObjects = new Vector("myObjects", {
@@ -211,14 +212,7 @@ depthCameraHandler.add(depthCamera);
 
 const shadowCamera = depthCamera.camera;
 
-const HORIZON_SCREEN_MARGIN = 100;
 const MAIN_CAMERA_ROLL_STEP = (1.5 * Math.PI) / 180.0;
-const FOOTPRINT_SCREEN_EDGE_SEARCH_STEPS = 4;
-
-function getEllipsoidHit(mcam, x, y) {
-    let ray = mcam.getRay(x, y);
-    return globus.planet.ellipsoid.hitRay(ray.origin, ray.direction);
-}
 
 function getFootprintGroundPoint(marker, point) {
     let terrainPoint = new Vec3();
@@ -233,114 +227,6 @@ function updateFootprintGroundRay(rayEntity, markerEntity, point) {
         rayEntity.ray.setStartPosition3v(point);
         rayEntity.ray.setEndPosition3v(getFootprintGroundPoint(markerEntity, point));
     }
-}
-
-function getHorizonPointByDirection(mcam, direction) {
-    let up = mcam.eye.getNormal();
-    let horizonDirection = Vec3.proj_b_to_plane(direction, up);
-
-    if (horizonDirection.length2() < 1e-8) {
-        return undefined;
-    }
-
-    horizonDirection.normalize();
-
-    let distanceToCamera = mcam.eye.length();
-    let radius = distanceToCamera - mcam.getHeight();
-
-    if (distanceToCamera <= radius) {
-        return undefined;
-    }
-
-    let tangentDistance = Math.sqrt(distanceToCamera * distanceToCamera - radius * radius);
-    let upDistance = (radius * radius) / distanceToCamera;
-    let horizonDistance = (radius * tangentDistance) / distanceToCamera;
-
-    return up.scaleTo(upDistance).addA(horizonDirection.scaleTo(horizonDistance));
-}
-
-function getFootprintBoundaryOnScreenSegment(mcam, hitX, missX, y) {
-    let x0 = hitX;
-    let x1 = missX;
-    let hit = getEllipsoidHit(mcam, x0, y);
-
-    if (!hit) {
-        return undefined;
-    }
-
-    for (let i = 0; i < FOOTPRINT_SCREEN_EDGE_SEARCH_STEPS; i++) {
-        let x = (x0 + x1) * 0.5;
-        let midHit = getEllipsoidHit(mcam, x, y);
-
-        if (midHit) {
-            x0 = x;
-            hit = midHit;
-        } else {
-            x1 = x;
-        }
-    }
-
-    return hit;
-}
-
-function getCameraFootprint(mcam, hitLeftTop, hitRightTop, hitLeftBottom, hitRightBottom) {
-    // let up = mcam.eye.getNormal();
-    // let upSide = mcam.getUp().dot(up) < 0.0 ? -1.0 : 1.0;
-    //
-    // let f = Vec3.proj_b_to_plane(mcam.getForward(), up);
-    // if (f.length2() < 1e-8) {
-    //     f = Vec3.proj_b_to_plane(mcam.getUp().scaleTo(upSide), up);
-    // }
-    // f.normalize();
-
-    let screenLeft = HORIZON_SCREEN_MARGIN;
-    let screenRight = mcam.width - HORIZON_SCREEN_MARGIN;
-    let screenTop = HORIZON_SCREEN_MARGIN;
-    let screenBottom = mcam.height - HORIZON_SCREEN_MARGIN;
-
-    let rawHitLt = getEllipsoidHit(mcam, screenLeft, screenTop);
-    let rawHitRt = getEllipsoidHit(mcam, screenRight, screenTop);
-    let rawHitLb = getEllipsoidHit(mcam, screenLeft, screenBottom);
-    let rawHitRb = getEllipsoidHit(mcam, screenRight, screenBottom);
-
-    let rayLt = mcam.getRay(screenLeft, screenTop);
-    let rayRt = mcam.getRay(screenRight, screenTop);
-    let rayLb = mcam.getRay(screenLeft, screenBottom);
-    let rayRb = mcam.getRay(screenRight, screenBottom);
-
-    let hitLt = rawHitLt;
-    let hitRt = rawHitRt;
-    let hitLb = rawHitLb;
-    let hitRb = rawHitRb;
-
-    if (!hitLt && (rawHitLb || rawHitRt)) {
-        hitLt = getHorizonPointByDirection(mcam, rayLt.direction);
-    }
-
-    if (!hitRt && (rawHitRb || rawHitLt)) {
-        hitRt = getHorizonPointByDirection(mcam, rayRt.direction);
-    }
-
-    if (!hitLb && (rawHitLt || rawHitRb)) {
-        hitLb = getHorizonPointByDirection(mcam, rayLb.direction);
-    }
-
-    if (!hitRb && (rawHitRt || rawHitLb)) {
-        hitRb = getHorizonPointByDirection(mcam, rayRb.direction);
-    }
-
-    let isLeftColumnOnly = rawHitLt && rawHitLb && !rawHitRt && !rawHitRb;
-    let isRightColumnOnly = rawHitRt && rawHitRb && !rawHitLt && !rawHitLb;
-
-    if (isLeftColumnOnly) {
-        hitRt = getFootprintBoundaryOnScreenSegment(mcam, screenLeft, screenRight, screenTop) || hitRt;
-        hitRb = getFootprintBoundaryOnScreenSegment(mcam, screenLeft, screenRight, screenBottom) || hitRb;
-    } else if (isRightColumnOnly) {
-        hitLt = getFootprintBoundaryOnScreenSegment(mcam, screenRight, screenLeft, screenTop) || hitLt;
-        hitLb = getFootprintBoundaryOnScreenSegment(mcam, screenRight, screenLeft, screenBottom) || hitLb;
-    }
-
-    return [hitLt, hitRt, hitLb, hitRb];
 }
 
 function updateShadowCamera() {
