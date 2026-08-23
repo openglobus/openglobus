@@ -13,14 +13,15 @@ import {
     DepthCamera,
     XYZ,
     Vec3,
-    getCameraFootprint
+    CameraFootprint,
+    ShadowCameraFit
 } from "../../lib/og.es.js";
 
 let myObjects = new Vector("myObjects", {
     scaleByDistance: [1, 1, 1]
 });
 
-let horizonMarkers = new Vector("horizonMarkers", {
+let footprintDebug = new Vector("footprintDebug", {
     scaleByDistance: [1, 100000000, 0.003],
     receiveShadows: false
 });
@@ -36,22 +37,20 @@ const globus = new Globe({
         new Bing(),
         new OpenStreetMap(),
         myObjects,
-        horizonMarkers
+        footprintDebug
     ],
     atmosphereEnabled: true,
-    fontsSrc: "../../res/fonts"
-    //reverseDepth: false
+    fontsSrc: "../../res/fonts",
+    sun: {
+        localDateTime: new Date(2026, 7, 4, 18, 0)
+    }
 });
 
-let timelineControl = new control.TimelineControl();
-
-globus.planet.addControl(timelineControl);
+globus.planet.addControl(new control.TimelineControl());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.LayerSwitcher());
 globus.planet.addControl(new control.DrawingSwitcher());
 globus.planet.addControl(new control.EntityEditor());
-
-const skyCubeObject3d = Object3d.createCube(10000, 10000, 10000).setColor("white");
 
 const skyCubeEntity = new Entity({
     name: "sky-cube",
@@ -59,81 +58,71 @@ const skyCubeEntity = new Entity({
     independentPicking: true,
     geoObject: {
         tag: "sky-cube",
-        object3d: skyCubeObject3d
+        object3d: Object3d.createCube(10000, 10000, 10000).setColor("white")
     }
 });
 myObjects.add(skyCubeEntity);
 
-const horizonMarkerLt = new Entity({
-    name: "horizon-marker-lt",
-    visibility: false,
+const mediumSkyCubeEntity = new Entity({
+    name: "sky-cube-medium",
+    lonlat: new LonLat(9.2314898, 46.4864594, 6000),
     independentPicking: true,
     geoObject: {
-        tag: "horizon-marker-lt",
-        object3d: Object3d.createSphere(16, 16, 3).setColor("yellow")
+        tag: "sky-cube-medium",
+        object3d: Object3d.createCube(6000, 6000, 6000).setColor("white")
     }
 });
-horizonMarkers.add(horizonMarkerLt);
+myObjects.add(mediumSkyCubeEntity);
 
-const horizonMarkerRt = new Entity({
-    name: "horizon-marker-rt",
-    visibility: false,
+const smallSkyCubeEntity = new Entity({
+    name: "sky-cube-small",
+    lonlat: new LonLat(8.9514898, 46.4864594, 3000),
     independentPicking: true,
     geoObject: {
-        tag: "horizon-marker-rt",
-        object3d: Object3d.createSphere(16, 16, 3).setColor("yellow")
+        tag: "sky-cube-small",
+        object3d: Object3d.createCube(3000, 3000, 3000).setColor("white")
     }
 });
-horizonMarkers.add(horizonMarkerRt);
+myObjects.add(smallSkyCubeEntity);
 
-const horizonMarkerLb = new Entity({
-    name: "horizon-marker-lb",
-    visibility: false,
-    independentPicking: true,
-    geoObject: {
-        tag: "horizon-marker-lb",
-        object3d: Object3d.createSphere(16, 16, 3).setColor("yellow")
-    }
-});
-horizonMarkers.add(horizonMarkerLb);
+const FOOTPRINT_POINT_COUNT = 4;
 
-const horizonMarkerRb = new Entity({
-    name: "horizon-marker-rb",
-    visibility: false,
-    independentPicking: true,
-    geoObject: {
-        tag: "horizon-marker-rb",
-        object3d: Object3d.createSphere(16, 16, 3).setColor("yellow")
-    }
-});
-horizonMarkers.add(horizonMarkerRb);
+const footprintMarkers = [];
+const footprintGroundRays = [];
 
-function createFootprintGroundRay(name) {
-    return new Entity({
-        name,
-        visibility: false,
-        ray: {
-            startPosition: new Vec3(),
-            endPosition: new Vec3(),
-            startColor: "rgba(0,255,255,0.9)",
-            endColor: "rgba(0,255,255,0.15)",
-            thickness: 2.5
-        }
-    });
+for (let i = 0; i < FOOTPRINT_POINT_COUNT; i++) {
+    footprintMarkers.push(
+        new Entity({
+            name: `footprint-marker-${i}`,
+            visibility: false,
+            independentPicking: true,
+            geoObject: {
+                tag: `footprint-marker-${i}`,
+                object3d: Object3d.createSphere(16, 16, 3).setColor("yellow")
+            }
+        })
+    );
+
+    footprintGroundRays.push(
+        new Entity({
+            name: `footprint-ground-ray-${i}`,
+            visibility: false,
+            ray: {
+                startPosition: new Vec3(),
+                endPosition: new Vec3(),
+                startColor: "rgba(0,255,255,0.9)",
+                endColor: "rgba(0,255,255,0.15)",
+                thickness: 2.5
+            }
+        })
+    );
+
+    footprintDebug.add(footprintMarkers[i]);
+    footprintDebug.add(footprintGroundRays[i]);
 }
 
-const footprintGroundRayLt = createFootprintGroundRay("footprint-ground-ray-lt");
-const footprintGroundRayRt = createFootprintGroundRay("footprint-ground-ray-rt");
-const footprintGroundRayLb = createFootprintGroundRay("footprint-ground-ray-lb");
-const footprintGroundRayRb = createFootprintGroundRay("footprint-ground-ray-rb");
-
-horizonMarkers.add(footprintGroundRayLt);
-horizonMarkers.add(footprintGroundRayRt);
-horizonMarkers.add(footprintGroundRayLb);
-horizonMarkers.add(footprintGroundRayRb);
-
-const horizonLineTop = new Entity({
-    name: "horizon-line-top",
+const footprintContour = new Entity({
+    name: "footprint-contour",
     visibility: false,
     polyline: {
         path3v: [],
@@ -141,40 +130,7 @@ const horizonLineTop = new Entity({
         color: "yellow"
     }
 });
-horizonMarkers.add(horizonLineTop);
-
-const horizonLineRight = new Entity({
-    name: "horizon-line-right",
-    visibility: false,
-    polyline: {
-        path3v: [],
-        thickness: 3,
-        color: "yellow"
-    }
-});
-horizonMarkers.add(horizonLineRight);
-
-const horizonLineBottom = new Entity({
-    name: "horizon-line-bottom",
-    visibility: false,
-    polyline: {
-        path3v: [],
-        thickness: 3,
-        color: "yellow"
-    }
-});
-horizonMarkers.add(horizonLineBottom);
-
-const horizonLineLeft = new Entity({
-    name: "horizon-line-left",
-    visibility: false,
-    polyline: {
-        path3v: [],
-        thickness: 3,
-        color: "yellow"
-    }
-});
-horizonMarkers.add(horizonLineLeft);
+footprintDebug.add(footprintContour);
 
 const depthPreviewShader = `void mainImage(out vec4 fragColor, in vec2 fragCoord){
                 float depth = texture(inputTextureArray, vec3(fragCoord, float(u_arrayLayer))).r;
@@ -190,135 +146,57 @@ const depthCamera = new DepthCamera({
     enableSegmentFaceCulling: false,
     width: 1024,
     height: 1024,
+    excludeLayers: [footprintDebug],
     near: 1000,
     far: 500000,
     focusDistance: 100000,
     verticalViewAngle: 45,
-    bias: 1000,
-    normalBias: 0,
-    depthEpsilon: 1000,
-    geoObjectDepthPolygonOffsetFactor: 3,
-    geoObjectDepthPolygonOffsetUnits: 4,
-    intensity: 1,
-    //position: new LonLat(10.0814898, 46.4864594, 10000),
-    //look: new LonLat(9.0814898, 46.4864594, 0),
     isOrthographic: true,
-    geoObjectDepthCullFace: "back",
     showFrustum: true,
-    showFootprint: true
+    showFootprint: false
 });
 
 depthCameraHandler.add(depthCamera);
 
 const shadowCamera = depthCamera.camera;
 
-const MAIN_CAMERA_ROLL_STEP = (1.5 * Math.PI) / 180.0;
+const footprint = new CameraFootprint({
+    screenMargin: 100
+});
 
-function getFootprintGroundPoint(marker, point) {
-    let terrainPoint = new Vec3();
-    let terrainDistance = globus.planet.getEntityTerrainPoint(marker, terrainPoint);
-    return terrainDistance != undefined ? terrainPoint : globus.planet.ellipsoid.projToSurface(point);
+const shadowCameraFit = new ShadowCameraFit();
+
+function updateFootprintDebug() {
+    for (let i = 0; i < FOOTPRINT_POINT_COUNT; i++) {
+        footprintMarkers[i].setVisibility(true);
+        footprintMarkers[i].setAbsoluteCartesian3v(footprint.surfacePoints[i]);
+
+        footprintGroundRays[i].setVisibility(true);
+        footprintGroundRays[i].ray.setStartPosition3v(footprint.surfacePoints[i]);
+        footprintGroundRays[i].ray.setEndPosition3v(footprint.points[i]);
+    }
+
+    footprintContour.setVisibility(true);
+    footprintContour.polyline.setPath3v([[...footprint.points, footprint.points[0]]], undefined, true);
 }
 
-function updateFootprintGroundRay(rayEntity, markerEntity, point) {
-    rayEntity.setVisibility(Boolean(point));
-
-    if (point) {
-        rayEntity.ray.setStartPosition3v(point);
-        rayEntity.ray.setEndPosition3v(getFootprintGroundPoint(markerEntity, point));
+function hideFootprintDebug() {
+    for (let i = 0; i < FOOTPRINT_POINT_COUNT; i++) {
+        footprintMarkers[i].setVisibility(false);
+        footprintGroundRays[i].setVisibility(false);
     }
+
+    footprintContour.setVisibility(false);
 }
 
 function updateShadowCamera() {
-    let [hitLt, hitRt, hitLb, hitRb] = getCameraFootprint(globus.planet.camera);
-
-    horizonMarkerLt.setVisibility(Boolean(hitLt));
-    if (hitLt) {
-        horizonMarkerLt.setAbsoluteCartesian3v(hitLt);
+    if (!footprint.update(globus.planet.camera)) {
+        hideFootprintDebug();
+        return;
     }
 
-    horizonMarkerRt.setVisibility(Boolean(hitRt));
-    if (hitRt) {
-        horizonMarkerRt.setAbsoluteCartesian3v(hitRt);
-    }
-
-    horizonMarkerLb.setVisibility(Boolean(hitLb));
-    if (hitLb) {
-        horizonMarkerLb.setAbsoluteCartesian3v(hitLb);
-    }
-
-    horizonMarkerRb.setVisibility(Boolean(hitRb));
-    if (hitRb) {
-        horizonMarkerRb.setAbsoluteCartesian3v(hitRb);
-    }
-
-    updateFootprintGroundRay(footprintGroundRayLt, horizonMarkerLt, hitLt);
-    updateFootprintGroundRay(footprintGroundRayRt, horizonMarkerRt, hitRt);
-    updateFootprintGroundRay(footprintGroundRayLb, horizonMarkerLb, hitLb);
-    updateFootprintGroundRay(footprintGroundRayRb, horizonMarkerRb, hitRb);
-
-    horizonLineTop.setVisibility(Boolean(hitLt && hitRt));
-    if (hitLt && hitRt) {
-        horizonLineTop.polyline.setPath3v([[hitLt, hitRt]], undefined, true);
-    }
-
-    horizonLineRight.setVisibility(Boolean(hitRt && hitRb));
-    if (hitRt && hitRb) {
-        horizonLineRight.polyline.setPath3v([[hitRt, hitRb]], undefined, true);
-    }
-
-    horizonLineBottom.setVisibility(Boolean(hitRb && hitLb));
-    if (hitRb && hitLb) {
-        horizonLineBottom.polyline.setPath3v([[hitRb, hitLb]], undefined, true);
-    }
-
-    horizonLineLeft.setVisibility(Boolean(hitLb && hitLt));
-    if (hitLb && hitLt) {
-        horizonLineLeft.polyline.setPath3v([[hitLb, hitLt]], undefined, true);
-    }
-
-    //let isHorizonOnScreen = rawHitLt ? !rawHitRt || !rawHitLb || !rawHitRb : rawHitRt || rawHitLb || rawHitRb;
-    //console.log(isHorizonOnScreen);
-
-    let mcam = globus.planet.camera;
-    let up = mcam.eye.getNormal();
-    let sunDir = globus.planet.sun.getPosition().normal().scale(-1.0);
-    let alt = mcam.getHeight() - 8000;
-    let eye = mcam.eye.sub(up.scaleTo(alt));
-
-    let forward = mcam.getForward();
-    let right = mcam.getRight();
-
-    let upSide = mcam.getUp().dot(up) < 0.0 ? -1.0 : 1.0;
-
-    let fov_h = (0.5 * mcam.verticalViewAngle * Math.PI) / 180.0;
-    let slope = Math.max(-1.0, Math.min(1.0, mcam.slope));
-    let a = Math.acos(slope) - upSide * fov_h;
-
-    let offset_f = Math.tan(a) * alt;
-
-    let f = Vec3.proj_b_to_plane(mcam.getForward(), up);
-    if (f.length2() < 1e-8) {
-        f = Vec3.proj_b_to_plane(mcam.getUp().scaleTo(upSide), up);
-    }
-    f.normalize();
-
-    eye.addA(f.scale(offset_f));
-
-    let d = eye.sub(mcam.eye).dot(forward);
-    let eye_left = eye;
-    let eye_right = eye;
-    if (d > 0.0) {
-        let halfW = Math.tan(((mcam.horizontalViewAngle * Math.PI) / 180.0) * 0.5) * d;
-        eye_left = eye.add(right.scaleTo(-halfW));
-        eye_right = eye.add(right.scaleTo(halfW));
-        eye = eye_left.add(eye_right).scale(0.5);
-        let orthoHalfSize = eye_left.distance(eye_right) * 0.5;
-        shadowCamera.frustum.setOrthoBounds(-orthoHalfSize, orthoHalfSize, -orthoHalfSize, orthoHalfSize);
-    }
-
-    shadowCamera.set(eye, eye.add(sunDir), up);
-    shadowCamera.update();
+    shadowCameraFit.fit(depthCamera, footprint, globus.planet.sunPos);
+    updateFootprintDebug();
 }
 
 globus.planet.renderer.events.on("predraw", updateShadowCamera, null, -1);
@@ -335,8 +213,8 @@ const depthPreview = new control.FramebufferPreview({
     title: `ShadowMap`,
     arrayTexture: shadowMap.arrayTexture,
     arrayLayer: shadowMap.slot,
-    width: 400, //depthCamera.framebuffer.width,
-    height: 400, //depthCamera.framebuffer.height,
+    width: 400,
+    height: 400,
     image: depthPreviewShader,
     flippedY: true
 });
@@ -344,52 +222,19 @@ globus.planet.addControl(depthPreview);
 globus.planet.addControl(new control.ToggleWireframe());
 
 window.shadowMapSandbox = {
-    globus,
     depthCamera,
     shadowCamera,
-    shadowMap
+    shadowMap,
+    footprint,
+    fit: shadowCameraFit,
+    stats: shadowCameraFit.stats
 };
 
-// const frustumEntity = new Entity({
-//     name: `frustum`,
-//     relativePosition: true,
-//     independentPicking: true,
-//     geoObject: {
-//         tag: "camera-frustum",
-//         color: "rgba(0,255,0,0.1)",
-//         object3d: cameraFrustumObject3d
+// globus.planet.renderer.events.on("charkeypress", input.KEY_C, () => {
+//     let mouseGroundPoint = globus.planet.getCartesianFromMouseTerrain();
+//     if (mouseGroundPoint) {
+//         const upNormal = globus.planet.ellipsoid.getSurfaceNormal3v(shadowCamera.eye);
+//         shadowCamera.set(shadowCamera.eye, mouseGroundPoint, upNormal);
+//         shadowCamera.update();
 //     }
 // });
-//
-// uavModelRoot.appendChild(frustumEntity);
-//
-// frustumEntity.setScale3v(
-//     Object3d.getFrustumScaleByCameraAngles(3, depthCamera.horizontalViewAngle, depthCamera.verticalViewAngle)
-// );
-//
-// frustumEntity.setAbsolutePitch(depthCamera.getPitch());
-// frustumEntity.setAbsoluteYaw(depthCamera.getYaw());
-// frustumEntity.setAbsoluteRoll(depthCamera.getRoll());
-
-globus.planet.renderer.events.on("charkeypress", input.KEY_C, (e) => {
-    let mouseGroundPoint = globus.planet.getCartesianFromMouseTerrain();
-    if (mouseGroundPoint) {
-        const upNormal = globus.planet.ellipsoid.getSurfaceNormal3v(shadowCamera.eye);
-        shadowCamera.set(shadowCamera.eye, mouseGroundPoint, upNormal);
-        shadowCamera.update();
-    }
-});
-
-globus.planet.renderer.events.on("keypress", input.KEY_Q, () => {
-    let mcam = globus.planet.camera;
-    mcam.setRoll(mcam.getRoll() - MAIN_CAMERA_ROLL_STEP);
-    mcam.update();
-});
-
-globus.planet.renderer.events.on("keypress", input.KEY_E, () => {
-    let mcam = globus.planet.camera;
-    mcam.setRoll(mcam.getRoll() + MAIN_CAMERA_ROLL_STEP);
-    mcam.update();
-});
-
-globus.planet.renderer.events.on("charkeypress", input.KEY_V, () => {});
