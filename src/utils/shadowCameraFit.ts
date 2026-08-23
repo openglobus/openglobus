@@ -274,6 +274,12 @@ export function fitShadowCamera(
     let planet = camera.planet;
     let corners = [hitLt, hitRt, hitRb, hitLb];
     let footprintCenter = getAveragePoint(corners);
+
+    let terrainCenter = new Vec3();
+    if (planet.getCartesianTerrainPoint(footprintCenter, terrainCenter) !== undefined) {
+        footprintCenter = terrainCenter;
+    }
+
     let footprintPoints = [...corners, footprintCenter];
     let sunDirection = sunPos.normal().scale(-1.0);
     let cameraPosition = footprintCenter.sub(sunDirection.scaleTo(SHADOW_FOOTPRINT_TEST_DISTANCE));
