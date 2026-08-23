@@ -1,21 +1,54 @@
-import type { Ellipsoid } from "../ellipsoid/Ellipsoid";
+import type { DepthCamera } from "../control/depthCamera/DepthCamera";
+import type { QuadTreeStrategy } from "../quadTree/QuadTreeStrategy";
 import type { Planet } from "../scene/Planet";
-import type { PlanetCamera } from "../camera/PlanetCamera";
 import type { CameraFootprint } from "./cameraFootprint";
 import { Vec3 } from "../math/Vec3";
 import { EPS12 } from "../math";
 
-const SHADOW_FOOTPRINT_TEST_DISTANCE = 100000;
-const SHADOW_CASTER_DEPTH_PADDING = 10000;
-const SHADOW_RECEIVER_DEPTH_PADDING = 100;
-const SHADOW_NEAR = 1000;
-const SHADOW_MIN_CAMERA_ALTITUDE = 1000;
-const SHADOW_CASTER_HEIGHT_PADDING = 10000;
-const SHADOW_SUNWARD_CAMERA_OFFSET = 50000;
-const SHADOW_TEXEL_SNAP_ENABLED = true;
-const SHADOW_ORTHO_TEXEL_PADDING = 2;
-const SHADOW_ORTHO_CASTER_MARGIN = 25000;
-const SHADOW_REFERENCE_TEXTURE_SIZE = 1024;
+/**
+ * How high above the footprint a caster may stand and still reach the shadow map: the measured terrain
+ * relief, or a share of the footprint radius over flat ground, whichever is larger.
+ *
+ * Raising it is cheap. It only moves the camera sunward, which lengthens the depth range and leaves the
+ * orthographic bounds - and the texel size with them - untouched.
+ */
+const SHADOW_CASTER_RELIEF_FACTOR = 1.25;
+const SHADOW_CASTER_HEIGHT_FACTOR = 0.25;
+const MIN_SHADOW_CASTER_HEIGHT = 100;
+const MAX_SHADOW_CASTER_HEIGHT = 10000;
+
+/**
+ * Steps per doubling the caster height is rounded up to. One, so the allowed heights are 128, 256, 512
+ * metres and so on: the height places the shadow camera eye, and that eye has to stay put, so it is better
+ * for it to jump rarely and by a lot than to drift a little every frame.
+ */
+const SHADOW_CASTER_HEIGHT_STEPS = 1;
+
+/**
+ * Smallest distance the far plane is pushed past the farthest receiver, so that terrain lying lower than
+ * the fitted points still falls inside the map. The measured descent adds to it, see fit().
+ */
+const SHADOW_RECEIVER_DEPTH_PADDING = 500;
+
+/**
+ * Border, in texels, added around the fitted bounds. The soft shadow filter samples the neighbours of each
+ * texel, and a sample taken outside the map reads as lit, so without the border shadows break up along the
+ * edge of the covered area.
+ */
+const SHADOW_ORTHO_TEXEL_PADDING = 3;
+
+/**
+ * The fitted extent is not used as measured. It is rounded up to one of four sizes per doubling, about 19%
+ * apart, and drops to a finer one only when the fit asks for clearly less - that is the slack. A size that
+ * changed every frame would drag the texel grid along with it and make the shadow edges shimmer. See
+ * _quantizeOrthoTexelSize.
+ */
+const ORTHO_TEXEL_QUANTIZATION_STEPS = 4;
+const ORTHO_TEXEL_QUANTIZATION_RATIO = Math.pow(2.0, 1.0 / ORTHO_TEXEL_QUANTIZATION_STEPS);
+const ORTHO_TEXEL_RELEASE_SLACK = 0.15;
+
+/** Smallest bounds padding and far-near gap, in world units. */
+const MIN_SHADOW_ORTHO_SIZE = 1.0;
 
 export interface ILightSpaceBounds {
     minX: number;
@@ -26,371 +59,623 @@ export interface ILightSpaceBounds {
     maxZ: number;
 }
 
-interface IExpandedLightSpaceBounds extends ILightSpaceBounds {
-    casterMarginX: number;
-    casterMarginY: number;
-    tightWidth: number;
-    tightHeight: number;
+export interface IOrthoBounds {
+    left: number;
+    right: number;
+    bottom: number;
+    top: number;
 }
 
-export interface IShadowCameraAltitudeClamp {
-    altitude: number;
-    offset: Vec3;
-    terrainAvailable: boolean;
+interface ITerrainRelief {
+    up: number;
+    down: number;
+    depthUp: number;
+    depthDown: number;
+    cornerSpread: number;
 }
 
-function getAveragePoint(points: Vec3[]): Vec3 {
-    let center = new Vec3();
+export interface IShadowCameraFitParams {
+    /**
+     * Extra margin around the fitted bounds, as a fraction of their size: 0.01 is one percent on each side,
+     * on top of the texel border.
+     *
+     * The footprint is sampled at the four screen corners only, and the ground between them bulges outside
+     * the quad they make. Without the margin that strip - widest in the middle of the screen edges - falls
+     * outside the map and stays unshadowed.
+     */
+    orthoMarginFactor?: number;
 
-    for (let i = 0; i < points.length; i++) {
-        center.addA(points[i]);
+    /**
+     * Light space depth kept in front of the caster volume, the larger of an absolute distance and a
+     * multiple of the caster volume height. Everything within it still casts. Moving the camera sunward
+     * leaves the orthographic bounds untouched, so this buys caster coverage at no cost to shadow
+     * resolution: it only widens the depth range, and the depth target is 32 bit float.
+     */
+    casterClearance?: number;
+    casterClearanceFactor?: number;
+
+    /**
+     * Smallest ray slope the relief walk accepts: at 0.1 one metre of relief moves a footprint point by at
+     * most ten metres along its view ray.
+     *
+     * Without the floor a point near the horizon, where the ray runs almost parallel to the ground, walks
+     * kilometres for that same metre - and since the relief is only ever an estimate, the bounds it drags
+     * out with it cost every shadow in the view its sharpness.
+     */
+    minFootprintRaySlope?: number;
+
+    /**
+     * How far terrain below the reference level may push a footprint point sideways, as a fraction of the
+     * footprint radius: 0.5 is half of it. Only the sideways part is capped, the depth of the walk is free.
+     *
+     * The one knob here that trades coverage for sharpness. Raise it and a view down a descending slope -
+     * ground seen far past where the reference level ends - stays covered, at a coarser texel. It has to
+     * stay a fraction, though: a camera a few metres above a plateau has a footprint a few metres across,
+     * and no terrain a kilometre below it can be visible from there, whatever the coarse tiles report.
+     */
+    reliefLateralFactor?: number;
+
+    /** Upper limits on the terrain relief the fit takes from the quad tree, in world units. */
+    maxReliefUp?: number;
+    maxReliefDown?: number;
+
+    /**
+     * Aligns the fitted bounds to a texel grid fixed in the world, so that shadow edges stop crawling while
+     * the camera moves. See _snapOrthographicBounds.
+     */
+    snapToTexelGrid?: boolean;
+
+    /**
+     * How the shadow rectangle is turned around the sun direction: along the local horizon under the
+     * footprint, or along the world axes. The camera aims at the sun either way, only the roll changes.
+     * Horizon aligned wastes less of the map, but then the rectangle turns as the camera moves and its
+     * texel grid stops holding still. See getStableLightUp.
+     */
+    horizonAlignedLightUp?: boolean;
+
+    /**
+     * Pads each side of the shadow map by the distance the camera travels in one frame, times this number.
+     *
+     * The fit always runs a frame behind the view, so while flying fast the ground right in front of the
+     * camera can fall outside the map and lose its shadow - this is what covers it. In exchange the map size
+     * follows the camera speed and the shadow edges start crawling, so it is off by default.
+     */
+    motionMarginFrames?: number;
+
+    /**
+     * Shadow depth bias and epsilon, counted in shadow map texels so that they follow its resolution, plus a
+     * flat offset in metres:
+     *
+     *     bias = texelWorldSize * depthBiasTexels + depthBiasOffset
+     *     epsilon = texelWorldSize * depthEpsilonTexels + depthBiasOffset
+     *
+     * Too little and surfaces shadow themselves, too much and the shadow comes away from the foot of its
+     * caster by (bias + epsilon) * cos(sunElevation).
+     */
+    depthBiasTexels?: number;
+    depthEpsilonTexels?: number;
+    depthBiasOffset?: number;
+
+    /**
+     * Renders the depth pass from the depth camera's own quad tree traversal rather than from the planet's.
+     * The planet's one covers only the near band of the view and drops tiles while they fade. Above a main
+     * camera height of about 136 km DepthCamera takes the planet's traversal whatever this says.
+     */
+    pinOwnQuadTreeTraversal?: boolean;
+}
+
+/** Last fit measurements, for readouts and debugging. */
+export interface IShadowCameraFitStats {
+    /** Shadow texel size in world units, the way ShadowManager measures it. */
+    texelWorldSize: number;
+    footprintRadius: number;
+    /** Spread of the footprint ground points in geocentric radius. */
+    cornerHeightSpread: number;
+    /** Terrain relief above and below the footprint corners, as the main camera traversal reports it. */
+    reliefUp: number;
+    reliefDown: number;
+    /** The same, with the depth camera traversal taken into account. Only the down side is used, by the far plane. */
+    depthReliefUp: number;
+    depthReliefDown: number;
+    casterHeight: number;
+    /** Main camera displacement since the previous fit, in world units. */
+    cameraStep: number;
+    orthoWidth: number;
+    orthoHeight: number;
+    orthoBounds: IOrthoBounds;
+    near: number;
+    far: number;
+}
+
+function projPerp(vector: Vec3, axis: Vec3): Vec3 {
+    return vector.sub(axis.scaleTo(vector.dot(axis)));
+}
+
+/**
+ * Fallback seed for the light space up vector, for when
+ * the preferred one turns out to be parallel to the light.
+ */
+function getLeastAlignedAxis(direction: Vec3): Vec3 {
+    let x = Math.abs(direction.x);
+    let y = Math.abs(direction.y);
+    let z = Math.abs(direction.z);
+
+    if (x <= y && x <= z) {
+        return Vec3.UNIT_X;
     }
 
-    return center.scale(1.0 / points.length);
+    return y <= z ? Vec3.UNIT_Y : Vec3.UNIT_Z;
 }
 
-/** Filled in by fitShadowCamera when it is given one, for readouts and debugging. */
-export interface IShadowCameraFitData {
-    footprintCenter?: Vec3;
-    sunDirection?: Vec3;
-    cameraPosition?: Vec3;
-    bounds?: ILightSpaceBounds;
-    originalBounds?: ILightSpaceBounds;
-    textureWidth?: number;
-    textureHeight?: number;
-    orthoWidth?: number;
-    orthoHeight?: number;
-    referenceTexelSizeX?: number;
-    referenceTexelSizeY?: number;
-    casterMarginX?: number;
-    casterMarginY?: number;
-    originalNear?: number;
-    originalFar?: number;
-    near?: number;
-    far?: number;
-    depthShift?: number;
-    cameraForwardShift?: number;
-    altitudeClamp?: IShadowCameraAltitudeClamp;
-}
+/**
+ * Up vector of the light space basis, that is, how the shadow rectangle
+ * is turned around the sun direction.
+ */
+function getStableLightUp(footprint: CameraFootprint, lightDirection: Vec3, horizonAligned: boolean): Vec3 {
+    let seed = horizonAligned ? footprint.ellipsoid!.getSurfaceNormal3v(footprint.center) : Vec3.NORTH;
+    let projected = projPerp(seed, lightDirection);
 
-function getStableLightUp(ellipsoid: Ellipsoid, lightDirection: Vec3, footprintCenter: Vec3): Vec3 {
-    // let surfaceUp = ellipsoid.getSurfaceNormal3v(footprintCenter);
-    // let candidates = [surfaceUp, Vec3.NORTH, Vec3.UNIT_Y, Vec3.UNIT_X];
-    //
-    // for (let i = 0; i < candidates.length; i++) {
-    //     let projected = candidates[i].sub(lightDirection.scaleTo(candidates[i].dot(lightDirection)));
-    //     if (projected.length2() > EPS12) {
-    //         return projected.normalize();
-    //     }
-    // }
-    //
-    // return Vec3.UNIT_Y;
+    if (projected.length2() <= EPS12) {
+        projected = projPerp(getLeastAlignedAxis(lightDirection), lightDirection);
+    }
 
-    let surfaceUp = ellipsoid.getSurfaceNormal3v(footprintCenter);
-    let projected = surfaceUp.sub(lightDirection.scaleTo(surfaceUp.dot(lightDirection)));
     return projected.normalize();
 }
 
 /**
- * The camera basis, not its view matrix: the matrix is protected, and the two are the same transform -
- * x along right, y along up, z along forward.
+ * How high the rendered terrain rises above a reference radius, and how deep it drops below it, as two
+ * positive heights.
+ *
+ * Nothing is measured here: the traversal already keeps the highest and the lowest point it draws, so the
+ * answer costs a subtraction and stays right whatever is still loading.
  */
-function getLightSpaceBounds(camera: PlanetCamera, points: Vec3[]): ILightSpaceBounds {
-    let right = camera.getRight();
-    let up = camera.getUp();
-    let forward = camera.getForward();
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
-    let minZ = Infinity;
-    let maxZ = -Infinity;
+function getStrategyRelief(
+    quadTreeStrategy: QuadTreeStrategy | undefined,
+    upFrom: number,
+    downFrom: number
+): { up: number; down: number } {
+    if (!quadTreeStrategy || quadTreeStrategy.maxTerrainRadius <= 0.0) {
+        return { up: 0.0, down: 0.0 };
+    }
+
+    return {
+        up: Math.max(0.0, quadTreeStrategy.maxTerrainRadius - upFrom),
+        down: Math.max(0.0, downFrom - quadTreeStrategy.minTerrainRadius)
+    };
+}
+
+function getRadiusRange(points: Vec3[]): { min: number; max: number } {
+    let min = Infinity;
+    let max = -Infinity;
 
     for (let i = 0; i < points.length; i++) {
-        let p = points[i].sub(camera.eye);
-        let x = p.dot(right);
-        let y = p.dot(up);
-        let z = p.dot(forward);
+        let radius = points[i].length();
 
-        minX = Math.min(minX, x);
-        maxX = Math.max(maxX, x);
-        minY = Math.min(minY, y);
-        maxY = Math.max(maxY, y);
-        minZ = Math.min(minZ, z);
-        maxZ = Math.max(maxZ, z);
+        min = Math.min(min, radius);
+        max = Math.max(max, radius);
     }
 
-    return { minX, maxX, minY, maxY, minZ, maxZ };
-}
-
-function getTerrainHeightFactor(planet: Planet): number {
-    return planet._heightFactor || 1.0;
-}
-
-function getCasterBoundsPoints(planet: Planet, points: Vec3[]): Vec3[] {
-    let heightPadding = SHADOW_CASTER_HEIGHT_PADDING * getTerrainHeightFactor(planet);
-    let casterPoints = points.slice();
-
-    for (let i = 0; i < points.length; i++) {
-        let surfaceNormal = planet.ellipsoid.getSurfaceNormal3v(points[i]);
-        casterPoints.push(points[i].add(surfaceNormal.scaleTo(heightPadding)));
-    }
-
-    return casterPoints;
-}
-
-function getCasterExpandedLightSpaceBounds(
-    bounds: ILightSpaceBounds,
-    textureWidth: number,
-    textureHeight: number
-): IExpandedLightSpaceBounds {
-    let width = bounds.maxX - bounds.minX;
-    let height = bounds.maxY - bounds.minY;
-
-    let snapPaddingScaleX = SHADOW_TEXEL_SNAP_ENABLED ? 1.0 + (2.0 * SHADOW_ORTHO_TEXEL_PADDING) / textureWidth : 1.0;
-    let snapPaddingScaleY = SHADOW_TEXEL_SNAP_ENABLED ? 1.0 + (2.0 * SHADOW_ORTHO_TEXEL_PADDING) / textureHeight : 1.0;
-
-    let maxQualityWidth = (width * (textureWidth / SHADOW_REFERENCE_TEXTURE_SIZE)) / snapPaddingScaleX;
-    let maxQualityHeight = (height * (textureHeight / SHADOW_REFERENCE_TEXTURE_SIZE)) / snapPaddingScaleY;
-
-    let marginX = Math.min(SHADOW_ORTHO_CASTER_MARGIN, Math.max(0.0, (maxQualityWidth - width) * 0.5));
-    let marginY = Math.min(SHADOW_ORTHO_CASTER_MARGIN, Math.max(0.0, (maxQualityHeight - height) * 0.5));
-
-    return {
-        minX: bounds.minX - marginX,
-        maxX: bounds.maxX + marginX,
-        minY: bounds.minY - marginY,
-        maxY: bounds.maxY + marginY,
-        minZ: bounds.minZ,
-        maxZ: bounds.maxZ,
-        casterMarginX: marginX,
-        casterMarginY: marginY,
-        tightWidth: width,
-        tightHeight: height
-    };
-}
-
-function getSnappedLightSpaceBounds(
-    camera: PlanetCamera,
-    bounds: ILightSpaceBounds,
-    textureWidth: number,
-    textureHeight: number
-): ILightSpaceBounds {
-    if (!SHADOW_TEXEL_SNAP_ENABLED || textureWidth <= 0 || textureHeight <= 0) {
-        return bounds;
-    }
-
-    let sourceWidth = bounds.maxX - bounds.minX;
-    let sourceHeight = bounds.maxY - bounds.minY;
-    let sourceTexelSizeX = sourceWidth / textureWidth;
-    let sourceTexelSizeY = sourceHeight / textureHeight;
-
-    if (sourceTexelSizeX <= 0.0 || sourceTexelSizeY <= 0.0) {
-        return bounds;
-    }
-
-    let paddedMinX = bounds.minX - sourceTexelSizeX * SHADOW_ORTHO_TEXEL_PADDING;
-    let paddedMaxX = bounds.maxX + sourceTexelSizeX * SHADOW_ORTHO_TEXEL_PADDING;
-    let paddedMinY = bounds.minY - sourceTexelSizeY * SHADOW_ORTHO_TEXEL_PADDING;
-    let paddedMaxY = bounds.maxY + sourceTexelSizeY * SHADOW_ORTHO_TEXEL_PADDING;
-    let width = paddedMaxX - paddedMinX;
-    let height = paddedMaxY - paddedMinY;
-    let texelSizeX = width / textureWidth;
-    let texelSizeY = height / textureHeight;
-    let right = camera.getRight();
-    let up = camera.getUp();
-    let eyeX = camera.eye.dot(right);
-    let eyeY = camera.eye.dot(up);
-    let worldLeft = eyeX + paddedMinX;
-    let worldBottom = eyeY + paddedMinY;
-    let snappedWorldLeft = Math.floor(worldLeft / texelSizeX) * texelSizeX;
-    let snappedWorldBottom = Math.floor(worldBottom / texelSizeY) * texelSizeY;
-    let snappedMinX = snappedWorldLeft - eyeX;
-    let snappedMinY = snappedWorldBottom - eyeY;
-
-    return {
-        minX: snappedMinX,
-        maxX: snappedMinX + width,
-        minY: snappedMinY,
-        maxY: snappedMinY + height,
-        minZ: bounds.minZ,
-        maxZ: bounds.maxZ
-    };
-}
-
-function clampShadowCameraAltitude(camera: PlanetCamera, cameraLook: Vec3, lightUp: Vec3): IShadowCameraAltitudeClamp {
-    camera.minAltitude = SHADOW_MIN_CAMERA_ALTITUDE;
-
-    let eyeBeforeClamp = camera.eye.clone();
-    let terrainPoint = camera.checkTerrainCollision();
-    let altitude = camera.getAltitude();
-
-    if (!terrainPoint && altitude < SHADOW_MIN_CAMERA_ALTITUDE) {
-        let surfacePoint = camera.planet.ellipsoid.projToSurface(camera.eye);
-        let surfaceNormal = camera.planet.ellipsoid.getSurfaceNormal3v(camera.eye);
-
-        camera.eye.copy(surfacePoint.addA(surfaceNormal.scaleTo(SHADOW_MIN_CAMERA_ALTITUDE)));
-        (camera as any)._terrainAltitude = SHADOW_MIN_CAMERA_ALTITUDE;
-        altitude = SHADOW_MIN_CAMERA_ALTITUDE;
-    }
-
-    let clampOffset = camera.eye.sub(eyeBeforeClamp);
-
-    if (clampOffset.length2() > 0.0) {
-        cameraLook.addA(clampOffset);
-        camera.set(camera.eye, cameraLook, lightUp);
-        camera.update();
-        altitude = camera.getAltitude();
-    }
-
-    return {
-        altitude,
-        offset: clampOffset,
-        terrainAvailable: Boolean(terrainPoint)
-    };
+    return { min, max };
 }
 
 /**
- * Fits the shadow camera view to the footprint.
- *
- * @param {PlanetCamera} camera - Orthographic camera to place and fit. Its viewport is the shadow map size.
- * @param {Vec3} sunPos - Sun position.
- * @param {CameraFootprint} footprint - Ground area to cover, see getCameraFootprint.
- * @param {IShadowCameraFitData} [fitData] - Filled in with what the fit came out to, when given.
- * @returns {boolean} - False when the footprint is incomplete or gives no usable bounds.
+ * Light space depth of the closest point of the caster volume, which is the footprint raised by the caster
+ * height. Only the near plane has to clear it: a caster whose shadow lands on the footprint shares the
+ * light space XY of that shadow, so it is already inside the fitted bounds sideways.
  */
-export function fitShadowCamera(
-    camera: PlanetCamera,
-    sunPos: Vec3,
-    footprint: CameraFootprint,
-    fitData?: IShadowCameraFitData
-): boolean {
-    let [hitLt, hitRt, hitLb, hitRb] = footprint;
+function getCasterMinZ(footprint: CameraFootprint, forward: Vec3, casterHeight: number): number {
+    let minZ = Infinity;
 
-    if (!hitLt || !hitRt || !hitLb || !hitRb) {
-        return false;
+    for (let i = 0; i < footprint.points.length; i++) {
+        let casterPoint = footprint.points[i].add(footprint.normals[i].scaleTo(casterHeight));
+
+        minZ = Math.min(minZ, casterPoint.sub(footprint.center).dot(forward));
     }
 
-    let planet = camera.planet;
-    let corners = [hitLt, hitRt, hitRb, hitLb];
-    let footprintCenter = getAveragePoint(corners);
+    return minZ;
+}
 
-    let terrainCenter = new Vec3();
-    if (planet.getCartesianTerrainPoint(footprintCenter, terrainCenter) !== undefined) {
-        footprintCenter = terrainCenter;
-    }
-
-    let footprintPoints = [...corners, footprintCenter];
-    let sunDirection = sunPos.normal().scale(-1.0);
-    let cameraPosition = footprintCenter.sub(sunDirection.scaleTo(SHADOW_FOOTPRINT_TEST_DISTANCE));
-    let lightUp = getStableLightUp(planet.ellipsoid, sunDirection, footprintCenter);
-
-    camera.set(cameraPosition, footprintCenter, lightUp);
-    camera.update();
-
-    let casterBoundsPoints = getCasterBoundsPoints(planet, footprintPoints);
-    let lightSpaceBounds = getLightSpaceBounds(camera, casterBoundsPoints);
-
-    if (
-        !Number.isFinite(lightSpaceBounds.minX) ||
-        !Number.isFinite(lightSpaceBounds.maxX) ||
-        !Number.isFinite(lightSpaceBounds.minY) ||
-        !Number.isFinite(lightSpaceBounds.maxY) ||
-        !Number.isFinite(lightSpaceBounds.minZ) ||
-        !Number.isFinite(lightSpaceBounds.maxZ) ||
-        lightSpaceBounds.maxX <= lightSpaceBounds.minX ||
-        lightSpaceBounds.maxY <= lightSpaceBounds.minY ||
-        lightSpaceBounds.maxZ <= lightSpaceBounds.minZ
-    ) {
-        return false;
-    }
-
-    let textureWidth = camera.width;
-    let textureHeight = camera.height;
-    let expandedLightSpaceBounds = getCasterExpandedLightSpaceBounds(lightSpaceBounds, textureWidth, textureHeight);
-    let snappedLightSpaceBounds = getSnappedLightSpaceBounds(
-        camera,
-        expandedLightSpaceBounds,
-        textureWidth,
-        textureHeight
-    );
-
-    let originalNear = snappedLightSpaceBounds.minZ - SHADOW_CASTER_DEPTH_PADDING;
-    let originalFar = snappedLightSpaceBounds.maxZ + SHADOW_RECEIVER_DEPTH_PADDING;
-
-    let depthShift = originalNear - SHADOW_NEAR;
-
-    let cameraForwardShift = depthShift - SHADOW_SUNWARD_CAMERA_OFFSET;
-
-    let shiftedLightSpaceBounds = {
-        minX: snappedLightSpaceBounds.minX,
-        maxX: snappedLightSpaceBounds.maxX,
-        minY: snappedLightSpaceBounds.minY,
-        maxY: snappedLightSpaceBounds.maxY,
-        minZ: snappedLightSpaceBounds.minZ - cameraForwardShift,
-        maxZ: snappedLightSpaceBounds.maxZ - cameraForwardShift
+function getLightSpaceBounds(origin: Vec3, right: Vec3, up: Vec3, forward: Vec3, points: Vec3[]): ILightSpaceBounds {
+    let bounds: ILightSpaceBounds = {
+        minX: Infinity,
+        maxX: -Infinity,
+        minY: Infinity,
+        maxY: -Infinity,
+        minZ: Infinity,
+        maxZ: -Infinity
     };
 
-    let near = SHADOW_NEAR;
-    let far = originalFar - cameraForwardShift;
+    for (let i = 0; i < points.length; i++) {
+        let relativePoint = points[i].sub(origin);
+        let x = relativePoint.dot(right);
+        let y = relativePoint.dot(up);
+        let z = relativePoint.dot(forward);
 
-    let cameraForward = camera.getForward();
-    let cameraLook = footprintCenter.add(cameraForward.scaleTo(cameraForwardShift));
-    cameraPosition = camera.eye.add(cameraForward.scaleTo(cameraForwardShift));
-    camera.set(cameraPosition, cameraLook, lightUp);
-    camera.update();
-
-    let altitudeClamp = clampShadowCameraAltitude(camera, cameraLook, lightUp);
-
-    if (altitudeClamp.offset.length2() > 0.0) {
-        let altitudeClampX = altitudeClamp.offset.dot(camera.getRight());
-        let altitudeClampY = altitudeClamp.offset.dot(camera.getUp());
-        let altitudeClampZ = altitudeClamp.offset.dot(camera.getForward());
-
-        shiftedLightSpaceBounds = {
-            minX: shiftedLightSpaceBounds.minX - altitudeClampX,
-            maxX: shiftedLightSpaceBounds.maxX - altitudeClampX,
-            minY: shiftedLightSpaceBounds.minY - altitudeClampY,
-            maxY: shiftedLightSpaceBounds.maxY - altitudeClampY,
-            minZ: shiftedLightSpaceBounds.minZ - altitudeClampZ,
-            maxZ: shiftedLightSpaceBounds.maxZ - altitudeClampZ
-        };
-        far = Math.max(near + 1.0, far - altitudeClampZ);
-        cameraPosition = camera.eye.clone();
+        bounds.minX = Math.min(bounds.minX, x);
+        bounds.maxX = Math.max(bounds.maxX, x);
+        bounds.minY = Math.min(bounds.minY, y);
+        bounds.maxY = Math.max(bounds.maxY, y);
+        bounds.minZ = Math.min(bounds.minZ, z);
+        bounds.maxZ = Math.max(bounds.maxZ, z);
     }
 
-    camera.frustum.setOrthoProjection(
-        shiftedLightSpaceBounds.minX,
-        shiftedLightSpaceBounds.maxX,
-        shiftedLightSpaceBounds.minY,
-        shiftedLightSpaceBounds.maxY,
-        near,
-        far
+    return bounds;
+}
+
+function isFittableBounds(bounds: IOrthoBounds): boolean {
+    return (
+        Number.isFinite(bounds.left) &&
+        Number.isFinite(bounds.right) &&
+        Number.isFinite(bounds.bottom) &&
+        Number.isFinite(bounds.top) &&
+        bounds.right > bounds.left &&
+        bounds.top > bounds.bottom
     );
-    camera.update();
+}
 
-    if (fitData) {
-        fitData.footprintCenter = footprintCenter;
-        fitData.sunDirection = sunDirection;
-        fitData.cameraPosition = cameraPosition;
-        fitData.bounds = shiftedLightSpaceBounds;
-        fitData.originalBounds = lightSpaceBounds;
-        fitData.textureWidth = textureWidth;
-        fitData.textureHeight = textureHeight;
-        fitData.orthoWidth = shiftedLightSpaceBounds.maxX - shiftedLightSpaceBounds.minX;
-        fitData.orthoHeight = shiftedLightSpaceBounds.maxY - shiftedLightSpaceBounds.minY;
-        fitData.referenceTexelSizeX = expandedLightSpaceBounds.tightWidth / SHADOW_REFERENCE_TEXTURE_SIZE;
-        fitData.referenceTexelSizeY = expandedLightSpaceBounds.tightHeight / SHADOW_REFERENCE_TEXTURE_SIZE;
-        fitData.casterMarginX = expandedLightSpaceBounds.casterMarginX;
-        fitData.casterMarginY = expandedLightSpaceBounds.casterMarginY;
-        fitData.originalNear = originalNear;
-        fitData.originalFar = originalFar;
-        fitData.near = near;
-        fitData.far = far;
-        fitData.depthShift = depthShift;
-        fitData.cameraForwardShift = cameraForwardShift;
-        fitData.altitudeClamp = altitudeClamp;
+/**
+ * Rounds a value up to the next step of a ladder that takes `stepsPerOctave` steps to double: at one step
+ * the ladder is 128, 256, 512, at four it is every 19% in between. For quantities that only have to be
+ * roughly right, and badly need to stop moving every frame.
+ */
+function quantizeUp(value: number, stepsPerOctave: number): number {
+    if (!(value > 0.0)) {
+        return 0.0;
     }
 
-    return true;
+    return Math.pow(2.0, Math.ceil(Math.log2(value) * stepsPerOctave) / stepsPerOctave);
+}
+
+/**
+ * Places and sizes an orthographic depth camera over a camera footprint, so that the shadow map covers the
+ * ground the main camera sees, and everything that casts onto it, at the tightest texel the footprint allows.
+ *
+ * The fit holds state between frames - the texel grid step and the camera displacement - so one instance
+ * belongs to one depth camera.
+ */
+export class ShadowCameraFit {
+    public orthoMarginFactor: number;
+    public casterClearance: number;
+    public casterClearanceFactor: number;
+    public minFootprintRaySlope: number;
+    public reliefLateralFactor: number;
+    public maxReliefUp: number;
+    public maxReliefDown: number;
+    public snapToTexelGrid: boolean;
+    public horizonAlignedLightUp: boolean;
+    public motionMarginFrames: number;
+    public depthBiasTexels: number;
+    public depthEpsilonTexels: number;
+    public depthBiasOffset: number;
+    public pinOwnQuadTreeTraversal: boolean;
+
+    public readonly stats: IShadowCameraFitStats;
+
+    protected _lastCameraEye: Vec3;
+    protected _cameraStep: number;
+
+    protected _orthoTexelSizeX: number;
+    protected _orthoTexelSizeY: number;
+
+    constructor(params: IShadowCameraFitParams = {}) {
+        this.orthoMarginFactor = params.orthoMarginFactor ?? 0.01;
+        this.casterClearance = params.casterClearance ?? 100000;
+        this.casterClearanceFactor = params.casterClearanceFactor ?? 6.0;
+        this.minFootprintRaySlope = params.minFootprintRaySlope ?? 0.1;
+        this.reliefLateralFactor = params.reliefLateralFactor ?? 0.5;
+        this.maxReliefUp = params.maxReliefUp ?? 12000;
+        this.maxReliefDown = params.maxReliefDown ?? 2000;
+        this.snapToTexelGrid = params.snapToTexelGrid ?? true;
+        this.horizonAlignedLightUp = params.horizonAlignedLightUp ?? false;
+        this.motionMarginFrames = params.motionMarginFrames ?? 0.0;
+        this.depthBiasTexels = params.depthBiasTexels ?? 1.0;
+        this.depthEpsilonTexels = params.depthEpsilonTexels ?? 1.0;
+        this.depthBiasOffset = params.depthBiasOffset ?? 100;
+        this.pinOwnQuadTreeTraversal = params.pinOwnQuadTreeTraversal ?? true;
+
+        this.stats = {
+            texelWorldSize: 0.0,
+            footprintRadius: 0.0,
+            cornerHeightSpread: 0.0,
+            reliefUp: 0.0,
+            reliefDown: 0.0,
+            depthReliefUp: 0.0,
+            depthReliefDown: 0.0,
+            casterHeight: 0.0,
+            cameraStep: 0.0,
+            orthoWidth: 0.0,
+            orthoHeight: 0.0,
+            orthoBounds: { left: 0.0, right: 0.0, bottom: 0.0, top: 0.0 },
+            near: 0.0,
+            far: 0.0
+        };
+
+        this._lastCameraEye = new Vec3();
+        this._cameraStep = 0.0;
+        this._orthoTexelSizeX = 0.0;
+        this._orthoTexelSizeY = 0.0;
+    }
+
+    /** Drops the state carried between frames, for a camera that has been teleported. */
+    public reset(): void {
+        this._lastCameraEye.set(0.0, 0.0, 0.0);
+        this._cameraStep = 0.0;
+        this._orthoTexelSizeX = 0.0;
+        this._orthoTexelSizeY = 0.0;
+    }
+
+    /**
+     * Places the depth camera over the footprint and sets its orthographic projection and depth biases.
+     *
+     * @param {DepthCamera} depthCamera - Orthographic depth camera to fit.
+     * @param {CameraFootprint} footprint - Ground area to cover, taken of the main camera this frame.
+     * @param {Vec3} sunPos - Sun position.
+     * @returns {boolean} - False when the footprint is incomplete or gives no usable bounds.
+     */
+    public fit(depthCamera: DepthCamera, footprint: CameraFootprint, sunPos: Vec3): boolean {
+        let camera = footprint.camera;
+
+        if (!footprint.isValid || !camera || !depthCamera.initialized) {
+            return false;
+        }
+
+        let shadowCamera = depthCamera.camera;
+        let textureWidth = depthCamera.framebuffer.width;
+        let textureHeight = depthCamera.framebuffer.height;
+
+        this._cameraStep = this._lastCameraEye.isZero() ? 0.0 : camera.eye.distance(this._lastCameraEye);
+        this._lastCameraEye.copy(camera.eye);
+
+        let lightDirection = sunPos.normal().scale(-1.0);
+        let lightUp = getStableLightUp(footprint, lightDirection, this.horizonAlignedLightUp);
+
+        // 1. Aim the camera along the sunlight. Only the roll is a choice here, the eye is placed in step 4.
+        shadowCamera.set(footprint.center.sub(lightDirection), footprint.center, lightUp);
+
+        let forward = shadowCamera.getForward();
+        let right = shadowCamera.getRight();
+        let up = shadowCamera.getUp();
+
+        // 2. Box the ground the view sees, with the terrain relief around it, along the camera axes.
+        let relief = this._getTerrainRelief(depthCamera, footprint);
+        let bounds = getLightSpaceBounds(
+            footprint.center,
+            right,
+            up,
+            forward,
+            this._getReceiverBoundsPoints(footprint, relief)
+        );
+
+        // 3. Pad that box and round it onto the world texel grid.
+        let orthoBounds = this._snapOrthographicBounds(
+            this._expandOrthographicBounds(bounds, textureWidth, textureHeight),
+            right,
+            up,
+            footprint.center,
+            textureWidth,
+            textureHeight
+        );
+
+        if (!isFittableBounds(orthoBounds)) {
+            return false;
+        }
+
+        // 4. Move the eye sunward, until the whole caster volume stands in front of the near plane. Along
+        // forward only, so the box stays exactly as it was fitted. The height comes from the view relief,
+        // not the depth one - that one depends on the bounds this very step places.
+        let casterHeight = this._getCasterHeight(camera.planet, footprint.radius, relief.up);
+        let near = depthCamera.near;
+        let casterMinZ = getCasterMinZ(footprint, forward, casterHeight);
+        let casterClearance = Math.max(this.casterClearance, casterHeight * this.casterClearanceFactor);
+        let eyeOffset = casterMinZ - near - casterClearance;
+        let eye = footprint.center.add(forward.scaleTo(eyeOffset));
+
+        // 5. Push the far plane past the lowest receiver.
+        let receiverDepthPadding = SHADOW_RECEIVER_DEPTH_PADDING + relief.depthDown;
+        let far = Math.max(near + MIN_SHADOW_ORTHO_SIZE, bounds.maxZ + receiverDepthPadding - eyeOffset);
+
+        // 6. Apply, then hand the depth pass its biases and its own traversal.
+        shadowCamera.set(eye, eye.add(forward), lightUp);
+        shadowCamera.frustum.setOrthoProjection(
+            orthoBounds.left,
+            orthoBounds.right,
+            orthoBounds.bottom,
+            orthoBounds.top,
+            near,
+            far
+        );
+        shadowCamera.update();
+
+        this._updateDepthBiases(depthCamera, orthoBounds, textureWidth);
+
+        if (this.pinOwnQuadTreeTraversal) {
+            depthCamera._forceOwnQuadTreeStrategyPass = true;
+        }
+
+        let stats = this.stats;
+
+        stats.footprintRadius = footprint.radius;
+        stats.cornerHeightSpread = relief.cornerSpread;
+        stats.reliefUp = relief.up;
+        stats.reliefDown = relief.down;
+        stats.depthReliefUp = relief.depthUp;
+        stats.depthReliefDown = relief.depthDown;
+        stats.casterHeight = casterHeight;
+        stats.cameraStep = this._cameraStep;
+        stats.orthoWidth = orthoBounds.right - orthoBounds.left;
+        stats.orthoHeight = orthoBounds.top - orthoBounds.bottom;
+        stats.orthoBounds = orthoBounds;
+        stats.near = near;
+        stats.far = far;
+
+        return true;
+    }
+
+    /** Returns how much higher and how much lower the terrain goes than the four footprint corners. */
+    protected _getTerrainRelief(depthCamera: DepthCamera, footprint: CameraFootprint): ITerrainRelief {
+        let camera = footprint.camera!;
+        let corners = getRadiusRange(footprint.points);
+
+        let view = getStrategyRelief(camera.planet.quadTreeStrategy, corners.max, corners.min);
+        let referenceRadius = camera.eye.length() - camera.getHeight() + footprint.ellipsoidHeight;
+        let map = getStrategyRelief(depthCamera.quadTreeStrategy, referenceRadius, referenceRadius);
+
+        return {
+            up: Math.min(this.maxReliefUp, view.up),
+            down: Math.min(this.maxReliefDown, view.down),
+            depthUp: Math.min(this.maxReliefUp, Math.max(view.up, map.up)),
+            depthDown: Math.min(this.maxReliefDown, Math.max(view.down, map.down)),
+            cornerSpread: corners.max - corners.min
+        };
+    }
+
+    /**
+     * Returns the points the bounds are fitted to: the four footprint corners, plus the relief they hide,
+     * reached by walking each corner along its own view ray. Along the ray, because that is where the hidden
+     * terrain lies - pushing the corners sideways instead would widen the bounds for relief that is only ever
+     * an estimate.
+     */
+    protected _getReceiverBoundsPoints(footprint: CameraFootprint, relief: ITerrainRelief): Vec3[] {
+        let points = footprint.points.slice();
+
+        if (relief.up <= 0.0 && relief.down <= 0.0) {
+            return points;
+        }
+
+        let eye = footprint.camera!.eye;
+        let lateralLimit = footprint.radius * this.reliefLateralFactor;
+
+        for (let i = 0; i < footprint.points.length; i++) {
+            let point = footprint.points[i];
+            let toPoint = point.sub(eye);
+            let distance = toPoint.length();
+
+            if (distance <= 0.0) {
+                continue;
+            }
+
+            let direction = toPoint.scale(1.0 / distance);
+            let slope = Math.max(-direction.dot(footprint.normals[i]), this.minFootprintRaySlope);
+
+            if (relief.up > 0.0) {
+                points.push(point.add(direction.scaleTo(-Math.min(relief.up / slope, distance))));
+            }
+
+            if (relief.down > 0.0) {
+                let tangential = Math.sqrt(Math.max(0.0, 1.0 - slope * slope));
+                let limit = tangential > 0.0 ? lateralLimit / tangential : Infinity;
+
+                points.push(point.add(direction.scaleTo(Math.min(relief.down / slope, limit))));
+            }
+        }
+
+        return points;
+    }
+
+    /**
+     * Returns the caster height, rounded to a coarse step. It decides where the shadow camera stands, and a
+     * camera that jumps every time the terrain range is revised makes the whole map blink.
+     */
+    protected _getCasterHeight(planet: Planet, footprintRadius: number, terrainRelief: number): number {
+        let height = Math.max(
+            footprintRadius * SHADOW_CASTER_HEIGHT_FACTOR * (planet._heightFactor || 1.0),
+            terrainRelief * SHADOW_CASTER_RELIEF_FACTOR
+        );
+        let clamped = Math.min(MAX_SHADOW_CASTER_HEIGHT, Math.max(MIN_SHADOW_CASTER_HEIGHT, height));
+
+        return Math.min(MAX_SHADOW_CASTER_HEIGHT, quantizeUp(clamped, SHADOW_CASTER_HEIGHT_STEPS));
+    }
+
+    protected _expandOrthographicBounds(
+        bounds: ILightSpaceBounds,
+        textureWidth: number,
+        textureHeight: number
+    ): IOrthoBounds {
+        let width = bounds.maxX - bounds.minX;
+        let height = bounds.maxY - bounds.minY;
+        let motionPadding = this._cameraStep * this.motionMarginFrames;
+        let paddingX = Math.max(
+            width * this.orthoMarginFactor + (width / textureWidth) * SHADOW_ORTHO_TEXEL_PADDING + motionPadding,
+            MIN_SHADOW_ORTHO_SIZE
+        );
+        let paddingY = Math.max(
+            height * this.orthoMarginFactor + (height / textureHeight) * SHADOW_ORTHO_TEXEL_PADDING + motionPadding,
+            MIN_SHADOW_ORTHO_SIZE
+        );
+
+        return {
+            left: bounds.minX - paddingX,
+            right: bounds.maxX + paddingX,
+            bottom: bounds.minY - paddingY,
+            top: bounds.maxY + paddingY
+        };
+    }
+
+    /**
+     * Returns the texel size to fit the extent onto, keeping the previous one while it is still large enough.
+     */
+    protected _quantizeOrthoTexelSize(extent: number, resolution: number, prevTexelSize: number): number {
+        let texelSize = extent / resolution;
+
+        if (!Number.isFinite(texelSize) || texelSize <= 0.0) {
+            return 0.0;
+        }
+
+        let releaseBelow = prevTexelSize / (ORTHO_TEXEL_QUANTIZATION_RATIO * (1.0 + ORTHO_TEXEL_RELEASE_SLACK));
+
+        if (prevTexelSize > 0.0 && texelSize <= prevTexelSize && texelSize > releaseBelow) {
+            return prevTexelSize;
+        }
+
+        return quantizeUp(texelSize, ORTHO_TEXEL_QUANTIZATION_STEPS);
+    }
+
+    protected _snapOrthographicBounds(
+        bounds: IOrthoBounds,
+        right: Vec3,
+        up: Vec3,
+        anchor: Vec3,
+        resolutionX: number,
+        resolutionY: number
+    ): IOrthoBounds {
+        if (!this.snapToTexelGrid) {
+            return bounds;
+        }
+
+        let texelSizeX = this._quantizeOrthoTexelSize(bounds.right - bounds.left, resolutionX, this._orthoTexelSizeX);
+        let texelSizeY = this._quantizeOrthoTexelSize(bounds.top - bounds.bottom, resolutionY, this._orthoTexelSizeY);
+
+        if (texelSizeX <= 0.0 || texelSizeY <= 0.0) {
+            return bounds;
+        }
+
+        this._orthoTexelSizeX = texelSizeX;
+        this._orthoTexelSizeY = texelSizeY;
+
+        let width = texelSizeX * resolutionX;
+        let height = texelSizeY * resolutionY;
+        let anchorX = anchor.dot(right);
+        let anchorY = anchor.dot(up);
+        let centerX = (bounds.left + bounds.right) * 0.5;
+        let centerY = (bounds.bottom + bounds.top) * 0.5;
+        let left = Math.floor((anchorX + centerX - width * 0.5) / texelSizeX) * texelSizeX - anchorX;
+        let bottom = Math.floor((anchorY + centerY - height * 0.5) / texelSizeY) * texelSizeY - anchorY;
+
+        return {
+            left,
+            right: left + width,
+            bottom,
+            top: bottom + height
+        };
+    }
+
+    protected _updateDepthBiases(depthCamera: DepthCamera, orthoBounds: IOrthoBounds, textureWidth: number): void {
+        let texelWorldSize =
+            Math.max(orthoBounds.right - orthoBounds.left, orthoBounds.top - orthoBounds.bottom) / textureWidth;
+
+        this.stats.texelWorldSize = texelWorldSize;
+
+        depthCamera.bias = texelWorldSize * this.depthBiasTexels + this.depthBiasOffset;
+        depthCamera.depthEpsilon = texelWorldSize * this.depthEpsilonTexels + this.depthBiasOffset;
+    }
 }
