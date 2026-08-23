@@ -154,8 +154,8 @@ globus.planet.addControl(depthCameraHandler);
 const depthCamera = new DepthCamera({
     enableSegmentSkirts: true,
     enableSegmentFaceCulling: false,
-    width: 1024*2,
-    height: 1024*2,
+    width: 1024,
+    height: 1024,
     // Footprint markers, ground rays and horizon lines are debug visualization, they may not cast.
     excludeLayers: [horizonMarkers],
     near: 1000,
@@ -270,7 +270,7 @@ const shadowParams = {
     // the yellow contour - goes to band areaIndex, 0 being the nearest to the camera. One camera on one
     // band at a time: handing the other bands their own cameras is the next step, and only makes sense
     // once the nearest band demonstrably fits well.
-    areaCount: 4,
+    areaCount: 1,
     areaIndex: 0,
     // How the band boundaries distribute between the near and the far end of the footprint: 0 spaces them
     // evenly along the rails, 1 geometrically in eye distance, in between blends the two.
@@ -311,7 +311,7 @@ const shadowParams = {
     // from its caster along the ground by offset / tan(sunElevation). At 500 with the sun 20 degrees up
     // that is 1.4 km of ground losing its shadow, which near the ground swallows the whole view and
     // reads as shadows simply missing at the foot of everything.
-    depthBiasOffset: 0
+    depthBiasOffset: 100
 };
 
 // Last frame measurements of the fit, exposed as window.shadowMapSandbox.stats.
@@ -409,7 +409,7 @@ function getFootprintGroundPoint(marker, point) {
 
     let terrainPoint = new Vec3();
     let terrainDistance = globus.planet.getEntityTerrainPoint(marker, terrainPoint);
-    return terrainDistance != undefined ? terrainPoint : footprintEllipsoid.projToSurface(point);
+    return terrainDistance != undefined ? terrainPoint : point;//footprintEllipsoid.projToSurface(point);
 }
 
 function getAveragePoint(points) {
