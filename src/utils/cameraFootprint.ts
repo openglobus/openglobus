@@ -1,7 +1,13 @@
 import type { PlanetCamera } from "../camera/PlanetCamera";
 import { Vec3 } from "../math/Vec3";
+import { EPS8 } from "../math";
 
 const FOOTPRINT_SCREEN_EDGE_SEARCH_STEPS = 4;
+
+/**
+ * Points under the screen corners, as [leftTop, rightTop, leftBottom, rightBottom].
+ */
+export type CameraFootprint = [Vec3 | undefined, Vec3 | undefined, Vec3 | undefined, Vec3 | undefined];
 
 function getEllipsoidHit(camera: PlanetCamera, x: number, y: number): Vec3 | undefined {
     let ray = camera.getRay(x, y);
@@ -15,8 +21,8 @@ function getHorizonPointByDirection(camera: PlanetCamera, direction: Vec3): Vec3
     let up = camera.eye.getNormal();
     let horizonDirection = Vec3.proj_b_to_plane(direction, up);
 
-    if (horizonDirection.length2() < 1e-8) {
-        return undefined;
+    if (horizonDirection.length2() < EPS8) {
+        return;
     }
 
     horizonDirection.normalize();
@@ -25,7 +31,7 @@ function getHorizonPointByDirection(camera: PlanetCamera, direction: Vec3): Vec3
     let radius = distanceToCamera - camera.getHeight();
 
     if (distanceToCamera <= radius) {
-        return undefined;
+        return;
     }
 
     let tangentDistance = Math.sqrt(distanceToCamera * distanceToCamera - radius * radius);
@@ -48,9 +54,7 @@ function getFootprintBoundaryOnScreenSegment(
     let x1 = missX;
     let hit = getEllipsoidHit(camera, x0, y);
 
-    if (!hit) {
-        return undefined;
-    }
+    if (!hit) return;
 
     for (let i = 0; i < FOOTPRINT_SCREEN_EDGE_SEARCH_STEPS; i++) {
         let x = (x0 + x1) * 0.5;
@@ -71,12 +75,9 @@ function getFootprintBoundaryOnScreenSegment(
  * Ellipsoid points under the four screen corners, as [leftTop, rightTop, leftBottom, rightBottom].
  *
  * @param {PlanetCamera} camera - Camera to take the footprint of.
- * @param {number} [screenMargin=100] - Border of the screen, in pixels, the corners are sampled inside of.
+ * @param {number} [screenMargin=100] - Border of the screen, in screen pixels, the corners are sampled inside of.
  */
-export function getCameraFootprint(
-    camera: PlanetCamera,
-    screenMargin: number = 100
-): [Vec3 | undefined, Vec3 | undefined, Vec3 | undefined, Vec3 | undefined] {
+export function getCameraFootprint(camera: PlanetCamera, screenMargin: number = 100): CameraFootprint {
     let screenLeft = screenMargin;
     let screenRight = camera.width - screenMargin;
     let screenTop = screenMargin;

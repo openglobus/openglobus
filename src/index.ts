@@ -37,7 +37,10 @@ export { ProjectorsPass } from "./renderer/projectors/ProjectorsPass";
 export { ProjectorManager } from "./renderer/projectors/ProjectorManager";
 export { ShadowManager } from "./renderer/shadows/ShadowManager";
 export { SHADE_UNLIT, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "./shadeModeConstants";
+export type { CameraFootprint } from "./utils/cameraFootprint";
 export { getCameraFootprint } from "./utils/cameraFootprint";
+export type { ILightSpaceBounds, IShadowCameraAltitudeClamp, IShadowCameraFitData } from "./utils/shadowCameraFit";
+export { fitShadowCamera } from "./utils/shadowCameraFit";
 
 declare const __OG_VERSION__: string;
 export const version = __OG_VERSION__;
