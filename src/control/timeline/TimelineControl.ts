@@ -2,6 +2,7 @@ import { Dialog } from "../../ui/Dialog";
 import { ToggleButton } from "../../ui/ToggleButton";
 import { Control, type IControlParams } from "../Control";
 import { TimelineView } from "./TimelineView";
+import type { TimelineModel } from "./TimelineModel";
 import { createEvents, type EventsHandler } from "../../Events";
 
 type TimelineControlEventsList = [
@@ -104,6 +105,14 @@ class TimelineControl extends Control {
             this._toggleBtn.setActive(v);
             this.events.dispatch(this.events.visibility, v);
         });
+    }
+
+    /**
+     * Returns timeline data model.
+     * @public
+     */
+    public get model(): TimelineModel {
+        return this._timelineView.model;
     }
 
     public override oninit() {

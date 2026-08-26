@@ -54,6 +54,7 @@ import { Line2, Line3, Mat3, Mat4, Plane, Quat, Ray, Vec2, Vec3, Vec4 } from "./
 
 import { Renderer } from "./renderer/Renderer";
 import { Clock } from "./Clock";
+import { TimelineModel } from "./control/timeline/TimelineModel";
 import { Events, type EventsHandler, createEvents } from "./Events";
 import { Extent } from "./Extent";
 import { LonLat } from "./LonLat";
@@ -131,6 +132,7 @@ export {
     Multisample,
     Renderer,
     Clock,
+    TimelineModel,
     Events,
     EventsHandler,
     createEvents,
