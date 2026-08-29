@@ -18,6 +18,11 @@ export interface IProjectorParams {
     sourceType?: ProjectorSourceType;
     renderMode?: ProjectorRenderMode;
     priority?: number;
+    /**
+     * Canvas/image/video element to project onto the terrain instead of (or blended with) a solid color.
+     * Assigning it is equivalent to calling {@link Projector.setImage} after construction.
+     */
+    image?: TexImageSource;
 }
 
 export class Projector {
@@ -30,6 +35,7 @@ export class Projector {
     protected _enabled: boolean;
     protected _renderMode: number;
     protected _priority: number;
+    protected _image: TexImageSource | null = null;
 
     /**
      * Layer index in the manager-owned depth array texture. -1 if not yet added.
@@ -49,6 +55,13 @@ export class Projector {
         this.sourceType = params.sourceType || "color";
         this._renderMode = params.renderMode === "light" ? PROJECTOR_RENDER_MODE_LIGHT : PROJECTOR_RENDER_MODE_COLOR;
         this._priority = params.priority || 0;
+
+        if (params.image) {
+            this._image = params.image;
+            if (!params.sourceType) {
+                this.sourceType = "image";
+            }
+        }
     }
 
     public get enabled(): boolean {
@@ -133,6 +146,41 @@ export class Projector {
     }
 
     /**
+     * Canvas/image/video element currently projected onto the terrain, or null when
+     * the projector only uses a solid {@link Projector.color}.
+     */
+    public get image(): TexImageSource | null {
+        return this._image;
+    }
+
+    /**
+     * Sets (or clears, when `source` is null) the canvas/image/video projected onto the terrain
+     * and uploads its current pixels. `color`/`setOpacity` keep working as a tint and overall
+     * opacity multiplier on top of the image.
+     */
+    public setImage(source: TexImageSource | null): void {
+        this._image = source;
+
+        if (source) {
+            if (this.sourceType === "color") {
+                this.sourceType = "image";
+            }
+        } else if (this.sourceType === "image") {
+            this.sourceType = "color";
+        }
+
+        this._manager?.updateProjectorImage(this);
+    }
+
+    /**
+     * Re-uploads the current image pixels, e.g. after drawing on a canvas or advancing a video frame.
+     */
+    public updateImage(): void {
+        if (!this._image) return;
+        this._manager?.updateProjectorImage(this);
+    }
+
+    /**
      * @public
      * @return number
      * Gets allocated layer index inside the depth array texture.
@@ -147,6 +195,14 @@ export class Projector {
      */
     public get arrayTexture(): WebGLTexture | null {
         return this._manager ? this._manager.depthArrayTexture : null;
+    }
+
+    /**
+     * Gets Manager-owned TEXTURE_2D_ARRAY holding uploaded images for image-source projectors.
+     * @return WebGLTexture | null
+     */
+    public get colorArrayTexture(): WebGLTexture | null {
+        return this._manager ? this._manager.colorArrayTexture : null;
     }
 
     /**

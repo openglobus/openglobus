@@ -11,9 +11,13 @@ uniform vec4 u_projectorColor[MAX_PROJECTORS];
 uniform vec4 u_projectorParams[MAX_PROJECTORS];
 uniform vec3 u_projectorEyeRel[MAX_PROJECTORS];
 uniform int u_projectorLayer[MAX_PROJECTORS];
+uniform int u_projectorHasImage[MAX_PROJECTORS];
 uniform int u_projectorCount;
 
 uniform highp sampler2DArray u_projectorDepthArray;
+// RGBA image projected instead of (multiplied with, see applyProjector()) the solid u_projectorColor,
+// for projectors that had Projector.setImage() called. Shares layer indices with u_projectorDepthArray.
+uniform highp sampler2DArray u_projectorColorArray;
 
 #ifndef PROJECTOR_PCF
 #define PROJECTOR_PCF 1
@@ -43,8 +47,10 @@ float sampleProjectorDepth(int index, vec2 uv) {
     return texture(u_projectorDepthArray, vec3(uv, float(u_projectorLayer[index]))).r;
 }
 
-float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
+float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal, out vec2 outUv) {
     vec3 N = normalize(normal);
+
+    outUv = vec2(0.0);
 
     float depthBias = u_projectorParams[projectorIndex].x;
     float normalBiasWorld = u_projectorParams[projectorIndex].y;
@@ -65,6 +71,7 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
     vec3 ndc = clip.xyz / clip.w;
     vec2 uv = ndc.xy * 0.5 + 0.5;
     float receiverDepth = ndc.z * 0.5 + 0.5;
+    outUv = uv;
 
     #if PROJECTOR_PCF
     vec2 texSize = vec2(textureSize(u_projectorDepthArray, 0).xy);
@@ -138,13 +145,22 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
 void applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal, out vec3 projectorEmission, out vec3 projectorLight) {
     vec3 N = normalize(normal);
 
-    float visibility = getProjectorVisibility(projectorIndex, rtcPos, N);
+    vec2 uv;
+    float visibility = getProjectorVisibility(projectorIndex, rtcPos, N, uv);
 
     vec4 colorIntensity = u_projectorColor[projectorIndex];
 
     vec3 color = colorIntensity.rgb;
 
     float opacity = colorIntensity.a;
+
+    // Image, when present, replaces the flat color/opacity as a tinted/masked decal;
+    // u_projectorColor keeps working as a tint + overall opacity multiplier on top of it.
+    if (u_projectorHasImage[projectorIndex] > 0) {
+        vec4 imageColor = texture(u_projectorColorArray, vec3(uv, float(u_projectorLayer[projectorIndex])));
+        color *= imageColor.rgb;
+        opacity *= imageColor.a;
+    }
 
     float renderMode = u_projectorParams[projectorIndex].z;
     float lightMode = step(0.5, renderMode);

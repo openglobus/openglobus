@@ -40,6 +40,18 @@ export class ProjectorManager {
     protected _depthCapacity: number;
     protected _freeSlots: number[];
 
+    protected _hasImageData: Int32Array;
+
+    /**
+     * Manager-owned TEXTURE_2D_ARRAY holding uploaded canvas/image/video pixels for image-source
+     * projectors. Shares layer indices (`projector._slot`) with `_depthArrayTexture`, so it's grown
+     * in lockstep and sized by the first uploaded image. All image-source projectors must share
+     * the same resolution.
+     */
+    protected _colorArrayTexture: WebGLTexture | null;
+    protected _colorWidth: number;
+    protected _colorHeight: number;
+
     protected _tmpInverse: Mat4;
 
     constructor(renderer: Renderer) {
@@ -53,12 +65,17 @@ export class ProjectorManager {
         this._colorIntensityData = new Float32Array(MAX_FORWARD_PROJECTORS * 4);
         this._paramsData = new Float32Array(MAX_FORWARD_PROJECTORS * 4);
         this._layerData = new Int32Array(MAX_FORWARD_PROJECTORS);
+        this._hasImageData = new Int32Array(MAX_FORWARD_PROJECTORS);
         this._updateActiveProjectors = true;
 
         this._depthArrayTexture = null;
         this._depthSize = 0;
         this._depthCapacity = 0;
         this._freeSlots = [];
+
+        this._colorArrayTexture = null;
+        this._colorWidth = 0;
+        this._colorHeight = 0;
 
         this._tmpInverse = new Mat4();
     }
@@ -71,6 +88,11 @@ export class ProjectorManager {
     /** Manager-owned TEXTURE_2D_ARRAY containing depth maps for all projectors. */
     public get depthArrayTexture(): WebGLTexture | null {
         return this._depthArrayTexture;
+    }
+
+    /** Manager-owned TEXTURE_2D_ARRAY containing uploaded images for image-source projectors. */
+    public get colorArrayTexture(): WebGLTexture | null {
+        return this._colorArrayTexture;
     }
 
     /** Snapshot of currently active projectors (sorted by priority desc). */
@@ -115,6 +137,11 @@ export class ProjectorManager {
 
         this._projectors.push(projector);
         this._updateActiveProjectors = true;
+
+        if (projector.image) {
+            this.updateProjectorImage(projector);
+        }
+
         return projector.id;
     }
 
@@ -225,10 +252,16 @@ export class ProjectorManager {
         if (gl && this._depthArrayTexture) {
             gl.deleteTexture(this._depthArrayTexture);
         }
+        if (gl && this._colorArrayTexture) {
+            gl.deleteTexture(this._colorArrayTexture);
+        }
         this._depthArrayTexture = null;
         this._depthSize = 0;
         this._depthCapacity = 0;
         this._freeSlots.length = 0;
+        this._colorArrayTexture = null;
+        this._colorWidth = 0;
+        this._colorHeight = 0;
     }
 
     /**
@@ -253,6 +286,7 @@ export class ProjectorManager {
             // Keep sampler2DArray on its dedicated unit even when projectors are disabled.
             // Prevents sampler type conflicts with sampler2D bound to texture unit 0.
             gl.uniform1i(u.u_projectorDepthArray!, textureUnitStart);
+            gl.uniform1i(u.u_projectorColorArray!, textureUnitStart + 1);
             return 0;
         }
 
@@ -288,10 +322,12 @@ export class ProjectorManager {
             this._paramsData[vOffset + 3] = pi.depthCamera.depthEpsilon;
 
             this._layerData[i] = pi._slot;
+            this._hasImageData[i] = pi.image ? 1 : 0;
         }
 
         gl.uniform1i(u.u_projectorCount!, size);
         gl.uniform1iv(u.u_projectorLayer!, this._layerData);
+        gl.uniform1iv(u.u_projectorHasImage!, this._hasImageData);
         gl.uniformMatrix4fv(u.u_projectorViewProjRTE!, false, this._viewProjData);
         gl.uniform3fv(u.u_projectorEyeRel!, this._eyeRelData);
         gl.uniform4fv(u.u_projectorColor!, this._colorIntensityData);
@@ -300,6 +336,11 @@ export class ProjectorManager {
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._depthArrayTexture);
         gl.uniform1i(u.u_projectorDepthArray!, textureUnitStart);
+
+        gl.activeTexture(gl.TEXTURE0 + textureUnitStart + 1);
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._colorArrayTexture);
+        gl.uniform1i(u.u_projectorColorArray!, textureUnitStart + 1);
+
         gl.activeTexture(gl.TEXTURE0);
 
         return size;
@@ -326,6 +367,7 @@ export class ProjectorManager {
         if (total === 0 || projectorIndex < 0 || projectorIndex >= total) {
             gl.uniform1i(u.u_projectorCount!, 0);
             gl.uniform1i(u.u_projectorDepthArray!, textureUnitStart);
+            gl.uniform1i(u.u_projectorColorArray!, textureUnitStart + 1);
             return 0;
         }
 
@@ -340,6 +382,7 @@ export class ProjectorManager {
 
         gl.uniform1i(u.u_projectorCount, 1);
         gl.uniform1i(u.u_projectorLayer, pi._slot);
+        gl.uniform1i(u.u_projectorHasImage, pi.image ? 1 : 0);
         gl.uniformMatrix4fv(u.u_projectorViewProjRTE, false, pvRTE);
         gl.uniform3f(
             u.u_projectorEyeRel,
@@ -360,6 +403,11 @@ export class ProjectorManager {
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._depthArrayTexture);
         gl.uniform1i(u.u_projectorDepthArray!, textureUnitStart);
+
+        gl.activeTexture(gl.TEXTURE0 + textureUnitStart + 1);
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._colorArrayTexture);
+        gl.uniform1i(u.u_projectorColorArray!, textureUnitStart + 1);
+
         gl.activeTexture(gl.TEXTURE0);
 
         return 1;
@@ -447,6 +495,136 @@ export class ProjectorManager {
         for (let i = nextCapacity - 1; i >= oldCapacity; i--) {
             this._freeSlots.push(i);
         }
+
+        this._growColorArrayTexture(nextCapacity);
+
+        return true;
+    }
+
+    /**
+     * Lazily allocates the manager-owned color TEXTURE_2D_ARRAY at the resolution of the first
+     * image uploaded via {@link Projector.setImage}. Reuses depth's slot indices/capacity, so it
+     * only needs its own width/height. Returns false on a resolution mismatch.
+     */
+    protected _ensureColorArrayTexture(width: number, height: number, capacity: number): boolean {
+        if (this._colorArrayTexture) {
+            if (this._colorWidth !== width || this._colorHeight !== height) {
+                cons.logWrn(
+                    `ProjectorManager: image array texture size mismatch (have ${this._colorWidth}x${this._colorHeight}, got ${width}x${height}). ` +
+                        `All image-source projectors must share the same image resolution.`
+                );
+                return false;
+            }
+            return true;
+        }
+
+        return this._createColorArrayTexture(width, height, capacity);
+    }
+
+    protected _createColorArrayTexture(width: number, height: number, capacity: number): boolean {
+        const gl = this._renderer.handler.gl as WebGL2RenderingContext;
+        if (!gl) return false;
+
+        const tex = this._renderer.handler.createEmptyTexture2DArrayExt(
+            width,
+            height,
+            capacity,
+            "LINEAR",
+            "SRGB8_ALPHA8",
+            "CLAMP_TO_EDGE",
+            1
+        );
+        if (!tex) return false;
+
+        this._colorArrayTexture = tex;
+        this._colorWidth = width;
+        this._colorHeight = height;
+        return true;
+    }
+
+    /**
+     * Re-creates the color array texture at `nextCapacity` and re-uploads every currently
+     * assigned image, since (unlike depth, which is re-rendered every frame) uploaded pixels
+     * aren't reproduced automatically. Best-effort: a failure here only means image projectors
+     * keep their previous texture/capacity until the next manual `setImage`/`updateImage` call.
+     */
+    protected _growColorArrayTexture(nextCapacity: number): void {
+        if (!this._colorArrayTexture) return;
+
+        const gl = this._renderer.handler.gl as WebGL2RenderingContext;
+        if (!gl) return;
+
+        const oldTexture = this._colorArrayTexture;
+        const oldWidth = this._colorWidth;
+        const oldHeight = this._colorHeight;
+
+        if (!this._createColorArrayTexture(oldWidth, oldHeight, nextCapacity)) {
+            this._colorArrayTexture = oldTexture;
+            this._colorWidth = oldWidth;
+            this._colorHeight = oldHeight;
+            return;
+        }
+
+        gl.deleteTexture(oldTexture);
+
+        for (let i = 0; i < this._projectors.length; i++) {
+            const p = this._projectors[i];
+            if (p.image) {
+                this.updateProjectorImage(p);
+            }
+        }
+    }
+
+    /**
+     * Uploads the projector's current `image` pixels into its color array layer, allocating/growing
+     * the array as needed. No-op until the projector has been added to this manager and has an image.
+     */
+    public updateProjectorImage(projector: Projector): boolean {
+        if (projector._manager !== this || projector._slot === -1) return false;
+
+        const source = projector.image;
+        if (!source) return false;
+
+        const gl = this._renderer.handler.gl as WebGL2RenderingContext;
+        if (!gl) return false;
+
+        const width = (source as HTMLVideoElement).videoWidth || (source as TexImageSource & { width: number }).width;
+        const height =
+            (source as HTMLVideoElement).videoHeight || (source as TexImageSource & { height: number }).height;
+        if (!width || !height) return false;
+
+        if (!this._ensureColorArrayTexture(width, height, this._depthCapacity || INITIAL_PROJECTOR_LAYERS)) {
+            return false;
+        }
+
+        if (width !== this._colorWidth || height !== this._colorHeight) {
+            cons.logWrn(
+                `ProjectorManager.updateProjectorImage(): image size mismatch (have ${this._colorWidth}x${this._colorHeight}, got ${width}x${height}). ` +
+                    `All image-source projectors must share the same image resolution.`
+            );
+            return false;
+        }
+
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._colorArrayTexture);
+        // Projector UV is derived from the depth render target (v=0 at the bottom), while the
+        // uploaded canvas/image/video source has v=0 at the top (HTML convention) — flip on
+        // upload rather than in the shader, and restore the engine-wide default right after.
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texSubImage3D(
+            gl.TEXTURE_2D_ARRAY,
+            0,
+            0,
+            0,
+            projector._slot,
+            width,
+            height,
+            1,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            source
+        );
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
 
         return true;
     }
