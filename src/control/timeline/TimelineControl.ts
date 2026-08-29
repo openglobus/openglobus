@@ -17,7 +17,8 @@ type TimelineControlEventsList = [
     "startdrag",
     "stopdrag",
     "startdragcurrent",
-    "stopdragcurrent"
+    "stopdragcurrent",
+    "localtime"
 ];
 
 const TIMELINECONTROL_EVENTS: TimelineControlEventsList = [
@@ -32,7 +33,8 @@ const TIMELINECONTROL_EVENTS: TimelineControlEventsList = [
     "startdrag",
     "stopdrag",
     "startdragcurrent",
-    "stopdragcurrent"
+    "stopdragcurrent",
+    "localtime"
 ];
 
 interface ITimelineControlParams extends IControlParams {
@@ -135,6 +137,19 @@ class TimelineControl extends Control {
         });
 
         this._timelineView.appendTo(this._dialog.container!);
+
+        // the Sun may already stand on a local date and time, and the timeline shows where
+        let localDateTime = this.planet?.sun?.localDateTime;
+        if (localDateTime) {
+            let halfRange = this._timelineView.model.range * 0.5;
+            this._timelineView.model.set(
+                new Date(localDateTime.getTime() - halfRange),
+                new Date(localDateTime.getTime() + halfRange)
+            );
+            this._timelineView.model.current = localDateTime;
+            this._timelineView.localTime = true;
+        }
+
         defaultClock.multiplier = this._timelineView.model.multiplier;
         defaultClock.setDate(this._timelineView.model.current);
         if (this._timelineView.model.stopped()) {
@@ -145,7 +160,19 @@ class TimelineControl extends Control {
 
         this._timelineView.events.on("setcurrent", (d: Date) => {
             this.renderer && defaultClock.setDate(d);
+            if (this._timelineView.localTime) {
+                this.planet?.sun?.setLocalDateTime(d);
+            }
             this.events.dispatch(this.events.setcurrent, d);
+        });
+
+        this._timelineView.events.on("localtime", (isActive: boolean) => {
+            let sun = this.planet?.sun;
+            if (sun) {
+                sun.setLocalDateTime(isActive ? this._timelineView.model.current : null);
+                this.renderer && this.renderer.requestRedraw();
+            }
+            this.events.dispatch(this.events.localtime, isActive);
         });
 
         this._timelineView.model.events.on("change", (...args: unknown[]) => {

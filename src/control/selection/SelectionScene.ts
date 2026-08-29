@@ -67,7 +67,7 @@ class SelectionScene extends Scene {
                 size: 11,
                 color: "rgba(455,455,455,1.0)",
                 outlineColor: "rgba(0,0,0,0.34)",
-                outline: 0.23,
+                outline: 1,
                 align: "center",
                 offset: [0, 18]
             }

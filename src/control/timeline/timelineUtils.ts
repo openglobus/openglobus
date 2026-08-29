@@ -8,7 +8,7 @@ export function addSeconds(date: Date, seconds: number): Date {
 }
 
 export function dateToStr(date: Date, showTime: boolean = true, showMilliseconds: boolean = false): string {
-    let month = MONTHS[date.getMonth()],
+    let month = MONTHS[date.getUTCMonth()],
         day = date.getUTCDate(),
         year = date.getUTCFullYear();
 

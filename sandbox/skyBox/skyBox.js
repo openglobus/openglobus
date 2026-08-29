@@ -204,7 +204,7 @@ globe.renderer.events.on("lclick", function (e) {
                     offset: [0, 50, 0],
                     color: "rgba(0,0,0,1)",
                     outlineColor: "rgba(255,255,255,0.3)",
-                    outline: 0.2
+                    outline: 1.5
                 }
             })
         );
