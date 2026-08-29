@@ -62,7 +62,7 @@ const pointLayer = new Vector("Points", {
                 offset: [0, 50, 0],
                 color: "rgba(255,255,255,1)",
                 outlineColor: "rgba(0,0,0,0.5)",
-                outline: 0.2
+                outline: 1.5
             }
         }
     ]
