@@ -304,13 +304,13 @@ const MIN_SCALE_BY_DISTANCE = 1e-7;
 
 export const SCALE_BY_DISTANCE_1_TO_1: NumberArray4 = [MAX32, MAX32, MAX32, 1.0];
 
-/** 
+/**
  * Normalizes `[near, far, vanish, scale]`, defaulting `scale` to `1`.
- * `near <= 0` disables world scaling. It is set to `far` so the shader scale remains `1`. 
+ * `near <= 0` disables world scaling. It is set to `far` so the shader scale remains `1`.
  * If `far <= 0`, both use a small epsilon to avoid division by zero without affecting fading.
- * @param {NumberArray3 | NumberArray4} [v] - Source parameters. 
- * @param {NumberArray4} def - Default parameters. 
- * @returns {NumberArray4} Normalized parameters. 
+ * @param {NumberArray3 | NumberArray4} [v] - Source parameters.
+ * @param {NumberArray4} def - Default parameters.
+ * @returns {NumberArray4} Normalized parameters.
  */
 export function createScaleByDistance(v: NumberArray3 | NumberArray4 | undefined, def: NumberArray4): NumberArray4 {
     let src = v || def;
