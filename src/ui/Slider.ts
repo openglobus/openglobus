@@ -128,20 +128,24 @@ class Slider extends View<null> {
         return this._value;
     }
 
+    public override afterRender(parentNode: HTMLElement) {
+        this._initEvents();
+    }
+
     protected _initEvents() {
-        this.$panel!.addEventListener("mousedown", this._onMouseDown);
+        this.$panel?.addEventListener("mousedown", this._onMouseDown);
         //@ts-ignore
-        this.$panel!.addEventListener("mousewheel", this._onMouseWheel);
-        this.$panel!.addEventListener("wheel", this._onMouseWheelFF);
-        this.$input!.addEventListener("input", this._onInput);
+        this.$panel?.addEventListener("mousewheel", this._onMouseWheel);
+        this.$panel?.addEventListener("wheel", this._onMouseWheelFF);
+        this.$input?.addEventListener("input", this._onInput);
     }
 
     protected _clearEvents() {
-        this.$panel!.removeEventListener("mousedown", this._onMouseDown);
+        this.$panel?.removeEventListener("mousedown", this._onMouseDown);
         //@ts-ignore
-        this.$panel!.removeEventListener("mousewheel", this._onMouseWheel);
-        this.$panel!.removeEventListener("wheel", this._onMouseWheelFF);
-        this.$input!.removeEventListener("input", this._onInput);
+        this.$panel?.removeEventListener("mousewheel", this._onMouseWheel);
+        this.$panel?.removeEventListener("wheel", this._onMouseWheelFF);
+        this.$input?.removeEventListener("input", this._onInput);
     }
 
     protected _onMouseWheel = (e: WheelEvent) => {

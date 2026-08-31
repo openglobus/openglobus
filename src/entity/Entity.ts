@@ -27,7 +27,9 @@ import type { IStripParams } from "./strip/Strip";
 import type { Vector, VectorEventsType } from "../layer/Vector";
 import type { EntityCollectionNode } from "../quadTree/EntityCollectionNode";
 import { Quat } from "../math/Quat";
-import { clamp } from "../math";
+import { clamp, smoothstep } from "../math";
+
+const __tempVec3__ = new Vec3();
 
 /**
  * Options for creating an {@link Entity}.
@@ -169,6 +171,13 @@ class Entity {
 
     protected _localPosition: Vec3;
     protected _absoluteLocalPosition: Vec3;
+
+    /**
+     * Absolute cartesian position of the entity itself, i.e. `_rootCartesian + _absoluteLocalPosition`.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _absoluteCartesian: Vec3;
 
     /**
      * Geodetic entity coordinates.
@@ -334,6 +343,7 @@ class Entity {
 
         this._localPosition = utils.createVec3(options.localPosition);
         this._absoluteLocalPosition = new Vec3();
+        this._absoluteCartesian = new Vec3();
 
         this._lonLat = utils.createLonLat(options.lonlat);
 
@@ -661,13 +671,16 @@ class Entity {
      */
     public setScale3v(scale: Vec3) {
         this._scale.copy(scale);
+        this._propagateGlobalScale(this._scale);
         this._updateAbsolutePosition();
+    }
+
+    protected _propagateGlobalScale(scale: Vec3) {
         for (let i = 0; i < this.childEntities.length; i++) {
             let chi = this.childEntities[i];
             if (chi.forceGlobalScale) {
-                chi.setScale3v(this._scale);
-            } else {
-                chi.setScale3v(this.childEntities[i].getScale());
+                chi._scale.copy(scale);
+                chi._propagateGlobalScale(scale);
             }
         }
     }
@@ -678,7 +691,9 @@ class Entity {
      * @param {number} val - Scale value.
      */
     public setScale(val: number) {
-        this.setScale3v(new Vec3(val, val, val));
+        this._scale.set(val, val, val);
+        this._propagateGlobalScale(this._scale);
+        this._updateAbsolutePosition();
     }
 
     /**
@@ -805,6 +820,21 @@ class Entity {
     }
 
     /**
+     * Sets pitch, yaw and roll at once.
+     * @public
+     * @param {number} pitch - The new pitch angle in radians.
+     * @param {number} yaw - The new yaw angle in radians.
+     * @param {number} roll - The new roll angle in radians.
+     */
+    public setPitchYawRoll(pitch: number, yaw: number, roll: number) {
+        this._useDirectQuaternion = false;
+        this._pitchRad = pitch;
+        this._yawRad = yaw;
+        this._rollRad = roll;
+        this._updateAbsolutePosition();
+    }
+
+    /**
      * Gets the pitch angle of the entity.
      * @public
      * @returns {number} The pitch angle in radians.
@@ -911,17 +941,27 @@ class Entity {
     }
 
     protected _getScaleByDistance(): number {
-        let scd = 1;
-        if (this._entityCollection) {
-            let scaleByDistance = this._entityCollection.scaleByDistance;
-            let lookLength = 1;
-            if (this._entityCollection.scene && this._entityCollection.scene.renderer) {
-                lookLength = this._entityCollection.scene.renderer.activeCamera.eye.distance(this._rootCartesian);
-            }
-            //the same in the shader
-            scd = (scaleByDistance[2] * clamp(lookLength, scaleByDistance[0], scaleByDistance[1])) / scaleByDistance[0];
+        let ec = this._entityCollection;
+
+        if (!ec) {
+            return 1;
         }
-        return scd;
+
+        let s = ec.scaleByDistance,
+            distMetric = 1;
+
+        if (ec.scene && ec.scene.renderer) {
+            let cam = ec.scene.renderer.activeCamera;
+            distMetric = cam.isOrthographic ? cam.focusDistance : cam.eye.distance(this._rootCartesian);
+        }
+
+        // the same in geo_object.vert.glsl; `near` is kept positive by createScaleByDistance
+        let scd = clamp(distMetric, s[0], s[1]) / s[0];
+        if (s[2] > s[1]) {
+            scd *= 1 - smoothstep(s[1], s[2], distMetric);
+        }
+
+        return scd * s[3];
     }
 
     /**
@@ -944,7 +984,7 @@ class Entity {
         let pos = absolutCartesian;
 
         if (this.parent && this._relativePosition) {
-            let scd = this._getScaleByDistance();
+            let scd = this._getScaleByDistance() || 1;
             pos = absolutCartesian
                 .sub(this.parent.getAbsoluteCartesian())
                 .scale(1 / scd)
@@ -963,9 +1003,11 @@ class Entity {
     public getAbsoluteCartesian(): Vec3 {
         if (this.parent && this._relativePosition) {
             let scd = this._getScaleByDistance();
-            return this._rootCartesian.add(this._absoluteLocalPosition.scaleTo(scd));
+            if (scd !== 1) {
+                return this._rootCartesian.add(this._absoluteLocalPosition.scaleTo(scd));
+            }
         }
-        return this._cartesian.clone();
+        return this._absoluteCartesian.clone();
     }
 
     /**
@@ -978,20 +1020,21 @@ class Entity {
     public setCartesian(x: number, y: number, z: number) {
         this._cartesian.set(x, y, z);
 
+        this._propagateGlobalPosition(x, y, z);
+
         this._updateAbsolutePosition();
 
+        //ec && ec.events.dispatch(ec.events.entitymove, this);
+    }
+
+    protected _propagateGlobalPosition(x: number, y: number, z: number) {
         for (let i = 0; i < this.childEntities.length; i++) {
             let chi = this.childEntities[i];
-            if (chi._relativePosition) {
-                chi.setCartesian3v(chi.getCartesian());
-            } else if (chi.forceGlobalPosition) {
-                chi.setCartesian(x, y, z);
+            if (chi.forceGlobalPosition) {
+                chi._cartesian.set(x, y, z);
+                chi._propagateGlobalPosition(x, y, z);
             }
         }
-
-        this._updateLonLat();
-
-        //ec && ec.events.dispatch(ec.events.entitymove, this);
     }
 
     protected _updatePitchYawRoll() {
@@ -1002,9 +1045,7 @@ class Entity {
             this._yawRad = this._qRot.getYaw();
             this._rollRad = this._qRot.getRoll();
 
-            if (this.geoObject) {
-                this.geoObject.setRotation(this._absoluteQRot);
-            }
+            this._applyTransformToFeatures();
 
             for (let i = 0; i < this.childEntities.length; i++) {
                 this.childEntities[i]._updateAbsolutePosition();
@@ -1032,10 +1073,9 @@ class Entity {
             }
             parent._absoluteQRot.mulRes(this._qRot, this._absoluteQRot);
 
-            let rotCart = parent._absoluteQRot
-                .mulVec3(this._cartesian.add(this._localPosition))
-                .mulA(parent._absoluteScale);
-            parent._absoluteLocalPosition.addRes(rotCart, this._absoluteLocalPosition);
+            this._cartesian.addRes(this._localPosition, __tempVec3__);
+            parent._absoluteQRot.mulVec3Res(__tempVec3__, __tempVec3__).mulA(parent._absoluteScale);
+            parent._absoluteLocalPosition.addRes(__tempVec3__, this._absoluteLocalPosition);
         } else {
             this._qFrame = Quat.IDENTITY;
             if (this._entityCollection && this._entityCollection.scene) {
@@ -1058,6 +1098,16 @@ class Entity {
             this._absoluteLocalPosition.copy(this._localPosition);
         }
 
+        this._applyTransformToFeatures();
+
+        for (let i = 0, len = this.childEntities.length; i < len; i++) {
+            this.childEntities[i]._updateAbsolutePosition();
+        }
+
+        this._updateLonLat();
+    }
+
+    protected _applyTransformToFeatures() {
         if (this.geoObject) {
             this.geoObject.setScale3v(this._absoluteScale);
             this.geoObject.setRotation(this._absoluteQRot);
@@ -1065,14 +1115,10 @@ class Entity {
             this.geoObject.setLocalPosition3v(this._absoluteLocalPosition);
         }
 
-        this.billboard && this.billboard.setPosition3v(this._rootCartesian);
-        this.label && this.label.setPosition3v(this._rootCartesian);
+        this._rootCartesian.addRes(this._absoluteLocalPosition, this._absoluteCartesian);
 
-        for (let i = 0, len = this.childEntities.length; i < len; i++) {
-            this.childEntities[i]._updateAbsolutePosition();
-        }
-
-        this._updateLonLat();
+        this.billboard && this.billboard.setPosition3v(this._absoluteCartesian);
+        this.label && this.label.setPosition3v(this._absoluteCartesian);
     }
 
     /**
@@ -1084,11 +1130,16 @@ class Entity {
     public _setCartesian3vSilent(cartesian: Vec3, skipLonLat: boolean = false) {
         this._cartesian.copy(cartesian);
 
-        this._updateAbsolutePosition();
-
         for (let i = 0; i < this.childEntities.length; i++) {
-            this.childEntities[i].setCartesian(this._cartesian.x, this._cartesian.y, this._cartesian.z);
+            let chi = this.childEntities[i];
+            if (chi._relativePosition) {
+                continue;
+            }
+            chi._cartesian.copy(cartesian);
+            chi._propagateGlobalPosition(cartesian.x, cartesian.y, cartesian.z);
         }
+
+        this._updateAbsolutePosition();
 
         if (!skipLonLat) {
             this._updateLonLat();
@@ -1099,8 +1150,7 @@ class Entity {
         let ec = this._entityCollection;
 
         if (ec && ec.scene && (ec.scene as Planet).ellipsoid) {
-            //let cart = this._rootCartesian.add(this._absoluteLocalPosition);
-            this._lonLat = (ec.scene as Planet).ellipsoid.cartesianToLonLat(this.getAbsoluteCartesian());
+            this._lonLat = (ec.scene as Planet).ellipsoid.cartesianToLonLat(this._absoluteCartesian);
 
             if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = this._lonLat.forwardMercator();

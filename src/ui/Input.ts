@@ -168,22 +168,26 @@ class Input extends View<null> {
         }
     }
 
+    public override afterRender(parentNode: HTMLElement) {
+        this._initEvents();
+    }
+
     protected _initEvents() {
         //@ts-ignore
-        this.el!.addEventListener("mousewheel", this._onMouseWheel);
-        this.el!.addEventListener("wheel", this._onMouseWheelFF);
-        this.$input!.addEventListener("input", this._onInput);
-        this.$input!.addEventListener("keydown", this._onKeyDown);
-        this.$input!.addEventListener("blur", this._onBlur);
+        this.el?.addEventListener("mousewheel", this._onMouseWheel);
+        this.el?.addEventListener("wheel", this._onMouseWheelFF);
+        this.$input?.addEventListener("input", this._onInput);
+        this.$input?.addEventListener("keydown", this._onKeyDown);
+        this.$input?.addEventListener("blur", this._onBlur);
     }
 
     protected _clearEvents() {
         //@ts-ignore
-        this.el!.removeEventListener("mousewheel", this._onMouseWheel);
-        this.el!.removeEventListener("wheel", this._onMouseWheelFF);
-        this.$input!.removeEventListener("input", this._onInput);
-        this.$input!.removeEventListener("keydown", this._onKeyDown);
-        this.$input!.removeEventListener("blur", this._onBlur);
+        this.el?.removeEventListener("mousewheel", this._onMouseWheel);
+        this.el?.removeEventListener("wheel", this._onMouseWheelFF);
+        this.$input?.removeEventListener("input", this._onInput);
+        this.$input?.removeEventListener("keydown", this._onKeyDown);
+        this.$input?.removeEventListener("blur", this._onBlur);
     }
 
     protected _onMouseWheel = (e: WheelEvent) => {

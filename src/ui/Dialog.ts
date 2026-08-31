@@ -266,12 +266,18 @@ class Dialog<M> extends View<M> {
         this._closeBtn.appendTo(this.$buttons!);
     }
 
+    public override afterRender(parentNode: HTMLElement) {
+        this._initEvents();
+    }
+
     protected _initEvents() {
-        this.$header!.style.touchAction = "none";
-        this.$header!.addEventListener("mousedown", this._onMouseDown);
-        this.$header!.addEventListener("pointerdown", this._onPointerDown);
-        this.el!.addEventListener("mousedown", this._onMouseDownAll);
-        this.el!.addEventListener("pointerdown", this._onPointerDownAll);
+        if (this.$header) {
+            this.$header.style.touchAction = "none";
+            this.$header.addEventListener("mousedown", this._onMouseDown);
+            this.$header.addEventListener("pointerdown", this._onPointerDown);
+        }
+        this.el?.addEventListener("mousedown", this._onMouseDownAll);
+        this.el?.addEventListener("pointerdown", this._onPointerDownAll);
         if (this.$resizeHandle && this._resizable) {
             this.$resizeHandle.addEventListener("mousedown", this._onResizeMouseDown);
             this.$resizeHandle.addEventListener("pointerdown", this._onResizePointerDown);
@@ -531,10 +537,10 @@ class Dialog<M> extends View<M> {
         document.removeEventListener("pointerup", this._onResizePointerUp);
         document.removeEventListener("pointercancel", this._onResizePointerUp);
 
-        this.$header!.removeEventListener("mousedown", this._onMouseDown);
-        this.$header!.removeEventListener("pointerdown", this._onPointerDown);
-        this.el!.removeEventListener("mousedown", this._onMouseDownAll);
-        this.el!.removeEventListener("pointerdown", this._onPointerDownAll);
+        this.$header?.removeEventListener("mousedown", this._onMouseDown);
+        this.$header?.removeEventListener("pointerdown", this._onPointerDown);
+        this.el?.removeEventListener("mousedown", this._onMouseDownAll);
+        this.el?.removeEventListener("pointerdown", this._onPointerDownAll);
         if (this.$resizeHandle && this._resizable) {
             this.$resizeHandle.removeEventListener("mousedown", this._onResizeMouseDown);
             this.$resizeHandle.removeEventListener("pointerdown", this._onResizePointerDown);
