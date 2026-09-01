@@ -18,7 +18,7 @@ export * from "./layer/index";
 export * from "./Globe";
 
 export type { IControlParams } from "./control/Control";
-export type { ITouchState } from "./renderer/RendererEvents";
+export type { IMouseState, ITouchState } from "./renderer/RendererEvents";
 export type { IDeferredShadingPass } from "./renderer/IDeferredShadingPass";
 export type { ITransparencyPass } from "./renderer/ITransparencyPass";
 export type { ProjectorSourceType, ProjectorRenderMode, IProjectorParams } from "./renderer/projectors/Projector";

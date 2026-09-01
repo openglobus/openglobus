@@ -45,7 +45,7 @@ const POINTER_LABEL_OPTIONS: ILabelParams = {
     size: 12,
     color: "rgba(255,255,255,1.0)",
     outlineColor: "rgba(0,0,0,1)",
-    outline: 0.7,
+    outline: 2,
     align: "left",
     offset: [5, 15]
 };
@@ -56,7 +56,7 @@ const LABEL_OPTIONS: ILabelParams = {
     size: 12,
     color: "rgba(255,255,255,1)",
     outlineColor: "rgba(0,0,0,1)",
-    outline: 0.7,
+    outline: 2,
     align: "right",
     offset: [-47, 25]
 };

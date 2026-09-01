@@ -1,5 +1,6 @@
 import type { EventsHandler } from "../../Events";
 import { ButtonGroup } from "../../ui/ButtonGroup";
+import { Checkbox } from "../../ui/Checkbox";
 import { View } from "../../ui/View";
 import type { IViewParams, ViewEventsList } from "../../ui/View";
 import { ToggleButton } from "../../ui/ToggleButton";
@@ -44,7 +45,8 @@ type TimelineViewEventsList = [
     "play",
     "playback",
     "pause",
-    "visibility"
+    "visibility",
+    "localtime"
 ];
 
 const TIMELINEVIEW_EVENTS: TimelineViewEventsList = [
@@ -57,7 +59,8 @@ const TIMELINEVIEW_EVENTS: TimelineViewEventsList = [
     "play",
     "playback",
     "pause",
-    "visibility"
+    "visibility",
+    "localtime"
 ];
 
 const ICON_PLAY_SVG =
@@ -85,6 +88,8 @@ const TEMPLATE = `<div class="og-timeline">
 
   <div class="og-timeline-bottom">
     <div class="og-timeline-controls">
+    </div>
+    <div class="og-timeline-localtime">
     </div>
   </div>
 
@@ -131,6 +136,7 @@ class TimelineView extends View<TimelineModel> {
     protected _pauseBtn: ToggleButton;
     protected _playBtn: ToggleButton;
     protected _buttons: ButtonGroup;
+    protected _localTimeCheckbox: Checkbox;
     protected _visibility: boolean;
 
     constructor(options: ITimelineViewParams = {}) {
@@ -198,6 +204,10 @@ class TimelineView extends View<TimelineModel> {
 
         this._buttons = new ButtonGroup({
             buttons: [this._pauseBtn, this._playBtn]
+        });
+
+        this._localTimeCheckbox = new Checkbox({
+            label: "Local time"
         });
 
         this._visibility = false;
@@ -284,6 +294,12 @@ class TimelineView extends View<TimelineModel> {
             }
         });
 
+        this._localTimeCheckbox.appendTo(this.select(".og-timeline-localtime")!);
+
+        this._localTimeCheckbox.events.on("change", (isChecked: boolean) => {
+            this.events.dispatch(this.events.localtime, isChecked);
+        });
+
         this._playBtn.events.on("change", (isActive: boolean) => {
             if (!isActive && !this._pauseBtn.isActive) {
                 this.pause();
@@ -315,6 +331,19 @@ class TimelineView extends View<TimelineModel> {
         this.setVisibility(true);
 
         return this;
+    }
+
+    /**
+     * True when the timeline scale is read as the local date and time at the viewed location.
+     * @public
+     * @type {boolean}
+     */
+    public get localTime(): boolean {
+        return this._localTimeCheckbox.checked;
+    }
+
+    public set localTime(localTime: boolean) {
+        this._localTimeCheckbox.checked = localTime;
     }
 
     public setVisibility(visibility: boolean) {

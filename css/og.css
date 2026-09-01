@@ -1024,6 +1024,32 @@ TIMELINE
     padding: 8px;
 }
 
+.og-timeline-localtime {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+}
+
+.og-timeline-localtime .og-checkbox {
+    margin: 0;
+    align-items: center;
+}
+
+.og-timeline-localtime .og-input-label {
+    width: auto;
+    white-space: nowrap;
+    margin-right: 5px;
+}
+
+.og-timeline-localtime .og-checkbox-input {
+    width: auto;
+    display: flex;
+    align-items: center;
+}
+
 .og-timeline-unselectable {
     -moz-user-select: none;
     -khtml-user-select: none;

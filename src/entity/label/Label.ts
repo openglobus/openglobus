@@ -58,7 +58,7 @@ const ALIGN2STR: Record<number, string> = {
  * @param {number} [options.size] - Font size in pixels.
  * @param {string} [options.style] - HTML5 font style. Example 'normal', 'italic'.
  * @param {string} [options.weight] - HTML5 font weight. Example 'normal', 'bold'.
- * @param {number} [options.outline] - Text outline size. 0 - no outline, 1 - maximum outline. Default 0.58.
+ * @param {number} [options.outline] - Text outline width in pixels. 0 - no outline. Default 0.
  * @param {Vec4|string|Array.<number>} [options.outlineColor] - Outline color.
  * @param {string} [options.align] - Text horizontal align: "left", "right" and "center".
  */
@@ -87,7 +87,7 @@ class Label extends BaseBillboard {
     protected _size: number;
 
     /**
-     * Label outline.
+     * Label outline width in pixels.
      * @protected
      * @type {number}
      */
@@ -308,9 +308,11 @@ class Label extends BaseBillboard {
     }
 
     /**
-     * Sets text outline border size. Where 0 - is no outline, and 1 - is the maximum outline size.
+     * Sets text outline border width in pixels. Where 0 - is no outline.
+     * The visible width is capped by the font atlas distance field range,
+     * which grows with the label font size.
      * @public
-     * @param {number} outline - Text outline size.
+     * @param {number} outline - Text outline width in pixels.
      */
     public setOutline(outline: number) {
         this._outline = outline;
@@ -322,7 +324,7 @@ class Label extends BaseBillboard {
     }
 
     /**
-     * Gets text current outline size.
+     * Gets text current outline width in pixels.
      * @public
      * @returns {number}
      */
