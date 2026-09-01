@@ -973,13 +973,24 @@ TIMELINE
 
 .og-timeline-scale {
     overflow: hidden;
+    position: relative;
+    z-index: 1;
     width: 100%;
     height: 100%;
     touch-action: none;
 }
 
+.og-timeline-spans {
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
 .og-timeline-current {
     position: absolute;
+    z-index: 2;
     left: 0;
     width: 11px;
     height: 100%;

@@ -69,6 +69,8 @@ const ICON_PAUSE_SVG =
     '<?xml version="1.0" ?><!DOCTYPE svg  PUBLIC \'-//W3C//DTD SVG 1.1//EN\'  \'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\'><svg enable-background="new 0 0 512 512" height="512px" version="1.1" viewBox="0 0 512 512" width="512px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Layer_6"><rect fill="#252525" height="320" width="60" x="153" y="96"/><rect fill="#252525" height="320" width="60" x="299" y="96"/></g></svg>';
 
 const SCALE_FILL_COLOR = "rgba(64, 59, 59, 1.0)";
+const SPAN_THICKNESS_PX = 3;
+const SPAN_MIN_WIDTH_PX = 2;
 const SCALE_NOTCH_COLOR = "#bfbfbf";
 const SCALE_TIME_COLOR = "#bfbfbf";
 
@@ -112,6 +114,9 @@ class TimelineView extends View<TimelineModel> {
     protected _currentEl: HTMLElement | null;
     protected _canvasEl: HTMLCanvasElement;
     protected _ctx: CanvasRenderingContext2D;
+    protected _spansCanvasEl: HTMLCanvasElement;
+    protected _spansCtx: CanvasRenderingContext2D;
+    protected _appliedFillStyle: string;
     protected _isMouseOver: boolean;
     protected _isDragging: boolean;
     protected _isCurrentDragging: boolean;
@@ -162,6 +167,11 @@ class TimelineView extends View<TimelineModel> {
         this._currentEl = null;
         this._canvasEl = createCanvasHTML();
         this._ctx = this._canvasEl.getContext("2d")!;
+
+        this._spansCanvasEl = createCanvasHTML();
+        this._spansCanvasEl.classList.add("og-timeline-spans");
+        this._spansCtx = this._spansCanvasEl.getContext("2d")!;
+        this._appliedFillStyle = "";
 
         this._isMouseOver = false;
         this._isDragging = false;
@@ -245,6 +255,7 @@ class TimelineView extends View<TimelineModel> {
         this._frameEl = this.select(".og-timeline-frame");
         this._currentEl = this.select(".og-timeline-current");
         this.select(".og-timeline-frame .og-timeline-scale")!.appendChild(this._canvasEl);
+        this._frameEl!.insertBefore(this._spansCanvasEl, this._frameEl!.firstChild);
 
         this._resizeObserver.observe(this.el!);
 
@@ -256,6 +267,8 @@ class TimelineView extends View<TimelineModel> {
             this._drawCurrent();
             this.events.dispatch(this.events.setcurrent, d);
         });
+
+        this.model.events.on("spanschange", this._drawSpans);
 
         this._canvasEl.addEventListener("mouseenter", this._onMouseEnter);
         this._canvasEl.addEventListener("mouseout", this._onMouseOut);
@@ -823,10 +836,12 @@ class TimelineView extends View<TimelineModel> {
 
     protected _resize() {
         if (this._frameEl) {
-            this._canvasEl.width = this._frameEl.clientWidth * this._canvasScale;
-            this._canvasEl.height = this._frameEl.clientHeight * this._canvasScale;
-            this._canvasEl.style.width = `${this._frameEl.clientWidth}px`;
-            this._canvasEl.style.height = `${this._frameEl.clientHeight}px`;
+            for (const canvas of [this._canvasEl, this._spansCanvasEl]) {
+                canvas.width = this._frameEl.clientWidth * this._canvasScale;
+                canvas.height = this._frameEl.clientHeight * this._canvasScale;
+                canvas.style.width = `${this._frameEl.clientWidth}px`;
+                canvas.style.height = `${this._frameEl.clientHeight}px`;
+            }
         }
     }
 
@@ -867,15 +882,52 @@ class TimelineView extends View<TimelineModel> {
         this._clearEvents();
         this.model.events.off("play", this._syncPlayButtons);
         this.model.events.off("stop", this._syncPlayButtons);
+        this.model.events.off("spanschange", this._drawSpans);
         this._resizeObserver.disconnect();
         super.remove();
         this.model.stop();
     }
 
     protected _clearCanvas() {
-        this._ctx.fillStyle = this.fillStyle;
-        this._ctx.fillRect(0, 0, this.clientWidth * this._canvasScale, this.clientHeight * this._canvasScale);
+        this._applyScaleBackground();
+        this._ctx.clearRect(0, 0, this.clientWidth * this._canvasScale, this.clientHeight * this._canvasScale);
     }
+
+    protected _applyScaleBackground() {
+        if (this._frameEl && this._appliedFillStyle !== this.fillStyle) {
+            this._appliedFillStyle = this.fillStyle;
+            this._frameEl.style.background = this.fillStyle;
+        }
+    }
+
+    protected _drawSpans = () => {
+        const width = this.clientWidth;
+        const height = this.clientHeight;
+        const scale = this._canvasScale;
+
+        this._spansCtx.clearRect(0, 0, width * scale, height * scale);
+
+        const laneCount = this.model.laneCount;
+
+        if (!laneCount || !width) return;
+
+        const pitch = Math.max(height / (laneCount + 1), SPAN_THICKNESS_PX);
+        const top = (height - pitch * (laneCount + 1)) * 0.5;
+
+        for (const span of this.model.getSpans()) {
+            const left = this.getOffsetByTime(span.start.getTime());
+            const right = this.getOffsetByTime(span.end.getTime());
+
+            if (right < 0 || left > width) continue;
+
+            const x = Math.max(0, left);
+            const spanWidth = Math.max(Math.min(right, width) - x, SPAN_MIN_WIDTH_PX);
+            const y = top + pitch * (span.lane + 1) - SPAN_THICKNESS_PX * 0.5;
+
+            this._spansCtx.fillStyle = span.color;
+            this._spansCtx.fillRect(x * scale, y * scale, spanWidth * scale, SPAN_THICKNESS_PX * scale);
+        }
+    };
 
     protected _drawCurrent() {
         let curPosX = (this.model.currentTime - this.model.rangeStartTime) / this._millisecondsInPixel;
@@ -939,6 +991,8 @@ class TimelineView extends View<TimelineModel> {
 
             this._drawCurrent();
         }
+
+        this._drawSpans();
     }
 }
 
