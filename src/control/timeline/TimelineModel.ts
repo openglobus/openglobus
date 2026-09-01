@@ -1,9 +1,9 @@
 import { type EventsHandler, createEvents } from "../../Events";
 import { addSeconds } from "./timelineUtils";
 
-type TimelineEventsList = ["change", "current"];
+type TimelineEventsList = ["change", "current", "play", "stop"];
 
-const TIMELINE_EVENTS: TimelineEventsList = ["change", "current" /*, "tick"*/];
+const TIMELINE_EVENTS: TimelineEventsList = ["change", "current", "play", "stop" /*, "tick"*/];
 
 interface ITimelineParams {
     current?: Date;
@@ -50,6 +50,7 @@ class TimelineModel {
         if (!this._requestAnimationFrameId) {
             this._prevNow = window.performance.now();
             this._animationFrameCallback();
+            this.events.dispatch(this.events.play, this);
         }
     }
 
@@ -57,6 +58,7 @@ class TimelineModel {
         if (this._requestAnimationFrameId) {
             window.cancelAnimationFrame(this._requestAnimationFrameId);
             this._requestAnimationFrameId = 0;
+            this.events.dispatch(this.events.stop, this);
         }
     }
 

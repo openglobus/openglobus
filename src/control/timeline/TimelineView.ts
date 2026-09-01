@@ -268,13 +268,10 @@ class TimelineView extends View<TimelineModel> {
         this._playBtn.appendTo(this.$controls!);
         this._pauseBtn.appendTo(this.$controls!);
 
-        if (this.model.stopped()) {
-            this._pauseBtn.setActive(true, true);
-            this._pauseBtn.preventClick = true;
-        } else {
-            this._playBtn.setActive(true, true);
-            this._playBtn.preventClick = true;
-        }
+        this._syncPlayButtons();
+
+        this.model.events.on("play", this._syncPlayButtons);
+        this.model.events.on("stop", this._syncPlayButtons);
 
         this._buttons.events.on("change", (btn: ToggleButton) => {
             switch (btn.name) {
@@ -284,6 +281,12 @@ class TimelineView extends View<TimelineModel> {
                 case "pause":
                     this.pause();
                     break;
+            }
+        });
+
+        this._playBtn.events.on("change", (isActive: boolean) => {
+            if (!isActive && !this._pauseBtn.isActive) {
+                this.pause();
             }
         });
 
@@ -328,6 +331,16 @@ class TimelineView extends View<TimelineModel> {
         }
     }
 
+    protected _syncPlayButtons = () => {
+        const stopped = this.model.stopped();
+
+        this._pauseBtn.setActive(stopped, true);
+        this._pauseBtn.preventClick = stopped;
+
+        this._playBtn.setActive(!stopped, true);
+        this._playBtn.preventClick = false;
+    };
+
     public reset() {
         this.model.stop();
         this.events.dispatch(this.events.reset, this.model);
@@ -336,11 +349,13 @@ class TimelineView extends View<TimelineModel> {
     public play() {
         this.model.multiplier = Math.abs(this.model.multiplier);
         this.model.play();
+        this._syncPlayButtons();
         this.events.dispatch(this.events.play, this.model);
     }
 
     public pause() {
         this.model.stop();
+        this._syncPlayButtons();
         this.events.dispatch(this.events.pause, this.model);
     }
 
@@ -821,6 +836,8 @@ class TimelineView extends View<TimelineModel> {
 
     public override remove() {
         this._clearEvents();
+        this.model.events.off("play", this._syncPlayButtons);
+        this.model.events.off("stop", this._syncPlayButtons);
         this._resizeObserver.disconnect();
         super.remove();
         this.model.stop();

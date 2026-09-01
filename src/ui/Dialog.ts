@@ -23,6 +23,9 @@ export interface IDialogParams extends IViewParams {
 
 export type DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
 
+/** Preferred side of the anchor element a dialog opens on. */
+export type DialogPlacement = "right" | "below";
+
 const DEFAULT_WIDTH = 300;
 const DEFAULT_HEIGHT = 200;
 
@@ -227,7 +230,20 @@ class Dialog<M> extends View<M> {
         return this._visibility;
     }
 
-    public positionNearElementOnFirstOpen(anchorEl: HTMLElement | null, rootEl?: HTMLElement | null, gap: number = 8) {
+    /**
+     * Places the dialog next to an anchor element, once, on its first open.
+     * @param anchorEl - Element to place the dialog against, e.g. the control toggle button.
+     * @param rootEl - Container the dialog is kept inside of, the dialog parent by default.
+     * @param gap - Distance between the anchor and the dialog in pixels.
+     * @param placement - "right" opens the dialog right of the anchor, mirrored to its left when the
+     * anchor sits in the right half of the container; "below" opens it underneath the anchor.
+     */
+    public positionNearElementOnFirstOpen(
+        anchorEl: HTMLElement | null,
+        rootEl?: HTMLElement | null,
+        gap: number = 8,
+        placement: DialogPlacement = "right"
+    ) {
         if (this._firstOpenPositioned || !this.el || !anchorEl) return;
 
         const root = rootEl || this.el.parentElement || document.body;
@@ -242,13 +258,20 @@ class Dialog<M> extends View<M> {
         const rootHeight = root.clientHeight || rootRect.height || window.innerHeight;
 
         const anchorCenterX = anchorRect.left + anchorRect.width * 0.5 - rootRect.left;
-        const anchorTop = anchorRect.top - rootRect.top;
         const openToRight = anchorCenterX <= rootWidth * 0.5;
 
-        let left = openToRight
-            ? anchorRect.right - rootRect.left + gap
-            : anchorRect.left - rootRect.left - dialogWidth - gap;
-        let top = anchorTop;
+        let left: number;
+        let top: number;
+
+        if (placement === "below") {
+            left = anchorRect.left - rootRect.left;
+            top = anchorRect.bottom - rootRect.top + gap;
+        } else {
+            left = openToRight
+                ? anchorRect.right - rootRect.left + gap
+                : anchorRect.left - rootRect.left - dialogWidth - gap;
+            top = anchorRect.top - rootRect.top;
+        }
 
         left = Math.max(0, Math.min(left, rootWidth - dialogWidth));
         if (rootHeight > dialogHeight) {
