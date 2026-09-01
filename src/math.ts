@@ -82,6 +82,21 @@ export function log(n: number, base: number): number {
 }
 
 /**
+ * Smooth Hermite interpolation between 0 and 1, the same as GLSL `smoothstep`.
+ * @param {number} edge0 - Lower edge.
+ * @param {number} edge1 - Upper edge.
+ * @param {number} x - Source value.
+ * @returns {number} -
+ */
+export function smoothstep(edge0: number, edge1: number, x: number): number {
+    if (edge0 >= edge1) {
+        return x < edge1 ? 0.0 : 1.0;
+    }
+    let t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+    return t * t * (3.0 - 2.0 * t);
+}
+
+/**
  * Clamp the number.
  * @function
  * @param {number} value - Input number.

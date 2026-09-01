@@ -111,7 +111,7 @@ class PolygonDrawingScene extends Scene {
             pickingEnabled: true,
             relativeToGround: true,
             shadeMode: SHADE_UNLIT,
-            scaleByDistance: [1, 4000000, 0.005]
+            scaleByDistance: [1, 4000000, math.MAX32, 0.005]
         });
 
         this._centerLayer = new Vector("centers", {
@@ -119,7 +119,7 @@ class PolygonDrawingScene extends Scene {
             pickingEnabled: true,
             relativeToGround: true,
             shadeMode: SHADE_UNLIT,
-            scaleByDistance: [1, 4000000, 0.005]
+            scaleByDistance: [1, 4000000, math.MAX32, 0.005]
         });
 
         this._outlineLayer = new Vector("outline", {
@@ -150,7 +150,7 @@ class PolygonDrawingScene extends Scene {
             depthOffset: -10,
             shadeMode: SHADE_UNLIT,
             relativeToGround: true,
-            scaleByDistance: [1, 4000000, 0.005],
+            scaleByDistance: [1, 4000000, math.MAX32, 0.005],
             opacity: 0.5
         });
 

@@ -1,3 +1,4 @@
+import * as math from "../../math";
 import { Control, IControlParams } from "../Control";
 import { DepthCamera } from "./DepthCamera";
 import { depth_camera } from "./depth_camera";
@@ -43,7 +44,7 @@ export class DepthCameraHandler extends Control {
             receiveShadows: false,
             shadeMode: "unlit",
             hideInLayerSwitcher: true,
-            scaleByDistance: [100, 1000000, 1.0]
+            scaleByDistance: [100, 1000000, math.MAX32]
         });
 
         if (params.depthCameras) {

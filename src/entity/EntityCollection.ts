@@ -1,4 +1,3 @@
-import * as math from "../math";
 import { BillboardHandler } from "./billboard/BillboardHandler";
 import { createEvents } from "../Events";
 import type { EventsHandler } from "../Events";
@@ -10,6 +9,8 @@ import { GeoObjectHandler } from "./geoObject/GeoObjectHandler";
 import { LabelHandler } from "./label/LabelHandler";
 import { Vec3 } from "../math/Vec3";
 import type { NumberArray3 } from "../math/Vec3";
+import type { NumberArray4 } from "../math/Vec4";
+import { createScaleByDistance, SCALE_BY_DISTANCE_1_TO_1 } from "../utils/shared";
 import type { Planet } from "../scene/Planet";
 import { PointCloudHandler } from "./pointCloud/PointCloudHandler";
 import { PolylineHandler } from "./polyline/PolylineHandler";
@@ -30,7 +31,7 @@ interface IEntityCollectionParams {
     receiveProjectors?: boolean;
     receiveShadows?: boolean;
     receiveFrameTransparency?: boolean;
-    scaleByDistance?: NumberArray3;
+    scaleByDistance?: NumberArray3 | NumberArray4;
     pickingScale?: number | NumberArray3;
     opacity?: number;
     shadeMode?: ShadeModeInput;
@@ -51,10 +52,11 @@ interface IEntityCollectionParams {
  * @param {boolean} [options.receiveProjectors=true] - Enables/disables projector effect reception for this collection.
  * @param {boolean} [options.receiveFrameTransparency=false] - Enables/disables frame transparency reception for this collection.
  * @param {boolean} [options.receiveShadows=true] - Enables/disables shadow map reception for this collection.
- * @param {Array.<number>} [options.scaleByDistance] - Entity scale by distance parameters. (exactly 3 entries)
- * First index - near distance to the entity, after entity becomes full scale.
- * Second index - far distance to the entity, when the entity becomes zero scale.
- * Third index - far distance to the entity, when the entity becomes invisible.
+ * @param {Array.<number>} [options.scaleByDistance] - Scale by distance parameters:
+ * `[near, far, vanish, scale]`. The fourth entry is a plain multiplier and defaults to `1`, so
+ * three entries are accepted as well.
+ * See {@link EntityCollection#scaleByDistance} for what each entry means.
+ * Default is `[MAX32, MAX32, MAX32, 1]` (no distance scaling).
  * @param {number|Array.<number>} [options.pickingScale] - Picking scale value or xyz scale array.
  * @param {number} [options.opacity] - Entity global opacity.
  * @param {number|string} [options.shadeMode=1] - Geo object shading mode: `0|none|unlit`, `0.5|phong`, `1|pbr`.
@@ -186,13 +188,17 @@ class EntityCollection {
     public _entities: Entity[];
 
     /**
-     * First index - near distance to the entity, after entity becomes full scale.
-     * Second index - far distance to the entity, when entity becomes zero scale.
-     * Third index - far distance to the entity, when entity becomes invisible.
+     * Distance-based scaling for geoObjects, billboards, and labels.
+     * [0] near - GeoObjects keep a fixed world size below this distance, then scale to
+     * maintain a fixed screen size until `far`. Ignored by billboards and labels.
+     * Set `near` to `0` to disable distance-based scaling.
+     * [1] far - GeoObjects stop growing here. If `vanish > far`, all types start fading.
+     * [2] vanish - Distance where the entity fades to zero. `vanish <= far` disables fading.
+     * [3] scale - Optional multiplier for all types. Default is `1`.
      * @public
      * @type {Array.<number>}
      */
-    public scaleByDistance: NumberArray3;
+    public scaleByDistance: NumberArray4;
 
     public pickingScale: Float32Array;
 
@@ -292,7 +298,7 @@ class EntityCollection {
 
         this._entities = [];
 
-        this.scaleByDistance = options.scaleByDistance || [1.0, 1.0, 1.0];
+        this.scaleByDistance = createScaleByDistance(options.scaleByDistance, SCALE_BY_DISTANCE_1_TO_1);
 
         let pickingScale: Float32Array = new Float32Array([1.0, 1.0, 1.0]);
         if (options.pickingScale !== undefined) {
@@ -452,14 +458,26 @@ class EntityCollection {
     /**
      * Sets scale by distance parameters.
      * @public
-     * @param {number} near - Full scale entity distance.
-     * @param {number} far - Zero scale entity distance.
-     * @param {number} [farInvisible] - Entity visibility distance.
+     * @param {number} near - Distance below which a geoObject keeps its world size. Billboards
+     * and labels ignore it; pass `0` to disable the world scale ramp.
+     * @param {number} far - Distance up to which an entity keeps its size.
+     * @param {number} [vanish] - Distance at which the size reaches zero. Defaults to `far`, which
+     * means no fading at all: past `far` a billboard or a label keeps its screen size, and a
+     * geoObject keeps the world size it reached there.
+     * @param {number} [scale] - Plain multiplier applied on top, for every entity type.
      */
-    public setScaleByDistance(near: number, far: number, farInvisible?: number) {
-        this.scaleByDistance[0] = near;
-        this.scaleByDistance[1] = far;
-        this.scaleByDistance[2] = farInvisible || math.MAX32;
+    public setScaleByDistance(near: number, far: number, vanish?: number, scale?: number) {
+        let s = createScaleByDistance(
+            [near, far, vanish != undefined ? vanish : far, scale != undefined ? scale : 1.0],
+            this.scaleByDistance
+        );
+
+        // in place: layers hand the very same array to their collections
+        this.scaleByDistance[0] = s[0];
+        this.scaleByDistance[1] = s[1];
+        this.scaleByDistance[2] = s[2];
+        this.scaleByDistance[3] = s[3];
+
         this.requestRedraw();
     }
 

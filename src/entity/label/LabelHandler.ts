@@ -402,8 +402,9 @@ class LabelHandler extends BaseBillboardHandler {
             ec.scaleByDistance[0],
             ec.scaleByDistance[1],
             ec.scaleByDistance[2],
-            r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
+            ec.scaleByDistance[3]
         );
+        gl.uniform1f(shu.uFocusDistance, r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0);
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
         gl.uniform1f(shu.planetRadius, (ec.scene as Planet)._planetRadius2 || 0);
         gl.uniform2fv(shu.viewport, [h.canvas!.clientWidth, h.canvas!.clientHeight]);
@@ -516,8 +517,9 @@ class LabelHandler extends BaseBillboardHandler {
             ec.scaleByDistance[0],
             ec.scaleByDistance[1],
             ec.scaleByDistance[2],
-            r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
+            ec.scaleByDistance[3]
         );
+        gl.uniform1f(shu.uFocusDistance, r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0);
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
         gl.uniform1f(shu.planetRadius, (rn as Planet)._planetRadius2 || 0);
         gl.uniform2fv(shu.viewport, [h.canvas!.clientWidth, h.canvas!.clientHeight]);
@@ -815,7 +817,7 @@ class LabelHandler extends BaseBillboardHandler {
             b[j + 17] = zl;
         }
 
-        this._setChangedBuffer(POSITION_BUFFER);
+        this._setChangedPositionRange(index * 18 * this._maxLetters, (index + 1) * 18 * this._maxLetters);
     }
 
     public override setPickingColorArr(index: number, color: Vec3) {

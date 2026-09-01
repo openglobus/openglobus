@@ -17,6 +17,7 @@ export function billboardPicking(): ShaderProgram {
             eyePositionLow: "vec3",
             planetRadius: "float",
             uScaleByDistance: "vec4",
+            uFocusDistance: "float",
             opacity: "float",
             depthOffset: "float",
             depthOffsetNear: "float"
@@ -46,6 +47,7 @@ export function billboard_screen(): ShaderProgram {
             eyePositionLow: "vec3",
             planetRadius: "float",
             uScaleByDistance: "vec4",
+            uFocusDistance: "float",
             opacity: "float",
             depthOffset: "float",
             depthOffsetNear: "float"
@@ -76,6 +78,7 @@ export function billboard_screen_woit(): ShaderProgram {
             eyePositionLow: "vec3",
             planetRadius: "float",
             uScaleByDistance: "vec4",
+            uFocusDistance: "float",
             opacity: "float",
             depthOffset: "float",
             depthOffsetNear: "float",

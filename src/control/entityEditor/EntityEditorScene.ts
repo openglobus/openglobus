@@ -131,7 +131,7 @@ class EntityEditorScene extends Scene {
         this._axisTrackEntity = new AxisTrackEntity();
 
         this._moveLayer = new EntityCollection({
-            scaleByDistance: [0.1, MAX32, 0.1],
+            scaleByDistance: [0.1, MAX32, MAX32, 0.1],
             shadeMode: SHADE_UNLIT,
             pickingScale: [5, 1.1, 5],
             visibility: false,
@@ -139,7 +139,7 @@ class EntityEditorScene extends Scene {
         });
 
         this._planeLayer = new EntityCollection({
-            scaleByDistance: [0.1, MAX32, 0.1],
+            scaleByDistance: [0.1, MAX32, MAX32, 0.1],
             shadeMode: SHADE_UNLIT,
             visibility: false,
             depthOrder: 1000
