@@ -312,6 +312,7 @@ class Entity {
     protected _absoluteScale: Vec3;
     protected _qFrame: Quat;
     protected _qRot: Quat;
+    protected _directQRot: Quat;
     public _absoluteQRot: Quat;
     protected _useDirectQuaternion: boolean;
     protected _opacity: number | null;
@@ -378,6 +379,7 @@ class Entity {
         this._qRot = Quat.IDENTITY;
         this._absoluteQRot = Quat.IDENTITY;
         this._useDirectQuaternion = false;
+        this._directQRot = Quat.IDENTITY;
         this._opacity = null;
 
         this._featureConstructorArray = {
@@ -775,17 +777,14 @@ class Entity {
      * @param {Quat} rot - Quaternion from glTF.
      */
     public setDirectQuaternionRotation(rot: Quat) {
-        this._qRot.copy(rot);
+        this._directQRot.copy(rot);
         this._useDirectQuaternion = true;
 
-        this._pitchRad = this._qRot.getPitch();
-        this._yawRad = this._qRot.getYaw();
-        this._rollRad = this._qRot.getRoll();
+        this._pitchRad = rot.getPitch();
+        this._yawRad = rot.getYaw();
+        this._rollRad = rot.getRoll();
 
         this._updateAbsolutePosition();
-
-        // ?
-        //this._useDirectQuaternion = false;
     }
 
     /**
@@ -1062,14 +1061,12 @@ class Entity {
             this._qFrame.copy(parent._qFrame);
             this._rootCartesian.copy(parent._rootCartesian);
 
-            if (!this._useDirectQuaternion) {
-                //this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
-
-                if (parent && this.forceGlobalRotation) {
-                    this._qRot.setPitchYawRoll(parent._pitchRad, parent._yawRad, parent._rollRad);
-                } else {
-                    this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
-                }
+            if (this._useDirectQuaternion) {
+                this._qRot.copy(this._directQRot);
+            } else if (this.forceGlobalRotation) {
+                this._qRot.setPitchYawRoll(parent._pitchRad, parent._yawRad, parent._rollRad);
+            } else {
+                this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
             }
             parent._absoluteQRot.mulRes(this._qRot, this._absoluteQRot);
 
@@ -1082,14 +1079,16 @@ class Entity {
                 this._qFrame = this._entityCollection.scene.getFrameRotation(this._cartesian);
             }
 
-            if (!this._useDirectQuaternion) {
-                if (parent && this.forceGlobalRotation) {
-                    this._qRot.setPitchYawRoll(parent._pitchRad, parent._yawRad, parent._rollRad, this._qFrame);
+            if (this._useDirectQuaternion) {
+                if (this._qFrame.isEqual(Quat.IDENTITY)) {
+                    this._qRot.copy(this._directQRot);
                 } else {
-                    this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
+                    this._qFrame.conjugate().mulRes(this._directQRot, this._qRot);
                 }
-            } else if (!this._qFrame.isEqual(Quat.IDENTITY)) {
-                this._qRot = this._qRot.mul(this._qFrame);
+            } else if (parent && this.forceGlobalRotation) {
+                this._qRot.setPitchYawRoll(parent._pitchRad, parent._yawRad, parent._rollRad, this._qFrame);
+            } else {
+                this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
             }
 
             this._absoluteScale.copy(this._scale);

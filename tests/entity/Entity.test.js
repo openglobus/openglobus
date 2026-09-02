@@ -7,6 +7,7 @@ import { Ray } from '../../src/entity/ray/Ray';
 import { Strip } from '../../src/entity/strip/Strip';
 import { LonLat } from '../../src/LonLat';
 import { Vec3 } from '../../src/math/Vec3';
+import { Quat } from '../../src/math/Quat';
 
 test('Testing Entity', () => {
     let entity1 = new Entity({
@@ -217,4 +218,94 @@ test('setScaleByDistance without vanish does not fade: size is kept past far', (
     // an explicit vanish still enables it
     ec.setScaleByDistance(50, 50000, 80000, 0.5);
     expect(ec.scaleByDistance).toEqual([50, 50000, 80000, 0.5]);
+});
+
+describe('Entity direct quaternion rotation', () => {
+    // A frame far from identity, like the north frame somewhere on the globe.
+    const frame = new Quat().setPitchYawRoll(0.3, 1.1, -0.4);
+
+    function withFrame(entity) {
+        entity._entityCollection = { scene: { getFrameRotation: () => frame } };
+        return entity;
+    }
+
+    function absoluteRotation(entity) {
+        entity._updateAbsolutePosition();
+        return entity._absoluteQRot;
+    }
+
+    function angleBetween(a, b) {
+        const dot = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+        return (2 * Math.acos(Math.min(1, Math.abs(dot))) * 180) / Math.PI;
+    }
+
+    test('matches the pitch/yaw/roll path away from the singularity', () => {
+        const rotation = new Quat().setPitchYawRoll(0.4, -0.9, 0.25);
+
+        const euler = withFrame(new Entity({ name: 'euler' }));
+        euler.setPitch(rotation.getPitch());
+        euler.setYaw(rotation.getYaw());
+        euler.setRoll(rotation.getRoll());
+
+        const direct = withFrame(new Entity({ name: 'direct' }));
+        direct.setDirectQuaternionRotation(rotation);
+
+        expect(angleBetween(absoluteRotation(euler), absoluteRotation(direct))).toBeLessThan(0.001);
+    });
+
+    test('does not accumulate the frame over repeated updates', () => {
+        const rotation = new Quat().setPitchYawRoll(0.4, -0.9, 0.25);
+        const entity = withFrame(new Entity({ name: 'repeated' }));
+
+        entity.setDirectQuaternionRotation(rotation);
+
+        const first = absoluteRotation(entity).clone();
+        for (let i = 0; i < 5; i++) {
+            entity._updateAbsolutePosition();
+        }
+
+        expect(angleBetween(first, absoluteRotation(entity))).toBeLessThan(0.001);
+    });
+
+    test('nested entity takes the direct rotation as its local one', () => {
+        const parentRotation = new Quat().setPitchYawRoll(0.2, 0.5, -0.1);
+        const childRotation = new Quat().setPitchYawRoll(-Math.PI / 2, 1.2, 0.9);
+
+        const root = new Entity({ name: 'root', cartesian: [1000, 2000, 3000] });
+        const child = new Entity({ name: 'child', cartesian: [0, 10, 5], relativePosition: true });
+
+        root.appendChild(child);
+        withFrame(root);
+        root.setDirectQuaternionRotation(parentRotation);
+        child.setDirectQuaternionRotation(childRotation);
+
+        // The frame belongs to the root, the child rotation composes on top of it.
+        const expected = absoluteRotation(root).mul(childRotation);
+
+        expect(angleBetween(absoluteRotation(child), expected)).toBeLessThan(0.001);
+
+        // A root that became a child must not keep the frame baked into its local rotation.
+        const first = absoluteRotation(child).clone();
+        for (let i = 0; i < 5; i++) {
+            child._updateAbsolutePosition();
+        }
+        expect(angleBetween(first, absoluteRotation(child))).toBeLessThan(0.001);
+    });
+
+    test('keeps the rotation exact where euler angles are degenerate', () => {
+        // Pitch -90 is the decomposition singularity: yaw and roll trade places there.
+        const nadir = new Quat().setPitchYawRoll(-Math.PI / 2, 1.2, 0.9);
+        const expected = frame.conjugate().mul(nadir);
+
+        const euler = withFrame(new Entity({ name: 'euler-nadir' }));
+        euler.setPitch(nadir.getPitch());
+        euler.setYaw(nadir.getYaw());
+        euler.setRoll(nadir.getRoll());
+
+        const direct = withFrame(new Entity({ name: 'direct-nadir' }));
+        direct.setDirectQuaternionRotation(nadir);
+
+        expect(angleBetween(absoluteRotation(direct), expected)).toBeLessThan(0.001);
+        expect(angleBetween(absoluteRotation(euler), expected)).toBeGreaterThan(1);
+    });
 });
