@@ -45,6 +45,7 @@ export interface IDepthCameraParams {
     horizontalViewAngle?: number;
     showFrustum?: boolean;
     showFootprint?: boolean;
+    frustumLength?: number;
     isOrthographic?: boolean;
     focusDistance?: number;
     enableSegmentSkirts?: boolean;
@@ -114,6 +115,7 @@ export class DepthCamera {
     protected _focusDistance: number;
     protected _lastPlanetHeightFactor: number;
 
+    protected _frustumLength: number;
     protected _cameraFrustumEntity: Entity | null;
     protected _cameraFootprintEntity: Entity | null;
     protected _cameraFootprintSegmentPointCounts: number[];
@@ -154,6 +156,8 @@ export class DepthCamera {
         this._isOrthographic = params.isOrthographic ?? false;
         this._focusDistance = params.focusDistance ?? this.far;
         this._lastPlanetHeightFactor = 1.0;
+
+        this._frustumLength = params.frustumLength ?? DEFAULT_CAMERA_FRUSTUM_LENGTH;
 
         this._cameraFootprintEntity = this._showFootprint ? this._createCameraFootprintEntity() : null;
         this._cameraFrustumEntity = this._showFrustum ? this._createCameraFrustumEntity() : null;
@@ -258,9 +262,17 @@ export class DepthCamera {
         return this._cameraFrustumEntity;
     }
 
+    public get frustumLength(): number {
+        return this._frustumLength;
+    }
+
+    public set frustumLength(length: number) {
+        this._frustumLength = length > 0 ? length : DEFAULT_CAMERA_FRUSTUM_LENGTH;
+    }
+
     public get frustumScale(): Vec3 {
         return Object3d.getFrustumScaleByCameraAngles(
-            DEFAULT_CAMERA_FRUSTUM_LENGTH,
+            this._frustumLength,
             this.camera.horizontalViewAngle,
             this.camera.verticalViewAngle
         );
