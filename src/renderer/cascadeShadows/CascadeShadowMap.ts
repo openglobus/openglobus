@@ -19,7 +19,6 @@ const DEFAULT_CASCADE_SPLIT_LAMBDA = 0.65;
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
 const DEFAULT_CASCADE_BIAS = 10000;
 const DEFAULT_CASCADE_NORMAL_BIAS = 100;
-const DEFAULT_CASCADE_DEPTH_EPSILON = 10000;
 const DEFAULT_CASCADE_ORTHOGRAPHIC_MARGIN_FACTOR = 0.02;
 const DEFAULT_CASCADE_CASTER_MARGIN = 0.0;
 const DEFAULT_CASCADE_CASTER_MARGIN_FACTOR = 0.25;
@@ -33,17 +32,15 @@ const MIN_CASCADE_LIGHT_SIZE = 1e-3;
  * @property enabled - Enables the cascade.
  * @property splitNear - Near split distance.
  * @property splitFar - Far split distance.
- * @property bias - Shadow depth bias. Converted to normalized depth by CascadeShadowManager.
+ * @property depthBiasWorld - Occlusion bias in meters.
  * @property normalBias - Surface normal offset in RTC/world units.
- * @property depthEpsilon - Shadow depth transition width. Converted to normalized depth by CascadeShadowManager.
  */
 export interface CascadeParams {
     enabled: boolean;
     splitNear: number;
     splitFar: number;
-    bias: number;
+    depthBiasWorld: number;
     normalBias: number;
-    depthEpsilon: number;
 }
 
 /**
@@ -260,9 +257,8 @@ export class CascadeShadowMap {
                 enabled: true,
                 splitNear,
                 splitFar,
-                bias: DEFAULT_CASCADE_BIAS,
+                depthBiasWorld: DEFAULT_CASCADE_BIAS,
                 normalBias: DEFAULT_CASCADE_NORMAL_BIAS,
-                depthEpsilon: DEFAULT_CASCADE_DEPTH_EPSILON,
                 ...params.cascades?.[i]
             };
 

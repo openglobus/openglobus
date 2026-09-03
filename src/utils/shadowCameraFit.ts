@@ -6,11 +6,8 @@ import { Vec3 } from "../math/Vec3";
 import { EPS12 } from "../math";
 
 /**
- * How high above the footprint a caster may stand and still reach the shadow map: the measured terrain
- * relief, or a share of the footprint radius over flat ground, whichever is larger.
- *
- * Raising it is cheap. It only moves the camera sunward, which lengthens the depth range and leaves the
- * orthographic bounds - and the texel size with them - untouched.
+ * How high above the footprint a caster may stand and still reach the shadow map.
+ * Raising it is cheap. It only moves the camera sunward.
  */
 const SHADOW_CASTER_RELIEF_FACTOR = 1.25;
 const SHADOW_CASTER_HEIGHT_FACTOR = 0.25;
@@ -18,30 +15,27 @@ const MIN_SHADOW_CASTER_HEIGHT = 100;
 const MAX_SHADOW_CASTER_HEIGHT = 10000;
 
 /**
- * Steps per doubling the caster height is rounded up to. One, so the allowed heights are 128, 256, 512
- * metres and so on: the height places the shadow camera eye, and that eye has to stay put, so it is better
- * for it to jump rarely and by a lot than to drift a little every frame.
+ * Controls shadow camera height snapping.
+ * A value of 1 uses 128, 256, 512 m, etc., preventing small movements every frame.
  */
 const SHADOW_CASTER_HEIGHT_STEPS = 1;
 
 /**
- * Smallest distance the far plane is pushed past the farthest receiver, so that terrain lying lower than
- * the fitted points still falls inside the map. The measured descent adds to it, see fit().
+ * Minimum far-plane margin for terrain below the fitted receivers.
+ * fit() adds the measured terrain descent to this value.
  */
 const SHADOW_RECEIVER_DEPTH_PADDING = 500;
 
 /**
- * Border, in texels, added around the fitted bounds. The soft shadow filter samples the neighbours of each
- * texel, and a sample taken outside the map reads as lit, so without the border shadows break up along the
- * edge of the covered area.
+ * Extra border around the fitted bounds, in texels.
+ * Keeps soft-shadow samples inside the map and prevents edge artifacts.
  */
 const SHADOW_ORTHO_TEXEL_PADDING = 3;
 
 /**
- * The fitted extent is not used as measured. It is rounded up to one of four sizes per doubling, about 19%
- * apart, and drops to a finer one only when the fit asks for clearly less - that is the slack. A size that
- * changed every frame would drag the texel grid along with it and make the shadow edges shimmer. See
- * _quantizeOrthoTexelSize.
+ * Snaps the fitted extent to four size levels per doubling.
+ * Slack delays shrinking, preventing texel-grid movement and shadow shimmer.
+ * See _quantizeOrthoTexelSize().
  */
 const ORTHO_TEXEL_QUANTIZATION_STEPS = 4;
 const ORTHO_TEXEL_QUANTIZATION_RATIO = Math.pow(2.0, 1.0 / ORTHO_TEXEL_QUANTIZATION_STEPS);
@@ -76,42 +70,30 @@ interface ITerrainRelief {
 
 export interface IShadowCameraFitParams {
     /**
-     * Extra margin around the fitted bounds, as a fraction of their size: 0.01 is one percent on each side,
-     * on top of the texel border.
-     *
-     * The footprint is sampled at the four screen corners only, and the ground between them bulges outside
-     * the quad they make. Without the margin that strip - widest in the middle of the screen edges - falls
-     * outside the map and stays unshadowed.
+     * Adds proportional padding to each side of the fitted bounds.
+     * 0.01 adds 1% per side. This keeps curved ground between the four
+     * sampled screen corners inside the shadow map.
      */
     orthoMarginFactor?: number;
 
     /**
-     * Light space depth kept in front of the caster volume, the larger of an absolute distance and a
-     * multiple of the caster volume height. Everything within it still casts. Moving the camera sunward
-     * leaves the orthographic bounds untouched, so this buys caster coverage at no cost to shadow
-     * resolution: it only widens the depth range, and the depth target is 32 bit float.
+     * Extends caster coverage toward the Sun:
+     * max(casterClearance, casterHeight * casterClearanceFactor)
      */
     casterClearance?: number;
     casterClearanceFactor?: number;
 
     /**
-     * Smallest ray slope the relief walk accepts: at 0.1 one metre of relief moves a footprint point by at
-     * most ten metres along its view ray.
-     *
-     * Without the floor a point near the horizon, where the ray runs almost parallel to the ground, walks
-     * kilometres for that same metre - and since the relief is only ever an estimate, the bounds it drags
-     * out with it cost every shadow in the view its sharpness.
+     * Minimum view-ray slope used when adjusting the footprint for terrain relief.
+     * 0.1 limits sideways movement to 10 metres per metre of relief.
+     * This prevents near-horizontal rays from greatly expanding the shadow map.
      */
     minFootprintRaySlope?: number;
 
     /**
-     * How far terrain below the reference level may push a footprint point sideways, as a fraction of the
-     * footprint radius: 0.5 is half of it. Only the sideways part is capped, the depth of the walk is free.
-     *
-     * The one knob here that trades coverage for sharpness. Raise it and a view down a descending slope -
-     * ground seen far past where the reference level ends - stays covered, at a coarser texel. It has to
-     * stay a fraction, though: a camera a few metres above a plateau has a footprint a few metres across,
-     * and no terrain a kilometre below it can be visible from there, whatever the coarse tiles report.
+     * Limits sideways footprint expansion caused by terrain below the reference level.
+     * 0.5 allows expansion up to half the footprint radius.
+     * Higher values improve downhill coverage but reduce shadow resolution.
      */
     reliefLateralFactor?: number;
 
@@ -143,17 +125,16 @@ export interface IShadowCameraFitParams {
     motionMarginFrames?: number;
 
     /**
-     * Shadow depth bias and epsilon, counted in shadow map texels so that they follow its resolution, plus a
-     * flat offset in metres:
+     * Shadow depth bias, counted in shadow map texels so that it follows its resolution, plus a flat
+     * offset in metres:
      *
-     *     bias = texelWorldSize * depthBiasTexels + depthBiasOffset
-     *     epsilon = texelWorldSize * depthEpsilonTexels + depthBiasOffset
+     *     depthBiasWorld = texelWorldSize * depthBiasTexels + depthBiasOffset
      *
      * Too little and surfaces shadow themselves, too much and the shadow comes away from the foot of its
-     * caster by (bias + epsilon) * cos(sunElevation).
+     * caster by depthBiasWorld * cos(sunElevation). The shader adds a slope term of its own, also
+     * counted in texels, see SHADOW_MAP_SLOPE_DEPTH_BIAS.
      */
     depthBiasTexels?: number;
-    depthEpsilonTexels?: number;
     depthBiasOffset?: number;
 
     /**
@@ -225,9 +206,6 @@ function getStableLightUp(footprint: CameraFootprint, lightDirection: Vec3, hori
 /**
  * How high the rendered terrain rises above a reference radius, and how deep it drops below it, as two
  * positive heights.
- *
- * Nothing is measured here: the traversal already keeps the highest and the lowest point it draws, so the
- * answer costs a subtraction and stays right whatever is still loading.
  */
 function getStrategyRelief(
     quadTreeStrategy: QuadTreeStrategy | undefined,
@@ -313,11 +291,6 @@ function isFittableBounds(bounds: IOrthoBounds): boolean {
     );
 }
 
-/**
- * Rounds a value up to the next step of a ladder that takes `stepsPerOctave` steps to double: at one step
- * the ladder is 128, 256, 512, at four it is every 19% in between. For quantities that only have to be
- * roughly right, and badly need to stop moving every frame.
- */
 function quantizeUp(value: number, stepsPerOctave: number): number {
     if (!(value > 0.0)) {
         return 0.0;
@@ -345,7 +318,6 @@ export class ShadowCameraFit {
     public horizonAlignedLightUp: boolean;
     public motionMarginFrames: number;
     public depthBiasTexels: number;
-    public depthEpsilonTexels: number;
     public depthBiasOffset: number;
     public pinOwnQuadTreeTraversal: boolean;
 
@@ -369,7 +341,6 @@ export class ShadowCameraFit {
         this.horizonAlignedLightUp = params.horizonAlignedLightUp ?? false;
         this.motionMarginFrames = params.motionMarginFrames ?? 0.0;
         this.depthBiasTexels = params.depthBiasTexels ?? 1.0;
-        this.depthEpsilonTexels = params.depthEpsilonTexels ?? 1.0;
         this.depthBiasOffset = params.depthBiasOffset ?? 100;
         this.pinOwnQuadTreeTraversal = params.pinOwnQuadTreeTraversal ?? true;
 
@@ -675,7 +646,6 @@ export class ShadowCameraFit {
 
         this.stats.texelWorldSize = texelWorldSize;
 
-        depthCamera.bias = texelWorldSize * this.depthBiasTexels + this.depthBiasOffset;
-        depthCamera.depthEpsilon = texelWorldSize * this.depthEpsilonTexels + this.depthBiasOffset;
+        depthCamera.depthBiasWorld = texelWorldSize * this.depthBiasTexels + this.depthBiasOffset;
     }
 }
