@@ -143,17 +143,16 @@ export interface IShadowCameraFitParams {
     motionMarginFrames?: number;
 
     /**
-     * Shadow depth bias and epsilon, counted in shadow map texels so that they follow its resolution, plus a
-     * flat offset in metres:
+     * Shadow depth bias, counted in shadow map texels so that it follows its resolution, plus a flat
+     * offset in metres:
      *
-     *     bias = texelWorldSize * depthBiasTexels + depthBiasOffset
-     *     epsilon = texelWorldSize * depthEpsilonTexels + depthBiasOffset
+     *     depthBiasWorld = texelWorldSize * depthBiasTexels + depthBiasOffset
      *
      * Too little and surfaces shadow themselves, too much and the shadow comes away from the foot of its
-     * caster by (bias + epsilon) * cos(sunElevation).
+     * caster by depthBiasWorld * cos(sunElevation). The shader adds a slope term of its own, also
+     * counted in texels, see SHADOW_MAP_SLOPE_DEPTH_BIAS.
      */
     depthBiasTexels?: number;
-    depthEpsilonTexels?: number;
     depthBiasOffset?: number;
 
     /**
@@ -345,7 +344,6 @@ export class ShadowCameraFit {
     public horizonAlignedLightUp: boolean;
     public motionMarginFrames: number;
     public depthBiasTexels: number;
-    public depthEpsilonTexels: number;
     public depthBiasOffset: number;
     public pinOwnQuadTreeTraversal: boolean;
 
@@ -369,7 +367,6 @@ export class ShadowCameraFit {
         this.horizonAlignedLightUp = params.horizonAlignedLightUp ?? false;
         this.motionMarginFrames = params.motionMarginFrames ?? 0.0;
         this.depthBiasTexels = params.depthBiasTexels ?? 1.0;
-        this.depthEpsilonTexels = params.depthEpsilonTexels ?? 1.0;
         this.depthBiasOffset = params.depthBiasOffset ?? 100;
         this.pinOwnQuadTreeTraversal = params.pinOwnQuadTreeTraversal ?? true;
 
@@ -675,7 +672,6 @@ export class ShadowCameraFit {
 
         this.stats.texelWorldSize = texelWorldSize;
 
-        depthCamera.bias = texelWorldSize * this.depthBiasTexels + this.depthBiasOffset;
-        depthCamera.depthEpsilon = texelWorldSize * this.depthEpsilonTexels + this.depthBiasOffset;
+        depthCamera.depthBiasWorld = texelWorldSize * this.depthBiasTexels + this.depthBiasOffset;
     }
 }

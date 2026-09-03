@@ -111,7 +111,7 @@ export class DepthCamera {
     protected _planet: Planet | null;
     protected _renderer: Renderer | null;
     protected _initialized: boolean;
-    protected _forceOwnQuadTreeStrategyPass: boolean;
+    public _forceOwnQuadTreeStrategyPass: boolean;
     protected _showFrustum: boolean;
     protected _showFootprint: boolean;
     protected _isOrthographic: boolean;
