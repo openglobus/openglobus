@@ -3,14 +3,20 @@
 const int MAX_PROJECTORS = 16;
 
 // u_projectorParams layout:
-// x = depthBias        // bias in normalized projector depth space [0..1]
+// x = depthBiasWorld   // occlusion bias in meters, from DepthCamera.depthBiasWorld
 // y = normalBiasWorld  // bias along receiver normal in RTC/world units, usually meters
 // z = renderMode       // 0.0 = projector/decal mode, 1.0 = light mode
-// w = depthEpsilon     // minimal depth-space epsilon
+// w = isOrthographic   // 0.0 = perspective, 1.0 = orthographic
+
+// u_projectorDepthRange layout:
+// x = near, y = far    // projector clip planes in meters, turn stored depth back into meters
+// z = texelScale       // world size of one depth texel: absolute for an orthographic
+//                      // projector, per meter of distance for a perspective one
 
 uniform mat4 u_projectorViewProjRTE[MAX_PROJECTORS];
 uniform vec4 u_projectorColor[MAX_PROJECTORS];
 uniform vec4 u_projectorParams[MAX_PROJECTORS];
+uniform vec3 u_projectorDepthRange[MAX_PROJECTORS];
 uniform vec3 u_projectorEyeRel[MAX_PROJECTORS];
 uniform int u_projectorLayer[MAX_PROJECTORS];
 uniform int u_projectorCount;
@@ -48,18 +54,44 @@ uniform highp sampler2DArray u_projectorDepthArray;
 #define PROJECTOR_LIGHT_WRAP 0.5
 #endif
 
-// Adds depth bias as the surface turns away from the projector.
+// Adds depth bias as the surface turns away from the projector, counted in depth map
+// texels: one texel covers more range with distance, and so does the error it hides.
 // 0.0 disables it; larger values reduce shadow acne but may cause light leaking.
 #ifndef PROJECTOR_SLOPE_DEPTH_BIAS
-#define PROJECTOR_SLOPE_DEPTH_BIAS 0.00008
+#define PROJECTOR_SLOPE_DEPTH_BIAS 1.0
 #endif
 
-// Limits the slope-dependent depth bias.
-// 0.0012 means the added bias never exceeds 0.0012.
+// Limits the slope-dependent depth bias, in depth map texels.
+// 4.0 means the added bias never exceeds four texel widths.
 // Lower values reduce leaking; higher values suppress more grazing-angle acne.
 #ifndef PROJECTOR_MAX_SLOPE_DEPTH_BIAS
-#define PROJECTOR_MAX_SLOPE_DEPTH_BIAS 0.0012
+#define PROJECTOR_MAX_SLOPE_DEPTH_BIAS 4.0
 #endif
+
+// Offsets the sampled point along the receiver normal by this many depth map texels,
+// on top of DepthCamera.normalBias. Kills acne with less leaking than a depth bias.
+#ifndef PROJECTOR_NORMAL_TEXEL_BIAS
+#define PROJECTOR_NORMAL_TEXEL_BIAS 1.0
+#endif
+
+// Floor of the PCF comparison band, in meters, for surfaces facing the projector head on,
+// where the depth derivative is near zero.
+#ifndef PROJECTOR_MIN_TRANSITION
+#define PROJECTOR_MIN_TRANSITION 0.05
+#endif
+
+// Stored depth is the window depth of the projector camera, wildly non-linear for a
+// perspective frustum: a fixed threshold there is centimeters near the eye and kilometers
+// far from it. Everything below compares meters instead.
+float linearizeProjectorDepth(int index, float depth) {
+    float near = u_projectorDepthRange[index].x;
+    float far = u_projectorDepthRange[index].y;
+    float ndc = depth * 2.0 - 1.0;
+    float perspective = (2.0 * near * far) / max(far + near - ndc * (far - near), 1e-6);
+    float orthographic = near + depth * (far - near);
+
+    return mix(perspective, orthographic, step(0.5, u_projectorParams[index].w));
+}
 
 float sampleProjectorDepth(int index, vec2 uv) {
     return texture(u_projectorDepthArray, vec3(uv, float(u_projectorLayer[index]))).r;
@@ -68,14 +100,21 @@ float sampleProjectorDepth(int index, vec2 uv) {
 float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
     vec3 N = normalize(normal);
 
-    float depthBias = u_projectorParams[projectorIndex].x;
+    float depthBiasWorld = u_projectorParams[projectorIndex].x;
     float normalBiasWorld = u_projectorParams[projectorIndex].y;
-    float depthEpsilon = u_projectorParams[projectorIndex].w;
-    vec3 projectorLightDir = normalize(u_projectorEyeRel[projectorIndex] - rtcPos);
+    vec3 toProjector = u_projectorEyeRel[projectorIndex] - rtcPos;
+    vec3 projectorLightDir = normalize(toProjector);
     float ndotl = max(dot(N, projectorLightDir), 0.0);
-    float slopeBias = min((1.0 - ndotl) / max(ndotl, 0.05) * PROJECTOR_SLOPE_DEPTH_BIAS, PROJECTOR_MAX_SLOPE_DEPTH_BIAS);
 
-    vec3 biasedRtcPos = rtcPos + N * normalBiasWorld;
+    // A texel of the depth map covers this much of the world right here, and the depth
+    // inside it varies by about as much, which is exactly what the comparison has to allow.
+    float texelScale = u_projectorDepthRange[projectorIndex].z;
+    float texelWorld = mix(length(toProjector) * texelScale, texelScale, step(0.5, u_projectorParams[projectorIndex].w));
+
+    float slopeTexels = min((1.0 - ndotl) / max(ndotl, 0.05) * PROJECTOR_SLOPE_DEPTH_BIAS, PROJECTOR_MAX_SLOPE_DEPTH_BIAS);
+    float slopeBiasWorld = slopeTexels * texelWorld;
+
+    vec3 biasedRtcPos = rtcPos + N * (normalBiasWorld + texelWorld * PROJECTOR_NORMAL_TEXEL_BIAS);
     vec3 projectorRelPos = biasedRtcPos - u_projectorEyeRel[projectorIndex];
 
     vec4 clip = u_projectorViewProjRTE[projectorIndex] * vec4(projectorRelPos, 1.0);
@@ -87,6 +126,7 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
     vec3 ndc = clip.xyz / clip.w;
     vec2 uv = ndc.xy * 0.5 + 0.5;
     float receiverDepth = ndc.z * 0.5 + 0.5;
+    float receiverLinear = linearizeProjectorDepth(projectorIndex, receiverDepth);
 
     #if PROJECTOR_PCF
     vec2 texSize = vec2(textureSize(u_projectorDepthArray, 0).xy);
@@ -98,7 +138,7 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
     float footprintY = length(dFdy(uvInTexels));
     float footprint = max(footprintX, footprintY);
 
-    float receiverDepthFwidth = fwidth(receiverDepth);
+    float receiverLinearFwidth = fwidth(receiverLinear);
     #endif
 
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
@@ -109,16 +149,13 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
         return 0.0;
     }
 
-    float depthThreshold = depthBias + depthEpsilon + slopeBias;
+    float depthThreshold = depthBiasWorld + slopeBiasWorld;
 
     #if PROJECTOR_PCF
     float aliasingBoost = clamp((footprint - 1.0) * 0.75, 0.0, 2.0);
     float pcfScale = 1.0 + aliasingBoost;
 
-    float transitionWidth = max(
-    max(receiverDepthFwidth * PROJECTOR_PCF_SOFTNESS, depthEpsilon * (1.0 + aliasingBoost)),
-    depthEpsilon
-    );
+    float transitionWidth = max(receiverLinearFwidth * PROJECTOR_PCF_SOFTNESS * pcfScale, PROJECTOR_MIN_TRANSITION);
 
     float visibility = 0.0;
     float sampleCount = 0.0;
@@ -137,8 +174,9 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
             vec2 safeUv = clamp(uvOffset, vec2(0.0), vec2(1.0));
 
             float mapDepth = sampleProjectorDepth(projectorIndex, safeUv);
+            float mapLinear = linearizeProjectorDepth(projectorIndex, mapDepth);
 
-            float compareDelta = (mapDepth + depthThreshold) - receiverDepth;
+            float compareDelta = (mapLinear + depthThreshold) - receiverLinear;
             float sampleVisibility = smoothstep(-transitionWidth, transitionWidth, compareDelta);
 
             float wx = 2.0 - abs(float(x));
@@ -153,7 +191,8 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal) {
     return visibility / max(sampleCount, 0.0001);
     #else
     float mapDepth = sampleProjectorDepth(projectorIndex, uv);
-    return step(receiverDepth, mapDepth + depthThreshold);
+    float mapLinear = linearizeProjectorDepth(projectorIndex, mapDepth);
+    return step(receiverLinear, mapLinear + depthThreshold);
     #endif
 }
 

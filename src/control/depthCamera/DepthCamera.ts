@@ -6,6 +6,7 @@ import { DEGREES } from "../../math";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
 import { Vec4, type NumberArray4 } from "../../math/Vec4";
+import { RADIANS_HALF } from "../../math";
 import { Object3d } from "../../Object3d";
 import { QuadTreeStrategy } from "../../quadTree";
 import type { Renderer } from "../../renderer/Renderer";
@@ -20,9 +21,8 @@ const CAM_WIDTH = 512;
 const CAM_HEIGHT = 512;
 const DEPTH_NEAR = 100;
 const DEPTH_FAR = 100000;
-const DEPTH_BIAS = 0.00006;
+const DEPTH_BIAS_WORLD = 1.0;
 const DEPTH_NORMAL_BIAS = 0.45;
-const DEPTH_EPSILON = 0.00025;
 const TEXEL_SNAP_EPSILON = 1e-9;
 const ORTHO_TEXEL_QUANTIZATION_STEPS = 4;
 const ORTHO_TEXEL_QUANTIZATION_RATIO = Math.pow(2.0, 1.0 / ORTHO_TEXEL_QUANTIZATION_STEPS);
@@ -56,9 +56,8 @@ export interface IDepthCameraParams {
     enableSegmentSkirts?: boolean;
     enableSegmentFaceCulling?: boolean;
     excludeLayers?: Vector[];
-    bias?: number; //0.00003 .. 0.00008 - 0.0005
+    depthBiasWorld?: number; // occlusion bias in meters, used by the projector and shadow depth tests
     normalBias?: number; // 0.2 .. 1.0
-    depthEpsilon?: number; //0.00015 .. 0.0005 - 0.0015
 }
 
 function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer: Framebuffer): number {
@@ -94,9 +93,8 @@ export class DepthCamera {
     public readonly verticalViewAngle: number;
     public readonly horizontalViewAngle?: number;
     public readonly excludeLayers: Vector[];
-    public bias: number;
+    public depthBiasWorld: number;
     public normalBias: number;
-    public depthEpsilon: number;
 
     public enabled: boolean;
     public enableSegmentSkirts: boolean;
@@ -151,9 +149,8 @@ export class DepthCamera {
         this.verticalViewAngle = params.verticalViewAngle ?? DEFAULT_VERTICAL_VIEW_ANGLE;
         this.horizontalViewAngle = params.horizontalViewAngle;
         this.excludeLayers = params.excludeLayers ? [...params.excludeLayers] : [];
-        this.bias = params.bias ?? DEPTH_BIAS;
+        this.depthBiasWorld = params.depthBiasWorld ?? DEPTH_BIAS_WORLD;
         this.normalBias = params.normalBias ?? DEPTH_NORMAL_BIAS;
-        this.depthEpsilon = params.depthEpsilon ?? DEPTH_EPSILON;
 
         this._planet = null;
         this._renderer = null;
@@ -232,6 +229,23 @@ export class DepthCamera {
                 this._handler.cameraFootprintLayer.removeEntity(this._cameraFootprintEntity);
             }
         }
+    }
+
+    /**
+     * World size of one depth map texel: a plain size for an orthographic camera, and a
+     * size per meter of distance for a perspective one, where the texel footprint grows
+     * with range. Depth comparisons scale their slack by it, which is what keeps a far
+     * surface from shadowing itself.
+     */
+    public get texelScale(): number {
+        const height = Math.max(this.height, 1);
+
+        if (this.camera.isOrthographic) {
+            const frustum = this.camera.frustums[0];
+            return Math.max(frustum.right - frustum.left, frustum.top - frustum.bottom) / height;
+        }
+
+        return (2.0 * Math.tan(this.camera.verticalViewAngle * RADIANS_HALF)) / height;
     }
 
     public get isOrthographic(): boolean {

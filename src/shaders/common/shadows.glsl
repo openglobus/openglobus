@@ -1,13 +1,19 @@
 const int MAX_SHADOW_MAPS = 4;
 
 // u_shadowMapParams layout:
-// x = depthBias        // normalized shadow depth bias, applied to receiver depth
-// y = normalBiasWorld  // bias along receiver normal in RTC/world units
-// z = orthoTexelDepthSize // 0.0 for perspective; orthographic texel size in normalized shadow depth units
-// w = depthEpsilon     // normalized shadow depth transition width
+// x = depthBiasWorld   // occlusion bias in meters, from DepthCamera.depthBiasWorld
+// y = normalBiasWorld  // bias along receiver normal in RTC/world units, usually meters
+// z = reserved
+// w = isOrthographic   // 0.0 = perspective, 1.0 = orthographic
+
+// u_shadowMapDepthRange layout:
+// x = near, y = far    // light clip planes in meters, turn stored depth back into meters
+// z = texelScale       // world size of one shadow texel: absolute for an orthographic
+//                      // light, per meter of distance for a perspective one
 
 uniform mat4 u_shadowMapViewProjRTE[MAX_SHADOW_MAPS];
 uniform vec4 u_shadowMapParams[MAX_SHADOW_MAPS];
+uniform vec3 u_shadowMapDepthRange[MAX_SHADOW_MAPS];
 uniform vec3 u_shadowMapEyeRel[MAX_SHADOW_MAPS];
 uniform int u_shadowMapLayer[MAX_SHADOW_MAPS];
 uniform int u_shadowMapCount;
@@ -41,7 +47,40 @@ float getShadowMapVsmVisibility(vec2 moments, float receiverDepth) {
 }
 
 float getShadowMapIsOrthographic(int index) {
-    return step(1e-12, u_shadowMapParams[index].z);
+    return step(0.5, u_shadowMapParams[index].w);
+}
+
+// Stored depth is the window depth of the light camera, wildly non-linear for a
+// perspective frustum. Everything below compares meters instead.
+float linearizeShadowMapDepth(int index, float depth) {
+    float near = u_shadowMapDepthRange[index].x;
+    float far = u_shadowMapDepthRange[index].y;
+    float ndc = depth * 2.0 - 1.0;
+    float perspective = (2.0 * near * far) / max(far + near - ndc * (far - near), 1e-6);
+    float orthographic = near + depth * (far - near);
+
+    return mix(perspective, orthographic, getShadowMapIsOrthographic(index));
+}
+
+// The way back, so the variance path can keep comparing its moments in stored depth.
+float delinearizeShadowMapDepth(int index, float distance) {
+    float near = u_shadowMapDepthRange[index].x;
+    float far = u_shadowMapDepthRange[index].y;
+    float range = max(far - near, 1e-6);
+    float z = max(distance, 1e-6);
+    float perspective = ((far + near - (2.0 * near * far) / z) / range) * 0.5 + 0.5;
+    float orthographic = (z - near) / range;
+
+    return clamp(mix(perspective, orthographic, getShadowMapIsOrthographic(index)), 0.0, 1.0);
+}
+
+// World size of one shadow texel where the receiver sits: the depth inside a texel varies
+// by about as much, which is exactly what the comparison has to allow.
+float getShadowMapTexelWorld(int index, vec3 rtcPos) {
+    float texelScale = u_shadowMapDepthRange[index].z;
+    float lightDistance = length(u_shadowMapEyeRel[index] - rtcPos);
+
+    return mix(lightDistance * texelScale, texelScale, getShadowMapIsOrthographic(index));
 }
 
 // Border over which a map hands over to the next one.
@@ -74,16 +113,13 @@ vec3 getShadowMapLightDirection(int index, vec3 rtcPos) {
     return normalize(mix(perspectiveDirection, orthographicDirection, isOrthographic));
 }
 
-float getShadowMapSlopeBias(int index, float ndotl) {
-    float isOrthographic = getShadowMapIsOrthographic(index);
-    float slope = (1.0 - ndotl) / max(ndotl, 0.05);
-    float perspectiveSlopeBias = min(slope * SHADOW_MAP_SLOPE_DEPTH_BIAS, SHADOW_MAP_MAX_SLOPE_DEPTH_BIAS);
-    float texelDepthSize = max(u_shadowMapParams[index].z, 1e-12);
-    float orthographicSlopeBias = min(
-        slope * texelDepthSize * SHADOW_MAP_ORTHO_SLOPE_TEXEL_FACTOR,
-        texelDepthSize * SHADOW_MAP_ORTHO_MAX_SLOPE_TEXELS
+float getShadowMapSlopeBias(float ndotl, float texelWorld) {
+    float slopeTexels = min(
+        (1.0 - ndotl) / max(ndotl, 0.05) * SHADOW_MAP_SLOPE_DEPTH_BIAS,
+        SHADOW_MAP_MAX_SLOPE_DEPTH_BIAS
     );
-    return mix(perspectiveSlopeBias, orthographicSlopeBias, isOrthographic);
+
+    return slopeTexels * texelWorld;
 }
 
 float getShadowMapReceiverPlaneDepth(
@@ -112,14 +148,15 @@ float getShadowMapReceiverPlaneDepth(
 vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     vec3 N = normalize(normal);
 
-    float depthBias = u_shadowMapParams[shadowMapIndex].x;
+    float depthBiasWorld = u_shadowMapParams[shadowMapIndex].x;
     float normalBiasWorld = u_shadowMapParams[shadowMapIndex].y;
-    float depthEpsilon = u_shadowMapParams[shadowMapIndex].w;
     vec3 lightDir = getShadowMapLightDirection(shadowMapIndex, rtcPos);
     float ndotl = max(dot(N, lightDir), 0.0);
-    float slopeBias = getShadowMapSlopeBias(shadowMapIndex, ndotl);
+    float texelWorld = getShadowMapTexelWorld(shadowMapIndex, rtcPos);
+    float slopeBiasWorld = getShadowMapSlopeBias(ndotl, texelWorld);
+    float depthThresholdWorld = depthBiasWorld + slopeBiasWorld;
 
-    vec3 biasedRtcPos = rtcPos + N * normalBiasWorld;
+    vec3 biasedRtcPos = rtcPos + N * (normalBiasWorld + texelWorld * SHADOW_MAP_NORMAL_TEXEL_BIAS);
     vec3 shadowRelPos = biasedRtcPos - u_shadowMapEyeRel[shadowMapIndex];
 
     vec4 clip = u_shadowMapViewProjRTE[shadowMapIndex] * vec4(shadowRelPos, 1.0);
@@ -147,7 +184,8 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     }
 
     vec2 moments = shadowMapData.rg / coverage;
-    float receiverDepthWithBias = receiverDepth - depthBias - slopeBias - depthEpsilon;
+    float receiverLinear = linearizeShadowMapDepth(shadowMapIndex, receiverDepth);
+    float receiverDepthWithBias = delinearizeShadowMapDepth(shadowMapIndex, receiverLinear - depthThresholdWorld);
     float visibility = getShadowMapVsmVisibility(moments, receiverDepthWithBias);
     return vec2(visibility, getShadowMapEdgeFade(uv));
 }
@@ -155,14 +193,15 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
 vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     vec3 N = normalize(normal);
 
-    float depthBias = u_shadowMapParams[shadowMapIndex].x;
+    float depthBiasWorld = u_shadowMapParams[shadowMapIndex].x;
     float normalBiasWorld = u_shadowMapParams[shadowMapIndex].y;
-    float depthEpsilon = u_shadowMapParams[shadowMapIndex].w;
     vec3 lightDir = getShadowMapLightDirection(shadowMapIndex, rtcPos);
     float ndotl = max(dot(N, lightDir), 0.0);
-    float slopeBias = getShadowMapSlopeBias(shadowMapIndex, ndotl);
+    float texelWorld = getShadowMapTexelWorld(shadowMapIndex, rtcPos);
+    float slopeBiasWorld = getShadowMapSlopeBias(ndotl, texelWorld);
+    float depthThresholdWorld = depthBiasWorld + slopeBiasWorld;
 
-    vec3 biasedRtcPos = rtcPos + N * normalBiasWorld;
+    vec3 biasedRtcPos = rtcPos + N * (normalBiasWorld + texelWorld * SHADOW_MAP_NORMAL_TEXEL_BIAS);
     vec3 shadowRelPos = biasedRtcPos - u_shadowMapEyeRel[shadowMapIndex];
 
     vec4 clip = u_shadowMapViewProjRTE[shadowMapIndex] * vec4(shadowRelPos, 1.0);
@@ -174,6 +213,7 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     vec3 ndc = clip.xyz / clip.w;
     vec2 uv = ndc.xy * 0.5 + 0.5;
     float receiverDepth = ndc.z * 0.5 + 0.5;
+    float receiverLinear = linearizeShadowMapDepth(shadowMapIndex, receiverDepth);
 
     #if SHADOW_MAP_PCF > 0
     vec2 texSize = vec2(textureSize(u_shadowMapDepthArray, 0).xy);
@@ -184,7 +224,7 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     float footprintY = length(dFdy(uvInTexels));
     float footprint = max(footprintX, footprintY);
 
-    float receiverDepthFwidth = fwidth(receiverDepth);
+    float receiverLinearFwidth = fwidth(receiverLinear);
     vec2 uvDx = dFdx(uv);
     vec2 uvDy = dFdy(uv);
     float zDx = dFdx(receiverDepth);
@@ -199,16 +239,12 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
         return vec2(0.0, 0.0);
     }
 
-    float depthThreshold = depthBias + depthEpsilon + slopeBias;
 
     #if SHADOW_MAP_PCF > 0
     float aliasingBoost = clamp((footprint - 1.0) * 0.75, 0.0, 2.0);
     float pcfScale = 1.0 + aliasingBoost;
 
-    float transitionWidth = max(
-        max(receiverDepthFwidth * float(SHADOW_MAP_PCF), depthEpsilon * (1.0 + aliasingBoost)),
-        depthEpsilon
-    );
+    float transitionWidth = max(receiverLinearFwidth * float(SHADOW_MAP_PCF) * pcfScale, SHADOW_MAP_MIN_TRANSITION);
 
     float visibility = 0.0;
     float coverage = 0.0;
@@ -229,7 +265,9 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
             float mapDepth = sampleShadowMapDepth(shadowMapIndex, safeUv);
             float sampleCoverage = step(mapDepth, SHADOW_MAP_EMPTY_DEPTH);
             float tapReceiverDepth = getShadowMapReceiverPlaneDepth(receiverDepth, tapOffset, uvDx, uvDy, zDx, zDy);
-            float compareDelta = (mapDepth + depthThreshold) - tapReceiverDepth;
+            float tapReceiverLinear = linearizeShadowMapDepth(shadowMapIndex, tapReceiverDepth);
+            float mapLinear = linearizeShadowMapDepth(shadowMapIndex, mapDepth);
+            float compareDelta = (mapLinear + depthThresholdWorld) - tapReceiverLinear;
             float sampleVisibility = mix(1.0, smoothstep(-transitionWidth, transitionWidth, compareDelta), sampleCoverage);
 
             float wx = 2.0 - abs(float(x));
@@ -247,7 +285,10 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     #else
     float mapDepth = sampleShadowMapDepth(shadowMapIndex, uv);
     // Empty texel means lit, not unknown - see the PCF branch.
-    float visibility = mapDepth > SHADOW_MAP_EMPTY_DEPTH ? 1.0 : step(receiverDepth, mapDepth + depthThreshold);
+    float mapLinear = linearizeShadowMapDepth(shadowMapIndex, mapDepth);
+    float visibility = mapDepth > SHADOW_MAP_EMPTY_DEPTH
+        ? 1.0
+        : step(receiverLinear, mapLinear + depthThresholdWorld);
     return vec2(visibility, getShadowMapEdgeFade(uv));
     #endif
 }
