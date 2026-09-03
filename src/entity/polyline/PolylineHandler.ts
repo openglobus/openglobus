@@ -110,7 +110,9 @@ class PolylineHandler {
             polyline._batchRenderer = batchRenderer;
             this._polylines.push(polyline);
 
-            polyline._addToBatchRenderer();
+            if (polyline.getVisibility()) {
+                polyline._addToBatchRenderer();
+            }
 
             if (this._entityCollection && this._entityCollection.scene) {
                 batchRenderer.updateRTCPosition();
