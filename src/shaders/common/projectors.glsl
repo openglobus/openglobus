@@ -1,3 +1,5 @@
+// Maximum number of projectors processed in one draw call.
+// 16 processes projectors 0-15; additional projectors require another pass.
 const int MAX_PROJECTORS = 16;
 
 // u_projectorParams layout:
@@ -15,26 +17,46 @@ uniform int u_projectorCount;
 
 uniform highp sampler2DArray u_projectorDepthArray;
 
+// Enables 3x3 depth filtering.
+// 1 = smoother occlusion edges; 0 = faster, hard depth comparison.
 #ifndef PROJECTOR_PCF
 #define PROJECTOR_PCF 1
 #endif
 
+// Controls PCF transition softness.
+// 1.0 = sharper; 3.0 = moderate; 6.0 = softer but may cause light bleeding.
+// Has no effect when PROJECTOR_PCF is 0.
 #ifndef PROJECTOR_PCF_SOFTNESS
 #define PROJECTOR_PCF_SOFTNESS 3.0
 #endif
 
+// Fades projection when the beam is nearly parallel to the surface.
+// With 0.0/0.05, ndotl=0 is hidden and ndotl>=0.05 is fully visible.
+// Raising MAX to 0.2 fades a wider range of grazing angles.
 #ifndef PROJECTOR_GRAZING_FADE_MIN
-#define PROJECTOR_GRAZING_FADE_MIN 0.12
+#define PROJECTOR_GRAZING_FADE_MIN 0.0
 #endif
 
 #ifndef PROJECTOR_GRAZING_FADE_MAX
-#define PROJECTOR_GRAZING_FADE_MAX 0.32
+#define PROJECTOR_GRAZING_FADE_MAX 0.05
 #endif
 
+// Controls angular falloff in light mode.
+// 0.0 = Lambert; with 0.5, ndotl=0.1 produces 0.4 instead of 0.1,
+// making surfaces viewed at shallow angles brighter.
+#ifndef PROJECTOR_LIGHT_WRAP
+#define PROJECTOR_LIGHT_WRAP 0.5
+#endif
+
+// Adds depth bias as the surface turns away from the projector.
+// 0.0 disables it; larger values reduce shadow acne but may cause light leaking.
 #ifndef PROJECTOR_SLOPE_DEPTH_BIAS
 #define PROJECTOR_SLOPE_DEPTH_BIAS 0.00008
 #endif
 
+// Limits the slope-dependent depth bias.
+// 0.0012 means the added bias never exceeds 0.0012.
+// Lower values reduce leaking; higher values suppress more grazing-angle acne.
 #ifndef PROJECTOR_MAX_SLOPE_DEPTH_BIAS
 #define PROJECTOR_MAX_SLOPE_DEPTH_BIAS 0.0012
 #endif
@@ -151,12 +173,14 @@ void applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal, out vec3 proje
     float colorMode = 1.0 - lightMode;
 
     vec3 lightDir = normalize(u_projectorEyeRel[projectorIndex] - rtcPos);
-    float ndotl = max(dot(N, lightDir), 0.0);
+    float signedNdotl = dot(N, lightDir);
+    float ndotl = max(signedNdotl, 0.0);
     float grazingFade = smoothstep(PROJECTOR_GRAZING_FADE_MIN, PROJECTOR_GRAZING_FADE_MAX, ndotl);
+    float wrappedNdotl = clamp((signedNdotl + PROJECTOR_LIGHT_WRAP) / (1.0 + PROJECTOR_LIGHT_WRAP), 0.0, 1.0);
     vec3 projectedColor = color * opacity * visibility * grazingFade;
 
     projectorEmission = projectedColor * colorMode;
-    projectorLight = projectedColor * ndotl * lightMode;
+    projectorLight = projectedColor * wrappedNdotl * lightMode;
 }
 
 void applyProjectors(vec3 rtcPos, vec3 normal, out vec3 projectorEmission, out vec3 projectorLight) {
