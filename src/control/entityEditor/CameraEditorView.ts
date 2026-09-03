@@ -39,7 +39,6 @@ export class CameraEditorView extends View<Entity> {
     protected _showFootprintView: Checkbox;
     protected _biasView: Input;
     protected _normalBiasView: Input;
-    protected _depthEpsilonView: Input;
 
     protected _titleBarView: TitleBarView;
     protected _bodyEl: HTMLElement | null;
@@ -142,11 +141,11 @@ export class CameraEditorView extends View<Entity> {
         });
 
         this._biasView = new Input({
-            label: "Depth bias",
+            label: "Depth bias, m",
             type: "number",
             min: 0,
-            step: 0.00001,
-            maxFixed: 8
+            step: 0.1,
+            maxFixed: 3
         });
 
         this._normalBiasView = new Input({
@@ -155,14 +154,6 @@ export class CameraEditorView extends View<Entity> {
             min: 0,
             step: 0.01,
             maxFixed: 4
-        });
-
-        this._depthEpsilonView = new Input({
-            label: "Depth epsilon",
-            type: "number",
-            min: 0,
-            step: 0.00001,
-            maxFixed: 8
         });
 
         this._titleBarView = new TitleBarView({
@@ -205,7 +196,6 @@ export class CameraEditorView extends View<Entity> {
         this._showFootprintView.appendTo(this._bodyEl);
         this._biasView.appendTo(this._bodyEl);
         this._normalBiasView.appendTo(this._bodyEl);
-        this._depthEpsilonView.appendTo(this._bodyEl);
 
         this._nearView.events.on("change", this._onChangeNear);
         this._farView.events.on("change", this._onChangeFar);
@@ -223,7 +213,6 @@ export class CameraEditorView extends View<Entity> {
         this._showFootprintView.events.on("change", this._onChangeShowFootprint);
         this._biasView.events.on("change", this._onChangeBias);
         this._normalBiasView.events.on("change", this._onChangeNormalBias);
-        this._depthEpsilonView.events.on("change", this._onChangeDepthEpsilon);
 
         this.refresh();
 
@@ -266,7 +255,6 @@ export class CameraEditorView extends View<Entity> {
         this._focusDistanceView.visibility = !!depthCamera && depthCamera.isOrthographic;
         this._biasView.visibility = !!depthCamera;
         this._normalBiasView.visibility = !!depthCamera;
-        this._depthEpsilonView.visibility = !!depthCamera;
 
         if (depthCamera) {
             if (this._orthographicView.checked !== depthCamera.isOrthographic) {
@@ -284,11 +272,9 @@ export class CameraEditorView extends View<Entity> {
                 this._showFootprintView.checked = depthCamera.showFootprint;
             }
             this._biasView.stopPropagation();
-            this._biasView.value = depthCamera.bias;
+            this._biasView.value = depthCamera.depthBiasWorld;
             this._normalBiasView.stopPropagation();
             this._normalBiasView.value = depthCamera.normalBias;
-            this._depthEpsilonView.stopPropagation();
-            this._depthEpsilonView.value = depthCamera.depthEpsilon;
         }
     }
 
@@ -313,7 +299,6 @@ export class CameraEditorView extends View<Entity> {
         this._showFootprintView.remove();
         this._biasView.remove();
         this._normalBiasView.remove();
-        this._depthEpsilonView.remove();
         this._titleBarView.events.off("change", this._onTitleBarChange);
         this._titleBarView.remove();
         this._bodyEl = null;
@@ -488,9 +473,9 @@ export class CameraEditorView extends View<Entity> {
     };
 
     protected _onChangeBias = (value: string): void => {
-        const bias = getNumber(value);
-        if (this._depthCamera && bias !== null) {
-            this._depthCamera.bias = bias;
+        const depthBiasWorld = getNumber(value);
+        if (this._depthCamera && depthBiasWorld !== null) {
+            this._depthCamera.depthBiasWorld = depthBiasWorld;
         }
     };
 
@@ -498,13 +483,6 @@ export class CameraEditorView extends View<Entity> {
         const normalBias = getNumber(value);
         if (this._depthCamera && normalBias !== null) {
             this._depthCamera.normalBias = normalBias;
-        }
-    };
-
-    protected _onChangeDepthEpsilon = (value: string): void => {
-        const depthEpsilon = getNumber(value);
-        if (this._depthCamera && depthEpsilon !== null) {
-            this._depthCamera.depthEpsilon = depthEpsilon;
         }
     };
 }
