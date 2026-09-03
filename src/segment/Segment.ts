@@ -131,6 +131,14 @@ class Segment {
      */
     public bsphere: Sphere;
 
+    /**
+     * Geocentric distance range of the geometry.
+     * @public
+     * @type {number}
+     */
+    public minTerrainRadius: number;
+    public maxTerrainRadius: number;
+
     public _plainRadius: number;
 
     /**
@@ -322,6 +330,9 @@ class Segment {
         this.handler = quadTreeStrategy.planet.renderer!.handler;
 
         this.bsphere = new Sphere();
+
+        this.minTerrainRadius = 0;
+        this.maxTerrainRadius = 0;
 
         this._plainRadius = 0;
 
@@ -1085,6 +1096,7 @@ class Segment {
             this._deleteSkirtBuffers();
 
             this.setBoundingVolumeArr(data.bounds);
+            this.setTerrainRadiusRange(data.radiusRange);
 
             this.gridSize = Math.sqrt(this.terrainVertices!.length / 3) - 1;
 
@@ -1411,6 +1423,10 @@ class Segment {
             offsetY = this.tileY - pn.segment.tileY * dZ2;
 
         const pseg = pn.segment;
+
+        this.minTerrainRadius = pseg.minTerrainRadius;
+        this.maxTerrainRadius = pseg.maxTerrainRadius;
+
         const rtc_x = pseg._relativeCenter.x,
             rtc_y = pseg._relativeCenter.y,
             rtc_z = pseg._relativeCenter.z;
@@ -1533,6 +1549,13 @@ class Segment {
 
         this.bsphere.center.set(x, y, z);
         this.bsphere.radius = this.bsphere.center.distance(new Vec3(vmin.x, vmin.y, vmin.z));
+    }
+
+    public setTerrainRadiusRange(range?: number[] | null) {
+        if (range && range[0] <= range[1] && isFinite(range[0]) && isFinite(range[1])) {
+            this.minTerrainRadius = range[0];
+            this.maxTerrainRadius = range[1];
+        }
     }
 
     public setBoundingVolumeArr(bounds: NumberArray6) {

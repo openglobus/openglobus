@@ -44,6 +44,24 @@ float getShadowMapIsOrthographic(int index) {
     return step(1e-12, u_shadowMapParams[index].z);
 }
 
+// Border over which a map hands over to the next one.
+#ifndef SHADOW_MAP_EDGE_FADE_TEXELS
+#define SHADOW_MAP_EDGE_FADE_TEXELS 4.0
+#endif
+
+// Above this nothing was rendered along the ray.
+// Needs the map cleared to far, see DepthCamera.frame.
+#ifndef SHADOW_MAP_EMPTY_DEPTH
+#define SHADOW_MAP_EMPTY_DEPTH 0.999
+#endif
+
+float getShadowMapEdgeFade(vec2 uv) {
+    vec2 texSize = vec2(textureSize(u_shadowMapDepthArray, 0).xy);
+    vec2 toEdgeInTexels = min(uv, vec2(1.0) - uv) * texSize;
+
+    return smoothstep(0.0, SHADOW_MAP_EDGE_FADE_TEXELS, min(toEdgeInTexels.x, toEdgeInTexels.y));
+}
+
 vec3 getShadowMapLightDirection(int index, vec3 rtcPos) {
     float isOrthographic = getShadowMapIsOrthographic(index);
     vec3 perspectiveDirection = normalize(u_shadowMapEyeRel[index] - rtcPos);
@@ -131,7 +149,7 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     vec2 moments = shadowMapData.rg / coverage;
     float receiverDepthWithBias = receiverDepth - depthBias - slopeBias - depthEpsilon;
     float visibility = getShadowMapVsmVisibility(moments, receiverDepthWithBias);
-    return vec2(visibility * coverage, coverage);
+    return vec2(visibility, getShadowMapEdgeFade(uv));
 }
 #else
 vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
@@ -209,48 +227,49 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
 
             vec2 safeUv = clamp(uvOffset, vec2(0.0), vec2(1.0));
             float mapDepth = sampleShadowMapDepth(shadowMapIndex, safeUv);
-            float sampleCoverage = step(1e-8, mapDepth);
+            float sampleCoverage = step(mapDepth, SHADOW_MAP_EMPTY_DEPTH);
             float tapReceiverDepth = getShadowMapReceiverPlaneDepth(receiverDepth, tapOffset, uvDx, uvDy, zDx, zDy);
             float compareDelta = (mapDepth + depthThreshold) - tapReceiverDepth;
-            float sampleVisibility = smoothstep(-transitionWidth, transitionWidth, compareDelta);
-            sampleVisibility *= sampleCoverage;
+            float sampleVisibility = mix(1.0, smoothstep(-transitionWidth, transitionWidth, compareDelta), sampleCoverage);
 
             float wx = 2.0 - abs(float(x));
             float wy = 2.0 - abs(float(y));
             float w = wx * wy;
 
             visibility += sampleVisibility * w * inside;
-            coverage += sampleCoverage * w * inside;
-            sampleCount += w * inside;
+            coverage += w * inside;
+            sampleCount += w;
         }
     }
 
-    float invSampleCount = 1.0 / max(sampleCount, 0.0001);
-    return vec2(visibility * invSampleCount, coverage * invSampleCount);
+    // y is the handover weight: share of the kernel inside the map.
+    return vec2(visibility / max(coverage, 0.0001), (coverage / max(sampleCount, 0.0001)) * getShadowMapEdgeFade(uv));
     #else
     float mapDepth = sampleShadowMapDepth(shadowMapIndex, uv);
-    if (mapDepth <= 1e-8) {
-        return vec2(0.0, 0.0);
-    }
-    return vec2(step(receiverDepth, mapDepth + depthThreshold), 1.0);
+    // Empty texel means lit, not unknown - see the PCF branch.
+    float visibility = mapDepth > SHADOW_MAP_EMPTY_DEPTH ? 1.0 : step(receiverDepth, mapDepth + depthThreshold);
+    return vec2(visibility, getShadowMapEdgeFade(uv));
     #endif
 }
 #endif
 
+// Maps in order, finest first: each takes only the coverage the ones before it left.
 float getShadowMapsDirectVisibility(vec3 rtcPos, vec3 normal) {
-    float directVisibility = 1.0;
+    float remaining = 1.0;
+    float shadow = 0.0;
 
     for (int i = 0; i < MAX_SHADOW_MAPS; i++) {
-        if (i >= u_shadowMapCount) {
+        if (i >= u_shadowMapCount || remaining <= 0.001) {
             break;
         }
 
         vec2 visibilityData = getShadowMapVisibilityData(i, rtcPos, normal);
         float visibility = clamp(visibilityData.x, 0.0, 1.0);
-        float coverage = clamp(visibilityData.y, 0.0, 1.0);
+        float weight = clamp(visibilityData.y, 0.0, 1.0) * remaining;
 
-        directVisibility *= mix(1.0, visibility, coverage * SHADOW_MAP_INTENSITY);
+        shadow += (1.0 - visibility) * weight;
+        remaining -= weight;
     }
 
-    return clamp(directVisibility, 0.0, 1.0);
+    return clamp(1.0 - shadow * SHADOW_MAP_INTENSITY, 0.0, 1.0);
 }

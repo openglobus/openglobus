@@ -2551,6 +2551,36 @@ export class Planet extends Scene {
     }
 
     /**
+     * Finds terrain point under a cartesian point.
+     * @public
+     * @param {Vec3} cart - Cartesian point to test.
+     * @param {Vec3} res - Output vector for terrain point.
+     * @returns {number | undefined} - Distance from the point to the terrain, undefined when no rendered
+     * segment covers it.
+     */
+    public getCartesianTerrainPoint(cart: Vec3, res: Vec3): number | undefined {
+        let nodes = this.quadTreeStrategy._renderedNodes;
+        let lonLat = this.ellipsoid.cartesianToLonLat(cart);
+        let bestSegment: Segment | null = null;
+
+        for (let i = nodes.length - 1; i >= 0; i--) {
+            let segment = nodes[i].segment;
+
+            if (segment && segment._extentLonLat && segment._extentLonLat.isInside(lonLat)) {
+                if (!bestSegment || segment.tileZoom > bestSegment.tileZoom) {
+                    bestSegment = segment;
+                }
+            }
+        }
+
+        if (!bestSegment) {
+            return undefined;
+        }
+
+        return bestSegment.getTerrainPoint(cart, bestSegment.projectNative(lonLat), res);
+    }
+
+    /**
      * Returns terrain height at the given coordinates in default terrain datum.
      * @public
      * @param {LonLat} lonLat - Geodetic coordinates.

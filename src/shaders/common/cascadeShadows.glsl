@@ -1,5 +1,10 @@
 const int MAX_CASCADE_COUNT = 4;
 
+// Fraction of the shadow distance at which shadows start fading out.
+#ifndef CASCADE_SHADOW_FADE_START
+#define CASCADE_SHADOW_FADE_START 0.85
+#endif
+
 // u_cascadeShadowParams layout:
 // x = depthBias        // normalized shadow depth bias, applied to receiver depth
 // y = normalBiasWorld  // bias along receiver normal in RTC/world units
@@ -191,7 +196,12 @@ float getCascadeShadowDirectVisibility(vec3 rtcPos, vec3 normal, float viewDepth
     float visibility = clamp(visibilityData.x, 0.0, 1.0);
     float coverage = clamp(visibilityData.y, 0.0, 1.0);
 
-    return clamp(mix(1.0, visibility, coverage * SHADOW_MAP_INTENSITY), 0.0, 1.0);
+    // Faded out over the tail of the last cascade; stopping abruptly draws an arc across the ground.
+    float shadowDistance = u_cascadeShadowSplits[u_cascadeShadowCount - 1].y;
+    float fadeStart = shadowDistance * CASCADE_SHADOW_FADE_START;
+    float distanceFade = 1.0 - clamp((viewDepth - fadeStart) / max(shadowDistance - fadeStart, 1e-6), 0.0, 1.0);
+
+    return clamp(mix(1.0, visibility, coverage * SHADOW_MAP_INTENSITY * distanceFade), 0.0, 1.0);
 }
 
 float getCascadeShadowDirectVisibility(vec3 rtcPos, vec3 normal) {

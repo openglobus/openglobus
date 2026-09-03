@@ -64,6 +64,16 @@ export class QuadTreeStrategy {
      */
     public _renderedNodes: Node[];
 
+    /**
+     * Geocentric distance range of the terrain collected for the current rendering frame.     * @public
+     * @type {number}
+     */
+    public minTerrainRadius: number = 0;
+    public maxTerrainRadius: number = 0;
+
+    public _minTerrainRadiusAcc: number = Infinity;
+    public _maxTerrainRadiusAcc: number = -Infinity;
+
     public _renderedNodesInFrustum: Node[][];
 
     public _fadingNodes: Map<number, Node>;
@@ -363,11 +373,16 @@ export class QuadTreeStrategy {
             this.minCurrZoom = math.MAX;
             this.maxCurrZoom = math.MIN;
 
+            this._minTerrainRadiusAcc = Infinity;
+            this._maxTerrainRadiusAcc = -Infinity;
+
             this._collectRenderNodes(cam);
 
-            // No visible nodes collected (e.g. camera tilted strongly upward)
-            // — clamp to 0/0 so Vector layer visibility gate doesn't compare
-            // against sentinel values and reject all entities.
+            if (this._minTerrainRadiusAcc <= this._maxTerrainRadiusAcc) {
+                this.minTerrainRadius = this._minTerrainRadiusAcc;
+                this.maxTerrainRadius = this._maxTerrainRadiusAcc;
+            }
+
             if (this.maxCurrZoom === math.MIN) {
                 this.minCurrZoom = 0;
                 this.maxCurrZoom = 0;
