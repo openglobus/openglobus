@@ -90,6 +90,7 @@ type CameraFrame = {
     n: Vec3;
     u: Vec3;
     v: Vec3;
+    focusDistance?: number;
 };
 
 type CameraFlight = {
@@ -444,6 +445,16 @@ class Camera {
     }
 
     /**
+     * Keeps the orthographic scale on whatever the camera has just been aimed at.
+     * @protected
+     * @param {number} [distance] - Distance from the eye to the point in view.
+     */
+    protected _setOrthoFocus(distance?: number): void {
+        if (!this._isOrthographic || !distance) return;
+        this.focusDistance = Math.abs(distance);
+    }
+
+    /**
      * Returns camera identifier.
      * @public
      * @returns {number} Camera id.
@@ -478,9 +489,10 @@ class Camera {
         let v_a = this._u,
             n_a = this._b;
 
+        let look = params.look as Vec3;
         let up_b = params.up;
         let ground_b = cartesian.clone();
-        let n_b = Vec3.sub(cartesian, params.look as Vec3);
+        let n_b = Vec3.sub(cartesian, look);
         let u_b = up_b.cross(n_b);
         n_b.normalize();
         u_b.normalize();
@@ -506,7 +518,8 @@ class Camera {
                     eye: eye_i,
                     n: n,
                     u: u,
-                    v: v
+                    v: v,
+                    focusDistance: eye_i.distance(look)
                 };
             },
             duration: params.duration,
@@ -549,6 +562,8 @@ class Camera {
             this._u = frame.v;
             this._b = frame.n;
             this._f.set(-this._b.x, -this._b.y, -this._b.z);
+
+            this._setOrthoFocus(frame.focusDistance);
 
             if (this._frameCallback) {
                 this._frameCallback();
@@ -1497,6 +1512,7 @@ class Camera {
         let newPos = cartesian.add(this.getBackward().scaleTo(distance));
         this.set(newPos, cartesian);
         this.update();
+        this._setOrthoFocus(distance);
     }
 
     /**

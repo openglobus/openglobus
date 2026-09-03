@@ -5,7 +5,7 @@ import { LonLat } from "../../LonLat";
 import { DEGREES } from "../../math";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
-import { Vec4 } from "../../math/Vec4";
+import { Vec4, type NumberArray4 } from "../../math/Vec4";
 import { Object3d } from "../../Object3d";
 import { QuadTreeStrategy } from "../../quadTree";
 import type { Renderer } from "../../renderer/Renderer";
@@ -29,6 +29,7 @@ const ORTHO_TEXEL_QUANTIZATION_RATIO = Math.pow(2.0, 1.0 / ORTHO_TEXEL_QUANTIZAT
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
 const PERIMETER_STEP_PX = 1;
 const DEFAULT_CAMERA_FRUSTUM_LENGTH = 2.5;
+const DEFAULT_CAMERA_FRUSTUM_COLOR = "rgb(155, 255, 155, 0.2)";
 const RENDER_SKIRTS_SLOPE = 0.3;
 
 const cameraFrustumObj = Object3d.createFrustum();
@@ -48,6 +49,8 @@ export interface IDepthCameraParams {
     horizontalViewAngle?: number;
     showFrustum?: boolean;
     showFootprint?: boolean;
+    frustumLength?: number;
+    frustumColor?: Vec4 | NumberArray4 | string;
     isOrthographic?: boolean;
     focusDistance?: number;
     enableSegmentSkirts?: boolean;
@@ -119,6 +122,8 @@ export class DepthCamera {
     protected _orthoTexelSizeX: number;
     protected _orthoTexelSizeY: number;
 
+    protected _frustumLength: number;
+    protected _frustumColor: Vec4 | NumberArray4 | string;
     protected _cameraFrustumEntity: Entity | null;
     protected _cameraFootprintEntity: Entity | null;
     protected _cameraFootprintSegmentPointCounts: number[];
@@ -161,6 +166,9 @@ export class DepthCamera {
         this._lastPlanetHeightFactor = 1.0;
         this._orthoTexelSizeX = 0.0;
         this._orthoTexelSizeY = 0.0;
+
+        this._frustumLength = params.frustumLength ?? DEFAULT_CAMERA_FRUSTUM_LENGTH;
+        this._frustumColor = params.frustumColor ?? DEFAULT_CAMERA_FRUSTUM_COLOR;
 
         this._cameraFootprintEntity = this._showFootprint ? this._createCameraFootprintEntity() : null;
         this._cameraFrustumEntity = this._showFrustum ? this._createCameraFrustumEntity() : null;
@@ -265,9 +273,36 @@ export class DepthCamera {
         return this._cameraFrustumEntity;
     }
 
+    public get frustumLength(): number {
+        return this._frustumLength;
+    }
+
+    public set frustumLength(length: number) {
+        this._frustumLength = length > 0 ? length : DEFAULT_CAMERA_FRUSTUM_LENGTH;
+    }
+
+    public get frustumColor(): Vec4 | NumberArray4 | string {
+        return this._frustumColor;
+    }
+
+    public set frustumColor(color: Vec4 | NumberArray4 | string) {
+        this._frustumColor = color;
+
+        const geoObject = this._cameraFrustumEntity?.geoObject;
+
+        if (!geoObject) return;
+
+        if (typeof color === "string") {
+            geoObject.setColorHTML(color);
+        } else {
+            const c = color instanceof Vec4 ? color : new Vec4(color[0], color[1], color[2], color[3]);
+            geoObject.setColor(c.x, c.y, c.z, c.w);
+        }
+    }
+
     public get frustumScale(): Vec3 {
         return Object3d.getFrustumScaleByCameraAngles(
-            DEFAULT_CAMERA_FRUSTUM_LENGTH,
+            this._frustumLength,
             this.camera.horizontalViewAngle,
             this.camera.verticalViewAngle
         );
@@ -601,7 +636,7 @@ export class DepthCamera {
             scale: new Vec3(1, 1, 1),
             geoObject: {
                 tag: "depth-camera-frustum",
-                color: "rgb(155, 155, 255, 0.88)",
+                color: this._frustumColor,
                 object3d: cameraFrustumObj
             },
             properties: {

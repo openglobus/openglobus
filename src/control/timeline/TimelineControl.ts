@@ -2,7 +2,7 @@ import { Dialog } from "../../ui/Dialog";
 import { ToggleButton } from "../../ui/ToggleButton";
 import { Control, type IControlParams } from "../Control";
 import { TimelineView } from "./TimelineView";
-import type { TimelineModel } from "./TimelineModel";
+import type { ITimelineSpan, ITimelineSpanParams, TimelineModel } from "./TimelineModel";
 import { createEvents, type EventsHandler } from "../../Events";
 
 type TimelineControlEventsList = [
@@ -115,6 +115,87 @@ class TimelineControl extends Control {
      */
     public get model(): TimelineModel {
         return this._timelineView.model;
+    }
+
+    /**
+     * Adds a colored time interval drawn on the scale, e.g. one per telemetry track.
+     * Spans that overlap in time are placed on separate rows automatically, and the
+     * rows share the scale height between them.
+     * @public
+     * @param {ITimelineSpanParams} params - Span start, end and color. An omitted id is generated.
+     * @returns {ITimelineSpan} - Stored span, with its id and assigned row.
+     */
+    public addSpan(params: ITimelineSpanParams): ITimelineSpan {
+        return this.model.addSpan(params);
+    }
+
+    /**
+     * Adds several spans at once, keeping the ones already on the scale.
+     * @public
+     * @param {ITimelineSpanParams[]} params - Spans to add.
+     * @returns {ITimelineSpan[]} - Stored spans, in the order they were given.
+     */
+    public addSpans(params: ITimelineSpanParams[]): ITimelineSpan[] {
+        return this.model.addSpans(params);
+    }
+
+    /**
+     * Replaces every span on the scale, e.g. to redraw the whole set after a source
+     * was added or removed.
+     * @public
+     * @param {ITimelineSpanParams[]} params - Spans the scale is left with.
+     * @returns {ITimelineSpan[]} - Stored spans, in the order they were given.
+     */
+    public setSpans(params: ITimelineSpanParams[]): ITimelineSpan[] {
+        return this.model.setSpans(params);
+    }
+
+    /**
+     * Replaces the time range, color and payload of a span, and reassigns the rows when
+     * its time range moved.
+     * @public
+     * @param {string} id - Span id.
+     * @param {ITimelineSpanParams} params - New span fields. Every field is replaced, the id is kept.
+     * @returns {ITimelineSpan | undefined} - Updated span, or undefined when the id is unknown.
+     */
+    public updateSpan(id: string, params: ITimelineSpanParams): ITimelineSpan | undefined {
+        return this.model.updateSpan(id, params);
+    }
+
+    /**
+     * Removes a single span from the scale. An unknown id is ignored.
+     * @public
+     * @param {string} id - Span id.
+     */
+    public removeSpan(id: string): void {
+        this.model.removeSpan(id);
+    }
+
+    /**
+     * Removes every span from the scale.
+     * @public
+     */
+    public clearSpans(): void {
+        this.model.clearSpans();
+    }
+
+    /**
+     * Returns the spans currently on the scale.
+     * @public
+     * @returns {ITimelineSpan[]} - Stored spans, each carrying its assigned row.
+     */
+    public getSpans(): ITimelineSpan[] {
+        return this.model.getSpans();
+    }
+
+    /**
+     * Returns a single span by its id.
+     * @public
+     * @param {string} id - Span id.
+     * @returns {ITimelineSpan | undefined} - Stored span, or undefined when the id is unknown.
+     */
+    public getSpan(id: string): ITimelineSpan | undefined {
+        return this.model.getSpan(id);
     }
 
     public override oninit() {
