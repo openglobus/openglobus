@@ -423,21 +423,18 @@ class PlanetCamera extends Camera {
         const requestId = ++this._extentFitRequestId;
 
         if (height != undefined) {
-            this.set(this.getExtentPosition(extent, height), Vec3.ZERO, Vec3.NORTH);
-            this.update();
+            this._viewExtentHeight(extent, height);
             return;
         }
 
         const info = this._getExtentCenterHeightInfo(extent);
         if (this._isSegmentHeightAccurate(info.height, info.segmentZoom)) {
-            this.set(this.getExtentPosition(extent, info.height), Vec3.ZERO, Vec3.NORTH);
-            this.update();
+            this._viewExtentHeight(extent, info.height);
             return;
         }
 
         if (!this.planet.terrain) {
-            this.set(this.getExtentPosition(extent, 0), Vec3.ZERO, Vec3.NORTH);
-            this.update();
+            this._viewExtentHeight(extent, 0);
             return;
         }
 
@@ -447,11 +444,22 @@ class PlanetCamera extends Camera {
             extent.getCenter(),
             (h: number) => {
                 if (requestId !== this._extentFitRequestId) return;
-                this.set(this.getExtentPosition(extent, h || 0), Vec3.ZERO, Vec3.NORTH);
-                this.update();
+                this._viewExtentHeight(extent, h || 0);
             },
             zoom
         );
+    }
+
+    /**
+     * Places the camera over the extent center at the given ground height.
+     * @protected
+     * @param {Extent} extent - Extent to fit.
+     * @param {number} height - Ground height under the extent center.
+     */
+    protected _viewExtentHeight(extent: Extent, height: number): void {
+        this.set(this.getExtentPosition(extent, height), Vec3.ZERO, Vec3.NORTH);
+        this.update();
+        this._setOrthoFocus(this._lonLat.height);
     }
 
     /**
@@ -511,6 +519,7 @@ class PlanetCamera extends Camera {
             this.set(newPos, cartesian, newUp);
         }
         this.update();
+        this._setOrthoFocus(distance);
     }
 
     /**
@@ -570,6 +579,10 @@ class PlanetCamera extends Camera {
 
         const look = lookParam instanceof LonLat ? this.planet.ellipsoid.lonLatToCartesian(lookParam) : lookParam;
 
+        // Looking at the planet center is looking straight down, and then the ground in
+        // view is an altitude away; any other target is a point in space at its own distance.
+        const lookIsCenter = look.isZero();
+
         if (params.linearPath) {
             let ground_a = this.eye.clone();
 
@@ -595,7 +608,10 @@ class PlanetCamera extends Camera {
                         eye: eye_i,
                         n: n,
                         u: u,
-                        v: v
+                        v: v,
+                        focusDistance: lookIsCenter
+                            ? this.planet.ellipsoid.cartesianToLonLat(eye_i).height
+                            : eye_i.distance(look)
                     };
                 },
                 duration: params.duration,
@@ -634,14 +650,16 @@ class PlanetCamera extends Camera {
                 let t = ease(progress);
                 let d = 1 - t;
                 let eye_i: Vec3;
+                let height_i: number;
                 if (t >= 1) {
                     eye_i = cartesian.clone();
+                    height_i = lonlat_b.height;
                 } else {
                     // camera path calculation
                     let g_i = ground_a.smerp(cartesian, d).normalize();
                     let ground_i = this.planet.getRayIntersectionEllipsoid(new Ray(zero, g_i));
 
-                    let height_i =
+                    height_i =
                         this._lonLat.height * d * d * d +
                         max_h * 3 * d * d * t +
                         max_h * 3 * d * t * t +
@@ -659,7 +677,8 @@ class PlanetCamera extends Camera {
                     eye: eye_i,
                     n: n,
                     u: u,
-                    v: v
+                    v: v,
+                    focusDistance: lookIsCenter ? height_i : eye_i.distance(look)
                 };
             },
             duration: params.duration,

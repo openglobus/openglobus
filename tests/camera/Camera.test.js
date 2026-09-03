@@ -88,3 +88,26 @@ describe("Camera flight", () => {
         expect(onViewChange).toHaveBeenCalled();
     });
 });
+
+describe("Camera orthographic flight", () => {
+    test("keeps the focus distance on the flight target", () => {
+        const camera = new Camera({ width: 100, height: 100, isOrthographic: true });
+
+        camera.set(new Vec3(5000, 0, 0), Vec3.ZERO);
+        camera.flyCartesian(new Vec3(0, 0, 1000), { look: Vec3.ZERO, duration: 1000 });
+        camera.checkFly();
+
+        expect(camera.focusDistance).toBeCloseTo(camera.eye.distance(Vec3.ZERO), 3);
+    });
+
+    test("leaves the focus distance alone in perspective mode", () => {
+        const camera = new Camera({ width: 100, height: 100 });
+
+        camera.focusDistance = 777;
+        camera.set(new Vec3(5000, 0, 0), Vec3.ZERO);
+        camera.flyCartesian(new Vec3(0, 0, 1000), { look: Vec3.ZERO, duration: 1000 });
+        camera.checkFly();
+
+        expect(camera.focusDistance).toBe(777);
+    });
+});
