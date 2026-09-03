@@ -594,6 +594,9 @@ class Entity {
         // ray
         this.ray && this.ray.setVisibility(visibility);
 
+        // strip
+        this.strip && this.strip.setVisibility(visibility);
+
         // geometry
         this.geometry && this.geometry.setVisibility(visibility);
 
