@@ -26,7 +26,7 @@ const TEXEL_SNAP_EPSILON = 1e-9;
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
 const PERIMETER_STEP_PX = 1;
 const DEFAULT_CAMERA_FRUSTUM_LENGTH = 2.5;
-const DEFAULT_CAMERA_FRUSTUM_COLOR = "rgb(155, 155, 255, 0.88)";
+const DEFAULT_CAMERA_FRUSTUM_COLOR = "rgb(155, 255, 155, 0.2)";
 const RENDER_SKIRTS_SLOPE = 0.3;
 
 const cameraFrustumObj = Object3d.createFrustum();
