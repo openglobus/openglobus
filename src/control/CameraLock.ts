@@ -157,6 +157,10 @@ export class CameraLock extends Control {
                 dist = cam.eye.distance(prevEntity.getAbsoluteCartesian());
             }
 
+            if (dist <= MIN_LOCK_DISTANCE) {
+                return MIN_VIEW_DISTANCE;
+            }
+
             if (this.isVisibleDistance(cartesian)) {
                 return dist;
             }
