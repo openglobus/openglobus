@@ -636,7 +636,11 @@ class Segment {
         } else {
             let norm = this.planet.ellipsoid.getSurfaceNormal3v(xyz);
             _ray.set(xyz, norm.negateTo());
-            return xyz.distance(this.planet.ellipsoid.hitRay(_ray.origin, _ray.direction)!);
+            const hit = this.planet.ellipsoid.hitRay(_ray.origin, _ray.direction);
+            if (!hit) {
+                return 0;
+            }
+            return xyz.distance(hit);
         }
     }
 
