@@ -2001,8 +2001,8 @@ class Renderer {
             this.controls[i].remove();
         }
 
-        for (let i = 0; i < this._scenesArr.length; i++) {
-            this._scenesArr[i].remove();
+        for (let scene of [...this._scenesArr]) {
+            scene.remove();
         }
 
         if (this._topLeftContainer.parentElement) {

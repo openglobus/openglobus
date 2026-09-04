@@ -2638,8 +2638,7 @@ export class Planet extends Scene {
     public override destroy() {
         this._terrainWorker.destroy();
         this._plainSegmentWorker.destroy();
-        this.renderer?.destroy();
-        this.onremove();
+        this.remove();
         super.destroy();
     }
 
