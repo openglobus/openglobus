@@ -177,6 +177,7 @@ class Input extends View<null> {
         this.el?.addEventListener("mousewheel", this._onMouseWheel);
         this.el?.addEventListener("wheel", this._onMouseWheelFF);
         this.$input?.addEventListener("input", this._onInput);
+        this.$input?.addEventListener("change", this._onChange);
         this.$input?.addEventListener("keydown", this._onKeyDown);
         this.$input?.addEventListener("blur", this._onBlur);
     }
@@ -186,6 +187,7 @@ class Input extends View<null> {
         this.el?.removeEventListener("mousewheel", this._onMouseWheel);
         this.el?.removeEventListener("wheel", this._onMouseWheelFF);
         this.$input?.removeEventListener("input", this._onInput);
+        this.$input?.removeEventListener("change", this._onChange);
         this.$input?.removeEventListener("keydown", this._onKeyDown);
         this.$input?.removeEventListener("blur", this._onBlur);
     }
@@ -215,6 +217,11 @@ class Input extends View<null> {
                 target.value = nextValue;
             }
         }
+    };
+
+    protected _onChange = (e: Event) => {
+        e.stopPropagation();
+        this._commitUserInput();
     };
 
     protected _onKeyDown = (e: KeyboardEvent) => {
