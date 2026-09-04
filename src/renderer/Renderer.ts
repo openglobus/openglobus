@@ -1994,6 +1994,7 @@ class Renderer {
     }
 
     public destroy() {
+        this.events.destroy();
         this.labelWorker.destroy();
 
         for (let i in this.controls) {
