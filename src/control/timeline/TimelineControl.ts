@@ -18,7 +18,9 @@ type TimelineControlEventsList = [
     "stopdrag",
     "startdragcurrent",
     "stopdragcurrent",
-    "localtime"
+    "localtime",
+    "suntime",
+    "sundate"
 ];
 
 const TIMELINECONTROL_EVENTS: TimelineControlEventsList = [
@@ -34,7 +36,9 @@ const TIMELINECONTROL_EVENTS: TimelineControlEventsList = [
     "stopdrag",
     "startdragcurrent",
     "stopdragcurrent",
-    "localtime"
+    "localtime",
+    "suntime",
+    "sundate"
 ];
 
 interface ITimelineControlParams extends IControlParams {
@@ -241,7 +245,8 @@ class TimelineControl extends Control {
 
         this._timelineView.events.on("setcurrent", (d: Date) => {
             this.renderer && defaultClock.setDate(d);
-            if (this._timelineView.localTime) {
+            // While the Sun has a marker of its own the timeline does not light the scene
+            if (this._timelineView.localTime && !this._timelineView.sunTime) {
                 this.planet?.sun?.setLocalDateTime(d);
             }
             this.events.dispatch(this.events.setcurrent, d);
@@ -249,11 +254,32 @@ class TimelineControl extends Control {
 
         this._timelineView.events.on("localtime", (isActive: boolean) => {
             let sun = this.planet?.sun;
-            if (sun) {
+            if (sun && !this._timelineView.sunTime) {
                 sun.setLocalDateTime(isActive ? this._timelineView.model.current : null);
                 this.renderer && this.renderer.requestRedraw();
             }
             this.events.dispatch(this.events.localtime, isActive);
+        });
+
+        this._timelineView.events.on("suntime", (isActive: boolean) => {
+            let sun = this.planet?.sun;
+            if (sun) {
+                sun.setLocalDateTime(
+                    isActive
+                        ? this._timelineView.sunDate
+                        : this._timelineView.localTime
+                          ? this._timelineView.model.current
+                          : null
+                );
+                this.renderer && this.renderer.requestRedraw();
+            }
+            this.events.dispatch(this.events.suntime, isActive);
+        });
+
+        this._timelineView.events.on("sundate", (d: Date) => {
+            this.planet?.sun?.setLocalDateTime(d);
+            this.renderer && this.renderer.requestRedraw();
+            this.events.dispatch(this.events.sundate, d);
         });
 
         this._timelineView.model.events.on("change", (...args: unknown[]) => {

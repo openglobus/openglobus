@@ -53,6 +53,12 @@ class TimelineModel {
     public multiplier: number;
     public dt: number;
 
+    /**
+     * While set, playing does not advance
+     * the time: something else sets `current` instead.
+     */
+    public driven: boolean;
+
     constructor(options: ITimelineParams = {}) {
         this.events = createEvents(TIMELINE_EVENTS);
 
@@ -69,6 +75,8 @@ class TimelineModel {
         this._prevNow = 0;
         this._spans = [];
         this._laneCount = 0;
+
+        this.driven = false;
 
         this.dt = 0;
     }
@@ -196,7 +204,9 @@ class TimelineModel {
         this.dt = now - this._prevNow;
         this._prevNow = now;
 
-        this.current = new Date(this.currentTime + this.dt * this.multiplier);
+        if (!this.driven) {
+            this.current = new Date(this.currentTime + this.dt * this.multiplier);
+        }
 
         // this._events.dispatch(this._events.tick, this._current);
     }
