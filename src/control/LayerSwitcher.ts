@@ -1,6 +1,7 @@
 import { Control } from "./Control";
 import type { IControlParams } from "./Control";
 import { Dialog } from "../ui/Dialog";
+import { EmptyTerrain } from "../terrain/EmptyTerrain";
 import { Layer } from "../layer/Layer";
 import { ToggleButton } from "../ui/ToggleButton";
 import { View } from "../ui/View";
@@ -18,6 +19,9 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 </svg>`;
 
 const TEMPLATE = `<div class="og-layerSwitcher">
+      <div class="og-layerSwitcher__title">Terrains</div>
+      <div class="og-layerSwitcher__list og-layerSwitcher__terrains"></div>
+
       <div class="og-layerSwitcher__title">Base Layers</div>
       <div class="og-layerSwitcher__list og-layerSwitcher__baseLayers"></div>        
         
@@ -77,6 +81,48 @@ class LayerButtonView extends View<Layer> {
     }
 }
 
+interface ITerrainButtonParams extends IViewParams {
+    model: EmptyTerrain;
+    onClick: (terrain: EmptyTerrain) => void;
+}
+
+class TerrainButtonView extends View<EmptyTerrain> {
+    protected _onClickCallback: (terrain: EmptyTerrain) => void;
+
+    constructor(params: ITerrainButtonParams) {
+        super({
+            template: stringTemplate(LAYER_BUTTON_TEMPLATE, {
+                title: params.model.name,
+                name: params.model.name,
+                icon: params.model.iconSrc ? `<img src="${params.model.iconSrc}" />` : ""
+            }),
+            ...params
+        });
+
+        this._onClickCallback = params.onClick;
+    }
+
+    public override render(params?: any): this {
+        super.render(params);
+        this.el!.addEventListener("click", this._onClick);
+        return this;
+    }
+
+    public setActive(isActive: boolean) {
+        if (this.el) {
+            if (isActive) {
+                this.el.classList.add("og-layerSwitcher__visible");
+            } else {
+                this.el.classList.remove("og-layerSwitcher__visible");
+            }
+        }
+    }
+
+    protected _onClick = () => {
+        this._onClickCallback(this.model);
+    };
+}
+
 /**
  * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
  * Double click for zoom, drag-and-drop to change zIndex
@@ -86,10 +132,12 @@ export class LayerSwitcher extends Control {
     protected _toggleBtn: ToggleButton;
     protected _panel: View<null>;
 
+    public $terrains: HTMLElement | null;
     public $baseLayers: HTMLElement | null;
     public $overlays: HTMLElement | null;
 
     public _layerViews: LayerButtonView[];
+    public _terrainViews: TerrainButtonView[];
 
     constructor(options: ILayerSwitcherParams = {}) {
         super({
@@ -115,10 +163,12 @@ export class LayerSwitcher extends Control {
             icon: ICON_BUTTON_SVG
         });
 
+        this.$terrains = null;
         this.$baseLayers = null;
         this.$overlays = null;
 
         this._layerViews = [];
+        this._terrainViews = [];
     }
 
     override oninit() {
@@ -126,6 +176,7 @@ export class LayerSwitcher extends Control {
         this._dialog.appendTo(this.planet!.renderer!.div!);
         this._panel.appendTo(this._dialog.container!);
 
+        this.$terrains = this._panel.el!.querySelector(".og-layerSwitcher__terrains");
         this.$baseLayers = this._panel.el!.querySelector(".og-layerSwitcher__baseLayers");
         this.$overlays = this._panel.el!.querySelector(".og-layerSwitcher__overlays");
 
@@ -145,8 +196,49 @@ export class LayerSwitcher extends Control {
         this.planet!.events.on("layeradd", this.addLayer, this);
         this.planet!.events.on("layerremove", this.removeLayer, this);
 
+        this.planet!.events.on("terrainadd", this.addTerrain, this);
+        this.planet!.events.on("terrainremove", this.removeTerrain, this);
+        this.planet!.events.on("terrainchange", this._onTerrainChange, this);
+
+        this._initTerrains();
         this._initLayers();
     }
+
+    protected _initTerrains() {
+        let terrains = this.planet!.terrains;
+        for (let i = 0; i < terrains.length; i++) {
+            this.addTerrain(terrains[i]);
+        }
+    }
+
+    protected _onTerrainChange = () => {
+        let currentTerrain = this.planet!.terrain;
+        for (let i = 0; i < this._terrainViews.length; i++) {
+            let ti = this._terrainViews[i];
+            ti.setActive(Boolean(currentTerrain && currentTerrain.isEqual(ti.model)));
+        }
+    };
+
+    public addTerrain = (terrain: EmptyTerrain) => {
+        let terrainView = new TerrainButtonView({
+            model: terrain,
+            onClick: (t: EmptyTerrain) => this.planet!.setTerrain(t)
+        });
+        this._terrainViews.push(terrainView);
+        this.$terrains && terrainView.appendTo(this.$terrains);
+        terrainView.setActive(Boolean(this.planet!.terrain && this.planet!.terrain!.isEqual(terrain)));
+    };
+
+    public removeTerrain = (terrain: EmptyTerrain) => {
+        for (let i = 0; i < this._terrainViews.length; i++) {
+            let ti = this._terrainViews[i];
+            if (ti.model.isEqual(terrain)) {
+                ti.remove();
+                this._terrainViews.splice(i, 1);
+                break;
+            }
+        }
+    };
 
     protected _initLayers() {
         let layers = this.planet!.layers;

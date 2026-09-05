@@ -59,7 +59,7 @@ export interface IGlobeParams {
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
     transitionOpacityEnabled?: boolean;
-    terrain?: EmptyTerrain;
+    terrain?: EmptyTerrain | EmptyTerrain[];
     controls?: Control[];
     minSlope?: number;
     sun?: {
@@ -138,7 +138,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {IGlobeParams} options - Options:
  * @param {string|HTMLElement} options.target - HTML element id where planet canvas have to be created.
  * @param {string} [options.name] - Planet name. Default is uniq identifier.
- * @param {EmptyTerrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
+ * @param {EmptyTerrain | Array.<EmptyTerrain>} [options.terrain] - Terrain provider or providers array, where the first one becomes active. Default no terrain - og.terrain.EmptyTerrain.
  * @param {Array.<Control>} [options.controls] - Controls.
  * @param {Array.<Layer>} [options.layers] - Planet layers.
  * @param {Extent | ExtentBoundingBox} [options.viewExtent] [options.viewExtent] - Viewable starting extent.
@@ -318,11 +318,12 @@ class Globe {
             reverseDepth: options.reverseDepth
         });
 
-        // Attach terrain provider (can be one object or array)
         if (options.terrain) {
-            //@todo: refactoring
             if (Array.isArray(options.terrain)) {
-                this.planet.setTerrain(options.terrain[0]); // If array get the terrain from 1st element
+                this.planet.addTerrains(options.terrain);
+                if (options.terrain[0]) {
+                    this.planet.setTerrain(options.terrain[0]);
+                }
             } else {
                 this.planet.setTerrain(options.terrain);
             }

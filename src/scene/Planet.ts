@@ -100,7 +100,10 @@ export type PlanetEventsList = [
     "layervisibilitychange",
     "rendercompleted",
     "terraincompleted",
-    "layerloadend"
+    "layerloadend",
+    "terrainadd",
+    "terrainremove",
+    "terrainchange"
 ];
 
 /**
@@ -230,6 +233,13 @@ export class Planet extends Scene {
      * @type {EmptyTerrain}
      */
     public terrain: EmptyTerrain | null;
+
+    /**
+     * Attached terrain providers array. Only one of them could be active at a time.
+     * @public
+     * @type {Array.<EmptyTerrain>}
+     */
+    public _terrains: EmptyTerrain[];
 
     /**
      * Camera is this.renderer.activeCamera pointer.
@@ -403,6 +413,8 @@ export class Planet extends Scene {
         this._planetRadius2 = (this.ellipsoid.getPolarSize() - 10000.0) * (this.ellipsoid.getPolarSize() - 10000.0);
 
         this._layers = [];
+
+        this._terrains = [];
 
         this._updateLayers = false;
 
@@ -916,11 +928,83 @@ export class Planet extends Scene {
     }
 
     /**
-     * Sets terrain provider
+     * Returns attached terrain providers snapshot.
+     * @public
+     * @returns {EmptyTerrain[]} - Terrain providers array copy.
+     */
+    public get terrains(): EmptyTerrain[] {
+        return [...this._terrains];
+    }
+
+    /**
+     * Returns a terrain provider by name.
+     * @public
+     * @param {string} name - Terrain provider name.
+     * @returns {EmptyTerrain | undefined} -
+     */
+    public getTerrainByName(name: string): EmptyTerrain | undefined {
+        for (let i = 0, len = this._terrains.length; i < len; i++) {
+            if (name === this._terrains[i].name) {
+                return this._terrains[i];
+            }
+        }
+    }
+
+    /**
+     * Attaches terrain provider to the planet without activating it.
+     * @public
+     * @param {EmptyTerrain} terrain - Terrain provider.
+     */
+    public addTerrain(terrain: EmptyTerrain) {
+        for (let i = 0, len = this._terrains.length; i < len; i++) {
+            if (this._terrains[i].isEqual(terrain)) {
+                return;
+            }
+        }
+        this._terrains.push(terrain);
+        this.events.dispatch(this.events.terrainadd, terrain);
+    }
+
+    /**
+     * Attaches the given terrain providers array to the planet.
+     * @public
+     * @param {Array.<EmptyTerrain>} terrains - Terrain providers array.
+     */
+    public addTerrains(terrains: EmptyTerrain[]) {
+        for (let i = 0, len = terrains.length; i < len; i++) {
+            this.addTerrain(terrains[i]);
+        }
+    }
+
+    /**
+     * Detaches terrain provider from the planet. Currently active terrain provider can't be removed.
+     * @public
+     * @param {EmptyTerrain} terrain - Terrain provider.
+     */
+    public removeTerrain(terrain: EmptyTerrain) {
+        if (this.terrain && this.terrain.isEqual(terrain)) {
+            return;
+        }
+        for (let i = 0, len = this._terrains.length; i < len; i++) {
+            if (this._terrains[i].isEqual(terrain)) {
+                this._terrains.splice(i, 1);
+                this.events.dispatch(this.events.terrainremove, terrain);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Sets terrain provider. Only one terrain provider could be active at a time.
+     * The given provider is automatically attached to the planet terrain providers list.
      * @public
      * @param {EmptyTerrain} terrain - Terrain provider.
      */
     public setTerrain(terrain: EmptyTerrain) {
+        if (this.terrain && this.terrain.isEqual(terrain)) {
+            return;
+        }
+
         if (this._initialized) {
             this.memClear(true);
         }
@@ -934,7 +1018,13 @@ export class Planet extends Scene {
         this.terrain = terrain;
         this.terrain._planet = this;
 
+        this.addTerrain(terrain);
+
         this.quadTreeStrategy.destroyBranches();
+
+        this.events.dispatch(this.events.terrainchange, terrain);
+
+        this.updateAttributionsList();
 
         if (terrain._geoid.model) {
             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
@@ -1299,12 +1389,19 @@ export class Planet extends Scene {
         return `<div class="og-attribution__layer">${layer.getAttribution()}</div>`;
     }
 
+    protected _getTerrainAttributionHTML(): string {
+        if (this.terrain && this.terrain.getAttribution().length) {
+            return `<div class="og-attribution__layer og-attribution__terrain">${this.terrain.getAttribution()}</div>`;
+        }
+        return "";
+    }
+
     /**
      * Updates attribution lists
      * @public
      */
     public updateAttributionsList() {
-        let html = "";
+        let html = this._getTerrainAttributionHTML();
         for (let i = 0, len = this._layers.length; i < len; i++) {
             let li = this._layers[i];
             if (li.getVisibility()) {
@@ -1332,7 +1429,7 @@ export class Planet extends Scene {
         this.visibleVectorLayers = [];
         this.visibleVectorLayers.length = 0;
 
-        let html = "";
+        let html = this._getTerrainAttributionHTML();
         for (let i = 0, len = this._layers.length; i < len; i++) {
             let li = this._layers[i];
             if (li.getVisibility()) {
@@ -2703,5 +2800,23 @@ const PLANET_EVENTS: PlanetEventsList = [
      * Triggered when layer data finishes loading.
      * @event layerloadend
      */
-    "layerloadend"
+    "layerloadend",
+
+    /**
+     * Triggered when a terrain provider is added to the planet.
+     * @event terrainadd
+     */
+    "terrainadd",
+
+    /**
+     * Triggered when a terrain provider is removed from the planet.
+     * @event terrainremove
+     */
+    "terrainremove",
+
+    /**
+     * Triggered when the current terrain provider changes.
+     * @event terrainchange
+     */
+    "terrainchange"
 ];
