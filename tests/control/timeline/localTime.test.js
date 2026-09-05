@@ -96,19 +96,19 @@ describe("Timeline local time", () => {
         expect(Math.abs(model.currentTime - Date.now())).toBeLessThan(5000);
     });
 
-    it("dispatches localtime by the checkbox", () => {
+    it("dispatches localtime by the toggle button", () => {
         let view = new TimelineView();
         view.appendTo(document.createElement("div"));
 
-        let $checkbox = view.el.querySelector(".og-timeline-localtime input[type=checkbox]");
-        expect($checkbox).not.toBeNull();
-        expect($checkbox.checked).toBe(false);
+        let $button = view.el.querySelector(".og-timeline-localtime_button");
+        expect($button).not.toBeNull();
+        expect(view.localTime).toBe(false);
 
         let dispatched = [];
         view.events.on("localtime", (isActive) => dispatched.push(isActive));
 
-        $checkbox.click();
-        $checkbox.click();
+        $button.click();
+        $button.click();
 
         expect(dispatched).toEqual([true, false]);
     });
