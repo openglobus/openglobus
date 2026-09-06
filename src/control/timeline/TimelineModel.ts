@@ -54,10 +54,10 @@ class TimelineModel {
     public dt: number;
 
     /**
-     * While set, playing does not advance
-     * the time: something else sets `current` instead.
+     * While set, playing takes the current time
+     * from this source instead of the frame delta.
      */
-    public driven: boolean;
+    public clock: (() => number) | null;
 
     constructor(options: ITimelineParams = {}) {
         this.events = createEvents(TIMELINE_EVENTS);
@@ -76,7 +76,7 @@ class TimelineModel {
         this._spans = [];
         this._laneCount = 0;
 
-        this.driven = false;
+        this.clock = null;
 
         this.dt = 0;
     }
@@ -204,8 +204,10 @@ class TimelineModel {
         this.dt = now - this._prevNow;
         this._prevNow = now;
 
-        if (!this.driven) {
-            this.current = new Date(this.currentTime + this.dt * this.multiplier);
+        const time = this.clock ? this.clock() : this.currentTime + this.dt * this.multiplier;
+
+        if (time !== this.currentTime) {
+            this.current = new Date(time);
         }
 
         // this._events.dispatch(this._events.tick, this._current);
