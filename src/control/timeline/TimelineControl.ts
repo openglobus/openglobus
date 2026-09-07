@@ -121,6 +121,15 @@ class TimelineControl extends Control {
         return this._timelineView.model;
     }
 
+    /** Date the Sun marker stands on. Setting it moves the marker without dispatching. */
+    public get sunDate(): Date {
+        return this._timelineView.sunDate;
+    }
+
+    public set sunDate(date: Date) {
+        this._timelineView.sunDate = date;
+    }
+
     /**
      * Adds a colored time interval drawn on the scale, e.g. one per telemetry track.
      * Spans that overlap in time are placed on separate rows automatically, and the
