@@ -954,6 +954,18 @@ TIMELINE
     background: var(--grey3);
 }
 
+.og-timeline-multiplier {
+    height: 20px;
+    margin-left: 8px;
+    padding: 0 2px;
+    border: none;
+    border-radius: 1px;
+    background: var(--grey7);
+    color: #000;
+    font-size: 11px;
+    cursor: pointer;
+}
+
 .og-timeline {
     width: 100%;
     height: 100%;
@@ -1017,6 +1029,36 @@ TIMELINE
     margin-left: -6px;
 }
 
+.og-timeline-sun {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    width: 11px;
+    height: 100%;
+    margin-left: -5px;
+    cursor: pointer;
+    margin-top: -7px;
+    touch-action: none;
+    display: none;
+}
+
+.og-timeline-sun-spin {
+    margin: 0 auto;
+    width: 1px;
+    height: 100%;
+    background-color: #ffcc00;
+    pointer-events: none;
+}
+
+.og-timeline-sun-arrow {
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid #ffcc00;
+    margin-left: -6px;
+}
+
 .og-timeline-bottom {
     width: 100%;
     display: flex;
@@ -1044,21 +1086,8 @@ TIMELINE
     align-items: center;
 }
 
-.og-timeline-localtime .og-checkbox {
-    margin: 0;
-    align-items: center;
-}
-
-.og-timeline-localtime .og-input-label {
-    width: auto;
-    white-space: nowrap;
-    margin-right: 5px;
-}
-
-.og-timeline-localtime .og-checkbox-input {
-    width: auto;
-    display: flex;
-    align-items: center;
+.og-timeline-localtime_button .og-button-icon {
+    transform: scale(0.8);
 }
 
 .og-timeline-unselectable {
@@ -1695,4 +1724,117 @@ TIMELINE
     padding-top: 3px;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
+}
+
+/*
+==========================
+DOCK
+==========================
+*/
+.og-ui {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.og-dock {
+    position: absolute;
+    z-index: 10;
+    display: flex;
+    box-sizing: border-box;
+    background: var(--grey0);
+    overflow: hidden;
+}
+
+.og-ddialog__docked {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+}
+
+.og-ddialog__docked .og-ddialog-resize-handle {
+    display: none !important;
+}
+
+.og-dock-splitters {
+    position: absolute;
+    z-index: 11;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.og-dock-splitter {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    /* Or a finger dragging an edge reads as a scroll and the drag is cancelled */
+    touch-action: none;
+}
+
+.og-dock-splitter::before {
+    content: "";
+    display: block;
+    background: var(--grey1);
+    transition:
+        background 0.1s ease-out,
+        width 0.1s ease-out,
+        height 0.1s ease-out;
+}
+
+.og-dock-splitter__v {
+    cursor: ew-resize;
+}
+
+.og-dock-splitter__v::before {
+    width: 1px;
+    height: 100%;
+}
+
+.og-dock-splitter__h {
+    cursor: ns-resize;
+}
+
+.og-dock-splitter__h::before {
+    width: 100%;
+    height: 1px;
+}
+
+.og-dock-splitter:hover::before,
+.og-dock-splitter__active::before {
+    background: var(--grey6);
+}
+
+.og-dock-splitter__v:hover::before,
+.og-dock-splitter__v.og-dock-splitter__active::before {
+    width: 3px;
+}
+
+.og-dock-splitter__h:hover::before,
+.og-dock-splitter__h.og-dock-splitter__active::before {
+    height: 3px;
+}
+
+/* Where the dialog under the pointer would land */
+.og-dock-hint {
+    position: absolute;
+    z-index: 1000;
+    box-sizing: border-box;
+    border: 2px solid var(--grey6);
+    background: rgba(182, 182, 182, 0.18);
+    pointer-events: none;
 }

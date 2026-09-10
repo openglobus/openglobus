@@ -18,7 +18,9 @@ type TimelineControlEventsList = [
     "stopdrag",
     "startdragcurrent",
     "stopdragcurrent",
-    "localtime"
+    "localtime",
+    "suntime",
+    "sundate"
 ];
 
 const TIMELINECONTROL_EVENTS: TimelineControlEventsList = [
@@ -34,7 +36,9 @@ const TIMELINECONTROL_EVENTS: TimelineControlEventsList = [
     "stopdrag",
     "startdragcurrent",
     "stopdragcurrent",
-    "localtime"
+    "localtime",
+    "suntime",
+    "sundate"
 ];
 
 interface ITimelineControlParams extends IControlParams {
@@ -87,12 +91,14 @@ class TimelineControl extends Control {
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-timeline_button"],
-            icon: ICON_BUTTON_SVG
+            icon: ICON_BUTTON_SVG,
+            isActive: true
         });
 
         this._dialog = new Dialog({
             title: "Timeline",
-            visible: false,
+            dock: "bottom",
+            visible: true,
             resizable: true,
             useHide: true,
             top: 10,
@@ -115,6 +121,15 @@ class TimelineControl extends Control {
      */
     public get model(): TimelineModel {
         return this._timelineView.model;
+    }
+
+    /** Date the Sun marker stands on. Setting it moves the marker without dispatching. */
+    public get sunDate(): Date {
+        return this._timelineView.sunDate;
+    }
+
+    public set sunDate(date: Date) {
+        this._timelineView.sunDate = date;
     }
 
     /**
@@ -199,14 +214,14 @@ class TimelineControl extends Control {
     }
 
     public override oninit() {
-        let $container = this.renderer!.div!;
+        let $container = this.renderer!.getUIContainer();
         const defaultClock = this.renderer!.handler.defaultClock;
 
         this._toggleBtn.appendTo(this.renderer!.topLeftContainer());
         this._dialog.appendTo($container);
         this._dialog.events.on("visibility", (v: boolean) => {
             if (v) {
-                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.getUIContainer());
             }
         });
 
@@ -241,7 +256,8 @@ class TimelineControl extends Control {
 
         this._timelineView.events.on("setcurrent", (d: Date) => {
             this.renderer && defaultClock.setDate(d);
-            if (this._timelineView.localTime) {
+            // While the Sun has a marker of its own the timeline does not light the scene
+            if (this._timelineView.localTime && !this._timelineView.sunTime) {
                 this.planet?.sun?.setLocalDateTime(d);
             }
             this.events.dispatch(this.events.setcurrent, d);
@@ -249,11 +265,32 @@ class TimelineControl extends Control {
 
         this._timelineView.events.on("localtime", (isActive: boolean) => {
             let sun = this.planet?.sun;
-            if (sun) {
+            if (sun && !this._timelineView.sunTime) {
                 sun.setLocalDateTime(isActive ? this._timelineView.model.current : null);
                 this.renderer && this.renderer.requestRedraw();
             }
             this.events.dispatch(this.events.localtime, isActive);
+        });
+
+        this._timelineView.events.on("suntime", (isActive: boolean) => {
+            let sun = this.planet?.sun;
+            if (sun) {
+                sun.setLocalDateTime(
+                    isActive
+                        ? this._timelineView.sunDate
+                        : this._timelineView.localTime
+                          ? this._timelineView.model.current
+                          : null
+                );
+                this.renderer && this.renderer.requestRedraw();
+            }
+            this.events.dispatch(this.events.suntime, isActive);
+        });
+
+        this._timelineView.events.on("sundate", (d: Date) => {
+            this.planet?.sun?.setLocalDateTime(d);
+            this.renderer && this.renderer.requestRedraw();
+            this.events.dispatch(this.events.sundate, d);
         });
 
         this._timelineView.model.events.on("change", (...args: unknown[]) => {

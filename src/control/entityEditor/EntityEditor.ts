@@ -33,7 +33,7 @@ export class EntityEditor extends Control {
         if (this.renderer) {
             this.renderer.addControl(new CameraLock({ planet: this.planet }));
             this._entityEditorScene.bindPlanet(this.planet!);
-            this._dialog.appendTo(this.renderer.div || document.body);
+            this._dialog.appendTo(this.renderer.getUIContainer());
             this.activate();
         }
     }

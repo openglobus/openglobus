@@ -39,6 +39,7 @@ import type { ShadeModeInput } from "./shadeModeConstants";
 
 export interface IGlobeParams {
     attributionContainer?: HTMLElement;
+    uiContainer?: HTMLElement;
     target?: string | HTMLElement;
     skybox?: Scene;
     pixelRatio?: number;
@@ -145,6 +146,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.autoActivate=true] - Globe rendering auto activation flag. True is default.
  * @param {boolean} [options.idleMode=false] - Skips a frame rendering when nothing has been changed. False is default.
  * @param {HTMLElement} [options.attributionContainer] - Container for attribution list.
+ * @param {HTMLElement} [options.uiContainer] - Container for dialogs, the render container by default.
  * @param {number} [options.maxGridSize=128] = Maximal segment grid size. 128 is default
  * @param {string} [options.fontsSrc] - Fonts collection url.
  * @param {string} [options.resourcesSrc] - Resources root src.
@@ -278,6 +280,7 @@ class Globe {
         );
 
         this.renderer.div = this.$inner;
+        this.renderer.uiContainer = options.uiContainer || null;
 
         // Skybox
         if (options.skybox) {
