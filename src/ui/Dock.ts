@@ -189,27 +189,42 @@ export class DockManager {
     }
 
     public attach(dialog: Dialog<any>): void {
+        this._register(dialog);
+        this._openDocked(dialog);
+    }
+
+    public detach(dialog: Dialog<any>): void {
+        const state = this._dialogs.get(dialog);
+
+        if (!state) return;
+
+        if (state.attached) {
+            state.attached = false;
+
+            dialog.events.off("dragstart", this._onDragStart);
+            dialog.events.off("dragend", this._onDragEnd);
+            dialog.events.off("visibility", this._onDialogVisibility);
+        }
+
+        this.undock(dialog);
+        this._dialogs.delete(dialog);
+    }
+
+    /**
+     * Puts the dialog under the manager's watch, which is all that being known to it means:
+     * where it ends up is left to whoever asked - `attach` reads the dialog's own `dock`
+     * option, `dock` is told a side outright, and either of them can be the first here.
+     */
+    protected _register(dialog: Dialog<any>): void {
         const state = this._state(dialog);
 
         if (state.attached) return;
 
         state.attached = true;
+
         dialog.events.on("dragstart", this._onDragStart, this);
         dialog.events.on("dragend", this._onDragEnd, this);
         dialog.events.on("visibility", this._onDialogVisibility, this);
-
-        this._openDocked(dialog);
-    }
-
-    public detach(dialog: Dialog<any>): void {
-        if (!this._dialogs.get(dialog)?.attached) return;
-
-        dialog.events.off("dragstart", this._onDragStart);
-        dialog.events.off("dragend", this._onDragEnd);
-        dialog.events.off("visibility", this._onDialogVisibility);
-
-        this.undock(dialog);
-        this._dialogs.delete(dialog);
     }
 
     protected _state(dialog: Dialog<any>): DialogState {
@@ -224,6 +239,10 @@ export class DockManager {
     }
 
     public dock(dialog: Dialog<any>, side: DockSide, placement: DockPlacement = "end"): void {
+        this._register(dialog);
+
+        this._state(dialog).opened = true;
+
         if (this.getSide(dialog) === side) return;
 
         this.undock(dialog);
@@ -328,15 +347,32 @@ export class DockManager {
 
     public destroy(): void {
         document.removeEventListener("pointerdown", this._onPointerDown, true);
+        document.removeEventListener("mousemove", this._onDragMove);
+        document.removeEventListener("pointermove", this._onDragMove);
+
         this._resizeObserver.disconnect();
         this._domObserver.disconnect();
+
+        for (const zone of [...this._zones]) {
+            for (const dialog of [...zone.items]) {
+                this.undock(dialog);
+            }
+
+            zone.el.remove();
+        }
+
+        this._zones = [];
 
         for (const dialog of [...this._dialogs.keys()]) {
             this.detach(dialog);
         }
 
+        this._splitters = [];
         this._splitterLayer.remove();
         this._hint.remove();
+
+        this._dragging = null;
+        this._drop = null;
     }
 
     /** What a side opens at for this dialog: its width standing on end, or its height. */
