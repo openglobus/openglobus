@@ -1471,14 +1471,10 @@ export class Planet extends Scene {
      * @protected
      */
     protected _applyAttribution(html: string) {
-        if (this.renderer && this.renderer.div) {
-            if (html.length) {
-                if (this.renderer.div.attributions!.innerHTML !== html) {
-                    this.renderer.div.attributions!.innerHTML = html;
-                }
-            } else {
-                this.renderer.div.attributions!.innerHTML = "";
-            }
+        const el = this.renderer && this.renderer.getAttributionsContainer();
+
+        if (el && el.innerHTML !== html) {
+            el.innerHTML = html;
         }
     }
 

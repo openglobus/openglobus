@@ -173,19 +173,19 @@ export class LayerSwitcher extends Control {
 
     override oninit() {
         this._toggleBtn.appendTo(this.renderer!.topRightContainer());
-        this._dialog.appendTo(this.planet!.renderer!.div!);
+        this._dialog.appendTo(this.planet!.renderer!.getUIContainer());
         this._panel.appendTo(this._dialog.container!);
 
         this.$terrains = this._panel.el!.querySelector(".og-layerSwitcher__terrains");
         this.$baseLayers = this._panel.el!.querySelector(".og-layerSwitcher__baseLayers");
         this.$overlays = this._panel.el!.querySelector(".og-layerSwitcher__overlays");
 
-        this._dialog.setPosition((this.planet!.renderer!.div!.clientWidth as number) - this._dialog.width - 67);
+        this._dialog.setPosition((this.planet!.renderer!.getUIContainer().clientWidth as number) - this._dialog.width - 67);
 
         this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
             if (v) {
-                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.getUIContainer());
             }
         });
 

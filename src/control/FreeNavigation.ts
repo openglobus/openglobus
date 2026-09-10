@@ -275,10 +275,9 @@ export class FreeNavigation extends Control {
             this.renderer!.events.on("keyfree", this.toggleKey, this._onToggleKey);
         }
 
-        let div = this.renderer!.div;
-        if (this._infoEl && div) {
+        if (this._infoEl) {
             this._infoEl.className = "og-free-navigation-info";
-            div.appendChild(this._infoEl);
+            this.renderer!.getInnerContainer().appendChild(this._infoEl);
             this._updateInfo();
         }
     }
