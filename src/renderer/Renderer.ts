@@ -2014,9 +2014,6 @@ class Renderer {
     }
 
     public destroy() {
-        this.events.destroy();
-        this.labelWorker.destroy();
-
         for (let i in this.controls) {
             this.controls[i].remove();
         }
@@ -2024,6 +2021,9 @@ class Renderer {
         for (let scene of [...this._scenesArr]) {
             scene.remove();
         }
+
+        this.events.destroy();
+        this.labelWorker.destroy();
 
         if (this._topLeftContainer.parentElement) {
             this._topLeftContainer.parentElement.removeChild(this._topLeftContainer);
