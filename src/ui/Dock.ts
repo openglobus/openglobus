@@ -795,14 +795,18 @@ export class DockManager {
         }
     };
 
+    protected _shownZone(side: DockSide): DockZone | null {
+        const zone = this._zones.find((item) => item.side === side);
+
+        return zone && this._visibleItems(zone).length ? zone : null;
+    }
+
     protected _sideAt(clientX: number, clientY: number, host: DOMRect): DockSide | null {
         const x = clientX - host.left;
         const y = clientY - host.top;
 
         if (x < 0 || y < 0 || x > host.width || y > host.height) return null;
 
-        // A side already in use is aimed at by pointing anywhere over it - what is offered
-        // is what is seen
         // A side not in use yet has nothing to point at, so it is offered near the edge of
         // what the sides before it left free. This goes first: the middle covers that same
         // rectangle, and a dialog dragged over the map is not asking to be docked into it
@@ -815,7 +819,7 @@ export class DockManager {
                 ["bottom", free.y + free.height - y]
             ] as [DockSide, number][]
         )
-            .filter(([side]) => !this._zones.some((zone) => zone.side === side))
+            .filter(([side]) => !this._shownZone(side))
             .sort((left, right) => left[1] - right[1])[0];
 
         if (nearest && nearest[1] >= 0 && nearest[1] <= this._edgeThreshold) {
@@ -829,6 +833,7 @@ export class DockManager {
 
             if (
                 zone.side !== "center" &&
+                this._visibleItems(zone).length &&
                 x >= rect.x &&
                 x <= rect.x + rect.width &&
                 y >= rect.y &&
@@ -845,9 +850,14 @@ export class DockManager {
     protected _sideRect(side: DockSide): Rect {
         if (side === "center") return this._free;
 
-        const zone = this._zones.find((item) => item.side === side);
+        const shown = this._shownZone(side);
 
-        return zone ? zone.rect : this._band(this._free, side, this._dockSize(this._dragging, side)).zone;
+        if (shown) return shown.rect;
+
+        const zone = this._zones.find((item) => item.side === side);
+        const size = zone ? zone.size : this._dockSize(this._dragging, side);
+
+        return this._band(this._free, side, size).zone;
     }
 
     protected _dropAt(clientX: number, clientY: number): { side: DockSide; placement: DockPlacement } | null {
@@ -874,10 +884,8 @@ export class DockManager {
             return;
         }
 
-        const zone = this._zones.find((item) => item.side === drop.side);
+        const zone = this._shownZone(drop.side);
 
-        // An untouched side takes its band off what the sides before it left over, and a
-        // side already in use gives the newcomer a slot the drop decides the place of
         let rect = this._sideRect(drop.side);
 
         if (zone) {

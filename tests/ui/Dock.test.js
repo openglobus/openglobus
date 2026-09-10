@@ -19,7 +19,15 @@ function mount() {
     Object.defineProperty(host, "clientWidth", { value: 1000, configurable: true });
     Object.defineProperty(host, "clientHeight", { value: 800, configurable: true });
 
-    return { host, dock: new DockManager({ host }) };
+    // jsdom lays nothing out, and the drop target is read off the host rectangle
+    host.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 800 });
+
+    const dock = new DockManager({ host });
+
+    // The resize observer is a stub here, so the first layout has to be asked for
+    dock.layout();
+
+    return { host, dock };
 }
 
 function makeDialog(host, title) {
@@ -60,6 +68,38 @@ describe("DockManager", () => {
         expect(dialog.el.isConnected).toBe(true);
         expect(dialog.el.style.display).toBe("flex");
         expect(dock.getSide(dialog)).toBe("left");
+    });
+
+    // A side whose only panel was hidden kept its zone, and the zone kept a rectangle of
+    // nothing: the side counted as in use, so the edge stopped offering it, and its band was
+    // too thin to point at. Nothing could be docked to that side again for the rest of the
+    // session.
+    test("a side whose panels are all hidden can be docked to again", async () => {
+        const { host, dock } = mount();
+        const panel = makeDialog(host, "Panel");
+        const other = makeDialog(host, "Other");
+
+        dock.attach(panel);
+        dock.attach(other);
+        dock.dock(panel, "left");
+
+        expect(dock._dropAt(10, 400)?.side, "the left band answers while it is shown").toBe("left");
+
+        panel.hide();
+        await tick();
+
+        expect(dock.freeRect.width, "and gives its room back when hidden").toBe(1000);
+        expect(dock._dropAt(10, 400)?.side, "the free left edge offers itself again").toBe("left");
+
+        const hint = dock._sideRect("left");
+
+        expect(hint.width, "and the hint keeps the thickness the side was left at").toBe(200);
+        expect(hint.height).toBe(800);
+
+        dock.dock(other, "left");
+
+        expect(dock.getSide(other)).toBe("left");
+        expect(dock.getSide(panel), "the hidden one keeps its place in the side").toBe("left");
     });
 
     test("a dialog removed for good leaves the side", async () => {
