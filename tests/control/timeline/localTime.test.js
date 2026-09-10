@@ -34,6 +34,7 @@ function initControl(control, sun) {
     control.renderer = {
         div,
         handler: { defaultClock: new Clock() },
+        getUIContainer: () => div,
         topLeftContainer: () => div,
         requestRedraw: () => {}
     };
