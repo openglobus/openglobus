@@ -91,12 +91,14 @@ class TimelineControl extends Control {
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-timeline_button"],
-            icon: ICON_BUTTON_SVG
+            icon: ICON_BUTTON_SVG,
+            isActive: true
         });
 
         this._dialog = new Dialog({
             title: "Timeline",
-            visible: false,
+            dock: "bottom",
+            visible: true,
             resizable: true,
             useHide: true,
             top: 10,
@@ -212,14 +214,14 @@ class TimelineControl extends Control {
     }
 
     public override oninit() {
-        let $container = this.renderer!.div!;
+        let $container = this.renderer!.getUIContainer();
         const defaultClock = this.renderer!.handler.defaultClock;
 
         this._toggleBtn.appendTo(this.renderer!.topLeftContainer());
         this._dialog.appendTo($container);
         this._dialog.events.on("visibility", (v: boolean) => {
             if (v) {
-                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.getUIContainer());
             }
         });
 
