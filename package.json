@@ -70,7 +70,7 @@
         "vite": "^8.0.16",
         "vite-plugin-glsl": "^1.6.0",
         "vite-plugin-static-copy": "^4.1.1",
-        "vitest": "^4.1.8"
+        "vitest": "^4.1.11"
     },
     "keywords": [
         "map",
