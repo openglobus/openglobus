@@ -641,6 +641,7 @@ export class DepthCamera {
     protected _createCameraFrustumEntity(): Entity {
         return new Entity({
             visibility: true,
+            independentPicking: true,
             scale: new Vec3(1, 1, 1),
             geoObject: {
                 tag: "depth-camera-frustum",
