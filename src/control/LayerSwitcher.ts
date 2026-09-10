@@ -180,7 +180,9 @@ export class LayerSwitcher extends Control {
         this.$baseLayers = this._panel.el!.querySelector(".og-layerSwitcher__baseLayers");
         this.$overlays = this._panel.el!.querySelector(".og-layerSwitcher__overlays");
 
-        this._dialog.setPosition((this.planet!.renderer!.getUIContainer().clientWidth as number) - this._dialog.width - 67);
+        this._dialog.setPosition(
+            (this.planet!.renderer!.getUIContainer().clientWidth as number) - this._dialog.width - 67
+        );
 
         this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
