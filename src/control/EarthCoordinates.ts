@@ -229,7 +229,7 @@ export class EarthCoordinates extends Control {
         this._el.addEventListener("click", this._onPanelClick);
 
         if (this._centerMode) {
-            this.renderer!.div!.appendChild(this._createCenterEl());
+            this.renderer!.getInnerContainer().appendChild(this._createCenterEl());
             this.planet!.camera.events.on("moveend", this._grabCoordinates, this);
             this.planet!.camera.events.on(
                 "moveend",
