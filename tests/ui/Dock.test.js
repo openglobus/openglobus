@@ -44,6 +44,22 @@ function floatingStyle(dialog) {
     return { left: style.left, top: style.top, width: style.width, height: style.height };
 }
 
+function mouseEvent(type, clientX, clientY) {
+    return new MouseEvent(type, { clientX, clientY, bubbles: true, cancelable: true });
+}
+
+function press(dialog, clientX, clientY) {
+    dialog.$header.dispatchEvent(mouseEvent("mousedown", clientX, clientY));
+}
+
+function moveTo(clientX, clientY) {
+    document.dispatchEvent(mouseEvent("mousemove", clientX, clientY));
+}
+
+function release(clientX, clientY) {
+    document.dispatchEvent(mouseEvent("mouseup", clientX, clientY));
+}
+
 describe("DockManager", () => {
     beforeAll(() => {
         global.ResizeObserver = FakeResizeObserver;
@@ -311,5 +327,43 @@ describe("DockManager", () => {
         expect(dock.freeRect.width, "and gave it back").toBe(1000);
         expect(rects.length, "the layout was reported").toBeGreaterThan(0);
         expect(rects.at(-1), "with the whole host free again").toMatchObject({ width: 1000, height: 800 });
+    });
+
+    // A press on the header used to pop a docked dialog loose immediately, before the pointer
+    // had moved at all - so a plain click to bring it to front undocked it as a side effect.
+    test("a click on a docked dialog's header does not undock it", () => {
+        const { host, dock } = mount();
+        const dialog = makeDialog(host, "Panel");
+
+        dock.attach(dialog);
+        dock.dock(dialog, "left");
+
+        press(dialog, 100, 100);
+        release(100, 100);
+
+        expect(dock.getSide(dialog), "still on its side").toBe("left");
+        expect(dialog.el.classList.contains("dragging")).toBe(false);
+    });
+
+    test("moving past the drag threshold undocks it and follows the pointer", () => {
+        const { host, dock } = mount();
+        const dialog = makeDialog(host, "Panel");
+
+        dock.attach(dialog);
+        dock.dock(dialog, "left");
+
+        press(dialog, 100, 100);
+        moveTo(103, 100);
+
+        expect(dock.getSide(dialog), "short of the threshold, still docked").toBe("left");
+
+        moveTo(140, 100);
+
+        expect(dock.getSide(dialog), "past it, undocked").toBeNull();
+        expect(dialog.el.classList.contains("dragging")).toBe(true);
+
+        release(140, 100);
+
+        expect(dialog.el.classList.contains("dragging")).toBe(false);
     });
 });
