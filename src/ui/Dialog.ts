@@ -39,6 +39,9 @@ const DEFAULT_HEIGHT = 200;
 
 const DIALOG_EVENTS: DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
 
+/** Pixels the pointer has to move past its header press before that counts as a drag */
+const DRAG_THRESHOLD = 4;
+
 const TEMPLATE = `<div class="og-ddialog"
         style="display:{display}; resize:{resize}; width: {width}px; {height}; top: {top}px; left: {left}px; min-height: {minHeight}; max-height: {maxHeight}; min-width: {minWidth}; max-width: {maxWidth};">
        <div class="og-ddialog-header">
@@ -378,8 +381,6 @@ class Dialog<M> extends View<M> {
         }
         e.preventDefault();
 
-        this._startDragging();
-
         this._startPosX = e.clientX;
         this._startPosY = e.clientY;
 
@@ -392,8 +393,6 @@ class Dialog<M> extends View<M> {
             return;
         }
         e.preventDefault();
-
-        this._startDragging();
 
         this._startPosX = e.clientX;
         this._startPosY = e.clientY;
@@ -432,6 +431,11 @@ class Dialog<M> extends View<M> {
 
     protected _onMouseMove = (e: MouseEvent) => {
         e.preventDefault();
+
+        if (!this._beginDragIfPastThreshold(e.clientX, e.clientY)) {
+            return;
+        }
+
         let dx = this._startPosX - e.clientX;
         let dy = this._startPosY - e.clientY;
         this._startPosX = e.clientX;
@@ -444,12 +448,34 @@ class Dialog<M> extends View<M> {
             return;
         }
         e.preventDefault();
+
+        if (!this._beginDragIfPastThreshold(e.clientX, e.clientY)) {
+            return;
+        }
+
         let dx = this._startPosX - e.clientX;
         let dy = this._startPosY - e.clientY;
         this._startPosX = e.clientX;
         this._startPosY = e.clientY;
         this.setPosition(this.el!.offsetLeft - dx, this.el!.offsetTop - dy);
     };
+
+    protected _beginDragIfPastThreshold(clientX: number, clientY: number): boolean {
+        if (this.el!.classList.contains("dragging")) {
+            return true;
+        }
+
+        const dx = clientX - this._startPosX;
+        const dy = clientY - this._startPosY;
+
+        if (dx * dx + dy * dy < DRAG_THRESHOLD * DRAG_THRESHOLD) {
+            return false;
+        }
+
+        this._startDragging();
+
+        return true;
+    }
 
     protected _startDragging() {
         if (!this.el!.classList.contains("dragging")) {
