@@ -132,6 +132,27 @@ class TimelineControl extends Control {
         this._timelineView.sunDate = date;
     }
 
+    /** True while the timeline current lights the scene. Setting it also moves the toggle. */
+    public get localTime(): boolean {
+        return this._timelineView.localTime;
+    }
+
+    public set localTime(isActive: boolean) {
+        if (this._timelineView.localTime !== isActive) {
+            this._timelineView.localTime = isActive;
+            this._applyLocalTime(isActive);
+            this.events.dispatch(this.events.localtime, isActive);
+        }
+    }
+
+    protected _applyLocalTime(isActive: boolean) {
+        let sun = this.planet?.sun;
+        if (sun && !this._timelineView.sunTime) {
+            sun.setDateTime(isActive ? this._timelineView.model.current : null);
+            this.renderer && this.renderer.requestRedraw();
+        }
+    }
+
     /**
      * Adds a colored time interval drawn on the scale, e.g. one per telemetry track.
      * Spans that overlap in time are placed on separate rows automatically, and the
@@ -234,15 +255,15 @@ class TimelineControl extends Control {
 
         this._timelineView.appendTo(this._dialog.container!);
 
-        // the Sun may already stand on a local date and time, and the timeline shows where
-        let localDateTime = this.planet?.sun?.localDateTime;
-        if (localDateTime) {
+        // the Sun may already stand on a date and time, and the timeline shows where
+        let sunDateTime = this.planet?.sun?.dateTime ?? this.planet?.sun?.localDateTime;
+        if (sunDateTime) {
             let halfRange = this._timelineView.model.range * 0.5;
             this._timelineView.model.set(
-                new Date(localDateTime.getTime() - halfRange),
-                new Date(localDateTime.getTime() + halfRange)
+                new Date(sunDateTime.getTime() - halfRange),
+                new Date(sunDateTime.getTime() + halfRange)
             );
-            this._timelineView.model.current = localDateTime;
+            this._timelineView.model.current = sunDateTime;
             this._timelineView.localTime = true;
         }
 
@@ -258,30 +279,24 @@ class TimelineControl extends Control {
             this.renderer && defaultClock.setDate(d);
             // While the Sun has a marker of its own the timeline does not light the scene
             if (this._timelineView.localTime && !this._timelineView.sunTime) {
-                this.planet?.sun?.setLocalDateTime(d);
+                this.planet?.sun?.setDateTime(d);
             }
             this.events.dispatch(this.events.setcurrent, d);
         });
 
         this._timelineView.events.on("localtime", (isActive: boolean) => {
-            let sun = this.planet?.sun;
-            if (sun && !this._timelineView.sunTime) {
-                sun.setLocalDateTime(isActive ? this._timelineView.model.current : null);
-                this.renderer && this.renderer.requestRedraw();
-            }
+            this._applyLocalTime(isActive);
             this.events.dispatch(this.events.localtime, isActive);
         });
 
         this._timelineView.events.on("suntime", (isActive: boolean) => {
             let sun = this.planet?.sun;
             if (sun) {
-                sun.setLocalDateTime(
-                    isActive
-                        ? this._timelineView.sunDate
-                        : this._timelineView.localTime
-                          ? this._timelineView.model.current
-                          : null
-                );
+                if (isActive) {
+                    sun.setLocalDateTime(this._timelineView.sunDate);
+                } else {
+                    sun.setDateTime(this._timelineView.localTime ? this._timelineView.model.current : null);
+                }
                 this.renderer && this.renderer.requestRedraw();
             }
             this.events.dispatch(this.events.suntime, isActive);

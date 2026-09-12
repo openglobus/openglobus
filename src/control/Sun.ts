@@ -21,6 +21,7 @@ interface ISunParams extends IControlParams {
     offsetHorizontal?: number;
     stopped?: boolean;
     localDateTime?: Date | null;
+    dateTime?: Date | null;
 }
 
 /**
@@ -35,11 +36,10 @@ interface ISunParams extends IControlParams {
  * @param {number} [options.offsetVertical=-5000000] - Vertical offset of the camera following light.
  * @param {number} [options.offsetHorizontal=5000000] - Horizontal offset of the camera following light.
  * @param {boolean} [options.stopped=false] - Stops the control, leaving the Sun on its real position by the clock.
- * @param {Date} [options.localDateTime] - Lights the scene by the local apparent solar time under the camera
- * instead of the camera following light. At 12:00 the Sun stands on the meridian there, while the date sets the
- * season. Read by its UTC clock, so it is not an instant in time but the numbers a wall clock shows: build it
- * with Date.UTC. While it is set it drives the light at any height, whether the control is stopped or not, and
- * the Clock is left untouched.
+ * @param {Date} [options.localDateTime] - Local apparent solar time under the camera, read by its UTC
+ * clock — wall-clock numbers, not an instant: build it with Date.UTC. At 12:00 the Sun stands on the
+ * meridian there.
+ * @param {Date} [options.dateTime] - Instant in time the Sun takes its real position at.
  */
 export class Sun extends Control {
     public activationHeight: number;
@@ -53,6 +53,14 @@ export class Sun extends Control {
      * @type {Date | null}
      */
     public localDateTime: Date | null;
+
+    /**
+     * Instant in time the Sun takes its real position at,
+     * or null for the camera following light.
+     * @public
+     * @type {Date | null}
+     */
+    public dateTime: Date | null;
 
     protected _currDate: number;
     protected _prevDate: number;
@@ -78,6 +86,8 @@ export class Sun extends Control {
         this.offsetHorizontal = options.offsetHorizontal || 5000000;
 
         this.localDateTime = options.localDateTime || null;
+
+        this.dateTime = options.dateTime || null;
 
         this._sunlightPosition = new Vec3();
 
@@ -162,6 +172,17 @@ export class Sun extends Control {
      */
     public setLocalDateTime(localDateTime: Date | null) {
         this.localDateTime = localDateTime;
+        this.dateTime = null;
+    }
+
+    /**
+     * Sets the instant in time the Sun takes its real position at.
+     * @public
+     * @param {Date | null} dateTime - Instant in time, or null to restore the camera following light.
+     */
+    public setDateTime(dateTime: Date | null) {
+        this.dateTime = dateTime;
+        this.localDateTime = null;
     }
 
     protected _setSunPosition3v(position: Vec3) {
@@ -233,6 +254,11 @@ export class Sun extends Control {
     protected _draw() {
         if (!this._clockPtr) return;
         this._currDate = this._clockPtr.currentDate;
+
+        if (this.dateTime) {
+            this._setSunPosition3v(getSunPosition(DateToUTC(this.dateTime)));
+            return;
+        }
 
         if (this.localDateTime) {
             this._setSunPosition3v(this._getLocalDateTimePosition(this.planet!.camera));
