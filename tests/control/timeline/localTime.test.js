@@ -81,13 +81,25 @@ describe("Timeline local time", () => {
         let control = initControl(new TimelineControl(), new Sun({ localDateTime }));
         let model = control["_timelineView"].model;
 
-        expect(control["_timelineView"].timelineTime).toBe(true);
+        expect(control["_timelineView"].localTime).toBe(true);
+        expect(control["_timelineView"].localDateTime).toBe(localDateTime);
+        expect(control["_timelineView"].timelineTime).toBe(false);
         expect(model.current).toBe(localDateTime);
-        expect(control.renderer.handler.defaultClock.getDate().getTime()).toBe(localDateTime.getTime());
 
         // and the marker sits in the middle of the scale rather than off it
         expect(model.currentTime - model.rangeStartTime).toBe(model.rangeEndTime - model.currentTime);
         expect(model.rangeEndTime - model.rangeStartTime).toBe(24 * 3600 * 1000);
+    });
+
+    it("takes up the instant the Sun already stands on", () => {
+        let dateTime = new Date(Date.UTC(2026, 7, 3, 18, 0, 0));
+        let control = initControl(new TimelineControl(), new Sun({ dateTime }));
+        let model = control["_timelineView"].model;
+
+        expect(control["_timelineView"].timelineTime).toBe(true);
+        expect(control["_timelineView"].localTime).toBe(false);
+        expect(model.current).toBe(dateTime);
+        expect(control.renderer.handler.defaultClock.getDate().getTime()).toBe(dateTime.getTime());
     });
 
     it("leaves the timeline on the current date when the Sun has none", () => {

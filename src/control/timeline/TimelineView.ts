@@ -22,6 +22,7 @@ interface ITimelineViewParams extends IViewParams {
     minDate?: Date;
     maxDate?: Date;
     fillStyle?: string;
+    use24HourClock?: boolean;
 }
 
 const SECONDS_TO_MILLISECONDS = 1000.0;
@@ -148,6 +149,7 @@ class TimelineView extends View<TimelineModel> {
     protected _isSunMouseOver: boolean;
     protected _localDateTime: Date;
     protected _useLocalDateTime: boolean;
+    protected _use24HourClock: boolean;
     protected _minWidth: number;
     protected _canvasScale: number;
     protected _millisecondsInPixel: number;
@@ -214,6 +216,7 @@ class TimelineView extends View<TimelineModel> {
         this._isSunMouseOver = false;
         this._localDateTime = this.model.current;
         this._useLocalDateTime = false;
+        this._use24HourClock = options.use24HourClock || false;
 
         this._minWidth = 330;
         this._canvasScale = 2;
@@ -424,6 +427,17 @@ class TimelineView extends View<TimelineModel> {
      * @public
      * @type {boolean}
      */
+    public get use24HourClock(): boolean {
+        return this._use24HourClock;
+    }
+
+    public set use24HourClock(use24HourClock: boolean) {
+        if (this._use24HourClock !== use24HourClock) {
+            this._use24HourClock = use24HourClock;
+            this.draw();
+        }
+    }
+
     public get localTime(): boolean {
         return this._useLocalDateTime;
     }
@@ -1227,7 +1241,7 @@ class TimelineView extends View<TimelineModel> {
                 }
                 drawText(
                     this._ctx,
-                    dateToStr(new Date(i), showTime, showMilliseconds),
+                    dateToStr(new Date(i), showTime, showMilliseconds, this._use24HourClock),
                     x * this._canvasScale,
                     26 * this._canvasScale,
                     "24px monospace",

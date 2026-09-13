@@ -46,6 +46,7 @@ interface ITimelineControlParams extends IControlParams {
     current?: Date;
     rangeStart?: Date;
     rangeEnd?: Date;
+    use24HourClock?: boolean;
 }
 
 function addHours(date: Date, hours: number): Date {
@@ -86,7 +87,8 @@ class TimelineControl extends Control {
         this._timelineView = new TimelineView({
             rangeStart: startDate,
             rangeEnd: endDate,
-            currentDate: currentDate
+            currentDate: currentDate,
+            use24HourClock: options.use24HourClock
         });
 
         this._toggleBtn = new ToggleButton({
@@ -130,6 +132,15 @@ class TimelineControl extends Control {
 
     public set localDateTime(date: Date) {
         this._timelineView.localDateTime = date;
+    }
+
+    /** Scale time notation: 24-hour, or 12-hour with am/pm. */
+    public get use24HourClock(): boolean {
+        return this._timelineView.use24HourClock;
+    }
+
+    public set use24HourClock(use24HourClock: boolean) {
+        this._timelineView.use24HourClock = use24HourClock;
     }
 
     /** True while the timeline current lights the scene. Setting it also moves the toggle. */
@@ -265,7 +276,6 @@ class TimelineControl extends Control {
 
         this._timelineView.appendTo(this._dialog.container!);
 
-        // the Sun may already stand on a date and time, and the timeline shows where
         let sun = this.planet?.sun;
         let initialDateTime: Date | null = null;
 
@@ -276,18 +286,26 @@ class TimelineControl extends Control {
                 initialDateTime = sun.localDateTime;
             }
         }
-        if (initialDateTime) {
+
+        if (sun && initialDateTime) {
             let halfRange = this._timelineView.model.range * 0.5;
             this._timelineView.model.set(
                 new Date(initialDateTime.getTime() - halfRange),
                 new Date(initialDateTime.getTime() + halfRange)
             );
             this._timelineView.model.current = initialDateTime;
-            this._timelineView.timelineTime = true;
+
+            if (sun.dateTime) {
+                this._timelineView.timelineTime = true;
+            } else {
+                this._timelineView.localDateTime = initialDateTime;
+                this._timelineView.localTime = true;
+            }
         }
 
         defaultClock.multiplier = this._timelineView.model.multiplier;
         defaultClock.setDate(this._timelineView.model.current);
+
         if (this._timelineView.model.stopped()) {
             defaultClock.stop();
         } else {
@@ -296,10 +314,11 @@ class TimelineControl extends Control {
 
         this._timelineView.events.on("setcurrent", (d: Date) => {
             this.renderer && defaultClock.setDate(d);
-            // While the Sun has a marker of its own the timeline does not light the scene
+
             if (this._timelineView.timelineTime && !this._timelineView.localTime) {
                 this.planet?.sun?.setDateTime(d);
             }
+
             this.events.dispatch(this.events.setcurrent, d);
         });
 

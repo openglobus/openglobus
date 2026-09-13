@@ -7,22 +7,35 @@ export function addSeconds(date: Date, seconds: number): Date {
     return new Date(+date + seconds * 1000);
 }
 
-export function dateToStr(date: Date, showTime: boolean = true, showMilliseconds: boolean = false): string {
+export function dateToStr(
+    date: Date,
+    showTime: boolean = true,
+    showMilliseconds: boolean = false,
+    use24HourClock: boolean = true
+): string {
     let month = MONTHS[date.getUTCMonth()],
         day = date.getUTCDate(),
         year = date.getUTCFullYear();
 
     if (showTime) {
-        let h = date.getUTCHours().toString().padStart(2, "0"),
+        let hours = date.getUTCHours(),
+            suffix = "";
+
+        if (!use24HourClock) {
+            suffix = hours < 12 ? " am" : " pm";
+            hours = hours % 12 || 12;
+        }
+
+        let h = hours.toString().padStart(2, "0"),
             m = date.getUTCMinutes().toString().padStart(2, "0"),
             s = date.getUTCSeconds().toString().padStart(2, "0");
 
         if (showMilliseconds) {
             let ms = date.getUTCMilliseconds().toString().padStart(3, "0");
-            return `${month} ${day} ${year} ${h}:${m}:${s}.${ms}`;
+            return `${month} ${day} ${year} ${h}:${m}:${s}.${ms}${suffix}`;
         }
 
-        return `${month} ${day} ${year} ${h}:${m}:${s}`;
+        return `${month} ${day} ${year} ${h}:${m}:${s}${suffix}`;
     }
 
     return `${month} ${day} ${year}`;
