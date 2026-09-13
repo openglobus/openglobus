@@ -97,8 +97,8 @@ let globe = new Globe({
     //     minInertiaAltitude: 3000000
     // },
     sun: {
-        // Aug 3 2026, 21:00 local solar time wherever the camera goes
-        localDateTime: new Date(2026, 7, 3, 18, 0, 0)
+        // Aug 3 2026, 18:00 on the local clock wherever the camera goes
+        localDateTime: new Date(Date.UTC(2026, 7, 3, 18, 0, 0))
     },
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer]
     //    reverseDepth: false,

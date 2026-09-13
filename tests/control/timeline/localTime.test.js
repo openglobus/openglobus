@@ -20,7 +20,7 @@ function subsolarLon(jd) {
  */
 function sunLonFor(iso, lon) {
     let sun = new Sun({ localDateTime: new Date(iso) });
-    return subsolarLon(sun["_getLocalJulian"](DateToUTC(sun.localDateTime), lon));
+    return subsolarLon(sun["_getSolarJulian"](DateToUTC(sun.localDateTime), lon));
 }
 
 /**
@@ -33,6 +33,7 @@ function initControl(control, sun) {
     control.planet = { sun };
     control.renderer = {
         div,
+        events: { on: () => {}, off: () => {} },
         handler: { defaultClock: new Clock() },
         getUIContainer: () => div,
         topLeftContainer: () => div,
@@ -70,7 +71,7 @@ describe("Timeline local time", () => {
 
     it("reads localDateTime by its UTC clock, so the machine time zone does not move the Sun", () => {
         let sun = new Sun({ localDateTime: new Date(Date.UTC(2026, 5, 21, 12, 0, 0)) });
-        let jd = sun["_getLocalJulian"](DateToUTC(sun.localDateTime), 45);
+        let jd = sun["_getSolarJulian"](DateToUTC(sun.localDateTime), 45);
 
         expect(Math.abs(math.norm_lon(subsolarLon(jd) - 45))).toBeLessThan(1e-6);
     });
@@ -81,32 +82,44 @@ describe("Timeline local time", () => {
         let model = control["_timelineView"].model;
 
         expect(control["_timelineView"].localTime).toBe(true);
+        expect(control["_timelineView"].localDateTime).toBe(localDateTime);
+        expect(control["_timelineView"].timelineTime).toBe(false);
         expect(model.current).toBe(localDateTime);
-        expect(control.renderer.handler.defaultClock.getDate().getTime()).toBe(localDateTime.getTime());
 
         // and the marker sits in the middle of the scale rather than off it
         expect(model.currentTime - model.rangeStartTime).toBe(model.rangeEndTime - model.currentTime);
         expect(model.rangeEndTime - model.rangeStartTime).toBe(24 * 3600 * 1000);
     });
 
+    it("takes up the instant the Sun already stands on", () => {
+        let dateTime = new Date(Date.UTC(2026, 7, 3, 18, 0, 0));
+        let control = initControl(new TimelineControl(), new Sun({ dateTime }));
+        let model = control["_timelineView"].model;
+
+        expect(control["_timelineView"].timelineTime).toBe(true);
+        expect(control["_timelineView"].localTime).toBe(false);
+        expect(model.current).toBe(dateTime);
+        expect(control.renderer.handler.defaultClock.getDate().getTime()).toBe(dateTime.getTime());
+    });
+
     it("leaves the timeline on the current date when the Sun has none", () => {
         let control = initControl(new TimelineControl(), new Sun());
         let model = control["_timelineView"].model;
 
-        expect(control["_timelineView"].localTime).toBe(false);
+        expect(control["_timelineView"].timelineTime).toBe(false);
         expect(Math.abs(model.currentTime - Date.now())).toBeLessThan(5000);
     });
 
-    it("dispatches localtime by the toggle button", () => {
+    it("dispatches timelinetime by the toggle button", () => {
         let view = new TimelineView();
         view.appendTo(document.createElement("div"));
 
         let $button = view.el.querySelector(".og-timeline-localtime_button");
         expect($button).not.toBeNull();
-        expect(view.localTime).toBe(false);
+        expect(view.timelineTime).toBe(false);
 
         let dispatched = [];
-        view.events.on("localtime", (isActive) => dispatched.push(isActive));
+        view.events.on("changetimelinetime", (isActive) => dispatched.push(isActive));
 
         $button.click();
         $button.click();

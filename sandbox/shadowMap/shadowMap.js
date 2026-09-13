@@ -42,7 +42,7 @@ const globus = new Globe({
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts",
     sun: {
-        localDateTime: new Date(2026, 7, 4, 18, 0)
+        localDateTime: new Date(Date.UTC(2026, 7, 4, 18, 0))
     }
 });
 
