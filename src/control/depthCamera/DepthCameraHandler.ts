@@ -42,7 +42,7 @@ export class DepthCameraHandler extends Control {
             pickingEnabled: true,
             receiveProjectors: false,
             receiveShadows: false,
-            shadeMode: "unlit",
+            shadeMode: "phong",
             hideInLayerSwitcher: true,
             scaleByDistance: [100, 1000000, math.MAX32]
         });
