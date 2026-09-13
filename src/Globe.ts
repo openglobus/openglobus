@@ -67,6 +67,7 @@ export interface IGlobeParams {
         active?: boolean;
         stopped?: boolean;
         localDateTime?: Date | null;
+        useTimeZones?: boolean;
     };
     navigation?: {
         active?: boolean;
@@ -363,7 +364,7 @@ class Globe {
         }
 
         if (!sun) {
-            this.sun = new Sun();
+            this.sun = new Sun({ useTimeZones: true });
             this.planet.addControl(this.sun);
         } else {
             this.sun = sun;
@@ -375,6 +376,9 @@ class Globe {
             }
             if (options.sun.stopped === true) {
                 this.sun.stop();
+            }
+            if (options.sun.useTimeZones !== undefined) {
+                this.sun.useTimeZones = options.sun.useTimeZones;
             }
             if (options.sun.localDateTime !== undefined) {
                 this.sun.setLocalDateTime(options.sun.localDateTime);

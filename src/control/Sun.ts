@@ -8,6 +8,8 @@ import { Quat } from "../math/Quat";
 import { Vec3 } from "../math/Vec3";
 import * as math from "../math";
 import type { PlanetCamera } from "../camera/PlanetCamera";
+import type { LonLat } from "../LonLat";
+import tzlookup from "tz-lookup";
 
 /**
  * Minimal julian date change that moves the sunlight position, about 30 seconds.
@@ -22,24 +24,26 @@ interface ISunParams extends IControlParams {
     stopped?: boolean;
     localDateTime?: Date | null;
     dateTime?: Date | null;
+    useTimeZones?: boolean;
 }
 
 /**
  * Real Sun geocentric position control that place the Sun on the right place by the Earth.
  * @class
  *
- * @example <caption>Lighting frozen at 21:30 local solar time under the camera</caption>
- * new Sun({ localDateTime: new Date(2026, 7, 3, 21, 30) })
+ * @example <caption>Lighting frozen at 21:30 on the local clock under the camera</caption>
+ * new Sun({ localDateTime: new Date(Date.UTC(2026, 7, 3, 21, 30)) })
  *
  * @param {ISunParams} [options] - Options:
  * @param {number} [options.activationHeight=12079000.0] - Camera height above which the Sun takes its real position by the clock.
  * @param {number} [options.offsetVertical=-5000000] - Vertical offset of the camera following light.
  * @param {number} [options.offsetHorizontal=5000000] - Horizontal offset of the camera following light.
  * @param {boolean} [options.stopped=false] - Stops the control, leaving the Sun on its real position by the clock.
- * @param {Date} [options.localDateTime] - Local apparent solar time under the camera, read by its UTC
- * clock — wall-clock numbers, not an instant: build it with Date.UTC. At 12:00 the Sun stands on the
- * meridian there.
+ * @param {Date} [options.localDateTime] - Local clock time under the camera — wall-clock numbers,
+ * not an instant: build it with Date.UTC. Civil time with useTimeZones, solar time otherwise.
  * @param {Date} [options.dateTime] - Instant in time the Sun takes its real position at.
+ * @param {boolean} [options.useTimeZones=false] - Reads localDateTime by the time zone of the point.
+ * Leave off on bodies without civil time.
  */
 export class Sun extends Control {
     public activationHeight: number;
@@ -47,7 +51,7 @@ export class Sun extends Control {
     public offsetHorizontal: number;
 
     /**
-     * Local apparent solar time under the camera, read by its UTC clock,
+     * Local clock time under the camera, read by its UTC clock,
      * or null for the camera following light.
      * @public
      * @type {Date | null}
@@ -62,6 +66,8 @@ export class Sun extends Control {
      */
     public dateTime: Date | null;
 
+    protected _useTimeZones: boolean;
+
     protected _currDate: number;
     protected _prevDate: number;
 
@@ -73,6 +79,10 @@ export class Sun extends Control {
     protected _f: number;
     protected _k: number;
     protected _sunlightPosition: Vec3;
+
+    protected _localLon: number;
+    protected _localLat: number;
+    protected _localJd: number;
 
     constructor(options: ISunParams = {}) {
         super({ autoActivate: true, ...options });
@@ -88,6 +98,12 @@ export class Sun extends Control {
         this.localDateTime = options.localDateTime || null;
 
         this.dateTime = options.dateTime || null;
+
+        this._useTimeZones = options.useTimeZones || false;
+
+        this._localLon = NaN;
+        this._localLat = NaN;
+        this._localJd = NaN;
 
         this._sunlightPosition = new Vec3();
 
@@ -166,13 +182,32 @@ export class Sun extends Control {
     }
 
     /**
-     * Sets the local apparent solar time under the camera, read by its UTC clock.
+     * Reads localDateTime by the time zone of the point instead of the solar clock.
+     * @public
+     * @type {boolean}
+     */
+    public get useTimeZones(): boolean {
+        return this._useTimeZones;
+    }
+
+    public set useTimeZones(useTimeZones: boolean) {
+        if (this._useTimeZones !== useTimeZones) {
+            this._useTimeZones = useTimeZones;
+            this.renderer && this.renderer.requestRedraw();
+        }
+    }
+
+    /**
+     * Sets the local clock time under the camera, read by its UTC clock.
      * @public
      * @param {Date | null} localDateTime - Local date and time, or null to restore the camera following light.
      */
     public setLocalDateTime(localDateTime: Date | null) {
         this.localDateTime = localDateTime;
         this.dateTime = null;
+        this._localLon = NaN;
+        this._localLat = NaN;
+        this._localJd = NaN;
     }
 
     /**
@@ -226,7 +261,7 @@ export class Sun extends Control {
      * @param {number} lon - Longitude under the camera, degrees.
      * @returns {JulianDate} -
      */
-    protected _getLocalJulian(utc: JulianDate, lon: number): JulianDate {
+    protected _getSolarJulian(utc: JulianDate, lon: number): JulianDate {
         let hours = ((utc + 0.5) % 1.0) * 24.0;
 
         let jd = utc - lon / 360.0;
@@ -241,14 +276,60 @@ export class Sun extends Control {
         return jd;
     }
 
+    protected _localDateTimeToUtc(lonLat: LonLat): Date | null {
+        const zone = tzlookup(lonLat.lat, lonLat.lon);
+
+        if (!zone) return null;
+
+        const parts = new Intl.DateTimeFormat("en-US", {
+            timeZone: zone,
+            timeZoneName: "longOffset"
+        }).formatToParts(this.localDateTime!);
+
+        const name = parts.find((p) => p.type === "timeZoneName")?.value;
+
+        if (name === "GMT") {
+            return this.localDateTime;
+        }
+
+        const m = name?.match(/GMT([+-])(\d{1,2}):?(\d{2})?/);
+
+        if (!m) {
+            return null;
+        }
+
+        const offsetMs = (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3] || 0)) * 60000;
+
+        return new Date(this.localDateTime!.getTime() - offsetMs);
+    }
+
     /**
-     * Returns the Sun position for localDateTime at the location under the camera.
+     * Returns the Sun position for localDateTime at the location under the camera:
+     * the real position at the civil instant with useTimeZones, the solar reading otherwise.
      * @protected
      * @param {PlanetCamera} cam - Planet camera.
      * @returns {Vec3} -
      */
     protected _getLocalDateTimePosition(cam: PlanetCamera): Vec3 {
-        return getSunPosition(this._getLocalJulian(DateToUTC(this.localDateTime!), cam.getLonLat().lon));
+        const lonLat = cam.getLonLat();
+
+        if (this._useTimeZones) {
+            const lon = Math.round(lonLat.lon * 4) / 4;
+            const lat = Math.round(lonLat.lat * 4) / 4;
+
+            if (lon !== this._localLon || lat !== this._localLat) {
+                this._localLon = lon;
+                this._localLat = lat;
+                const utc = this._localDateTimeToUtc(lonLat);
+                this._localJd = utc ? DateToUTC(utc) : NaN;
+            }
+
+            if (!Number.isNaN(this._localJd)) {
+                return getSunPosition(this._localJd);
+            }
+        }
+
+        return getSunPosition(this._getSolarJulian(DateToUTC(this.localDateTime!), lonLat.lon));
     }
 
     protected _draw() {

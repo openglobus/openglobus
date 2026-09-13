@@ -50,11 +50,12 @@
         "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
         "@babel/preset-env": "^7.26.9",
         "@babel/preset-typescript": "^7.27.0",
-        "@eslint/js": "^10.0.1",
         "@eslint-community/eslint-utils": "^4.6.1",
+        "@eslint/js": "^10.0.1",
         "@rollup/plugin-terser": "^1.0.0",
         "@types/draco3d": "^1.4.10",
         "@types/node": "^22.15.3",
+        "@types/tz-lookup": "^6.1.2",
         "@typescript-eslint/eslint-plugin": "^8.65.0",
         "@typescript-eslint/parser": "^8.65.0",
         "clean-jsdoc-theme": "^5.1.0",
@@ -78,5 +79,8 @@
         "webgl",
         "globe",
         "og"
-    ]
+    ],
+    "dependencies": {
+        "tz-lookup": "^6.1.25"
+    }
 }
