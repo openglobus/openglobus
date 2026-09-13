@@ -86,6 +86,7 @@ const SCALE_FILL_COLOR = "rgba(64, 59, 59, 1.0)";
 const SPAN_THICKNESS_PX = 3;
 const SPAN_MIN_WIDTH_PX = 2;
 const SCALE_NOTCH_COLOR = "#bfbfbf";
+const SCALE_NOTCH_PM_COLOR = "#737373";
 const SCALE_TIME_COLOR = "#bfbfbf";
 
 const TEMPLATE = `<div class="og-timeline">
@@ -436,6 +437,13 @@ class TimelineView extends View<TimelineModel> {
             this._use24HourClock = use24HourClock;
             this.draw();
         }
+    }
+
+    protected _notchColor(time: number): string {
+        if (!this._use24HourClock && new Date(time).getUTCHours() >= 12) {
+            return SCALE_NOTCH_PM_COLOR;
+        }
+        return SCALE_NOTCH_COLOR;
     }
 
     public get localTime(): boolean {
@@ -1189,7 +1197,11 @@ class TimelineView extends View<TimelineModel> {
     protected _drawSun() {
         if (!this._sunEl || !this._millisecondsInPixel) return;
 
-        if (!this._useLocalDateTime || this._localDateTime < this.model.rangeStart || this._localDateTime > this.model.rangeEnd) {
+        if (
+            !this._useLocalDateTime ||
+            this._localDateTime < this.model.rangeStart ||
+            this._localDateTime > this.model.rangeEnd
+        ) {
             this._sunEl.style.display = "none";
             return;
         }
@@ -1224,7 +1236,7 @@ class TimelineView extends View<TimelineModel> {
                         x * this._canvasScale,
                         10 * this._canvasScale,
                         2 * this._canvasScale,
-                        SCALE_NOTCH_COLOR
+                        this._notchColor(i)
                     );
                 }
                 for (let j = 1; j < segCount; j++) {
@@ -1235,7 +1247,7 @@ class TimelineView extends View<TimelineModel> {
                             xx * this._canvasScale,
                             5 * this._canvasScale,
                             this._canvasScale,
-                            SCALE_NOTCH_COLOR
+                            this._notchColor(i + j * (scaleMs / segCount))
                         );
                     }
                 }
