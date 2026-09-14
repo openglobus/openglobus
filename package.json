@@ -20,7 +20,7 @@
         "lib/"
     ],
     "scripts": {
-        "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
+        "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.js -d ./docs",
         "serve_docs": "ws -p 8088",
         "serve": "ws -p 3000",
         "build": "vite build --mode production && npm run dts",

@@ -1,4 +1,6 @@
-{
+const { version } = require("./package.json");
+
+module.exports = {
   "source" : {
     "include" : [
       "README.md"
@@ -19,7 +21,7 @@
     "lenient" : true,
     "template" : "./node_modules/clean-jsdoc-theme/dist",
     "basePath": "/docs",
-    "siteName": "OpenGlobus"
+    "siteName": `OpenGlobus v${version}`
   },
   "babel": {
     "extensions": ["ts", "tsx"],
@@ -32,4 +34,4 @@
     "hardwrap" : false,
     "idInHeadings" : true
   }
-}
+};
