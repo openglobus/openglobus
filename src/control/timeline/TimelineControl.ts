@@ -18,7 +18,6 @@ type TimelineControlEventsList = [
     "stopdrag",
     "startdragcurrent",
     "stopdragcurrent",
-    "changetimelinetime",
     "changelocaltime",
     "changelocaldatetime"
 ];
@@ -36,7 +35,6 @@ const TIMELINECONTROL_EVENTS: TimelineControlEventsList = [
     "stopdrag",
     "startdragcurrent",
     "stopdragcurrent",
-    "changetimelinetime",
     "changelocaltime",
     "changelocaldatetime"
 ];
@@ -141,27 +139,6 @@ class TimelineControl extends Control {
 
     public set use24HourClock(use24HourClock: boolean) {
         this._timelineView.use24HourClock = use24HourClock;
-    }
-
-    /** True while the timeline current lights the scene. Setting it also moves the toggle. */
-    public get timelineTime(): boolean {
-        return this._timelineView.timelineTime;
-    }
-
-    public set timelineTime(isActive: boolean) {
-        if (this._timelineView.timelineTime !== isActive) {
-            this._timelineView.timelineTime = isActive;
-            this._applyTimelineTime(isActive);
-            this.events.dispatch(this.events.changetimelinetime, isActive);
-        }
-    }
-
-    protected _applyTimelineTime(isActive: boolean) {
-        let sun = this.planet?.sun;
-        if (sun && !this._timelineView.localTime) {
-            sun.setDateTime(isActive ? this._timelineView.model.current : null);
-            this.renderer && this.renderer.requestRedraw();
-        }
     }
 
     /** Lights the scene by the Sun marker, the civil clock time under the camera. */
@@ -295,9 +272,7 @@ class TimelineControl extends Control {
             );
             this._timelineView.model.current = initialDateTime;
 
-            if (sun.dateTime) {
-                this._timelineView.timelineTime = true;
-            } else {
+            if (!sun.dateTime) {
                 this._timelineView.localDateTime = initialDateTime;
                 this._timelineView.localTime = true;
             }
@@ -315,16 +290,11 @@ class TimelineControl extends Control {
         this._timelineView.events.on("setcurrent", (d: Date) => {
             this.renderer && defaultClock.setDate(d);
 
-            if (this._timelineView.timelineTime && !this._timelineView.localTime) {
+            if (!this._timelineView.localTime) {
                 this.planet?.sun?.setDateTime(d);
             }
 
             this.events.dispatch(this.events.setcurrent, d);
-        });
-
-        this._timelineView.events.on("changetimelinetime", (isActive: boolean) => {
-            this._applyTimelineTime(isActive);
-            this.events.dispatch(this.events.changetimelinetime, isActive);
         });
 
         this._timelineView.events.on("changelocaltime", (isActive: boolean) => {
@@ -333,7 +303,7 @@ class TimelineControl extends Control {
                 if (isActive) {
                     this.applyLocalDateTime();
                 } else {
-                    sun.setDateTime(this._timelineView.timelineTime ? this._timelineView.model.current : null);
+                    sun.setDateTime(this._timelineView.model.current);
                     this.renderer && this.renderer.requestRedraw();
                 }
             }
