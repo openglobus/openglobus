@@ -1,24 +1,24 @@
-import {createEvents, type EventsHandler} from "../../Events";
-import {MAX32} from "../../math";
-import {Plane} from "../../math/Plane";
-import {Planet} from "../../scene/Planet";
-import {Scene} from "../../scene/Scene";
-import {Vec2} from "../../math/Vec2";
-import {Vec3} from "../../math/Vec3";
-import {Quat} from "../../math/Quat";
-import type {IMouseState} from "../../renderer/RendererEvents";
-import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
-import {LonLat} from "../../LonLat";
-import {Entity} from "../../entity/Entity";
-import {MoveAxisEntity} from "./MoveAxisEntity";
-import {MovePlaneEntity} from "./MovePlaneEntity";
-import {RotateEntity} from "./RotateEntity";
-import {Ray} from "../../math/Ray";
-import {Sphere} from "../../bv/Sphere";
-import {AxisTrackEntity} from "./AxisTrackEntity";
-import {CameraLock} from "../CameraLock";
-import {EntityCollection} from "../../entity/EntityCollection";
-import {SHADE_UNLIT} from "../../shadeModeConstants";
+import { createEvents, type EventsHandler } from "../../Events";
+import { MAX32 } from "../../math";
+import { Plane } from "../../math/Plane";
+import { Planet } from "../../scene/Planet";
+import { Scene } from "../../scene/Scene";
+import { Vec2 } from "../../math/Vec2";
+import { Vec3 } from "../../math/Vec3";
+import { Quat } from "../../math/Quat";
+import type { IMouseState } from "../../renderer/RendererEvents";
+import { Ellipsoid } from "../../ellipsoid/Ellipsoid";
+import { LonLat } from "../../LonLat";
+import { Entity } from "../../entity/Entity";
+import { MoveAxisEntity } from "./MoveAxisEntity";
+import { MovePlaneEntity } from "./MovePlaneEntity";
+import { RotateEntity } from "./RotateEntity";
+import { Ray } from "../../math/Ray";
+import { Sphere } from "../../bv/Sphere";
+import { AxisTrackEntity } from "./AxisTrackEntity";
+import { CameraLock } from "../CameraLock";
+import { EntityCollection } from "../../entity/EntityCollection";
+import { SHADE_UNLIT } from "../../shadeModeConstants";
 
 export interface IEntityEditorSceneParams {
     planet?: Planet;
@@ -783,14 +783,11 @@ class EntityEditorScene extends Scene {
         this.events.dispatch(this.events.change, this._selectedEntity);
     };
 
-    protected _scaleX = (e: IMouseState) => {
-    };
+    protected _scaleX = (e: IMouseState) => {};
 
-    protected _scaleY = (e: IMouseState) => {
-    };
+    protected _scaleY = (e: IMouseState) => {};
 
-    protected _scaleZ = (e: IMouseState) => {
-    };
+    protected _scaleZ = (e: IMouseState) => {};
 
     public getSelectedEntity(): Entity | null {
         return this._selectedEntity;
@@ -849,4 +846,4 @@ const ENTITY_EDITOR_SCENE_EVENTS: EntityEditorSceneEventsList = [
     "scale"
 ];
 
-export {EntityEditorScene};
+export { EntityEditorScene };
