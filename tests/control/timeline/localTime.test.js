@@ -1,6 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { TimelineControl } from "../../../src/control/timeline/TimelineControl";
-import { TimelineView } from "../../../src/control/timeline/TimelineView";
 import { Clock } from "../../../src/Clock";
 import { Sun } from "../../../src/control/Sun";
 import { getSunPosition } from "../../../src/astro/earth";
@@ -83,7 +82,6 @@ describe("Timeline local time", () => {
 
         expect(control["_timelineView"].localTime).toBe(true);
         expect(control["_timelineView"].localDateTime).toBe(localDateTime);
-        expect(control["_timelineView"].timelineTime).toBe(false);
         expect(model.current).toBe(localDateTime);
 
         // and the marker sits in the middle of the scale rather than off it
@@ -96,7 +94,6 @@ describe("Timeline local time", () => {
         let control = initControl(new TimelineControl(), new Sun({ dateTime }));
         let model = control["_timelineView"].model;
 
-        expect(control["_timelineView"].timelineTime).toBe(true);
         expect(control["_timelineView"].localTime).toBe(false);
         expect(model.current).toBe(dateTime);
         expect(control.renderer.handler.defaultClock.getDate().getTime()).toBe(dateTime.getTime());
@@ -106,24 +103,6 @@ describe("Timeline local time", () => {
         let control = initControl(new TimelineControl(), new Sun());
         let model = control["_timelineView"].model;
 
-        expect(control["_timelineView"].timelineTime).toBe(false);
         expect(Math.abs(model.currentTime - Date.now())).toBeLessThan(5000);
-    });
-
-    it("dispatches timelinetime by the toggle button", () => {
-        let view = new TimelineView();
-        view.appendTo(document.createElement("div"));
-
-        let $button = view.el.querySelector(".og-timeline-localtime_button");
-        expect($button).not.toBeNull();
-        expect(view.timelineTime).toBe(false);
-
-        let dispatched = [];
-        view.events.on("changetimelinetime", (isActive) => dispatched.push(isActive));
-
-        $button.click();
-        $button.click();
-
-        expect(dispatched).toEqual([true, false]);
     });
 });

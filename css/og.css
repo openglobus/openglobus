@@ -1086,10 +1086,6 @@ TIMELINE
     align-items: center;
 }
 
-.og-timeline-localtime_button .og-button-icon {
-    transform: scale(0.8);
-}
-
 .og-timeline-unselectable {
     -moz-user-select: none;
     -khtml-user-select: none;
