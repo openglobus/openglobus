@@ -22,9 +22,6 @@ jobs:
 
       - run: npm run docs
 
-      - name: Disable Jekyll
-        run: touch docs/.nojekyll
-
       - name: Deploy to openglobus.github.io
         uses: cpina/github-action-push-to-another-repository@main
         env:
