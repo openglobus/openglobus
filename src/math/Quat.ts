@@ -1,8 +1,8 @@
 import * as math from "../math";
-import {Vec3} from "./Vec3";
-import {Mat4} from "./Mat4";
-import {Mat3} from "./Mat3";
-import {PI_TWO, TWO_PI} from "../math";
+import { Vec3 } from "./Vec3";
+import { Mat4 } from "./Mat4";
+import { Mat3 } from "./Mat3";
+import { PI_TWO, TWO_PI } from "../math";
 
 /**
  * |sin(pitch)| above which pitch counts as vertical and the euler
