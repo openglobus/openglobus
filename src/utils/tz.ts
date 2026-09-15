@@ -139,11 +139,11 @@ export class TimeZoneProvider {
             this._loading = this._data
                 ? Promise.resolve(this)
                 : fetch(this.src)
-                    .then((r) => r.json())
-                    .then((data: ITimeZoneData) => {
-                        this._setData(data);
-                        return this;
-                    });
+                      .then((r) => r.json())
+                      .then((data: ITimeZoneData) => {
+                          this._setData(data);
+                          return this;
+                      });
             this._loading.catch((err) => console.warn("TimeZoneProvider: failed to load", this.src, err));
         }
         return this._loading;
@@ -193,7 +193,7 @@ export class TimeZoneProvider {
                         if (p[1] > mxy) mxy = p[1];
                     }
                 }
-                this._items.push({poly, mnx, mxx, mny, mxy, tzid: f.properties.tzid});
+                this._items.push({ poly, mnx, mxx, mny, mxy, tzid: f.properties.tzid });
             }
         }
     }
