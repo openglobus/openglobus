@@ -45,6 +45,7 @@ interface ITimelineControlParams extends IControlParams {
     rangeStart?: Date;
     rangeEnd?: Date;
     use24HourClock?: boolean;
+    template?: string;
 }
 
 function addHours(date: Date, hours: number): Date {
@@ -86,7 +87,8 @@ class TimelineControl extends Control {
             rangeStart: startDate,
             rangeEnd: endDate,
             currentDate: currentDate,
-            use24HourClock: options.use24HourClock
+            use24HourClock: options.use24HourClock,
+            dateTemplate: options.template
         });
 
         this._toggleBtn = new ToggleButton({
@@ -130,6 +132,19 @@ class TimelineControl extends Control {
 
     public set localDateTime(date: Date) {
         this._timelineView.localDateTime = date;
+    }
+
+    /**
+     * Marker label date format, e.g. "MM/dd/yyyy" or "hh:mm:ss.ms". Tokens: yyyy/yy, MMM,
+     * MM/M, dd/d, hh/h, mm/m, ss/s, ms, a/A; case matters for M/m only. An empty template
+     * keeps the adaptive scale format. am/pm follows {@link TimelineControl.use24HourClock}.
+     */
+    public get template(): string {
+        return this._timelineView.dateTemplate;
+    }
+
+    public set template(template: string) {
+        this._timelineView.dateTemplate = template;
     }
 
     /** Scale time notation: 24-hour, or 12-hour with am/pm. */

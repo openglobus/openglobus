@@ -1013,20 +1013,24 @@ TIMELINE
 }
 
 .og-timeline-current-spin {
-    margin: 0 auto;
+    margin: 7px auto 0;
     width: 1px;
-    height: 100%;
-    background-color: #ff3434;
+    height: calc(100% - 7px);
+    background-color: #810000;
     pointer-events: none;
 }
 
-.og-timeline-current-arrow {
-    width: 0;
-    height: 0;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-top: 7px solid #ff3434;
-    margin-left: -6px;
+.og-timeline-current-label {
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    font: 10px/10px monospace;
+    color: white;
+    background: #810000;
+    border-radius: 15px;
+    padding: 2px 6px;
+    white-space: nowrap;
 }
 
 .og-timeline-sun {
@@ -1043,20 +1047,24 @@ TIMELINE
 }
 
 .og-timeline-sun-spin {
-    margin: 0 auto;
+    margin: 7px auto 0;
     width: 1px;
-    height: 100%;
+    height: calc(100% - 7px);
     background-color: #ffcc00;
     pointer-events: none;
 }
 
-.og-timeline-sun-arrow {
-    width: 0;
-    height: 0;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-top: 7px solid #ffcc00;
-    margin-left: -6px;
+.og-timeline-sun-label {
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    font: 10px/10px monospace;
+    color: #000000;
+    background: #fbdb5d;
+    border-radius: 15px;
+    padding: 2px 6px;
+    white-space: nowrap;
 }
 
 .og-timeline-bottom {
