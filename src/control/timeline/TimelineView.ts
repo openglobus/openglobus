@@ -10,6 +10,7 @@ import {
     dateToStr,
     drawNotch,
     drawText,
+    formatDate,
     getNearestTimeLeft,
     getScale
 } from "./timelineUtils";
@@ -23,6 +24,7 @@ interface ITimelineViewParams extends IViewParams {
     maxDate?: Date;
     fillStyle?: string;
     use24HourClock?: boolean;
+    dateTemplate?: string;
 }
 
 const SECONDS_TO_MILLISECONDS = 1000.0;
@@ -91,14 +93,12 @@ const TEMPLATE = `<div class="og-timeline">
 
   <div class="og-timeline-frame">
     <div class="og-timeline-current">
-      <div class="og-timeline-current-spin">
-        <div class="og-timeline-current-arrow"></div>
-      </div>
+      <div class="og-timeline-current-spin"></div>
+      <div class="og-timeline-current-label"></div>
     </div>
     <div class="og-timeline-sun">
-      <div class="og-timeline-sun-spin">
-        <div class="og-timeline-sun-arrow"></div>
-      </div>
+      <div class="og-timeline-sun-spin"></div>
+      <div class="og-timeline-sun-label"></div>
     </div>
     <div class="og-timeline-scale"></div>
   </div>
@@ -132,6 +132,13 @@ class TimelineView extends View<TimelineModel> {
     protected _frameEl: HTMLElement | null;
     protected _currentEl: HTMLElement | null;
     protected _sunEl: HTMLElement | null;
+    protected _currentLabelEl: HTMLElement | null;
+    protected _sunLabelEl: HTMLElement | null;
+    protected _currentLabelText: string;
+    protected _sunLabelText: string;
+    protected _dateTemplate: string;
+    protected _scaleShowTime: boolean;
+    protected _scaleShowMilliseconds: boolean;
     protected _canvasEl: HTMLCanvasElement;
     protected _ctx: CanvasRenderingContext2D;
     protected _spansCanvasEl: HTMLCanvasElement;
@@ -195,6 +202,13 @@ class TimelineView extends View<TimelineModel> {
         this._frameEl = null;
         this._currentEl = null;
         this._sunEl = null;
+        this._currentLabelEl = null;
+        this._sunLabelEl = null;
+        this._currentLabelText = "";
+        this._sunLabelText = "";
+        this._dateTemplate = options.dateTemplate || "";
+        this._scaleShowTime = true;
+        this._scaleShowMilliseconds = false;
         this._canvasEl = createCanvasHTML();
         this._ctx = this._canvasEl.getContext("2d")!;
 
@@ -302,6 +316,8 @@ class TimelineView extends View<TimelineModel> {
         this._frameEl = this.select(".og-timeline-frame");
         this._currentEl = this.select(".og-timeline-current");
         this._sunEl = this.select(".og-timeline-sun");
+        this._currentLabelEl = this.select(".og-timeline-current-label");
+        this._sunLabelEl = this.select(".og-timeline-sun-label");
         this.select(".og-timeline-frame .og-timeline-scale")!.appendChild(this._canvasEl);
         this._frameEl!.insertBefore(this._spansCanvasEl, this._frameEl!.firstChild);
 
@@ -324,12 +340,12 @@ class TimelineView extends View<TimelineModel> {
         this._canvasEl.style.touchAction = "none";
 
         this._currentEl!.addEventListener("mouseenter", this._onCurrentMouseEnter);
-        this._currentEl!.addEventListener("mouseout", this._onCurrentMouseOut);
+        this._currentEl!.addEventListener("mouseleave", this._onCurrentMouseLeave);
         this._currentEl!.addEventListener("pointerdown", this._onCurrentPointerDown);
         this._currentEl!.style.touchAction = "none";
 
         this._sunEl!.addEventListener("mouseenter", this._onSunMouseEnter);
-        this._sunEl!.addEventListener("mouseout", this._onSunMouseOut);
+        this._sunEl!.addEventListener("mouseleave", this._onSunMouseLeave);
         this._sunEl!.addEventListener("pointerdown", this._onSunPointerDown);
         this._sunEl!.style.touchAction = "none";
 
@@ -408,6 +424,29 @@ class TimelineView extends View<TimelineModel> {
             return SCALE_NOTCH_PM_COLOR;
         }
         return SCALE_NOTCH_COLOR;
+    }
+
+    /**
+     * Marker label date format, e.g. "MM/dd/yyyy" or "hh:mm:ss.ms".
+     * An empty template keeps the adaptive scale format.
+     */
+    public get dateTemplate(): string {
+        return this._dateTemplate;
+    }
+
+    public set dateTemplate(dateTemplate: string) {
+        if (this._dateTemplate !== dateTemplate) {
+            this._dateTemplate = dateTemplate;
+            this._drawCurrent();
+            this._drawSun();
+        }
+    }
+
+    protected _formatMarkerDate(date: Date): string {
+        if (this._dateTemplate) {
+            return formatDate(date, this._dateTemplate, this._use24HourClock);
+        }
+        return dateToStr(date, this._scaleShowTime, this._scaleShowMilliseconds, this._use24HourClock);
     }
 
     public get localTime(): boolean {
@@ -830,7 +869,7 @@ class TimelineView extends View<TimelineModel> {
         this._isCurrentMouseOver = true;
     };
 
-    protected _onCurrentMouseOut = () => {
+    protected _onCurrentMouseLeave = () => {
         this._isCurrentMouseOver = false;
     };
 
@@ -838,7 +877,7 @@ class TimelineView extends View<TimelineModel> {
         this._isSunMouseOver = true;
     };
 
-    protected _onSunMouseOut = () => {
+    protected _onSunMouseLeave = () => {
         this._isSunMouseOver = false;
     };
 
@@ -1075,7 +1114,7 @@ class TimelineView extends View<TimelineModel> {
 
         if (this._currentEl) {
             this._currentEl.removeEventListener("mouseenter", this._onCurrentMouseEnter);
-            this._currentEl.removeEventListener("mouseout", this._onCurrentMouseOut);
+            this._currentEl.removeEventListener("mouseleave", this._onCurrentMouseLeave);
             this._currentEl.removeEventListener("pointerdown", this._onCurrentPointerDown);
         }
 
@@ -1155,7 +1194,37 @@ class TimelineView extends View<TimelineModel> {
         } else {
             this._currentEl!.style.display = "block";
             this._currentEl!.style.transform = `translateX(${curPosX}px)`;
+            this._updateLabel(this._currentLabelEl, this.model.current, "_currentLabelText", curPosX);
         }
+    }
+
+    protected _updateLabel(
+        el: HTMLElement | null,
+        date: Date,
+        textField: "_currentLabelText" | "_sunLabelText",
+        posX: number
+    ) {
+        if (!el) return;
+
+        const text = this._formatMarkerDate(date);
+        if (text !== this[textField]) {
+            this[textField] = text;
+            el.textContent = text;
+        }
+
+        // Keeps the label inside the widget
+        const overhang = 10;
+        const half = el.offsetWidth * 0.5;
+
+        let delta = 0;
+
+        if (posX - half < -overhang) {
+            delta = -overhang - (posX - half);
+        } else if (posX + half > this.clientWidth + overhang) {
+            delta = this.clientWidth + overhang - (posX + half);
+        }
+
+        el.style.transform = `translateX(calc(-50% + ${delta}px))`;
     }
 
     protected _drawSun() {
@@ -1174,6 +1243,8 @@ class TimelineView extends View<TimelineModel> {
 
         this._sunEl.style.display = "block";
         this._sunEl.style.transform = `translateX(${posX}px)`;
+
+        this._updateLabel(this._sunLabelEl, this._localDateTime, "_sunLabelText", posX);
     }
 
     public draw() {
@@ -1191,6 +1262,9 @@ class TimelineView extends View<TimelineModel> {
 
             let showMilliseconds = scaleData[0] < 1.0,
                 showTime = scaleData[0] < 86400.0;
+
+            this._scaleShowTime = showTime;
+            this._scaleShowMilliseconds = showMilliseconds;
 
             for (let i = originTime, rangeEnd = this.model.rangeEndTime + scaleMs; i < rangeEnd; i += scaleMs) {
                 let x = this.getOffsetByTime(i);
