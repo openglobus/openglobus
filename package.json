@@ -55,7 +55,6 @@
         "@rollup/plugin-terser": "^1.0.0",
         "@types/draco3d": "^1.4.10",
         "@types/node": "^22.15.3",
-        "@types/tz-lookup": "^6.1.2",
         "@typescript-eslint/eslint-plugin": "^8.65.0",
         "@typescript-eslint/parser": "^8.65.0",
         "clean-jsdoc-theme": "^5.1.0",
@@ -81,6 +80,6 @@
         "og"
     ],
     "dependencies": {
-        "tz-lookup": "^6.1.25"
+        "@photostructure/tz-lookup": "^11.6.1"
     }
 }
