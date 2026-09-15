@@ -47,7 +47,7 @@ export class Projector {
         this.depthCamera = params.depthCamera;
         this.color = Projector._resolveColor(params.color);
         this.sourceType = params.sourceType || "color";
-        this._renderMode = params.renderMode === "light" ? PROJECTOR_RENDER_MODE_LIGHT : PROJECTOR_RENDER_MODE_COLOR;
+        this._renderMode = Projector._resolveRenderMode(params.renderMode);
         this._priority = params.priority || 0;
     }
 
@@ -66,10 +66,12 @@ export class Projector {
         return this._renderMode;
     }
 
-    public set renderMode(renderMode: number) {
-        if (this._renderMode === renderMode) return;
+    public set renderMode(renderMode: ProjectorRenderMode | number) {
+        const value = Projector._resolveRenderMode(renderMode);
 
-        this._renderMode = renderMode;
+        if (this._renderMode === value) return;
+
+        this._renderMode = value;
         this._manager?.update(this);
     }
 
@@ -82,6 +84,12 @@ export class Projector {
 
         this._priority = priority;
         this._manager?.update(this);
+    }
+
+    protected static _resolveRenderMode(renderMode?: ProjectorRenderMode | number): number {
+        if (typeof renderMode === "number") return renderMode;
+
+        return renderMode === "light" ? PROJECTOR_RENDER_MODE_LIGHT : PROJECTOR_RENDER_MODE_COLOR;
     }
 
     protected static _resolveColor(color?: ProjectorColor): Float32Array {

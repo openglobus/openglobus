@@ -126,6 +126,12 @@ self.onmessage = function (e) {
         zmin = 549755748352.0,
         zmax = -549755748352.0;
 
+    // Squared geocentric distance of the same vertices. The axis aligned bounds above cannot tell
+    // relief from segment size, because the box of a tilted patch is far larger than the patch, so
+    // the radius range is accumulated here instead. Kept squared to avoid a root per vertex.
+    var r2min = Infinity,
+        r2max = -Infinity;
+
     const fileGridSize = Math.sqrt(elevations.length) - 1;
 
     const fileGridSize_one = fileGridSize + 1;
@@ -206,6 +212,10 @@ self.onmessage = function (e) {
                     if (v0.y > ymax) ymax = v0.y;
                     if (v0.z < zmin) zmin = v0.z;
                     if (v0.z > zmax) zmax = v0.z;
+
+                    let r2_v0 = v0.x * v0.x + v0.y * v0.y + v0.z * v0.z;
+                    if (r2_v0 < r2min) r2min = r2_v0;
+                    if (r2_v0 > r2max) r2max = r2_v0;
                 }
 
                 let rtc_v0 = new Vec3(v0.x - rtc_x, v0.y - rtc_y, v0.z - rtc_z);
@@ -399,6 +409,10 @@ self.onmessage = function (e) {
             if (_tempVec.y > ymax) ymax = _tempVec.y;
             if (_tempVec.z < zmin) zmin = _tempVec.z;
             if (_tempVec.z > zmax) zmax = _tempVec.z;
+
+            let r2_tmp = _tempVec.x * _tempVec.x + _tempVec.y * _tempVec.y + _tempVec.z * _tempVec.z;
+            if (r2_tmp < r2min) r2min = r2_tmp;
+            if (r2_tmp > r2max) r2max = r2_tmp;
         }
 
         normalMapVertices.set(terrainVertices);
@@ -471,6 +485,7 @@ self.onmessage = function (e) {
             terrainVerticesLow: terrainVerticesLow,
             noDataVertices: noDataVertices,
             bounds: [xmin, ymin, zmin, xmax, ymax, zmax],
+            radiusRange: r2max >= r2min ? [Math.sqrt(r2min), Math.sqrt(r2max)] : null,
             relativeCenter: e.data.relativeCenter
         },
         [

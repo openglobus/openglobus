@@ -1,6 +1,6 @@
 {
     "name": "@openglobus/og",
-    "version": "1.0.0-rc16",
+    "version": "1.0.0-rc25",
     "description": "[openglobus](https://www.openglobus.org/) is a javascript/typescript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers, and 3D objects. It uses the WebGL technology, open source, and completely free.",
     "main": "lib/og.es.js",
     "types": "lib/index.d.ts",
@@ -20,8 +20,8 @@
         "lib/"
     ],
     "scripts": {
-        "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
-        "serve_docs": "cd docs; ws -p 8088",
+        "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.js -d ./docs",
+        "serve_docs": "ws -p 8088",
         "serve": "ws -p 3000",
         "build": "vite build --mode production && npm run dts",
         "clean": "rm -rf ./lib ./docs",
@@ -55,6 +55,7 @@
         "@rollup/plugin-terser": "^1.0.0",
         "@types/draco3d": "^1.4.10",
         "@types/node": "^22.15.3",
+        "@types/tz-lookup": "^6.1.2",
         "@typescript-eslint/eslint-plugin": "^8.65.0",
         "@typescript-eslint/parser": "^8.65.0",
         "clean-jsdoc-theme": "^5.1.0",
@@ -70,7 +71,7 @@
         "vite": "^8.0.16",
         "vite-plugin-glsl": "^1.6.0",
         "vite-plugin-static-copy": "^4.1.1",
-        "vitest": "^4.1.8"
+        "vitest": "^4.1.11"
     },
     "keywords": [
         "map",
@@ -80,6 +81,7 @@
         "og"
     ],
     "dependencies": {
-        "geotiff": "^3.0.5"
+        "geotiff": "^3.0.5",
+        "tz-lookup": "^6.1.25"
     }
 }

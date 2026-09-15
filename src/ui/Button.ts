@@ -64,6 +64,10 @@ class Button extends View<null> {
         return this;
     }
 
+    public override afterRender(parentNode: HTMLElement) {
+        this._initEvents();
+    }
+
     protected _initEvents() {
         if (this.el) {
             this.el.addEventListener("click", this._onClick);

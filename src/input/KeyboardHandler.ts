@@ -36,17 +36,33 @@ class KeyboardHandler {
         this._active = true;
         this._stampCache = {};
 
-        document.onkeydown = (event: KeyboardEvent) => {
-            this._event = event;
-            this.onKeyEvent && this.onKeyEvent(event);
-            this._active && this.handleKeyDown();
-        };
+        document.addEventListener("keydown", this._onDocumentKeyDown);
+        document.addEventListener("keyup", this._onDocumentKeyUp);
+    }
 
-        document.onkeyup = (event: KeyboardEvent) => {
-            this._event = event;
-            this.onKeyEvent && this.onKeyEvent(event);
-            this._active && this.handleKeyUp();
-        };
+    protected _onDocumentKeyDown = (event: KeyboardEvent) => {
+        this._event = event;
+        this.onKeyEvent && this.onKeyEvent(event);
+        this._active && this.handleKeyDown();
+    };
+
+    protected _onDocumentKeyUp = (event: KeyboardEvent) => {
+        this._event = event;
+        this.onKeyEvent && this.onKeyEvent(event);
+        this._active && this.handleKeyUp();
+    };
+
+    public destroy(): void {
+        document.removeEventListener("keydown", this._onDocumentKeyDown);
+        document.removeEventListener("keyup", this._onDocumentKeyUp);
+
+        this._currentlyPressedKeys = {};
+        this._pressedKeysCallbacks = {};
+        this._unpressedKeysCallbacks = {};
+        this._charkeysCallbacks = {};
+        this._anykeyCallback = null;
+        this._event = null;
+        this._stampCache = {};
     }
 
     public getcurrentlyPressedKeys(): Record<number, boolean> {
@@ -81,7 +97,8 @@ class KeyboardHandler {
         }
     }
 
-    protected _removeCallback(handlers: ICallbackHandler[], callback: EventCallbackStamp) {
+    protected _removeCallback(handlers: ICallbackHandler[] | undefined, callback: EventCallbackStamp) {
+        if (!handlers) return;
         for (let i = 0; i < handlers.length; i++) {
             if (handlers[i].callback._openglobus_id === callback._openglobus_id) {
                 handlers.splice(i, 1);

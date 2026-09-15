@@ -45,6 +45,9 @@ type BoundsType = {
     xmax: number;
     ymax: number;
     zmax: number;
+    // Squared geocentric distance range of the same vertices, see getMatrixSubArrayBoundsExt.
+    r2min: number;
+    r2max: number;
 };
 
 let BOUNDS: BoundsType = {
@@ -53,7 +56,9 @@ let BOUNDS: BoundsType = {
     zmin: 0.0,
     xmax: 0.0,
     ymax: 0.0,
-    zmax: 0.0
+    zmax: 0.0,
+    r2min: 0.0,
+    r2max: 0.0
 };
 
 let __staticCounter = 0;
@@ -560,6 +565,18 @@ class Node {
     public addToRender(inFrustum: number) {
         this.state = RENDERING;
 
+        let seg = this.segment,
+            qts = this.quadTreeStrategy;
+
+        if (seg.maxTerrainRadius > 0) {
+            if (seg.minTerrainRadius < qts._minTerrainRadiusAcc) {
+                qts._minTerrainRadiusAcc = seg.minTerrainRadius;
+            }
+            if (seg.maxTerrainRadius > qts._maxTerrainRadiusAcc) {
+                qts._maxTerrainRadiusAcc = seg.maxTerrainRadius;
+            }
+        }
+
         let nodes = this.quadTreeStrategy._renderedNodes;
 
         //@ts-ignore
@@ -801,6 +818,8 @@ class Node {
 
         BOUNDS.xmin = BOUNDS.ymin = BOUNDS.zmin = MAX;
         BOUNDS.xmax = BOUNDS.ymax = BOUNDS.zmax = MIN;
+        BOUNDS.r2min = Infinity;
+        BOUNDS.r2max = -Infinity;
 
         if (gridSize >= 1) {
             seg.gridSize = gridSize;
@@ -929,6 +948,10 @@ class Node {
                 if (coords.y > BOUNDS.ymax) BOUNDS.ymax = coords.y;
                 if (coords.z < BOUNDS.zmin) BOUNDS.zmin = coords.z;
                 if (coords.z > BOUNDS.zmax) BOUNDS.zmax = coords.z;
+
+                let r2 = coords.x * coords.x + coords.y * coords.y + coords.z * coords.z;
+                if (r2 < BOUNDS.r2min) BOUNDS.r2min = r2;
+                if (r2 > BOUNDS.r2max) BOUNDS.r2max = r2;
             }
         }
 
@@ -945,6 +968,9 @@ class Node {
         seg.noDataVertices = noDataVertices!;
 
         seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
+        seg.setTerrainRadiusRange(
+            BOUNDS.r2max >= BOUNDS.r2min ? [Math.sqrt(BOUNDS.r2min), Math.sqrt(BOUNDS.r2max)] : null
+        );
 
         if (seg.tileZoom > seg.planet.terrain!.maxZoom) {
             if (pn.segment.tileZoom >= seg.planet.terrain!.maxZoom) {

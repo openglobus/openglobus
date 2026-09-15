@@ -37,7 +37,7 @@ export class Object3dManager extends Control {
 
     public override oninit() {
         if (this.renderer) {
-            this._dialog.appendTo(this.renderer.div || document.body);
+            this._dialog.appendTo(this.renderer.getUIContainer());
             this._dialog.events.on("select", this._onSelect);
             this.activate();
         }

@@ -3,6 +3,7 @@ export * from "./ButtonGroup";
 export * from "./Checkbox";
 export * from "./Color";
 export * from "./Dialog";
+export * from "./Dock";
 export * from "./Input";
 export * from "./Slider";
 export * from "./ToggleButton";

@@ -405,6 +405,10 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
+    public destroy() {
+        this._keyboardHandler.destroy();
+    }
+
     /**
      * Check key is pressed.
      * @public

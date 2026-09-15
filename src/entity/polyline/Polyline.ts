@@ -248,7 +248,7 @@ class Polyline {
 
     protected _tryAddSegmentToBatch(segmentIndex: number): boolean {
         const br = this._batchRenderer;
-        if (!br || segmentIndex < 0 || segmentIndex < this._batchRendererIndexes.length) {
+        if (!br || !this._visibility || segmentIndex < 0 || segmentIndex < this._batchRendererIndexes.length) {
             return false;
         }
 
@@ -932,7 +932,22 @@ class Polyline {
      * @param {boolean} visibility - Polyline visibility.
      */
     public setVisibility(visibility: boolean) {
+        if (this._visibility === visibility) return;
+
         this._visibility = visibility;
+
+        if (!this._handler || !this._batchRenderer) return;
+
+        // Segments live in a batch that is drawn with a single call, so there is nothing
+        // per polyline to switch off: hiding takes its segments out of the batch, showing
+        // appends them back from the local path.
+        if (visibility) {
+            this._addToBatchRenderer();
+        } else {
+            this._removeFromBatchRenderer();
+        }
+
+        this._handler.requestRedraw();
     }
 
     /**

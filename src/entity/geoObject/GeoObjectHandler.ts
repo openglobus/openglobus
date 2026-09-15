@@ -477,8 +477,9 @@ export class GeoObjectHandler {
             ec.scaleByDistance[0],
             ec.scaleByDistance[1],
             ec.scaleByDistance[2],
-            r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
+            ec.scaleByDistance[3]
         );
+        gl.uniform1f(u.uFocusDistance, r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0);
         gl.uniform1f(u.shadeMode, ec._shadeMode);
         if (u.uProjectorMask !== undefined) {
             gl.uniform1f(u.uProjectorMask, ec.receiveProjectors ? 1.0 : 0.0);
@@ -644,8 +645,9 @@ export class GeoObjectHandler {
             ec.scaleByDistance[0],
             ec.scaleByDistance[1],
             ec.scaleByDistance[2],
-            cam.isOrthographic ? cam.focusDistance : 0.0
+            ec.scaleByDistance[3]
         );
+        gl.uniform1f(u.uFocusDistance, cam.isOrthographic ? cam.focusDistance : 0.0);
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
@@ -726,8 +728,9 @@ export class GeoObjectHandler {
             ec.scaleByDistance[0],
             ec.scaleByDistance[1],
             ec.scaleByDistance[2],
-            camera.isOrthographic ? camera.focusDistance : 0.0
+            ec.scaleByDistance[3]
         );
+        gl.uniform1f(u.uFocusDistance, camera.isOrthographic ? camera.focusDistance : 0.0);
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
         gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
@@ -804,8 +807,9 @@ export class GeoObjectHandler {
             ec.scaleByDistance[0],
             ec.scaleByDistance[1],
             ec.scaleByDistance[2],
-            r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
+            ec.scaleByDistance[3]
         );
+        gl.uniform1f(u.uFocusDistance, r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0);
         gl.uniform3fv(u.pickingScale, ec.pickingScale);
 
         gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);

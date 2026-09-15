@@ -77,10 +77,8 @@ export class EntityTree extends Control {
     public override oninit() {
         if (!this.renderer) return;
 
-        const rootContainer = this.renderer.div || this.renderer.handler.canvas?.parentElement || document.body;
-
         this._toggleBtn.appendTo(this.renderer.topRightContainer());
-        this._dialog.appendTo(rootContainer);
+        this._dialog.appendTo(this.renderer.getUIContainer());
 
         if (!this._dialog.container) return;
 

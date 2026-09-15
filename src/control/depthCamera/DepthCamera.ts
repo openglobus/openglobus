@@ -2,9 +2,11 @@ import { Camera } from "../../camera/Camera";
 import { PlanetCamera } from "../../camera/PlanetCamera";
 import { Entity } from "../../entity/Entity";
 import { LonLat } from "../../LonLat";
+import { DEGREES } from "../../math";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
-import { Vec4 } from "../../math/Vec4";
+import { Vec4, type NumberArray4 } from "../../math/Vec4";
+import { RADIANS_HALF } from "../../math";
 import { Object3d } from "../../Object3d";
 import { QuadTreeStrategy } from "../../quadTree";
 import type { Renderer } from "../../renderer/Renderer";
@@ -19,13 +21,15 @@ const CAM_WIDTH = 512;
 const CAM_HEIGHT = 512;
 const DEPTH_NEAR = 100;
 const DEPTH_FAR = 100000;
-const DEPTH_BIAS = 0.00006;
+const DEPTH_BIAS_WORLD = 1.0;
 const DEPTH_NORMAL_BIAS = 0.45;
-const DEPTH_EPSILON = 0.00025;
 const TEXEL_SNAP_EPSILON = 1e-9;
+const ORTHO_TEXEL_QUANTIZATION_STEPS = 4;
+const ORTHO_TEXEL_QUANTIZATION_RATIO = Math.pow(2.0, 1.0 / ORTHO_TEXEL_QUANTIZATION_STEPS);
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
 const PERIMETER_STEP_PX = 1;
 const DEFAULT_CAMERA_FRUSTUM_LENGTH = 2.5;
+const DEFAULT_CAMERA_FRUSTUM_COLOR = "rgb(155, 255, 155, 0.2)";
 const RENDER_SKIRTS_SLOPE = 0.3;
 
 const cameraFrustumObj = Object3d.createFrustum();
@@ -45,14 +49,15 @@ export interface IDepthCameraParams {
     horizontalViewAngle?: number;
     showFrustum?: boolean;
     showFootprint?: boolean;
+    frustumLength?: number;
+    frustumColor?: Vec4 | NumberArray4 | string;
     isOrthographic?: boolean;
     focusDistance?: number;
     enableSegmentSkirts?: boolean;
     enableSegmentFaceCulling?: boolean;
     excludeLayers?: Vector[];
-    bias?: number; //0.00003 .. 0.00008 - 0.0005
+    depthBiasWorld?: number;
     normalBias?: number; // 0.2 .. 1.0
-    depthEpsilon?: number; //0.00015 .. 0.0005 - 0.0015
 }
 
 function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer: Framebuffer): number {
@@ -88,9 +93,8 @@ export class DepthCamera {
     public readonly verticalViewAngle: number;
     public readonly horizontalViewAngle?: number;
     public readonly excludeLayers: Vector[];
-    public bias: number;
+    public depthBiasWorld: number;
     public normalBias: number;
-    public depthEpsilon: number;
 
     public enabled: boolean;
     public enableSegmentSkirts: boolean;
@@ -107,13 +111,17 @@ export class DepthCamera {
     protected _planet: Planet | null;
     protected _renderer: Renderer | null;
     protected _initialized: boolean;
-    protected _forceOwnQuadTreeStrategyPass: boolean;
+    public _forceOwnQuadTreeStrategyPass: boolean;
     protected _showFrustum: boolean;
     protected _showFootprint: boolean;
     protected _isOrthographic: boolean;
     protected _focusDistance: number;
     protected _lastPlanetHeightFactor: number;
+    protected _orthoTexelSizeX: number;
+    protected _orthoTexelSizeY: number;
 
+    protected _frustumLength: number;
+    protected _frustumColor: Vec4 | NumberArray4 | string;
     protected _cameraFrustumEntity: Entity | null;
     protected _cameraFootprintEntity: Entity | null;
     protected _cameraFootprintSegmentPointCounts: number[];
@@ -141,9 +149,8 @@ export class DepthCamera {
         this.verticalViewAngle = params.verticalViewAngle ?? DEFAULT_VERTICAL_VIEW_ANGLE;
         this.horizontalViewAngle = params.horizontalViewAngle;
         this.excludeLayers = params.excludeLayers ? [...params.excludeLayers] : [];
-        this.bias = params.bias ?? DEPTH_BIAS;
+        this.depthBiasWorld = params.depthBiasWorld ?? DEPTH_BIAS_WORLD;
         this.normalBias = params.normalBias ?? DEPTH_NORMAL_BIAS;
-        this.depthEpsilon = params.depthEpsilon ?? DEPTH_EPSILON;
 
         this._planet = null;
         this._renderer = null;
@@ -154,6 +161,11 @@ export class DepthCamera {
         this._isOrthographic = params.isOrthographic ?? false;
         this._focusDistance = params.focusDistance ?? this.far;
         this._lastPlanetHeightFactor = 1.0;
+        this._orthoTexelSizeX = 0.0;
+        this._orthoTexelSizeY = 0.0;
+
+        this._frustumLength = params.frustumLength ?? DEFAULT_CAMERA_FRUSTUM_LENGTH;
+        this._frustumColor = params.frustumColor ?? DEFAULT_CAMERA_FRUSTUM_COLOR;
 
         this._cameraFootprintEntity = this._showFootprint ? this._createCameraFootprintEntity() : null;
         this._cameraFrustumEntity = this._showFrustum ? this._createCameraFrustumEntity() : null;
@@ -219,6 +231,17 @@ export class DepthCamera {
         }
     }
 
+    public get texelScale(): number {
+        const height = Math.max(this.height, 1);
+
+        if (this.camera.isOrthographic) {
+            const frustum = this.camera.frustums[0];
+            return Math.max(frustum.right - frustum.left, frustum.top - frustum.bottom) / height;
+        }
+
+        return (2.0 * Math.tan(this.camera.verticalViewAngle * RADIANS_HALF)) / height;
+    }
+
     public get isOrthographic(): boolean {
         return this._initialized ? this.camera.isOrthographic : this._isOrthographic;
     }
@@ -258,9 +281,36 @@ export class DepthCamera {
         return this._cameraFrustumEntity;
     }
 
+    public get frustumLength(): number {
+        return this._frustumLength;
+    }
+
+    public set frustumLength(length: number) {
+        this._frustumLength = length > 0 ? length : DEFAULT_CAMERA_FRUSTUM_LENGTH;
+    }
+
+    public get frustumColor(): Vec4 | NumberArray4 | string {
+        return this._frustumColor;
+    }
+
+    public set frustumColor(color: Vec4 | NumberArray4 | string) {
+        this._frustumColor = color;
+
+        const geoObject = this._cameraFrustumEntity?.geoObject;
+
+        if (!geoObject) return;
+
+        if (typeof color === "string") {
+            geoObject.setColorHTML(color);
+        } else {
+            const c = color instanceof Vec4 ? color : new Vec4(color[0], color[1], color[2], color[3]);
+            geoObject.setColor(c.x, c.y, c.z, c.w);
+        }
+    }
+
     public get frustumScale(): Vec3 {
         return Object3d.getFrustumScaleByCameraAngles(
-            DEFAULT_CAMERA_FRUSTUM_LENGTH,
+            this._frustumLength,
             this.camera.horizontalViewAngle,
             this.camera.verticalViewAngle
         );
@@ -308,7 +358,7 @@ export class DepthCamera {
 
         const quadTreeStrategy = this._getQuadTreeStrategy(depthCamera);
 
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clearColor(1.0, 1.0, 1.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
 
@@ -468,11 +518,33 @@ export class DepthCamera {
     }
 
     protected _prepareOrthographicProjection(): void {
-        const cam = this.camera;
-        if (!cam.checkMoveEnd()) return;
+        if (!this.camera.isMoving) return;
         if (this._snapOrthographicProjectionToTexelGrid()) {
-            cam.update();
+            this.camera.update();
         }
+    }
+
+    /**
+     * Quantizes the orthographic extent and keeps the previous size while it still fits to prevent jitter.
+     */
+    protected _quantizeOrthoTexelSize(extent: number, resolution: number, prevTexelSize: number): number {
+        const texelSize = extent / resolution;
+
+        if (!(texelSize > 0.0)) {
+            return 0.0;
+        }
+
+        if (
+            prevTexelSize > 0.0 &&
+            texelSize <= prevTexelSize &&
+            texelSize > prevTexelSize / ORTHO_TEXEL_QUANTIZATION_RATIO
+        ) {
+            return prevTexelSize;
+        }
+
+        const step = Math.ceil(Math.log2(texelSize) * ORTHO_TEXEL_QUANTIZATION_STEPS);
+
+        return Math.pow(2.0, step / ORTHO_TEXEL_QUANTIZATION_STEPS);
     }
 
     protected _snapOrthographicProjectionToTexelGrid(): boolean {
@@ -485,26 +557,46 @@ export class DepthCamera {
         const frustum = cam.frustums[0];
         const framebuffer = this.framebuffer;
 
-        const frustumWidth = frustum.right - frustum.left;
-        const frustumHeight = frustum.top - frustum.bottom;
+        const texelSizeX = this._quantizeOrthoTexelSize(
+            frustum.right - frustum.left,
+            framebuffer.width,
+            this._orthoTexelSizeX
+        );
+        const texelSizeY = this._quantizeOrthoTexelSize(
+            frustum.top - frustum.bottom,
+            framebuffer.height,
+            this._orthoTexelSizeY
+        );
 
-        const worldUnitsPerTexelX = frustumWidth / framebuffer.width;
-        const worldUnitsPerTexelY = frustumHeight / framebuffer.height;
+        if (texelSizeX <= 0.0 || texelSizeY <= 0.0) {
+            return false;
+        }
+
+        this._orthoTexelSizeX = texelSizeX;
+        this._orthoTexelSizeY = texelSizeY;
+
+        const width = texelSizeX * framebuffer.width;
+        const height = texelSizeY * framebuffer.height;
+
+        const centerX = (frustum.left + frustum.right) * 0.5;
+        const centerY = (frustum.bottom + frustum.top) * 0.5;
 
         const eyeX = cam.eye.dot(cam._r);
         const eyeY = cam.eye.dot(cam._u);
 
-        const snappedMinX = Math.floor((eyeX + frustum.left) / worldUnitsPerTexelX) * worldUnitsPerTexelX;
-        const snappedMinY = Math.floor((eyeY + frustum.bottom) / worldUnitsPerTexelY) * worldUnitsPerTexelY;
+        const snappedMinX = Math.floor((eyeX + centerX - width * 0.5) / texelSizeX) * texelSizeX;
+        const snappedMinY = Math.floor((eyeY + centerY - height * 0.5) / texelSizeY) * texelSizeY;
 
         const left = snappedMinX - eyeX;
-        const right = left + frustumWidth;
+        const right = left + width;
         const bottom = snappedMinY - eyeY;
-        const top = bottom + frustumHeight;
+        const top = bottom + height;
 
         if (
             Math.abs(left - frustum.left) <= TEXEL_SNAP_EPSILON &&
-            Math.abs(bottom - frustum.bottom) <= TEXEL_SNAP_EPSILON
+            Math.abs(right - frustum.right) <= TEXEL_SNAP_EPSILON &&
+            Math.abs(bottom - frustum.bottom) <= TEXEL_SNAP_EPSILON &&
+            Math.abs(top - frustum.top) <= TEXEL_SNAP_EPSILON
         ) {
             return false;
         }
@@ -552,7 +644,7 @@ export class DepthCamera {
             scale: new Vec3(1, 1, 1),
             geoObject: {
                 tag: "depth-camera-frustum",
-                color: "rgb(155, 155, 255, 0.88)",
+                color: this._frustumColor,
                 object3d: cameraFrustumObj
             },
             properties: {
@@ -620,7 +712,20 @@ export class DepthCamera {
         //
         // @test
         //
-        return planet.quadTreeStrategy;
+        //return planet.quadTreeStrategy;
+
+        const sun = planet.sun;
+        let sunHorizonAngle = 0;
+        if (sun) {
+            const up = planet.ellipsoid.getSurfaceNormal3v(depthCamera.eye);
+            const toSun = sun.getPosition().sub(depthCamera.eye).normalize();
+            sunHorizonAngle = Math.asin(Math.max(-1.0, Math.min(1.0, up.dot(toSun)))) * DEGREES;
+            //console.log(`Sun horizon angle: ${sunHorizonAngle.toFixed(2)}°`);
+        }
+
+        if (planet.camera.getHeight() > 135818 /* || sunHorizonAngle > 22*/) {
+            return planet.quadTreeStrategy;
+        }
 
         if (
             //!depthCamera.isOrthographic &&

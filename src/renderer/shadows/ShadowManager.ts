@@ -17,6 +17,7 @@ export class ShadowManager {
     protected _viewProjData: Float32Array;
     protected _eyeRelData: Float32Array;
     protected _paramsData: Float32Array;
+    protected _depthRangeData: Float32Array;
     protected _layerData: Int32Array;
     protected _updateActiveShadowMaps: boolean;
 
@@ -34,6 +35,7 @@ export class ShadowManager {
         this._viewProjData = new Float32Array(MAX_SHADOW_MAPS * 16);
         this._eyeRelData = new Float32Array(MAX_SHADOW_MAPS * 3);
         this._paramsData = new Float32Array(MAX_SHADOW_MAPS * 4);
+        this._depthRangeData = new Float32Array(MAX_SHADOW_MAPS * 3);
         this._layerData = new Int32Array(MAX_SHADOW_MAPS);
         this._updateActiveShadowMaps = true;
 
@@ -307,12 +309,6 @@ export class ShadowManager {
             const mOffset = i * 16;
             const eOffset = i * 3;
             const vOffset = i * 4;
-            const depthRange = Math.max(frustum.far - frustum.near, 1e-6);
-            const depthScale = camera.isOrthographic ? 1.0 / depthRange : 1.0;
-            const texelWorldSize = camera.isOrthographic
-                ? Math.max(frustum.right - frustum.left, frustum.top - frustum.bottom) /
-                  sm.depthCamera.framebuffer.width
-                : 0.0;
 
             this._viewProjData.set(camera.getProjectionViewRTEMatrix(), mOffset);
 
@@ -320,10 +316,16 @@ export class ShadowManager {
             this._eyeRelData[eOffset + 1] = camera.eye.y - activeCameraEye.y;
             this._eyeRelData[eOffset + 2] = camera.eye.z - activeCameraEye.z;
 
-            this._paramsData[vOffset] = sm.depthCamera.bias * depthScale;
+            const rOffset = i * 3;
+
+            this._paramsData[vOffset] = sm.depthCamera.depthBiasWorld;
             this._paramsData[vOffset + 1] = sm.depthCamera.normalBias;
-            this._paramsData[vOffset + 2] = texelWorldSize * depthScale;
-            this._paramsData[vOffset + 3] = sm.depthCamera.depthEpsilon * depthScale;
+            this._paramsData[vOffset + 2] = 0.0;
+            this._paramsData[vOffset + 3] = camera.isOrthographic ? 1.0 : 0.0;
+
+            this._depthRangeData[rOffset] = frustum.near;
+            this._depthRangeData[rOffset + 1] = frustum.far;
+            this._depthRangeData[rOffset + 2] = sm.depthCamera.texelScale;
 
             this._layerData[i] = sm._slot;
         }
@@ -333,6 +335,7 @@ export class ShadowManager {
         gl.uniformMatrix4fv(u.u_shadowMapViewProjRTE!, false, this._viewProjData);
         gl.uniform3fv(u.u_shadowMapEyeRel!, this._eyeRelData);
         gl.uniform4fv(u.u_shadowMapParams!, this._paramsData);
+        gl.uniform3fv(u.u_shadowMapDepthRange!, this._depthRangeData);
 
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._depthArrayTexture);
@@ -365,11 +368,6 @@ export class ShadowManager {
         const frustum = camera.frustums[0];
         const activeCameraEye = this._renderer.activeCamera.eye;
         const pvRTE = camera.getProjectionViewRTEMatrix();
-        const depthRange = Math.max(frustum.far - frustum.near, 1e-6);
-        const depthScale = camera.isOrthographic ? 1.0 / depthRange : 1.0;
-        const texelWorldSize = camera.isOrthographic
-            ? Math.max(frustum.right - frustum.left, frustum.top - frustum.bottom) / sm.depthCamera.framebuffer.width
-            : 0.0;
 
         gl.uniform1i(u.u_shadowMapCount, 1);
         gl.uniform1i(u.u_shadowMapLayer, sm._slot);
@@ -382,11 +380,12 @@ export class ShadowManager {
         );
         gl.uniform4f(
             u.u_shadowMapParams,
-            sm.depthCamera.bias * depthScale,
+            sm.depthCamera.depthBiasWorld,
             sm.depthCamera.normalBias,
-            texelWorldSize * depthScale,
-            sm.depthCamera.depthEpsilon * depthScale
+            0.0,
+            camera.isOrthographic ? 1.0 : 0.0
         );
+        gl.uniform3f(u.u_shadowMapDepthRange, frustum.near, frustum.far, sm.depthCamera.texelScale);
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._depthArrayTexture);
         gl.uniform1i(u.u_shadowMapDepthArray!, textureUnitStart);

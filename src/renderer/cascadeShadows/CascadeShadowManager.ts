@@ -171,8 +171,7 @@ export class CascadeShadowManager {
             const eOffset = i * 3;
             const vOffset = i * 4;
             const depthRange = Math.max(frustum.far - frustum.near, 1e-6);
-            const depthScale = 1.0 / depthRange;
-            const texelWorldSize =
+            const texelWorld =
                 Math.max(frustum.right - frustum.left, frustum.top - frustum.bottom) / csm.framebuffer.width;
 
             this._viewProjData.set(frustum.projectionViewRTEMatrix._m, mOffset);
@@ -181,11 +180,10 @@ export class CascadeShadowManager {
             this._eyeRelData[eOffset + 1] = camera.eye.y - activeCameraEye.y;
             this._eyeRelData[eOffset + 2] = camera.eye.z - activeCameraEye.z;
 
-            // Keep cascade bias values in the same units as DepthCamera and normalize only for shader compare.
-            this._paramsData[vOffset] = cascade.bias * depthScale;
+            this._paramsData[vOffset] = cascade.depthBiasWorld;
             this._paramsData[vOffset + 1] = cascade.normalBias;
-            this._paramsData[vOffset + 2] = texelWorldSize * depthScale;
-            this._paramsData[vOffset + 3] = cascade.depthEpsilon * depthScale;
+            this._paramsData[vOffset + 2] = texelWorld;
+            this._paramsData[vOffset + 3] = depthRange;
 
             this._splitsData[vOffset] = cascade.splitNear;
             this._splitsData[vOffset + 1] = cascade.splitFar;

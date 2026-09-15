@@ -36,18 +36,31 @@ const float SHADOW_MAP_INTENSITY = 0.9;
 #define SHADOW_MAP_PCF 5
 #endif
 
+// Adds depth bias as the surface turns away from the light, counted in shadow map
+// texels: one texel covers more range with distance, and so does the error it hides.
 #ifndef SHADOW_MAP_SLOPE_DEPTH_BIAS
-#define SHADOW_MAP_SLOPE_DEPTH_BIAS 0.00008
+#define SHADOW_MAP_SLOPE_DEPTH_BIAS 1.0
 #endif
 
+// Limits the slope-dependent depth bias, in shadow map texels.
 #ifndef SHADOW_MAP_MAX_SLOPE_DEPTH_BIAS
-#define SHADOW_MAP_MAX_SLOPE_DEPTH_BIAS 0.0012
+#define SHADOW_MAP_MAX_SLOPE_DEPTH_BIAS 4.0
 #endif
 
-#ifndef SHADOW_MAP_ORTHO_SLOPE_TEXEL_FACTOR
-#define SHADOW_MAP_ORTHO_SLOPE_TEXEL_FACTOR 0.0
+// Offsets the sampled point along the receiver normal by this many shadow map texels,
+// on top of DepthCamera.normalBias.
+#ifndef SHADOW_MAP_NORMAL_TEXEL_BIAS
+#define SHADOW_MAP_NORMAL_TEXEL_BIAS 1.0
 #endif
 
-#ifndef SHADOW_MAP_ORTHO_MAX_SLOPE_TEXELS
-#define SHADOW_MAP_ORTHO_MAX_SLOPE_TEXELS 8.0
+// Floor of the PCF comparison band, in meters, for surfaces facing the light head on,
+// where the depth derivative is near zero.
+#ifndef SHADOW_MAP_MIN_TRANSITION
+#define SHADOW_MAP_MIN_TRANSITION 0.05
+#endif
+
+// The same floor for cascades, counted in cascade texels: a far cascade covers kilometers
+// per texel and needs a band to match, a near one does not.
+#ifndef SHADOW_MAP_MIN_TRANSITION_TEXELS
+#define SHADOW_MAP_MIN_TRANSITION_TEXELS 0.5
 #endif

@@ -82,14 +82,14 @@ export class ElevationProfileControl extends Control {
     }
 
     override oninit() {
-        this._dialog.appendTo(this.planet!.renderer!.div!);
+        this._dialog.appendTo(this.planet!.renderer!.getUIContainer());
         this._graphView.appendTo(this._dialog.container!);
 
         this._toggleBtn.appendTo(this.renderer!.topLeftContainer());
         this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
             if (v) {
-                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.getUIContainer());
                 this.activate();
                 this._elevationProfileView.resize();
             } else {
@@ -122,7 +122,7 @@ export class ElevationProfileControl extends Control {
             this._elevationProfileLegend.setCollisionLength(length);
         });
 
-        this._poiListDialog.appendTo(this.planet!.renderer!.div!);
+        this._poiListDialog.appendTo(this.planet!.renderer!.getUIContainer());
         this._poiListDialog.events.on("visibility", (isVisible: boolean) => {
             this._elevationProfileButtonsView.pointListBtn.setActive(isVisible, true);
         });

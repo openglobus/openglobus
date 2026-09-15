@@ -31,6 +31,7 @@ export class ProjectorManager {
     protected _eyeRelData: Float32Array;
     protected _colorIntensityData: Float32Array;
     protected _paramsData: Float32Array;
+    protected _depthRangeData: Float32Array;
     protected _layerData: Int32Array;
     protected _updateActiveProjectors: boolean;
 
@@ -52,6 +53,7 @@ export class ProjectorManager {
         this._eyeRelData = new Float32Array(MAX_FORWARD_PROJECTORS * 3);
         this._colorIntensityData = new Float32Array(MAX_FORWARD_PROJECTORS * 4);
         this._paramsData = new Float32Array(MAX_FORWARD_PROJECTORS * 4);
+        this._depthRangeData = new Float32Array(MAX_FORWARD_PROJECTORS * 3);
         this._layerData = new Int32Array(MAX_FORWARD_PROJECTORS);
         this._updateActiveProjectors = true;
 
@@ -282,10 +284,17 @@ export class ProjectorManager {
             this._colorIntensityData[vOffset + 2] = color[2] ?? 1.0;
             this._colorIntensityData[vOffset + 3] = color[3] ?? 1.0;
 
-            this._paramsData[vOffset] = pi.depthCamera.bias;
+            const frustum = camera.frustums[0];
+
+            this._paramsData[vOffset] = pi.depthCamera.depthBiasWorld;
             this._paramsData[vOffset + 1] = pi.depthCamera.normalBias;
             this._paramsData[vOffset + 2] = pi.renderMode;
-            this._paramsData[vOffset + 3] = pi.depthCamera.depthEpsilon;
+            this._paramsData[vOffset + 3] = camera.isOrthographic ? 1.0 : 0.0;
+
+            const rOffset = i * 3;
+            this._depthRangeData[rOffset] = frustum.near;
+            this._depthRangeData[rOffset + 1] = frustum.far;
+            this._depthRangeData[rOffset + 2] = pi.depthCamera.texelScale;
 
             this._layerData[i] = pi._slot;
         }
@@ -296,6 +305,7 @@ export class ProjectorManager {
         gl.uniform3fv(u.u_projectorEyeRel!, this._eyeRelData);
         gl.uniform4fv(u.u_projectorColor!, this._colorIntensityData);
         gl.uniform4fv(u.u_projectorParams!, this._paramsData);
+        gl.uniform3fv(u.u_projectorDepthRange!, this._depthRangeData);
 
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._depthArrayTexture);
@@ -348,13 +358,16 @@ export class ProjectorManager {
             camera.eye.z - activeCameraEye.z
         );
         gl.uniform4f(u.u_projectorColor, color[0], color[1], color[2], color[3]);
+        const frustum = camera.frustums[0];
+
         gl.uniform4f(
             u.u_projectorParams,
-            pi.depthCamera.bias,
+            pi.depthCamera.depthBiasWorld,
             pi.depthCamera.normalBias,
             pi.renderMode,
-            pi.depthCamera.depthEpsilon
+            camera.isOrthographic ? 1.0 : 0.0
         );
+        gl.uniform3f(u.u_projectorDepthRange, frustum.near, frustum.far, pi.depthCamera.texelScale);
         gl.uniformMatrix4fv(u.u_projectorInvViewProjRTE, false, this._tmpInverse._m);
 
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
@@ -367,7 +380,7 @@ export class ProjectorManager {
 
     /**
      * Lazily allocates the manager-owned TEXTURE_2D_ARRAY at the size of the first
-     * projector to be added. All subsequent projectors must use the same size.
+     * projector to be added.
      * Returns false if a size mismatch is detected.
      */
     protected _ensureDepthArrayTexture(size: number, capacity: number): boolean {

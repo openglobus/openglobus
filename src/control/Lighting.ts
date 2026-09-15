@@ -316,10 +316,10 @@ export class Lighting extends Control {
 
     public override oninit() {
         this._toggleBtn.appendTo(this.renderer!.topLeftContainer());
-        this._dialog.appendTo(this.renderer!.div!);
+        this._dialog.appendTo(this.renderer!.getUIContainer());
         this._dialog.events.on("visibility", (v: boolean) => {
             if (v) {
-                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.getUIContainer());
             }
         });
         this._panel.appendTo(this._dialog.container!);

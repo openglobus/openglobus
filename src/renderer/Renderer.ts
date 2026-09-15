@@ -132,6 +132,11 @@ class Renderer {
      */
     public div: HTMLDivElementExt | null;
 
+    /**
+     * Where dialogs or any other external elements are put.
+     */
+    public uiContainer: HTMLElement | null;
+
     protected _topLeftContainer: HTMLDivElement;
 
     protected _topRightContainer: HTMLDivElement;
@@ -291,6 +296,7 @@ class Renderer {
 
     constructor(handler: Handler | string | HTMLCanvasElement, params: IRendererParams = {}) {
         this.div = null;
+        this.uiContainer = null;
         this._topLeftContainer = document.createElement("div");
         this._topRightContainer = document.createElement("div");
         this._bottomRightContainer = document.createElement("div");
@@ -850,6 +856,20 @@ class Renderer {
 
     public releaseTexture(texture: WebGLTextureExt | null | undefined): void {
         this._textureResourceManager.releaseTexture(texture);
+    }
+
+    /** The element the canvas is drawn in. */
+    public getInnerContainer(): HTMLElement {
+        return this.div || document.body;
+    }
+
+    public getAttributionsContainer(): HTMLElement | null {
+        return this.div && this.div.attributions ? this.div.attributions : null;
+    }
+
+    /** Where the interface goes: the container given for it, or the inner one. */
+    public getUIContainer(): HTMLElement {
+        return this.uiContainer || this.getInnerContainer();
     }
 
     public topLeftContainer(): HTMLDivElement {
@@ -1994,15 +2014,16 @@ class Renderer {
     }
 
     public destroy() {
-        this.labelWorker.destroy();
-
         for (let i in this.controls) {
             this.controls[i].remove();
         }
 
-        for (let i = 0; i < this._scenesArr.length; i++) {
-            this._scenesArr[i].remove();
+        for (let scene of [...this._scenesArr]) {
+            scene.remove();
         }
+
+        this.events.destroy();
+        this.labelWorker.destroy();
 
         if (this._topLeftContainer.parentElement) {
             this._topLeftContainer.parentElement.removeChild(this._topLeftContainer);
@@ -2017,6 +2038,7 @@ class Renderer {
         }
 
         this.div = null;
+        this.uiContainer = null;
 
         this._scenesArr = [];
 

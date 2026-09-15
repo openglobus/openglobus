@@ -429,7 +429,7 @@ class Strip {
                         p23 = p2.lerp(p3, dj);
 
                     if (d !== 1.0) {
-                        new Line3(p02, p13).intersects(new Line3(p01, p23), p);
+                        p = gridPoint(p02, p13, p01, p23, di, p);
                     } else {
                         p = p23;
                     }
@@ -502,7 +502,7 @@ class Strip {
                                 p23 = p2.lerp(p3, dj);
 
                             if (d !== 1.0) {
-                                new Line3(p02, p13).intersects(new Line3(p01, p23), p);
+                                p = gridPoint(p02, p13, p01, p23, di, p);
                             } else {
                                 p = p23;
                             }
@@ -541,7 +541,7 @@ class Strip {
                             let p01 = p0.lerp(p1, dj),
                                 p23 = p2.lerp(p3, dj);
 
-                            new Line3(p02, p13).intersects(new Line3(p01, p23), p);
+                            p = gridPoint(p02, p13, p01, p23, di, p);
 
                             ind = i * gs1 + j;
 
@@ -582,7 +582,7 @@ class Strip {
                                 p23 = p2.lerp(p3, dj);
 
                             // prev
-                            new Line3(p02, p13).intersects(new Line3(p01, p23), p);
+                            p = gridPoint(p02, p13, p01, p23, di, p);
 
                             let ij = i * gs1 + j;
 
@@ -605,7 +605,7 @@ class Strip {
 
                             p23 = p2.lerp(p3, dj);
 
-                            new Line3(p24, p35).intersects(new Line3(p23, p45), p);
+                            p = gridPoint(p24, p35, p23, p45, di, p);
 
                             ind = next + ij;
 
@@ -676,6 +676,14 @@ class Strip {
             this.addEdge3v(p0, p1);
         }
     }
+}
+
+function gridPoint(p02: Vec3, p13: Vec3, p01: Vec3, p23: Vec3, di: number, res: Vec3): Vec3 {
+    if (new Line3(p02, p13).intersects(new Line3(p01, p23), res)) {
+        return res;
+    }
+
+    return p01.lerp(p23, di);
 }
 
 export { Strip };

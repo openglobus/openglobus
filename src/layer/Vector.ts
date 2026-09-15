@@ -1,4 +1,3 @@
-import * as math from "../math";
 import { Entity } from "../entity/Entity";
 import type { IEntityParams } from "../entity/Entity";
 import { EntityCollection } from "../entity/EntityCollection";
@@ -14,6 +13,7 @@ import { Planet } from "../scene/Planet";
 import { Material } from "./Material";
 import { Segment } from "../segment/Segment";
 import type { NumberArray4 } from "../math/Vec4";
+import { createScaleByDistance, SCALE_BY_DISTANCE_1_TO_1 } from "../utils/shared";
 import * as mercator from "../mercator";
 import { normalizeShadeMode, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "../shadeModeConstants";
 
@@ -25,7 +25,7 @@ export interface IVectorParams extends IBaseTileMaterialLayerParams {
     clampToGround?: boolean;
     async?: boolean;
     pickingScale?: number | NumberArray3;
-    scaleByDistance?: NumberArray3;
+    scaleByDistance?: NumberArray3 | NumberArray4;
     labelMaxLetters?: number;
     shadeMode?: ShadeModeInput;
     depthOrder?: number;
@@ -80,11 +80,11 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * @param {boolean} [options.fading=false] - Enables layer fade-in/fade-out transition logic.
  * @param {number} [options.height=0] - Layer height level used for rendering order.
  * @param {Array.<Entity|IEntityParams>} [options.entities] - Entities array or entity init params.
- * @param {Array.<number>} [options.scaleByDistance] - Scale by distance parameters. (exactly 3 entries)
- *      First index - near distance to the entity, after entity becomes full scale.
- *      Second index - far distance to the entity, when entity becomes zero scale.
- *      Third index - far distance to the entity, when entity becomes invisible.
- *      Default is `[MAX32, MAX32, MAX32]` (no distance scaling).
+ * @param {Array.<number>} [options.scaleByDistance] - Scale by distance parameters:
+ * `[near, far, vanish, scale]`. The fourth entry is a plain multiplier and defaults to `1`, so
+ * three entries are accepted as well.
+ *      See {@link Vector#scaleByDistance} for what each entry means.
+ *      Default is `[MAX32, MAX32, MAX32, 1]` (no distance scaling).
  * @param {number|Array.<number>} [options.pickingScale=[1,1,1]] - Picking scale value or xyz scale array.
  * @param {number} [options.nodeCapacity=60] - Maximum entities quantity in a quadtree node.
  * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering.
@@ -120,13 +120,17 @@ class Vector extends BaseTileMaterialLayer {
     protected _entities: Entity[];
 
     /**
-     * First index - near distance to the entity, after that entity becomes full scale.
-     * Second index - far distance to the entity, when entity becomes zero scale.
-     * Third index - far distance to the entity, when entity becomes invisible.
+     * Distance-based scaling for geoObjects, billboards, and labels.
+     * [0] near - GeoObjects keep a fixed world size below this distance, then scale to
+     * maintain a fixed screen size until `far`. Ignored by billboards and labels.
+     * Set `near` to `0` to disable distance-based scaling.
+     * [1] far - GeoObjects stop growing here. If `vanish > far`, all types start fading.
+     * [2] vanish - Distance where the entity fades to zero. `vanish <= far` disables fading.
+     * [3] scale - Optional multiplier for all types. Default is `1`.
      * @public
-     * @type {NumberArray3}
+     * @type {Array.<number>}
      */
-    public scaleByDistance: NumberArray3;
+    public scaleByDistance: NumberArray4;
 
     public pickingScale: Float32Array;
 
@@ -196,7 +200,7 @@ class Vector extends BaseTileMaterialLayer {
 
         this._hasImageryTiles = false;
 
-        this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
+        this.scaleByDistance = createScaleByDistance(options.scaleByDistance, SCALE_BY_DISTANCE_1_TO_1);
 
         this._shadeMode = normalizeShadeMode(options.shadeMode ?? SHADE_PBR);
 

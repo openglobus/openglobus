@@ -1,3 +1,4 @@
+import * as math from "../../math";
 import { Entity } from "../../entity/Entity";
 import { createEvents, type EventsHandler } from "../../Events";
 import { LonLat } from "../../LonLat";
@@ -123,7 +124,7 @@ class ElevationProfileScene extends Scene {
             entities: [],
             pickingEnabled: true,
             hideInLayerSwitcher: true,
-            scaleByDistance: [1, 5000, 0.02],
+            scaleByDistance: [1, 5000, math.MAX32, 0.02],
             pickingScale: 1,
             shadeMode: SHADE_UNLIT
         });
@@ -132,7 +133,7 @@ class ElevationProfileScene extends Scene {
             entities: [],
             pickingEnabled: true,
             hideInLayerSwitcher: true,
-            scaleByDistance: [1, 10000, 0.02],
+            scaleByDistance: [1, 10000, math.MAX32, 0.02],
             pickingScale: 1,
             shadeMode: SHADE_UNLIT
         });

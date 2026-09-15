@@ -18,7 +18,7 @@ export * from "./layer/index";
 export * from "./Globe";
 
 export type { IControlParams } from "./control/Control";
-export type { ITouchState } from "./renderer/RendererEvents";
+export type { IMouseState, ITouchState } from "./renderer/RendererEvents";
 export type { IDeferredShadingPass } from "./renderer/IDeferredShadingPass";
 export type { ITransparencyPass } from "./renderer/ITransparencyPass";
 export type { ProjectorSourceType, ProjectorRenderMode, IProjectorParams } from "./renderer/projectors/Projector";
@@ -37,6 +37,15 @@ export { ProjectorsPass } from "./renderer/projectors/ProjectorsPass";
 export { ProjectorManager } from "./renderer/projectors/ProjectorManager";
 export { ShadowManager } from "./renderer/shadows/ShadowManager";
 export { SHADE_UNLIT, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "./shadeModeConstants";
+export type { CameraFootprintCorners, ICameraFootprintParams } from "./utils/cameraFootprint";
+export { CameraFootprint, getCameraFootprint } from "./utils/cameraFootprint";
+export type {
+    ILightSpaceBounds,
+    IOrthoBounds,
+    IShadowCameraFitParams,
+    IShadowCameraFitStats
+} from "./utils/shadowCameraFit";
+export { ShadowCameraFit } from "./utils/shadowCameraFit";
 
 declare const __OG_VERSION__: string;
 export const version = __OG_VERSION__;

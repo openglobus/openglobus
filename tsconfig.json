@@ -1,11 +1,11 @@
 {
   "include" : [
-    "./src/**/*",
-    "vite.config.ts"
+    "./src/**/*"
   ],
   "exclude" : [
     "node_modules",
-    "lib"
+    "lib",
+    "src/main.ts"
   ],
   "compilerOptions" : {
     "strictPropertyInitialization" : true,
@@ -31,6 +31,7 @@
     "skipLibCheck" : true,
     "isolatedModules" : true,
     "outDir" : "lib",
+    "rootDir" : "src",
     "verbatimModuleSyntax" : false,
     "resolveJsonModule" : true
   }

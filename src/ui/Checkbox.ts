@@ -98,18 +98,22 @@ class Checkbox extends View<null> {
         return this._checked;
     }
 
+    public override afterRender(parentNode: HTMLElement) {
+        this._initEvents();
+    }
+
     protected _initEvents() {
         //@ts-ignore
-        this.el!.addEventListener("mousewheel", this._onMouseWheel);
-        this.el!.addEventListener("wheel", this._onMouseWheelFF);
-        this.$input!.addEventListener("click", this._onClick);
+        this.el?.addEventListener("mousewheel", this._onMouseWheel);
+        this.el?.addEventListener("wheel", this._onMouseWheelFF);
+        this.$input?.addEventListener("click", this._onClick);
     }
 
     protected _clearEvents() {
         //@ts-ignore
-        this.el!.removeEventListener("mousewheel", this._onMouseWheel);
-        this.el!.removeEventListener("wheel", this._onMouseWheelFF);
-        this.$input!.removeEventListener("click", this._onClick);
+        this.el?.removeEventListener("mousewheel", this._onMouseWheel);
+        this.el?.removeEventListener("wheel", this._onMouseWheelFF);
+        this.$input?.removeEventListener("click", this._onClick);
     }
 
     protected _onMouseWheel = (e: WheelEvent) => {
