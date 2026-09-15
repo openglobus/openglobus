@@ -10,3 +10,6 @@ export * from "./XYZ";
 export * from "./Material";
 export * from "./OpenStreetMap";
 export * from "./Bing";
+export * from "./GeoTIFFLayer";
+export * as geotiff from "./geotiff/index";
+

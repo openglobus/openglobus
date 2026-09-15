@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenGlobus - GeoTIFF NDVI</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #globus {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .control-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            z-index: 1000;
+            width: 260px;
+            box-sizing: border-box;
+            max-height: calc(100vh - 20px);
+            overflow-y: auto;
+        }
+
+        .control-panel h4 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+        }
+
+        .control-row {
+            margin-bottom: 8px;
+        }
+
+        .control-row label {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .control-panel select,
+        .control-panel button,
+        .control-panel input[type="range"],
+        .control-panel input[type="number"],
+        .control-panel input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .control-panel button {
+            cursor: pointer;
+            margin-top: 4px;
+            padding: 4px;
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .flex-col {
+            flex: 1;
+        }
+
+        .formula-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            padding: 6px 8px;
+            font-family: monospace;
+            font-size: 11px;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px;
+            margin-top: 4px;
+            max-height: 120px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 11px;
+            word-break: break-all;
+        }
+    </style>
+    <script src="./ndvi.js" type="module"></script>
+</head>
+<body>
+    <div id="globus"></div>
+
+    <div class="control-panel">
+        <h4>NDVI Calculation</h4>
+
+        <div class="formula-box">
+            NDVI = (Band 4 - Band 3) / (Band 4 + Band 3)
+        </div>
+
+        <div class="control-row">
+            <label>Color Palette:</label>
+            <select id="colorScaleSelect">
+                <option value="earth" selected>Earth</option>
+                <option value="viridis">Viridis</option>
+                <option value="turbo">Turbo</option>
+                <option value="coolwarm">Coolwarm</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="greens">Greens</option>
+                <option value="greys">Greys</option>
+            </select>
+        </div>
+
+        <div class="control-row">
+            <label>NDVI Domain [Min, Max]:</label>
+            <div class="flex-row">
+                <input type="number" id="domainMin" value="-0.2" step="0.05" class="flex-col">
+                <input type="number" id="domainMax" value="0.8" step="0.05" class="flex-col">
+            </div>
+        </div>
+
+        <div class="control-row" style="margin-top: 6px;">
+            <div class="flex-row" style="justify-content: space-between;">
+                <label style="margin: 0;">Opacity:</label>
+                <span id="opacityVal">100%</span>
+            </div>
+            <input type="range" id="opacitySlider" min="0" max="1" step="0.02" value="1">
+        </div>
+
+    </div>
+</body>
+</html>
