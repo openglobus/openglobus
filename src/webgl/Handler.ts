@@ -815,6 +815,25 @@ class Handler {
     }
 
     /**
+     * True when 32 bit float textures can be sampled with LINEAR filter.
+     * @public
+     * @returns {boolean} -
+     */
+    public get isFloatTextureFilterable(): boolean {
+        return !!this.extensions.OES_texture_float_linear;
+    }
+
+    /**
+     * Texture filter for 32 bit float textures. Falls back to NEAREST where
+     * OES_texture_float_linear is unavailable, iOS in particular.
+     * @public
+     * @returns {string} -
+     */
+    public get floatTextureFilter(): string {
+        return this.isFloatTextureFilterable ? "LINEAR" : "NEAREST";
+    }
+
+    /**
      * Main function that initializes handler.
      * @public
      */

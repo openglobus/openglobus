@@ -399,14 +399,14 @@ export class ProjectorManager {
     }
 
     protected _createDepthArrayTexture(size: number, capacity: number): boolean {
-        const gl = this._renderer.handler.gl as WebGL2RenderingContext;
-        if (!gl) return false;
+        const h = this._renderer.handler;
+        if (!h.gl) return false;
 
-        const tex = this._renderer.handler.createEmptyTexture2DArrayExt(
+        const tex = h.createEmptyTexture2DArrayExt(
             size,
             size,
             capacity,
-            "LINEAR",
+            h.floatTextureFilter,
             "R32F",
             "CLAMP_TO_EDGE",
             1
