@@ -40,7 +40,7 @@ const MIN_ITEM_SHARE = 0.08;
 /** How much of a side's length each of its end bands takes. */
 const END_BAND = 0.3;
 
-/** What the pointer gets. The seam it paints is a hairline in the middle of that. */
+/** What the pointer gets, centered on the gap between docked dialogs. */
 const SPLITTER_GRAB = 11;
 
 /** A finger is blunter than a cursor and needs more of an edge to catch. */
@@ -102,6 +102,10 @@ function alongDirection(side: DockSide): DockDirection {
 /** Stacking that cuts a side across, so its dialogs divide its thickness. */
 function acrossDirection(side: DockSide): DockDirection {
     return isVertical(side) ? "row" : "column";
+}
+
+function stackFlex(fraction: number): string {
+    return `${fraction} 1 calc(${fraction * 100}% - var(--og-dock-gap, 0px))`;
 }
 
 function dialogOf(node: Node): Dialog<any> | null {
@@ -189,27 +193,42 @@ export class DockManager {
     }
 
     public attach(dialog: Dialog<any>): void {
+        this._register(dialog);
+        this._openDocked(dialog);
+    }
+
+    public detach(dialog: Dialog<any>): void {
+        const state = this._dialogs.get(dialog);
+
+        if (!state) return;
+
+        if (state.attached) {
+            state.attached = false;
+
+            dialog.events.off("dragstart", this._onDragStart);
+            dialog.events.off("dragend", this._onDragEnd);
+            dialog.events.off("visibility", this._onDialogVisibility);
+        }
+
+        this.undock(dialog);
+        this._dialogs.delete(dialog);
+    }
+
+    /**
+     * Puts the dialog under the manager's watch, which is all that being known to it means:
+     * where it ends up is left to whoever asked - `attach` reads the dialog's own `dock`
+     * option, `dock` is told a side outright, and either of them can be the first here.
+     */
+    protected _register(dialog: Dialog<any>): void {
         const state = this._state(dialog);
 
         if (state.attached) return;
 
         state.attached = true;
+
         dialog.events.on("dragstart", this._onDragStart, this);
         dialog.events.on("dragend", this._onDragEnd, this);
         dialog.events.on("visibility", this._onDialogVisibility, this);
-
-        this._openDocked(dialog);
-    }
-
-    public detach(dialog: Dialog<any>): void {
-        if (!this._dialogs.get(dialog)?.attached) return;
-
-        dialog.events.off("dragstart", this._onDragStart);
-        dialog.events.off("dragend", this._onDragEnd);
-        dialog.events.off("visibility", this._onDialogVisibility);
-
-        this.undock(dialog);
-        this._dialogs.delete(dialog);
     }
 
     protected _state(dialog: Dialog<any>): DialogState {
@@ -224,6 +243,10 @@ export class DockManager {
     }
 
     public dock(dialog: Dialog<any>, side: DockSide, placement: DockPlacement = "end"): void {
+        this._register(dialog);
+
+        this._state(dialog).opened = true;
+
         if (this.getSide(dialog) === side) return;
 
         this.undock(dialog);
@@ -328,15 +351,32 @@ export class DockManager {
 
     public destroy(): void {
         document.removeEventListener("pointerdown", this._onPointerDown, true);
+        document.removeEventListener("mousemove", this._onDragMove);
+        document.removeEventListener("pointermove", this._onDragMove);
+
         this._resizeObserver.disconnect();
         this._domObserver.disconnect();
+
+        for (const zone of [...this._zones]) {
+            for (const dialog of [...zone.items]) {
+                this.undock(dialog);
+            }
+
+            zone.el.remove();
+        }
+
+        this._zones = [];
 
         for (const dialog of [...this._dialogs.keys()]) {
             this.detach(dialog);
         }
 
+        this._splitters = [];
         this._splitterLayer.remove();
         this._hint.remove();
+
+        this._dragging = null;
+        this._drop = null;
     }
 
     /** What a side opens at for this dialog: its width standing on end, or its height. */
@@ -534,15 +574,11 @@ export class DockManager {
         const { visible, total } = this._shares(zone);
         const shown = new Set(visible);
 
-        // A hidden dialog keeps its place among the children: taking it out of the element
-        // would read as a dialog closed for good, and it would never come back when shown.
-        // Flex passes over a child that is display:none anyway, and the seams are built from
-        // the visible ones, so nothing is left standing in its stead.
         const children = zone.items.map((dialog, index) => {
             const el = dialog.el!;
 
             if (shown.has(index)) {
-                el.style.flex = `${zone.shares[index] / total} 1 0`;
+                el.style.flex = stackFlex(zone.shares[index] / total);
             }
 
             return el;
@@ -703,8 +739,8 @@ export class DockManager {
             zone.shares[before] = Math.max(MIN_ITEM_SHARE, Math.min(pair - MIN_ITEM_SHARE, startBefore + delta));
             zone.shares[after] = pair - zone.shares[before];
 
-            zone.items[before].el!.style.flex = `${zone.shares[before] / total} 1 0`;
-            zone.items[after].el!.style.flex = `${zone.shares[after] / total} 1 0`;
+            zone.items[before].el!.style.flex = stackFlex(zone.shares[before] / total);
+            zone.items[after].el!.style.flex = stackFlex(zone.shares[after] / total);
 
             this._positionSplitters();
         };
@@ -807,9 +843,6 @@ export class DockManager {
 
         if (x < 0 || y < 0 || x > host.width || y > host.height) return null;
 
-        // A side not in use yet has nothing to point at, so it is offered near the edge of
-        // what the sides before it left free. This goes first: the middle covers that same
-        // rectangle, and a dialog dragged over the map is not asking to be docked into it
         const free = this._free;
         const nearest = (
             [
@@ -846,7 +879,6 @@ export class DockManager {
         return null;
     }
 
-    /** The band a side would occupy, whether it is in use yet or not. */
     protected _sideRect(side: DockSide): Rect {
         if (side === "center") return this._free;
 

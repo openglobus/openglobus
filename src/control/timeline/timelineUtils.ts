@@ -7,25 +7,120 @@ export function addSeconds(date: Date, seconds: number): Date {
     return new Date(+date + seconds * 1000);
 }
 
-export function dateToStr(date: Date, showTime: boolean = true, showMilliseconds: boolean = false): string {
+export function dateToStr(
+    date: Date,
+    showTime: boolean = true,
+    showMilliseconds: boolean = false,
+    use24HourClock: boolean = true
+): string {
     let month = MONTHS[date.getUTCMonth()],
         day = date.getUTCDate(),
         year = date.getUTCFullYear();
 
     if (showTime) {
-        let h = date.getUTCHours().toString().padStart(2, "0"),
+        let hours = date.getUTCHours(),
+            suffix = "";
+
+        if (!use24HourClock) {
+            suffix = hours < 12 ? " am" : " pm";
+            hours = hours % 12 || 12;
+        }
+
+        let h = hours.toString().padStart(2, "0"),
             m = date.getUTCMinutes().toString().padStart(2, "0"),
             s = date.getUTCSeconds().toString().padStart(2, "0");
 
         if (showMilliseconds) {
             let ms = date.getUTCMilliseconds().toString().padStart(3, "0");
-            return `${month} ${day} ${year} ${h}:${m}:${s}.${ms}`;
+            return `${month} ${day} ${year} ${h}:${m}:${s}.${ms}${suffix}`;
         }
 
-        return `${month} ${day} ${year} ${h}:${m}:${s}`;
+        return `${month} ${day} ${year} ${h}:${m}:${s}${suffix}`;
     }
 
     return `${month} ${day} ${year}`;
+}
+
+/**
+ * Formats a date by a template, e.g. "MM/dd/yyyy", "hh:mm:ss.ms". Tokens: yyyy/yy year,
+ * MMM month name, MM/M month, dd/d day, hh/h hours, mm/m minutes, ss/s seconds,
+ * ms milliseconds, a/A am/pm. Case matters for M/m only. On a 12-hour clock
+ * am/pm is appended after the time unless the template places it with "a".
+ */
+export function formatDate(date: Date, template: string, use24HourClock: boolean = true): string {
+    const hours24 = date.getUTCHours();
+    const hours = use24HourClock ? hours24 : hours24 % 12 || 12;
+    const meridiem = hours24 < 12 ? "am" : "pm";
+
+    const pad = (n: number, len: number) => n.toString().padStart(len, "0");
+
+    let out = "",
+        hasHours = false,
+        hasMeridiem = false;
+
+    for (let i = 0; i < template.length;) {
+        const at = (token: string) => template.startsWith(token, i);
+        const atCI = (token: string) => template.slice(i, i + token.length).toLowerCase() === token;
+
+        if (atCI("yyyy")) {
+            out += pad(date.getUTCFullYear(), 4);
+            i += 4;
+        } else if (atCI("yy")) {
+            out += pad(date.getUTCFullYear() % 100, 2);
+            i += 2;
+        } else if (at("MMM")) {
+            out += MONTHS[date.getUTCMonth()];
+            i += 3;
+        } else if (at("MM")) {
+            out += pad(date.getUTCMonth() + 1, 2);
+            i += 2;
+        } else if (at("ms") || at("mS")) {
+            out += pad(date.getUTCMilliseconds(), 3);
+            i += 2;
+        } else if (at("mm")) {
+            out += pad(date.getUTCMinutes(), 2);
+            i += 2;
+        } else if (at("m")) {
+            out += date.getUTCMinutes().toString();
+            i += 1;
+        } else if (at("M")) {
+            out += (date.getUTCMonth() + 1).toString();
+            i += 1;
+        } else if (atCI("dd")) {
+            out += pad(date.getUTCDate(), 2);
+            i += 2;
+        } else if (atCI("d")) {
+            out += date.getUTCDate().toString();
+            i += 1;
+        } else if (atCI("hh")) {
+            out += pad(hours, 2);
+            hasHours = true;
+            i += 2;
+        } else if (atCI("h")) {
+            out += hours.toString();
+            hasHours = true;
+            i += 1;
+        } else if (atCI("ss")) {
+            out += pad(date.getUTCSeconds(), 2);
+            i += 2;
+        } else if (atCI("s")) {
+            out += date.getUTCSeconds().toString();
+            i += 1;
+        } else if (atCI("a")) {
+            out += template[i] === "A" ? meridiem.toUpperCase() : meridiem;
+            hasMeridiem = true;
+            i += 1;
+        } else {
+            out += template[i];
+            i += 1;
+        }
+    }
+
+    if (!use24HourClock && hasHours && !hasMeridiem) {
+        out += " " + meridiem;
+    }
+
+    return out;
 }
 
 export function createCanvasHTML(): HTMLCanvasElement {

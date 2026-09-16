@@ -46,6 +46,8 @@ export type {
     IShadowCameraFitStats
 } from "./utils/shadowCameraFit";
 export { ShadowCameraFit } from "./utils/shadowCameraFit";
+export type { ITimeZoneData, ITimeZoneFeature, ITimeZoneProviderParams } from "./utils/tz";
+export { TimeZoneProvider, tzOffsetMinutes } from "./utils/tz";
 
 declare const __OG_VERSION__: string;
 export const version = __OG_VERSION__;

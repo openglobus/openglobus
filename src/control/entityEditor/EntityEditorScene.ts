@@ -661,6 +661,11 @@ class EntityEditorScene extends Scene {
     }
 
     protected _setEntityRotation(entity: Entity, rotation: Quat, cart: Vec3) {
+        if (entity.parent && entity.relativePosition) {
+            entity.setAbsoluteRotation(rotation);
+            return;
+        }
+
         let rot = this._isPlanetEntity(entity)
             ? this.getFrameRotation(cart).conjugate().inverse().mul(rotation)
             : rotation;

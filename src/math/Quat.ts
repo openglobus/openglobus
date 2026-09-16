@@ -2,7 +2,13 @@ import * as math from "../math";
 import { Vec3 } from "./Vec3";
 import { Mat4 } from "./Mat4";
 import { Mat3 } from "./Mat3";
-import { PI_TWO } from "../math";
+import { PI_TWO, TWO_PI } from "../math";
+
+/**
+ * |sin(pitch)| above which pitch counts as vertical and the euler
+ * decomposition switches to its gimbal lock branch.
+ */
+const EULER_POLE_SIN = 1.0 - 1e-15;
 
 /**
  * A set of 4-dimensional coordinates used to represent rotation in 3-dimensional space.
@@ -525,16 +531,47 @@ export class Quat {
         };
     }
 
+    /**
+     * Sine of the pitch angle - the shared term of the euler decomposition below.
+     * @protected
+     * @returns {number} -
+     */
+    protected _sinPitch(): number {
+        return -2 * (this.y * this.z - this.w * this.x);
+    }
+
+    /**
+     * True when the rotation looks straight up or down (gimbal lock):
+     * the getters then return roll 0 and put the whole turn into yaw.
+     * @protected
+     * @returns {boolean} -
+     */
+    protected _atEulerPole(): boolean {
+        return Math.abs(this._sinPitch()) >= EULER_POLE_SIN;
+    }
+
     public getPitch(): number {
-        let sinPitch = -2 * (this.y * this.z - this.w * this.x);
-        return Math.abs(sinPitch) >= 1 ? Math.sign(sinPitch) * PI_TWO : Math.asin(sinPitch);
+        let sinPitch = this._sinPitch();
+        return this._atEulerPole() ? Math.sign(sinPitch) * PI_TWO : Math.asin(sinPitch);
     }
 
     public getYaw(): number {
+        if (this._atEulerPole()) {
+            let yaw = -2.0 * Math.atan2(this.y, this.w);
+            if (yaw > Math.PI) {
+                yaw -= TWO_PI;
+            } else if (yaw <= -Math.PI) {
+                yaw += TWO_PI;
+            }
+            return yaw;
+        }
         return -Math.atan2(2 * (this.x * this.z + this.w * this.y), 1 - 2 * (this.y * this.y + this.x * this.x));
     }
 
     public getRoll() {
+        if (this._atEulerPole()) {
+            return 0;
+        }
         return Math.atan2(2 * (this.x * this.y + this.w * this.z), 1 - 2 * (this.z * this.z + this.x * this.x));
     }
 

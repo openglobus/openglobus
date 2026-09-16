@@ -2,26 +2,26 @@ name: Tag CI
 
 on:
   create:
-    tags:
-      - '*'
-  push:
-    tags:
-      - '*'
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   docs:
-    name: Generate documentation
+    name: Publish documentation for tag
+    if: github.event.ref_type == 'tag'
     runs-on: ubuntu-latest
     concurrency:
       group: github-openglobus-deploy
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
       - uses: ./.github/actions/main
-      - run: npm run docs || true
+
+      - run: npm run docs
+
       - name: Deploy to openglobus.github.io
         uses: cpina/github-action-push-to-another-repository@main
         env:

@@ -293,7 +293,10 @@ describe('Entity direct quaternion rotation', () => {
     });
 
     test('keeps the rotation exact where euler angles are degenerate', () => {
-        // Pitch -90 is the decomposition singularity: yaw and roll trade places there.
+        // Pitch -90 is the decomposition singularity: yaw and roll turn around the
+        // same axis there. The getters fold the pair deterministically (roll goes
+        // to 0, yaw carries the whole turn), so feeding the decomposed angles back
+        // keeps the orientation - the euler path is as exact as the direct one.
         const nadir = new Quat().setPitchYawRoll(-Math.PI / 2, 1.2, 0.9);
         const expected = frame.conjugate().mul(nadir);
 
@@ -306,6 +309,6 @@ describe('Entity direct quaternion rotation', () => {
         direct.setDirectQuaternionRotation(nadir);
 
         expect(angleBetween(absoluteRotation(direct), expected)).toBeLessThan(0.001);
-        expect(angleBetween(absoluteRotation(euler), expected)).toBeGreaterThan(1);
+        expect(angleBetween(absoluteRotation(euler), expected)).toBeLessThan(0.001);
     });
 });
