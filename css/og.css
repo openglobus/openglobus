@@ -1,15 +1,23 @@
 :root {
-    --grey0: rgb(36 36 36); /*dialog background*/
+    --grey0: #191a1c; /*dialog background*/
     --grey1: #434244; /*dialog border*/
     --grey2: #3f3f46; /*dialog header*/
     --grey3: #bbbbbb; /*dialog font color*/
     --grey4: #5e5e5e; /*hover color*/
-    --grey5: rgb(50, 50, 50); /*map button background*/
+    --grey5: rgb(50, 50, 50); /*inputs and map info background*/
     --grey6: #b6b6b6; /*map button icon color*/
     --grey7: #707070; /*slider progress color*/
     --grey8: #e2e2e2; /*text color*/
     --grey9: #9f9f9f;
+    --grey10: #26282c; /*dock background*/
+    --grey11: #d1d3d9; /*dialog title color*/
+    --grey12: #c3c5cb; /*dialog toolbar icon color*/
+    --grey13: #ffffff17; /*dialog toolbar button hover*/
+    --grey14: #ffffff29; /*dialog toolbar button pressed*/
+    --grey15: #80808059; /*dialog scrollbar thumb*/
+    --grey16: #8080808c; /*dialog scrollbar thumb hover*/
     --blue0: #1700a9ee;
+    --og-dock-gap: 6px; /*space between docked dialogs*/
 }
 
 .og-map-button {
@@ -19,7 +27,7 @@
     outline: none;
     cursor: pointer;
     z-index: 1;
-    background-color: var(--grey5);
+    background-color: var(--grey0);
 }
 
 .og-control-container {
@@ -58,7 +66,7 @@
 }
 
 .og-fps-button:hover {
-    background-color: var(--grey5);
+    background-color: var(--grey0);
 }
 
 .og-control-container__top-left {
@@ -231,22 +239,25 @@ input {
     position: absolute;
     display: flex;
     flex-direction: column;
-    box-shadow: 3px 3px 4px rgba(15, 15, 15, 0.17);
+    padding: 5px;
+    box-shadow: 0 0 16px rgba(0, 0, 0, 0.25);
     background-color: var(--grey0);
     border: 1px solid;
     border-color: var(--grey1);
-    border-radius: 4px;
+    border-radius: 8px;
     overflow: auto;
 }
 
 .og-ddialog .og-ddialog-header {
     width: 100%;
-    height: 27px;
+    height: 40px;
+    flex-shrink: 0;
+    box-sizing: border-box;
     position: relative;
-    padding: 0;
+    padding: 0 8px 0 12px;
+    gap: 8px;
     z-index: 1;
-    background-color: var(--grey2);
-    color: #fff;
+    color: var(--grey11);
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -254,12 +265,14 @@ input {
 }
 
 .og-ddialog .og-ddialog-header .og-ddialog-header__title {
-    color: var(--grey3);
-    padding-left: 5px;
+    color: var(--grey11);
     pointer-events: none;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 14px;
-    font-weight: 400;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .og-ddialog .og-ddialog-header .og-ddialog-header__buttons {
@@ -269,7 +282,29 @@ input {
 }
 
 .og-ddialog .og-ddialog-header .og-ddialog-header__buttons .og-button {
-    border-radius: 0;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 4px;
+    /* For icons sized in em, like the close one */
+    font-size: 16px;
+}
+
+.og-ddialog .og-ddialog-header .og-ddialog-header__buttons .og-button:hover {
+    background-color: var(--grey13);
+}
+
+.og-ddialog .og-ddialog-header .og-ddialog-header__buttons .og-button:active {
+    background-color: var(--grey14);
+}
+
+.og-ddialog .og-ddialog-header .og-ddialog-header__buttons .og-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+.og-ddialog .og-ddialog-header .og-ddialog-header__buttons .og-button svg path {
+    fill: var(--grey12);
 }
 
 .og-ddialog .og-ddialog-container {
@@ -295,6 +330,45 @@ input {
     cursor: nwse-resize;
     touch-action: none;
     z-index: 2;
+}
+
+/* Scrollbars: standard properties where supported, WebKit pseudo-elements in older Safari and Chromium */
+@supports (scrollbar-color: auto) {
+    .og-ddialog {
+        scrollbar-color: var(--grey15) transparent;
+    }
+
+    /* Not inherited, unlike the color */
+    .og-ddialog,
+    .og-ddialog * {
+        scrollbar-width: thin;
+    }
+}
+
+@supports not (scrollbar-color: auto) {
+    .og-ddialog::-webkit-scrollbar,
+    .og-ddialog ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+        background: transparent;
+    }
+
+    /* Painted white unless told otherwise */
+    .og-ddialog::-webkit-scrollbar-corner,
+    .og-ddialog ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    .og-ddialog::-webkit-scrollbar-thumb,
+    .og-ddialog ::-webkit-scrollbar-thumb {
+        border-radius: 4px;
+        background: var(--grey15);
+    }
+
+    .og-ddialog::-webkit-scrollbar-thumb:hover,
+    .og-ddialog ::-webkit-scrollbar-thumb:hover {
+        background: var(--grey16);
+    }
 }
 
 .og-button {
@@ -549,7 +623,6 @@ input {
 
 /* =============================== */
 /* RULER */
-
 /* =============================== */
 
 .ogConsole {
@@ -846,7 +919,7 @@ input {
     font-size: 1em;
     cursor: pointer;
     float: left;
-    background-color: var(--grey5);
+    background-color: var(--grey0);
     color: var(--grey8);
     padding: 5px;
     border-radius: 4px;
@@ -969,7 +1042,7 @@ TIMELINE
 .og-timeline {
     width: 100%;
     height: 100%;
-    background: rgb(45 45 45);
+    background: var(--grey0);
     position: relative;
     left: 0;
     bottom: 0;
@@ -1741,12 +1814,15 @@ DOCK
     overflow: hidden;
 }
 
+/* Half a gap around each side: two sides that meet leave a whole one */
 .og-dock {
     position: absolute;
     z-index: 10;
     display: flex;
+    gap: var(--og-dock-gap);
+    padding: calc(var(--og-dock-gap) / 2);
     box-sizing: border-box;
-    background: var(--grey0);
+    background: var(--grey10);
     overflow: hidden;
 }
 
@@ -1761,7 +1837,9 @@ DOCK
     min-height: 0 !important;
     max-width: none !important;
     max-height: none !important;
-    border-radius: 0;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
     box-shadow: none;
     overflow: hidden;
 }
@@ -1780,65 +1858,29 @@ DOCK
     pointer-events: none;
 }
 
+/* Paints nothing: the gap is the seam, and the cursor tells it */
 .og-dock-splitter {
     position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     pointer-events: auto;
     /* Or a finger dragging an edge reads as a scroll and the drag is cancelled */
     touch-action: none;
-}
-
-.og-dock-splitter::before {
-    content: "";
-    display: block;
-    background: var(--grey1);
-    transition:
-        background 0.1s ease-out,
-        width 0.1s ease-out,
-        height 0.1s ease-out;
 }
 
 .og-dock-splitter__v {
     cursor: ew-resize;
 }
 
-.og-dock-splitter__v::before {
-    width: 1px;
-    height: 100%;
-}
-
 .og-dock-splitter__h {
     cursor: ns-resize;
 }
 
-.og-dock-splitter__h::before {
-    width: 100%;
-    height: 1px;
-}
-
-.og-dock-splitter:hover::before,
-.og-dock-splitter__active::before {
-    background: var(--grey6);
-}
-
-.og-dock-splitter__v:hover::before,
-.og-dock-splitter__v.og-dock-splitter__active::before {
-    width: 3px;
-}
-
-.og-dock-splitter__h:hover::before,
-.og-dock-splitter__h.og-dock-splitter__active::before {
-    height: 3px;
-}
-
-/* Where the dialog under the pointer would land */
 .og-dock-hint {
     position: absolute;
     z-index: 1000;
     box-sizing: border-box;
-    border: 2px solid var(--grey6);
+    border: calc(var(--og-dock-gap) / 2) solid transparent;
+    border-radius: calc(10px + var(--og-dock-gap) / 2);
     background: rgba(182, 182, 182, 0.18);
+    background-clip: padding-box;
     pointer-events: none;
 }
