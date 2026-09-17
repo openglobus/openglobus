@@ -2,9 +2,7 @@ import type { EventsHandler } from "../Events";
 import { Material } from "./Material";
 import { BaseTileMaterialLayer } from "./BaseTileMaterialLayer";
 import type { LayerEventsList } from "./Layer";
-import type { Node } from "../quadTree/Node";
 import type { Segment } from "../segment/Segment";
-import { Planet } from "../scene/Planet";
 import {
     createImageData,
     getFastNoDataChecker,
@@ -63,12 +61,12 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             options.renderOptions?.nodata !== undefined
                 ? parseNoDataValue(options.renderOptions.nodata)
                 : options.renderOptions?.noData !== undefined
-                ? parseNoDataValue(options.renderOptions.noData)
-                : options.nodata !== undefined
-                ? parseNoDataValue(options.nodata)
-                : options.noData !== undefined
-                ? parseNoDataValue(options.noData)
-                : undefined;
+                  ? parseNoDataValue(options.renderOptions.noData)
+                  : options.nodata !== undefined
+                    ? parseNoDataValue(options.nodata)
+                    : options.noData !== undefined
+                      ? parseNoDataValue(options.noData)
+                      : undefined;
 
         this._renderOptions = options.renderOptions ? { ...options.renderOptions } : {};
         if (initialNodata !== undefined) {
@@ -101,7 +99,11 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         return layer;
     }
 
-    public static async fromBlob(name: string, blob: Blob | File, options: IGeoTIFFLayerParams = {}): Promise<GeoTIFFLayer> {
+    public static async fromBlob(
+        name: string,
+        blob: Blob | File,
+        options: IGeoTIFFLayerParams = {}
+    ): Promise<GeoTIFFLayer> {
         const layer = new GeoTIFFLayer(name, { ...options, src: blob });
         await layer.whenReady();
         return layer;
@@ -156,8 +158,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             renderOptions.nodata !== undefined
                 ? parseNoDataValue(renderOptions.nodata)
                 : renderOptions.noData !== undefined
-                ? parseNoDataValue(renderOptions.noData)
-                : undefined;
+                  ? parseNoDataValue(renderOptions.noData)
+                  : undefined;
 
         this._renderOptions = { ...this._renderOptions, ...renderOptions };
         if (nextNodata !== undefined) {
@@ -342,21 +344,6 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                         }
                     }
                 }
-            } else if (typeof qts.traverseNodes === "function") {
-                // Fallback for mocked environments or unmanaged materials
-                qts.traverseNodes((node: Node) => {
-                    const seg = node.segment;
-                    if (!seg) return;
-                    const mat = seg.materials[lid];
-                    if (!mat || !mat.isReady || !mat.texture) return;
-                    const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
-                    if (!renderedKeys.has(cacheKey)) {
-                        const canvas = this._tileCache.get(cacheKey);
-                        if (canvas) {
-                            mat.applyImage(canvas);
-                        }
-                    }
-                });
             }
         };
 
@@ -373,7 +360,10 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._planet.renderer?.requestRedraw();
     }
 
-    private async _initSource(src: string | Blob | File | ArrayBuffer, options: IGeoTIFFLayerParams): Promise<IGeoTIFFMetadata> {
+    private async _initSource(
+        src: string | Blob | File | ArrayBuffer,
+        options: IGeoTIFFLayerParams
+    ): Promise<IGeoTIFFMetadata> {
         try {
             const meta = await this._reader.init(src);
 
@@ -442,11 +432,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     private _updateReadSamples(): void {
         if (this._renderOptions.multi) {
             const { r, g, b } = this._renderOptions.multi;
-            this._readSamples = [
-                (r?.band ?? 1) - 1,
-                (g?.band ?? 2) - 1,
-                (b?.band ?? 3) - 1
-            ];
+            this._readSamples = [(r?.band ?? 1) - 1, (g?.band ?? 2) - 1, (b?.band ?? 3) - 1];
         } else if (this._renderOptions.convertToRGB) {
             this._readSamples = [0, 1, 2];
         } else if (this._renderOptions.single) {
@@ -495,42 +481,65 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         }
 
         const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
-        if (this._tileCache.has(cacheKey)) {
-            const cached = this._tileCache.get(cacheKey)!;
-            if (
-                cached instanceof HTMLCanvasElement &&
-                (cached as any)._renderOptionsVersion !== undefined &&
-                (cached as any)._renderOptionsVersion !== this._renderOptionsVersion &&
-                this._rasterCache.has(cacheKey)
-            ) {
-                const tileData = this._rasterCache.get(cacheKey)!;
-                const refreshedCanvas = this._renderTileDataToCanvas(tileData, cached);
-                if (refreshedCanvas) {
-                    this._tileCache.set(cacheKey, refreshedCanvas);
-                    material.applyImage(refreshedCanvas);
-                    return;
-                }
-            }
-            material.applyImage(cached);
-            return;
-        }
-
-        if (this._rasterCache.has(cacheKey)) {
-            const tileData = this._rasterCache.get(cacheKey)!;
-            const canvas = this._renderTileDataToCanvas(tileData);
-            if (canvas) {
-                this._addToCache(cacheKey, canvas);
-                material.applyImage(canvas);
-                return;
-            }
-        }
 
         material.isReady = false;
         material.isLoading = true;
+
+        if (this._tileCache.has(cacheKey) || this._rasterCache.has(cacheKey)) {
+            requestAnimationFrame(() => {
+                if (material.isLoading) {
+                    const image = this._getCachedTileImage(cacheKey);
+                    if (image) {
+                        material.applyImage(image);
+                    } else {
+                        this._requestTile(material, cacheKey);
+                    }
+                }
+            });
+            return;
+        }
+
+        this._requestTile(material, cacheKey);
+    }
+
+    private _getCachedTileImage(cacheKey: string): ImageBitmap | HTMLCanvasElement | null {
+        const cached = this._tileCache.get(cacheKey);
+        const tileData = this._rasterCache.get(cacheKey);
+
+        if (cached) {
+            if (
+                tileData &&
+                cached instanceof HTMLCanvasElement &&
+                (cached as any)._renderOptionsVersion !== undefined &&
+                (cached as any)._renderOptionsVersion !== this._renderOptionsVersion
+            ) {
+                const refreshedCanvas = this._renderTileDataToCanvas(tileData, cached);
+                if (refreshedCanvas) {
+                    this._tileCache.set(cacheKey, refreshedCanvas);
+                    return refreshedCanvas;
+                }
+            }
+            return cached;
+        }
+
+        if (tileData) {
+            const canvas = this._renderTileDataToCanvas(tileData);
+            if (canvas) {
+                this._addToCache(cacheKey, canvas);
+                return canvas;
+            }
+        }
+
+        return null;
+    }
+
+    private _requestTile(material: Material, cacheKey: string): void {
+        const seg = material.segment;
+
         this._activeRequestsCount++;
 
         this._reader
-            .readTileRasters(tileExtent, seg.tileZoom, this._tileSize, this._readSamples.slice())
+            .readTileRasters(seg.getExtentLonLat(), seg.tileZoom, this._tileSize, this._readSamples.slice())
             .then((tileData) => {
                 this._activeRequestsCount--;
                 if (this._activeRequestsCount < 0) this._activeRequestsCount = 0;
@@ -717,7 +726,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                     for (let i = 0; i < pixelCount; i++) {
                         const n = nir[i];
                         const r = red[i];
-                        if (checkNoData ? (checkNoData(n) || checkNoData(r)) : (Number.isNaN(n) || Number.isNaN(r))) {
+                        if (checkNoData ? checkNoData(n) || checkNoData(r) : Number.isNaN(n) || Number.isNaN(r)) {
                             result[i] = NaN;
                             continue;
                         }
