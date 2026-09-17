@@ -31,11 +31,11 @@ export type WebGLContextExt = { type: string } & WebGL2RenderingContext;
 export type WebGLBufferExt = { numItems: number; itemSize: number } & WebGLBuffer;
 export type WebGLTextureExt = { default?: boolean } & WebGLTexture;
 export type ImageSource = HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement | HTMLVideoElement;
-type CreateTextureFunc = (
+export type CreateTextureFunc = (
     image: ImageSource,
     internalFormat?: number | null,
     texParami?: number | null,
-    texture?: WebGLTextureExt
+    texture?: WebGLTextureExt | null
 ) => WebGLTextureExt | null;
 
 export interface IHandlerParameters {
@@ -527,24 +527,28 @@ class Handler {
      * Creates NEAREST filter texture.
      * @public
      * @param {ImageSource} image - Image or Canvas object.
-     * @param {number} [internalFormat]
-     * @param {number} [texParami]
-     * @param {WebGLTexture | null} [texture]
+     * @param {number} [internalFormat] - Sized internal format, `gl.RGBA8` by default.
+     * @param {number} [texParami] - Wrap mode for S/T axes, `gl.CLAMP_TO_EDGE` by default.
+     * @param {WebGLTextureExt | null} [texture] - Texture to re-upload the image into.
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createTexture_n(
         image: ImageSource,
         internalFormat?: number | null,
         texParami?: number | null,
-        texture: WebGLTexture | null = null
+        texture: WebGLTextureExt | null = null
     ): WebGLTextureExt | null {
         let gl = this.gl!;
 
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
+        if (texture) {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+        } else {
+            texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
+        }
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -559,24 +563,28 @@ class Handler {
      * Creates LINEAR filter texture.
      * @public
      * @param {ImageSource} image - Image or Canvas object.
-     * @param {number} [internalFormat]
-     * @param {number} [texParami]
-     * @param {WebGLTexture | null} [texture]
+     * @param {number} [internalFormat] - Sized internal format, `gl.RGBA8` by default.
+     * @param {number} [texParami] - Wrap mode for S/T axes, `gl.CLAMP_TO_EDGE` by default.
+     * @param {WebGLTextureExt | null} [texture] - Texture to re-upload the image into.
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createTexture_l(
         image: ImageSource,
         internalFormat?: number | null,
         texParami?: number | null,
-        texture: WebGLTexture | null = null
+        texture: WebGLTextureExt | null = null
     ): WebGLTextureExt | null {
         let gl = this.gl!;
 
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
+        if (texture) {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+        } else {
+            texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
+        }
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -591,24 +599,28 @@ class Handler {
      * Creates MIPMAP filter texture.
      * @public
      * @param {ImageSource} image - Image or Canvas object.
-     * @param {number} [internalFormat]
-     * @param {number} [texParami]
-     * @param {WebGLTexture | null} [texture]
+     * @param {number} [internalFormat] - Sized internal format, `gl.RGBA8` by default.
+     * @param {number} [texParami] - Wrap mode for S/T axes, `gl.CLAMP_TO_EDGE` by default.
+     * @param {WebGLTextureExt | null} [texture] - Texture to re-upload the image into.
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createTexture_mm(
         image: ImageSource,
         internalFormat?: number | null,
         texParami?: number | null,
-        texture: WebGLTexture | null = null
+        texture: WebGLTextureExt | null = null
     ): WebGLTextureExt | null {
         let gl = this.gl!;
         const levels = this._getMipmapLevels(image.width, image.height);
 
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
+        if (texture) {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+        } else {
+            texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
+        }
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
@@ -623,25 +635,29 @@ class Handler {
      * Creates ANISOTROPY filter texture.
      * @public
      * @param {ImageSource} image - Image or Canvas object.
-     * @param {number} [internalFormat]
-     * @param {number} [texParami]
-     * @param {WebGLTexture | null} [texture]
+     * @param {number} [internalFormat] - Sized internal format, `gl.RGBA8` by default.
+     * @param {number} [texParami] - Wrap mode for S/T axes, `gl.CLAMP_TO_EDGE` by default.
+     * @param {WebGLTextureExt | null} [texture] - Texture to re-upload the image into.
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createTexture_a(
         image: ImageSource,
         internalFormat?: number | null,
         texParami?: number | null,
-        texture: WebGLTexture | null = null
+        texture: WebGLTextureExt | null = null
     ): WebGLTextureExt | null {
         let gl = this.gl!;
         const levels = this._getMipmapLevels(image.width, image.height);
 
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
+        if (texture) {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+        } else {
+            texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
+        }
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);

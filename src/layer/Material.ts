@@ -51,10 +51,14 @@ class Material {
         this.layer.abortMaterialLoading(this);
     }
 
+    /**
+     * The ready texture is re-uploaded with texSubImage2D instead of creating a new one.
+     * It works while the image size stays the same, which is always true for tiles.
+     */
     public _createTexture(img: HTMLCanvasElement | ImageBitmap | HTMLImageElement) {
         return (
             this.layer._planet &&
-            this.layer.createTexture!(img, this.layer._internalFormat, this.isReady ? this.texture : null)
+            this.layer.createTexture!(img, this.layer._internalFormat, null, this.isReady ? this.texture : null)
         );
     }
 

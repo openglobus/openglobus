@@ -13,7 +13,7 @@ import { Segment } from "../segment/Segment";
 import { Vec3 } from "../math/Vec3";
 import type { NumberArray3 } from "../math/Vec3";
 import type { NumberArray4 } from "../math/Vec4";
-import type { IDefaultTextureParams } from "../webgl/Handler";
+import type { CreateTextureFunc, IDefaultTextureParams } from "../webgl/Handler";
 
 const FADING_RATIO = 30;
 
@@ -154,7 +154,7 @@ class Layer {
      */
     public _planet: Planet | null;
 
-    public createTexture: Function | null;
+    public createTexture: CreateTextureFunc | null;
 
     protected _nightTextureCoefficient: number;
 
