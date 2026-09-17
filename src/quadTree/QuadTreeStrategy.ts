@@ -189,34 +189,26 @@ export class QuadTreeStrategy {
     }
 
     /**
-     * Traverses all nodes in the quadtree list.
-     * @param callback
-     */
-    public traverseNodes(callback: (node: Node) => void): void {
-        for (let i = 0, len = this._quadTreeList.length; i < len; i++) {
-            this._quadTreeList[i].traverseTree(callback);
-        }
-    }
-
-    /**
      * clears layer material from the quad tree list.
      * @param layer
      * @param keepRendered if true, keeps materials that are currently rendered.
      */
     public clearLayerMaterial(layer: Layer, keepRendered: boolean = false) {
         let lid = layer.__id;
-        this.traverseNodes((node: Node) => {
-            if (keepRendered && this._renderedNodes.includes(node)) {
-                return;
-            }
-            let mats = node.segment.materials;
-            if (mats[lid]) {
-                mats[lid].clear();
-                //@ts-ignore
-                mats[lid] = null;
-                //delete mats[lid];
-            }
-        });
+        for (let i = 0, len = this._quadTreeList.length; i < len; i++) {
+            this._quadTreeList[i].traverseTree((node: Node) => {
+                if (keepRendered && this._renderedNodes.includes(node)) {
+                    return;
+                }
+                let mats = node.segment.materials;
+                if (mats[lid]) {
+                    mats[lid].clear();
+                    //@ts-ignore
+                    mats[lid] = null;
+                    //delete mats[lid];
+                }
+            });
+        }
     }
 
     public get terrainReady(): boolean {

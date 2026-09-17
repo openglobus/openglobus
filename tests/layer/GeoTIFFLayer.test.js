@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { GeoTIFFLayer } from "../../src/layer/GeoTIFFLayer";
+import { Material } from "../../src/layer/Material";
 import {
     buildColorLUT,
     parseColor,
@@ -329,3 +330,70 @@ describe("GeoTIFFLayer", () => {
 });
 
 
+describe("GeoTIFFLayer cached tile material", () => {
+    function createLayer(waitForParentMaterial) {
+        const layer = new GeoTIFFLayer("test-tiff", { waitForParentMaterial });
+        layer._reader.isReady = true;
+        layer._planet = { renderer: { requestRedraw: () => {} } };
+        layer._internalFormat = 0;
+        layer.createTexture = vi.fn(() => ({ own: true }));
+        return layer;
+    }
+
+    function createSegment(layer, tileZoom, tileX, tileY, parentNode, deleteTexture) {
+        const segment = {
+            initialized: true,
+            passReady: true,
+            tileZoom,
+            tileX,
+            tileY,
+            materials: {},
+            planet: { transparentTexture: { default: true }, renderer: { requestRedraw: () => {} } },
+            handler: { gl: { deleteTexture } },
+            getExtentLonLat: () => new Extent(new LonLat(10, 45), new LonLat(11, 46))
+        };
+        segment.node = { segment, parentNode, nodeId: tileZoom * 100 + tileX };
+        return segment;
+    }
+
+    const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+
+    it("keeps valid texture offsets when the tile is taken from the cache (waitForParentMaterial)", async () => {
+        const layer = createLayer(true);
+        const segment = createSegment(layer, 3, 1, 2, null, vi.fn());
+        const material = (segment.materials[layer.__id] = new Material(segment, layer));
+        layer._tileCache.set("3_1_2", document.createElement("canvas"));
+
+        layer.applyMaterial(material);
+        await nextFrame();
+
+        expect(material.isReady).toBe(true);
+        expect(material.textureExists).toBe(true);
+        expect(material.texOffset).toEqual([0, 0, 1, 1]);
+        expect(layer.applyMaterial(material)).toEqual([0, 0, 1, 1]);
+    });
+
+    it("does not take over the parent texture when the tile is taken from the cache", async () => {
+        const layer = createLayer(false);
+        const deleteTexture = vi.fn();
+        const parentTexture = { parent: true };
+
+        const parentSegment = createSegment(layer, 3, 1, 2, null, deleteTexture);
+        const parentMaterial = (parentSegment.materials[layer.__id] = new Material(parentSegment, layer));
+        parentMaterial.applyTexture(parentTexture);
+
+        const segment = createSegment(layer, 4, 2, 4, parentSegment.node, deleteTexture);
+        const material = (segment.materials[layer.__id] = new Material(segment, layer));
+        layer._tileCache.set("4_2_4", document.createElement("canvas"));
+
+        layer.applyMaterial(material);
+        await nextFrame();
+
+        expect(material.isReady).toBe(true);
+        expect(material.texture).not.toBe(parentTexture);
+        expect(material.texOffset).toEqual([0, 0, 1, 1]);
+
+        layer.clearMaterial(material);
+        expect(deleteTexture).not.toHaveBeenCalledWith(parentTexture);
+    });
+});
