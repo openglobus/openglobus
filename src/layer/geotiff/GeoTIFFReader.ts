@@ -1,22 +1,10 @@
-import {
-    fromArrayBuffer,
-    fromBlob,
-    fromUrl,
-    GeoTIFF,
-    GeoTIFFImage,
-    Pool
-} from "geotiff";
+import { fromArrayBuffer, fromBlob, fromUrl, GeoTIFF, GeoTIFFImage, Pool } from "geotiff";
 import { Extent } from "../../Extent";
 import { LonLat } from "../../LonLat";
 import * as mercator from "../../mercator";
 import { getRasterMinMax, parseNoDataValue } from "./ColorScale";
 import { getProjectionHelper, type IProjectionHelper } from "./utm";
-import type {
-    DecodedTileData,
-    IGeoTIFFLayerParams,
-    IGeoTIFFMetadata,
-    ProjFunc
-} from "./types";
+import type { DecodedTileData, IGeoTIFFLayerParams, IGeoTIFFMetadata, ProjFunc } from "./types";
 
 export class GeoTIFFReader {
     public source: GeoTIFF | null = null;
@@ -358,10 +346,14 @@ export class GeoTIFFReader {
 
         const effectiveFillValue =
             userNoData !== undefined
-                ? (userNoData !== null && !Number.isNaN(userNoData) ? userNoData : undefined)
-                : (this.metadata?.noData !== null && this.metadata?.noData !== undefined && !Number.isNaN(this.metadata.noData)
-                    ? this.metadata.noData
-                    : undefined);
+                ? userNoData !== null && !Number.isNaN(userNoData)
+                    ? userNoData
+                    : undefined
+                : this.metadata?.noData !== null &&
+                    this.metadata?.noData !== undefined &&
+                    !Number.isNaN(this.metadata.noData)
+                  ? this.metadata.noData
+                  : undefined;
 
         // 7. Read raster chunk resampled to [dstWidth x dstHeight]
         const options: any = {
