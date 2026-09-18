@@ -1,8 +1,8 @@
-import {Layer} from "./Layer";
-import {Node} from "../quadTree/Node";
-import {Segment} from "../segment/Segment";
-import type {WebGLTextureExt} from "../webgl/Handler";
-import type {NumberArray4} from "../math/Vec4";
+import { Layer } from "./Layer";
+import { Node } from "../quadTree/Node";
+import { Segment } from "../segment/Segment";
+import type { WebGLTextureExt } from "../webgl/Handler";
+import type { NumberArray4 } from "../math/Vec4";
 
 /**
  * @class Material
@@ -109,4 +109,4 @@ class Material {
     }
 }
 
-export {Material};
+export { Material };

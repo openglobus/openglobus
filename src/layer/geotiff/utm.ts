@@ -33,8 +33,7 @@ export function forwardUTM(lon: number, lat: number, zone: number, isNorth: bool
         ((1 - WGS84_E2 / 4 - (3 * WGS84_E2 * WGS84_E2) / 64 - (5 * WGS84_E2 * WGS84_E2 * WGS84_E2) / 256) * latRad -
             ((3 * WGS84_E2) / 8 + (3 * WGS84_E2 * WGS84_E2) / 32 + (45 * WGS84_E2 * WGS84_E2 * WGS84_E2) / 1024) *
                 Math.sin(2 * latRad) +
-            ((15 * WGS84_E2 * WGS84_E2) / 256 + (45 * WGS84_E2 * WGS84_E2 * WGS84_E2) / 1024) *
-                Math.sin(4 * latRad) -
+            ((15 * WGS84_E2 * WGS84_E2) / 256 + (45 * WGS84_E2 * WGS84_E2 * WGS84_E2) / 1024) * Math.sin(4 * latRad) -
             ((35 * WGS84_E2 * WGS84_E2 * WGS84_E2) / 3072) * Math.sin(6 * latRad));
 
     const x =
@@ -70,7 +69,9 @@ export function inverseUTM(x: number, y: number, zone: number, isNorth: boolean)
     const yAdj = isNorth ? y : y - 10000000;
 
     const M = yAdj / UTM_K0;
-    const mu = M / (WGS84_A * (1 - WGS84_E2 / 4 - (3 * WGS84_E2 * WGS84_E2) / 64 - (5 * WGS84_E2 * WGS84_E2 * WGS84_E2) / 256));
+    const mu =
+        M /
+        (WGS84_A * (1 - WGS84_E2 / 4 - (3 * WGS84_E2 * WGS84_E2) / 64 - (5 * WGS84_E2 * WGS84_E2 * WGS84_E2) / 256));
 
     const phi1Rad =
         mu +
@@ -94,8 +95,7 @@ export function inverseUTM(x: number, y: number, zone: number, isNorth: boolean)
         ((N1 * tanPhi1) / R1) *
             ((D * D) / 2 -
                 ((5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * WGS84_E_PRIME2) * Math.pow(D, 4)) / 24 +
-                ((61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * WGS84_E_PRIME2 - 3 * C1 * C1) * Math.pow(D, 6)) /
-                    720);
+                ((61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * WGS84_E_PRIME2 - 3 * C1 * C1) * Math.pow(D, 6)) / 720);
 
     const centralLon = (zone - 1) * 6 - 180 + 3;
     const lonRad =

@@ -104,10 +104,12 @@ export interface IGeoTIFFRequestOptions {
     [key: string]: any;
 }
 
-export type ProjFunc = (code: number) => {
-    project: (pos: number[]) => number[];
-    unproject: (pos: number[]) => number[];
-} | undefined;
+export type ProjFunc = (code: number) =>
+    | {
+          project: (pos: number[]) => number[];
+          unproject: (pos: number[]) => number[];
+      }
+    | undefined;
 
 export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams {
     /** Remote URL or local Blob/File/ArrayBuffer */
@@ -169,4 +171,3 @@ export interface DecodedTileData {
     window: [number, number, number, number];
     isRGB: boolean;
 }
-
