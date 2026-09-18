@@ -3,6 +3,8 @@ import { Material } from "./Material";
 import { BaseTileMaterialLayer } from "./BaseTileMaterialLayer";
 import type { LayerEventsList } from "./Layer";
 import type { Segment } from "../segment/Segment";
+import type { TypedArray } from "geotiff";
+import { RENDERING } from "../quadTree/quadTree";
 import {
     createImageData,
     getFastNoDataChecker,
@@ -13,8 +15,19 @@ import {
     renderSingleBandToImageData,
     type IGeoTIFFLayerParams,
     type IGeoTIFFMetadata,
-    type IGeoTIFFRenderOptions
+    type IGeoTIFFRenderOptions,
+    type DecodedTileData
 } from "./geotiff";
+
+interface ICachedTile {
+    image: ImageData;
+    renderOptionsVersion: number;
+}
+
+interface IPendingTile {
+    material: Material;
+    forceLoading: boolean;
+}
 
 type GeoTIFFEventsList = ["load", "loadend", "ready", "error"];
 type GeoTIFFEventsType = EventsHandler<GeoTIFFEventsList> & EventsHandler<LayerEventsList>;
@@ -40,8 +53,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     protected _reader: GeoTIFFReader;
     protected _renderOptions: IGeoTIFFRenderOptions;
     protected _tileSize: number;
-    protected _tileCache: Map<string, ImageBitmap | HTMLCanvasElement>;
-    protected _rasterCache: Map<string, any>;
+    protected _tileCache: Map<string, ICachedTile>;
+    protected _rasterCache: Map<string, DecodedTileData>;
     protected _maxCacheSize: number;
     protected _activeRequestsCount: number;
     protected _readSamples: number[];
@@ -49,9 +62,12 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     protected _activeMaterials: Set<Material>;
     protected _renderOptionsVersion: number;
     protected _debounceUpdateTimer: any;
+    protected _pendingsQueue: IPendingTile[];
+
+    static MAX_REQUESTS: number = 8;
 
     constructor(name: string | null, options: IGeoTIFFLayerParams = {}) {
-        super(name, options);
+        super(name, { waitForParentMaterial: false, ...options });
 
         // @ts-ignore
         this.events = this.events.registerNames(GEOTIFF_EVENTS);
@@ -69,9 +85,11 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                       : undefined;
 
         this._renderOptions = options.renderOptions ? { ...options.renderOptions } : {};
+
         if (initialNodata !== undefined) {
             this._renderOptions.nodata = initialNodata;
         }
+
         this._tileSize = options.tileSize || 256;
         this._tileCache = new Map();
         this._rasterCache = new Map();
@@ -81,15 +99,20 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._activeMaterials = new Set();
         this._renderOptionsVersion = 0;
         this._debounceUpdateTimer = null;
+        this._pendingsQueue = [];
         this._updateReadSamples();
 
         const src = options.src || options.url;
         if (src) {
             this._readyPromise = this._initSource(src, options);
-            this._readyPromise.catch(() => {});
+            this._readyPromise.catch(() => {
+                //empty
+            });
         } else {
             this._readyPromise = Promise.reject(new Error("No GeoTIFF source provided."));
-            this._readyPromise.catch(() => {});
+            this._readyPromise.catch(() => {
+                //empty
+            });
         }
     }
 
@@ -114,7 +137,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     }
 
     public override get isIdle(): boolean {
-        return super.isIdle && this._activeRequestsCount === 0;
+        return super.isIdle && this._activeRequestsCount === 0 && this._pendingsQueue.length === 0;
     }
 
     public get reader(): GeoTIFFReader {
@@ -162,6 +185,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                   : undefined;
 
         this._renderOptions = { ...this._renderOptions, ...renderOptions };
+
         if (nextNodata !== undefined) {
             this._renderOptions.nodata = nextNodata;
         } else if (currentNodata !== undefined) {
@@ -249,14 +273,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         }
 
         if (!this._planet) {
-            // Update cached canvases for in-memory rasters
+            // Update cached images for in-memory rasters
             for (const [cacheKey, tileData] of this._rasterCache.entries()) {
-                const existing = this._tileCache.get(cacheKey);
-                const existingCanvas = existing instanceof HTMLCanvasElement ? existing : undefined;
-                const canvas = this._renderTileDataToCanvas(tileData, existingCanvas);
-                if (canvas) {
-                    this._tileCache.set(cacheKey, canvas);
-                }
+                this._refreshCachedTile(cacheKey, tileData);
             }
             return;
         }
@@ -267,12 +286,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
 
         if (!renderedNodes || renderedNodes.length === 0) {
             for (const [cacheKey, tileData] of this._rasterCache.entries()) {
-                const existing = this._tileCache.get(cacheKey);
-                const existingCanvas = existing instanceof HTMLCanvasElement ? existing : undefined;
-                const canvas = this._renderTileDataToCanvas(tileData, existingCanvas);
-                if (canvas) {
-                    this._tileCache.set(cacheKey, canvas);
-                }
+                this._refreshCachedTile(cacheKey, tileData);
             }
             this._planet.renderer?.requestRedraw();
             return;
@@ -292,14 +306,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
 
             const tileData = this._rasterCache.get(cacheKey);
             if (tileData) {
-                const existing = this._tileCache.get(cacheKey);
-                const existingCanvas = existing instanceof HTMLCanvasElement ? existing : undefined;
-                const canvas = this._renderTileDataToCanvas(tileData, existingCanvas);
-                if (canvas) {
-                    this._tileCache.set(cacheKey, canvas);
-                    if (mat && mat.isReady && mat.texture) {
-                        mat.applyImage(canvas);
-                    }
+                const image = this._refreshCachedTile(cacheKey, tileData);
+                if (image && mat && mat.isReady && mat.texture) {
+                    mat.applyImage(image);
                 }
             }
         }
@@ -307,16 +316,11 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         // 2. Re-render all other in-memory rasters (ancestors, previously visited tiles) into _tileCache
         for (const [cacheKey, tileData] of this._rasterCache.entries()) {
             if (!renderedKeys.has(cacheKey)) {
-                const existing = this._tileCache.get(cacheKey);
-                const existingCanvas = existing instanceof HTMLCanvasElement ? existing : undefined;
-                const canvas = this._renderTileDataToCanvas(tileData, existingCanvas);
-                if (canvas) {
-                    this._tileCache.set(cacheKey, canvas);
-                }
+                this._refreshCachedTile(cacheKey, tileData);
             }
         }
 
-        // 3. Prune any canvas in _tileCache that no longer has corresponding raw raster data
+        // 3. Prune any image in _tileCache that no longer has corresponding raw raster data
         for (const key of this._tileCache.keys()) {
             if (!this._rasterCache.has(key)) {
                 this._tileCache.delete(key);
@@ -337,9 +341,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                         const seg = mat.segment;
                         const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
                         if (!renderedKeys.has(cacheKey)) {
-                            const canvas = this._tileCache.get(cacheKey);
-                            if (canvas) {
-                                mat.applyImage(canvas);
+                            const cached = this._tileCache.get(cacheKey);
+                            if (cached) {
+                                mat.applyImage(cached.image);
                             }
                         }
                     }
@@ -458,7 +462,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         }
     }
 
-    public override loadMaterial(material: Material, _forceLoading: boolean = false): void {
+    public override loadMaterial(material: Material, forceLoading: boolean = false): void {
         this._activeMaterials.add(material);
         const seg = material.segment;
 
@@ -495,42 +499,89 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                     if (image) {
                         material.applyImage(image);
                     } else {
-                        this._requestTile(material, cacheKey);
+                        this._enqueueTile(material, cacheKey, forceLoading);
                     }
                 }
             });
             return;
         }
 
+        this._enqueueTile(material, cacheKey, forceLoading);
+    }
+
+    protected _enqueueTile(material: Material, cacheKey: string, forceLoading: boolean): void {
+        if (this._activeRequestsCount >= GeoTIFFLayer.MAX_REQUESTS) {
+            this._pendingsQueue.push({ material, forceLoading });
+            return;
+        }
+
         this._requestTile(material, cacheKey);
     }
 
-    private _getCachedTileImage(cacheKey: string): ImageBitmap | HTMLCanvasElement | null {
+    protected _whilePendings(): IPendingTile | null {
+        while (this._pendingsQueue.length) {
+            const pending = this._pendingsQueue.pop()!;
+            const material = pending.material;
+            const seg = material.segment;
+
+            if (!material.isLoading || !seg || !seg.node) {
+                continue;
+            }
+
+            if (pending.forceLoading || (seg.initialized && seg.node.getState() === RENDERING)) {
+                return pending;
+            }
+
+            material.isLoading = false;
+        }
+
+        return null;
+    }
+
+    protected _dequeueRequest(): void {
+        while (this._activeRequestsCount < GeoTIFFLayer.MAX_REQUESTS) {
+            const pending = this._whilePendings();
+            if (!pending) return;
+
+            const seg = pending.material.segment;
+            const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
+
+            const image = this._getCachedTileImage(cacheKey);
+
+            if (image) {
+                pending.material.applyImage(image);
+                continue;
+            }
+
+            this._requestTile(pending.material, cacheKey);
+        }
+    }
+
+    private _removeFromQueue(material: Material): void {
+        for (let i = 0, len = this._pendingsQueue.length; i < len; i++) {
+            if (this._pendingsQueue[i].material === material) {
+                this._pendingsQueue.splice(i, 1);
+                return;
+            }
+        }
+    }
+
+    private _getCachedTileImage(cacheKey: string): ImageData | null {
         const cached = this._tileCache.get(cacheKey);
         const tileData = this._rasterCache.get(cacheKey);
 
         if (cached) {
-            if (
-                tileData &&
-                cached instanceof HTMLCanvasElement &&
-                (cached as any)._renderOptionsVersion !== undefined &&
-                (cached as any)._renderOptionsVersion !== this._renderOptionsVersion
-            ) {
-                const refreshedCanvas = this._renderTileDataToCanvas(tileData, cached);
-                if (refreshedCanvas) {
-                    this._tileCache.set(cacheKey, refreshedCanvas);
-                    return refreshedCanvas;
+            if (tileData && cached.renderOptionsVersion !== this._renderOptionsVersion) {
+                const refreshed = this._refreshCachedTile(cacheKey, tileData);
+                if (refreshed) {
+                    return refreshed;
                 }
             }
-            return cached;
+            return cached.image;
         }
 
         if (tileData) {
-            const canvas = this._renderTileDataToCanvas(tileData);
-            if (canvas) {
-                this._addToCache(cacheKey, canvas);
-                return canvas;
-            }
+            return this._refreshCachedTile(cacheKey, tileData);
         }
 
         return null;
@@ -542,10 +593,21 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._activeRequestsCount++;
 
         this._reader
-            .readTileRasters(seg.getExtentLonLat(), seg.tileZoom, this._tileSize, this._readSamples.slice())
+            .readTileRasters(
+                seg.getExtentLonLat(),
+                seg.tileZoom,
+                this._tileSize,
+                this._readSamples.slice(),
+                seg._projection
+            )
             .then((tileData) => {
                 this._activeRequestsCount--;
-                if (this._activeRequestsCount < 0) this._activeRequestsCount = 0;
+
+                if (this._activeRequestsCount < 0) {
+                    this._activeRequestsCount = 0;
+                }
+
+                this._dequeueRequest();
 
                 if (!material.isLoading) return;
 
@@ -557,15 +619,14 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
 
                 this._addRasterToCache(cacheKey, tileData);
 
-                const canvas = this._renderTileDataToCanvas(tileData);
-                if (!canvas) {
+                const image = this._refreshCachedTile(cacheKey, tileData);
+                if (!image) {
                     material.texture = this._isBaseLayer ? seg.getDefaultTexture() : seg.planet.transparentTexture;
                     material.textureNotExists();
                     return;
                 }
 
-                this._addToCache(cacheKey, canvas);
-                material.applyImage(canvas);
+                material.applyImage(image);
 
                 const e = this.events.load;
                 if (e && e.handlers.length) {
@@ -574,7 +635,13 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             })
             .catch((err) => {
                 this._activeRequestsCount--;
-                if (this._activeRequestsCount < 0) this._activeRequestsCount = 0;
+
+                if (this._activeRequestsCount < 0) {
+                    this._activeRequestsCount = 0;
+                }
+
+                this._dequeueRequest();
+
                 if (material.isLoading) {
                     material.texture = this._isBaseLayer ? seg.getDefaultTexture() : seg.planet.transparentTexture;
                     material.textureNotExists();
@@ -583,74 +650,32 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             });
     }
 
-    private _renderTileDataToCanvas(
-        tileData: {
-            rasters: any[];
-            width: number;
-            height: number;
-            dstX: number;
-            dstY: number;
-        },
-        existingCanvas?: HTMLCanvasElement
-    ): HTMLCanvasElement | null {
-        if (typeof document === "undefined") return null;
-
-        const canvas = existingCanvas || document.createElement("canvas");
-        if (canvas.width !== this._tileSize) canvas.width = this._tileSize;
-        if (canvas.height !== this._tileSize) canvas.height = this._tileSize;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return null;
-
-        const isFullTile =
-            tileData.dstX === 0 &&
-            tileData.dstY === 0 &&
-            tileData.width === this._tileSize &&
-            tileData.height === this._tileSize;
-
-        // Reuse cached ImageData buffer on canvas to eliminate GC thrashing
-        let imgData = (canvas as any)._imgData as ImageData | undefined;
-        if (!imgData || imgData.width !== tileData.width || imgData.height !== tileData.height) {
-            imgData = createImageData(tileData.width, tileData.height);
-            (canvas as any)._imgData = imgData;
+    /**
+     * Renders the tile rasters into an image that goes straight into the tile texture.
+     * The previous image of the tile is reused, so restyling does not allocate.
+     */
+    private _renderTileImage(tileData: DecodedTileData, existingImage?: ImageData): ImageData | null {
+        let image = existingImage;
+        if (!image || image.width !== tileData.width || image.height !== tileData.height) {
+            image = createImageData(tileData.width, tileData.height);
         }
 
-        const renderedImgData = this._renderToImageData(tileData, imgData);
-        if (!renderedImgData) return null;
-
-        if (isFullTile) {
-            if (typeof ctx.putImageData === "function") {
-                ctx.putImageData(renderedImgData, 0, 0);
-            }
-        } else {
-            if (typeof ctx.clearRect === "function") {
-                ctx.clearRect(0, 0, this._tileSize, this._tileSize);
-            }
-            let subCanvas = (canvas as any)._subCanvas as HTMLCanvasElement | undefined;
-            if (!subCanvas) {
-                subCanvas = document.createElement("canvas");
-                (canvas as any)._subCanvas = subCanvas;
-            }
-            if (subCanvas.width !== tileData.width) subCanvas.width = tileData.width;
-            if (subCanvas.height !== tileData.height) subCanvas.height = tileData.height;
-            const subCtx = subCanvas.getContext("2d");
-            if (subCtx) {
-                if (typeof subCtx.putImageData === "function") {
-                    subCtx.putImageData(renderedImgData, 0, 0);
-                }
-                if (typeof ctx.drawImage === "function") {
-                    ctx.drawImage(subCanvas, tileData.dstX, tileData.dstY, tileData.width, tileData.height);
-                }
-            }
-        }
-
-        (canvas as any)._renderOptionsVersion = this._renderOptionsVersion;
-        return canvas;
+        return this._renderToImageData(tileData, image);
     }
 
-    private _renderToImageData(
-        tileData: { rasters: any[]; width: number; height: number },
-        outImageData?: ImageData
-    ): ImageData | null {
+    /**
+     * Renders the tile and puts it into the cache, reusing the image that is already there.
+     */
+    private _refreshCachedTile(cacheKey: string, tileData: DecodedTileData): ImageData | null {
+        const image = this._renderTileImage(tileData, this._tileCache.get(cacheKey)?.image);
+        if (!image) return null;
+
+        this._addToCache(cacheKey, image);
+
+        return image;
+    }
+
+    private _renderToImageData(tileData: DecodedTileData, outImageData?: ImageData): ImageData | null {
         const { rasters, width, height } = tileData;
         const rawNodata =
             this._renderOptions.nodata !== undefined
@@ -704,7 +729,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     }
 
     private _evaluateBandExpression(
-        rasters: any[],
+        rasters: TypedArray[],
         width: number,
         height: number,
         expression: string,
@@ -748,12 +773,14 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                 new Set(Array.from(cleanExpr.matchAll(/b(\d+)/g), (m) => parseInt(m[1], 10)))
             );
             const argNames = bandNumbers.map((b) => `b${b}`);
-            const bandRasters = bandNumbers.map((b) => {
-                const idx = this._readSamples.indexOf(b - 1);
-                return idx !== -1 ? rasters[idx] : null;
-            });
+            const bandRasters: TypedArray[] = [];
 
-            if (bandRasters.some((r) => !r)) return null;
+            for (let i = 0; i < bandNumbers.length; i++) {
+                const idx = this._readSamples.indexOf(bandNumbers[i] - 1);
+                const raster = idx !== -1 ? rasters[idx] : undefined;
+                if (!raster) return null;
+                bandRasters.push(raster);
+            }
 
             const fn = new Function(...argNames, `"use strict"; return (${cleanExpr});`);
             const args = new Array(bandNumbers.length);
@@ -782,21 +809,17 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         }
     }
 
-    private _addToCache(key: string, image: ImageBitmap | HTMLCanvasElement): void {
-        if (this._tileCache.size >= this._maxCacheSize) {
+    private _addToCache(key: string, image: ImageData): void {
+        if (!this._tileCache.has(key) && this._tileCache.size >= this._maxCacheSize) {
             const firstKey = this._tileCache.keys().next().value;
             if (firstKey !== undefined) {
-                const item = this._tileCache.get(firstKey);
-                if (item && typeof (item as ImageBitmap).close === "function") {
-                    (item as ImageBitmap).close();
-                }
                 this._tileCache.delete(firstKey);
             }
         }
-        this._tileCache.set(key, image);
+        this._tileCache.set(key, { image, renderOptionsVersion: this._renderOptionsVersion });
     }
 
-    private _addRasterToCache(key: string, data: any): void {
+    private _addRasterToCache(key: string, data: DecodedTileData): void {
         if (this._rasterCache.size >= this._maxCacheSize) {
             const firstKey = this._rasterCache.keys().next().value;
             if (firstKey !== undefined) {
@@ -808,16 +831,16 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
 
     public override abortMaterialLoading(material: Material): void {
         this._activeMaterials.delete(material);
-        if (material.isLoading) {
-            this._activeRequestsCount--;
-            if (this._activeRequestsCount < 0) this._activeRequestsCount = 0;
-        }
+        this._removeFromQueue(material);
         material.isLoading = false;
         material.isReady = false;
     }
 
     public override abortLoading(): void {
-        this._activeRequestsCount = 0;
+        for (let i = 0, len = this._pendingsQueue.length; i < len; i++) {
+            this._pendingsQueue[i].material.isLoading = false;
+        }
+        this._pendingsQueue = [];
     }
 
     public override remove(): this {

@@ -1,5 +1,5 @@
 import type { IBaseTileMaterialLayerParams } from "../BaseTileMaterialLayer";
-import type { Pool } from "geotiff";
+import type { Pool, TypedArray } from "geotiff";
 
 export type ColorScaleName =
     | "viridis"
@@ -101,6 +101,13 @@ export interface IGeoTIFFRequestOptions {
     credentials?: boolean;
     maxRanges?: number;
     allowFullFile?: boolean;
+
+    /** Size of a cached byte range, 64 KB by default. Fetched ranges are cached only when it is set. */
+    blockSize?: number;
+
+    /** Number of cached byte ranges, 512 by default. */
+    cacheSize?: number;
+
     [key: string]: any;
 }
 
@@ -162,7 +169,7 @@ export interface IGeoTIFFMetadata {
 }
 
 export interface DecodedTileData {
-    rasters: any[];
+    rasters: TypedArray[];
     width: number;
     height: number;
     dstX: number;

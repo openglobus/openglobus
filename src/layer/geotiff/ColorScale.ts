@@ -846,15 +846,24 @@ export function renderMultiBandToImageData(
         for (let i = 0; i < pixelCount; i++) {
             const outIdx = i * 4;
 
-            let r = ((rBand[i] - rMin) * rScale + 0.5) | 0;
+            const rVal = rBand[i];
+            const gVal = gBand[i];
+            const bVal = bBand[i];
+
+            if (Number.isNaN(rVal) || Number.isNaN(gVal) || Number.isNaN(bVal)) {
+                rgba[outIdx + 3] = 0;
+                continue;
+            }
+
+            let r = ((rVal - rMin) * rScale + 0.5) | 0;
             if (r < 0) r = 0;
             else if (r > 255) r = 255;
 
-            let g = ((gBand[i] - gMin) * gScale + 0.5) | 0;
+            let g = ((gVal - gMin) * gScale + 0.5) | 0;
             if (g < 0) g = 0;
             else if (g > 255) g = 255;
 
-            let b = ((bBand[i] - bMin) * bScale + 0.5) | 0;
+            let b = ((bVal - bMin) * bScale + 0.5) | 0;
             if (b < 0) b = 0;
             else if (b > 255) b = 255;
 
@@ -921,22 +930,21 @@ export function renderRgbRastersToImageData(
     const hasNoData = nodata !== null && nodata !== undefined && !Number.isNaN(nodata);
 
     if (!hasNoData) {
-        if (!isRgba) {
-            for (let i = 0; i < pixelCount; i++) {
-                const outIdx = i * 4;
-                rgba[outIdx] = rBand[i];
-                rgba[outIdx + 1] = gBand[i];
-                rgba[outIdx + 2] = bBand[i];
-                rgba[outIdx + 3] = 255;
+        for (let i = 0; i < pixelCount; i++) {
+            const outIdx = i * 4;
+            const r = rBand[i];
+            const g = gBand[i];
+            const b = bBand[i];
+
+            if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
+                rgba[outIdx + 3] = 0;
+                continue;
             }
-        } else {
-            for (let i = 0; i < pixelCount; i++) {
-                const outIdx = i * 4;
-                rgba[outIdx] = rBand[i];
-                rgba[outIdx + 1] = gBand[i];
-                rgba[outIdx + 2] = bBand[i];
-                rgba[outIdx + 3] = aBand![i];
-            }
+
+            rgba[outIdx] = r;
+            rgba[outIdx + 1] = g;
+            rgba[outIdx + 2] = b;
+            rgba[outIdx + 3] = isRgba ? aBand![i] : 255;
         }
     } else {
         const checkNoData = getFastNoDataChecker(nodata);
