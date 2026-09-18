@@ -51,11 +51,15 @@ class Material {
         this.layer.abortMaterialLoading(this);
     }
 
+    /**
+     * The own ready texture is re-uploaded with texSubImage2D instead of creating a new one.
+     * It works while the image size stays the same, which is always true for tiles.
+     * After textureNotExists() the material is ready too, but it may hold a parent or default
+     * texture, which must not be overwritten.
+     */
     public _createTexture(img: HTMLCanvasElement | ImageBitmap | HTMLImageElement) {
-        return (
-            this.layer._planet &&
-            this.layer.createTexture!(img, this.layer._internalFormat, this.isReady ? this.texture : null)
-        );
+        const ownTexture = this.isReady && this.textureExists && !this.texture?.default ? this.texture : null;
+        return this.layer._planet && this.layer.createTexture!(img, this.layer._internalFormat, null, ownTexture);
     }
 
     public applyImage(img: HTMLCanvasElement | ImageBitmap | HTMLImageElement) {

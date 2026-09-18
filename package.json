@@ -80,6 +80,8 @@
         "og"
     ],
     "dependencies": {
+        "geotiff": "^3.0.5",
+        "tz-lookup": "^6.1.25",
         "@photostructure/tz-lookup": "^11.6.1"
     }
 }
