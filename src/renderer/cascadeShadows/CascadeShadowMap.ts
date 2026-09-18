@@ -345,7 +345,7 @@ export class CascadeShadowMap {
             this.size,
             this.size,
             this.cascades.length,
-            "LINEAR",
+            renderer.handler.floatTextureFilter,
             "R32F",
             "CLAMP_TO_EDGE",
             1

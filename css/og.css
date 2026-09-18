@@ -1,15 +1,20 @@
 :root {
-    --grey0: rgb(36 36 36); /*dialog background*/
-    --grey1: #434244; /*dialog border*/
-    --grey2: #3f3f46; /*dialog header*/
-    --grey3: #bbbbbb; /*dialog font color*/
-    --grey4: #5e5e5e; /*hover color*/
-    --grey5: rgb(50, 50, 50); /*map button background*/
-    --grey6: #b6b6b6; /*map button icon color*/
-    --grey7: #707070; /*slider progress color*/
-    --grey8: #e2e2e2; /*text color*/
-    --grey9: #9f9f9f;
-    --blue0: #1700a9ee;
+    --grey0: #191a1c; /*background: dialogs, map buttons, inputs*/
+    --grey1: #26282c; /*raised: dock, selects, tracks, dividers*/
+    --grey2: #424448; /*borders, slider fill*/
+    --grey3: #73767c; /*checkbox border, minor marks*/
+    --grey4: #9fa2a8; /*muted text, visible layer*/
+    --grey5: #c3c5cb; /*icons*/
+    --grey6: #d1d3d9; /*text*/
+    --grey7: #ffffff17; /*hover*/
+    --grey8: #ffffff29; /*pressed*/
+    --grey9: #80808059; /*scrollbar thumb*/
+    --grey10: #8080808c; /*scrollbar thumb hover*/
+    --grey11: #191a1cb3; /*caption over a thumbnail*/
+    --grey12: #2d2e2e; /*selected: active buttons, checked*/
+    --blue0: #3871e1; /*focus: where a dragged dialog docks*/
+    --red0: #c54e58; /*timeline current time*/
+    --og-dock-gap: 6px; /*space between docked dialogs*/
 }
 
 .og-map-button {
@@ -19,7 +24,7 @@
     outline: none;
     cursor: pointer;
     z-index: 1;
-    background-color: var(--grey5);
+    background-color: var(--grey0);
 }
 
 .og-control-container {
@@ -57,8 +62,8 @@
     user-select: none;
 }
 
-.og-fps-button:hover {
-    background-color: var(--grey5);
+.og-button.og-fps-button:hover {
+    background-image: none;
 }
 
 .og-control-container__top-left {
@@ -171,24 +176,8 @@
 /* =============================== */
 
 input {
-    accent-color: var(--blue0);
+    accent-color: var(--grey12);
     cursor: pointer;
-}
-
-/* =============================== */
-/*         MENU V-BAR STYLING      */
-/* =============================== */
-
-.og-menu-bar-vertical {
-    position: absolute;
-    right: 12px;
-    top: 12px;
-    width: 40px;
-    height: 40px;
-    background-color: rgba(64, 59, 59, 0.85);
-    border-radius: 2px;
-    box-shadow: 0 1px 4px rgba(15, 15, 15, 0.17);
-    z-index: 0;
 }
 
 .og-hide {
@@ -203,7 +192,7 @@ input {
     position: relative;
     padding: 12px;
     height: calc(100% - 30px);
-    color: #b6b6b6;
+    color: var(--grey6);
 }
 
 .og-option {
@@ -231,22 +220,25 @@ input {
     position: absolute;
     display: flex;
     flex-direction: column;
-    box-shadow: 3px 3px 4px rgba(15, 15, 15, 0.17);
+    padding: 5px;
+    box-shadow: 0 0 16px rgba(0, 0, 0, 0.25);
     background-color: var(--grey0);
     border: 1px solid;
-    border-color: var(--grey1);
-    border-radius: 4px;
+    border-color: var(--grey2);
+    border-radius: 8px;
     overflow: auto;
 }
 
 .og-ddialog .og-ddialog-header {
     width: 100%;
-    height: 27px;
+    height: 40px;
+    flex-shrink: 0;
+    box-sizing: border-box;
     position: relative;
-    padding: 0;
+    padding: 0 8px 0 12px;
+    gap: 8px;
     z-index: 1;
-    background-color: var(--grey2);
-    color: #fff;
+    color: var(--grey6);
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -254,12 +246,14 @@ input {
 }
 
 .og-ddialog .og-ddialog-header .og-ddialog-header__title {
-    color: var(--grey3);
-    padding-left: 5px;
+    color: var(--grey6);
     pointer-events: none;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 14px;
-    font-weight: 400;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .og-ddialog .og-ddialog-header .og-ddialog-header__buttons {
@@ -269,7 +263,17 @@ input {
 }
 
 .og-ddialog .og-ddialog-header .og-ddialog-header__buttons .og-button {
-    border-radius: 0;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 4px;
+    /* For icons sized in em, like the close one */
+    font-size: 16px;
+}
+
+.og-ddialog .og-ddialog-header .og-ddialog-header__buttons .og-button svg {
+    width: 16px;
+    height: 16px;
 }
 
 .og-ddialog .og-ddialog-container {
@@ -297,6 +301,45 @@ input {
     z-index: 2;
 }
 
+/* Scrollbars: standard properties where supported, WebKit pseudo-elements in older Safari and Chromium */
+@supports (scrollbar-color: auto) {
+    .og-ddialog {
+        scrollbar-color: var(--grey9) transparent;
+    }
+
+    /* Not inherited, unlike the color */
+    .og-ddialog,
+    .og-ddialog * {
+        scrollbar-width: thin;
+    }
+}
+
+@supports not (scrollbar-color: auto) {
+    .og-ddialog::-webkit-scrollbar,
+    .og-ddialog ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+        background: transparent;
+    }
+
+    /* Painted white unless told otherwise */
+    .og-ddialog::-webkit-scrollbar-corner,
+    .og-ddialog ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    .og-ddialog::-webkit-scrollbar-thumb,
+    .og-ddialog ::-webkit-scrollbar-thumb {
+        border-radius: 4px;
+        background: var(--grey9);
+    }
+
+    .og-ddialog::-webkit-scrollbar-thumb:hover,
+    .og-ddialog ::-webkit-scrollbar-thumb:hover {
+        background: var(--grey10);
+    }
+}
+
 .og-button {
     display: flex;
     align-items: center;
@@ -305,7 +348,7 @@ input {
     flex-direction: row;
     cursor: default;
     justify-content: center;
-    color: var(--grey6);
+    color: var(--grey5);
     border-radius: 6px;
 }
 
@@ -323,7 +366,7 @@ input {
 }
 
 .og-button svg path {
-    fill: var(--grey6);
+    fill: var(--grey5);
 }
 
 .og-button__active.og-button svg,
@@ -338,7 +381,11 @@ input {
 }
 
 .og-button:hover {
-    background-color: var(--grey4);
+    background-image: linear-gradient(var(--grey7), var(--grey7));
+}
+
+.og-button:active {
+    background-image: linear-gradient(var(--grey8), var(--grey8));
 }
 
 .og-button-size__20 {
@@ -347,7 +394,7 @@ input {
 }
 
 .og-button__active {
-    background-color: var(--grey2);
+    background-color: var(--grey12);
 }
 
 /* =============================== */
@@ -355,7 +402,7 @@ input {
 
 .og-layerSwitcher {
     position: relative;
-    color: #b6b6b6;
+    color: var(--grey6);
     width: 100%;
     height: 100%;
     overflow-x: hidden;
@@ -364,7 +411,7 @@ input {
 
 .og-layerSwitcher__title {
     position: relative;
-    color: #b6b6b6;
+    color: var(--grey4);
     font-size: 14px;
     width: 100%;
     padding: 5px;
@@ -383,7 +430,7 @@ input {
     width: 70px;
     height: 70px;
     position: relative;
-    background-color: #7a7a7a;
+    background-color: var(--grey1);
     cursor: pointer;
     border-radius: 7px;
     margin: 3px;
@@ -394,7 +441,7 @@ input {
 }
 
 .og-layerSwitcher__layerButton.og-layerSwitcher__visible {
-    border: 2px solid #56ff64;
+    border: 2px solid var(--grey4);
 }
 
 .og-layerSwitcher__layerButton.og-layerSwitcher__visible img {
@@ -419,12 +466,12 @@ input {
 }
 
 .og-layerSwitcher__name {
-    color: var(--grey8);
+    color: var(--grey6);
     font-size: 12px;
     overflow: hidden;
     text-overflow: ellipsis;
     padding: 3px;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--grey11);
     bottom: 0;
     border-bottom-left-radius: 7px;
     border-bottom-right-radius: 7px;
@@ -451,7 +498,7 @@ input {
     height: 20px;
     border: none;
     background: transparent;
-    color: var(--grey3);
+    color: var(--grey5);
     cursor: pointer;
     border-radius: 4px;
     padding: 0;
@@ -459,7 +506,7 @@ input {
 }
 
 .og-entityTree__toggleBtn_hasChildren:hover {
-    background-color: var(--grey1);
+    background-color: var(--grey7);
 }
 
 .og-entityTree__toggleBtn_empty {
@@ -486,7 +533,7 @@ input {
 
 .og-entityTree__entityBtn:hover,
 .og-entityTree__entityBtn:focus-visible {
-    background-color: var(--grey1);
+    background-color: var(--grey7);
 }
 
 .og-entityTree__name {
@@ -497,7 +544,7 @@ input {
 }
 
 .og-entityTree__type {
-    color: var(--grey9);
+    color: var(--grey4);
     font-size: 11px;
     white-space: nowrap;
 }
@@ -519,7 +566,7 @@ input {
     height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
-    color: var(--grey4);
+    color: var(--grey6);
 }
 
 .og-entityTreeControl__tree {
@@ -530,7 +577,7 @@ input {
 
 .og-entityTreeControl__empty {
     padding: 10px 8px;
-    color: var(--grey3);
+    color: var(--grey4);
     font-size: 13px;
 }
 
@@ -549,7 +596,6 @@ input {
 
 /* =============================== */
 /* RULER */
-
 /* =============================== */
 
 .ogConsole {
@@ -579,27 +625,6 @@ input {
     color: yellow;
 }
 
-/* Is this class used elsewhere??? */
-/* if not we can delete it */
-
-.ogViewExtentBtn {
-    margin-left: 12px;
-    height: 24px;
-    width: 24px;
-    scale: 70%;
-    cursor: pointer;
-    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYEAQAAAAa7ikwAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAABgAAAAYADwa0LPAAAAB3RJTUUH5ggMBTM4rM25AwAAAAJiS0dEAACqjSMyAAABsUlEQVRIx81WWYrCQBAVg4Iwbp8ud5DoYRRBxPMoouiPegQVPYp6Azdc/ly++01XKkmPksQ4ZmAKAr3V0u9VVScU8ikQkQhwuRifHIeCFiAWgy2xWHCGRSIBVKtAt6scdDrGmtz7IOJUyjAk7ne4Ce2JdhsimXzTeKkE7PfK0vEIjMdqTuPTSc23W6BY9G/cjvpwgKjVmOBHDnitXmfnJLcboOs+YNntWGGxADIZtRcOQ4xGEMMhjdV6Ngssl6yz2XjywuSZkf8w/vrW5MS8iWi13LPFgkbC8n5SEFwmVOLry+EApaJJ6C8KCSIaVcRXKk8FlE4D/T5vzmY81zT/0Wsa68znbKPX47ksSC5/JxkM/EdPxDvJ5RKMA3nWw8EfQxQsyecz2yiXvdNUptz7adposO716pim7EQ2Lrv3ZLP+o8/n7RQVzabHwWSSGxcJlb9y4t4qcjlgtWKd9RoiHn9x1WKRG5d1E1mhBr7PzY7WCBaruAiaQsEnnrpuNC5biLzJRL0D06ki1Ircp/FH0lstdRsnoaibzZeweDuKx6m3qE5rPZnlsmu2/KtH/9Pflm+sYR/yIsaCAQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMi0wOC0xMlQwNTo1MTo1NiswMDowMIPhE+YAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMDgtMTJUMDU6NTE6NTYrMDA6MDDyvKtaAAAAKHRFWHRkYXRlOnRpbWVzdGFtcAAyMDIyLTA4LTEyVDA1OjUxOjU2KzAwOjAwpamKhQAAAABJRU5ErkJggg==)
-        center center no-repeat;
-}
-
-.ogViewExtentBtn:hover {
-    border-radius: 10px;
-    background:
-        url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYEAQAAAAa7ikwAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAABgAAAAYADwa0LPAAAAB3RJTUUH5ggMBTM4rM25AwAAAAJiS0dEAACqjSMyAAABsUlEQVRIx81WWYrCQBAVg4Iwbp8ud5DoYRRBxPMoouiPegQVPYp6Azdc/ly++01XKkmPksQ4ZmAKAr3V0u9VVScU8ikQkQhwuRifHIeCFiAWgy2xWHCGRSIBVKtAt6scdDrGmtz7IOJUyjAk7ne4Ce2JdhsimXzTeKkE7PfK0vEIjMdqTuPTSc23W6BY9G/cjvpwgKjVmOBHDnitXmfnJLcboOs+YNntWGGxADIZtRcOQ4xGEMMhjdV6Ngssl6yz2XjywuSZkf8w/vrW5MS8iWi13LPFgkbC8n5SEFwmVOLry+EApaJJ6C8KCSIaVcRXKk8FlE4D/T5vzmY81zT/0Wsa68znbKPX47ksSC5/JxkM/EdPxDvJ5RKMA3nWw8EfQxQsyecz2yiXvdNUptz7adposO716pim7EQ2Lrv3ZLP+o8/n7RQVzabHwWSSGxcJlb9y4t4qcjlgtWKd9RoiHn9x1WKRG5d1E1mhBr7PzY7WCBaruAiaQsEnnrpuNC5biLzJRL0D06ki1Ircp/FH0lstdRsnoaibzZeweDuKx6m3qE5rPZnlsmu2/KtH/9Pflm+sYR/yIsaCAQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMi0wOC0xMlQwNTo1MTo1NiswMDowMIPhE+YAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMDgtMTJUMDU6NTE6NTYrMDA6MDDyvKtaAAAAKHRFWHRkYXRlOnRpbWVzdGFtcAAyMDIyLTA4LTEyVDA1OjUxOjU2KzAwOjAwpamKhQAAAABJRU5ErkJggg==)
-            center center no-repeat,
-        var(--blue0);
-}
-
 /**
  *DebugInfo
  */
@@ -617,7 +642,7 @@ input {
 }
 
 .og-debug-info {
-    color: white;
+    color: var(--grey6);
     font-size: 12px;
     padding: 10px;
 }
@@ -630,7 +655,7 @@ input {
 }
 
 .og-watch-line .og-watch-label {
-    color: #cecece;
+    color: var(--grey4);
     width: 200px;
 }
 
@@ -774,7 +799,7 @@ input {
     position: relative;
     padding: 12px;
     height: calc(100% - 30px);
-    color: #b6b6b6;
+    color: var(--grey6);
 }
 
 .og-lighing .og-layers {
@@ -829,8 +854,8 @@ input {
     left: 10px;
     padding: 5px 10px;
     border-radius: 4px;
-    background-color: var(--grey5);
-    color: var(--grey8);
+    background-color: var(--grey0);
+    color: var(--grey6);
     font-family: monospace;
     font-size: 0.85em;
     pointer-events: none;
@@ -846,8 +871,8 @@ input {
     font-size: 1em;
     cursor: pointer;
     float: left;
-    background-color: var(--grey5);
-    color: var(--grey8);
+    background-color: var(--grey0);
+    color: var(--grey6);
     padding: 5px;
     border-radius: 4px;
 }
@@ -862,7 +887,7 @@ input {
     padding: 0;
     border: 0;
     background: transparent;
-    color: var(--grey8);
+    color: var(--grey5);
     opacity: 0.8;
     cursor: pointer;
 }
@@ -946,22 +971,28 @@ TIMELINE
     height: 20px;
     margin-left: 3px;
     margin-right: 3px;
-    background: var(--grey7);
+    background-color: var(--grey3);
     border-radius: 1px;
 }
 
 .og-timeline-control_button.og-button__active {
-    background: var(--grey3);
+    background-color: var(--grey5);
+}
+
+.og-timeline-control_button.og-button svg path {
+    fill: var(--grey0);
 }
 
 .og-timeline-multiplier {
     height: 20px;
     margin-left: 8px;
     padding: 0 2px;
-    border: none;
-    border-radius: 1px;
-    background: var(--grey7);
-    color: #000;
+    border: 1px solid var(--grey2);
+    border-radius: 4px;
+    background: var(--grey1);
+    color: var(--grey6);
+    /* Dark option list */
+    color-scheme: dark;
     font-size: 11px;
     cursor: pointer;
 }
@@ -969,7 +1000,7 @@ TIMELINE
 .og-timeline {
     width: 100%;
     height: 100%;
-    background: rgb(45 45 45);
+    background: var(--grey0);
     position: relative;
     left: 0;
     bottom: 0;
@@ -981,6 +1012,7 @@ TIMELINE
     width: calc(100% - 20px);
     margin: 0px 0px 0px 10px;
     height: 30px;
+    border-radius: 4px;
 }
 
 .og-timeline-scale {
@@ -1013,20 +1045,24 @@ TIMELINE
 }
 
 .og-timeline-current-spin {
-    margin: 0 auto;
+    margin: 7px auto 0;
     width: 1px;
-    height: 100%;
-    background-color: #ff3434;
+    height: calc(100% - 7px);
+    background-color: var(--red0);
     pointer-events: none;
 }
 
-.og-timeline-current-arrow {
-    width: 0;
-    height: 0;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-top: 7px solid #ff3434;
-    margin-left: -6px;
+.og-timeline-current-label {
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    font: 10px/10px monospace;
+    color: white;
+    background: var(--red0);
+    border-radius: 15px;
+    padding: 2px 6px;
+    white-space: nowrap;
 }
 
 .og-timeline-sun {
@@ -1043,20 +1079,24 @@ TIMELINE
 }
 
 .og-timeline-sun-spin {
-    margin: 0 auto;
+    margin: 7px auto 0;
     width: 1px;
-    height: 100%;
+    height: calc(100% - 7px);
     background-color: #ffcc00;
     pointer-events: none;
 }
 
-.og-timeline-sun-arrow {
-    width: 0;
-    height: 0;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-top: 7px solid #ffcc00;
-    margin-left: -6px;
+.og-timeline-sun-label {
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    font: 10px/10px monospace;
+    color: #000000;
+    background: #fbdb5d;
+    border-radius: 15px;
+    padding: 2px 6px;
+    white-space: nowrap;
 }
 
 .og-timeline-bottom {
@@ -1136,7 +1176,7 @@ TIMELINE
 .og-slider .og-slider-panel .og-slider-progress {
     position: absolute;
     height: 100%;
-    background-color: var(--grey7);
+    background-color: var(--grey2);
     pointer-events: none;
     border-top-left-radius: 2px;
     border-bottom-left-radius: 2px;
@@ -1148,7 +1188,7 @@ TIMELINE
     top: 0;
     height: 100%;
     width: 3px;
-    background-color: var(--grey3);
+    background-color: var(--grey5);
     pointer-events: none;
 }
 
@@ -1156,10 +1196,10 @@ TIMELINE
     position: relative;
     height: 100%;
     width: 100%;
-    background: var(--grey5);
-    border: 1px solid var(--grey1);
+    background: var(--grey0);
+    border: 1px solid var(--grey2);
     z-index: 0;
-    color: var(--grey3);
+    color: var(--grey6);
     padding-left: 5px;
     width: 60px;
     border-radius: 2px;
@@ -1212,10 +1252,10 @@ TIMELINE
     position: relative;
     height: 100%;
     width: 100%;
-    background: var(--grey5);
-    border: 1px solid var(--grey1);
+    background: var(--grey0);
+    border: 1px solid var(--grey2);
     z-index: 0;
-    color: var(--grey3);
+    color: var(--grey6);
     padding-left: 5px;
     border-radius: 5px;
 }
@@ -1269,9 +1309,9 @@ TIMELINE
     display: flex;
     align-content: center;
     justify-content: center;
-    border: 1px solid var(--grey1);
+    border: 1px solid var(--grey3);
     border-radius: 3px;
-    background: var(--grey8);
+    background: var(--grey0);
     cursor: pointer;
     position: relative;
     padding: 0;
@@ -1282,7 +1322,7 @@ TIMELINE
     position: absolute;
     width: 3px;
     height: 6px;
-    border: solid black;
+    border: solid white;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
     top: 2px;
@@ -1296,7 +1336,11 @@ TIMELINE
 }
 
 .og-checkbox input[type="checkbox"]:hover {
-    border-color: var(--grey2);
+    border-color: var(--grey4);
+}
+
+.og-checkbox input[type="checkbox"]:checked {
+    background: var(--grey12);
 }
 
 .og-checkbox .og-input-label {
@@ -1313,7 +1357,7 @@ TIMELINE
 }
 
 .og-input-disabled input[type="checkbox"] {
-    background: var(--grey9);
+    background: var(--grey1);
 }
 
 /* Chrome, Safari, Edge, Opera */
@@ -1360,7 +1404,7 @@ TIMELINE
 .og-elevationprofile-legend {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     font-size: 12px;
-    color: var(--grey8);
+    color: var(--grey6);
     position: absolute;
     top: 0;
     right: 0;
@@ -1429,7 +1473,6 @@ TIMELINE
     height: 25px;
     float: left;
     margin: 3px;
-    /*background-color: var(--grey2);*/
 }
 
 .og-elevationprofile-list {
@@ -1445,7 +1488,9 @@ TIMELINE
     width: 100%;
     height: 100%;
     resize: none;
-    background: var(--grey8);
+    background: var(--grey0);
+    border: 1px solid var(--grey2);
+    color: var(--grey6);
     padding: 5px;
 }
 
@@ -1461,7 +1506,8 @@ TIMELINE
 .og-elevationprofile-list-apply {
     padding: 4px 10px 7px 10px;
     float: right;
-    background-color: var(--grey2);
+    border: 1px solid var(--grey2);
+    color: var(--grey6);
     margin-right: 15px;
 }
 
@@ -1537,25 +1583,25 @@ TIMELINE
 
 .ldio-p0v5a1f6oz div:nth-child(1) {
     transform: translate(14.5px, 0);
-    background: #353535;
+    background: var(--grey2);
     animation-delay: -0.5607476635514018s;
 }
 
 .ldio-p0v5a1f6oz div:nth-child(2) {
     transform: translate(34.5px, 0);
-    background: #666666;
+    background: var(--grey3);
     animation-delay: -0.37383177570093457s;
 }
 
 .ldio-p0v5a1f6oz div:nth-child(3) {
     transform: translate(54.5px, 0);
-    background: #9b9b9b;
+    background: var(--grey4);
     animation-delay: -0.18691588785046728s;
 }
 
 .ldio-p0v5a1f6oz div:nth-child(4) {
     transform: translate(74.5px, 0);
-    background: #d4d4d4;
+    background: var(--grey6);
     animation-delay: -0.9345794392523364s;
 }
 
@@ -1580,14 +1626,6 @@ TIMELINE
     box-sizing: content-box;
 }
 
-.og-editor-ground_button {
-    width: fit-content;
-    background: var(--grey1);
-    padding: 4px 6px 8px;
-    margin-left: 5px;
-    margin-top: 15px;
-}
-
 .og-editor_toolbar {
     display: flex;
 }
@@ -1606,13 +1644,12 @@ TIMELINE
     min-height: 20px;
     width: 100%;
     padding: 0 0 0 8px;
-    background: var(--grey2);
     box-sizing: border-box;
-    border-bottom: 1px solid var(--grey5);
+    border-bottom: 1px solid var(--grey1);
 }
 
 .og-titlebar__title {
-    color: var(--grey3);
+    color: var(--grey6);
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     font-size: 14px;
     font-weight: 400;
@@ -1633,7 +1670,7 @@ TIMELINE
 }
 
 .og-titlebar__toggle:hover {
-    background-color: var(--grey4);
+    background-color: var(--grey7);
 }
 
 .og-titlebar__toggle svg {
@@ -1642,7 +1679,7 @@ TIMELINE
 }
 
 .og-titlebar__toggle svg path {
-    fill: var(--grey6);
+    fill: var(--grey5);
 }
 
 .og-editor-panel__body_collapsed {
@@ -1669,9 +1706,11 @@ TIMELINE
     position: relative;
     height: 100%;
     width: 100%;
-    background: var(--grey5);
-    border: 1px solid var(--grey1);
+    background: var(--grey1);
+    border: 1px solid var(--grey2);
     color: var(--grey6);
+    /* Dark option list */
+    color-scheme: dark;
     padding-left: 5px;
     border-radius: 5px;
 }
@@ -1698,7 +1737,7 @@ TIMELINE
     width: 75px;
     height: 75px;
     position: relative;
-    background-color: #7a7a7a;
+    background-color: var(--grey1);
     cursor: pointer;
     border-radius: 5px;
     margin: 3px;
@@ -1706,7 +1745,7 @@ TIMELINE
 }
 
 .og-object3d-collection__item.active {
-    border: solid #00e0be 2px;
+    border: solid var(--grey6) 2px;
 }
 
 .og-object3d-collection__item_name {
@@ -1715,8 +1754,8 @@ TIMELINE
     position: absolute;
     left: 0;
     bottom: 0;
-    background: #3d3d3da3;
-    color: white;
+    background: var(--grey11);
+    color: var(--grey6);
     padding-top: 3px;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
@@ -1733,12 +1772,15 @@ DOCK
     overflow: hidden;
 }
 
+/* Half a gap around each side: two sides that meet leave a whole one */
 .og-dock {
     position: absolute;
     z-index: 10;
     display: flex;
+    gap: var(--og-dock-gap);
+    padding: calc(var(--og-dock-gap) / 2);
     box-sizing: border-box;
-    background: var(--grey0);
+    background: var(--grey1);
     overflow: hidden;
 }
 
@@ -1753,7 +1795,9 @@ DOCK
     min-height: 0 !important;
     max-width: none !important;
     max-height: none !important;
-    border-radius: 0;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
     box-shadow: none;
     overflow: hidden;
 }
@@ -1772,65 +1816,29 @@ DOCK
     pointer-events: none;
 }
 
+/* Paints nothing: the gap is the seam, and the cursor tells it */
 .og-dock-splitter {
     position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     pointer-events: auto;
     /* Or a finger dragging an edge reads as a scroll and the drag is cancelled */
     touch-action: none;
-}
-
-.og-dock-splitter::before {
-    content: "";
-    display: block;
-    background: var(--grey1);
-    transition:
-        background 0.1s ease-out,
-        width 0.1s ease-out,
-        height 0.1s ease-out;
 }
 
 .og-dock-splitter__v {
     cursor: ew-resize;
 }
 
-.og-dock-splitter__v::before {
-    width: 1px;
-    height: 100%;
-}
-
 .og-dock-splitter__h {
     cursor: ns-resize;
 }
 
-.og-dock-splitter__h::before {
-    width: 100%;
-    height: 1px;
-}
-
-.og-dock-splitter:hover::before,
-.og-dock-splitter__active::before {
-    background: var(--grey6);
-}
-
-.og-dock-splitter__v:hover::before,
-.og-dock-splitter__v.og-dock-splitter__active::before {
-    width: 3px;
-}
-
-.og-dock-splitter__h:hover::before,
-.og-dock-splitter__h.og-dock-splitter__active::before {
-    height: 3px;
-}
-
-/* Where the dialog under the pointer would land */
 .og-dock-hint {
     position: absolute;
     z-index: 1000;
     box-sizing: border-box;
-    border: 2px solid var(--grey6);
-    background: rgba(182, 182, 182, 0.18);
+    border: calc(var(--og-dock-gap) / 2) solid transparent;
+    border-radius: calc(10px + var(--og-dock-gap) / 2);
+    background: color-mix(in srgb, var(--blue0) 30%, transparent);
+    background-clip: padding-box;
     pointer-events: none;
 }

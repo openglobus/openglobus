@@ -9,13 +9,27 @@ import { Vec3 } from "../math/Vec3";
 import * as math from "../math";
 import type { PlanetCamera } from "../camera/PlanetCamera";
 import type { LonLat } from "../LonLat";
-import tzlookup from "tz-lookup";
+import tzlookup from "@photostructure/tz-lookup";
 
 /**
  * Minimal julian date change that moves the sunlight position, about 30 seconds.
  * @const {number}
  */
 const SUN_DATE_THRESHOLD = 0.00034;
+
+/** Returns an IANA time zone name for the point, or null for the solar reading. */
+export type TimeZoneProviderFn = (lonLat: LonLat) => string | null;
+
+/**
+ * Object form of the provider, e.g. a TimeZoneProvider instance: lookup by the point,
+ * with an optional lazy load the Sun kicks off on first use.
+ */
+export interface ITimeZoneLookup {
+    lookup(lon: number, lat: number): string | null;
+    load?: () => Promise<unknown>;
+}
+
+export type TimeZoneProviderLike = TimeZoneProviderFn | ITimeZoneLookup;
 
 interface ISunParams extends IControlParams {
     activationHeight?: number;
@@ -25,6 +39,7 @@ interface ISunParams extends IControlParams {
     localDateTime?: Date | null;
     dateTime?: Date | null;
     useTimeZones?: boolean;
+    timeZoneProvider?: TimeZoneProviderLike | null;
 }
 
 /**
@@ -44,6 +59,9 @@ interface ISunParams extends IControlParams {
  * @param {Date} [options.dateTime] - Instant in time the Sun takes its real position at.
  * @param {boolean} [options.useTimeZones=false] - Reads localDateTime by the time zone of the point.
  * Leave off on bodies without civil time.
+ * @param {TimeZoneProviderLike} [options.timeZoneProvider] - Time zone source for the point under
+ * the camera: a function, or an object like TimeZoneProvider — its lazy load is kicked off on
+ * first use, and the built-in lookup answers until the data arrives.
  */
 export class Sun extends Control {
     public activationHeight: number;
@@ -67,6 +85,10 @@ export class Sun extends Control {
     public dateTime: Date | null;
 
     protected _useTimeZones: boolean;
+
+    protected _timeZoneProvider: TimeZoneProviderLike | null;
+    protected _timeZoneProviderReady: boolean;
+    protected _timeZoneProviderLoading: boolean;
 
     protected _currDate: number;
     protected _prevDate: number;
@@ -100,6 +122,11 @@ export class Sun extends Control {
         this.dateTime = options.dateTime || null;
 
         this._useTimeZones = options.useTimeZones || false;
+
+        this._timeZoneProvider = options.timeZoneProvider || null;
+        this._timeZoneProviderReady = false;
+        this._timeZoneProviderLoading = false;
+        this._resetTimeZoneProviderState();
 
         this._localLon = NaN;
         this._localLat = NaN;
@@ -198,6 +225,69 @@ export class Sun extends Control {
     }
 
     /**
+     * Time zone source for the point under the camera: a function, or an object like
+     * TimeZoneProvider — its lazy load is kicked off on first use, and the built-in
+     * lookup answers until the data arrives. The built-in lookup when null.
+     * @public
+     * @type {TimeZoneProviderLike | null}
+     */
+    public get timeZoneProvider(): TimeZoneProviderLike | null {
+        return this._timeZoneProvider;
+    }
+
+    public set timeZoneProvider(provider: TimeZoneProviderLike | null) {
+        this._timeZoneProvider = provider;
+        this._resetTimeZoneProviderState();
+        this._localLon = NaN;
+        this._localLat = NaN;
+        this._localJd = NaN;
+        this.renderer && this.renderer.requestRedraw();
+    }
+
+    protected _resetTimeZoneProviderState() {
+        const p = this._timeZoneProvider;
+        this._timeZoneProviderReady = !!p && (typeof p === "function" || !p.load);
+        this._timeZoneProviderLoading = false;
+    }
+
+    protected _lookupTimeZone(lonLat: LonLat): string | null {
+        const p = this._timeZoneProvider;
+
+        if (typeof p === "function") {
+            return p(lonLat);
+        }
+
+        if (p) {
+            if (this._timeZoneProviderReady) {
+                return p.lookup(lonLat.lon, lonLat.lat);
+            }
+            this._loadTimeZoneProvider(p);
+        }
+
+        return tzlookup(lonLat.lat, lonLat.lon);
+    }
+
+    protected _loadTimeZoneProvider(p: ITimeZoneLookup) {
+        if (this._timeZoneProviderLoading) return;
+
+        this._timeZoneProviderLoading = true;
+
+        p.load!()
+            .then(() => {
+                if (this._timeZoneProvider === p) {
+                    this._timeZoneProviderReady = true;
+                    this._localLon = NaN;
+                    this._localLat = NaN;
+                    this._localJd = NaN;
+                    this.renderer && this.renderer.requestRedraw();
+                }
+            })
+            .catch((err) => {
+                console.warn("Sun: time zone provider failed to load, keeping the built-in lookup.", err);
+            });
+    }
+
+    /**
      * Sets the local clock time under the camera, read by its UTC clock.
      * @public
      * @param {Date | null} localDateTime - Local date and time, or null to restore the camera following light.
@@ -277,7 +367,7 @@ export class Sun extends Control {
     }
 
     protected _localDateTimeToUtc(lonLat: LonLat): Date | null {
-        const zone = tzlookup(lonLat.lat, lonLat.lon);
+        const zone = this._lookupTimeZone(lonLat);
 
         if (!zone) return null;
 

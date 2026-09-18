@@ -234,7 +234,7 @@ export class ShadowManager {
                 size,
                 size,
                 MAX_SHADOW_MAPS,
-                "LINEAR",
+                h.floatTextureFilter,
                 "RGBA32F",
                 "CLAMP_TO_EDGE",
                 1
@@ -410,24 +410,24 @@ export class ShadowManager {
     }
 
     protected _createDepthArrayTexture(size: number): boolean {
-        const gl = this._renderer.handler.gl as WebGL2RenderingContext;
-        if (!gl) return false;
+        const h = this._renderer.handler;
+        if (!h.gl) return false;
 
         const tex = VARIANCE_SHADOW_ENABLED
-            ? this._renderer.handler.createEmptyTexture2DArrayExt(
+            ? h.createEmptyTexture2DArrayExt(
                   size,
                   size,
                   MAX_SHADOW_MAPS,
-                  "LINEAR",
+                  h.floatTextureFilter,
                   "RGBA32F",
                   "CLAMP_TO_EDGE",
                   1
               )
-            : this._renderer.handler.createEmptyTexture2DArrayExt(
+            : h.createEmptyTexture2DArrayExt(
                   size,
                   size,
                   MAX_SHADOW_MAPS,
-                  "LINEAR",
+                  h.floatTextureFilter,
                   "R32F",
                   "CLAMP_TO_EDGE",
                   1

@@ -8,7 +8,7 @@ import type { ElevationProfileDrawData, GroundItem, TrackItem } from "./Elevatio
 import { distanceFormatExt, binarySearch } from "../../utils/shared";
 import type { MouseEventExt } from "../../input/MouseHandler";
 
-const FILL_COLOR = "rgb(63, 63, 63)";
+const FILL_COLOR = "#26282c";
 const TRACK_COLOR = "rgb(0, 255, 50)";
 const TERRAIN_COLOR = "rgb(198, 198, 198)";
 const TERRAIN_FILL_COLOR = "rgb(64, 68, 82)";
@@ -504,7 +504,7 @@ class ElevationProfileView extends View<ElevationProfile> {
 
     public clearCanvas() {
         const grd = this._ctx.createLinearGradient(0, 0, 0, this.clientHeight * this._canvasScale);
-        grd.addColorStop(0, "black");
+        grd.addColorStop(0, "#191a1c");
         grd.addColorStop(1, this.fillStyle);
 
         this._ctx.fillStyle = grd;
