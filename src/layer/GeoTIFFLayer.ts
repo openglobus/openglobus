@@ -368,7 +368,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             const meta = await this._reader.init(src);
 
             // Configure layer bounds
-            this._extent = this._reader.extentWgs84;
+            if (this._reader.extentWgs84) {
+                this.setExtent(this._reader.extentWgs84);
+            }
 
             if (options.useImageCountAsMaximumLevel) {
                 this.maxNativeZoom = Math.min(this.maxNativeZoom, meta.overviewCount - 1);
@@ -476,6 +478,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
 
         const tileExtent = seg.getExtentLonLat();
         if (!this._extent.overlaps(tileExtent)) {
+            material.texture = this._isBaseLayer ? seg.getDefaultTexture() : seg.planet.transparentTexture;
             material.textureNotExists();
             return;
         }
@@ -547,6 +550,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                 if (!material.isLoading) return;
 
                 if (!tileData || !tileData.rasters || tileData.rasters.length === 0) {
+                    material.texture = this._isBaseLayer ? seg.getDefaultTexture() : seg.planet.transparentTexture;
                     material.textureNotExists();
                     return;
                 }
@@ -555,6 +559,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
 
                 const canvas = this._renderTileDataToCanvas(tileData);
                 if (!canvas) {
+                    material.texture = this._isBaseLayer ? seg.getDefaultTexture() : seg.planet.transparentTexture;
                     material.textureNotExists();
                     return;
                 }
@@ -571,6 +576,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                 this._activeRequestsCount--;
                 if (this._activeRequestsCount < 0) this._activeRequestsCount = 0;
                 if (material.isLoading) {
+                    material.texture = this._isBaseLayer ? seg.getDefaultTexture() : seg.planet.transparentTexture;
                     material.textureNotExists();
                     console.error("[GeoTIFFLayer] Error loading tile:", err);
                 }
