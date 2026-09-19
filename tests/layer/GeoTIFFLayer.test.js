@@ -1,11 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
 import { GeoTIFFLayer } from "../../src/layer/GeoTIFFLayer";
 import { Material } from "../../src/layer/Material";
+import { GeoTIFFReader } from "../../src/layer/geotiff/GeoTIFFReader";
+import { getProjectionHelper } from "../../src/layer/geotiff/utm";
+import * as mercator from "../../src/mercator";
+import { EPSG3857 } from "../../src/proj/EPSG3857";
+import { EPSG4326 } from "../../src/proj/EPSG4326";
+import { RENDERING, NOTRENDERING } from "../../src/quadTree/quadTree";
 import {
     buildColorLUT,
     parseColor,
     getRasterMinMax,
     renderSingleBandToImageData,
+    createImageData,
     renderMultiBandToImageData,
     parseNoDataValue,
     isNoData
@@ -126,6 +133,16 @@ describe("GeoTIFFLayer", () => {
         expect(layer.reader).toBeTruthy();
     });
 
+    it("requests the visible tile without waiting for the parent material", () => {
+        const layer = new GeoTIFFLayer("test-tiff", { url: "https://example.com/cog.tif" });
+        expect(layer.waitForParentMaterial).toBe(false);
+
+        const waiting = new GeoTIFFLayer("test-tiff", {
+            url: "https://example.com/cog.tif",
+            waitForParentMaterial: true
+        });
+        expect(waiting.waitForParentMaterial).toBe(true);
+    });
     it("should support opacity property and opacity setter/getter methods", () => {
         const layer = new GeoTIFFLayer("test-tiff", {
             url: "https://example.com/cog.tif",
@@ -262,8 +279,8 @@ describe("GeoTIFFLayer", () => {
         };
 
         // Cache contains rendered tile (5_10_10) and ancestor/stale tile (2_1_1)
-        layer._tileCache.set("5_10_10", document.createElement("canvas"));
-        layer._tileCache.set("2_1_1", document.createElement("canvas"));
+        layer._tileCache.set("5_10_10", {image: createImageData(2, 1), renderOptionsVersion: 0});
+        layer._tileCache.set("2_1_1", {image: createImageData(2, 1), renderOptionsVersion: 0});
         layer._rasterCache.set("5_10_10", {
             rasters: [new Float32Array([10, 20])],
             width: 2,
@@ -362,7 +379,7 @@ describe("GeoTIFFLayer cached tile material", () => {
         const layer = createLayer(true);
         const segment = createSegment(layer, 3, 1, 2, null, vi.fn());
         const material = (segment.materials[layer.__id] = new Material(segment, layer));
-        layer._tileCache.set("3_1_2", document.createElement("canvas"));
+        layer._tileCache.set("3_1_2", {image: createImageData(256, 256), renderOptionsVersion: 0});
 
         layer.applyMaterial(material);
         await nextFrame();
@@ -384,7 +401,7 @@ describe("GeoTIFFLayer cached tile material", () => {
 
         const segment = createSegment(layer, 4, 2, 4, parentSegment.node, deleteTexture);
         const material = (segment.materials[layer.__id] = new Material(segment, layer));
-        layer._tileCache.set("4_2_4", document.createElement("canvas"));
+        layer._tileCache.set("4_2_4", {image: createImageData(256, 256), renderOptionsVersion: 0});
 
         layer.applyMaterial(material);
         await nextFrame();
@@ -395,5 +412,323 @@ describe("GeoTIFFLayer cached tile material", () => {
 
         layer.clearMaterial(material);
         expect(deleteTexture).not.toHaveBeenCalledWith(parentTexture);
+    });
+});
+
+describe("GeoTIFFReader tile reprojection", () => {
+    const BBOX = [205503, 3268530, 230433, 3280287]; // Planet scene, WGS 84 / UTM zone 15N
+    const UTM_15N = 32615;
+
+    // Every source pixel keeps the easting of its own center, so a warped tile
+    // can be compared with the true projected position of its pixels.
+    function createEastingImage(width, height) {
+        return {
+            getWidth: () => width,
+            getHeight: () => height,
+            readRasters: async ({ window }) => {
+                const [x0, y0, x1, y1] = window;
+                const w = x1 - x0;
+                const h = y1 - y0;
+                const out = new Float64Array(w * h);
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        out[y * w + x] = BBOX[0] + ((x0 + x + 0.5) / width) * (BBOX[2] - BBOX[0]);
+                    }
+                }
+                return [out];
+            }
+        };
+    }
+
+    function createReader() {
+        const reader = new GeoTIFFReader({});
+        reader.source = {};
+        reader.images = [createEastingImage(8310, 3919), createEastingImage(2770, 1307)];
+        reader.nativeBBox = BBOX;
+        reader.crsCode = UTM_15N;
+        reader._projHelper = getProjectionHelper(UTM_15N);
+        reader.metadata = { noData: null };
+        const sw = reader._projHelper.unproject([BBOX[0], BBOX[1]]);
+        const ne = reader._projHelper.unproject([BBOX[2], BBOX[3]]);
+        reader.extentWgs84 = new Extent(new LonLat(sw[0], sw[1]), new LonLat(ne[0], ne[1]));
+        reader.isReady = true;
+        return reader;
+    }
+
+    const ZOOM = 13;
+    const TILE_SIZE = 256;
+    const tileSpan = (2 * mercator.POLE) / 2 ** ZOOM;
+
+    function tileExtent(tx, ty) {
+        return new Extent(
+            new LonLat(
+                mercator.inverse_lon(-mercator.POLE + tx * tileSpan),
+                mercator.inverse_lat(mercator.POLE - (ty + 1) * tileSpan)
+            ),
+            new LonLat(
+                mercator.inverse_lon(-mercator.POLE + (tx + 1) * tileSpan),
+                mercator.inverse_lat(mercator.POLE - ty * tileSpan)
+            )
+        );
+    }
+
+    // Longitude and latitude of a tile pixel center, the same way the tile texture is laid out
+    function pixelLonLat(extent, x, y) {
+        const west = extent.southWest.lon;
+        const east = extent.northEast.lon;
+        const top = mercator.forward_lat(extent.northEast.lat);
+        const bottom = mercator.forward_lat(extent.southWest.lat);
+        return [
+            west + ((x + 0.5) / TILE_SIZE) * (east - west),
+            mercator.inverse_lat(top + ((y + 0.5) / TILE_SIZE) * (bottom - top))
+        ];
+    }
+
+    it("places UTM pixels on their true geographic position", async () => {
+        const reader = createReader();
+        const center = reader.extentWgs84.getCenter();
+        const tx = Math.floor((mercator.forward_lon(center.lon) + mercator.POLE) / tileSpan);
+        const ty = Math.floor((mercator.POLE - mercator.forward_lat(center.lat)) / tileSpan);
+
+        const extent = tileExtent(tx, ty);
+        const tile = await reader.readTileRasters(extent, ZOOM, TILE_SIZE, [0], EPSG3857);
+
+        expect(tile).toBeTruthy();
+        expect(tile.width).toBe(TILE_SIZE);
+        expect(tile.height).toBe(TILE_SIZE);
+
+        const metersPerPixel = (tileSpan / TILE_SIZE) * Math.cos((center.lat * Math.PI) / 180);
+        const project = getProjectionHelper(UTM_15N).project;
+        let checked = 0;
+
+        for (let y = 16; y < TILE_SIZE; y += 32) {
+            for (let x = 16; x < TILE_SIZE; x += 32) {
+                const value = tile.rasters[0][y * TILE_SIZE + x];
+                if (Number.isNaN(value)) continue; // outside of the raster
+                const [lon, lat] = pixelLonLat(extent, x, y);
+                expect(Math.abs(value - project([lon, lat])[0])).toBeLessThan(2 * metersPerPixel);
+                checked++;
+            }
+        }
+
+        expect(checked).toBeGreaterThan(0);
+    });
+
+    it("keeps EPSG:4326 rasters aligned on Mercator tiles", async () => {
+        const west = -10, south = 30, east = 10, north = 60;
+        const size = 1024;
+        // Every source pixel keeps the latitude of its own center
+        const image = {
+            getWidth: () => size,
+            getHeight: () => size,
+            readRasters: async ({ window }) => {
+                const [x0, y0, x1, y1] = window;
+                const w = x1 - x0;
+                const h = y1 - y0;
+                const out = new Float64Array(w * h);
+                for (let y = 0; y < h; y++) {
+                    const lat = north - ((y0 + y + 0.5) / size) * (north - south);
+                    out.fill(lat, y * w, (y + 1) * w);
+                }
+                return [out];
+            }
+        };
+
+        const reader = new GeoTIFFReader({});
+        reader.source = {};
+        reader.images = [image];
+        reader.nativeBBox = [west, south, east, north];
+        reader.crsCode = 4326;
+        reader.metadata = { noData: null };
+        reader.extentWgs84 = new Extent(new LonLat(west, south), new LonLat(east, north));
+        reader.isReady = true;
+
+        // Low zoom tile, where linear stretching in latitude is noticeably wrong
+        const zoom = 4;
+        const span = (2 * mercator.POLE) / 2 ** zoom;
+        const tx = Math.floor((mercator.forward_lon(0) + mercator.POLE) / span);
+        const ty = Math.floor((mercator.POLE - mercator.forward_lat(45)) / span);
+        const extent = new Extent(
+            new LonLat(
+                mercator.inverse_lon(-mercator.POLE + tx * span),
+                mercator.inverse_lat(mercator.POLE - (ty + 1) * span)
+            ),
+            new LonLat(
+                mercator.inverse_lon(-mercator.POLE + (tx + 1) * span),
+                mercator.inverse_lat(mercator.POLE - ty * span)
+            )
+        );
+
+        const tile = await reader.readTileRasters(extent, zoom, TILE_SIZE, [0], EPSG3857);
+        expect(tile).toBeTruthy();
+
+        const latPerPixel = (extent.northEast.lat - extent.southWest.lat) / TILE_SIZE;
+        let checked = 0;
+
+        for (let y = 8; y < TILE_SIZE; y += 16) {
+            const value = tile.rasters[0][y * TILE_SIZE + 64];
+            if (Number.isNaN(value)) continue;
+            expect(Math.abs(value - pixelLonLat(extent, 64, y)[1])).toBeLessThan(2 * latPerPixel);
+            checked++;
+        }
+
+        expect(checked).toBeGreaterThan(0);
+
+        // The same tile as an EPSG:4326 segment: rows are linear in latitude
+        const poleTile = await reader.readTileRasters(extent, zoom, TILE_SIZE, [0], EPSG4326);
+        expect(poleTile).toBeTruthy();
+
+        for (let y = 8; y < TILE_SIZE; y += 16) {
+            const value = poleTile.rasters[0][y * TILE_SIZE + 64];
+            if (Number.isNaN(value)) continue;
+            const lat =
+                extent.northEast.lat -
+                ((y + 0.5) / TILE_SIZE) * (extent.northEast.lat - extent.southWest.lat);
+            expect(Math.abs(value - lat)).toBeLessThan(2 * latPerPixel);
+        }
+    });
+
+    it("refines the sampling grid only where the projection bends", () => {
+        const reader = createReader();
+        const center = reader.extentWgs84.getCenter();
+        const tx = Math.floor((mercator.forward_lon(center.lon) + mercator.POLE) / tileSpan);
+        const ty = Math.floor((mercator.POLE - mercator.forward_lat(center.lat)) / tileSpan);
+
+        // A UTM scene on a zoomed in tile is almost affine, the coarsest grid is enough
+        const near = reader._createTileGrid(tileExtent(tx, ty), TILE_SIZE, EPSG3857);
+        expect(near.gridSize).toBe(4);
+
+        // The whole world on a single tile needs a finer grid
+        const world = new Extent(new LonLat(-180, -85.0511), new LonLat(180, 85.0511));
+        const global = reader._createTileGrid(world, TILE_SIZE, EPSG3857);
+        expect(global.gridSize).toBeGreaterThan(4);
+    });
+    it("allows a slightly coarser overview instead of reading nine times more pixels", () => {
+        const reader = createReader();
+        // Pyramid steps by three: 8310 -> 2770 -> 924
+        reader.images = [createEastingImage(8310, 3919), createEastingImage(2770, 1307), createEastingImage(924, 436)];
+
+        const grid = { gridU: null, gridV: null, gridSize: 1 };
+        // One cell, where a tile pixel covers 2.8 full resolution pixels
+        const u = (2.8 * TILE_SIZE) / 8310;
+        const v = (2.8 * TILE_SIZE) / 3919;
+        grid.gridU = new Float64Array([0, u, 0, u]);
+        grid.gridV = new Float64Array([0, 0, v, v]);
+
+        expect(reader._selectOverviewIndex(grid, TILE_SIZE)).toBe(1);
+    });
+    it("matches neighbour tiles at the seams", async () => {
+        const reader = createReader();
+        const center = reader.extentWgs84.getCenter();
+        const tx = Math.floor((mercator.forward_lon(center.lon) + mercator.POLE) / tileSpan);
+        const ty = Math.floor((mercator.POLE - mercator.forward_lat(center.lat)) / tileSpan);
+
+        const left = await reader.readTileRasters(tileExtent(tx, ty), ZOOM, TILE_SIZE, [0], EPSG3857);
+        const right = await reader.readTileRasters(tileExtent(tx + 1, ty), ZOOM, TILE_SIZE, [0], EPSG3857);
+
+        expect(left).toBeTruthy();
+        expect(right).toBeTruthy();
+
+        const metersPerPixel = (tileSpan / TILE_SIZE) * Math.cos((center.lat * Math.PI) / 180);
+        let compared = 0;
+
+        for (let y = 0; y < TILE_SIZE; y += 8) {
+            const a = left.rasters[0][y * TILE_SIZE + (TILE_SIZE - 1)];
+            const b = right.rasters[0][y * TILE_SIZE];
+            if (Number.isNaN(a) || Number.isNaN(b)) continue;
+            // Neighbouring pixels of the seam are one tile pixel apart on the ground
+            expect(Math.abs(b - a)).toBeLessThan(3 * metersPerPixel);
+            compared++;
+        }
+
+        expect(compared).toBeGreaterThan(0);
+    });
+});
+
+describe("GeoTIFFLayer tile request queue", () => {
+    function createLayer(readTileRasters) {
+        const layer = new GeoTIFFLayer("test-tiff", {});
+        layer._reader.isReady = true;
+        layer._reader.readTileRasters = readTileRasters;
+        layer._planet = { renderer: { requestRedraw: () => {} } };
+        layer._internalFormat = 0;
+        layer.createTexture = vi.fn(() => ({}));
+        return layer;
+    }
+
+    function createMaterial(layer, tileX, state = RENDERING) {
+        const extent = new Extent(new LonLat(10 + tileX, 45), new LonLat(11 + tileX, 46));
+        const segment = {
+            initialized: true,
+            passReady: true,
+            tileZoom: 5,
+            tileX,
+            tileY: 1,
+            materials: {},
+            planet: { transparentTexture: { default: true }, renderer: { requestRedraw: () => {} } },
+            handler: { gl: { deleteTexture: vi.fn() } },
+            getExtentLonLat: () => extent
+        };
+        segment.node = { segment, parentNode: null, nodeId: tileX, getState: () => state };
+        const material = new Material(segment, layer);
+        segment.materials[layer.__id] = material;
+        return material;
+    }
+
+    it("keeps only a limited number of tile reads running", () => {
+        const previous = GeoTIFFLayer.MAX_REQUESTS;
+        GeoTIFFLayer.MAX_REQUESTS = 2;
+
+        try {
+            const read = vi.fn(() => new Promise(() => {}));
+            const layer = createLayer(read);
+            const materials = [0, 1, 2, 3].map((x) => createMaterial(layer, x));
+
+            materials.forEach((m) => layer.loadMaterial(m));
+
+            expect(read).toHaveBeenCalledTimes(2);
+            expect(layer._pendingsQueue.length).toBe(2);
+            materials.forEach((m) => expect(m.isLoading).toBe(true));
+        } finally {
+            GeoTIFFLayer.MAX_REQUESTS = previous;
+        }
+    });
+
+    it("drops queued tiles that are no longer rendered", async () => {
+        const previous = GeoTIFFLayer.MAX_REQUESTS;
+        GeoTIFFLayer.MAX_REQUESTS = 1;
+
+        try {
+            let settle;
+            const read = vi.fn(
+                () =>
+                    new Promise((resolve) => {
+                        settle = resolve;
+                    })
+            );
+            const layer = createLayer(read);
+
+            const running = createMaterial(layer, 0);
+            const waiting = createMaterial(layer, 1);
+            const gone = createMaterial(layer, 2, NOTRENDERING);
+
+            layer.loadMaterial(running);
+            layer.loadMaterial(waiting);
+            layer.loadMaterial(gone);
+
+            expect(read).toHaveBeenCalledTimes(1);
+            expect(layer._pendingsQueue.length).toBe(2);
+
+            // The running read finishes with no data, the queue moves on
+            settle(null);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            // The tile that left the view is dropped, the visible one is read
+            expect(gone.isLoading).toBe(false);
+            expect(read).toHaveBeenCalledTimes(2);
+            expect(read.mock.calls[1][0]).toBe(waiting.segment.getExtentLonLat());
+        } finally {
+            GeoTIFFLayer.MAX_REQUESTS = previous;
+        }
     });
 });
