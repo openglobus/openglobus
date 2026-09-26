@@ -471,6 +471,7 @@ class PlanetCamera extends Camera {
      */
     public flyExtent(extent: Extent, height?: number | null, params: IPlanetFlyCartesianParams = {}) {
         params.look = Vec3.ZERO;
+        params.up = params.up || Vec3.NORTH;
         const requestId = ++this._extentFitRequestId;
 
         if (height != undefined && height != null) {
@@ -563,8 +564,13 @@ class PlanetCamera extends Camera {
             this.planet.normalMapCreator.lock(this._keyLock);
         }
         params.amplitude = params.amplitude != undefined ? params.amplitude : 1.0;
-        const hasExplicitLook = params.look != undefined;
         const lookParam = params.look || Vec3.ZERO;
+        const look = lookParam instanceof LonLat ? this.planet.ellipsoid.lonLatToCartesian(lookParam) : lookParam;
+
+        // Looking at the planet center is looking straight down, and then the ground in
+        // view is an altitude away; any other target is a point in space at its own distance.
+        const lookIsCenter = look.isZero();
+        const hasExplicitLook = params.look != undefined && !lookIsCenter;
         params.up = params.up || (hasExplicitLook ? this.planet.ellipsoid.getSurfaceNormal3v(cartesian) : Vec3.NORTH);
         params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
         const ease = params.ease || DEFAULT_EASING;
@@ -576,12 +582,6 @@ class PlanetCamera extends Camera {
         if (params.startCallback) {
             params.startCallback.call(this);
         }
-
-        const look = lookParam instanceof LonLat ? this.planet.ellipsoid.lonLatToCartesian(lookParam) : lookParam;
-
-        // Looking at the planet center is looking straight down, and then the ground in
-        // view is an altitude away; any other target is a point in space at its own distance.
-        const lookIsCenter = look.isZero();
 
         if (params.linearPath) {
             let ground_a = this.eye.clone();
