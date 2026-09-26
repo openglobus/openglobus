@@ -93,6 +93,7 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
 
             return new GeoTIFFReader({
                 ...this.options,
+                crs: s.crs ?? this.options.crs,
                 src: s.src || s.url,
                 url: s.url,
                 nodata,
