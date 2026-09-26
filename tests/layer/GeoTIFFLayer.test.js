@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { GeoTIFFLayer } from "../../src/layer/GeoTIFFLayer";
 import { Material } from "../../src/layer/Material";
 import { GeoTIFFReader } from "../../src/layer/geotiff/GeoTIFFReader";
+import { MultiGeoTIFFReader } from "../../src/layer/geotiff/MultiGeoTIFFReader";
 import { getProjectionHelper } from "../../src/layer/geotiff/utm";
 import * as mercator from "../../src/mercator";
 import { EPSG3857 } from "../../src/proj/EPSG3857";
@@ -729,6 +730,384 @@ describe("GeoTIFFLayer tile request queue", () => {
             expect(read.mock.calls[1][0]).toBe(waiting.segment.getExtentLonLat());
         } finally {
             GeoTIFFLayer.MAX_REQUESTS = previous;
+        }
+    });
+});
+
+describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
+    function createMockReader(extent, samplesPerPixel = 1, bandsMeta = { 1: { min: 0, max: 1000 } }) {
+        const reader = new GeoTIFFReader({});
+        reader.extentWgs84 = extent;
+        reader.isReady = true;
+        reader.crsCode = 4326;
+        reader.metadata = {
+            bbox: [extent.southWest.lon, extent.southWest.lat, extent.northEast.lon, extent.northEast.lat],
+            crsCode: 4326,
+            width: 512,
+            height: 512,
+            samplesPerPixel,
+            noData: null,
+            isTiled: true,
+            overviewCount: 2,
+            bands: bandsMeta
+        };
+        reader.readTileRasters = vi.fn(async (_extent, _zoom, tileSize, readSamples) => {
+            const count = readSamples ? readSamples.length : samplesPerPixel;
+            const rasters = [];
+            for (let i = 0; i < count; i++) {
+                const arr = new Float32Array(tileSize * tileSize);
+                arr.fill((readSamples ? readSamples[i] : i) + 10);
+                rasters.push(arr);
+            }
+            return {
+                rasters,
+                width: tileSize,
+                height: tileSize,
+                dstX: 0,
+                dstY: 0,
+                tileSize,
+                window: [0, 0, tileSize, tileSize],
+                isRGB: false
+            };
+        });
+        return reader;
+    }
+
+    function setupMockChildReaders(mockReaders) {
+        let index = 0;
+        return vi.spyOn(GeoTIFFReader.prototype, "init").mockImplementation(async function () {
+            const mock = mockReaders[index++];
+            this.extentWgs84 = mock.extentWgs84;
+            this.crsCode = mock.crsCode;
+            this.metadata = mock.metadata;
+            this.isReady = true;
+            this.readTileRasters = mock.readTileRasters;
+            return this.metadata;
+        });
+    }
+
+    it("should aggregate extents and metadata across multiple sources in multi-band mode", async () => {
+        const ext1 = new Extent(new LonLat(10, 40), new LonLat(20, 50));
+        const ext2 = new Extent(new LonLat(15, 45), new LonLat(25, 55));
+
+        const r1 = createMockReader(ext1, 1, { 1: { min: 100, max: 2000 } });
+        const r2 = createMockReader(ext2, 2, { 1: { min: 50, max: 800 }, 2: { min: 10, max: 500 } });
+
+        const spy = setupMockChildReaders([r1, r2]);
+        try {
+            const multiReader = new MultiGeoTIFFReader();
+            const sources = [
+                { url: "red.tif", bands: [1] },
+                { url: "green_blue.tif", bands: [1, 2] }
+            ];
+
+            const meta = await multiReader.init(sources);
+
+            expect(meta).toBeTruthy();
+            expect(meta.samplesPerPixel).toBe(3); // 1 band from s1 + 2 bands from s2
+            expect(meta.bands[1]).toEqual({ min: 100, max: 2000 });
+            expect(meta.bands[2]).toEqual({ min: 50, max: 800 });
+            expect(meta.bands[3]).toEqual({ min: 10, max: 500 });
+
+            // Extent should be union
+            expect(multiReader.extentWgs84.southWest.lon).toBe(10);
+            expect(multiReader.extentWgs84.southWest.lat).toBe(40);
+            expect(multiReader.extentWgs84.northEast.lon).toBe(25);
+            expect(multiReader.extentWgs84.northEast.lat).toBe(55);
+        } finally {
+            spy.mockRestore();
+        }
+    });
+
+    it("should read requested bands concurrently and stack them in multi-band mode", async () => {
+        const ext1 = new Extent(new LonLat(10, 40), new LonLat(20, 50));
+        const ext2 = new Extent(new LonLat(10, 40), new LonLat(20, 50));
+
+        const r1 = createMockReader(ext1, 1, { 1: { min: 0, max: 255 } });
+        const r2 = createMockReader(ext2, 1, { 1: { min: 0, max: 255 } });
+
+        r1.readTileRasters = vi.fn(async (_extent, _zoom, tileSize) => ({
+            rasters: [new Float32Array(tileSize * tileSize).fill(100)],
+            width: tileSize,
+            height: tileSize,
+            dstX: 0,
+            dstY: 0,
+            tileSize,
+            window: [0, 0, tileSize, tileSize],
+            isRGB: false
+        }));
+
+        r2.readTileRasters = vi.fn(async (_extent, _zoom, tileSize) => ({
+            rasters: [new Float32Array(tileSize * tileSize).fill(200)],
+            width: tileSize,
+            height: tileSize,
+            dstX: 0,
+            dstY: 0,
+            tileSize,
+            window: [0, 0, tileSize, tileSize],
+            isRGB: false
+        }));
+
+        const spy = setupMockChildReaders([r1, r2]);
+        try {
+            const multiReader = new MultiGeoTIFFReader();
+            const sources = [{ url: "b1.tif" }, { url: "b2.tif" }];
+
+            await multiReader.init(sources);
+
+            const tileExtent = new Extent(new LonLat(12, 42), new LonLat(14, 44));
+            const tileData = await multiReader.readTileRasters(tileExtent, 5, 256, [0, 1]);
+
+            expect(tileData).toBeTruthy();
+            expect(tileData.rasters.length).toBe(2);
+            expect(tileData.rasters[0][0]).toBe(100);
+            expect(tileData.rasters[1][0]).toBe(200);
+            expect(r1.readTileRasters).toHaveBeenCalled();
+            expect(r2.readTileRasters).toHaveBeenCalled();
+        } finally {
+            spy.mockRestore();
+        }
+    });
+
+    it("should fill NaN for sources that do not spatially overlap the tile", async () => {
+        const extWest = new Extent(new LonLat(0, 0), new LonLat(10, 10));
+        const extEast = new Extent(new LonLat(10, 0), new LonLat(20, 10));
+
+        const rWest = createMockReader(extWest, 1);
+        const rEast = createMockReader(extEast, 1);
+
+        rWest.readTileRasters = vi.fn(async (_extent, _zoom, tileSize) => ({
+            rasters: [new Float32Array(tileSize * tileSize).fill(55)],
+            width: tileSize,
+            height: tileSize,
+            dstX: 0,
+            dstY: 0,
+            tileSize,
+            window: [0, 0, tileSize, tileSize],
+            isRGB: false
+        }));
+
+        const spy = setupMockChildReaders([rWest, rEast]);
+        try {
+            const multiReader = new MultiGeoTIFFReader();
+            const sources = [{ url: "west.tif" }, { url: "east.tif" }];
+
+            await multiReader.init(sources);
+
+            // Tile only in West
+            const tileExtentWest = new Extent(new LonLat(2, 2), new LonLat(4, 4));
+            const tileData = await multiReader.readTileRasters(tileExtentWest, 5, 256, [0, 1]);
+
+            expect(tileData).toBeTruthy();
+            expect(tileData.rasters.length).toBe(2);
+            expect(tileData.rasters[0][0]).toBe(55); // West has data
+            expect(Number.isNaN(tileData.rasters[1][0])).toBe(true); // East is out-of-bounds -> NaN
+            expect(rEast.readTileRasters).not.toHaveBeenCalled(); // Skipped entirely
+        } finally {
+            spy.mockRestore();
+        }
+    });
+
+    it("should merge overlapping rasters seamlessly in mosaic mode", async () => {
+        const extWest = new Extent(new LonLat(0, 0), new LonLat(10, 10));
+        const extEast = new Extent(new LonLat(5, 0), new LonLat(15, 10));
+
+        const rWest = createMockReader(extWest, 1);
+        const rEast = createMockReader(extEast, 1);
+
+        // West has values in first half, NaN in second half
+        rWest.readTileRasters = vi.fn(async (_extent, _zoom, tileSize) => {
+            const arr = new Float32Array(tileSize * tileSize).fill(NaN);
+            arr.fill(111, 0, (tileSize * tileSize) / 2);
+            return {
+                rasters: [arr],
+                width: tileSize,
+                height: tileSize,
+                dstX: 0,
+                dstY: 0,
+                tileSize,
+                window: [0, 0, tileSize, tileSize],
+                isRGB: false
+            };
+        });
+
+        // East has NaN in first half, values in second half
+        rEast.readTileRasters = vi.fn(async (_extent, _zoom, tileSize) => {
+            const arr = new Float32Array(tileSize * tileSize).fill(NaN);
+            arr.fill(222, (tileSize * tileSize) / 2);
+            return {
+                rasters: [arr],
+                width: tileSize,
+                height: tileSize,
+                dstX: 0,
+                dstY: 0,
+                tileSize,
+                window: [0, 0, tileSize, tileSize],
+                isRGB: false
+            };
+        });
+
+        const spy = setupMockChildReaders([rWest, rEast]);
+        try {
+            const multiReader = new MultiGeoTIFFReader({ mosaic: true });
+            const sources = [{ url: "west.tif" }, { url: "east.tif" }];
+
+            await multiReader.init(sources);
+
+            expect(multiReader.metadata.samplesPerPixel).toBe(1);
+
+            // Tile straddling both
+            const centerTile = new Extent(new LonLat(4, 2), new LonLat(8, 6));
+            const tileData = await multiReader.readTileRasters(centerTile, 5, 16, [0]);
+
+            expect(tileData).toBeTruthy();
+            expect(tileData.rasters.length).toBe(1);
+            expect(tileData.rasters[0][0]).toBe(111); // West side merged
+            expect(tileData.rasters[0][16 * 16 - 1]).toBe(222); // East side merged
+        } finally {
+            spy.mockRestore();
+        }
+    });
+
+    it("should instantiate GeoTIFFLayer with sources and render multi-source RGB composite", async () => {
+        const layer = new GeoTIFFLayer("multi-cog", {
+            sources: [
+                { url: "https://example.com/b4_red.tif", min: 0, max: 4000 },
+                { url: "https://example.com/b3_green.tif", min: 0, max: 4000 },
+                { url: "https://example.com/b2_blue.tif", min: 0, max: 4000 }
+            ]
+        });
+
+        expect(layer.reader).toBeInstanceOf(MultiGeoTIFFReader);
+        expect(layer.instanceName).toBe("GeoTIFFLayer");
+
+        // Manually provide metadata and trigger readiness
+        const ext = new Extent(new LonLat(10, 40), new LonLat(20, 50));
+        layer.reader.extentWgs84 = ext;
+        layer.reader.metadata = {
+            bbox: [10, 40, 20, 50],
+            crsCode: 4326,
+            width: 1000,
+            height: 1000,
+            samplesPerPixel: 3,
+            noData: null,
+            isTiled: true,
+            overviewCount: 3,
+            bands: {
+                1: { min: 0, max: 4000 },
+                2: { min: 0, max: 4000 },
+                3: { min: 0, max: 4000 }
+            }
+        };
+        layer.reader.isReady = true;
+
+        layer.setRenderOptions({
+            multi: {
+                r: { band: 1, min: 0, max: 4000 },
+                g: { band: 2, min: 0, max: 4000 },
+                b: { band: 3, min: 0, max: 4000 }
+            }
+        });
+
+        // Test rendering multi-source decoded rasters to ImageData
+        const rBand = new Float32Array([0, 4000]);
+        const gBand = new Float32Array([2000, 2000]);
+        const bBand = new Float32Array([4000, 0]);
+
+        const imgData = layer._renderToImageData({
+            rasters: [rBand, gBand, bBand],
+            width: 2,
+            height: 1,
+            dstX: 0,
+            dstY: 0,
+            tileSize: 2,
+            window: [0, 0, 2, 1],
+            isRGB: false
+        });
+
+        expect(imgData).toBeTruthy();
+        expect(imgData.width).toBe(2);
+        expect(imgData.height).toBe(1);
+        // Pixel 0: R=0/4000 (0), G=2000/4000 (127-128), B=4000/4000 (255)
+        expect(imgData.data[0]).toBe(0);
+        expect(imgData.data[1]).toBeCloseTo(127, -1);
+        expect(imgData.data[2]).toBe(255);
+        expect(imgData.data[3]).toBe(255);
+    });
+
+    it("should evaluate band expressions (NDVI) across multiple sources", async () => {
+        const layer = new GeoTIFFLayer("ndvi-cog", {
+            sources: [
+                { url: "https://example.com/b4_red.tif" },
+                { url: "https://example.com/b8_nir.tif" }
+            ],
+            renderOptions: {
+                single: {
+                    expression: "(b2 - b1) / (b2 + b1)",
+                    domain: [-1, 1],
+                    colorScale: "greens"
+                }
+            }
+        });
+
+        expect(layer.reader).toBeInstanceOf(MultiGeoTIFFReader);
+        expect(layer._readSamples).toEqual([0, 1]);
+
+        // b1 (Red) = 1000, b2 (NIR) = 3000 => NDVI = (3000 - 1000) / (3000 + 1000) = 2000 / 4000 = 0.5
+        const redRaster = new Float32Array([1000]);
+        const nirRaster = new Float32Array([3000]);
+
+        const imgData = layer._renderToImageData({
+            rasters: [redRaster, nirRaster],
+            width: 1,
+            height: 1,
+            dstX: 0,
+            dstY: 0,
+            tileSize: 1,
+            window: [0, 0, 1, 1],
+            isRGB: false
+        });
+
+        expect(imgData).toBeTruthy();
+        expect(imgData.width).toBe(1);
+        expect(imgData.height).toBe(1);
+        expect(imgData.data[3]).toBe(255); // Alpha is 255 (valid pixel)
+        // Green channel should be high for positive NDVI
+        expect(imgData.data[1]).toBeGreaterThan(imgData.data[0]);
+    });
+
+    it("should instantiate via GeoTIFFLayer.fromSources static helper", async () => {
+        const sources = [
+            { url: "https://example.com/s1.tif" },
+            { url: "https://example.com/s2.tif" }
+        ];
+
+        // Mock init
+        const origInit = MultiGeoTIFFReader.prototype.init;
+        MultiGeoTIFFReader.prototype.init = vi.fn(async function () {
+            this.extentWgs84 = new Extent(new LonLat(0, 0), new LonLat(10, 10));
+            this.metadata = {
+                bbox: [0, 0, 10, 10],
+                crsCode: 4326,
+                width: 256,
+                height: 256,
+                samplesPerPixel: 2,
+                noData: null,
+                isTiled: true,
+                overviewCount: 1,
+                bands: { 1: { min: 0, max: 100 }, 2: { min: 0, max: 100 } }
+            };
+            this.isReady = true;
+            return this.metadata;
+        });
+
+        try {
+            const layer = await GeoTIFFLayer.fromSources("helper-layer", sources);
+            expect(layer).toBeInstanceOf(GeoTIFFLayer);
+            expect(layer.reader).toBeInstanceOf(MultiGeoTIFFReader);
+            expect(layer.getExtent()).toBeTruthy();
+        } finally {
+            MultiGeoTIFFReader.prototype.init = origInit;
         }
     });
 });

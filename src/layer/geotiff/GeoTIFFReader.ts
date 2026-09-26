@@ -8,7 +8,7 @@ import { getProjectionHelper, type IProjectionHelper } from "./utm";
 import { Proj } from "../../proj/Proj";
 import { EPSG3857 } from "../../proj/EPSG3857";
 import { EPSG4326 } from "../../proj/EPSG4326";
-import type { DecodedTileData, IGeoTIFFLayerParams, IGeoTIFFMetadata, ProjFunc } from "./types";
+import type { DecodedTileData, IGeoTIFFLayerParams, IGeoTIFFMetadata, IGeoTIFFReader, ProjFunc } from "./types";
 
 /**
  * Sampling grid of a tile, source pixel positions are interpolated between its nodes.
@@ -47,7 +47,7 @@ const BLOCK_CACHE_SIZE = 512;
 
 const OVERVIEW_RESOLUTION_TOLERANCE = 1.4;
 
-export class GeoTIFFReader {
+export class GeoTIFFReader implements IGeoTIFFReader {
     public source: GeoTIFF | null = null;
     public images: GeoTIFFImage[] = [];
     public workerPool: Pool | null = null;
