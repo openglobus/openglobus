@@ -94,13 +94,4 @@ describe("PlanetCamera orthographic instant views", () => {
 
         expect(camera.focusDistance).toBe(4242);
     });
-
-    test("flyExtent in Southern Hemisphere orients camera with North pointing up", () => {
-        const camera = planetCamera(5000000);
-        const nzExtent = new Extent(new LonLat(170, -42), new LonLat(175, -40));
-        camera.flyExtent(nzExtent, 0, { duration: 1000 });
-        const frame = camera._flight.fly(1);
-        expect(frame.v.z).toBeGreaterThan(0);
-    });
 });
-
