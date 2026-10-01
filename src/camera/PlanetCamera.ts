@@ -565,7 +565,18 @@ class PlanetCamera extends Camera {
         params.amplitude = params.amplitude != undefined ? params.amplitude : 1.0;
         const hasExplicitLook = params.look != undefined;
         const lookParam = params.look || Vec3.ZERO;
-        params.up = params.up || (hasExplicitLook ? this.planet.ellipsoid.getSurfaceNormal3v(cartesian) : Vec3.NORTH);
+        const look = lookParam instanceof LonLat ? this.planet.ellipsoid.lonLatToCartesian(lookParam) : lookParam;
+
+        // Looking at the planet center is looking straight down, and then the ground in
+        // view is an altitude away; any other target is a point in space at its own distance.
+        const lookIsCenter = look.isZero();
+
+        // Looking straight down, the surface normal is (almost) the view direction, so it
+        // cannot orient the camera: only the small geodetic tilt of the normal would be
+        // left, and that points south in the southern hemisphere. Keep north up instead.
+        params.up =
+            params.up ||
+            (hasExplicitLook && !lookIsCenter ? this.planet.ellipsoid.getSurfaceNormal3v(cartesian) : Vec3.NORTH);
         params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
         const ease = params.ease || DEFAULT_EASING;
 
@@ -576,12 +587,6 @@ class PlanetCamera extends Camera {
         if (params.startCallback) {
             params.startCallback.call(this);
         }
-
-        const look = lookParam instanceof LonLat ? this.planet.ellipsoid.lonLatToCartesian(lookParam) : lookParam;
-
-        // Looking at the planet center is looking straight down, and then the ground in
-        // view is an altitude away; any other target is a point in space at its own distance.
-        const lookIsCenter = look.isZero();
 
         if (params.linearPath) {
             let ground_a = this.eye.clone();
