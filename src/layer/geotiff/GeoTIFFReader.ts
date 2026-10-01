@@ -48,13 +48,13 @@ const BLOCK_CACHE_SIZE = 512;
 const OVERVIEW_RESOLUTION_TOLERANCE = 1.4;
 
 export function parseCrsCode(crs?: number | string): number | undefined {
-    if (!crs) return undefined;
+    if (!crs) return;
     if (typeof crs === "number") return crs;
     if (typeof crs === "string") {
         const match = crs.match(/\d+/);
         return match ? parseInt(match[0], 10) : undefined;
     }
-    return undefined;
+    return;
 }
 
 export class GeoTIFFReader {
