@@ -162,8 +162,6 @@ export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams {
     /** When true, merges multiple sources spatially as a mosaic instead of stacking bands */
     mosaic?: boolean;
 
-    /** Optional CRS override, e.g. 2193 or "EPSG:2193" */
-    crs?: number | string;
 
     /** Custom NoData value. Set to null or NaN to disable nodata masking. */
     nodata?: number | null | "nan" | "NaN";
