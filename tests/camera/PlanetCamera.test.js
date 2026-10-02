@@ -61,6 +61,30 @@ describe("PlanetCamera orthographic flight", () => {
     });
 });
 
+describe("PlanetCamera flyExtent orientation", () => {
+    test.each([
+        ["northern", 10, 12],
+        ["southern", -12, -10],
+        ["straddling the equator", -1, 1],
+        ["far southern", -60, -50]
+    ])("lands with north up over a %s extent", (_name, south, north) => {
+        const camera = planetCamera(5000000);
+        const extent = new Extent(new LonLat(35, south), new LonLat(36, north));
+
+        camera.flyExtent(extent, 0, { duration: 1000, preventLock: true });
+        camera._flight.startedAt = 0;
+        camera.checkFly();
+
+        expect(camera.isFlying()).toBe(false);
+        expect(camera.getHeading()).toBeCloseTo(0, 6);
+
+        // Same orientation as the instant fit of the same extent.
+        const reference = planetCamera(5000000);
+        reference.viewExtent(extent, 0);
+        expect(camera.getUp().dot(reference.getUp())).toBeCloseTo(1, 6);
+    });
+});
+
 describe("PlanetCamera orthographic instant views", () => {
     const extent = () => new Extent(new LonLat(10, 10), new LonLat(11, 11));
 

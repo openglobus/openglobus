@@ -168,6 +168,9 @@ export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams {
     /** Custom NoData value. Set to null or NaN to disable nodata masking. */
     nodata?: number | null | "nan" | "NaN";
 
+    /** Optional CRS code or definition, e.g. 2193 or "EPSG:2193" */
+    crs?: number | string;
+
     /** Alias for nodata */
     noData?: number | null | "nan" | "NaN";
 
