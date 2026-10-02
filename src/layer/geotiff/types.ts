@@ -1,5 +1,7 @@
 import type { IBaseTileMaterialLayerParams } from "../BaseTileMaterialLayer";
 import type { Pool, TypedArray } from "geotiff";
+import type { Extent } from "../../Extent";
+import type { Proj } from "../../proj/Proj";
 
 export type ColorScaleName =
     | "viridis"
@@ -118,12 +120,48 @@ export type ProjFunc = (code: number) =>
       }
     | undefined;
 
-export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams {
+export interface IGeoTIFFSourceItem {
     /** Remote URL or local Blob/File/ArrayBuffer */
     src?: string | Blob | File | ArrayBuffer;
 
     /** Alias for src when passing a URL */
     url?: string;
+
+    /** Specific band indexes to read from this source (1-indexed). Defaults to all bands. */
+    bands?: number[];
+
+    /** Min value for this source's bands (used for contrast stretching) */
+    min?: number;
+
+    /** Max value for this source's bands (used for contrast stretching) */
+    max?: number;
+
+    /** Custom NoData value for this source */
+    nodata?: number | null | "nan" | "NaN";
+
+    /** Alias for nodata */
+    noData?: number | null | "nan" | "NaN";
+
+    /** Optional HTTP request options specific to this source */
+    requestOptions?: IGeoTIFFRequestOptions;
+
+    /** Optional CRS override, e.g. 2193 or "EPSG:2193" */
+    crs?: number | string;
+}
+
+export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams {
+    /** Remote URL or local Blob/File/ArrayBuffer (single source) */
+    src?: string | Blob | File | ArrayBuffer;
+
+    /** Alias for src when passing a URL */
+    url?: string;
+
+    /** Multiple GeoTIFF/COG sources (like OpenLayers) */
+    sources?: IGeoTIFFSourceItem[];
+
+    /** When true, merges multiple sources spatially as a mosaic instead of stacking bands */
+    mosaic?: boolean;
+
 
     /** Custom NoData value. Set to null or NaN to disable nodata masking. */
     nodata?: number | null | "nan" | "NaN";
@@ -157,6 +195,24 @@ export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams {
 
     /** Auto-calculate maximumLevel from COG overview count */
     useImageCountAsMaximumLevel?: boolean;
+}
+
+export interface IGeoTIFFReader {
+    options: IGeoTIFFLayerParams;
+    metadata: IGeoTIFFMetadata | null;
+    extentWgs84: Extent;
+    crsCode: number;
+    isReady: boolean;
+    workerPool: Pool | null;
+    init(src?: any): Promise<IGeoTIFFMetadata>;
+    readTileRasters(
+        tileExtentLonLat: Extent,
+        zoomLevel: number,
+        tileSize?: number,
+        readSamples?: number[],
+        segmentProj?: Proj
+    ): Promise<DecodedTileData | null>;
+    destroy(): void;
 }
 
 export interface IGeoTIFFMetadata {
