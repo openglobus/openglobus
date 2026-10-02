@@ -149,15 +149,20 @@ export function getProjectionHelper(
         (typeof globalThis !== "undefined" && (globalThis as any).proj4);
 
     if (globalProj4 && typeof globalProj4 === "function") {
-        try {
-            const epsgStr = `EPSG:${crsCode}`;
-            return {
-                project: (p: number[]) => globalProj4("EPSG:4326", epsgStr, p),
-                unproject: (p: number[]) => globalProj4(epsgStr, "EPSG:4326", p)
-            };
-        } catch {
-            return null;
+        const epsgStr = `EPSG:${crsCode}`;
+        if (typeof globalProj4.defs === "function") {
+            const hasDef = globalProj4.defs(epsgStr) || globalProj4.defs(String(crsCode));
+            if (!hasDef) {
+                console.warn(
+                    `[GeoTIFF] Projection ${epsgStr} is not defined in proj4. Call proj4.defs("${epsgStr}", "...") before loading.`
+                );
+                return null;
+            }
         }
+        return {
+            project: (p: number[]) => globalProj4("EPSG:4326", epsgStr, p),
+            unproject: (p: number[]) => globalProj4(epsgStr, "EPSG:4326", p)
+        };
     }
 
     return null;

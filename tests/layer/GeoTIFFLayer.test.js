@@ -731,4 +731,44 @@ describe("GeoTIFFLayer tile request queue", () => {
             GeoTIFFLayer.MAX_REQUESTS = previous;
         }
     });
+
+    it("should support EPSG:2193 (NZTM2000) using globalProj4", () => {
+        const fakeProj4 = vi.fn((from, to, coord) => {
+            if (from === "EPSG:4326" && to === "EPSG:2193") {
+                return [1750000, 5400000];
+            }
+            if (from === "EPSG:2193" && to === "EPSG:4326") {
+                return [174.77, -41.28];
+            }
+            return coord;
+        });
+        fakeProj4.defs = vi.fn((code) => {
+            if (code === "EPSG:2193" || code === "2193") {
+                return "+proj=tmerc +lat_0=0 +lon_0=173 +k=0.9996 +x_0=1600000 +y_0=10000000";
+            }
+            return undefined;
+        });
+
+        // Set globalProj4
+        globalThis.proj4 = fakeProj4;
+
+        try {
+            const reader = new GeoTIFFReader({ crs: "EPSG:2193" });
+            expect(reader.options.crs).toBe("EPSG:2193");
+
+            const helper = getProjectionHelper(2193);
+            expect(helper).toBeTruthy();
+
+            const projected = helper?.project([174.77, -41.28]);
+            expect(projected).toEqual([1750000, 5400000]);
+
+            const unprojected = helper?.unproject([1750000, 5400000]);
+            expect(unprojected).toEqual([174.77, -41.28]);
+
+            expect(fakeProj4).toHaveBeenCalledWith("EPSG:4326", "EPSG:2193", [174.77, -41.28]);
+            expect(fakeProj4).toHaveBeenCalledWith("EPSG:2193", "EPSG:4326", [1750000, 5400000]);
+        } finally {
+            delete globalThis.proj4;
+        }
+    });
 });

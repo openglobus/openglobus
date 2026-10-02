@@ -47,6 +47,16 @@ const BLOCK_CACHE_SIZE = 512;
 
 const OVERVIEW_RESOLUTION_TOLERANCE = 1.4;
 
+export function parseCrsCode(crs?: number | string): number | undefined {
+    if (!crs) return;
+    if (typeof crs === "number") return crs;
+    if (typeof crs === "string") {
+        const match = crs.match(/\d+/);
+        return match ? parseInt(match[0], 10) : undefined;
+    }
+    return;
+}
+
 export class GeoTIFFReader {
     public source: GeoTIFF | null = null;
     public images: GeoTIFFImage[] = [];
@@ -151,7 +161,10 @@ export class GeoTIFFReader {
         const geoKeys = baseImage.getGeoKeys() || {};
         let crsCode = +(geoKeys.ProjectedCSTypeGeoKey || geoKeys.GeographicTypeGeoKey || 0);
 
-        if (crsCode === 32767 || crsCode === 65535 || !crsCode) {
+        const forcedCrs = parseCrsCode(this.options.crs);
+        if (forcedCrs) {
+            crsCode = forcedCrs;
+        } else if (crsCode === 32767 || crsCode === 65535 || !crsCode) {
             if (minX >= -180.5 && maxX <= 180.5 && minY >= -90.5 && maxY <= 90.5) {
                 crsCode = 4326;
             } else {
