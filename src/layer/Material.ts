@@ -1,7 +1,7 @@
 import { Layer } from "./Layer";
 import { Node } from "../quadTree/Node";
 import { Segment } from "../segment/Segment";
-import type { WebGLTextureExt } from "../webgl/Handler";
+import type { ImageSource, WebGLTextureExt } from "../webgl/Handler";
 import type { NumberArray4 } from "../math/Vec4";
 
 /**
@@ -51,14 +51,18 @@ class Material {
         this.layer.abortMaterialLoading(this);
     }
 
-    public _createTexture(img: HTMLCanvasElement | ImageBitmap | HTMLImageElement) {
-        return (
-            this.layer._planet &&
-            this.layer.createTexture!(img, this.layer._internalFormat, this.isReady ? this.texture : null)
-        );
+    /**
+     * The own ready texture is re-uploaded with texSubImage2D instead of creating a new one.
+     * It works while the image size stays the same, which is always true for tiles.
+     * After textureNotExists() the material is ready too, but it may hold a parent or default
+     * texture, which must not be overwritten.
+     */
+    public _createTexture(img: ImageSource) {
+        const ownTexture = this.isReady && this.textureExists && !this.texture?.default ? this.texture : null;
+        return this.layer._planet && this.layer.createTexture!(img, this.layer._internalFormat, null, ownTexture);
     }
 
-    public applyImage(img: HTMLCanvasElement | ImageBitmap | HTMLImageElement) {
+    public applyImage(img: ImageSource) {
         if (this.segment.initialized) {
             this._updateTexture = null;
             //this.image = img;
