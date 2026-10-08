@@ -5,10 +5,20 @@ import { LonLat } from "../../LonLat";
 import * as mercator from "../../mercator";
 import { getFastNoDataChecker, getRasterMinMax, parseNoDataValue } from "./ColorScale";
 import { getProjectionHelper, type IProjectionHelper } from "./utm";
+import { acquireWorkerPool, type IWorkerPoolHandle } from "./workerPool";
 import { Proj } from "../../proj/Proj";
 import { EPSG3857 } from "../../proj/EPSG3857";
 import { EPSG4326 } from "../../proj/EPSG4326";
-import type { DecodedTileData, IGeoTIFFLayerParams, IGeoTIFFMetadata, IGeoTIFFReader, ProjFunc } from "./types";
+import type {
+    DecodedTileData,
+    GeoTIFFSource,
+    IBandStats,
+    IGeoTIFFMetadata,
+    IGeoTIFFReader,
+    IGeoTIFFReaderParams,
+    IGeoTIFFRenderOptions,
+    ProjFunc
+} from "./types";
 
 /**
  * Sampling grid of a tile, source pixel positions are interpolated between its nodes.
@@ -57,7 +67,7 @@ export function parseCrsCode(crs?: number | string): number | undefined {
     return;
 }
 
-export class GeoTIFFReader implements IGeoTIFFReader{
+export class GeoTIFFReader implements IGeoTIFFReader {
     public source: GeoTIFF | null = null;
     public images: GeoTIFFImage[] = [];
     public workerPool: Pool | null = null;
@@ -70,17 +80,19 @@ export class GeoTIFFReader implements IGeoTIFFReader{
     public requestLevels: number[] = [];
     public isReady: boolean = false;
 
-    private _ownsWorkerPool: boolean = false;
+    private _poolHandle: IWorkerPoolHandle | null = null;
     private _projHelper: IProjectionHelper | null = null;
+    private _activeReads: number = 0;
+    private _destroyed: boolean = false;
 
-    constructor(public options: IGeoTIFFLayerParams = {}) {
+    constructor(public options: IGeoTIFFReaderParams = {}) {
         this.projFunc = options.projFunc;
     }
 
     /**
      * Initializes and parses the GeoTIFF source and its overview pyramid.
      */
-    public async init(src: string | Blob | File | ArrayBuffer): Promise<IGeoTIFFMetadata> {
+    public async init(src: GeoTIFFSource): Promise<IGeoTIFFMetadata> {
         let source: GeoTIFF;
 
         if (typeof src === "string") {
@@ -109,33 +121,13 @@ export class GeoTIFFReader implements IGeoTIFFReader{
         }
 
         this.source = source;
+        this._destroyed = false;
 
-        // Initialize Web Worker Pool for decoding if supported
-        if (this.options.geotiffWorkerPool) {
-            this.workerPool = this.options.geotiffWorkerPool;
-            this._ownsWorkerPool = false;
-        } else {
-            const poolSize =
-                this.options.workerPoolSize ??
-                (typeof navigator !== "undefined" ? navigator.hardwareConcurrency || 2 : 2);
-            const isWorkerSupported =
-                typeof Worker !== "undefined" &&
-                typeof Worker.prototype !== "undefined" &&
-                typeof Worker.prototype.addEventListener === "function";
-
-            if (poolSize > 0 && isWorkerSupported) {
-                try {
-                    this.workerPool = new Pool(poolSize);
-                    this._ownsWorkerPool = true;
-                } catch {
-                    this.workerPool = null;
-                    this._ownsWorkerPool = false;
-                }
-            } else {
-                this.workerPool = null;
-                this._ownsWorkerPool = false;
-            }
-        }
+        // Initialize Web Worker Pool for decoding if supported, releasing a lease
+        // a previous init() may have taken
+        this._releasePool();
+        this._poolHandle = acquireWorkerPool(this.options);
+        this.workerPool = this._poolHandle.pool;
 
         const imageCount = await source.getImageCount();
         this.images = [];
@@ -214,7 +206,7 @@ export class GeoTIFFReader implements IGeoTIFFReader{
         const noData = userNoData !== undefined ? userNoData : (gdalNoData ?? null);
 
         // Sample band min/max statistics from metadata or thumbnail overview
-        const bands: Record<number, { min: number; max: number }> = {};
+        const bands: Record<number, IBandStats> = {};
         const previewImage = this.images[this.images.length - 1];
 
         if (samplesPerPixel >= 3) {
@@ -285,6 +277,13 @@ export class GeoTIFFReader implements IGeoTIFFReader{
     }
 
     /**
+     * Applies rendering options that affect decoding: nodata masking and the resampling method.
+     */
+    public setRenderOptions(renderOptions: IGeoTIFFRenderOptions): void {
+        this.options.renderOptions = renderOptions;
+    }
+
+    /**
      * Reads raster data for a tile and warps it into the tile grid.
      *
      * Source pixel coordinates are calculated in the nodes of a coarse grid and interpolated in between,
@@ -297,6 +296,29 @@ export class GeoTIFFReader implements IGeoTIFFReader{
      * @param segmentProj - Projection of the segment the tile belongs to, EPSG:3857 by default.
      */
     public async readTileRasters(
+        tileExtentLonLat: Extent,
+        zoomLevel: number,
+        tileSize: number = 256,
+        readSamples?: number[],
+        segmentProj: Proj = EPSG3857
+    ): Promise<DecodedTileData | null> {
+        if (this._destroyed) {
+            return null;
+        }
+
+        this._activeReads++;
+
+        try {
+            return await this._readTileRasters(tileExtentLonLat, zoomLevel, tileSize, readSamples, segmentProj);
+        } finally {
+            this._activeReads--;
+            if (this._destroyed && this._activeReads === 0) {
+                this._releasePool();
+            }
+        }
+    }
+
+    private async _readTileRasters(
         tileExtentLonLat: Extent,
         _zoomLevel: number,
         tileSize: number = 256,
@@ -727,16 +749,25 @@ export class GeoTIFFReader implements IGeoTIFFReader{
         return false;
     }
 
+    private _releasePool(): void {
+        if (this._poolHandle) {
+            this._poolHandle.release();
+            this._poolHandle = null;
+        }
+        this.workerPool = null;
+    }
+
     /**
      * Cleans up worker pool and cached images.
      */
     public destroy(): void {
-        if (this._ownsWorkerPool && this.workerPool) {
-            this.workerPool.destroy();
-            this.workerPool = null;
-        }
+        this._destroyed = true;
         this.images = [];
         this.source = null;
         this.isReady = false;
+
+        if (this._activeReads === 0) {
+            this._releasePool();
+        }
     }
 }

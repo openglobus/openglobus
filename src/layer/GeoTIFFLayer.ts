@@ -14,6 +14,9 @@ import {
     renderMultiBandToImageData,
     renderRgbRastersToImageData,
     renderSingleBandToImageData,
+    type GeoTIFFSource,
+    type IBandChannelOptions,
+    type IBandStats,
     type IGeoTIFFLayerParams,
     type IGeoTIFFMetadata,
     type IGeoTIFFReader,
@@ -45,6 +48,16 @@ const GEOTIFF_EVENTS: GeoTIFFEventsList = [
     /** Triggered on any load error */
     "error"
 ];
+
+/**
+ * Fills the contrast stretch of a channel from the band statistics, keeping an explicit stretch untouched.
+ */
+function stretchChannel(channel: IBandChannelOptions | undefined, bandStats: IBandStats | undefined): void {
+    if (channel && bandStats && channel.min === undefined) {
+        channel.min = bandStats.min;
+        channel.max = bandStats.max;
+    }
+}
 
 /**
  * GeoTIFFLayer renders Cloud Optimized GeoTIFF (COG) and standard GeoTIFF rasters
@@ -186,6 +199,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         } else {
             delete this._renderOptions.nodata;
         }
+        this._reader.setRenderOptions(this._renderOptions);
         this._reapplyRenderOptions();
     }
 
@@ -230,9 +244,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         if (this._reader.metadata) {
             this._normalizeRenderOptions(this._reader.metadata);
         }
-        if (this._reader.options) {
-            this._reader.options.renderOptions = this._renderOptions;
-        }
+
+        this._reader.setRenderOptions(this._renderOptions);
+
         this._updateReadSamples();
 
         this._renderOptionsVersion++;
@@ -388,10 +402,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._planet.renderer?.requestRedraw();
     }
 
-    private async _initSource(
-        src: string | Blob | File | ArrayBuffer,
-        options: IGeoTIFFLayerParams
-    ): Promise<IGeoTIFFMetadata> {
+    private async _initSource(src: GeoTIFFSource, options: IGeoTIFFLayerParams): Promise<IGeoTIFFMetadata> {
         try {
             const meta = await this._reader.init(src);
 
@@ -417,10 +428,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         }
     }
 
-    private async _initSources(
-        sources: IGeoTIFFSourceItem[],
-        options: IGeoTIFFLayerParams
-    ): Promise<IGeoTIFFMetadata> {
+    private async _initSources(sources: IGeoTIFFSourceItem[], options: IGeoTIFFLayerParams): Promise<IGeoTIFFMetadata> {
         try {
             const meta = await this._reader.init(sources);
 
@@ -460,18 +468,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             }
         } else if (this._renderOptions.multi) {
             const { r, g, b } = this._renderOptions.multi;
-            if (r && r.min === undefined && meta.bands[r.band ?? 1]) {
-                r.min = meta.bands[r.band ?? 1].min;
-                r.max = meta.bands[r.band ?? 1].max;
-            }
-            if (g && g.min === undefined && meta.bands[g.band ?? 2]) {
-                g.min = meta.bands[g.band ?? 2].min;
-                g.max = meta.bands[g.band ?? 2].max;
-            }
-            if (b && b.min === undefined && meta.bands[b.band ?? 3]) {
-                b.min = meta.bands[b.band ?? 3].min;
-                b.max = meta.bands[b.band ?? 3].max;
-            }
+            stretchChannel(r, meta.bands[r?.band ?? 1]);
+            stretchChannel(g, meta.bands[g?.band ?? 2]);
+            stretchChannel(b, meta.bands[b?.band ?? 3]);
         } else if (samples >= 3) {
             const b1 = meta.bands[1];
             const b2 = meta.bands[2];
