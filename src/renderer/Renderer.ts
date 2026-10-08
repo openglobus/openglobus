@@ -2070,10 +2070,11 @@ class Renderer {
         this.deferredShadingPass.dispose();
         this.transparencyPass.dispose();
 
+        this.billboardsTextureAtlas.destroy();
+        this.strokeTextureAtlas.destroy();
+
         // todo
-        //this.billboardsTextureAtlas.clear();
         //this.fontAtlas.clear();
-        //this.strokeTextureAtlas.clear();
 
         this._entityCollections = [[]];
 

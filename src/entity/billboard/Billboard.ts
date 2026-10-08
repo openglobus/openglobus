@@ -113,6 +113,10 @@ class Billboard extends BaseBillboard {
                 let ta = rn.renderer.billboardsTextureAtlas;
                 let that = this;
                 ta.loadImage(src, function (img: HTMLImageElementExt) {
+                    if (that._handler !== bh || that._src !== src) {
+                        return;
+                    }
+
                     if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
                         that._image = img;
                         that._applyImageSize(img);

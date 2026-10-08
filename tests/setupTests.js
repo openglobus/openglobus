@@ -27,7 +27,18 @@ const mockCanvas2DContext = {
     setTransform: () => {},
     setLineDash: () => {},
     getLineDash: () => [],
-    measureText: () => ({ width: 0 })
+    measureText: () => ({ width: 0 }),
+    createImageData: (width, height) => ({
+        width,
+        height,
+        data: new Uint8ClampedArray(width * height * 4)
+    }),
+    getImageData: (_x, _y, width, height) => ({
+        width,
+        height,
+        data: new Uint8ClampedArray(width * height * 4)
+    }),
+    putImageData: () => {}
 };
 
 if (typeof HTMLCanvasElement !== "undefined") {

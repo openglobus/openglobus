@@ -43,6 +43,7 @@ class TextureAtlas {
     protected _imagesCacheManager: ImagesCacheManager;
     protected _colorSpace: number;
     protected _internalFormat: number | null;
+    protected _destroyed: boolean;
 
     constructor(width: number = 1024, height: number = 1024, colorSpace: string | number = "linear") {
         this.nodes = new Map<number, TextureAtlasNode>();
@@ -65,6 +66,8 @@ class TextureAtlas {
 
         this._colorSpace = TextureAtlas.getColorSpace(colorSpace);
         this._internalFormat = null;
+
+        this._destroyed = false;
     }
 
     public static getColorSpace(colorSpace?: string | number): number {
@@ -137,7 +140,7 @@ class TextureAtlas {
      * @returns {TextureAtlasNode | undefined} -
      */
     public addImage(image: HTMLImageElementExt, fastInsert: boolean = false): TextureAtlasNode | undefined {
-        if (!(image.width && image.height)) {
+        if (this._destroyed || !(image.width && image.height)) {
             return;
         }
 
@@ -247,15 +250,17 @@ class TextureAtlas {
      * @public
      */
     public createTexture(img?: HTMLImageElement | null) {
-        if (this._handler) {
-            this._handler.gl!.deleteTexture(this.texture!);
-            if (img) {
-                this.canvas.resize(img.width, img.height);
-                this.canvas.drawImage(img, 0, 0, img.width, img.height);
-            }
-            this.texture = this._handler.createTexture_l(this.canvas.getCanvas(), this._internalFormat)!;
-            this._handler.needRedraw = true;
+        if (this._destroyed || !this._handler || !this._handler.gl) {
+            return;
         }
+
+        this._handler.deleteTexture(this.texture);
+        if (img) {
+            this.canvas.resize(img.width, img.height);
+            this.canvas.drawImage(img, 0, 0, img.width, img.height);
+        }
+        this.texture = this._handler.createTexture_l(this.canvas.getCanvas(), this._internalFormat)!;
+        this._handler.needRedraw = true;
     }
 
     /**
@@ -265,7 +270,29 @@ class TextureAtlas {
      * @param {ImagesCacheManagerCallback} success - The callback that handles the image loads done.
      */
     public loadImage(src: string, success: ImagesCacheManagerCallback) {
+        if (this._destroyed) {
+            return;
+        }
         this._imagesCacheManager.load(src, success);
+    }
+
+    public destroy() {
+        if (this._destroyed) {
+            return;
+        }
+
+        this._destroyed = true;
+
+        this._imagesCacheManager.abort();
+
+        this._handler && this._handler.deleteTexture(this.texture);
+        this.texture = null;
+
+        this.nodes.clear();
+        this._images = [];
+        this._btree = null;
+        this._handler = null;
+        this._internalFormat = null;
     }
 
     public getImageTexCoordinates(img: HTMLImageElementExt): number[] | undefined {
