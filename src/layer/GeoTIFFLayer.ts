@@ -9,13 +9,19 @@ import {
     createImageData,
     getFastNoDataChecker,
     GeoTIFFReader,
+    MultiGeoTIFFReader,
     parseNoDataValue,
     renderMultiBandToImageData,
     renderRgbRastersToImageData,
     renderSingleBandToImageData,
+    type GeoTIFFSource,
+    type IBandChannelOptions,
+    type IBandStats,
     type IGeoTIFFLayerParams,
     type IGeoTIFFMetadata,
+    type IGeoTIFFReader,
     type IGeoTIFFRenderOptions,
+    type IGeoTIFFSourceItem,
     type DecodedTileData
 } from "./geotiff";
 
@@ -44,13 +50,23 @@ const GEOTIFF_EVENTS: GeoTIFFEventsList = [
 ];
 
 /**
+ * Fills the contrast stretch of a channel from the band statistics, keeping an explicit stretch untouched.
+ */
+function stretchChannel(channel: IBandChannelOptions | undefined, bandStats: IBandStats | undefined): void {
+    if (channel && bandStats && channel.min === undefined) {
+        channel.min = bandStats.min;
+        channel.max = bandStats.max;
+    }
+}
+
+/**
  * GeoTIFFLayer renders Cloud Optimized GeoTIFF (COG) and standard GeoTIFF rasters
  * onto the OpenGlobus 3D globe using progressive overview pyramid tiles.
  */
 export class GeoTIFFLayer extends BaseTileMaterialLayer {
     public override events: GeoTIFFEventsType;
 
-    protected _reader: GeoTIFFReader;
+    protected _reader: IGeoTIFFReader;
     protected _renderOptions: IGeoTIFFRenderOptions;
     protected _tileSize: number;
     protected _tileCache: Map<string, ICachedTile>;
@@ -72,7 +88,13 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         // @ts-ignore
         this.events = this.events.registerNames(GEOTIFF_EVENTS);
 
-        this._reader = new GeoTIFFReader(options);
+        const isMultiSource = Array.isArray(options.sources) && options.sources.length > 0;
+        if (isMultiSource) {
+            this._reader = new MultiGeoTIFFReader(options);
+        } else {
+            this._reader = new GeoTIFFReader(options);
+        }
+
         const initialNodata =
             options.renderOptions?.nodata !== undefined
                 ? parseNoDataValue(options.renderOptions.nodata)
@@ -103,7 +125,12 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._updateReadSamples();
 
         const src = options.src || options.url;
-        if (src) {
+        if (isMultiSource) {
+            this._readyPromise = this._initSources(options.sources!, options);
+            this._readyPromise.catch(() => {
+                //empty
+            });
+        } else if (src) {
             this._readyPromise = this._initSource(src, options);
             this._readyPromise.catch(() => {
                 //empty
@@ -132,6 +159,16 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         return layer;
     }
 
+    public static async fromSources(
+        name: string,
+        sources: IGeoTIFFSourceItem[],
+        options: IGeoTIFFLayerParams = {}
+    ): Promise<GeoTIFFLayer> {
+        const layer = new GeoTIFFLayer(name, { ...options, sources });
+        await layer.whenReady();
+        return layer;
+    }
+
     public override get instanceName(): string {
         return "GeoTIFFLayer";
     }
@@ -140,7 +177,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         return super.isIdle && this._activeRequestsCount === 0 && this._pendingsQueue.length === 0;
     }
 
-    public get reader(): GeoTIFFReader {
+    public get reader(): IGeoTIFFReader {
         return this._reader;
     }
 
@@ -162,6 +199,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         } else {
             delete this._renderOptions.nodata;
         }
+        this._reader.setRenderOptions(this._renderOptions);
         this._reapplyRenderOptions();
     }
 
@@ -206,9 +244,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         if (this._reader.metadata) {
             this._normalizeRenderOptions(this._reader.metadata);
         }
-        if (this._reader.options) {
-            this._reader.options.renderOptions = this._renderOptions;
-        }
+
+        this._reader.setRenderOptions(this._renderOptions);
+
         this._updateReadSamples();
 
         this._renderOptionsVersion++;
@@ -364,12 +402,35 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._planet.renderer?.requestRedraw();
     }
 
-    private async _initSource(
-        src: string | Blob | File | ArrayBuffer,
-        options: IGeoTIFFLayerParams
-    ): Promise<IGeoTIFFMetadata> {
+    private async _initSource(src: GeoTIFFSource, options: IGeoTIFFLayerParams): Promise<IGeoTIFFMetadata> {
         try {
             const meta = await this._reader.init(src);
+
+            // Configure layer bounds
+            if (this._reader.extentWgs84) {
+                this.setExtent(this._reader.extentWgs84);
+            }
+
+            if (options.useImageCountAsMaximumLevel) {
+                this.maxNativeZoom = Math.min(this.maxNativeZoom, meta.overviewCount - 1);
+            }
+
+            // Set up default rendering mode if not configured
+            this._normalizeRenderOptions(meta);
+            this._updateReadSamples();
+
+            this.events.dispatch(this.events.ready, meta);
+            this.redraw();
+            return meta;
+        } catch (err: any) {
+            this.events.dispatch(this.events.error, err);
+            throw err;
+        }
+    }
+
+    private async _initSources(sources: IGeoTIFFSourceItem[], options: IGeoTIFFLayerParams): Promise<IGeoTIFFMetadata> {
+        try {
+            const meta = await this._reader.init(sources);
 
             // Configure layer bounds
             if (this._reader.extentWgs84) {
@@ -407,20 +468,27 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             }
         } else if (this._renderOptions.multi) {
             const { r, g, b } = this._renderOptions.multi;
-            if (r && r.min === undefined && meta.bands[r.band ?? 1]) {
-                r.min = meta.bands[r.band ?? 1].min;
-                r.max = meta.bands[r.band ?? 1].max;
-            }
-            if (g && g.min === undefined && meta.bands[g.band ?? 2]) {
-                g.min = meta.bands[g.band ?? 2].min;
-                g.max = meta.bands[g.band ?? 2].max;
-            }
-            if (b && b.min === undefined && meta.bands[b.band ?? 3]) {
-                b.min = meta.bands[b.band ?? 3].min;
-                b.max = meta.bands[b.band ?? 3].max;
-            }
+            stretchChannel(r, meta.bands[r?.band ?? 1]);
+            stretchChannel(g, meta.bands[g?.band ?? 2]);
+            stretchChannel(b, meta.bands[b?.band ?? 3]);
         } else if (samples >= 3) {
-            this._renderOptions.convertToRGB = this._renderOptions.convertToRGB ?? true;
+            const b1 = meta.bands[1];
+            const b2 = meta.bands[2];
+            const b3 = meta.bands[3];
+            const isHighBitDepth =
+                (b1 && (b1.max > 255 || b1.min < 0)) ||
+                (b2 && (b2.max > 255 || b2.min < 0)) ||
+                (b3 && (b3.max > 255 || b3.min < 0));
+
+            if (isHighBitDepth && this._renderOptions.convertToRGB === undefined) {
+                this._renderOptions.multi = {
+                    r: { band: 1, min: b1?.min ?? 0, max: b1?.max ?? 255 },
+                    g: { band: 2, min: b2?.min ?? 0, max: b2?.max ?? 255 },
+                    b: { band: 3, min: b3?.min ?? 0, max: b3?.max ?? 255 }
+                };
+            } else {
+                this._renderOptions.convertToRGB = this._renderOptions.convertToRGB ?? true;
+            }
         } else {
             const bandMeta = meta.bands[1];
             this._renderOptions.single = {
@@ -440,7 +508,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             const { r, g, b } = this._renderOptions.multi;
             this._readSamples = [(r?.band ?? 1) - 1, (g?.band ?? 2) - 1, (b?.band ?? 3) - 1];
         } else if (this._renderOptions.convertToRGB) {
-            this._readSamples = [0, 1, 2];
+            this._readSamples = (this.metadata?.samplesPerPixel ?? 3) >= 4 ? [0, 1, 2, 3] : [0, 1, 2];
         } else if (this._renderOptions.single) {
             const expr = this._renderOptions.single.expression;
             if (expr) {
