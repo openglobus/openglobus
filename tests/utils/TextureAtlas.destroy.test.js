@@ -1,7 +1,7 @@
 import { Handler } from "../../src/webgl/Handler";
 import { TextureAtlas } from "../../src/utils/TextureAtlas";
 
-createFakeGl() {
+function createFakeGl() {
     const calls = [];
     let enumCounter = 0x1000;
     const target = { type: "webgl2", calls };
