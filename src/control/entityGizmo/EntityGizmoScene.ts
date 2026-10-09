@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 Michael Gevlich
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { createEvents, type EventsHandler } from "../../Events";
 import { MAX32 } from "../../math";
 import { Plane } from "../../math/Plane";
@@ -17,20 +32,70 @@ import { Ray } from "../../math/Ray";
 import { Sphere } from "../../bv/Sphere";
 import { AxisTrackEntity } from "./AxisTrackEntity";
 import { CameraLock } from "../CameraLock";
+import { Control } from "../Control";
 import { EntityCollection } from "../../entity/EntityCollection";
 import { SHADE_UNLIT } from "../../shadeModeConstants";
 
-export interface IEntityEditorSceneParams {
+export interface IEntityGizmoSceneParams {
     planet?: Planet;
     name?: string;
     editMode?: EditModeName;
+    tools?: GizmoTools;
+    autoSelect?: boolean;
 }
 
 export const NATIVE_MODE = 0;
 export const YAW_MODE = 1;
 
+/** Rotation mode: the frame the rotation rings are built in and written back through. */
 export type EditMode = typeof NATIVE_MODE | typeof YAW_MODE;
 export type EditModeName = "native" | "yaw";
+
+/**
+ * Gizmo tool set, i.e. which handles are shown. Orthogonal to the rotation {@link EditModeName}.
+ * `translate` - move axes and planes only.
+ * `full` - move axes, planes and rotation rings.
+ */
+export type GizmoTools = "translate" | "full";
+
+/** Gizmo handle names. Each handle belongs to exactly one {@link GizmoTransformKind}. */
+export type GizmoTransformHandle =
+    "move_x" | "move_y" | "move_z" | "move_xz" | "move_xy" | "move_zy" | "rotate_pitch" | "rotate_yaw" | "rotate_roll";
+
+/** Kind of transformation a gesture performs. */
+export type GizmoTransformKind = "translate" | "rotate";
+
+/** Payload of `transformstart`, `transformchange`, `transformend` and `transformcancel`. */
+export interface IGizmoTransformEvent {
+    entity: Entity;
+    kind: GizmoTransformKind;
+    handle: GizmoTransformHandle;
+}
+
+const HANDLE_KINDS: Record<GizmoTransformHandle, GizmoTransformKind> = {
+    move_x: "translate",
+    move_y: "translate",
+    move_z: "translate",
+    move_xz: "translate",
+    move_xy: "translate",
+    move_zy: "translate",
+    rotate_pitch: "rotate",
+    rotate_yaw: "rotate",
+    rotate_roll: "rotate"
+};
+
+const SUSPENDED_NAVIGATION_CONTROLS = ["navigation", "SimpleNavigation"];
+
+interface IGizmoGesture {
+    entity: Entity;
+    handle: GizmoTransformHandle;
+    kind: GizmoTransformKind;
+    started: boolean;
+    cartesian: Vec3;
+    pitch: number;
+    yaw: number;
+    roll: number;
+}
 
 function dragSimpleRes(unit: Vec3, clickRay: Ray, currRay: Ray, p0: Vec3, res: Vec3) {
     let p1 = p0.add(Vec3.UP),
@@ -48,7 +113,7 @@ function dragSimpleRes(unit: Vec3, clickRay: Ray, currRay: Ray, p0: Vec3, res: V
     }
 }
 
-type EntityEditorSceneEventsList = [
+type EntityGizmoSceneEventsList = [
     "mousemove",
     "mouseenter",
     "mouseleave",
@@ -81,12 +146,24 @@ type EntityEditorSceneEventsList = [
     "pitch",
     "yaw",
     "roll",
-    "scale"
+    "scale",
+    "transformstart",
+    "transformchange",
+    "transformend",
+    "transformcancel"
 ];
 
-class EntityEditorScene extends Scene {
-    public events: EventsHandler<EntityEditorSceneEventsList>;
+/**
+ * Scene for translating and rotating entities with a gizmo.
+ * @class
+ * @extends {Scene}
+ * @param {IEntityGizmoSceneParams} [options] - Gizmo scene options.
+ */
+class EntityGizmoScene extends Scene {
+    public events: EventsHandler<EntityGizmoSceneEventsList>;
+
     protected _planet: Planet | null;
+
     protected _startPos: Vec2 | null;
     protected _startClick: Vec2;
     protected _moveLayer: EntityCollection;
@@ -100,6 +177,7 @@ class EntityEditorScene extends Scene {
     protected _selectedEntityPitch: number;
     protected _selectedEntityYaw: number;
     protected _selectedEntityRoll: number;
+
     protected _clickPos: Vec2;
 
     protected _axisEntity: MoveAxisEntity;
@@ -107,20 +185,29 @@ class EntityEditorScene extends Scene {
     protected _rotateEntity: RotateEntity;
     protected _axisTrackEntity: AxisTrackEntity;
 
-    protected _selectedMove: string | null;
+    protected _selectedMove: GizmoTransformHandle | null;
 
     protected _ops: Record<string, (mouseState: IMouseState) => void>;
 
     protected _axisTrackVisibility: boolean;
     protected _editMode: EditMode;
+    protected _tools: GizmoTools;
+    protected _autoSelect: boolean;
+    protected _visibility: boolean;
+    protected _isActivated: boolean;
 
-    constructor(options: IEntityEditorSceneParams = {}) {
-        super(options.name || "EntityEditorScene");
+    protected _gesture: IGizmoGesture | null;
+    protected _suspendedNavigation: string[];
 
-        this.events = createEvents(ENTITY_EDITOR_SCENE_EVENTS);
+    constructor(options: IEntityGizmoSceneParams = {}) {
+        super(options.name || "EntityGizmoScene");
+
+        this.events = createEvents(ENTITY_GIZMO_SCENE_EVENTS);
 
         this._planet = options.planet || null;
         this._editMode = this._parseEditMode(options.editMode);
+        this._tools = options.tools === "full" ? "full" : "translate";
+        this._autoSelect = options.autoSelect !== false;
 
         this._startPos = null;
         this._startClick = new Vec2();
@@ -162,6 +249,11 @@ class EntityEditorScene extends Scene {
         this._selectedMove = null;
 
         this._axisTrackVisibility = false;
+        this._visibility = false;
+        this._isActivated = false;
+
+        this._gesture = null;
+        this._suspendedNavigation = [];
 
         this._axisTrackLayer = new EntityCollection({
             shadeMode: SHADE_UNLIT,
@@ -211,6 +303,31 @@ class EntityEditorScene extends Scene {
         }
     }
 
+    /** Gizmo tool set: which handles are shown. */
+    get tools(): GizmoTools {
+        return this._tools;
+    }
+
+    set tools(tools: GizmoTools) {
+        if (tools === this._tools) return;
+        this.cancelTransform();
+        this._tools = tools;
+        this._applyVisibility();
+    }
+
+    /** When `false`, a left click on a map entity does not change the gizmo selection. */
+    get autoSelect(): boolean {
+        return this._autoSelect;
+    }
+
+    set autoSelect(autoSelect: boolean) {
+        this._autoSelect = autoSelect;
+    }
+
+    protected get _rotateEnabled(): boolean {
+        return this._tools === "full";
+    }
+
     public bindPlanet(planet: Planet) {
         this._planet = planet;
     }
@@ -241,19 +358,16 @@ class EntityEditorScene extends Scene {
         this._moveLayer.add(this._axisEntity);
         this._moveLayer.events.on("mouseenter", this._onAxisLayerMouseEnter);
         this._moveLayer.events.on("mouseleave", this._onAxisLayerMouseLeave);
-        this._moveLayer.events.on("lup", this._onAxisLayerLUp);
         this._moveLayer.events.on("ldown", this._onAxisLayerLDown);
 
         this._planeLayer.add(this._planeEntity);
         this._planeLayer.events.on("mouseenter", this._onPlaneLayerMouseEnter);
         this._planeLayer.events.on("mouseleave", this._onPlaneLayerMouseLeave);
-        this._planeLayer.events.on("lup", this._onPlaneLayerLUp);
         this._planeLayer.events.on("ldown", this._onPlaneLayerLDown);
 
         this._rotateLayer.add(this._rotateEntity);
         this._rotateLayer.events.on("mouseenter", this._onRotateLayerMouseEnter);
         this._rotateLayer.events.on("mouseleave", this._onRotateLayerMouseLeave);
-        this._rotateLayer.events.on("lup", this._onRotateLayerLUp);
         this._rotateLayer.events.on("ldown", this._onRotateLayerLDown);
 
         this._axisTrackLayer.add(this._axisTrackEntity);
@@ -269,44 +383,48 @@ class EntityEditorScene extends Scene {
         e.pickingObject.setColorHTML(e.pickingObject.properties.style.color);
     };
 
-    protected _navActivate() {
-        if (this.renderer) {
-            if (this.renderer.controls.navigation) {
-                this.renderer.controls.navigation.activate();
-            }
-            if (this.renderer.controls.SimpleNavigation) {
-                this.renderer.controls.SimpleNavigation.activate();
+    /**
+     * Suspends the navigation controls that are active right now, so that a drag gesture
+     * does not fight with the camera. The suspended set is remembered and restored by
+     * {@link EntityGizmoScene._navRestore}, which keeps controls that were already
+     * deactivated beforehand deactivated.
+     * @protected
+     */
+    protected _navSuspend() {
+        if (!this.renderer) return;
+
+        this._suspendedNavigation = [];
+
+        for (let i = 0; i < SUSPENDED_NAVIGATION_CONTROLS.length; i++) {
+            let name = SUSPENDED_NAVIGATION_CONTROLS[i];
+            let control = this.renderer.controls[name] as (Control & { stop?: () => void }) | undefined;
+            if (control && control.isActive()) {
+                this._suspendedNavigation.push(name);
+                control.deactivate();
+                // Drops accumulated velocity and grabbed points, so no pressed button state survives.
+                control.stop && control.stop();
             }
         }
     }
 
-    protected _navDeactivate() {
+    protected _navRestore() {
         if (this.renderer) {
-            if (this.renderer.controls.navigation) {
-                this.renderer.controls.navigation.deactivate();
-            }
-            if (this.renderer.controls.SimpleNavigation) {
-                this.renderer.controls.SimpleNavigation.deactivate();
+            for (let i = 0; i < this._suspendedNavigation.length; i++) {
+                let control = this.renderer.controls[this._suspendedNavigation[i]];
+                control && control.activate();
             }
         }
+        this._suspendedNavigation = [];
     }
-
-    protected _onAxisLayerLUp = (e: IMouseState) => {
-        this._selectedMove = null;
-        this._navActivate();
-        this._setAxisTrackVisibility(false);
-    };
 
     protected _onAxisLayerLDown = (e: IMouseState) => {
         this._clickPos = e.pos.clone();
 
         if (this._selectedEntity) {
             this._selectedEntityCart = this._selectedEntity.getAbsoluteCartesian();
-            this._setAxisTrackVisibility(true);
         }
 
-        this._selectedMove = e.pickingObject.properties.opName;
-        this._navDeactivate();
+        this._beginGesture(e.pickingObject.properties.opName);
     };
 
     protected _onPlaneLayerMouseEnter = (e: IMouseState) => {
@@ -319,22 +437,14 @@ class EntityEditorScene extends Scene {
         e.pickingObject.geoObject.setColorHTML(e.pickingObject.properties.style.color);
     };
 
-    protected _onPlaneLayerLUp = (e: IMouseState) => {
-        this._selectedMove = null;
-        this._navActivate();
-        this._setAxisTrackVisibility(false);
-    };
-
     protected _onPlaneLayerLDown = (e: IMouseState) => {
         this._clickPos = e.pos.clone();
 
         if (this._selectedEntity) {
             this._selectedEntityCart = this._selectedEntity.getAbsoluteCartesian();
-            this._setAxisTrackVisibility(true);
         }
 
-        this._selectedMove = e.pickingObject.properties.opName;
-        this._navDeactivate();
+        this._beginGesture(e.pickingObject.properties.opName);
     };
 
     protected _onRotateLayerMouseEnter = (e: IMouseState) => {
@@ -347,53 +457,97 @@ class EntityEditorScene extends Scene {
         e.pickingObject.polyline!.setColorHTML(e.pickingObject.properties.style.color);
     };
 
-    protected _onRotateLayerLUp = (e: IMouseState) => {
-        this._selectedMove = null;
-        this._navActivate();
-    };
-
     protected _onRotateLayerLDown = (e: IMouseState) => {
         this._clickPos = e.pos.clone();
 
         if (this._selectedEntity) {
             this._selectedEntityCart = this._selectedEntity.getAbsoluteCartesian();
             this._selectedEntityRotation = this._getEntityRotation(this._selectedEntity, this._selectedEntityCart);
-            if (this._selectedEntity) {
-                this._selectedEntityPitch = this._selectedEntity.getAbsolutePitch();
-                this._selectedEntityYaw = this._selectedEntity.getAbsoluteYaw();
-                this._selectedEntityRoll = this._selectedEntity.getAbsoluteRoll();
-            }
+            this._selectedEntityPitch = this._selectedEntity.getAbsolutePitch();
+            this._selectedEntityYaw = this._selectedEntity.getAbsoluteYaw();
+            this._selectedEntityRoll = this._selectedEntity.getAbsoluteRoll();
         }
 
-        this._selectedMove = e.pickingObject.properties.opName;
-        this._navDeactivate();
+        this._beginGesture(e.pickingObject.properties.opName);
     };
 
     protected _onMouseMove = (e: IMouseState) => {
+        if (!this._gesture) return;
+
+        if (!e.leftButtonHold && !e.leftButtonDown) {
+            // The pointer has been released somewhere we did not hear about.
+            this._endGesture();
+            return;
+        }
+
+        if (!this._isEntityAttached(this._gesture.entity)) {
+            this.cancelTransform();
+            return;
+        }
+
         if (this._selectedEntity && this._selectedMove && this._ops[this._selectedMove]) {
             this._ops[this._selectedMove](e);
         }
     };
 
     protected _removeAxisLayers() {
+        this._moveLayer.events.off("mouseenter", this._onAxisLayerMouseEnter);
+        this._moveLayer.events.off("mouseleave", this._onAxisLayerMouseLeave);
+        this._moveLayer.events.off("ldown", this._onAxisLayerLDown);
+
+        this._planeLayer.events.off("mouseenter", this._onPlaneLayerMouseEnter);
+        this._planeLayer.events.off("mouseleave", this._onPlaneLayerMouseLeave);
+        this._planeLayer.events.off("ldown", this._onPlaneLayerLDown);
+
+        this._rotateLayer.events.off("mouseenter", this._onRotateLayerMouseEnter);
+        this._rotateLayer.events.off("mouseleave", this._onRotateLayerMouseLeave);
+        this._rotateLayer.events.off("ldown", this._onRotateLayerLDown);
+
         this._moveLayer.remove();
         this._planeLayer.remove();
         this._rotateLayer.remove();
+        this._axisTrackLayer.remove();
     }
 
     public activate() {
-        this.renderer!.events.on("lclick", this._onLclick);
-        this.renderer!.events.on("mousemove", this._onMouseMove);
-        this.renderer!.events.on("forwardpass", this._onForwardpass, this);
+        if (this._isActivated || !this.renderer) return;
+
+        this._isActivated = true;
+
+        this.renderer.events.on("lclick", this._onLclick);
+        this.renderer.events.on("lup", this._onLUp);
+        this.renderer.events.on("mousemove", this._onMouseMove);
+        this.renderer.events.on("touchcancel", this._onTouchCancel);
+        this.renderer.events.on("forwardpass", this._onForwardpass, this);
         this._addAxisLayers();
     }
 
-    protected deactivate() {
-        this.renderer!.events.off("forwardpass", this._onForwardpass);
-        this.renderer!.events.off("lclick", this._onLclick);
-        this.renderer!.events.off("mousemove", this._onMouseMove);
+    public deactivate() {
+        if (!this._isActivated) return;
+
+        this._isActivated = false;
+
+        this.cancelTransform();
+        this._unbindGestureListeners();
+        this._navRestore();
+
+        if (this._selectedEntity) {
+            this.unselect();
+        }
+
+        if (this.renderer) {
+            this.renderer.events.off("forwardpass", this._onForwardpass);
+            this.renderer.events.off("lclick", this._onLclick);
+            this.renderer.events.off("lup", this._onLUp);
+            this.renderer.events.off("mousemove", this._onMouseMove);
+            this.renderer.events.off("touchcancel", this._onTouchCancel);
+        }
+
+        this._selectedEntity = null;
+        this._visibility = false;
+        this._applyVisibility();
+        this._setAxisTrackVisibility(false);
         this._removeAxisLayers();
-        this.clear();
     }
 
     protected _setAxisTrackVisibility(visibility: boolean) {
@@ -404,10 +558,15 @@ class EntityEditorScene extends Scene {
     }
 
     public setVisibility(visibility: boolean) {
-        this._moveLayer.setVisibility(visibility);
-        this._planeLayer.setVisibility(visibility);
-        this._rotateLayer.setVisibility(visibility);
+        this._visibility = visibility;
+        this._applyVisibility();
         this.unlockView();
+    }
+
+    protected _applyVisibility() {
+        this._moveLayer.setVisibility(this._visibility);
+        this._planeLayer.setVisibility(this._visibility);
+        this._rotateLayer.setVisibility(this._visibility && this._rotateEnabled);
     }
 
     public readyToEdit(entity: Entity): boolean {
@@ -432,6 +591,7 @@ class EntityEditorScene extends Scene {
     }
 
     public unselect() {
+        this.cancelTransform();
         this.setVisibility(false);
         let selectedEntity = this._selectedEntity;
         this._selectedEntity = null;
@@ -439,7 +599,7 @@ class EntityEditorScene extends Scene {
     }
 
     protected _onLclick = (e: IMouseState) => {
-        if (e.pickingObject && e.pickingObject instanceof Entity) {
+        if (this._autoSelect && e.pickingObject && e.pickingObject instanceof Entity) {
             this.select(e.pickingObject);
         }
     };
@@ -448,17 +608,193 @@ class EntityEditorScene extends Scene {
         this.removeEntityCollection(this._moveLayer);
         this.removeEntityCollection(this._planeLayer);
         this.removeEntityCollection(this._rotateLayer);
+        this.removeEntityCollection(this._axisTrackLayer);
     }
 
     protected _onForwardpass = () => {
         if (this._selectedEntity) {
+            if (!this._isEntityAttached(this._selectedEntity)) {
+                this.unselect();
+                return;
+            }
+
             let cart = this._selectedEntity.getAbsoluteCartesian();
             this._axisEntity.setCartesian3v(cart);
             this._planeEntity.setCartesian3v(cart);
-            this._setRotateEntityCartesian3v(this._selectedEntity, cart);
+            if (this._rotateEnabled) {
+                this._setRotateEntityCartesian3v(this._selectedEntity, cart);
+            }
             this._axisTrackEntity.setCartesian3v(cart);
         }
     };
+
+    //
+    // Gesture
+    //
+
+    /**
+     * Returns `true` when a drag gesture is running right now.
+     * @public
+     */
+    public isTransforming(): boolean {
+        return this._gesture !== null;
+    }
+
+    /**
+     * Returns the running gesture description or `null`.
+     * @public
+     */
+    public getActiveTransform(): IGizmoTransformEvent | null {
+        return this._gesture ? this._gestureEvent(this._gesture) : null;
+    }
+
+    /**
+     * Cancels the current gesture and restores the entity transform when possible.
+     * @public
+     * @returns {boolean} Whether a gesture was cancelled.
+     */
+    public cancelTransform(): boolean {
+        let gesture = this._gesture;
+        if (!gesture) return false;
+
+        this._gesture = null;
+        this._selectedMove = null;
+        this._unbindGestureListeners();
+        this._setAxisTrackVisibility(false);
+        this._navRestore();
+
+        if (gesture.started && this._isEntityAttached(gesture.entity)) {
+            this._restoreGesture(gesture);
+        }
+
+        if (gesture.started) {
+            this.events.dispatch(this.events.transformcancel, this._gestureEvent(gesture));
+        }
+
+        return true;
+    }
+
+    protected _gestureEvent(gesture: IGizmoGesture): IGizmoTransformEvent {
+        return {
+            entity: gesture.entity,
+            kind: gesture.kind,
+            handle: gesture.handle
+        };
+    }
+
+    protected _beginGesture(handle: GizmoTransformHandle) {
+        if (!this._selectedEntity || !HANDLE_KINDS[handle]) return;
+
+        this.cancelTransform();
+
+        let entity = this._selectedEntity;
+
+        this._selectedMove = handle;
+        this._gesture = {
+            entity,
+            handle,
+            kind: HANDLE_KINDS[handle],
+            started: false,
+            cartesian: entity.getCartesian().clone(),
+            pitch: entity.getPitch(),
+            yaw: entity.getYaw(),
+            roll: entity.getRoll()
+        };
+
+        if (this._gesture.kind === "translate") {
+            this._setAxisTrackVisibility(true);
+        }
+
+        this._bindGestureListeners();
+        this._navSuspend();
+    }
+
+    /**
+     * Dispatches `transformstart` right before the very first entity change of the gesture.
+     * @protected
+     */
+    protected _beginChange() {
+        let gesture = this._gesture;
+        if (gesture && !gesture.started) {
+            gesture.started = true;
+            this.events.dispatch(this.events.transformstart, this._gestureEvent(gesture));
+        }
+    }
+
+    protected _afterChange() {
+        if (this._gesture) {
+            this.events.dispatch(this.events.transformchange, this._gestureEvent(this._gesture));
+        }
+    }
+
+    protected _endGesture() {
+        let gesture = this._gesture;
+
+        if (!gesture) return;
+
+        this._gesture = null;
+        this._selectedMove = null;
+
+        this._unbindGestureListeners();
+        this._setAxisTrackVisibility(false);
+        this._navRestore();
+
+        if (gesture.started) {
+            this.events.dispatch(this.events.transformend, this._gestureEvent(gesture));
+        }
+    }
+
+    protected _restoreGesture(gesture: IGizmoGesture) {
+        if (gesture.kind === "translate") {
+            gesture.entity.setCartesian3v(gesture.cartesian);
+        } else {
+            gesture.entity.setPitchYawRoll(gesture.pitch, gesture.yaw, gesture.roll);
+        }
+    }
+
+    protected _isEntityAttached(entity: Entity): boolean {
+        return Boolean(entity.entityCollection || entity._layer);
+    }
+
+    protected _bindGestureListeners() {
+        if (typeof window === "undefined") return;
+
+        window.addEventListener("pointerup", this._onWindowPointerUp, true);
+        window.addEventListener("pointercancel", this._onWindowPointerCancel, true);
+        window.addEventListener("blur", this._onWindowBlur);
+    }
+
+    protected _unbindGestureListeners() {
+        if (typeof window === "undefined") return;
+
+        window.removeEventListener("pointerup", this._onWindowPointerUp, true);
+        window.removeEventListener("pointercancel", this._onWindowPointerCancel, true);
+        window.removeEventListener("blur", this._onWindowBlur);
+    }
+
+    protected _onWindowPointerUp = () => {
+        this._endGesture();
+    };
+
+    protected _onWindowPointerCancel = () => {
+        this.cancelTransform();
+    };
+
+    protected _onWindowBlur = () => {
+        this.cancelTransform();
+    };
+
+    protected _onLUp = () => {
+        this._endGesture();
+    };
+
+    protected _onTouchCancel = () => {
+        this.cancelTransform();
+    };
+
+    //
+    // Operations
+    //
 
     protected _moveX = (e: IMouseState) => {
         if (!this._selectedEntity) return;
@@ -491,10 +827,7 @@ class EntityEditorScene extends Scene {
             dragSimpleRes(Vec3.UNIT_X, clickRay, currRay, p0, px);
         }
 
-        this._selectedEntity.setAbsoluteCartesian3v(px);
-
-        this.events.dispatch(this.events.position, px, this._selectedEntity);
-        this.events.dispatch(this.events.change, this._selectedEntity);
+        this._applyPosition(px);
     };
 
     protected _moveY = (e: IMouseState) => {
@@ -519,9 +852,7 @@ class EntityEditorScene extends Scene {
                 let dragCart = Vec3.proj_b_to_a(px, groundNormal);
                 let dragVec = dragCart.sub(clickCart);
                 let pos = this._selectedEntityCart.add(dragVec);
-                this._selectedEntity.setAbsoluteCartesian3v(pos);
-                this.events.dispatch(this.events.position, px, this._selectedEntity);
-                this.events.dispatch(this.events.change, this._selectedEntity);
+                this._applyPosition(pos);
             }
         }
     };
@@ -557,10 +888,7 @@ class EntityEditorScene extends Scene {
             dragSimpleRes(Vec3.UNIT_Z, clickRay, currRay, p0, px);
         }
 
-        this._selectedEntity.setAbsoluteCartesian3v(px);
-
-        this.events.dispatch(this.events.position, px, this._selectedEntity);
-        this.events.dispatch(this.events.change, this._selectedEntity);
+        this._applyPosition(px);
     };
 
     protected _moveXZ = (e: IMouseState) => {
@@ -603,19 +931,28 @@ class EntityEditorScene extends Scene {
             }
         }
 
-        this._selectedEntity.setAbsoluteCartesian3v(px);
-
-        this.events.dispatch(this.events.position, px, this._selectedEntity);
-        this.events.dispatch(this.events.change, this._selectedEntity);
+        this._applyPosition(px);
     };
 
-    protected _moveXY = (e: IMouseState) => {
-        console.log("moveXY");
-    };
+    protected _moveXY = (e: IMouseState) => {};
 
-    protected _moveZY = (e: IMouseState) => {
-        console.log("moveZY");
-    };
+    protected _moveZY = (e: IMouseState) => {};
+
+    /**
+     * Applies a new absolute position to the selected entity and emits the gesture events
+     * around the change. The `position` event receives the applied `pos` and the entity.
+     * @protected
+     * @param {Vec3} pos - New absolute cartesian position.
+     */
+    protected _applyPosition(pos: Vec3) {
+        let entity = this._selectedEntity!;
+
+        this._beginChange();
+        entity.setAbsoluteCartesian3v(pos);
+        this.events.dispatch(this.events.position, pos, entity);
+        this.events.dispatch(this.events.change, entity);
+        this._afterChange();
+    }
 
     public override getFrameRotation(cartesian: Vec3): Quat {
         return this._planet ? this._planet.getFrameRotation(cartesian) : super.getFrameRotation(cartesian);
@@ -696,6 +1033,8 @@ class EntityEditorScene extends Scene {
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityPitch + sig * angle;
 
+                this._beginChange();
+
                 if (this._isYawMode()) {
                     this._selectedEntity.setAbsolutePitch(deg);
                 } else {
@@ -705,6 +1044,7 @@ class EntityEditorScene extends Scene {
 
                 this.events.dispatch(this.events.pitch, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
+                this._afterChange();
             }
         }
     };
@@ -730,6 +1070,8 @@ class EntityEditorScene extends Scene {
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityYaw + sig * angle;
 
+                this._beginChange();
+
                 if (this._isYawMode()) {
                     this._selectedEntity.setAbsoluteYaw(deg);
                 } else {
@@ -739,6 +1081,7 @@ class EntityEditorScene extends Scene {
 
                 this.events.dispatch(this.events.yaw, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
+                this._afterChange();
             }
         }
     };
@@ -764,6 +1107,8 @@ class EntityEditorScene extends Scene {
                 let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityRoll + sig * angle;
 
+                this._beginChange();
+
                 if (this._isYawMode()) {
                     this._selectedEntity.setAbsoluteRoll(deg);
                 } else {
@@ -773,6 +1118,7 @@ class EntityEditorScene extends Scene {
 
                 this.events.dispatch(this.events.roll, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
+                this._afterChange();
             }
         }
     };
@@ -796,7 +1142,7 @@ class EntityEditorScene extends Scene {
     public lockView() {
         if (this.renderer && this._selectedEntity) {
             let camLock = this.renderer.controls.CameraLock as CameraLock;
-            camLock.lockView(this._selectedEntity);
+            camLock && camLock.lockView(this._selectedEntity);
         }
     }
 
@@ -810,7 +1156,7 @@ class EntityEditorScene extends Scene {
     }
 }
 
-const ENTITY_EDITOR_SCENE_EVENTS: EntityEditorSceneEventsList = [
+const ENTITY_GIZMO_SCENE_EVENTS: EntityGizmoSceneEventsList = [
     "mousemove",
     "mouseenter",
     "mouseleave",
@@ -843,7 +1189,11 @@ const ENTITY_EDITOR_SCENE_EVENTS: EntityEditorSceneEventsList = [
     "pitch",
     "yaw",
     "roll",
-    "scale"
+    "scale",
+    "transformstart",
+    "transformchange",
+    "transformend",
+    "transformcancel"
 ];
 
-export { EntityEditorScene };
+export { EntityGizmoScene };
