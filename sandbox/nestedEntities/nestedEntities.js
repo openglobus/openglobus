@@ -149,7 +149,7 @@ class MyScene extends Scene {
     }
 }
 
-renderer.addNodes([
+renderer.addScenes([
     new scene.Axes(),
     new MyScene()
 ]);

@@ -26,6 +26,8 @@ export * from "./selection/Selection";
 export * from "./timeline/TimelineControl";
 export * from "./elevationProfile/ElevationProfileControl";
 export * from "./atmosphere/AtmosphereConfig";
+export * from "./entityGizmo/EntityGizmo";
+export * from "./entityGizmo/EntityGizmoScene";
 export * from "./entityEditor/EntityEditor";
 export * from "./CameraLock";
 export * from "./object3dManager/Object3dManager";

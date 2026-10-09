@@ -1,0 +1,55 @@
+<html>
+<head>
+    <title>EntityGizmo sample</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script src="./entityGizmo.js" type="module"></script>
+    <link rel="stylesheet" href="../../css/og.css" type="text/css"/>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        #panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            padding: 10px 12px;
+            border-radius: 6px;
+            background: rgba(20, 20, 20, 0.82);
+            color: #eee;
+            font: 12px/1.5 monospace;
+            min-width: 280px;
+        }
+
+        #panel button {
+            margin: 0 4px 6px 0;
+            padding: 4px 8px;
+            cursor: pointer;
+        }
+
+        #log {
+            white-space: pre;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="earth" style="width:100%;height:100%"></div>
+
+<div id="panel">
+    <div>Selection is driven by this panel only:</div>
+    <div>
+        <button id="selectParent">Select parent</button>
+        <button id="selectChild">Select child</button>
+        <button id="unselect">Unselect</button>
+    </div>
+    <div>Drag an axis or the plane. The Cancel button rolls the drag back.</div>
+    <div><button id="cancel">Cancel current drag</button></div>
+    <div id="log">no gesture yet</div>
+</div>
+</body>
+</html>

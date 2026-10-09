@@ -1,5 +1,5 @@
 import { Dialog, type IDialogParams } from "../../ui/Dialog";
-import { EntityEditorScene } from "./EntityEditorScene";
+import { EntityGizmoScene } from "../entityGizmo/EntityGizmoScene";
 import { Entity } from "../../entity/Entity";
 import { Vec3 } from "../../math/Vec3";
 import { ToggleButton } from "../../ui/ToggleButton";
@@ -12,10 +12,10 @@ const ICON_LOCK_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24"
 </svg>`;
 
 interface IEntityEditorDialog extends IDialogParams {
-    model: EntityEditorScene;
+    model: EntityGizmoScene;
 }
 
-export class EntityEditorDialog extends Dialog<EntityEditorScene> {
+export class EntityEditorDialog extends Dialog<EntityGizmoScene> {
     protected _entityView: EntityEditorView | null;
     protected _cameraView: CameraEditorView | null;
     protected _projectorView: ProjectorEditorView | null;

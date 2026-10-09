@@ -4,7 +4,7 @@ import { SEL_X_COLOR, SEL_Y_COLOR, SEL_Z_COLOR } from "./colors";
 import { LonLat } from "../../LonLat";
 import { htmlColorToFloat32Array } from "../../utils/shared";
 import type { SegmentPathColor } from "../../entity/polyline/Polyline";
-import { EntityEditorScene } from "./EntityEditorScene";
+import { EntityGizmoScene } from "./EntityGizmoScene";
 
 const SEG_SIZE = 20;
 
@@ -77,7 +77,7 @@ export class AxisTrackEntity extends Entity {
         super.setCartesian3v(cart);
 
         if (this._entityCollection && this._entityCollection.scene) {
-            let rn = this._entityCollection.scene as EntityEditorScene;
+            let rn = this._entityCollection.scene as EntityGizmoScene;
             let cam = rn.renderer!.activeCamera;
             let radiusDist = cam.isOrthographic ? cam.focusDistance : cam.eye.distance(cart);
             let r = radiusDist * 0.05;
