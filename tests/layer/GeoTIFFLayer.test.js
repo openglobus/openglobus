@@ -198,6 +198,105 @@ describe("GeoTIFFLayer", () => {
         expect(layer._rasterCache.size).toBe(0);
     });
 
+    it("renders a stack of more than four bands as a single band, not as RGB", () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+        const layer = new GeoTIFFLayer("test-tiff", { url: "https://example.com/cog.tif" });
+        layer._renderOptions = {};
+
+        layer._normalizeRenderOptions({
+            samplesPerPixel: 127,
+            noData: 0,
+            bands: { 1: { min: 0, max: 7 } }
+        });
+
+        expect(layer._renderOptions.convertToRGB).toBeUndefined();
+        expect(layer._renderOptions.multi).toBeUndefined();
+        expect(layer._renderOptions.single).toEqual({ band: 1, colorScale: "viridis", domain: [0, 7] });
+        expect(warn).toHaveBeenCalled();
+
+        warn.mockRestore();
+    });
+
+    it("keeps rendering three and four sample files as RGB", () => {
+        const layer = new GeoTIFFLayer("test-tiff", { url: "https://example.com/cog.tif" });
+
+        for (const samplesPerPixel of [3, 4]) {
+            layer._renderOptions = {};
+            layer._normalizeRenderOptions({
+                samplesPerPixel,
+                noData: null,
+                bands: { 1: { min: 0, max: 255 }, 2: { min: 0, max: 255 }, 3: { min: 0, max: 255 } }
+            });
+            expect(layer._renderOptions.convertToRGB).toBe(true);
+            expect(layer._renderOptions.single).toBeUndefined();
+        }
+    });
+
+    it("reopens the source when the layer returns to the planet after remove", async () => {
+        const meta = {
+            bbox: [0, 0, 1, 1],
+            crsCode: 4326,
+            width: 10,
+            height: 10,
+            samplesPerPixel: 1,
+            noData: null,
+            isTiled: true,
+            overviewCount: 1,
+            bands: { 1: { min: 0, max: 255 } }
+        };
+
+        const layer = new GeoTIFFLayer("test-tiff", { url: "https://example.com/cog.tif" });
+        expect(layer._readerDestroyed).toBe(false);
+
+        layer.remove();
+        expect(layer._readerDestroyed).toBe(true);
+        expect(layer._reader.isReady).toBe(false);
+
+        const init = vi.fn(async () => {
+            layer._reader.isReady = true;
+            layer._reader.metadata = meta;
+            return meta;
+        });
+        layer._reader.init = init;
+
+        // addTo() runs the same reinitialization for a destroyed reader
+        layer._readerDestroyed = false;
+        await layer._initReader();
+
+        expect(init).toHaveBeenCalledWith("https://example.com/cog.tif");
+        expect(layer._reader.isReady).toBe(true);
+    });
+
+    it("reopens every source of a multi-source layer after remove", async () => {
+        const sources = [
+            { url: "https://example.com/a.tif", band: 1 },
+            { url: "https://example.com/b.tif", band: 1 }
+        ];
+        const layer = new GeoTIFFLayer("test-tiff", { sources });
+
+        layer.remove();
+        expect(layer._readerDestroyed).toBe(true);
+
+        const init = vi.fn(async () => ({
+            bbox: [0, 0, 1, 1],
+            crsCode: 4326,
+            width: 10,
+            height: 10,
+            samplesPerPixel: 2,
+            noData: null,
+            isTiled: true,
+            overviewCount: 1,
+            bands: { 1: { min: 0, max: 255 }, 2: { min: 0, max: 255 } }
+        }));
+        layer._reader.init = init;
+
+        layer._readerDestroyed = false;
+        await layer._initReader();
+
+        expect(init).toHaveBeenCalledWith(sources);
+    });
+
     it("should clear all materials and caches when bands change (samplesChanged === true)", () => {
         const layer = new GeoTIFFLayer("test-tiff", {
             url: "https://example.com/cog.tif",
@@ -352,7 +451,10 @@ describe("GeoTIFFLayer cached tile material", () => {
     function createLayer(waitForParentMaterial) {
         const layer = new GeoTIFFLayer("test-tiff", { waitForParentMaterial });
         layer._reader.isReady = true;
-        layer._planet = { renderer: { requestRedraw: () => {} } };
+        layer._planet = {
+            quadTreeStrategy: { _terrainCompletedActivated: true },
+            renderer: { requestRedraw: () => {} }
+        };
         layer._internalFormat = 0;
         layer.createTexture = vi.fn(() => ({ own: true }));
         return layer;
@@ -484,6 +586,51 @@ describe("GeoTIFFReader tile reprojection", () => {
             mercator.inverse_lat(top + ((y + 0.5) / TILE_SIZE) * (bottom - top))
         ];
     }
+
+    it("asks geotiff for converted RGB when the samples are not RGB", async () => {
+        const reader = createReader();
+        const center = reader.extentWgs84.getCenter();
+        const tx = Math.floor((mercator.forward_lon(center.lon) + mercator.POLE) / tileSpan);
+        const ty = Math.floor((mercator.POLE - mercator.forward_lat(center.lat)) / tileSpan);
+
+        // YCbCr, CMYK and CIELab files take this path
+        reader._convertPhotometric = true;
+
+        for (const image of reader.images) {
+            image.readRGB = vi.fn(image.readRasters);
+            image.readRasters = vi.fn(image.readRasters);
+        }
+
+        const tile = await reader.readTileRasters(tileExtent(tx, ty), ZOOM, TILE_SIZE, [0, 1, 2], EPSG3857);
+
+        expect(tile).toBeTruthy();
+        expect(reader.images.some((image) => image.readRGB.mock.calls.length > 0)).toBe(true);
+        expect(reader.images.every((image) => image.readRasters.mock.calls.length === 0)).toBe(true);
+    });
+
+    it("drops the pixels that the internal mask marks as invalid", async () => {
+        const reader = createReader();
+        const center = reader.extentWgs84.getCenter();
+        const tx = Math.floor((mercator.forward_lon(center.lon) + mercator.POLE) / tileSpan);
+        const ty = Math.floor((mercator.POLE - mercator.forward_lat(center.lat)) / tileSpan);
+        const extent = tileExtent(tx, ty);
+
+        // A mask of the file holds 1 for a valid pixel and 0 for a padded one
+        const createMask = (value) => ({
+            readRasters: async ({ window }) => {
+                const [x0, y0, x1, y1] = window;
+                return [new Uint8Array((x1 - x0) * (y1 - y0)).fill(value)];
+            }
+        });
+
+        reader.masks = reader.images.map(() => createMask(1));
+        const visible = await reader.readTileRasters(extent, ZOOM, TILE_SIZE, [0], EPSG3857);
+        expect(visible.rasters[0].some((value) => !Number.isNaN(value))).toBe(true);
+
+        reader.masks = reader.images.map(() => createMask(0));
+        const hidden = await reader.readTileRasters(extent, ZOOM, TILE_SIZE, [0], EPSG3857);
+        expect(hidden.rasters[0].every((value) => Number.isNaN(value))).toBe(true);
+    });
 
     it("places UTM pixels on their true geographic position", async () => {
         const reader = createReader();
@@ -651,7 +798,10 @@ describe("GeoTIFFLayer tile request queue", () => {
         const layer = new GeoTIFFLayer("test-tiff", {});
         layer._reader.isReady = true;
         layer._reader.readTileRasters = readTileRasters;
-        layer._planet = { renderer: { requestRedraw: () => {} } };
+        layer._planet = {
+            quadTreeStrategy: { _terrainCompletedActivated: true },
+            renderer: { requestRedraw: () => {} }
+        };
         layer._internalFormat = 0;
         layer.createTexture = vi.fn(() => ({}));
         return layer;
