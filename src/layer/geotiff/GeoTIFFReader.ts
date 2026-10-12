@@ -57,6 +57,12 @@ const BLOCK_CACHE_SIZE = 512;
 
 const OVERVIEW_RESOLUTION_TOLERANCE = 1.4;
 
+/**
+ * Photometric interpretations that do not store RGB in the samples: CMYK, YCbCr and CIELab.
+ * JPEG compressed imagery is usually YCbCr.
+ */
+const CONVERTED_PHOTOMETRICS = [5, 6, 8];
+
 export function parseCrsCode(crs?: number | string): number | undefined {
     if (!crs) return;
     if (typeof crs === "number") return crs;
@@ -70,6 +76,10 @@ export function parseCrsCode(crs?: number | string): number | undefined {
 export class GeoTIFFReader implements IGeoTIFFReader {
     public source: GeoTIFF | null = null;
     public images: GeoTIFFImage[] = [];
+
+    /** Internal transparency mask of every entry of images, null when the file has none */
+    public masks: (GeoTIFFImage | null)[] = [];
+
     public workerPool: Pool | null = null;
     public metadata: IGeoTIFFMetadata | null = null;
     public extentWgs84: Extent = new Extent();
@@ -82,6 +92,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
 
     private _poolHandle: IWorkerPoolHandle | null = null;
     private _projHelper: IProjectionHelper | null = null;
+    private _convertPhotometric: boolean = false;
     private _activeReads: number = 0;
     private _destroyed: boolean = false;
 
@@ -131,16 +142,28 @@ export class GeoTIFFReader implements IGeoTIFFReader {
 
         const imageCount = await source.getImageCount();
         this.images = [];
+
+        const maskImages: GeoTIFFImage[] = [];
+
         for (let i = 0; i < imageCount; i++) {
             const img = await source.getImage(i);
 
-            // Mask images are skipped, only the full resolution image and its overviews are used
+            // In NewSubfileType bit 0 is an overview and bit 2 is a transparency mask
             const subfileType = Number(img.getFileDirectory().getValue("NewSubfileType") ?? 0);
+            const isMask = (subfileType & 4) === 4;
 
-            if (i === 0 || (subfileType & 1) === 1) {
+            if (isMask) {
+                maskImages.push(img);
+            } else if (i === 0 || (subfileType & 1) === 1) {
                 this.images.push(img);
             }
         }
+
+        // A mask has the size of the level it belongs to
+        this.masks = this.images.map(
+            (img) =>
+                maskImages.find((m) => m.getWidth() === img.getWidth() && m.getHeight() === img.getHeight()) ?? null
+        );
 
         const baseImage = this.images[0];
         this.reverseY = this._checkIfReversed(baseImage);
@@ -192,6 +215,11 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         }
 
         const samplesPerPixel = baseImage.getSamplesPerPixel();
+
+        // GeoTIFF is a color image in another color space, readRGB() returns it as RGB
+        const photometric = Number(baseImage.getFileDirectory().getValue("PhotometricInterpretation") ?? 2);
+        this._convertPhotometric = CONVERTED_PHOTOMETRICS.indexOf(photometric) !== -1;
+
         const gdalNoData = parseNoDataValue(baseImage.getGDALNoData());
         let userNoData: number | null | undefined = undefined;
         if (this.options.renderOptions?.nodata !== undefined) {
@@ -351,9 +379,12 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         }
 
         // 3. Select the overview whose resolution matches the tile resolution
-        const image = this.images[this._selectOverviewIndex(grid, tileSize)];
+        const overviewIndex = this._selectOverviewIndex(grid, tileSize);
+        const image = this.images[overviewIndex];
 
         if (!image) return null;
+
+        const mask = this.masks[overviewIndex];
 
         const imgWidth = image.getWidth();
         const imgHeight = image.getHeight();
@@ -381,10 +412,38 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         }
 
         try {
-            const rasters = await image.readRasters(options);
+            // readRGB() converts the samples of a non RGB color space and returns R, G and B
+            const rastersPromise = this._convertPhotometric
+                ? image.readRGB({
+                      window: options.window,
+                      pool: options.pool,
+                      interleave: false
+                  })
+                : image.readRasters(options);
+
+            // The mask covers the same window as the image and marks the valid pixels of the file
+            const maskPromise = mask
+                ? mask.readRasters({
+                      window: options.window,
+                      pool: options.pool,
+                      samples: [0],
+                      interleave: false
+                  })
+                : undefined;
+
+            const [rasters, maskRasters] = await Promise.all([rastersPromise, maskPromise]);
+            const maskRaster = maskRasters?.[0];
 
             return {
-                rasters: this._warpRasters(rasters, grid, imgWidth, imgHeight, [winX0, winY0, winX1, winY1], tileSize),
+                rasters: this._warpRasters(
+                    rasters,
+                    grid,
+                    imgWidth,
+                    imgHeight,
+                    [winX0, winY0, winX1, winY1],
+                    tileSize,
+                    maskRaster
+                ),
                 width: tileSize,
                 height: tileSize,
                 dstX: 0,
@@ -601,7 +660,8 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         imgWidth: number,
         imgHeight: number,
         window: [number, number, number, number],
-        tileSize: number
+        tileSize: number,
+        maskRaster?: TypedArray
     ): Float32Array[] {
         const [winX0, winY0, winX1, winY1] = window;
         const winWidth = winX1 - winX0;
@@ -652,6 +712,13 @@ export class GeoTIFFReader implements IGeoTIFFReader {
                 const sy = v * imgHeight - winY0 - 0.5;
 
                 const outIdx = y * tileSize + x;
+
+                // Pixels the mask marks as invalid stay NaN, which is rendered as transparent
+                if (maskRaster) {
+                    const mx = Math.max(0, Math.min(winWidth - 1, Math.round(sx)));
+                    const my = Math.max(0, Math.min(winHeight - 1, Math.round(sy)));
+                    if (!maskRaster[my * winWidth + mx]) continue;
+                }
 
                 if (bilinear) {
                     const x0 = Math.floor(sx);
@@ -763,6 +830,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
     public destroy(): void {
         this._destroyed = true;
         this.images = [];
+        this.masks = [];
         this.source = null;
         this.isReady = false;
 

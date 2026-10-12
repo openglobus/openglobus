@@ -489,7 +489,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             stretchChannel(r, meta.bands[r?.band ?? 1]);
             stretchChannel(g, meta.bands[g?.band ?? 2]);
             stretchChannel(b, meta.bands[b?.band ?? 3]);
-        } else if (samples >= 3) {
+        } else if (samples === 3 || samples === 4) {
             const b1 = meta.bands[1];
             const b2 = meta.bands[2];
             const b3 = meta.bands[3];
@@ -508,6 +508,14 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                 this._renderOptions.convertToRGB = this._renderOptions.convertToRGB ?? true;
             }
         } else {
+            // One or two samples, or a stack of more than four bands which is not an image:
+            // the first band is rendered with a palette, any other one is up to the user
+            if (samples > 4) {
+                console.warn(
+                    `[GeoTIFFLayer] ${samples} samples are rendered as a band stack, band 1 is shown. Use renderOptions.single.band to pick another one.`
+                );
+            }
+
             const bandMeta = meta.bands[1];
             this._renderOptions.single = {
                 band: 1,
