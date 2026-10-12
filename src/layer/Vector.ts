@@ -6,8 +6,7 @@ import type { EventsHandler } from "../Events";
 import { GeometryHandler } from "../entity/geometry/GeometryHandler";
 import type { IMouseState, ITouchState } from "../renderer/RendererEvents";
 import { BaseTileMaterialLayer } from "./BaseTileMaterialLayer";
-import type { IBaseTileMaterialLayerParams } from "./BaseTileMaterialLayer";
-import type { LayerEventsList } from "./Layer";
+import type { BaseTileMaterialLayerEventsType, IBaseTileMaterialLayerParams } from "./BaseTileMaterialLayer";
 import type { NumberArray3 } from "../math/Vec3";
 import { Planet } from "../scene/Planet";
 import { Material } from "./Material";
@@ -42,7 +41,7 @@ type VectorEventsList = [
     "entityremove"
 ];
 
-export type VectorEventsType = EventsHandler<VectorEventsList> & EventsHandler<LayerEventsList>;
+export type VectorEventsType = EventsHandler<VectorEventsList> & BaseTileMaterialLayerEventsType;
 
 /**
  * Creates entity instance array.

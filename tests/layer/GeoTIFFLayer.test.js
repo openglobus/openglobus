@@ -198,6 +198,70 @@ describe("GeoTIFFLayer", () => {
         expect(layer._rasterCache.size).toBe(0);
     });
 
+    it("reopens the source when the layer returns to the planet after remove", async () => {
+        const meta = {
+            bbox: [0, 0, 1, 1],
+            crsCode: 4326,
+            width: 10,
+            height: 10,
+            samplesPerPixel: 1,
+            noData: null,
+            isTiled: true,
+            overviewCount: 1,
+            bands: { 1: { min: 0, max: 255 } }
+        };
+
+        const layer = new GeoTIFFLayer("test-tiff", { url: "https://example.com/cog.tif" });
+        expect(layer._readerDestroyed).toBe(false);
+
+        layer.remove();
+        expect(layer._readerDestroyed).toBe(true);
+        expect(layer._reader.isReady).toBe(false);
+
+        const init = vi.fn(async () => {
+            layer._reader.isReady = true;
+            layer._reader.metadata = meta;
+            return meta;
+        });
+        layer._reader.init = init;
+
+        // addTo() runs the same reinitialization for a destroyed reader
+        layer._readerDestroyed = false;
+        await layer._initReader();
+
+        expect(init).toHaveBeenCalledWith("https://example.com/cog.tif");
+        expect(layer._reader.isReady).toBe(true);
+    });
+
+    it("reopens every source of a multi-source layer after remove", async () => {
+        const sources = [
+            { url: "https://example.com/a.tif", band: 1 },
+            { url: "https://example.com/b.tif", band: 1 }
+        ];
+        const layer = new GeoTIFFLayer("test-tiff", { sources });
+
+        layer.remove();
+        expect(layer._readerDestroyed).toBe(true);
+
+        const init = vi.fn(async () => ({
+            bbox: [0, 0, 1, 1],
+            crsCode: 4326,
+            width: 10,
+            height: 10,
+            samplesPerPixel: 2,
+            noData: null,
+            isTiled: true,
+            overviewCount: 1,
+            bands: { 1: { min: 0, max: 255 }, 2: { min: 0, max: 255 } }
+        }));
+        layer._reader.init = init;
+
+        layer._readerDestroyed = false;
+        await layer._initReader();
+
+        expect(init).toHaveBeenCalledWith(sources);
+    });
+
     it("should clear all materials and caches when bands change (samplesChanged === true)", () => {
         const layer = new GeoTIFFLayer("test-tiff", {
             url: "https://example.com/cog.tif",
@@ -352,7 +416,10 @@ describe("GeoTIFFLayer cached tile material", () => {
     function createLayer(waitForParentMaterial) {
         const layer = new GeoTIFFLayer("test-tiff", { waitForParentMaterial });
         layer._reader.isReady = true;
-        layer._planet = { renderer: { requestRedraw: () => {} } };
+        layer._planet = {
+            quadTreeStrategy: { _terrainCompletedActivated: true },
+            renderer: { requestRedraw: () => {} }
+        };
         layer._internalFormat = 0;
         layer.createTexture = vi.fn(() => ({ own: true }));
         return layer;
@@ -651,7 +718,10 @@ describe("GeoTIFFLayer tile request queue", () => {
         const layer = new GeoTIFFLayer("test-tiff", {});
         layer._reader.isReady = true;
         layer._reader.readTileRasters = readTileRasters;
-        layer._planet = { renderer: { requestRedraw: () => {} } };
+        layer._planet = {
+            quadTreeStrategy: { _terrainCompletedActivated: true },
+            renderer: { requestRedraw: () => {} }
+        };
         layer._internalFormat = 0;
         layer.createTexture = vi.fn(() => ({}));
         return layer;
