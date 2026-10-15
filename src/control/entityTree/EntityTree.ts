@@ -112,6 +112,10 @@ export class EntityTree extends Control {
         this._dialog.hide();
     }
 
+    public show(): void {
+        this._dialog.show();
+    }
+
     public setEntity(entity: Entity | null): void {
         this._entities = entity ? [entity] : [];
         this._expandedEntityIds.clear();

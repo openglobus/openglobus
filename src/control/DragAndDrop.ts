@@ -50,9 +50,7 @@ export class DragAndDrop extends Control {
 
         this.geoObjectsLayer = new Vector("__geoObjects__");
 
-        this.markersLayer = new Vector("__markers__", {
-            hideInLayerSwitcher: true
-        });
+        this.markersLayer = new Vector("__markers__");
 
         this.tiffLayers = [];
     }

@@ -26,7 +26,17 @@
 
     globe.planet.addControl(new control.LayerSwitcher());
     globe.planet.addControl(new control.DragAndDrop());
-    globe.planet.addControl(new control.EntityEditor());
+
+    let entityEditor = new control.EntityEditor();
+    let entityTree = new control.EntityTree({ entityEditor });
+
+    globe.planet.addControl(entityEditor);
+    globe.planet.addControl(entityTree);
+
+    entityEditor.events.on("select", (entity) => {
+        entityTree.addEntity(entity);
+        entityTree.show();
+    });
 
     window.globe = globe;
 </script>
