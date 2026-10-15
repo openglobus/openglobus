@@ -208,6 +208,9 @@ class Handler {
 
     public ONCANVASRESIZE: Function | null;
 
+    /** Runs on every animation tick before the idle check, so it can request a frame. */
+    public ONFRAMECHECK: Function | null;
+
     public intersectionObserver?: IntersectionObserver;
     public resizeObserver?: ResizeObserver;
 
@@ -284,6 +287,7 @@ class Handler {
         this.createTextureDefault = this.createTexture.NEAREST;
 
         this.ONCANVASRESIZE = null;
+        this.ONFRAMECHECK = null;
 
         this._createCanvas();
 
@@ -1194,6 +1198,8 @@ class Handler {
                 this.setSize(canvas.clientWidth, canvas.clientHeight);
             }
         }
+
+        this.ONFRAMECHECK && this.ONFRAMECHECK();
 
         if (this._idleMode && !this.needRedraw) {
             return;
