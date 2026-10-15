@@ -16,6 +16,7 @@ export interface IEntityTreeParams extends IControlParams {
     maxHeight?: number;
     expandedByDefault?: boolean;
     entityEditor?: EntityEditor;
+    visibility?: boolean;
 }
 
 const ICON_BUTTON_SVG = `<svg width="1200pt" height="1200pt" version="1.1" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
@@ -38,6 +39,7 @@ export class EntityTree extends Control {
     protected _expandedByDefault: boolean;
     protected _$tree: HTMLElement | null;
     protected _entityEditor: EntityEditor | null;
+    protected _visibility: boolean;
 
     constructor(options: IEntityTreeParams = {}) {
         super({
@@ -49,6 +51,7 @@ export class EntityTree extends Control {
         this._expandedEntityIds = new Set<number>();
         this._expandedByDefault = options.expandedByDefault ?? false;
         this._entityEditor = options.entityEditor || null;
+        this._visibility = options.visibility || false;
 
         this._dialog = new Dialog({
             title: options.title || "Entity Tree",
@@ -93,11 +96,16 @@ export class EntityTree extends Control {
 
         this._resolveEntityEditor();
         this._renderEntityTree();
+
+        if (this._visibility) {
+            this._dialog.show();
+        }
     }
 
     public override onremove() {
         this._dialog.events.off("visibility", this._onDialogVisibility);
         this._toggleBtn.events.off("change", this._onToggleButtonChange);
+        this._unbindEntityEditor();
 
         this._clearTreeView();
 
@@ -142,6 +150,28 @@ export class EntityTree extends Control {
         }
 
         this._renderEntityTree();
+    }
+
+    protected _refreshSelection(): void {
+        const entity = this._getSelectedEntity();
+
+        let isExpanded = false;
+        if (entity && this._containsEntity(this._entities, entity.rootEntity)) {
+            let current = entity.parent;
+            while (current) {
+                if (!this._expandedEntityIds.has(current.id)) {
+                    this._expandedEntityIds.add(current.id);
+                    isExpanded = true;
+                }
+                current = current.parent;
+            }
+        }
+
+        if (isExpanded) {
+            this._renderEntityTree();
+        } else {
+            this._treeView?.setSelectedEntity(entity);
+        }
     }
 
     public removeEntity(entity: Entity): void {
@@ -208,13 +238,33 @@ export class EntityTree extends Control {
     };
 
     protected _resolveEntityEditor(): void {
-        if (this._entityEditor || !this.renderer) return;
+        if (!this._entityEditor && this.renderer) {
+            const control = this.renderer.controls.EntityEditor;
+            if (control instanceof EntityEditor) {
+                this._entityEditor = control;
+            }
+        }
 
-        const control = this.renderer.controls.EntityEditor;
-        if (control instanceof EntityEditor) {
-            this._entityEditor = control;
+        if (this._entityEditor) {
+            this._entityEditor.events.on("select", this._onEditorSelectionChange);
+            this._entityEditor.events.on("unselect", this._onEditorSelectionChange);
         }
     }
+
+    protected _unbindEntityEditor(): void {
+        if (this._entityEditor) {
+            this._entityEditor.events.off("select", this._onEditorSelectionChange);
+            this._entityEditor.events.off("unselect", this._onEditorSelectionChange);
+        }
+    }
+
+    protected _getSelectedEntity(): Entity | null {
+        return this._entityEditor ? this._entityEditor.getSelectedEntity() : null;
+    }
+
+    protected _onEditorSelectionChange = (): void => {
+        this._refreshSelection();
+    };
 
     protected _clearTreeView(): void {
         if (this._treeView) {
@@ -233,7 +283,7 @@ export class EntityTree extends Control {
         if (!this._entities.length) {
             const emptyEl = document.createElement("div");
             emptyEl.classList.add("og-entityTreeControl__empty");
-            emptyEl.textContent = "No entities";
+            emptyEl.textContent = "No entities. Click an object on the map to show it here.";
             this._$tree.appendChild(emptyEl);
             return;
         }
@@ -244,6 +294,7 @@ export class EntityTree extends Control {
             expandedEntityIds: this._expandedEntityIds
         });
         this._treeView.appendTo(this._$tree);
+        this._treeView.setSelectedEntity(this._getSelectedEntity());
         this._treeView.events.on("select", this._onEntitySelect);
     }
 }

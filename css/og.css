@@ -536,6 +536,10 @@ input {
     background-color: var(--grey7);
 }
 
+.og-entityTree__row_selected .og-entityTree__entityBtn {
+    background-color: var(--grey7);
+}
+
 .og-entityTree__name {
     min-width: 0;
     overflow: hidden;
@@ -575,7 +579,8 @@ input {
     box-sizing: border-box;
 }
 
-.og-entityTreeControl__empty {
+.og-entityTreeControl__empty,
+.og-editor_empty {
     padding: 10px 8px;
     color: var(--grey4);
     font-size: 13px;

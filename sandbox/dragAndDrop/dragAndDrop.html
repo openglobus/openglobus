@@ -5,37 +5,71 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../lib/og.css" type="text/css" />
+    <style>
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #app {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
 </head>
 
 <body>
-<div id="earth" style="width:100%;height:100%"></div>
+<div id="app"></div>
 <script type="module" id="og-sandbox-script">
     import {
         Globe,
         GlobusRgbTerrain,
         OpenStreetMap,
-        control
+        control,
+        ui
     } from "../../lib/og.es.js";
+
+    const app = document.getElementById("app");
+
+    const dockManager = new ui.DockManager({
+        host: app
+    });
+
+    const globeDialog = new ui.Dialog({
+        title: "Globe",
+        dock: "center",
+        hideToolbar: true
+    });
+
+    globeDialog.appendTo(app);
+    dockManager.attach(globeDialog);
 
     let globe = new Globe({
         name: "earth",
-        target: "earth",
+        target: globeDialog.container,
         terrain: new GlobusRgbTerrain(),
-        layers: [new OpenStreetMap()]
+        layers: [new OpenStreetMap()],
+        uiContainer: app
     });
 
     globe.planet.addControl(new control.LayerSwitcher());
     globe.planet.addControl(new control.DragAndDrop());
 
-    let entityEditor = new control.EntityEditor();
-    let entityTree = new control.EntityTree({ entityEditor });
+    let entityEditor = new control.EntityEditor({ visibility: true });
+    let entityTree = new control.EntityTree({ entityEditor, visibility: true });
 
     globe.planet.addControl(entityEditor);
     globe.planet.addControl(entityTree);
 
+    dockManager.dock(entityTree._dialog, "right", "start");
+    dockManager.dock(entityEditor._dialog, "right", "end");
+
     entityEditor.events.on("select", (entity) => {
         entityTree.addEntity(entity);
-        entityTree.show();
     });
 
     window.globe = globe;

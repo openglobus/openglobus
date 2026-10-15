@@ -5,9 +5,12 @@ import { Entity } from "../entity/Entity";
 import { Object3d } from "../Object3d";
 import { Gltf } from "../utils/gltf/gltfParser";
 import { Vec2 } from "../math/Vec2";
+import { EntityEditor } from "./entityEditor/EntityEditor";
 import type { LonLat } from "../LonLat";
 
-export interface IDragAndDropParams extends IControlParams {}
+export interface IDragAndDropParams extends IControlParams {
+    entityEditor?: EntityEditor;
+}
 
 const IMAGE_EXT = ["png", "jpg", "jpeg", "gif", "webp", "svg"];
 const TIFF_EXT = ["tif", "tiff"];
@@ -41,6 +44,8 @@ export class DragAndDrop extends Control {
     public markersLayer: Vector;
     public tiffLayers: GeoTIFFLayer[];
 
+    protected _entityEditor: EntityEditor | null;
+
     constructor(options: IDragAndDropParams = {}) {
         super({
             name: "DragAndDrop",
@@ -53,6 +58,8 @@ export class DragAndDrop extends Control {
         this.markersLayer = new Vector("__markers__");
 
         this.tiffLayers = [];
+
+        this._entityEditor = options.entityEditor || null;
     }
 
     public override oninit() {
@@ -136,6 +143,7 @@ export class DragAndDrop extends Control {
             });
             entity.appendChildren(gltf.toEntities(), true);
             this.geoObjectsLayer.add(entity);
+            this._selectEntity(entity);
         } finally {
             URL.revokeObjectURL(url);
         }
@@ -160,6 +168,17 @@ export class DragAndDrop extends Control {
             );
         }
         this.geoObjectsLayer.add(entity);
+        this._selectEntity(entity);
+    }
+
+    protected _selectEntity(entity: Entity) {
+        if (!this._entityEditor) {
+            const control = this.renderer?.controls.EntityEditor;
+            if (control instanceof EntityEditor) {
+                this._entityEditor = control;
+            }
+        }
+        this._entityEditor?.selectEntity(entity);
     }
 
     protected async _addBillboard(file: File, lonLat: LonLat) {
