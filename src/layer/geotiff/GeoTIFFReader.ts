@@ -5,10 +5,20 @@ import { LonLat } from "../../LonLat";
 import * as mercator from "../../mercator";
 import { getFastNoDataChecker, getRasterMinMax, parseNoDataValue } from "./ColorScale";
 import { getProjectionHelper, type IProjectionHelper } from "./utm";
+import { acquireWorkerPool, type IWorkerPoolHandle } from "./workerPool";
 import { Proj } from "../../proj/Proj";
 import { EPSG3857 } from "../../proj/EPSG3857";
 import { EPSG4326 } from "../../proj/EPSG4326";
-import type { DecodedTileData, IGeoTIFFLayerParams, IGeoTIFFMetadata, ProjFunc } from "./types";
+import type {
+    DecodedTileData,
+    GeoTIFFSource,
+    IBandStats,
+    IGeoTIFFMetadata,
+    IGeoTIFFReader,
+    IGeoTIFFReaderParams,
+    IGeoTIFFRenderOptions,
+    ProjFunc
+} from "./types";
 
 /**
  * Sampling grid of a tile, source pixel positions are interpolated between its nodes.
@@ -47,6 +57,12 @@ const BLOCK_CACHE_SIZE = 512;
 
 const OVERVIEW_RESOLUTION_TOLERANCE = 1.4;
 
+/**
+ * Photometric interpretations that do not store RGB in the samples: CMYK, YCbCr and CIELab.
+ * JPEG compressed imagery is usually YCbCr.
+ */
+const CONVERTED_PHOTOMETRICS = [5, 6, 8];
+
 export function parseCrsCode(crs?: number | string): number | undefined {
     if (!crs) return;
     if (typeof crs === "number") return crs;
@@ -57,9 +73,13 @@ export function parseCrsCode(crs?: number | string): number | undefined {
     return;
 }
 
-export class GeoTIFFReader {
+export class GeoTIFFReader implements IGeoTIFFReader {
     public source: GeoTIFF | null = null;
     public images: GeoTIFFImage[] = [];
+
+    /** Internal transparency mask of every entry of images, null when the file has none */
+    public masks: (GeoTIFFImage | null)[] = [];
+
     public workerPool: Pool | null = null;
     public metadata: IGeoTIFFMetadata | null = null;
     public extentWgs84: Extent = new Extent();
@@ -70,17 +90,20 @@ export class GeoTIFFReader {
     public requestLevels: number[] = [];
     public isReady: boolean = false;
 
-    private _ownsWorkerPool: boolean = false;
+    private _poolHandle: IWorkerPoolHandle | null = null;
     private _projHelper: IProjectionHelper | null = null;
+    private _convertPhotometric: boolean = false;
+    private _activeReads: number = 0;
+    private _destroyed: boolean = false;
 
-    constructor(public options: IGeoTIFFLayerParams = {}) {
+    constructor(public options: IGeoTIFFReaderParams = {}) {
         this.projFunc = options.projFunc;
     }
 
     /**
      * Initializes and parses the GeoTIFF source and its overview pyramid.
      */
-    public async init(src: string | Blob | File | ArrayBuffer): Promise<IGeoTIFFMetadata> {
+    public async init(src: GeoTIFFSource): Promise<IGeoTIFFMetadata> {
         let source: GeoTIFF;
 
         if (typeof src === "string") {
@@ -109,46 +132,38 @@ export class GeoTIFFReader {
         }
 
         this.source = source;
+        this._destroyed = false;
 
-        // Initialize Web Worker Pool for decoding if supported
-        if (this.options.geotiffWorkerPool) {
-            this.workerPool = this.options.geotiffWorkerPool;
-            this._ownsWorkerPool = false;
-        } else {
-            const poolSize =
-                this.options.workerPoolSize ??
-                (typeof navigator !== "undefined" ? navigator.hardwareConcurrency || 2 : 2);
-            const isWorkerSupported =
-                typeof Worker !== "undefined" &&
-                typeof Worker.prototype !== "undefined" &&
-                typeof Worker.prototype.addEventListener === "function";
-
-            if (poolSize > 0 && isWorkerSupported) {
-                try {
-                    this.workerPool = new Pool(poolSize);
-                    this._ownsWorkerPool = true;
-                } catch {
-                    this.workerPool = null;
-                    this._ownsWorkerPool = false;
-                }
-            } else {
-                this.workerPool = null;
-                this._ownsWorkerPool = false;
-            }
-        }
+        // Initialize Web Worker Pool for decoding if supported, releasing a lease
+        // a previous init() may have taken
+        this._releasePool();
+        this._poolHandle = acquireWorkerPool(this.options);
+        this.workerPool = this._poolHandle.pool;
 
         const imageCount = await source.getImageCount();
         this.images = [];
+
+        const maskImages: GeoTIFFImage[] = [];
+
         for (let i = 0; i < imageCount; i++) {
             const img = await source.getImage(i);
 
-            // Mask images are skipped, only the full resolution image and its overviews are used
+            // In NewSubfileType bit 0 is an overview and bit 2 is a transparency mask
             const subfileType = Number(img.getFileDirectory().getValue("NewSubfileType") ?? 0);
+            const isMask = (subfileType & 4) === 4;
 
-            if (i === 0 || (subfileType & 1) === 1) {
+            if (isMask) {
+                maskImages.push(img);
+            } else if (i === 0 || (subfileType & 1) === 1) {
                 this.images.push(img);
             }
         }
+
+        // A mask has the size of the level it belongs to
+        this.masks = this.images.map(
+            (img) =>
+                maskImages.find((m) => m.getWidth() === img.getWidth() && m.getHeight() === img.getHeight()) ?? null
+        );
 
         const baseImage = this.images[0];
         this.reverseY = this._checkIfReversed(baseImage);
@@ -200,6 +215,11 @@ export class GeoTIFFReader {
         }
 
         const samplesPerPixel = baseImage.getSamplesPerPixel();
+
+        // GeoTIFF is a color image in another color space, readRGB() returns it as RGB
+        const photometric = Number(baseImage.getFileDirectory().getValue("PhotometricInterpretation") ?? 2);
+        this._convertPhotometric = CONVERTED_PHOTOMETRICS.indexOf(photometric) !== -1;
+
         const gdalNoData = parseNoDataValue(baseImage.getGDALNoData());
         let userNoData: number | null | undefined = undefined;
         if (this.options.renderOptions?.nodata !== undefined) {
@@ -214,7 +234,7 @@ export class GeoTIFFReader {
         const noData = userNoData !== undefined ? userNoData : (gdalNoData ?? null);
 
         // Sample band min/max statistics from metadata or thumbnail overview
-        const bands: Record<number, { min: number; max: number }> = {};
+        const bands: Record<number, IBandStats> = {};
         const previewImage = this.images[this.images.length - 1];
 
         if (samplesPerPixel >= 3) {
@@ -285,6 +305,13 @@ export class GeoTIFFReader {
     }
 
     /**
+     * Applies rendering options that affect decoding: nodata masking and the resampling method.
+     */
+    public setRenderOptions(renderOptions: IGeoTIFFRenderOptions): void {
+        this.options.renderOptions = renderOptions;
+    }
+
+    /**
      * Reads raster data for a tile and warps it into the tile grid.
      *
      * Source pixel coordinates are calculated in the nodes of a coarse grid and interpolated in between,
@@ -297,6 +324,29 @@ export class GeoTIFFReader {
      * @param segmentProj - Projection of the segment the tile belongs to, EPSG:3857 by default.
      */
     public async readTileRasters(
+        tileExtentLonLat: Extent,
+        zoomLevel: number,
+        tileSize: number = 256,
+        readSamples?: number[],
+        segmentProj: Proj = EPSG3857
+    ): Promise<DecodedTileData | null> {
+        if (this._destroyed) {
+            return null;
+        }
+
+        this._activeReads++;
+
+        try {
+            return await this._readTileRasters(tileExtentLonLat, zoomLevel, tileSize, readSamples, segmentProj);
+        } finally {
+            this._activeReads--;
+            if (this._destroyed && this._activeReads === 0) {
+                this._releasePool();
+            }
+        }
+    }
+
+    private async _readTileRasters(
         tileExtentLonLat: Extent,
         _zoomLevel: number,
         tileSize: number = 256,
@@ -329,9 +379,12 @@ export class GeoTIFFReader {
         }
 
         // 3. Select the overview whose resolution matches the tile resolution
-        const image = this.images[this._selectOverviewIndex(grid, tileSize)];
+        const overviewIndex = this._selectOverviewIndex(grid, tileSize);
+        const image = this.images[overviewIndex];
 
         if (!image) return null;
+
+        const mask = this.masks[overviewIndex];
 
         const imgWidth = image.getWidth();
         const imgHeight = image.getHeight();
@@ -359,10 +412,38 @@ export class GeoTIFFReader {
         }
 
         try {
-            const rasters = await image.readRasters(options);
+            // readRGB() converts the samples of a non RGB color space and returns R, G and B
+            const rastersPromise = this._convertPhotometric
+                ? image.readRGB({
+                      window: options.window,
+                      pool: options.pool,
+                      interleave: false
+                  })
+                : image.readRasters(options);
+
+            // The mask covers the same window as the image and marks the valid pixels of the file
+            const maskPromise = mask
+                ? mask.readRasters({
+                      window: options.window,
+                      pool: options.pool,
+                      samples: [0],
+                      interleave: false
+                  })
+                : undefined;
+
+            const [rasters, maskRasters] = await Promise.all([rastersPromise, maskPromise]);
+            const maskRaster = maskRasters?.[0];
 
             return {
-                rasters: this._warpRasters(rasters, grid, imgWidth, imgHeight, [winX0, winY0, winX1, winY1], tileSize),
+                rasters: this._warpRasters(
+                    rasters,
+                    grid,
+                    imgWidth,
+                    imgHeight,
+                    [winX0, winY0, winX1, winY1],
+                    tileSize,
+                    maskRaster
+                ),
                 width: tileSize,
                 height: tileSize,
                 dstX: 0,
@@ -579,7 +660,8 @@ export class GeoTIFFReader {
         imgWidth: number,
         imgHeight: number,
         window: [number, number, number, number],
-        tileSize: number
+        tileSize: number,
+        maskRaster?: TypedArray
     ): Float32Array[] {
         const [winX0, winY0, winX1, winY1] = window;
         const winWidth = winX1 - winX0;
@@ -630,6 +712,13 @@ export class GeoTIFFReader {
                 const sy = v * imgHeight - winY0 - 0.5;
 
                 const outIdx = y * tileSize + x;
+
+                // Pixels the mask marks as invalid stay NaN, which is rendered as transparent
+                if (maskRaster) {
+                    const mx = Math.max(0, Math.min(winWidth - 1, Math.round(sx)));
+                    const my = Math.max(0, Math.min(winHeight - 1, Math.round(sy)));
+                    if (!maskRaster[my * winWidth + mx]) continue;
+                }
 
                 if (bilinear) {
                     const x0 = Math.floor(sx);
@@ -727,16 +816,26 @@ export class GeoTIFFReader {
         return false;
     }
 
+    private _releasePool(): void {
+        if (this._poolHandle) {
+            this._poolHandle.release();
+            this._poolHandle = null;
+        }
+        this.workerPool = null;
+    }
+
     /**
      * Cleans up worker pool and cached images.
      */
     public destroy(): void {
-        if (this._ownsWorkerPool && this.workerPool) {
-            this.workerPool.destroy();
-            this.workerPool = null;
-        }
+        this._destroyed = true;
         this.images = [];
+        this.masks = [];
         this.source = null;
         this.isReady = false;
+
+        if (this._activeReads === 0) {
+            this._releasePool();
+        }
     }
 }

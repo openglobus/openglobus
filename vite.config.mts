@@ -40,7 +40,8 @@ export default function ({ mode }: { mode: "development" | "production" }) {
             rollupOptions: {
                 output: {
                     assetFileNames: `[name][extname]`,
-                    sourcemapExcludeSources: !isDev
+                    sourcemapExcludeSources: !isDev,
+                    codeSplitting: false
                 },
                 plugins: !isDev
                     ? [

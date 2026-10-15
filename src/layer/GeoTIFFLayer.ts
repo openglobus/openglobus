@@ -1,7 +1,8 @@
 import type { EventsHandler } from "../Events";
 import { Material } from "./Material";
 import { BaseTileMaterialLayer } from "./BaseTileMaterialLayer";
-import type { LayerEventsList } from "./Layer";
+import type { BaseTileMaterialLayerEventsType } from "./BaseTileMaterialLayer";
+import type { Planet } from "../scene/Planet";
 import type { Segment } from "../segment/Segment";
 import type { TypedArray } from "geotiff";
 import { RENDERING } from "../quadTree/quadTree";
@@ -9,13 +10,19 @@ import {
     createImageData,
     getFastNoDataChecker,
     GeoTIFFReader,
+    MultiGeoTIFFReader,
     parseNoDataValue,
     renderMultiBandToImageData,
     renderRgbRastersToImageData,
     renderSingleBandToImageData,
+    type GeoTIFFSource,
+    type IBandChannelOptions,
+    type IBandStats,
     type IGeoTIFFLayerParams,
     type IGeoTIFFMetadata,
+    type IGeoTIFFReader,
     type IGeoTIFFRenderOptions,
+    type IGeoTIFFSourceItem,
     type DecodedTileData
 } from "./geotiff";
 
@@ -29,19 +36,25 @@ interface IPendingTile {
     forceLoading: boolean;
 }
 
-type GeoTIFFEventsList = ["load", "loadend", "ready", "error"];
-type GeoTIFFEventsType = EventsHandler<GeoTIFFEventsList> & EventsHandler<LayerEventsList>;
+type GeoTIFFEventsList = ["ready", "error"];
+type GeoTIFFEventsType = EventsHandler<GeoTIFFEventsList> & BaseTileMaterialLayerEventsType;
 
 const GEOTIFF_EVENTS: GeoTIFFEventsList = [
-    /** Triggered when a tile image is loaded and applied */
-    "load",
-    /** Triggered when pending tile requests finish */
-    "loadend",
     /** Triggered when GeoTIFF metadata and overviews are ready */
     "ready",
     /** Triggered on any load error */
     "error"
 ];
+
+/**
+ * Fills the contrast stretch of a channel from the band statistics, keeping an explicit stretch untouched.
+ */
+function stretchChannel(channel: IBandChannelOptions | undefined, bandStats: IBandStats | undefined): void {
+    if (channel && bandStats && channel.min === undefined) {
+        channel.min = bandStats.min;
+        channel.max = bandStats.max;
+    }
+}
 
 /**
  * GeoTIFFLayer renders Cloud Optimized GeoTIFF (COG) and standard GeoTIFF rasters
@@ -50,7 +63,7 @@ const GEOTIFF_EVENTS: GeoTIFFEventsList = [
 export class GeoTIFFLayer extends BaseTileMaterialLayer {
     public override events: GeoTIFFEventsType;
 
-    protected _reader: GeoTIFFReader;
+    protected _reader: IGeoTIFFReader;
     protected _renderOptions: IGeoTIFFRenderOptions;
     protected _tileSize: number;
     protected _tileCache: Map<string, ICachedTile>;
@@ -63,6 +76,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     protected _renderOptionsVersion: number;
     protected _debounceUpdateTimer: any;
     protected _pendingsQueue: IPendingTile[];
+    protected _sourceOptions: IGeoTIFFLayerParams;
+    protected _readerDestroyed: boolean;
 
     static MAX_REQUESTS: number = 8;
 
@@ -72,7 +87,13 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         // @ts-ignore
         this.events = this.events.registerNames(GEOTIFF_EVENTS);
 
-        this._reader = new GeoTIFFReader(options);
+        const isMultiSource = Array.isArray(options.sources) && options.sources.length > 0;
+        if (isMultiSource) {
+            this._reader = new MultiGeoTIFFReader(options);
+        } else {
+            this._reader = new GeoTIFFReader(options);
+        }
+
         const initialNodata =
             options.renderOptions?.nodata !== undefined
                 ? parseNoDataValue(options.renderOptions.nodata)
@@ -100,20 +121,34 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._renderOptionsVersion = 0;
         this._debounceUpdateTimer = null;
         this._pendingsQueue = [];
+        this._sourceOptions = options;
+        this._readerDestroyed = false;
         this._updateReadSamples();
 
+        this._readyPromise = this._initReader();
+    }
+
+    /**
+     * Opens the layer source. Also used to reopen it when the layer returns to the planet.
+     */
+    protected _initReader(): Promise<IGeoTIFFMetadata> {
+        const options = this._sourceOptions;
         const src = options.src || options.url;
-        if (src) {
-            this._readyPromise = this._initSource(src, options);
-            this._readyPromise.catch(() => {
-                //empty
-            });
+        let promise: Promise<IGeoTIFFMetadata>;
+
+        if (Array.isArray(options.sources) && options.sources.length > 0) {
+            promise = this._initSources(options.sources, options);
+        } else if (src) {
+            promise = this._initSource(src, options);
         } else {
-            this._readyPromise = Promise.reject(new Error("No GeoTIFF source provided."));
-            this._readyPromise.catch(() => {
-                //empty
-            });
+            promise = Promise.reject(new Error("No GeoTIFF source provided."));
         }
+
+        promise.catch(() => {
+            //empty
+        });
+
+        return promise;
     }
 
     public static async fromUrl(name: string, url: string, options: IGeoTIFFLayerParams = {}): Promise<GeoTIFFLayer> {
@@ -132,6 +167,26 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         return layer;
     }
 
+    public static async fromSources(
+        name: string,
+        sources: IGeoTIFFSourceItem[],
+        options: IGeoTIFFLayerParams = {}
+    ): Promise<GeoTIFFLayer> {
+        const layer = new GeoTIFFLayer(name, { ...options, sources });
+        await layer.whenReady();
+        return layer;
+    }
+
+    public override addTo(planet: Planet) {
+        // remove() closes the source, so a layer returned to the planet opens it again
+        if (this._readerDestroyed) {
+            this._readerDestroyed = false;
+            this._readyPromise = this._initReader();
+        }
+
+        return super.addTo(planet);
+    }
+
     public override get instanceName(): string {
         return "GeoTIFFLayer";
     }
@@ -140,7 +195,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         return super.isIdle && this._activeRequestsCount === 0 && this._pendingsQueue.length === 0;
     }
 
-    public get reader(): GeoTIFFReader {
+    public get reader(): IGeoTIFFReader {
         return this._reader;
     }
 
@@ -162,6 +217,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         } else {
             delete this._renderOptions.nodata;
         }
+        this._reader.setRenderOptions(this._renderOptions);
         this._reapplyRenderOptions();
     }
 
@@ -206,9 +262,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         if (this._reader.metadata) {
             this._normalizeRenderOptions(this._reader.metadata);
         }
-        if (this._reader.options) {
-            this._reader.options.renderOptions = this._renderOptions;
-        }
+
+        this._reader.setRenderOptions(this._renderOptions);
+
         this._updateReadSamples();
 
         this._renderOptionsVersion++;
@@ -364,12 +420,35 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._planet.renderer?.requestRedraw();
     }
 
-    private async _initSource(
-        src: string | Blob | File | ArrayBuffer,
-        options: IGeoTIFFLayerParams
-    ): Promise<IGeoTIFFMetadata> {
+    private async _initSource(src: GeoTIFFSource, options: IGeoTIFFLayerParams): Promise<IGeoTIFFMetadata> {
         try {
             const meta = await this._reader.init(src);
+
+            // Configure layer bounds
+            if (this._reader.extentWgs84) {
+                this.setExtent(this._reader.extentWgs84);
+            }
+
+            if (options.useImageCountAsMaximumLevel) {
+                this.maxNativeZoom = Math.min(this.maxNativeZoom, meta.overviewCount - 1);
+            }
+
+            // Set up default rendering mode if not configured
+            this._normalizeRenderOptions(meta);
+            this._updateReadSamples();
+
+            this.events.dispatch(this.events.ready, meta);
+            this.redraw();
+            return meta;
+        } catch (err: any) {
+            this.events.dispatch(this.events.error, err);
+            throw err;
+        }
+    }
+
+    private async _initSources(sources: IGeoTIFFSourceItem[], options: IGeoTIFFLayerParams): Promise<IGeoTIFFMetadata> {
+        try {
+            const meta = await this._reader.init(sources);
 
             // Configure layer bounds
             if (this._reader.extentWgs84) {
@@ -407,21 +486,36 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             }
         } else if (this._renderOptions.multi) {
             const { r, g, b } = this._renderOptions.multi;
-            if (r && r.min === undefined && meta.bands[r.band ?? 1]) {
-                r.min = meta.bands[r.band ?? 1].min;
-                r.max = meta.bands[r.band ?? 1].max;
+            stretchChannel(r, meta.bands[r?.band ?? 1]);
+            stretchChannel(g, meta.bands[g?.band ?? 2]);
+            stretchChannel(b, meta.bands[b?.band ?? 3]);
+        } else if (samples === 3 || samples === 4) {
+            const b1 = meta.bands[1];
+            const b2 = meta.bands[2];
+            const b3 = meta.bands[3];
+            const isHighBitDepth =
+                (b1 && (b1.max > 255 || b1.min < 0)) ||
+                (b2 && (b2.max > 255 || b2.min < 0)) ||
+                (b3 && (b3.max > 255 || b3.min < 0));
+
+            if (isHighBitDepth && this._renderOptions.convertToRGB === undefined) {
+                this._renderOptions.multi = {
+                    r: { band: 1, min: b1?.min ?? 0, max: b1?.max ?? 255 },
+                    g: { band: 2, min: b2?.min ?? 0, max: b2?.max ?? 255 },
+                    b: { band: 3, min: b3?.min ?? 0, max: b3?.max ?? 255 }
+                };
+            } else {
+                this._renderOptions.convertToRGB = this._renderOptions.convertToRGB ?? true;
             }
-            if (g && g.min === undefined && meta.bands[g.band ?? 2]) {
-                g.min = meta.bands[g.band ?? 2].min;
-                g.max = meta.bands[g.band ?? 2].max;
-            }
-            if (b && b.min === undefined && meta.bands[b.band ?? 3]) {
-                b.min = meta.bands[b.band ?? 3].min;
-                b.max = meta.bands[b.band ?? 3].max;
-            }
-        } else if (samples >= 3) {
-            this._renderOptions.convertToRGB = this._renderOptions.convertToRGB ?? true;
         } else {
+            // One or two samples, or a stack of more than four bands which is not an image:
+            // the first band is rendered with a palette, any other one is up to the user
+            if (samples > 4) {
+                console.warn(
+                    `[GeoTIFFLayer] ${samples} samples are rendered as a band stack, band 1 is shown. Use renderOptions.single.band to pick another one.`
+                );
+            }
+
             const bandMeta = meta.bands[1];
             this._renderOptions.single = {
                 band: 1,
@@ -440,7 +534,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             const { r, g, b } = this._renderOptions.multi;
             this._readSamples = [(r?.band ?? 1) - 1, (g?.band ?? 2) - 1, (b?.band ?? 3) - 1];
         } else if (this._renderOptions.convertToRGB) {
-            this._readSamples = [0, 1, 2];
+            this._readSamples = (this.metadata?.samplesPerPixel ?? 3) >= 4 ? [0, 1, 2, 3] : [0, 1, 2];
         } else if (this._renderOptions.single) {
             const expr = this._renderOptions.single.expression;
             if (expr) {
@@ -498,6 +592,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                     const image = this._getCachedTileImage(cacheKey);
                     if (image) {
                         material.applyImage(image);
+                        this._checkLoadend();
                     } else {
                         this._enqueueTile(material, cacheKey, forceLoading);
                     }
@@ -541,7 +636,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     protected _dequeueRequest(): void {
         while (this._activeRequestsCount < GeoTIFFLayer.MAX_REQUESTS) {
             const pending = this._whilePendings();
-            if (!pending) return;
+            if (!pending) break;
 
             const seg = pending.material.segment;
             const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
@@ -555,6 +650,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
 
             this._requestTile(pending.material, cacheKey);
         }
+
+        this._checkLoadend();
     }
 
     private _removeFromQueue(material: Material): void {
@@ -847,6 +944,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this.abortLoading();
         this.clearCache();
         this._reader.destroy();
+        this._readerDestroyed = true;
         super.remove();
         return this;
     }

@@ -1,5 +1,7 @@
 import type { IBaseTileMaterialLayerParams } from "../BaseTileMaterialLayer";
 import type { Pool, TypedArray } from "geotiff";
+import type { Extent } from "../../Extent";
+import type { Proj } from "../../proj/Proj";
 
 export type ColorScaleName =
     | "viridis"
@@ -33,6 +35,18 @@ export type ColorScaleName =
     | "coolwarm";
 
 export type ColorStop = [stopValue: number, color: string];
+
+/**
+ * GeoTIFF data source: a remote URL or a local binary.
+ */
+export type GeoTIFFSource = string | Blob | File | ArrayBuffer;
+
+export type NoDataValue = number | null | "nan" | "NaN";
+
+export interface IBandStats {
+    min: number;
+    max: number;
+}
 
 export interface ISingleBandRenderOptions {
     /** Band index (1-indexed), defaults to 1 */
@@ -77,10 +91,10 @@ export interface IMultiBandRenderOptions {
 
 export interface IGeoTIFFRenderOptions {
     /** NoData value (if not set, read from TIFF metadata). Set to null or NaN to disable nodata masking. */
-    nodata?: number | null | "nan" | "NaN";
+    nodata?: NoDataValue;
 
     /** Alias for nodata */
-    noData?: number | null | "nan" | "NaN";
+    noData?: NoDataValue;
 
     /** Treat 3-band/multi-band TIFF directly as RGB */
     convertToRGB?: boolean;
@@ -118,37 +132,64 @@ export type ProjFunc = (code: number) =>
       }
     | undefined;
 
-export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams {
+/**
+ * Options shared by a single GeoTIFF source and by the reader that opens it.
+ */
+export interface IGeoTIFFSourceCommon {
     /** Remote URL or local Blob/File/ArrayBuffer */
-    src?: string | Blob | File | ArrayBuffer;
+    src?: GeoTIFFSource;
 
     /** Alias for src when passing a URL */
     url?: string;
 
     /** Custom NoData value. Set to null or NaN to disable nodata masking. */
-    nodata?: number | null | "nan" | "NaN";
+    nodata?: NoDataValue;
+
+    /** Alias for nodata */
+    noData?: NoDataValue;
 
     /** Optional CRS code or definition, e.g. 2193 or "EPSG:2193" */
     crs?: number | string;
 
-    /** Alias for nodata */
-    noData?: number | null | "nan" | "NaN";
+    /** HTTP request options for geotiff.js range requests */
+    requestOptions?: IGeoTIFFRequestOptions;
+}
+
+export interface IGeoTIFFSourceItem extends IGeoTIFFSourceCommon {
+    /** Specific band indexes to read from this source (1-indexed). Defaults to all bands. */
+    bands?: number[];
+
+    /** Min value for this source's bands (used for contrast stretching) */
+    min?: number;
+
+    /** Max value for this source's bands (used for contrast stretching) */
+    max?: number;
+}
+
+/**
+ * Options used by a GeoTIFF reader.
+ */
+export interface IGeoTIFFReaderParams extends IGeoTIFFSourceCommon {
+    /** Multiple GeoTIFF/COG sources (like OpenLayers) */
+    sources?: IGeoTIFFSourceItem[];
+
+    /** When true, merges multiple sources spatially as a mosaic instead of stacking bands */
+    mosaic?: boolean;
 
     /** Rendering and band options */
     renderOptions?: IGeoTIFFRenderOptions;
 
-    /** HTTP request options for geotiff.js range requests */
-    requestOptions?: IGeoTIFFRequestOptions;
-
-    /** Custom geotiff Worker Pool instance */
+    /** Custom geotiff Worker Pool instance. It belongs to the caller and is never destroyed by a reader. */
     geotiffWorkerPool?: Pool;
 
-    /** Number of Web Workers for decompression (default: navigator.hardwareConcurrency || 2) */
+    /** Number of decompression workers. Uses a shared pool if not set. */
     workerPoolSize?: number;
 
     /** Custom projection mapping function for non-standard CRS */
     projFunc?: ProjFunc;
+}
 
+export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams, IGeoTIFFReaderParams {
     /** Output tile size (default: 256) */
     tileSize?: number;
 
@@ -157,6 +198,32 @@ export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams {
 
     /** Auto-calculate maximumLevel from COG overview count */
     useImageCountAsMaximumLevel?: boolean;
+}
+
+export interface IGeoTIFFReader {
+    options: IGeoTIFFReaderParams;
+    metadata: IGeoTIFFMetadata | null;
+    extentWgs84: Extent;
+    crsCode: number;
+    isReady: boolean;
+    workerPool: Pool | null;
+
+    init(src?: GeoTIFFSource | IGeoTIFFSourceItem[]): Promise<IGeoTIFFMetadata>;
+
+    /**
+     * Applies rendering options that affect decoding, such as nodata masking and the resampling method.
+     */
+    setRenderOptions(renderOptions: IGeoTIFFRenderOptions): void;
+
+    readTileRasters(
+        tileExtentLonLat: Extent,
+        zoomLevel: number,
+        tileSize?: number,
+        readSamples?: number[],
+        segmentProj?: Proj
+    ): Promise<DecodedTileData | null>;
+
+    destroy(): void;
 }
 
 export interface IGeoTIFFMetadata {
@@ -168,7 +235,7 @@ export interface IGeoTIFFMetadata {
     noData: number | null;
     isTiled: boolean;
     overviewCount: number;
-    bands: Record<number, { min: number; max: number }>;
+    bands: Record<number, IBandStats | undefined>;
 }
 
 export interface DecodedTileData {

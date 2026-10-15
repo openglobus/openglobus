@@ -30,6 +30,18 @@ export type { IDepthCameraParams } from "./control/depthCamera/DepthCamera";
 export { DepthCamera } from "./control/depthCamera/DepthCamera";
 export type { IDepthCameraHandlerParams } from "./control/depthCamera/DepthCameraHandler";
 export { DepthCameraHandler } from "./control/depthCamera/DepthCameraHandler";
+export type { IEntityGizmoParams } from "./control/entityGizmo/EntityGizmo";
+export { EntityGizmo } from "./control/entityGizmo/EntityGizmo";
+export type {
+    EditMode,
+    EditModeName,
+    GizmoTools,
+    GizmoTransformHandle,
+    GizmoTransformKind,
+    IEntityGizmoSceneParams,
+    IGizmoTransformEvent
+} from "./control/entityGizmo/EntityGizmoScene";
+export { EntityGizmoScene } from "./control/entityGizmo/EntityGizmoScene";
 export { PhongDeferredShading } from "./renderer/PhongDeferredShading";
 export { AtmosphereDeferredShading } from "./renderer/AtmosphereDeferredShading";
 export { WOITPass } from "./renderer/WOITPass";
@@ -99,7 +111,7 @@ import {
     resolveRgbToHeightFunc
 } from "./terrain/index";
 
-import { MoveAxisEntity } from "./control/entityEditor/MoveAxisEntity";
+import { MoveAxisEntity } from "./control/entityGizmo/MoveAxisEntity";
 import { Gltf } from "./utils/gltf/gltfParser";
 import { Easing } from "./utils/easing";
 import type { EasingFunction } from "./utils/easing";

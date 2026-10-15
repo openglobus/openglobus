@@ -1,11 +1,9 @@
 import * as mercator from "../mercator";
 import { BaseTileMaterialLayer } from "./BaseTileMaterialLayer";
 import type { IBaseTileMaterialLayerParams } from "./BaseTileMaterialLayer";
-import type { LayerEventsList } from "./Layer";
 import { RENDERING } from "../quadTree/quadTree";
 import { Segment } from "../segment/Segment";
 import { stringTemplate } from "../utils/shared";
-import type { EventsHandler } from "../Events";
 import { Material } from "./Material";
 import type { FetchCache, IResponse } from "../utils/Loader";
 
@@ -22,10 +20,6 @@ export interface IXYZParams extends IBaseTileMaterialLayerParams {
      */
     cache?: FetchCache;
 }
-
-type XYZEventsList = ["load", "loadend"];
-
-type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsList>;
 
 /**
  * Represents an imagery tiles source provider.
@@ -59,8 +53,6 @@ type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsLis
  * });
  */
 export class XYZ extends BaseTileMaterialLayer {
-    public override events: XYZEventsType;
-
     /**
      * Tile url source template.
      * @public
@@ -90,9 +82,6 @@ export class XYZ extends BaseTileMaterialLayer {
 
     constructor(name: string | null, options: IXYZParams = {}) {
         super(name, options);
-
-        //@ts-ignore
-        this.events = this.events.registerNames(XYZ_EVENTS);
 
         this.url = options.url || "";
 
@@ -448,17 +437,3 @@ export class XYZ extends BaseTileMaterialLayer {
         // }
     }
 }
-
-const XYZ_EVENTS: XYZEventsList = [
-    /**
-     * Triggered when current tile image has loaded before rendering.
-     * @event #load
-     */
-    "load",
-
-    /**
-     * Triggered when all tiles have loaded or loading has stopped.
-     * @event #loadend
-     */
-    "loadend"
-];
