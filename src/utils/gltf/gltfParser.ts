@@ -546,50 +546,67 @@ export class Gltf {
         if (accessor.byteOffset !== undefined) {
             offset += accessor.byteOffset;
         }
-        const dv = arrbuff.slice(offset, offset + bufferView.byteLength);
         switch (accessor.type) {
             case AccessorDataType.scalar:
-                return this._getTensor(dv, accessor, 1, bufferView.byteStride);
+                return this._getTensor(arrbuff, offset, accessor, 1, bufferView.byteStride);
             case AccessorDataType.vec2:
-                return this._getTensor(dv, accessor, 2, bufferView.byteStride);
+                return this._getTensor(arrbuff, offset, accessor, 2, bufferView.byteStride);
             case AccessorDataType.vec3:
-                return this._getTensor(dv, accessor, 3, bufferView.byteStride);
+                return this._getTensor(arrbuff, offset, accessor, 3, bufferView.byteStride);
             case AccessorDataType.vec4:
             case AccessorDataType.mat2:
-                return this._getTensor(dv, accessor, 4, bufferView.byteStride);
+                return this._getTensor(arrbuff, offset, accessor, 4, bufferView.byteStride);
             case AccessorDataType.mat3:
-                return this._getTensor(dv, accessor, 9, bufferView.byteStride);
+                return this._getTensor(arrbuff, offset, accessor, 9, bufferView.byteStride);
             case AccessorDataType.mat4:
-                return this._getTensor(dv, accessor, 16, bufferView.byteStride);
+                return this._getTensor(arrbuff, offset, accessor, 16, bufferView.byteStride);
             default:
                 throw new Error("Unknown accessor type");
         }
     }
 
+    private static _getTensorConstructor(componentType: AccessorComponentType) {
+        switch (componentType) {
+            case AccessorComponentType.ushort:
+                return Uint16Array;
+            case AccessorComponentType.short:
+                return Int16Array;
+            case AccessorComponentType.uint:
+                return Uint32Array;
+            case AccessorComponentType.float:
+                return Float32Array;
+            case AccessorComponentType.ubyte:
+                return Uint8Array;
+            case AccessorComponentType.byte:
+                return Int8Array;
+            default:
+                throw new Error("Unknown component type");
+        }
+    }
+
+    /**
+     * Views the accessor data in the buffer without copying, unless the data is interleaved.
+     */
     private static _getTensor(
         buffer: ArrayBuffer,
+        byteOffset: number,
         accessor: Accessor,
         numOfComponents: number,
-        byteStride?: number // TODO: implement byteStride handling if data not tightly packed
+        byteStride?: number
     ): TypedArray {
-        if (accessor.componentType === AccessorComponentType.ushort) {
-            return new Uint16Array(buffer, 0, accessor.count * numOfComponents);
+        const TypedArrayCtor = this._getTensorConstructor(accessor.componentType);
+        const elementSize = numOfComponents * TypedArrayCtor.BYTES_PER_ELEMENT;
+        const length = accessor.count * numOfComponents;
+
+        if (!byteStride || byteStride === elementSize) {
+            return new TypedArrayCtor(buffer, byteOffset, length);
         }
-        if (accessor.componentType === AccessorComponentType.short) {
-            return new Int16Array(buffer, 0, accessor.count * numOfComponents);
+
+        const result = new TypedArrayCtor(length);
+        for (let i = 0; i < accessor.count; i++) {
+            const element = new TypedArrayCtor(buffer, byteOffset + i * byteStride, numOfComponents);
+            result.set(element, i * numOfComponents);
         }
-        if (accessor.componentType === AccessorComponentType.uint) {
-            return new Uint32Array(buffer, 0, accessor.count * numOfComponents);
-        }
-        if (accessor.componentType === AccessorComponentType.float) {
-            return new Float32Array(buffer, 0, accessor.count * numOfComponents);
-        }
-        if (accessor.componentType === AccessorComponentType.ubyte) {
-            return new Uint8Array(buffer, 0, accessor.count * numOfComponents);
-        }
-        if (accessor.componentType === AccessorComponentType.byte) {
-            return new Int8Array(buffer, 0, accessor.count * numOfComponents);
-        }
-        throw new Error("Unknown component type");
+        return result;
     }
 }
