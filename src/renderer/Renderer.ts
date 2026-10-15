@@ -1016,6 +1016,10 @@ class Renderer {
             this.events.dispatch(this.events.resizeend, this.handler.canvas);
         };
 
+        this.handler.ONFRAMECHECK = () => {
+            this._checkActiveCameraChanges();
+        };
+
         this.screenFramePositionBuffer = this.handler.createArrayBuffer(
             new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]),
             2,
@@ -1556,17 +1560,18 @@ class Renderer {
         return this.handler.isIdle;
     }
 
+    protected _checkActiveCameraChanges() {
+        const cam = this.activeCamera;
+        if (cam.checkViewChanges() || cam.isFlying()) {
+            this.requestRedraw();
+        }
+    }
+
     /**
      * Draw nodes.
      * @public
      */
     public draw() {
-        this.activeCamera!.checkViewChanges();
-
-        if (this.activeCamera!.isFlying()) {
-            this.requestRedraw();
-        }
-
         let e = this.events;
         let pointerEvent = e.pointerEvent();
         let pointerFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown;
@@ -2084,6 +2089,7 @@ class Renderer {
         this.shadows.clear();
 
         this.handler.ONCANVASRESIZE = null;
+        this.handler.ONFRAMECHECK = null;
         this.handler.destroy();
 
         // @ts-ignore

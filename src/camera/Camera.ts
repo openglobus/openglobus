@@ -594,10 +594,11 @@ class Camera {
     /**
      * Checks camera movement and projection changes.
      * @public
+     * @returns {boolean} `true` when the view or projection changed since the previous check.
      */
-    public checkViewChanges() {
+    public checkViewChanges(): boolean {
         this.checkMoveEnd();
-        this._checkViewChange();
+        return this._checkViewChange();
     }
 
     /**
@@ -632,8 +633,9 @@ class Camera {
     /**
      * Checks whether the camera view or projection changed and dispatches `viewchange`.
      * @protected
+     * @returns {boolean} `true` when the view or projection changed.
      */
-    protected _checkViewChange() {
+    protected _checkViewChange(): boolean {
         const aspect = this.getAspectRatio();
         const focusDistance = this.focusDistance;
         const projectionChanged =
@@ -644,7 +646,9 @@ class Camera {
             this._pIsOrthographic !== this._isOrthographic ||
             (this._isOrthographic && this._pFocusDistance !== focusDistance);
 
-        if (this.isMoving || projectionChanged) {
+        const changed = this.isMoving || projectionChanged;
+
+        if (changed) {
             this.events.dispatch(this.events.viewchange, this);
             this.onViewChange && this.onViewChange();
         }
@@ -655,6 +659,8 @@ class Camera {
         this._pHeight = this._height;
         this._pIsOrthographic = this._isOrthographic;
         this._pFocusDistance = focusDistance;
+
+        return changed;
     }
 
     /**
