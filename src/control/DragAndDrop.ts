@@ -122,8 +122,8 @@ export class DragAndDrop extends Control {
 
     public async addFile(file: File, lonLat?: LonLat, mtlFile?: File | null): Promise<void> {
         const ext = getExt(file);
-        if (ext === "glb") {
-            lonLat && (await this._addGlb(file, lonLat));
+        if (ext === "glb" || ext === "gltf") {
+            lonLat && (await this._addGltf(file, lonLat));
         } else if (ext === "obj") {
             lonLat && (await this._addObj(file, lonLat, mtlFile));
         } else if (IMAGE_EXT.includes(ext)) {
@@ -133,10 +133,10 @@ export class DragAndDrop extends Control {
         }
     }
 
-    protected async _addGlb(file: File, lonLat: LonLat) {
+    protected async _addGltf(file: File, lonLat: LonLat) {
         const url = URL.createObjectURL(file);
         try {
-            const gltf = await Gltf.loadGlb(url);
+            const gltf = getExt(file) === "glb" ? await Gltf.loadGlb(url) : await Gltf.loadGltf(url);
             const entity = new Entity({
                 name: getBaseName(file),
                 lonlat: lonLat

@@ -12,6 +12,7 @@ import {
     AccessorComponentType,
     AccessorDataType,
     GltfData,
+    GltfMetadata,
     TextureImage,
     Material,
     Mesh,
@@ -34,6 +35,24 @@ export class Gltf {
     public static async loadGlb(url: string) {
         const data = await Glb.load(url);
         return new Gltf(data, url);
+    }
+
+    public static async loadGltf(url: string) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Unable to load '${url}'`);
+        }
+        const gltf: GltfMetadata = await response.json();
+        const bin = await Promise.all(
+            (gltf.buffers || []).map(async (buffer) => {
+                const res = await fetch(normalizeUri(buffer.uri!, url));
+                if (!res.ok) {
+                    throw new Error(`Unable to load buffer '${buffer.uri}'`);
+                }
+                return res.arrayBuffer();
+            })
+        );
+        return new Gltf({ gltf, bin }, url);
     }
 
     private _materials: Material[] = [];

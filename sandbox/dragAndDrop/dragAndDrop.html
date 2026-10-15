@@ -5,6 +5,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../lib/og.css" type="text/css" />
+    <script
+        type="text/javascript"
+        src="https://www.gstatic.com/draco/versioned/decoders/1.5.7/draco_decoder.js"
+    ></script>
     <style>
         html, body {
             margin: 0;
@@ -28,10 +32,15 @@
     import {
         Globe,
         GlobusRgbTerrain,
+        Gltf,
         OpenStreetMap,
         control,
         ui
     } from "../../lib/og.es.js";
+
+    DracoDecoderModule().then((decoderModule) => {
+        Gltf.connectDracoDecoderModule(decoderModule);
+    });
 
     const app = document.getElementById("app");
 
