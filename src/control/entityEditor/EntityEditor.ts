@@ -29,6 +29,8 @@ export class EntityEditor extends EntityGizmo {
         });
 
         this._visibility = options.visibility || false;
+
+        this.events.on("unselect", this._onUnselectEntity);
     }
 
     public override oninit() {
@@ -46,6 +48,12 @@ export class EntityEditor extends EntityGizmo {
         super.ondeactivate();
         this._dialog.hide();
     }
+
+    protected _onUnselectEntity = () => {
+        if (!this._visibility) {
+            this._dialog.hide();
+        }
+    };
 
     public positionDialogLeftOf(anchor: Dialog<unknown>): void {
         this._dialog.positionNearElementOnFirstOpen(anchor.el);
