@@ -5,6 +5,7 @@ import { Vec3 } from "../../math/Vec3";
 import { Mat4, NumberArray16 } from "../../math/Mat4";
 import { Object3d } from "../../Object3d";
 import { fnv1a32, normalizeUri } from "../shared";
+import { LINEAR } from "../colorSpace";
 import { setTextureResourceMeta } from "../textureResourceMeta";
 import { Glb } from "./glbParser";
 import {
@@ -516,7 +517,8 @@ export class Gltf {
             metallic: primitive.material?.metallicFactor,
             roughness: primitive.material?.roughnessFactor,
             ambientOcclusion: primitive.material?.occlusionTexture?.strength,
-            color: primitive.material?.baseColorFactor
+            color: primitive.material?.baseColorFactor,
+            colorSpace: LINEAR
         });
     }
 
