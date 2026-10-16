@@ -11,6 +11,8 @@ const ICON_LOCK_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24"
   <path d="M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
 </svg>`;
 
+const DIALOG_TITLE = "Entity Properties";
+
 interface IEntityEditorDialog extends IDialogParams {
     model: EntityGizmoScene;
 }
@@ -19,10 +21,11 @@ export class EntityEditorDialog extends Dialog<EntityGizmoScene> {
     protected _entityView: EntityEditorView | null;
     protected _cameraView: CameraEditorView | null;
     protected _projectorView: ProjectorEditorView | null;
+    protected _$empty: HTMLElement | null;
 
     constructor(params: IEntityEditorDialog) {
         super({
-            title: "Entity Properties",
+            title: DIALOG_TITLE,
             visible: false,
             resizable: true,
             useHide: true,
@@ -38,6 +41,7 @@ export class EntityEditorDialog extends Dialog<EntityGizmoScene> {
         this._entityView = null;
         this._cameraView = null;
         this._projectorView = null;
+        this._$empty = null;
     }
 
     public override render(params: any): this {
@@ -55,6 +59,11 @@ export class EntityEditorDialog extends Dialog<EntityGizmoScene> {
             title: "Lock/Unlock camera view"
         });
         cameraLockBtn.appendTo($toolbar);
+
+        this._$empty = document.createElement("div");
+        this._$empty.classList.add("og-editor_empty");
+        this._$empty.textContent = "No entity selected. Click an object on the map to edit it.";
+        this.container?.appendChild(this._$empty);
 
         cameraLockBtn.events.on("change", (isActive: boolean) => {
             if (isActive) {
@@ -77,7 +86,7 @@ export class EntityEditorDialog extends Dialog<EntityGizmoScene> {
     }
 
     protected _onVisibility = (vis: boolean) => {
-        this.model.setVisibility(vis);
+        this.model.setVisibility(vis && !!this.model.getSelectedEntity());
     };
 
     public override remove(): void {
@@ -112,6 +121,7 @@ export class EntityEditorDialog extends Dialog<EntityGizmoScene> {
 
     protected _refreshViews(entity: Entity): void {
         this._setDialogTitle(entity);
+        this._$empty && (this._$empty.style.display = "none");
         this._refreshEntityView(entity);
         this._refreshCameraView(entity);
         this._refreshProjectorView(entity);
@@ -208,7 +218,8 @@ export class EntityEditorDialog extends Dialog<EntityGizmoScene> {
 
     protected _onUnselect = () => {
         this._removeViews();
-        this.hide();
+        this.setTitle(DIALOG_TITLE);
+        this._$empty && (this._$empty.style.display = "");
     };
 
     protected _onPosition = (pos: Vec3, entity: Entity) => {

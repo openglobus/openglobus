@@ -1,6 +1,7 @@
 export * from "./CompassButton";
 export * from "./Control";
 export * from "./DebugInfo";
+export * from "./DragAndDrop";
 export * from "./DrawingSwitcher";
 export * from "./EarthCoordinates";
 export * from "./FreeNavigation";
