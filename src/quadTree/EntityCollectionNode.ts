@@ -88,6 +88,10 @@ class EntityCollectionNode {
                 this.entityCollection = ec;
             }
 
+            for (let i = 0; i < entities.length; i++) {
+                entities[i]._nodePtr = this;
+            }
+
             if (rightNow || !l.async) {
                 this.entityCollection!.addEntities(entities);
             } else {
