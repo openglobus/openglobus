@@ -3,7 +3,7 @@ import { EntityEditorDialog } from "./EntityEditorDialog";
 import { CameraLock } from "../CameraLock";
 import { Dialog } from "../../ui";
 
-export interface IEntityEditorParams extends Omit<IEntityGizmoParams, "tools"> {
+export interface IEntityEditorParams extends IEntityGizmoParams {
     visibility?: boolean;
 }
 
