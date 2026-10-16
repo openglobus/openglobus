@@ -12,6 +12,7 @@ import { QuadTreeStrategy } from "../../quadTree";
 import type { Renderer } from "../../renderer/Renderer";
 import { VARIANCE_SHADOW_ENABLED } from "../../renderer/shadows/ShadowManager";
 import type { Planet } from "../../scene/Planet";
+import type { EmptyTerrain } from "../../terrain/EmptyTerrain";
 import { Framebuffer } from "../../webgl";
 import { Vector } from "../../layer/Vector";
 import type { ShadowMap } from "../../renderer/shadows/ShadowMap";
@@ -117,6 +118,7 @@ export class DepthCamera {
     protected _isOrthographic: boolean;
     protected _focusDistance: number;
     protected _lastPlanetHeightFactor: number;
+    protected _lastPlanetTerrain: EmptyTerrain | null;
     protected _orthoTexelSizeX: number;
     protected _orthoTexelSizeY: number;
 
@@ -161,6 +163,7 @@ export class DepthCamera {
         this._isOrthographic = params.isOrthographic ?? false;
         this._focusDistance = params.focusDistance ?? this.far;
         this._lastPlanetHeightFactor = 1.0;
+        this._lastPlanetTerrain = null;
         this._orthoTexelSizeX = 0.0;
         this._orthoTexelSizeY = 0.0;
 
@@ -327,6 +330,7 @@ export class DepthCamera {
 
         this.quadTreeStrategy = this._createQuadTreeStrategy(planet, this.camera as PlanetCamera);
         this._lastPlanetHeightFactor = planet._heightFactor;
+        this._lastPlanetTerrain = planet.terrain;
         this._forceOwnQuadTreeStrategyPass = true;
         this._initialized = true;
     }
@@ -509,9 +513,15 @@ export class DepthCamera {
 
     protected _syncPlanetHeightFactor(): void {
         const planet = this._planet;
-        if (!planet || this._lastPlanetHeightFactor === planet._heightFactor) return;
+        if (
+            !planet ||
+            (this._lastPlanetHeightFactor === planet._heightFactor && this._lastPlanetTerrain === planet.terrain)
+        ) {
+            return;
+        }
 
         this._lastPlanetHeightFactor = planet._heightFactor;
+        this._lastPlanetTerrain = planet.terrain;
         this.quadTreeStrategy.destroyBranches();
         this.quadTreeStrategy.clearRenderedNodes();
         this._forceOwnQuadTreeStrategyPass = true;
