@@ -4,6 +4,7 @@ import { wgs84 } from "../../src/ellipsoid/wgs84";
 import { srgbToLinear } from "../../src/utils/colorSpace";
 import { EntityCollection } from "../../src/entity/EntityCollection";
 import { PolylineBatchRenderer } from "../../src/entity/polyline/PolylineBatchRenderer";
+import { PATH_TIME_SPLIT } from "../../src/entity/pathTime";
 
 const POSITION_EPS = 1e-2;
 const VALUE_EPS = 1e-6;
@@ -46,8 +47,10 @@ export function getRenderers(handler) {
         handler._opaqueRenderer,
         handler._transparentRenderer,
         handler._opaqueTexRenderer,
-        handler._transparentTexRenderer
-    ];
+        handler._transparentTexRenderer,
+        handler._timedRenderer,
+        handler._timedTexRenderer
+    ].filter(Boolean);
 }
 
 function fail(message) {
@@ -137,6 +140,31 @@ function resolvePicking(r, s, n) {
     return { lead: rgb(lead), points: res.map(rgb), tail: rgb(res[n - 1]) };
 }
 
+function resolveTimes(r, s, n) {
+    const times = r._pathTimes[s] || [];
+    const defined = (t) => t !== undefined && Number.isFinite(t);
+    let t = times.slice(0, n).find(defined);
+    if (t === undefined) t = times.find(defined);
+    const res = [];
+    for (let i = 0; i < n; i++) {
+        if (defined(times[i])) t = times[i];
+        res.push(t);
+    }
+    return res;
+}
+
+function absoluteTime(r, k) {
+    return r._timesArr[k * 2] * PATH_TIME_SPLIT + r._timesArr[k * 2 + 1];
+}
+
+function decodeTimes(arr) {
+    const res = [];
+    for (let i = 0; i < arr.length; i += 2) {
+        res.push(arr[i] * PATH_TIME_SPLIT + arr[i + 1]);
+    }
+    return res;
+}
+
 function quad(values) {
     return [].concat(values, values, values, values);
 }
@@ -196,6 +224,12 @@ export function checkRenderer(r, name = "renderer") {
 
     for (let v = 0; v < N; v += 4) {
         expectValues(r._orders, v, [1, -1, 2, -2], `${name}._orders@${v}`);
+    }
+
+    if (r.isTimed) {
+        expectLength(r._timesArr, C * 2, `${name}._timesArr`);
+    } else {
+        expectLength(r._timesArr, 0, `${name}._timesArr of an untimed renderer`);
     }
 
     expectLength(r._pathLengths, r._path3v.length + 1, `${name}._pathLengths`);
@@ -258,6 +292,23 @@ export function checkRenderer(r, name = "renderer") {
             writeGroup(base + 4 * i, colors.points[i], picking.points[i], `point ${i}`);
         }
         writeGroup(base + 4 * n, colors.tail, picking.tail, "tail pad");
+
+        if (r.isTimed) {
+            const times = resolveTimes(r, s, n);
+            if (times.some((t) => t !== undefined)) {
+                const expectTime = (c, t, label) => {
+                    for (let q = 0; q < 4; q++) {
+                        const actual = absoluteTime(r, c + q);
+                        if (Math.abs(actual - Math.round(t)) > 1) {
+                            fail(`${where} ${label} time: expected ${t} got ${actual}`);
+                        }
+                    }
+                };
+                if (si > 0) expectTime(base - 4, times[0], "lead pad");
+                times.forEach((t, i) => expectTime(base + 4 * i, t, `point ${i}`));
+                expectTime(base + 4 * n, times[n - 1], "tail pad");
+            }
+        }
     }
 
     const indexes = toArray(r._indexes);
@@ -292,7 +343,8 @@ function cloneSegments(arr) {
 export function checkRebuild(r, name = "renderer") {
     if (!r._scene || r.isTextured) return;
 
-    const fresh = new PolylineBatchRenderer(r._handler, { path3v: [] });
+    const fresh = new PolylineBatchRenderer(r._handler, { path3v: [], isTimed: r.isTimed });
+    fresh._pathTimes = r._pathTimes.map((times) => (times ? times.slice() : times));
     fresh.__doubleToTwoFloats = r.__doubleToTwoFloats;
     fresh._defaultColor = r._defaultColor;
     fresh._pickingColor = r._pickingColor;
@@ -319,6 +371,15 @@ export function checkRebuild(r, name = "renderer") {
         expectVec(decodeVertex(r, v), decodeVertex(fresh, v), `${name} vertex ${v} vs rebuild`);
     }
 
+    if (r.isTimed) {
+        const a = decodeTimes(toArray(r._timesArr));
+        const b = decodeTimes(toArray(fresh._timesArr));
+        expectLength(a, b.length, `${name}._timesArr vs rebuild`);
+        a.forEach((t, i) => {
+            if (Math.abs(t - b[i]) > 1) fail(`${name}._timesArr[${i}] = ${t}, rebuild ${b[i]}`);
+        });
+    }
+
     const t0 = stripTriangles(toArray(r._indexes)).join(";");
     const t1 = stripTriangles(toArray(fresh._indexes)).join(";");
     if (t0 !== t1) {
@@ -330,11 +391,8 @@ export function checkRebuild(r, name = "renderer") {
  * Checks that each polyline's batch indexes point at its own segments in order.
  */
 function polylineSegments(polyline) {
-    const seg3v = polyline._path3v.filter((seg) => seg && seg.length > 0);
-    if (seg3v.length) return seg3v;
-    return polyline._pathLonLat
-        .filter((seg) => seg && seg.length > 0)
-        .map((seg) => seg.map((ll) => wgs84.lonLatToCartesian(ll)));
+    if (polyline._path3v.some((seg) => seg && seg.length > 0)) return polyline._path3v;
+    return polyline._pathLonLat.map((seg) => (seg || []).map((ll) => wgs84.lonLatToCartesian(ll)));
 }
 
 export function checkHandler(handler, expectedSegments = new Map()) {
@@ -358,14 +416,16 @@ export function checkHandler(handler, expectedSegments = new Map()) {
         const own = owned.get(br);
         if (!own) fail("polyline batch renderer does not belong to its handler");
 
-        const expected = (expectedSegments.get(polyline) || polylineSegments(polyline)).filter(
-            (seg) => seg && seg.length > 0
-        );
+        const expected = expectedSegments.get(polyline) || polylineSegments(polyline);
         if (indexes.length !== expected.length) {
             fail(`polyline has ${expected.length} segments but ${indexes.length} batch indexes`);
         }
 
         for (let i = 0; i < indexes.length; i++) {
+            if (!expected[i] || expected[i].length === 0) {
+                if (indexes[i] !== -1) fail(`empty segment ${i} owns batch path ${indexes[i]}`);
+                continue;
+            }
             if (own.has(indexes[i])) fail(`batch path ${indexes[i]} is owned twice`);
             own.add(indexes[i]);
             const seg = br._path3v[indexes[i]];
@@ -402,5 +462,22 @@ export function expectPointColors(polyline, segmentIndex, colors, opacity = 1.0)
     colors.forEach((c, i) => {
         const rgba = [srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2]), (c[3] ?? 1) * opacity];
         expectValues(r._colors, (entry.base + 4 * i) * 4, rgba, `segment ${segmentIndex} point ${i} color`);
+    });
+}
+
+/**
+ * Reads the per-point times of a polyline segment back from its batch arrays.
+ */
+export function expectPointTimes(polyline, segmentIndex, times) {
+    const r = polyline._batchRenderer;
+    const batchIndex = polyline._batchRendererIndexes[segmentIndex];
+    const entry = nonEmptySegments(r).segments.find((e) => e.s === batchIndex);
+    if (!entry) fail(`segment ${segmentIndex} is not in the batch`);
+    if (entry.path.length !== times.length) {
+        fail(`segment ${segmentIndex} has ${entry.path.length} points, expected ${times.length} times`);
+    }
+    times.forEach((t, i) => {
+        const actual = absoluteTime(r, (entry.base + 4 * i) * 1);
+        if (Math.abs(actual - t) > 1) fail(`segment ${segmentIndex} point ${i} time: expected ${t} got ${actual}`);
     });
 }
