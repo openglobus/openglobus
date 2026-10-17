@@ -386,6 +386,29 @@ class EntityCollection {
     }
 
     /**
+     * Sets the current time of polylines and strips with path times.
+     * @public
+     * @param {number} time - Time in the same units as the path times.
+     */
+    public setTime(time: number) {
+        this.polylineHandler.setTime(time);
+        this.stripHandler.setTime(time);
+        this.requestRedraw();
+    }
+
+    /**
+     * Sets opacity multipliers of the path parts passed and ahead of the current time.
+     * @public
+     * @param {number} past - Multiplier up to the current time.
+     * @param {number} future - Multiplier after the current time.
+     */
+    public setTimeOpacity(past: number, future: number) {
+        this.polylineHandler.setTimeOpacity(past, future);
+        this.stripHandler.setTimeOpacity(past, future);
+        this.requestRedraw();
+    }
+
+    /**
      * Returns collection visibility.
      * @public
      * @returns {boolean} Collection visibility flag.
@@ -786,6 +809,8 @@ class EntityCollection {
     protected _onChangeRelativeCenter = (c: Vec3) => {
         this.geoObjectHandler.setRelativeCenter(c);
         this.polylineHandler.setRelativeCenter(c);
+        this.stripHandler.setRelativeCenter(c);
+        this.rayHandler.setRelativeCenter(c);
     };
 
     /**

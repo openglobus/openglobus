@@ -2,7 +2,8 @@ import { EntityCollection } from "../EntityCollection";
 import { Renderer } from "../../renderer/Renderer";
 import { Scene } from "../../scene/Scene";
 import { Strip } from "./Strip";
-import { stripForward, stripTransparent } from "../../shaders/strip/strip";
+import { Vec3 } from "../../math/Vec3";
+import { stripForward, stripForwardTime, stripTransparent, stripTransparentTime } from "../../shaders/strip/strip";
 
 class StripHandler {
     static __counter__: number = 0;
@@ -38,6 +39,33 @@ class StripHandler {
 
     protected _opaqueCount: number;
 
+    public _relativeCenter: Vec3;
+    public _rtcEyePositionHigh: Float32Array;
+    public _rtcEyePositionLow: Float32Array;
+
+    /**
+     * Current time of the lines with path times, in the same units as their times.
+     * @public
+     * @type {number}
+     */
+    public time: number = 0;
+
+    /**
+     * Opacity multipliers of the path parts already passed and still ahead of the current time.
+     * @public
+     * @type {Float32Array}
+     */
+    public timeOpacity: Float32Array = new Float32Array([1, 1]);
+
+    public setTime(time: number) {
+        this.time = time;
+    }
+
+    public setTimeOpacity(past: number, future: number) {
+        this.timeOpacity[0] = past;
+        this.timeOpacity[1] = future;
+    }
+
     constructor(entityCollection: EntityCollection) {
         this.__id = StripHandler.__counter__++;
 
@@ -49,6 +77,23 @@ class StripHandler {
 
         this._strips = [];
         this._opaqueCount = 0;
+
+        this._relativeCenter = new Vec3();
+        this._rtcEyePositionHigh = new Float32Array(3);
+        this._rtcEyePositionLow = new Float32Array(3);
+    }
+
+    public setRelativeCenter(c: Vec3) {
+        this._relativeCenter.copy(c);
+        for (let i = 0; i < this._strips.length; i++) {
+            this._strips[i].updateRTCPosition();
+        }
+    }
+
+    protected _updateRTCEyePosition() {
+        if (!this._renderer) return;
+        const rtcEyePosition = this._renderer.activeCamera.eye.sub(this._relativeCenter);
+        Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
     }
 
     protected _initProgram() {
@@ -61,9 +106,24 @@ class StripHandler {
         }
     }
 
+    public initTimedPrograms() {
+        if (this._renderer && this._renderer.handler) {
+            this._renderer.addProgram(stripForwardTime());
+            if (!this._renderer.deferredDisabled) {
+                this._renderer.addProgram(stripTransparentTime());
+            }
+        }
+    }
+
     public bindScene(scene: Scene) {
         this._renderer = scene.renderer;
+
         this._initProgram();
+
+        if (this._strips.some((strip) => strip.isTimed())) {
+            this.initTimedPrograms();
+        }
+
         for (let i = 0; i < this._strips.length; i++) {
             this._strips[i].bindScene(scene);
         }
@@ -86,6 +146,10 @@ class StripHandler {
             const index = this._strips.length;
             strip._handlerIndex = index;
             this._strips.push(strip);
+
+            if (strip.isTimed()) {
+                this.initTimedPrograms();
+            }
 
             // keep opaque first, transparent last
             if (strip.isOpaque()) {
@@ -130,18 +194,21 @@ class StripHandler {
     }
 
     public drawOpaque(): void {
+        this._updateRTCEyePosition();
         for (let i = 0; i < this._opaqueCount; i++) {
             this._strips[i].drawOpaque();
         }
     }
 
     public drawTransparent(): void {
+        this._updateRTCEyePosition();
         for (let i = this._opaqueCount; i < this._strips.length; i++) {
             this._strips[i].drawTransparent();
         }
     }
 
     public drawTransparentForward(): void {
+        this._updateRTCEyePosition();
         for (let i = this._opaqueCount; i < this._strips.length; i++) {
             this._strips[i].drawOpaque();
         }
@@ -166,6 +233,7 @@ class StripHandler {
     }
 
     public drawPicking() {
+        this._updateRTCEyePosition();
         if (this.pickingEnabled) {
             let i = this._strips.length;
             while (i--) {

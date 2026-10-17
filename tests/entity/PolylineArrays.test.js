@@ -257,9 +257,11 @@ describe("points", () => {
 
     test("removePoint down to an empty segment", () => {
         const { target, segs, check } = setupBatch();
-        while (segs[1].length) {
+        const count = segs[1].length;
+        for (let i = 0; i < count; i++) {
             target.removePoint(0, 1);
             segs[1].splice(0, 1);
+            if (segs[1].length === 0) segs.splice(1, 1);
             check();
         }
     });
@@ -835,5 +837,279 @@ describe("plain array coordinates", () => {
         );
         model.get(polyline)[0] = next.map((ll) => wgs84.lonLatToCartesian(ll));
         check();
+    });
+});
+
+describe("edits before the scene is bound", () => {
+    test.each(["addPoint3v", "insertPoint3v", "removePoint", "setPoint3v", "appendPath3v", "removePath", "setPath3v"])(
+        "%s",
+        (op) => {
+            const { handler, model, make, check } = setup(false);
+            const polyline = make([track(0, 0, 4), track(1, 1, 3)]);
+            const segs = model.get(polyline);
+            const p = point(5, 5);
+            if (op === "addPoint3v") {
+                polyline.addPoint3v(p.clone(), 0);
+                segs[0].push(p);
+            } else if (op === "insertPoint3v") {
+                polyline.insertPoint3v(p.clone(), 1, undefined, 0);
+                segs[0].splice(1, 0, p);
+            } else if (op === "removePoint") {
+                polyline.removePoint(1, 0);
+                segs[0].splice(1, 1);
+            } else if (op === "setPoint3v") {
+                polyline.setPoint3v(p.clone(), 1, 0);
+                segs[0][1] = p;
+            } else if (op === "appendPath3v") {
+                const next = track(3, 3, 2);
+                polyline.appendPath3v(next.map((v) => v.clone()));
+                segs.push(next);
+            } else if (op === "removePath") {
+                polyline.removePath(0);
+                segs.splice(0, 1);
+            } else {
+                const next = track(3, 3, 5);
+                polyline.setPath3v(
+                    next.map((v) => v.clone()),
+                    undefined,
+                    false,
+                    1
+                );
+                segs[1] = next;
+            }
+            handler.bindScene(createScene());
+            check();
+        }
+    );
+});
+
+describe("empty segments", () => {
+    function setupEmpty() {
+        const ctx = setup();
+        ctx.before = ctx.make([track(0, 0, 3)]);
+        ctx.target = ctx.make([track(2, 2, 3), [], track(3, 3, 4), [], track(4, 4, 2)], { color: "red" });
+        ctx.after = ctx.make([track(5, 5, 3)]);
+        ctx.segs = ctx.model.get(ctx.target);
+        return ctx;
+    }
+
+    test("construction skips empty segments", () => {
+        const { target, check } = setupEmpty();
+        check();
+        expect(target._batchRendererIndexes.map((i) => i >= 0)).toEqual([true, false, true, false, true]);
+    });
+
+    test.each([2, 4])("setPoint3v on segment %i", (s) => {
+        const { target, segs, check } = setupEmpty();
+        const p = point(10, 10);
+        target.setPoint3v(p.clone(), 1, s);
+        segs[s][1] = p;
+        check();
+    });
+
+    test.each([2, 4])("addPoint3v to segment %i", (s) => {
+        const { target, segs, check } = setupEmpty();
+        const p = point(10, 10);
+        target.addPoint3v(p.clone(), s);
+        segs[s].push(p);
+        check();
+    });
+
+    test.each([1, 3])("addPoint3v to empty segment %i", (s) => {
+        const { target, segs, check } = setupEmpty();
+        const p = point(10, 10);
+        target.addPoint3v(p.clone(), s);
+        segs[s].push(p);
+        check();
+        const r = point(11, 11);
+        target.setPoint3v(r.clone(), 0, 4);
+        segs[4][0] = r;
+        check();
+    });
+
+    test.each([2, 4])("insertPoint3v into segment %i", (s) => {
+        const { target, segs, check } = setupEmpty();
+        const p = point(10, 10);
+        target.insertPoint3v(p.clone(), 1, undefined, s);
+        segs[s].splice(1, 0, p);
+        check();
+    });
+
+    test.each([2, 4])("removePoint from segment %i", (s) => {
+        const { target, segs, check } = setupEmpty();
+        target.removePoint(0, s);
+        segs[s].splice(0, 1);
+        check();
+    });
+
+    test.each([0, 1, 2])("removePath %i", (s) => {
+        const { target, segs, check } = setupEmpty();
+        target.removePath(s);
+        segs.splice(s, 1);
+        check();
+        const p = point(12, 12);
+        target.setPoint3v(p.clone(), 0, segs.length - 1);
+        segs[segs.length - 1][0] = p;
+        check();
+    });
+
+    test("appendPath3v of an empty segment keeps the indexes", () => {
+        const { target, segs, check } = setupEmpty();
+        target.appendPath3v([]);
+        segs.push([]);
+        const next = track(20, 20, 3);
+        target.appendPath3v(next.map((p) => p.clone()));
+        segs.push(next);
+        check();
+        const p = point(12, 12);
+        target.setPoint3v(p.clone(), 0, 6);
+        segs[6][0] = p;
+        check();
+    });
+
+    test("setPath3v of one segment and colors after an empty one", () => {
+        const { target, segs, check } = setupEmpty();
+        const next = track(20, 20, 5);
+        target.setPath3v(
+            next.map((p) => p.clone()),
+            undefined,
+            false,
+            4
+        );
+        segs[4] = next;
+        target.setPathColors([[0, 0, 1, 1]], 4);
+        target.setPointColor([0, 1, 0, 1], 0, 2);
+        check();
+        expectPointColors(target, 4, [
+            [0, 0, 1, 1],
+            [0, 0, 1, 1],
+            [0, 0, 1, 1],
+            [0, 0, 1, 1],
+            [0, 0, 1, 1]
+        ]);
+    });
+
+    test("setVisibility, setOpacity and setPath3v keep the indexes", () => {
+        const { target, segs, model, check } = setupEmpty();
+        target.setVisibility(false);
+        target.setVisibility(true);
+        target.setOpacity(0.5);
+        check();
+        const next = [track(20, 20, 3), [], track(21, 21, 4)];
+        target.setPath3v(
+            next.map((seg) => seg.map((p) => p.clone())),
+            undefined,
+            true
+        );
+        model.set(target, next);
+        check();
+        expect(segs).not.toBe(next);
+    });
+
+    test("getPath3v keeps the segment indexes", () => {
+        const { target, segs } = setupEmpty();
+        const paths = target.getPath3v();
+        expect(paths.length).toBe(5);
+        expect(paths[1].length).toBe(0);
+        expect(paths[4].length).toBe(segs[4].length);
+    });
+});
+
+describe("random edits with empty segments", () => {
+    test.each(Array.from({ length: 20 }, (_, i) => i + 200))("seed %i", (seed) => {
+        const rnd = random(seed);
+        const int = (n) => Math.floor(rnd() * n);
+        const ctx = setup();
+        const polylines = [
+            ctx.make([track(0, 0, 3), [], track(1, 1, 4)], { color: "white" }),
+            ctx.make([[], track(2, 2, 3), [], []], { color: "red", opacity: 0.5 }),
+            ctx.make([track(3, 3, 4)], { color: "green" })
+        ];
+        const log = [];
+        const p = () => point(rnd() * 10, rnd() * 10);
+
+        const ops = [
+            (pl, segs) => {
+                const s = int(segs.length);
+                const v = p();
+                log.push(`addPoint3v seg ${s}`);
+                pl.addPoint3v(v.clone(), s);
+                segs[s].push(v);
+            },
+            (pl, segs) => {
+                const s = int(segs.length);
+                const i = int(segs[s].length + 1);
+                const v = p();
+                log.push(`insertPoint3v seg ${s} at ${i}`);
+                pl.insertPoint3v(v.clone(), i, undefined, s);
+                segs[s].splice(i, 0, v);
+            },
+            (pl, segs) => {
+                const s = int(segs.length);
+                if (!segs[s].length) return;
+                const i = int(segs[s].length);
+                log.push(`removePoint seg ${s} at ${i}`);
+                pl.removePoint(i, s);
+                segs[s].splice(i, 1);
+                if (segs[s].length === 0) segs.splice(s, 1);
+            },
+            (pl, segs) => {
+                const s = int(segs.length);
+                if (!segs[s].length) return;
+                const v = p();
+                const i = int(segs[s].length);
+                log.push(`setPoint3v seg ${s} at ${i}`);
+                pl.setPoint3v(v.clone(), i, s);
+                segs[s][i] = v;
+            },
+            (pl, segs) => {
+                const next = int(3) === 0 ? [] : track(rnd() * 10, rnd() * 10, 2 + int(3));
+                log.push(`appendPath3v ${next.length}`);
+                pl.appendPath3v(next.map((v) => v.clone()));
+                segs.push(next);
+            },
+            (pl, segs) => {
+                if (segs.length <= 1) return;
+                const s = int(segs.length);
+                log.push(`removePath ${s}`);
+                pl.removePath(s);
+                segs.splice(s, 1);
+            },
+            (pl, segs) => {
+                const s = int(segs.length);
+                const next = int(3) === 0 ? [] : track(rnd() * 10, rnd() * 10, 1 + int(4));
+                log.push(`setPath3v seg ${s} = ${next.length}`);
+                pl.setPath3v(
+                    next.map((v) => v.clone()),
+                    undefined,
+                    false,
+                    s
+                );
+                segs[s] = next;
+            },
+            (pl) => {
+                log.push(`setVisibility off/on`);
+                pl.setVisibility(false);
+                pl.setVisibility(true);
+            },
+            (pl) => {
+                const opacity = [1, 0.5][int(2)];
+                log.push(`setOpacity ${opacity}`);
+                pl.setOpacity(opacity);
+            }
+        ];
+
+        for (let step = 0; step < 300; step++) {
+            const pl = polylines[int(polylines.length)];
+            const segs = ctx.model.get(pl);
+            if (!segs.length) continue;
+            const op = ops[int(ops.length)];
+            try {
+                op(pl, segs);
+                ctx.check();
+            } catch (e) {
+                throw new Error(`step ${step}: ${log.slice(-5).join(" | ")}\n${e.message}`);
+            }
+        }
     });
 });

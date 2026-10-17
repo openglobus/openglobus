@@ -1,3 +1,5 @@
+import { EntityCollection } from "../../src/entity/EntityCollection";
+import { Entity } from "../../src/entity/Entity";
 import { Strip } from "../../src/entity/strip/Strip";
 import { Vec3 } from "../../src/math/Vec3";
 
@@ -62,5 +64,32 @@ test("Strip keeps a quad with a repeated edge collapsed onto that edge", () => {
 
     for (const vertex of built) {
         expect(distanceToNearest(vertex, [bottom, top])).toBeLessThan(1e-6);
+    }
+});
+
+test("Strip keeps vertices relative to the collection relative center", () => {
+    const corners = [
+        new Vec3(6378137, 0, 0),
+        new Vec3(6378437, 0, 0),
+        new Vec3(6378137, 10, 0),
+        new Vec3(6378437, 10, 0)
+    ];
+    const ec = new EntityCollection();
+    const entity = new Entity({
+        strip: {
+            path: [
+                [corners[0], corners[1]],
+                [corners[2], corners[3]]
+            ]
+        }
+    });
+    ec.add(entity);
+
+    const center = new Vec3(6378200, 5, 0);
+    ec.stripHandler.setRelativeCenter(center);
+
+    for (const v of vertices(entity.strip)) {
+        expect(v.length()).toBeLessThan(300);
+        expect(distanceToNearest(v.add(center), corners)).toBeLessThan(1e-3);
     }
 });
