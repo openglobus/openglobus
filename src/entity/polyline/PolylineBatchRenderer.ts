@@ -41,6 +41,9 @@ const TEXPARAM_BUFFER = 5;
 const PICKINGCOLORS_BUFFER = 6;
 const PATHPHASE_BUFFER = 7;
 const BOUNDING_SPHERE_BUFFER = 8;
+const TIMES_BUFFER = 9;
+
+const TIME_LIMIT = 0x3fffffff;
 
 const ANIMATION_TIME_WRAP_SEC = 59.0;
 
@@ -135,6 +138,10 @@ const pushQuadTexParams = (outTexParams: number[], texParam: TexParam) => {
 
 const pushQuadBoundingSphere = (outBoundingSphere: number[], x: number, y: number, z: number, r: number) => {
     outBoundingSphere.push(x, y, z, r, x, y, z, r, x, y, z, r, x, y, z, r);
+};
+
+const pushQuadTime = (outTimes: number[], time: number) => {
+    outTimes.push(time, time, time, time);
 };
 
 const pushQuadOrders = (outOrders: number[]) => {
@@ -244,6 +251,7 @@ export interface IPolylineBatchRendererParams {
     color?: string[];
     visibility?: boolean;
     isTextured?: boolean;
+    isTimed?: boolean;
     isClosed?: boolean[];
     pathColors?: SegmentPathColor[];
     path3v?: SegmentPath3vExt[];
@@ -359,6 +367,12 @@ class PolylineBatchRenderer {
     protected _boundingSphereBuffer: WebGLBufferExt | null;
     protected _pickingColorsBuffer: WebGLBufferExt | null;
 
+    public isTimed: boolean;
+    protected _pathTimes: (number[] | undefined)[];
+    protected _timeOrigin: number | null;
+    protected _timesArr: TypedArray | number[];
+    protected _timesBuffer: WebGLBufferExt | null;
+
     protected _scene: Scene | null;
 
     /**
@@ -406,6 +420,7 @@ class PolylineBatchRenderer {
         this.visibility = options.visibility != undefined ? options.visibility : true;
         this.isTextured =
             options.isTextured != undefined ? !!options.isTextured : (options.src ?? []).some((s) => s != null);
+        this.isTimed = !!options.isTimed;
 
         this._pathClosed = this._normalizePathClosedInput(options.isClosed);
 
@@ -446,6 +461,9 @@ class PolylineBatchRenderer {
         this._boundingSphereArr = [];
         this._texCoordArr = [];
         this._pickingColors = [];
+        this._timesArr = [];
+        this._pathTimes = [];
+        this._timeOrigin = null;
 
         this._verticesHighBuffer = null;
         this._verticesLowBuffer = null;
@@ -458,6 +476,7 @@ class PolylineBatchRenderer {
         this._pathPhaseBuffer = null;
         this._boundingSphereBuffer = null;
         this._pickingColorsBuffer = null;
+        this._timesBuffer = null;
 
         this._scene = null;
 
@@ -486,6 +505,7 @@ class PolylineBatchRenderer {
         this._buffersUpdateCallbacks[PICKINGCOLORS_BUFFER] = this._createPickingColorsBuffer;
         this._buffersUpdateCallbacks[PATHPHASE_BUFFER] = this._createPathPhaseBuffer;
         this._buffersUpdateCallbacks[BOUNDING_SPHERE_BUFFER] = this._createBoundingSphereBuffer;
+        this._buffersUpdateCallbacks[TIMES_BUFFER] = this._createTimesBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
@@ -1263,6 +1283,117 @@ class PolylineBatchRenderer {
         this._setChangedBuffer(BOUNDING_SPHERE_BUFFER);
     }
 
+    protected _pushPointTime(segmentIndex: number, index: number, time?: number) {
+        const times = this._pathTimes[segmentIndex] || (this._pathTimes[segmentIndex] = []);
+
+        times.length = Math.min(times.length, index);
+
+        if (time !== undefined) {
+            times.length = index;
+            times.push(time);
+        }
+    }
+
+    protected _toRelativeTime(time: number): number {
+        if (this._timeOrigin === null) {
+            this._timeOrigin = Math.floor(time);
+        }
+        return Math.max(-TIME_LIMIT, Math.min(TIME_LIMIT, Math.round(time - this._timeOrigin)));
+    }
+
+    protected _resolveTimeAt(segmentIndex: number, index: number): number {
+        const times = this._pathTimes[segmentIndex];
+
+        if (!times) {
+            return 0;
+        }
+
+        for (let i = Math.min(index, times.length - 1); i >= 0; i--) {
+            if (Number.isFinite(times[i])) {
+                return this._toRelativeTime(times[i]);
+            }
+        }
+
+        for (let i = index + 1; i < times.length; i++) {
+            if (Number.isFinite(times[i])) {
+                return this._toRelativeTime(times[i]);
+            }
+        }
+
+        return 0;
+    }
+
+    protected _resolveSegmentTimes(segmentIndex: number, count: number): number[] {
+        const times = this._pathTimes[segmentIndex];
+        const res: number[] = new Array(count);
+
+        let t = count > 0 ? this._resolveTimeAt(segmentIndex, 0) : 0;
+
+        for (let i = 0; i < count; i++) {
+            if (times && Number.isFinite(times[i])) {
+                t = this._toRelativeTime(times[i]);
+            }
+            res[i] = t;
+        }
+
+        return res;
+    }
+
+    /**
+     * Converts a time to the integer offset the timed shaders compare path times with.
+     * @public
+     * @param {number} time - Time in the units of the path times.
+     * @returns {number}
+     */
+    public getTimeCut(time: number): number {
+        if (this._timeOrigin === null) {
+            return 0;
+        }
+        return Math.max(-TIME_LIMIT, Math.min(TIME_LIMIT, Math.round(time - this._timeOrigin)));
+    }
+
+    /**
+     * Sets point times of a path segment, used by the time opacity of timed renderers.
+     * @public
+     * @param {number[]} times - Time per point, missing values repeat the previous one.
+     * @param {number} segmentIndex - Path segment index.
+     */
+    public setPathTimes(times: number[] | undefined, segmentIndex: number) {
+        this._pathTimes[segmentIndex] = times ? times.slice() : [];
+
+        const path = this._path3v[segmentIndex];
+
+        if (!this.isTimed || !this._scene || !path || path.length === 0) {
+            return;
+        }
+
+        const rel = this._resolveSegmentTimes(segmentIndex, path.length);
+        const arr = this._timesArr;
+
+        let group = this._getSegmentAttrGroupStart(segmentIndex);
+
+        const write = (time: number) => {
+            const k = group++ * 4;
+            arr[k] = arr[k + 1] = arr[k + 2] = arr[k + 3] = time;
+        };
+
+        if (segmentIndex > 0) {
+            write(rel[0]);
+        }
+
+        for (let i = 0; i < rel.length; i++) {
+            write(rel[i]);
+        }
+
+        write(rel[rel.length - 1]);
+
+        this._setChangedBuffer(TIMES_BUFFER);
+    }
+
+    public getPathTimes(): (number[] | undefined)[] {
+        return this._pathTimes;
+    }
+
     protected _markGeometryBuffersChanged(includeTexCoords: boolean) {
         this._setChangedBuffer(VERTICES_BUFFER);
         this._setChangedBuffer(INDEX_BUFFER);
@@ -1276,6 +1407,10 @@ class PolylineBatchRenderer {
             if (includeTexCoords) {
                 this._setChangedBuffer(TEXCOORD_BUFFER);
             }
+        }
+
+        if (this.isTimed) {
+            this._setChangedBuffer(TIMES_BUFFER);
         }
     }
 
@@ -1399,6 +1534,8 @@ class PolylineBatchRenderer {
             }
 
             const thickness = this._resolveSegmentThickness(segIndex);
+            const segTimes = this.isTimed ? this._resolveSegmentTimes(segIndex, path3v.length) : null;
+            const outTimes = this._timesArr as number[];
             const useTextureData = this.isTextured;
             const hasSegmentTexture = this._hasTexture(segIndex);
             let segAtlas: number[] | null = null;
@@ -1434,6 +1571,7 @@ class PolylineBatchRenderer {
                 pushQuadColor(outColors, color, segOpacity);
                 pushQuadThickness(outThickness, thickness);
                 pushQuadPicking(outPickingColors, pickingColor);
+                segTimes && pushQuadTime(outTimes, segTimes[0]);
                 if (useTextureData) {
                     pushQuadTexParams(outTexParams, texParams);
                     pushQuadBoundingSphere(outBoundingSpheres, sphere[0], sphere[1], sphere[2], sphere[3]);
@@ -1467,6 +1605,7 @@ class PolylineBatchRenderer {
                 pushQuadColor(outColors, color, segOpacity);
                 pushQuadThickness(outThickness, thickness);
                 pushQuadPicking(outPickingColors, pickingColor);
+                segTimes && pushQuadTime(outTimes, segTimes[i]);
 
                 if (useTextureData) {
                     pushQuadTexParams(outTexParams, texParams);
@@ -1501,6 +1640,7 @@ class PolylineBatchRenderer {
             pushQuadColor(outColors, color, segOpacity);
             pushQuadThickness(outThickness, thickness);
             pushQuadPicking(outPickingColors, pickingColor);
+            segTimes && pushQuadTime(outTimes, segTimes[path3v.length - 1]);
 
             if (useTextureData) {
                 pushQuadTexParams(outTexParams, texParams);
@@ -2865,6 +3005,10 @@ class PolylineBatchRenderer {
             this._pathPickingColors.splice(index, 1);
         }
 
+        if (index < this._pathTimes.length) {
+            this._pathTimes.splice(index, 1);
+        }
+
         if (index < this._segmentOpacity.length) {
             this._segmentOpacity.splice(index, 1);
         }
@@ -2916,6 +3060,10 @@ class PolylineBatchRenderer {
             this._texCoordArr = makeArrayTyped(this._texCoordArr);
         }
 
+        if (this.isTimed) {
+            this._timesArr = makeArrayTyped(this._timesArr, Int32Array);
+        }
+
         const pointsBefore = this._pathLengths[index];
 
         const vertexGroupStart = pointsBefore + 2 * index;
@@ -2954,6 +3102,10 @@ class PolylineBatchRenderer {
             );
         }
 
+        if (this.isTimed) {
+            this._timesArr = spliceTypedArray(this._timesArr as TypedArray, attrGroupStart * 4, attrGroupCount * 4);
+        }
+
         if (index === 0 && this._path3v.length > 0) {
             this._colors = spliceTypedArray(this._colors as TypedArray, 0, 16);
             this._thicknessArr = spliceTypedArray(this._thicknessArr as TypedArray, 0, 4);
@@ -2962,6 +3114,9 @@ class PolylineBatchRenderer {
                 this._pathTexParamArr = spliceTypedArray(this._pathTexParamArr as TypedArray, 0, 12);
                 this._texCoordArr = spliceTypedArray(this._texCoordArr as TypedArray, 0, 16);
             }
+            if (this.isTimed) {
+                this._timesArr = spliceTypedArray(this._timesArr as TypedArray, 0, 4);
+            }
         }
 
         this._rebuildIndexes();
@@ -2969,7 +3124,12 @@ class PolylineBatchRenderer {
         this._markGeometryBuffersChanged(true);
     }
 
-    public appendPath3v(path3v: SegmentPath3vExt, pathColors?: NumberArray4[], opacity: number = 1.0) {
+    public appendPath3v(
+        path3v: SegmentPath3vExt,
+        pathColors?: NumberArray4[],
+        opacity: number = 1.0,
+        pathTimes?: number[]
+    ) {
         if (!path3v || path3v.length === 0) {
             return;
         }
@@ -2977,7 +3137,7 @@ class PolylineBatchRenderer {
         const segIndex = this._path3v.length;
         this._segmentOpacity[segIndex] = opacity;
 
-        this._path3v.push(path3v);
+        this._path3v.push(path3v.slice());
         this._pathLonLat.push([]);
 
         this._syncPathClosedLength(this._path3v.length);
@@ -2985,6 +3145,7 @@ class PolylineBatchRenderer {
 
         this._pathColors[segIndex] =
             pathColors && pathColors.length ? pathColors.slice() : this._pathColors[segIndex] || [];
+        this._pathTimes[segIndex] = pathTimes ? pathTimes.slice() : [];
         const segPickingColors = this._pathPickingColors[segIndex] || (this._pathPickingColors[segIndex] = []);
 
         if (!segPickingColors.length) {
@@ -3013,6 +3174,9 @@ class PolylineBatchRenderer {
         this._orders = makeArray(this._orders);
         this._indexes = makeArray(this._indexes);
         this._pickingColors = makeArray(this._pickingColors);
+        if (this.isTimed) {
+            this._timesArr = makeArray(this._timesArr);
+        }
         if (this.isTextured) {
             this._pathTexParamArr = makeArray(this._pathTexParamArr);
             this._texCoordArr = makeArray(this._texCoordArr);
@@ -3059,20 +3223,26 @@ class PolylineBatchRenderer {
         }
     }
 
-    public appendPathLonLat(pathLonLat: SegmentPathLonLatExt, pathColors?: NumberArray4[], opacity: number = 1) {
+    public appendPathLonLat(
+        pathLonLat: SegmentPathLonLatExt,
+        pathColors?: NumberArray4[],
+        opacity: number = 1,
+        pathTimes?: number[]
+    ) {
         if (!pathLonLat || pathLonLat.length === 0) return;
 
         const segIndex = this._pathLonLat.length;
         this._segmentOpacity[segIndex] = opacity;
 
         this._path3v.push([]);
-        this._pathLonLat.push(pathLonLat);
+        this._pathLonLat.push(pathLonLat.slice());
 
         this._syncPathClosedLength(this._pathLonLat.length);
         this._syncSrcLength(this._pathLonLat.length);
 
         this._pathColors[segIndex] =
             pathColors && pathColors.length ? pathColors.slice() : this._pathColors[segIndex] || [];
+        this._pathTimes[segIndex] = pathTimes ? pathTimes.slice() : [];
         const segPickingColors = this._pathPickingColors[segIndex] || (this._pathPickingColors[segIndex] = []);
 
         if (!segPickingColors.length) {
@@ -3102,6 +3272,9 @@ class PolylineBatchRenderer {
         this._orders = makeArray(this._orders);
         this._indexes = makeArray(this._indexes);
         this._pickingColors = makeArray(this._pickingColors);
+        if (this.isTimed) {
+            this._timesArr = makeArray(this._timesArr);
+        }
         if (this.isTextured) {
             this._pathTexParamArr = makeArray(this._pathTexParamArr);
             this._texCoordArr = makeArray(this._texCoordArr);
@@ -3169,10 +3342,18 @@ class PolylineBatchRenderer {
             segColors.splice(index, 1);
         }
 
+        const segTimes = this._pathTimes[segmentIndex];
+        if (segTimes && index < segTimes.length) {
+            segTimes.splice(index, 1);
+        }
+
         if (segment.length === 0) {
             this._path3v.splice(segmentIndex, 1);
             if (segmentIndex < this._pathColors.length) {
                 this._pathColors.splice(segmentIndex, 1);
+            }
+            if (segmentIndex < this._pathTimes.length) {
+                this._pathTimes.splice(segmentIndex, 1);
             }
             if (segmentIndex < this._segmentOpacity.length) {
                 this._segmentOpacity.splice(segmentIndex, 1);
@@ -3203,14 +3384,23 @@ class PolylineBatchRenderer {
      * @param {number} [index=0] - Index in the path
      * @param {NumberArray4} [color] - Point color
      * @param {number} [segmentIndex=0] - Path segment index
+     * @param {number} [time] - Point time
      */
-    public insertPoint3v(point3v: Vec3, index: number = 0, color?: NumberArray4, segmentIndex: number = 0) {
+    public insertPoint3v(
+        point3v: Vec3,
+        index: number = 0,
+        color?: NumberArray4,
+        segmentIndex: number = 0,
+        time?: number
+    ) {
         let p = ([] as SegmentPath3vExt[]).concat(this._path3v),
             pp = p[segmentIndex];
 
         if (pp) {
             let c = ([] as SegmentPathColor[]).concat(this._pathColors);
+
             const cc = c[segmentIndex];
+
             if (cc && index <= cc.length) {
                 cc.splice(index, 0, color || cc[Math.max(0, index - 1)]);
             } else if (color) {
@@ -3218,10 +3408,21 @@ class PolylineBatchRenderer {
                 segColors.length = index;
                 segColors.push(color);
             }
+
+            const tt = this._pathTimes[segmentIndex];
+
+            if (tt && index <= tt.length) {
+                tt.splice(index, 0, time ?? tt[Math.max(0, index - 1)]);
+            } else if (time !== undefined) {
+                const segTimes = tt || (this._pathTimes[segmentIndex] = []);
+                segTimes.length = index;
+                segTimes.push(time);
+            }
+
             pp.splice(index, 0, point3v);
             this.setPath3v(p, c);
         } else {
-            this.addPoint3v(point3v, segmentIndex);
+            this.addPoint3v(point3v, segmentIndex, undefined, undefined, time);
         }
     }
 
@@ -3232,8 +3433,15 @@ class PolylineBatchRenderer {
      * @param {number} [segmentIndex=0] - Path segment index, first by default.
      * @param {NumberArray4} [color] - Point color.
      * @param {number} [opacity=1] - Point opacity.
+     * @param {number} [time] - Point time.
      */
-    public addPoint3v(point3v: Vec3, segmentIndex: number = 0, color?: NumberArray4, opacity: number = 1) {
+    public addPoint3v(
+        point3v: Vec3,
+        segmentIndex: number = 0,
+        color?: NumberArray4,
+        opacity: number = 1,
+        time?: number
+    ) {
         if (segmentIndex < 0) return;
 
         if (!this._scene) {
@@ -3242,6 +3450,7 @@ class PolylineBatchRenderer {
             }
 
             this._path3v[segmentIndex].push(point3v);
+            this._pushPointTime(segmentIndex, this._path3v[segmentIndex].length - 1, time);
 
             if (!this._pathColors[segmentIndex]) {
                 this._pathColors[segmentIndex] = [];
@@ -3266,7 +3475,7 @@ class PolylineBatchRenderer {
         }
 
         if (segmentIndex >= this._path3v.length) {
-            this.appendPath3v([point3v], color ? [color] : undefined, opacity);
+            this.appendPath3v([point3v], color ? [color] : undefined, opacity, time !== undefined ? [time] : undefined);
             return;
         }
 
@@ -3288,6 +3497,8 @@ class PolylineBatchRenderer {
         }
         segColors.length = oldLen;
         segColors.push(color || fallbackColor);
+
+        this._pushPointTime(segIndex, oldLen, time);
 
         const segPickingColors = this._pathPickingColors[segIndex] || (this._pathPickingColors[segIndex] = []);
         segPickingColors.push([this._pickingColor[R], this._pickingColor[G], this._pickingColor[B]]);
@@ -3434,6 +3645,18 @@ class PolylineBatchRenderer {
             new Float32Array([thickness, thickness, thickness, thickness])
         );
 
+        if (this.isTimed) {
+            const pointTime = this._resolveTimeAt(segIndex, oldLen);
+            const tmArr = makeArrayTyped(this._timesArr, Int32Array) as Int32Array;
+            const tmBase = oldAttrCapGroup * 4;
+            tmArr[tmBase] = tmArr[tmBase + 1] = tmArr[tmBase + 2] = tmArr[tmBase + 3] = pointTime;
+            this._timesArr = insertTypedArray(
+                tmArr,
+                insertAttrGroup * 4,
+                new Int32Array([pointTime, pointTime, pointTime, pointTime])
+            );
+        }
+
         //
         // colors block
         const cArr = this._colors as Float32Array;
@@ -3537,14 +3760,20 @@ class PolylineBatchRenderer {
     }
 
     /**
-     * Append new geodetic point in the end of the path.
+     * Append a new geodetic point at the end of the path.
      * @public
      * @param {LonLat} lonLat - New coordinate.
      * @param {number} [segmentIndex=0] - Path segment index, first by default.
      * @param {NumberArray4} [color] - Point color.
      * @param {number} [opacity=1]
      */
-    public addPointLonLat(lonLat: LonLat, segmentIndex: number = 0, color?: NumberArray4, opacity: number = 1) {
+    public addPointLonLat(
+        lonLat: LonLat,
+        segmentIndex: number = 0,
+        color?: NumberArray4,
+        opacity: number = 1,
+        time?: number
+    ) {
         if (segmentIndex < 0) {
             return;
         }
@@ -3557,6 +3786,7 @@ class PolylineBatchRenderer {
             }
 
             this._pathLonLat[segmentIndex].push(lonLat);
+            this._pushPointTime(segmentIndex, this._pathLonLat[segmentIndex].length - 1, time);
 
             if (!this._pathColors[segmentIndex]) {
                 this._pathColors[segmentIndex] = [];
@@ -3585,10 +3815,10 @@ class PolylineBatchRenderer {
         const point3v = ellipsoid.lonLatToCartesian(lonLat);
 
         if (segmentIndex >= this._path3v.length) {
-            this.appendPath3v([point3v], color ? [color] : undefined, opacity);
+            this.appendPath3v([point3v], color ? [color] : undefined, opacity, time !== undefined ? [time] : undefined);
             segmentIndex = this._path3v.length - 1;
         } else {
-            this.addPoint3v(point3v, segmentIndex, color, opacity);
+            this.addPoint3v(point3v, segmentIndex, color, opacity, time);
         }
 
         const segLonLat = this._pathLonLat[segmentIndex] || (this._pathLonLat[segmentIndex] = []);
@@ -3618,6 +3848,7 @@ class PolylineBatchRenderer {
      */
     public clear() {
         this._clearData();
+        this._pathTimes = [];
         this._pathClosed = [];
         this._segmentOpacity = [];
         this._src = [];
@@ -3662,23 +3893,6 @@ class PolylineBatchRenderer {
             pathColors[index] = color;
         }
     }
-
-    // /**
-    //  * Sets polyline opacity.
-    //  * @public
-    //  * @param {number} opacity - Opacity.
-    //  */
-    // public setOpacity(opacity: number) {
-    //     this._opacity = opacity;
-    // }
-
-    // /**
-    //  * Gets polyline opacity.
-    //  * @public
-    //  */
-    // public getOpacity(): number {
-    //     return this._opacity;
-    // }
 
     /**
      * Sets Polyline thickness in screen pixels.
@@ -3901,6 +4115,8 @@ class PolylineBatchRenderer {
         this._boundingSphereArr = [];
         this._texCoordArr = [];
         this._pickingColors = [];
+        this._timesArr = [];
+        this._timeOrigin = null;
 
         this._path3v.length = 0;
         this._pathLonLat.length = 0;
@@ -4273,38 +4489,6 @@ class PolylineBatchRenderer {
         this._setChangedBuffer(COLORS_BUFFER);
     }
 
-    // /**
-    //  * Sets polyline color
-    //  * @param {string} htmlColor - HTML color.
-    //  */
-    // public setColorHTML(htmlColor: string) {
-    //
-    //     this._defaultColor = htmlColorToFloat32Array(htmlColor);
-    //
-    //     let color = htmlColorToRgba(htmlColor),
-    //         p = this._pathColors;
-    //
-    //     for (let i = 0, len = p.length; i < len; i++) {
-    //         let s = p[i];
-    //         for (let j = 0, slen = s.length; j < slen; j++) {
-    //             s[j][0] = color.x;
-    //             s[j][1] = color.y;
-    //             s[j][2] = color.z;
-    //             s[j][3] = color.w;
-    //         }
-    //     }
-    //
-    //     let c = this._colors;
-    //     for (let i = 0, len = c.length; i < len; i += 4) {
-    //         c[i] = color.x;
-    //         c[i + 1] = color.y;
-    //         c[i + 2] = color.z;
-    //         c[i + 3] = color.w;
-    //     }
-    //
-    //     this._changedBuffers[COLORS_BUFFER] = true;
-    // }
-
     public setPathLonLatFast(
         pathLonLat: SegmentPathLonLatExt[],
         pathColors?: (SegmentPathColor | NumberArray4)[] | SegmentPathColor | NumberArray4
@@ -4426,7 +4610,7 @@ class PolylineBatchRenderer {
                     true
                 );
             } else {
-                this._path3v[segmentIndex] = segmentPath;
+                this._path3v[segmentIndex] = segmentPath.slice();
                 if (pathColors) {
                     this._pathColors[segmentIndex] = this._normalizeSegmentPathColors(
                         segmentPath.length,
@@ -4506,7 +4690,7 @@ class PolylineBatchRenderer {
                     false
                 );
             } else {
-                this._pathLonLat[segmentIndex] = segmentPath;
+                this._pathLonLat[segmentIndex] = segmentPath.slice();
                 if (pathColors) {
                     this._pathColors[segmentIndex] = this._normalizeSegmentPathColors(
                         segmentPath.length,
@@ -4554,6 +4738,9 @@ class PolylineBatchRenderer {
 
             let r = this._scene!.renderer!;
             let sh = this.isTextured ? r.handler.programs.polylineTex : r.handler.programs.polylinePlain;
+            if (this.isTimed) {
+                sh = this.isTextured ? r.handler.programs.polylineTexTime : r.handler.programs.polylinePlainTime;
+            }
             let p = sh;
             let gl = r.handler.gl!,
                 sha = p.attributes,
@@ -4614,6 +4801,10 @@ class PolylineBatchRenderer {
             gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer!);
             gl.vertexAttribPointer(sha.order, this._ordersBuffer!.itemSize, gl.FLOAT, false, 4, 0);
 
+            if (this.isTimed) {
+                this._bindTime(gl, sha, shu);
+            }
+
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer!);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
 
@@ -4627,6 +4818,11 @@ class PolylineBatchRenderer {
 
             let r = this._scene!.renderer!;
             let sh = this.isTextured ? r.handler.programs.polylineTexWoit : r.handler.programs.polylineWoitPlain;
+            if (this.isTimed) {
+                sh = this.isTextured
+                    ? r.handler.programs.polylineTexWoitTime
+                    : r.handler.programs.polylineWoitPlainTime;
+            }
             let p = sh;
             let gl = r.handler.gl!,
                 sha = p.attributes,
@@ -4688,11 +4884,27 @@ class PolylineBatchRenderer {
             gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer!);
             gl.vertexAttribPointer(sha.order, this._ordersBuffer!.itemSize, gl.FLOAT, false, 4, 0);
 
+            if (this.isTimed) {
+                this._bindTime(gl, sha, shu);
+            }
+
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer!);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
 
             gl.enable(gl.CULL_FACE);
         }
+    }
+
+    protected _bindTime(
+        gl: WebGL2RenderingContext,
+        sha: { [id: string]: number },
+        shu: { [id: string]: WebGLUniformLocation }
+    ) {
+        const handler = this._handler!;
+        gl.uniform1i(shu.timeCut, this.getTimeCut(handler.time));
+        gl.uniform2fv(shu.timeOpacity, handler.timeOpacity);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._timesBuffer!);
+        gl.vertexAttribIPointer(sha.pathTime, 1, gl.INT, 0, 0);
     }
 
     public drawPicking() {
@@ -4806,6 +5018,7 @@ class PolylineBatchRenderer {
             gl.deleteBuffer(this._pathPhaseBuffer!);
             gl.deleteBuffer(this._boundingSphereBuffer!);
             gl.deleteBuffer(this._pickingColorsBuffer!);
+            gl.deleteBuffer(this._timesBuffer!);
 
             this._verticesHighBuffer = null;
             this._verticesLowBuffer = null;
@@ -4818,6 +5031,7 @@ class PolylineBatchRenderer {
             this._pathPhaseBuffer = null;
             this._boundingSphereBuffer = null;
             this._pickingColorsBuffer = null;
+            this._timesBuffer = null;
         }
     }
 
@@ -4871,6 +5085,21 @@ class PolylineBatchRenderer {
             this._colorsBuffer = h.createStreamArrayBuffer(4, numItems);
         }
         h.setStreamArrayBuffer(this._colorsBuffer!, ta);
+    }
+
+    protected _createTimesBuffer() {
+        if (!this.isTimed) return;
+
+        const h = this._scene!.renderer!.handler;
+        const ta = makeArrayTyped(this._timesArr, Int32Array) as Int32Array;
+        this._timesArr = ta;
+
+        if (!this._timesBuffer || this._timesBuffer.numItems !== ta.length) {
+            h.gl!.deleteBuffer(this._timesBuffer!);
+            this._timesBuffer = h.createStreamArrayBuffer(1, ta.length);
+        }
+
+        h.setStreamArrayBuffer(this._timesBuffer!, ta);
     }
 
     protected _createPickingColorsBuffer() {
