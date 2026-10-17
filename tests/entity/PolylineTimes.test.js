@@ -1,4 +1,5 @@
 import { Polyline } from "../../src/entity/polyline/Polyline";
+import { PATH_TIME_SPLIT, splitPathTime } from "../../src/entity/pathTime";
 import { Vector } from "../../src/layer/Vector";
 import { createCollection, createScene, checkHandler, expectPointTimes, point, track } from "./polylineArrays";
 
@@ -74,7 +75,6 @@ describe("timed batches", () => {
         const polyline = make(paths, { pathTimes: times });
         check();
         expectPointTimes(polyline, 0, times[0]);
-        expect(polyline._batchRenderer.getTimeCut(T0 + 7) - polyline._batchRenderer.getTimeCut(T0 + 1)).toBe(6);
     });
 
     test("missing times repeat the previous one", () => {
@@ -84,12 +84,36 @@ describe("timed batches", () => {
         expectPointTimes(polyline, 0, [T0 + 10, T0 + 10, T0 + 10, T0 + 30, T0 + 30]);
     });
 
-    test("time cut is relative to the batch origin", () => {
-        const { target } = setupTimed();
-        const r = target._batchRenderer;
-        expect(r.getTimeCut(T0 + 1000)).toBe(0);
-        expect(r.getTimeCut(T0 + 2500)).toBe(1500);
-        expect(r.getTimeCut(T0 - 1e15)).toBe(-0x3fffffff);
+    test("tracks far apart in time share one batch and keep exact times", () => {
+        const { handler, make, check } = setup();
+        const YEAR = 365 * 24 * 3600 * 1000;
+        const first = make([track(0, 0, 3)], { pathTimes: [[T0, T0 + 1000, T0 + 2000]] });
+        const later = [T0 + YEAR, T0 + YEAR + 1000, T0 + YEAR + 2000];
+        const second = make([track(1, 1, 3)], { pathTimes: [later] });
+        expect(second._batchRenderer).toBe(first._batchRenderer);
+        check();
+        expectPointTimes(second, 0, later);
+
+        // The vertex shader delta, in float32 like on the GPU.
+        const f = Math.fround;
+        const delta = (time, cut) => {
+            const [th, tl] = splitPathTime(time);
+            const [ch, cl] = splitPathTime(cut);
+            return f(f(f(th - ch) * PATH_TIME_SPLIT) + f(tl - cl));
+        };
+        const cut = T0 + YEAR + 1500;
+        expect(delta(T0 + 2000, cut)).toBeLessThan(0);
+        expect(delta(later[1], cut)).toBe(-500);
+        expect(delta(later[2], cut)).toBe(500);
+        expect(handler._timedRenderer).not.toBeNull();
+    });
+
+    test("time parts round trip", () => {
+        for (const t of [0, 1, -1, T0, T0 + 0.4, -T0, PATH_TIME_SPLIT - 1, PATH_TIME_SPLIT]) {
+            const [high, low] = splitPathTime(t);
+            expect(high * PATH_TIME_SPLIT + low).toBe(Math.round(t));
+            expect(low >= 0 && low < PATH_TIME_SPLIT).toBe(true);
+        }
     });
 });
 

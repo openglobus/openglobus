@@ -2,6 +2,7 @@ import { Strip } from "../../src/entity/strip/Strip";
 import { EntityCollection } from "../../src/entity/EntityCollection";
 import { Entity } from "../../src/entity/Entity";
 import { Vec3 } from "../../src/math/Vec3";
+import { PATH_TIME_SPLIT } from "../../src/entity/pathTime";
 
 const T0 = 1_760_000_000_000;
 
@@ -12,12 +13,13 @@ const path = (n) => Array.from({ length: n }, (_, i) => edge(i * 10));
 function rows(strip) {
     const gs1 = strip._gridSize + 1;
     const arr = strip._timesArr;
+    const time = (v) => arr[v * 2] * PATH_TIME_SPLIT + arr[v * 2 + 1];
     const res = [];
-    for (let k = 0; k < arr.length; k += gs1) {
+    for (let k = 0; k < arr.length / 2; k += gs1) {
         for (let j = 1; j < gs1; j++) {
-            expect(arr[k + j]).toBe(arr[k]);
+            expect(time(k + j)).toBe(time(k));
         }
-        res.push(arr[k] + strip._timeOrigin);
+        res.push(time(k));
     }
     return res;
 }
@@ -31,7 +33,7 @@ function expectRows(strip, times) {
         }
     }
     expect(rows(strip)).toEqual(expected);
-    expect(strip._timesArr.length).toBe(strip._verticesHigh.length / 3);
+    expect(strip._timesArr.length / 2).toBe(strip._verticesHigh.length / 3);
 }
 
 test("untimed strip keeps no times", () => {
@@ -104,9 +106,11 @@ test("setPathTimes switches the strip between timed and untimed", () => {
     expect(strip.isTimed()).toBe(false);
 });
 
-test("time cut is relative to the strip origin", () => {
-    const strip = new Strip({ path: path(2), pathTimes: [T0 + 100, T0 + 200] });
-    expect(strip.getTimeCut(T0 + 150)).toBe(50);
+test("edges far apart in time keep exact times", () => {
+    const YEAR = 365 * 24 * 3600 * 1000;
+    const times = [T0, T0 + 1000, T0 + YEAR, T0 + YEAR + 1000];
+    const strip = new Strip({ path: path(4), pathTimes: times });
+    expectRows(strip, times);
 });
 
 test("repeated edges build zero-width quads that carry the hover time", () => {

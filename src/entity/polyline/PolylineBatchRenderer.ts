@@ -6,6 +6,7 @@ import type { NumberArray3 } from "../../math/Vec3";
 import type { NumberArray4 } from "../../math/Vec4";
 import type { Planet } from "../../scene/Planet";
 import { PolylineHandler } from "./PolylineHandler";
+import { splitPathTime } from "../pathTime";
 import { Scene } from "../../scene/Scene";
 import type { WebGLBufferExt } from "../../webgl/Handler";
 import {
@@ -42,8 +43,6 @@ const PICKINGCOLORS_BUFFER = 6;
 const PATHPHASE_BUFFER = 7;
 const BOUNDING_SPHERE_BUFFER = 8;
 const TIMES_BUFFER = 9;
-
-const TIME_LIMIT = 0x3fffffff;
 
 const ANIMATION_TIME_WRAP_SEC = 59.0;
 
@@ -141,7 +140,8 @@ const pushQuadBoundingSphere = (outBoundingSphere: number[], x: number, y: numbe
 };
 
 const pushQuadTime = (outTimes: number[], time: number) => {
-    outTimes.push(time, time, time, time);
+    const [high, low] = splitPathTime(time);
+    outTimes.push(high, low, high, low, high, low, high, low);
 };
 
 const pushQuadOrders = (outOrders: number[]) => {
@@ -369,7 +369,6 @@ class PolylineBatchRenderer {
 
     public isTimed: boolean;
     protected _pathTimes: (number[] | undefined)[];
-    protected _timeOrigin: number | null;
     protected _timesArr: TypedArray | number[];
     protected _timesBuffer: WebGLBufferExt | null;
 
@@ -463,7 +462,6 @@ class PolylineBatchRenderer {
         this._pickingColors = [];
         this._timesArr = [];
         this._pathTimes = [];
-        this._timeOrigin = null;
 
         this._verticesHighBuffer = null;
         this._verticesLowBuffer = null;
@@ -1294,13 +1292,6 @@ class PolylineBatchRenderer {
         }
     }
 
-    protected _toRelativeTime(time: number): number {
-        if (this._timeOrigin === null) {
-            this._timeOrigin = Math.floor(time);
-        }
-        return Math.max(-TIME_LIMIT, Math.min(TIME_LIMIT, Math.round(time - this._timeOrigin)));
-    }
-
     protected _resolveTimeAt(segmentIndex: number, index: number): number {
         const times = this._pathTimes[segmentIndex];
 
@@ -1310,13 +1301,13 @@ class PolylineBatchRenderer {
 
         for (let i = Math.min(index, times.length - 1); i >= 0; i--) {
             if (Number.isFinite(times[i])) {
-                return this._toRelativeTime(times[i]);
+                return times[i];
             }
         }
 
         for (let i = index + 1; i < times.length; i++) {
             if (Number.isFinite(times[i])) {
-                return this._toRelativeTime(times[i]);
+                return times[i];
             }
         }
 
@@ -1331,25 +1322,12 @@ class PolylineBatchRenderer {
 
         for (let i = 0; i < count; i++) {
             if (times && Number.isFinite(times[i])) {
-                t = this._toRelativeTime(times[i]);
+                t = times[i];
             }
             res[i] = t;
         }
 
         return res;
-    }
-
-    /**
-     * Converts a time to the integer offset the timed shaders compare path times with.
-     * @public
-     * @param {number} time - Time in the units of the path times.
-     * @returns {number}
-     */
-    public getTimeCut(time: number): number {
-        if (this._timeOrigin === null) {
-            return 0;
-        }
-        return Math.max(-TIME_LIMIT, Math.min(TIME_LIMIT, Math.round(time - this._timeOrigin)));
     }
 
     /**
@@ -1367,25 +1345,27 @@ class PolylineBatchRenderer {
             return;
         }
 
-        const rel = this._resolveSegmentTimes(segmentIndex, path.length);
+        const resolved = this._resolveSegmentTimes(segmentIndex, path.length);
         const arr = this._timesArr;
 
         let group = this._getSegmentAttrGroupStart(segmentIndex);
 
         const write = (time: number) => {
-            const k = group++ * 4;
-            arr[k] = arr[k + 1] = arr[k + 2] = arr[k + 3] = time;
+            const [high, low] = splitPathTime(time);
+            const k = group++ * 8;
+            arr[k] = arr[k + 2] = arr[k + 4] = arr[k + 6] = high;
+            arr[k + 1] = arr[k + 3] = arr[k + 5] = arr[k + 7] = low;
         };
 
         if (segmentIndex > 0) {
-            write(rel[0]);
+            write(resolved[0]);
         }
 
-        for (let i = 0; i < rel.length; i++) {
-            write(rel[i]);
+        for (let i = 0; i < resolved.length; i++) {
+            write(resolved[i]);
         }
 
-        write(rel[rel.length - 1]);
+        write(resolved[resolved.length - 1]);
 
         this._setChangedBuffer(TIMES_BUFFER);
     }
@@ -3103,7 +3083,7 @@ class PolylineBatchRenderer {
         }
 
         if (this.isTimed) {
-            this._timesArr = spliceTypedArray(this._timesArr as TypedArray, attrGroupStart * 4, attrGroupCount * 4);
+            this._timesArr = spliceTypedArray(this._timesArr as TypedArray, attrGroupStart * 8, attrGroupCount * 8);
         }
 
         if (index === 0 && this._path3v.length > 0) {
@@ -3115,7 +3095,7 @@ class PolylineBatchRenderer {
                 this._texCoordArr = spliceTypedArray(this._texCoordArr as TypedArray, 0, 16);
             }
             if (this.isTimed) {
-                this._timesArr = spliceTypedArray(this._timesArr as TypedArray, 0, 4);
+                this._timesArr = spliceTypedArray(this._timesArr as TypedArray, 0, 8);
             }
         }
 
@@ -3646,15 +3626,11 @@ class PolylineBatchRenderer {
         );
 
         if (this.isTimed) {
-            const pointTime = this._resolveTimeAt(segIndex, oldLen);
+            const [high, low] = splitPathTime(this._resolveTimeAt(segIndex, oldLen));
+            const tmBlock = new Int32Array([high, low, high, low, high, low, high, low]);
             const tmArr = makeArrayTyped(this._timesArr, Int32Array) as Int32Array;
-            const tmBase = oldAttrCapGroup * 4;
-            tmArr[tmBase] = tmArr[tmBase + 1] = tmArr[tmBase + 2] = tmArr[tmBase + 3] = pointTime;
-            this._timesArr = insertTypedArray(
-                tmArr,
-                insertAttrGroup * 4,
-                new Int32Array([pointTime, pointTime, pointTime, pointTime])
-            );
+            tmArr.set(tmBlock, oldAttrCapGroup * 8);
+            this._timesArr = insertTypedArray(tmArr, insertAttrGroup * 8, tmBlock);
         }
 
         //
@@ -4116,7 +4092,6 @@ class PolylineBatchRenderer {
         this._texCoordArr = [];
         this._pickingColors = [];
         this._timesArr = [];
-        this._timeOrigin = null;
 
         this._path3v.length = 0;
         this._pathLonLat.length = 0;
@@ -4901,10 +4876,11 @@ class PolylineBatchRenderer {
         shu: { [id: string]: WebGLUniformLocation }
     ) {
         const handler = this._handler!;
-        gl.uniform1i(shu.timeCut, this.getTimeCut(handler.time));
+        const [high, low] = splitPathTime(handler.time);
+        gl.uniform2i(shu.timeCut, high, low);
         gl.uniform2fv(shu.timeOpacity, handler.timeOpacity);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._timesBuffer!);
-        gl.vertexAttribIPointer(sha.pathTime, 1, gl.INT, 0, 0);
+        gl.vertexAttribIPointer(sha.pathTime, 2, gl.INT, 0, 0);
     }
 
     public drawPicking() {
@@ -5094,9 +5070,11 @@ class PolylineBatchRenderer {
         const ta = makeArrayTyped(this._timesArr, Int32Array) as Int32Array;
         this._timesArr = ta;
 
-        if (!this._timesBuffer || this._timesBuffer.numItems !== ta.length) {
+        const numItems = ta.length / 2;
+
+        if (!this._timesBuffer || this._timesBuffer.numItems !== numItems) {
             h.gl!.deleteBuffer(this._timesBuffer!);
-            this._timesBuffer = h.createStreamArrayBuffer(1, ta.length);
+            this._timesBuffer = h.createStreamArrayBuffer(2, numItems);
         }
 
         h.setStreamArrayBuffer(this._timesBuffer!, ta);

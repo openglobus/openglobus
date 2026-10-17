@@ -56,13 +56,13 @@ export function stripTransparentTime(): ShaderProgram {
             uColor: "vec4",
             uOpacity: "float",
             useReverseDepth: "float",
-            timeCut: "int",
+            timeCut: "ivec2",
             timeOpacity: "vec2"
         },
         attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
-            pathTime: "int"
+            pathTime: "ivec2"
         },
         vertexShader: strip_time_vert,
         fragmentShader: strip_woit_time_frag
@@ -78,13 +78,13 @@ export function stripForwardTime(): ShaderProgram {
             eyePositionLow: "vec3",
             uColor: "vec4",
             uOpacity: "float",
-            timeCut: "int",
+            timeCut: "ivec2",
             timeOpacity: "vec2"
         },
         attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
-            pathTime: "int"
+            pathTime: "ivec2"
         },
         vertexShader: strip_time_vert,
         fragmentShader: strip_forward_time_frag

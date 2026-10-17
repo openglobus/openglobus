@@ -119,12 +119,12 @@ export function polylineWoitPlain(): ShaderProgram {
 }
 
 const TIME_UNIFORMS = {
-    timeCut: "int",
+    timeCut: "ivec2",
     timeOpacity: "vec2"
 };
 
 const TIME_ATTRIBUTES = {
-    pathTime: "int"
+    pathTime: "ivec2"
 };
 
 const TEX_ATTRIBUTES = {

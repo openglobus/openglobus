@@ -4,6 +4,7 @@ import { wgs84 } from "../../src/ellipsoid/wgs84";
 import { srgbToLinear } from "../../src/utils/colorSpace";
 import { EntityCollection } from "../../src/entity/EntityCollection";
 import { PolylineBatchRenderer } from "../../src/entity/polyline/PolylineBatchRenderer";
+import { PATH_TIME_SPLIT } from "../../src/entity/pathTime";
 
 const POSITION_EPS = 1e-2;
 const VALUE_EPS = 1e-6;
@@ -153,7 +154,15 @@ function resolveTimes(r, s, n) {
 }
 
 function absoluteTime(r, k) {
-    return r._timesArr[k] + r._timeOrigin;
+    return r._timesArr[k * 2] * PATH_TIME_SPLIT + r._timesArr[k * 2 + 1];
+}
+
+function decodeTimes(arr) {
+    const res = [];
+    for (let i = 0; i < arr.length; i += 2) {
+        res.push(arr[i] * PATH_TIME_SPLIT + arr[i + 1]);
+    }
+    return res;
 }
 
 function quad(values) {
@@ -218,7 +227,7 @@ export function checkRenderer(r, name = "renderer") {
     }
 
     if (r.isTimed) {
-        expectLength(r._timesArr, C, `${name}._timesArr`);
+        expectLength(r._timesArr, C * 2, `${name}._timesArr`);
     } else {
         expectLength(r._timesArr, 0, `${name}._timesArr of an untimed renderer`);
     }
@@ -363,8 +372,8 @@ export function checkRebuild(r, name = "renderer") {
     }
 
     if (r.isTimed) {
-        const a = toArray(r._timesArr).map((t) => t + r._timeOrigin);
-        const b = toArray(fresh._timesArr).map((t) => t + fresh._timeOrigin);
+        const a = decodeTimes(toArray(r._timesArr));
+        const b = decodeTimes(toArray(fresh._timesArr));
         expectLength(a, b.length, `${name}._timesArr vs rebuild`);
         a.forEach((t, i) => {
             if (Math.abs(t - b[i]) > 1) fail(`${name}._timesArr[${i}] = ${t}, rebuild ${b[i]}`);

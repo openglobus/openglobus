@@ -10,6 +10,7 @@ import { StripHandler } from "./StripHandler";
 import type { WebGLBufferExt } from "../../webgl/Handler";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import { srgbToLinear } from "../../utils/colorSpace";
+import { splitPathTime } from "../pathTime";
 
 type TPoiExt = Vec3 | NumberArray3;
 type TStripExt = [TPoiExt, TPoiExt];
@@ -29,8 +30,6 @@ export interface IStripParams {
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3(),
     _tempRtc = new Vec3();
-
-const TIME_LIMIT = 0x3fffffff;
 
 /**
  * Strip object.
@@ -86,7 +85,6 @@ class Strip {
     protected _path: TStrip[];
 
     protected _times: number[] | null;
-    protected _timeOrigin: number | null;
     protected _timesArr: Int32Array;
     protected _timesBuffer: WebGLBufferExt | null;
     protected _suspendBuffers: boolean;
@@ -147,7 +145,6 @@ class Strip {
         this._path = [];
 
         this._times = options.pathTimes ? options.pathTimes.slice() : null;
-        this._timeOrigin = null;
         this._timesArr = new Int32Array(0);
         this._timesBuffer = null;
         this._suspendBuffers = false;
@@ -274,33 +271,18 @@ class Strip {
         this._createBuffers();
     }
 
-    /**
-     * Converts a time to the integer offset the timed shaders compare edge times with.
-     * @public
-     * @param {number} time - Time in the units of the edge times.
-     * @returns {number}
-     */
-    public getTimeCut(time: number): number {
-        if (this._timeOrigin === null) {
-            return 0;
-        }
-
-        return Math.max(-TIME_LIMIT, Math.min(TIME_LIMIT, Math.round(time - this._timeOrigin)));
-    }
-
     protected _resolveTimes(): number[] {
         const times = this._times || [];
         const count = this._path.length;
         const res: number[] = new Array(count);
 
-        let t = times.find((v) => Number.isFinite(v));
-        this._timeOrigin = t !== undefined ? Math.floor(t) : null;
+        let t = times.find((v) => Number.isFinite(v)) ?? 0;
 
         for (let i = 0; i < count; i++) {
             if (Number.isFinite(times[i])) {
                 t = times[i];
             }
-            res[i] = t !== undefined ? this.getTimeCut(t) : 0;
+            res[i] = t;
         }
         return res;
     }
@@ -310,18 +292,19 @@ class Strip {
             gs1 = gs + 1;
         const times = this._resolveTimes();
         const quads = Math.max(0, this._path.length - 1);
-        const arr = new Int32Array(quads * gs1 * gs1);
+        const arr = new Int32Array(quads * gs1 * gs1 * 2);
 
         for (let k = 0; k < quads; k++) {
             const t0 = times[k],
                 t1 = times[k + 1];
 
             for (let i = 0; i < gs1; i++) {
-                const t = Math.round(t0 + ((t1 - t0) * i) / gs);
+                const [high, low] = splitPathTime(t0 + ((t1 - t0) * i) / gs);
                 const row = (k * gs1 + i) * gs1;
 
                 for (let j = 0; j < gs1; j++) {
-                    arr[row + j] = t;
+                    arr[(row + j) * 2] = high;
+                    arr[(row + j) * 2 + 1] = low;
                 }
             }
         }
@@ -419,10 +402,11 @@ class Strip {
 
             if (this._times && this._timesBuffer) {
                 const handler = this._handler!;
-                gl.uniform1i(shu.timeCut, this.getTimeCut(handler.time));
+                const [high, low] = splitPathTime(handler.time);
+                gl.uniform2i(shu.timeCut, high, low);
                 gl.uniform2fv(shu.timeOpacity, handler.timeOpacity);
                 gl.bindBuffer(gl.ARRAY_BUFFER, this._timesBuffer);
-                gl.vertexAttribIPointer(sha.pathTime, 1, gl.INT, 0, 0);
+                gl.vertexAttribIPointer(sha.pathTime, 2, gl.INT, 0, 0);
             }
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer!);
@@ -543,7 +527,7 @@ class Strip {
 
             gl.deleteBuffer(this._timesBuffer as WebGLBuffer);
             this._timesBuffer = this._times
-                ? this._scene.renderer.handler.createArrayBuffer(this._timesArr, 1, this._timesArr.length)
+                ? this._scene.renderer.handler.createArrayBuffer(this._timesArr, 2, this._timesArr.length / 2)
                 : null;
         }
     }
