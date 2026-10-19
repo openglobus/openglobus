@@ -2,10 +2,9 @@ import {
     Globe,
     OpenStreetMap,
     GeoTIFFLayer,
-    GlobusRgbTerrain
+    GlobusRgbTerrain,
+    proj4
 } from "../../lib/og.es.js";
-
-window.proj4 = proj4;
 
 proj4.defs(
     "EPSG:2193",

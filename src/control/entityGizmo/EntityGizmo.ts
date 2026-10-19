@@ -54,12 +54,13 @@ const ENTITY_GIZMO_EVENTS: EntityGizmoEventsList = [
  * @class
  * @extends {Control}
  * @param {IEntityGizmoParams} [options] - Gizmo options:
- * @param {GizmoTools} [options.tools] - Gizmo tool set, i.e. which handles are shown. `translate`
+ * @param {GizmoTools} [options.tools] - Gizmo tool set, i.e., which handles are shown. `translate`
  * shows move axes and planes only, `full` adds rotation rings. Orthogonal to `editMode`.
  * @param {EditModeName} [options.editMode] - Rotation mode. `native` rotates in the entity's own
  * frame, `yaw` rotates in the local horizon frame. Affects the rotation rings only, so it does
  * nothing with `tools: "translate"`.
- * @param {boolean} [options.autoSelect] - When `false`, a left click on a map entity does not
+ * @param {boolean} [options.autoSelect] - When `true`, a left click on a map entity selects it and
+ * a left click anywhere else drops the selection. When `false`, clicks do not
  * change the gizmo selection, so the host application stays the only source of the selection.
  * Default is `true`.
  */
@@ -131,7 +132,7 @@ export class EntityGizmo extends Control {
     }
 
     /**
-     * When `false`, a left click on a map entity does not change the gizmo selection.
+     * When `false`, a left click neither selects a map entity nor drops the current selection.
      * @public
      */
     public get autoSelect(): boolean {

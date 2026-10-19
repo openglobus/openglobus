@@ -197,16 +197,21 @@ export class DragAndDrop extends Control {
         );
     }
 
+    protected _createTiffLayer(file: File): GeoTIFFLayer {
+        return new GeoTIFFLayer(`__tif__${file.name}`, { src: file });
+    }
+
     protected async _addTiff(file: File) {
-        const layer = new GeoTIFFLayer(`__tif__${file.name}`, { src: file });
-        this.tiffLayers.push(layer);
-        this.planet!.addLayer(layer);
+        const layer = this._createTiffLayer(file);
+
         try {
             await layer.whenReady();
         } catch (err) {
-            this.tiffLayers.splice(this.tiffLayers.indexOf(layer), 1);
             layer.remove();
             throw err;
         }
+
+        this.tiffLayers.push(layer);
+        this.planet!.addLayer(layer);
     }
 }

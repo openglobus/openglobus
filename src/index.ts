@@ -16,6 +16,7 @@ export * from "./control/Control";
 export * from "./entity/index";
 export * from "./layer/index";
 export * from "./Globe";
+export { proj4 } from "./proj/proj4";
 
 export type { IControlParams } from "./control/Control";
 export type { IMouseState, ITouchState } from "./renderer/RendererEvents";

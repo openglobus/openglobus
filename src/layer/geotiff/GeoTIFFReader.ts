@@ -85,6 +85,8 @@ export class GeoTIFFReader implements IGeoTIFFReader {
     public extentWgs84: Extent = new Extent();
     public nativeBBox: [number, number, number, number] = [0, 0, 0, 0];
     public crsCode: number = 4326;
+    /** Whether `crsCode` could be georeferenced, see {@link IGeoTIFFMetadata.crsResolved} */
+    public crsResolved: boolean = true;
     public projFunc?: ProjFunc;
     public reverseY: boolean = false;
     public requestLevels: number[] = [];
@@ -188,6 +190,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         }
         this.crsCode = crsCode;
         this._projHelper = getProjectionHelper(crsCode, this.projFunc);
+        this.crsResolved = true;
 
         // Calculate WGS84 Extent
         if (crsCode === 4326) {
@@ -212,6 +215,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         } else {
             console.warn(`[GeoTIFFReader] Unrecognized CRS: EPSG:${crsCode}. Assuming bounds are lon/lat.`);
             this.extentWgs84 = new Extent(new LonLat(minX, minY), new LonLat(maxX, maxY));
+            this.crsResolved = false;
         }
 
         const samplesPerPixel = baseImage.getSamplesPerPixel();
@@ -291,6 +295,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         this.metadata = {
             bbox: this.nativeBBox,
             crsCode: this.crsCode,
+            crsResolved: this.crsResolved,
             width: baseImage.getWidth(),
             height: baseImage.getHeight(),
             samplesPerPixel,
