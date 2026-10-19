@@ -1,10 +1,10 @@
-import { Extent } from "../../Extent";
-import { EPSG3857 } from "../../proj/EPSG3857";
-import type { Proj } from "../../proj/Proj";
-import type { Pool } from "geotiff";
-import { GeoTIFFReader } from "./GeoTIFFReader";
-import { parseNoDataValue } from "./ColorScale";
-import { acquireWorkerPool, type IWorkerPoolHandle } from "./workerPool";
+import {Extent} from "../../Extent";
+import {EPSG3857} from "../../proj/EPSG3857";
+import type {Proj} from "../../proj/Proj";
+import type {Pool} from "geotiff";
+import {GeoTIFFReader} from "./GeoTIFFReader";
+import {parseNoDataValue} from "./ColorScale";
+import {acquireWorkerPool, type IWorkerPoolHandle} from "./workerPool";
 import type {
     DecodedTileData,
     IBandStats,
@@ -37,6 +37,8 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
     public extentWgs84: Extent = new Extent();
     public isReady: boolean = false;
     public crsCode: number = 4326;
+    /** Whether every source could be georeferenced, see {@link IGeoTIFFMetadata.crsResolved} */
+    public crsResolved: boolean = true;
     public workerPool: Pool | null = null;
 
     private _poolHandle: IWorkerPoolHandle | null = null;
@@ -69,12 +71,12 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
                 s.nodata !== undefined
                     ? parseNoDataValue(s.nodata)
                     : s.noData !== undefined
-                      ? parseNoDataValue(s.noData)
-                      : this.options.nodata !== undefined
-                        ? parseNoDataValue(this.options.nodata)
-                        : this.options.noData !== undefined
-                          ? parseNoDataValue(this.options.noData)
-                          : undefined;
+                        ? parseNoDataValue(s.noData)
+                        : this.options.nodata !== undefined
+                            ? parseNoDataValue(this.options.nodata)
+                            : this.options.noData !== undefined
+                                ? parseNoDataValue(this.options.noData)
+                                : undefined;
 
             return new GeoTIFFReader({
                 ...this.options,
@@ -120,15 +122,16 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
         const isSharedCrs = this.childReaders.every((reader) => reader.crsCode === firstCrs);
 
         this.crsCode = isSharedCrs ? firstCrs : 4326;
+        this.crsResolved = metas.every((meta) => meta.crsResolved);
 
         const bbox: [number, number, number, number] = isSharedCrs
             ? this._unionNativeBBox()
             : [
-                  unionExtent.southWest.lon,
-                  unionExtent.southWest.lat,
-                  unionExtent.northEast.lon,
-                  unionExtent.northEast.lat
-              ];
+                unionExtent.southWest.lon,
+                unionExtent.southWest.lat,
+                unionExtent.northEast.lon,
+                unionExtent.northEast.lat
+            ];
 
         const isMosaic = Boolean(this.options.mosaic);
         const bandsMeta: Record<number, IBandStats> = {};
@@ -156,6 +159,7 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
             this.metadata = {
                 bbox,
                 crsCode: this.crsCode,
+                crsResolved: this.crsResolved,
                 width: Math.max(...metas.map((m) => m.width)),
                 height: Math.max(...metas.map((m) => m.height)),
                 samplesPerPixel: baseSamples,
@@ -174,7 +178,7 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
                 const meta = metas[i];
                 const childSamples = meta.samplesPerPixel || 1;
                 const requestedBands =
-                    s.bands && s.bands.length > 0 ? s.bands : Array.from({ length: childSamples }, (_, idx) => idx + 1);
+                    s.bands && s.bands.length > 0 ? s.bands : Array.from({length: childSamples}, (_, idx) => idx + 1);
 
                 for (const b of requestedBands) {
                     const min = s.min !== undefined ? s.min : (meta.bands[b]?.min ?? 0);
@@ -185,7 +189,7 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
                         sourceBand: b
                     });
 
-                    bandsMeta[globalBand] = { min, max };
+                    bandsMeta[globalBand] = {min, max};
                     globalBand++;
                 }
             }
@@ -193,6 +197,7 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
             this.metadata = {
                 bbox,
                 crsCode: this.crsCode,
+                crsResolved: this.crsResolved,
                 width: Math.max(...metas.map((m) => m.width)),
                 height: Math.max(...metas.map((m) => m.height)),
                 samplesPerPixel: this._bandMappings.length,
@@ -242,7 +247,7 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
             const hasOwnNoData = source && (source.nodata !== undefined || source.noData !== undefined);
 
             this.childReaders[i].setRenderOptions(
-                hasOwnNoData ? { ...renderOptions, nodata: undefined, noData: undefined } : renderOptions
+                hasOwnNoData ? {...renderOptions, nodata: undefined, noData: undefined} : renderOptions
             );
         }
     }
@@ -313,7 +318,7 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
         for (const [sourceIndex, localSamples] of sourceSamplesMap.entries()) {
             const reader = this.childReaders[sourceIndex];
             if (!reader.extentWgs84.overlaps(tileExtentLonLat)) {
-                sourceResults.set(sourceIndex, { localSamples, tileData: null });
+                sourceResults.set(sourceIndex, {localSamples, tileData: null});
                 continue;
             }
 
@@ -321,11 +326,11 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
                 reader
                     .readTileRasters(tileExtentLonLat, zoomLevel, tileSize, localSamples, segmentProj)
                     .then((tileData) => {
-                        sourceResults.set(sourceIndex, { localSamples, tileData });
+                        sourceResults.set(sourceIndex, {localSamples, tileData});
                     })
                     .catch((err) => {
                         console.error(`[MultiGeoTIFFReader] Error reading source ${sourceIndex}:`, err);
-                        sourceResults.set(sourceIndex, { localSamples, tileData: null });
+                        sourceResults.set(sourceIndex, {localSamples, tileData: null});
                     })
             );
         }
@@ -420,7 +425,7 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
         // Most mosaic tiles fall inside a single source, and its rasters are already
         // warped into the tile grid, so there is nothing to merge
         if (validResults.length === 1) {
-            return { ...validResults[0], window: [0, 0, tileSize, tileSize] };
+            return {...validResults[0], window: [0, 0, tileSize, tileSize]};
         }
 
         const numBands = validResults[0].rasters.length;
