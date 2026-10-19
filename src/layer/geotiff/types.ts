@@ -229,6 +229,7 @@ export interface IGeoTIFFReader {
 export interface IGeoTIFFMetadata {
     bbox: [number, number, number, number];
     crsCode: number;
+    crsResolved: boolean;
     width: number;
     height: number;
     samplesPerPixel: number;
