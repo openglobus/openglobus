@@ -315,7 +315,9 @@ class EntityGizmoScene extends Scene {
         this._applyVisibility();
     }
 
-    /** When `false`, a left click on a map entity does not change the gizmo selection. */
+    /**
+     * When `false`, a left click neither selects a map entity nor drops the current selection.
+     */
     get autoSelect(): boolean {
         return this._autoSelect;
     }
@@ -598,9 +600,34 @@ class EntityGizmoScene extends Scene {
         this.events.dispatch(this.events.unselect, selectedEntity);
     }
 
+    /**
+     * Returns `true` when the entity is one of the gizmo handles.
+     * @protected
+     */
+    protected _isGizmoEntity(entity: Entity): boolean {
+        let ec = entity.entityCollection;
+        return (
+            ec === this._moveLayer ||
+            ec === this._planeLayer ||
+            ec === this._rotateLayer ||
+            ec === this._axisTrackLayer
+        );
+    }
+
+    /**
+     * `lclick` fires on the left button release without dragging, so dropping the selection
+     * here does not interfere with the map navigation.
+     * @protected
+     */
     protected _onLclick = (e: IMouseState) => {
-        if (this._autoSelect && e.pickingObject && e.pickingObject instanceof Entity) {
-            this.select(e.pickingObject);
+        if (!this._autoSelect || this._gesture) return;
+
+        let entity = e.pickingObject instanceof Entity ? e.pickingObject : null;
+
+        if (entity && this.readyToEdit(entity)) {
+            this.select(entity);
+        } else if (this._selectedEntity && (!entity || !this._isGizmoEntity(entity))) {
+            this.unselect();
         }
     };
 
