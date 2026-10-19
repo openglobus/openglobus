@@ -1,11 +1,11 @@
-import type { EventsHandler } from "../Events";
-import { Layer } from "./Layer";
-import type { ILayerParams, LayerEventsList } from "./Layer";
-import { Material } from "./Material";
-import type { NumberArray4 } from "../math/Vec4";
-import type { Node } from "../quadTree/Node";
-import type { Planet } from "../scene/Planet";
-import { Segment } from "../segment/Segment";
+import type {EventsHandler} from "../Events";
+import {Layer} from "./Layer";
+import type {ILayerParams, LayerEventsList} from "./Layer";
+import {Material} from "./Material";
+import type {NumberArray4} from "../math/Vec4";
+import type {Node} from "../quadTree/Node";
+import type {Planet} from "../scene/Planet";
+import {Segment} from "../segment/Segment";
 
 export interface IBaseTileMaterialLayerParams extends ILayerParams {
     minNativeZoom?: number;
@@ -41,6 +41,8 @@ export abstract class BaseTileMaterialLayer extends Layer {
     public minNativeZoom: number = 0;
     public maxNativeZoom: number = 50;
 
+    protected _loadendFrame: number = 0;
+
     constructor(name?: string | null, options: IBaseTileMaterialLayerParams = {}) {
         super(name, options);
 
@@ -57,14 +59,24 @@ export abstract class BaseTileMaterialLayer extends Layer {
     }
 
     public override remove() {
+        cancelAnimationFrame(this._loadendFrame);
+        this._loadendFrame = 0;
         this.events.off("loadend", this._onLoadend);
         return super.remove();
     }
 
     protected _checkLoadend(): void {
-        if (this.isIdle) {
-            this.events.dispatch(this.events.loadend, this);
-        }
+        cancelAnimationFrame(this._loadendFrame);
+
+        this._loadendFrame = requestAnimationFrame(() => {
+            this._loadendFrame = 0;
+
+            if (this.isIdle) {
+                this.events.dispatch(this.events.loadend, this);
+            } else if (this._planet) {
+                this._checkLoadend();
+            }
+        });
     }
 
     protected _onLoadend = () => {
@@ -213,9 +225,11 @@ export abstract class BaseTileMaterialLayer extends Layer {
         material.texOffset[3] = 1.0;
     }
 
-    protected _onMaterialReady(_material: Material): void {}
+    protected _onMaterialReady(_material: Material): void {
+    }
 
-    protected _onParentMaterialApplied(_material: Material, _psegm: Material): void {}
+    protected _onParentMaterialApplied(_material: Material, _psegm: Material): void {
+    }
 
     protected _beforeFastMaterialParentWalk(material: Material, segment: Segment, forceLoading: boolean): void {
         if (
