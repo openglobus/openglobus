@@ -91,6 +91,9 @@ export class CameraLock extends Control {
         this._deactivateLockViewEvents();
 
         this._lockEntity = entity;
+
+        this.renderer.setRelativeCenter(entity.getAbsoluteCartesian());
+
         let cam = this.renderer.activeCamera;
         if (this.planet) {
             this.planet.camera.stopFlying();

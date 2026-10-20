@@ -1021,6 +1021,7 @@ export class Planet extends Scene {
         this.addTerrain(terrain);
 
         this.quadTreeStrategy.destroyBranches();
+        this.quadTreeStrategy.clearRenderedNodes();
 
         this.events.dispatch(this.events.terrainchange, terrain);
 

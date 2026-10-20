@@ -46,6 +46,10 @@ class RayHandler {
     protected _rays: Ray[];
     protected _opaqueCounterIndex: number;
 
+    public _relativeCenter: Vec3;
+    protected _rtcEyePositionHigh: Float32Array;
+    protected _rtcEyePositionLow: Float32Array;
+
     protected _vertexBuffer: WebGLBufferExt | null;
     protected _startPositionHighBuffer: WebGLBufferExt | null;
     protected _startPositionLowBuffer: WebGLBufferExt | null;
@@ -91,6 +95,11 @@ class RayHandler {
         this._opaqueCounterIndex = 0;
 
         this._vertexBuffer = null;
+
+        this._relativeCenter = new Vec3();
+        this._rtcEyePositionHigh = new Float32Array(3);
+        this._rtcEyePositionLow = new Float32Array(3);
+
         this._startPositionHighBuffer = null;
         this._startPositionLowBuffer = null;
         this._endPositionHighBuffer = null;
@@ -347,6 +356,7 @@ class RayHandler {
             ray._handler = this;
             ray._handlerIndex = this._rays.length;
             this._rays.push(ray);
+            ray._splitPositions();
             this._addRayToArrays(ray);
             this._insertRayByOpacity(ray._handlerIndex, this._isRayOpaque(ray));
             this.refresh();
@@ -562,8 +572,10 @@ class RayHandler {
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
 
-        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
+        const rtcEyePosition = r.activeCamera!.eye.sub(this._relativeCenter);
+        Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
+        gl.uniform3fv(shu.eyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(shu.eyePositionLow, this._rtcEyePositionLow);
 
         gl.uniform1f(shu.resolution, r.activeCamera!._tanViewAngle_hradOneByHeight);
         gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
@@ -686,6 +698,13 @@ class RayHandler {
 
         ray._handlerIndex = -1;
         ray._handler = null;
+    }
+
+    public setRelativeCenter(c: Vec3) {
+        this._relativeCenter.copy(c);
+        for (let i = 0; i < this._rays.length; i++) {
+            this._rays[i].updateRTCPosition();
+        }
     }
 
     public remove(ray: Ray) {

@@ -5,10 +5,6 @@ import {
     GlobusRgbTerrain
 } from "../../lib/og.es.js";
 
-if (typeof proj4 !== "undefined") {
-    window.proj4 = proj4;
-}
-
 const globe = new Globe({
     target: "globus",
     name: "Earth",

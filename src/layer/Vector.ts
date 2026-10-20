@@ -830,6 +830,27 @@ class Vector extends BaseTileMaterialLayer {
         });
     }
 
+    /**
+     * Sets the current time of polylines and strips with path times.
+     * @public
+     * @param {number} time - Time in the same units as the path times.
+     */
+    public setTime(time: number) {
+        this._polylineEntityCollection.setTime(time);
+        this._stripEntityCollection.setTime(time);
+    }
+
+    /**
+     * Sets opacity multipliers of the path parts passed and ahead of the current time.
+     * @public
+     * @param {number} past - Multiplier up to the current time.
+     * @param {number} future - Multiplier after the current time.
+     */
+    public setTimeOpacity(past: number, future: number) {
+        this._polylineEntityCollection.setTimeOpacity(past, future);
+        this._stripEntityCollection.setTimeOpacity(past, future);
+    }
+
     protected _collectStripCollectionPASS(outArr: EntityCollection[]) {
         let ec = this._stripEntityCollection;
 

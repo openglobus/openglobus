@@ -4,6 +4,8 @@
  * and EPSG:32701 - EPSG:32760 (UTM South zones 1S-60S).
  */
 
+import { proj4 } from "../../proj/proj4";
+
 const WGS84_A = 6378137.0;
 const WGS84_F = 1.0 / 298.257223563;
 const WGS84_E2 = 2 * WGS84_F - WGS84_F * WGS84_F;
@@ -114,7 +116,7 @@ export interface IProjectionHelper {
 
 /**
  * Returns a projection helper { project, unproject } if the given code is a supported UTM EPSG code
- * (EPSG:32601-32660 or EPSG:32701-32760), or if proj4 is globally registered.
+ * (EPSG:32601-32660 or EPSG:32701-32760), or if its definition is registered in proj4.
  */
 export function getProjectionHelper(
     crsCode: number,
@@ -143,27 +145,17 @@ export function getProjectionHelper(
         };
     }
 
-    // Check global proj4
-    const globalProj4 =
-        (typeof window !== "undefined" && (window as any).proj4) ||
-        (typeof globalThis !== "undefined" && (globalThis as any).proj4);
+    const epsgStr = `EPSG:${crsCode}`;
 
-    if (globalProj4 && typeof globalProj4 === "function") {
-        const epsgStr = `EPSG:${crsCode}`;
-        if (typeof globalProj4.defs === "function") {
-            const hasDef = globalProj4.defs(epsgStr) || globalProj4.defs(String(crsCode));
-            if (!hasDef) {
-                console.warn(
-                    `[GeoTIFF] Projection ${epsgStr} is not defined in proj4. Call proj4.defs("${epsgStr}", "...") before loading.`
-                );
-                return null;
-            }
-        }
-        return {
-            project: (p: number[]) => globalProj4("EPSG:4326", epsgStr, p),
-            unproject: (p: number[]) => globalProj4(epsgStr, "EPSG:4326", p)
-        };
+    if (typeof proj4.defs === "function" && !(proj4.defs(epsgStr) || proj4.defs(String(crsCode)))) {
+        console.warn(
+            `[GeoTIFF] Projection ${epsgStr} is not defined in proj4. Call proj4.defs("${epsgStr}", "...") before loading.`
+        );
+        return null;
     }
 
-    return null;
+    return {
+        project: (p: number[]) => proj4("EPSG:4326", epsgStr, p),
+        unproject: (p: number[]) => proj4(epsgStr, "EPSG:4326", p)
+    };
 }

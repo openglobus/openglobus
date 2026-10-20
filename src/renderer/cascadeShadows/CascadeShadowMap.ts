@@ -9,6 +9,7 @@ import type { Node } from "../../quadTree/Node";
 import type { Renderer } from "../../renderer/Renderer";
 import type { Planet } from "../../scene/Planet";
 import type { Segment } from "../../segment/Segment";
+import type { EmptyTerrain } from "../../terrain/EmptyTerrain";
 import { Framebuffer } from "../../webgl";
 import type { CascadeShadowManager } from "./CascadeShadowManager";
 
@@ -91,6 +92,7 @@ export class CascadeShadowMap {
     protected _enabled: boolean;
     protected _depthArrayTexture: WebGLTexture | null;
     protected _lastPlanetHeightFactor: number;
+    protected _lastPlanetTerrain: EmptyTerrain | null;
     protected _cascadeBoundingSpheres: Sphere[];
     protected _depthCameraBoundingSphere: Sphere;
 
@@ -124,6 +126,7 @@ export class CascadeShadowMap {
         this._initialized = false;
         this._depthArrayTexture = null;
         this._lastPlanetHeightFactor = 1.0;
+        this._lastPlanetTerrain = null;
         this.quadTreeStrategy = null;
     }
 
@@ -402,14 +405,20 @@ export class CascadeShadowMap {
 
         this.quadTreeStrategy = this._createQuadTreeStrategy(planet, this.depthCamera as PlanetCamera);
         this._lastPlanetHeightFactor = planet._heightFactor;
+        this._lastPlanetTerrain = planet.terrain;
     }
 
     protected _syncPlanetHeightFactor(): void {
-        if (!this._planet || this._lastPlanetHeightFactor === this._planet._heightFactor) {
+        const planet = this._planet;
+        if (
+            !planet ||
+            (this._lastPlanetHeightFactor === planet._heightFactor && this._lastPlanetTerrain === planet.terrain)
+        ) {
             return;
         }
 
-        this._lastPlanetHeightFactor = this._planet._heightFactor;
+        this._lastPlanetHeightFactor = planet._heightFactor;
+        this._lastPlanetTerrain = planet.terrain;
 
         if (this.quadTreeStrategy) {
             this.quadTreeStrategy.destroyBranches();

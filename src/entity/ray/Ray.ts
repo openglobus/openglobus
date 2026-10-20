@@ -8,6 +8,8 @@ import { RayHandler } from "./RayHandler";
 import type { HTMLImageElementExt } from "../../utils/ImagesCacheManager";
 import { clamp } from "../../math";
 
+const _tempRtc = new Vec3();
+
 export interface IRayParams {
     thickness?: number;
     startPosition?: Vec3 | NumberArray3;
@@ -167,9 +169,36 @@ class Ray {
         this._startPosition.x = x;
         this._startPosition.y = y;
         this._startPosition.z = z;
-        Vec3.doubleToTwoFloats(this._startPosition, this._startPositionHigh, this._startPositionLow);
+        this._splitPosition(this._startPosition, this._startPositionHigh, this._startPositionLow);
         this._handler &&
             this._handler.setStartPositionArr(this._handlerIndex, this._startPositionHigh, this._startPositionLow);
+    }
+
+    protected _splitPosition(position: Vec3, high: Vec3, low: Vec3) {
+        const c = this._handler && this._handler._relativeCenter;
+        if (c) {
+            _tempRtc.set(position.x - c.x, position.y - c.y, position.z - c.z);
+            Vec3.doubleToTwoFloats(_tempRtc, high, low);
+        } else {
+            Vec3.doubleToTwoFloats(position, high, low);
+        }
+    }
+
+    public _splitPositions() {
+        this._splitPosition(this._startPosition, this._startPositionHigh, this._startPositionLow);
+        this._splitPosition(this._endPosition, this._endPositionHigh, this._endPositionLow);
+    }
+
+    /**
+     * Recomputes the start and end positions relative to the handler relative center.
+     * @public
+     */
+    public updateRTCPosition() {
+        this._splitPositions();
+        if (this._handler) {
+            this._handler.setStartPositionArr(this._handlerIndex, this._startPositionHigh, this._startPositionLow);
+            this._handler.setEndPositionArr(this._handlerIndex, this._endPositionHigh, this._endPositionLow);
+        }
     }
 
     public getLength(): number {
@@ -271,7 +300,7 @@ class Ray {
         this._startPosition.x = position.x;
         this._startPosition.y = position.y;
         this._startPosition.z = position.z;
-        Vec3.doubleToTwoFloats(this._startPosition, this._startPositionHigh, this._startPositionLow);
+        this._splitPosition(this._startPosition, this._startPositionHigh, this._startPositionLow);
         this._handler &&
             this._handler.setStartPositionArr(this._handlerIndex, this._startPositionHigh, this._startPositionLow);
     }
@@ -287,7 +316,7 @@ class Ray {
         this._endPosition.x = x;
         this._endPosition.y = y;
         this._endPosition.z = z;
-        Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
+        this._splitPosition(this._endPosition, this._endPositionHigh, this._endPositionLow);
         this._handler &&
             this._handler.setEndPositionArr(this._handlerIndex, this._endPositionHigh, this._endPositionLow);
     }
@@ -301,7 +330,7 @@ class Ray {
         this._endPosition.x = position.x;
         this._endPosition.y = position.y;
         this._endPosition.z = position.z;
-        Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
+        this._splitPosition(this._endPosition, this._endPositionHigh, this._endPositionLow);
         this._handler &&
             this._handler.setEndPositionArr(this._handlerIndex, this._endPositionHigh, this._endPositionLow);
     }
