@@ -116,10 +116,10 @@ export interface IGeoTIFFRequestOptions {
     maxRanges?: number;
     allowFullFile?: boolean;
 
-    /** Size of a cached byte range, 64 KB by default. Fetched ranges are cached only when it is set. */
+    /** Size of a cached byte range, 256 KB by default. */
     blockSize?: number;
 
-    /** Number of cached byte ranges, 512 by default. */
+    /** Number of cached byte ranges, by default as many as fit in 32 MB. */
     cacheSize?: number;
 
     [key: string]: any;

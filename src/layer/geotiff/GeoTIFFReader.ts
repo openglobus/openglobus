@@ -48,12 +48,12 @@ const GRID_MAX_ERROR = 0.25;
 /**
  * Size of a cached byte range of a remote file.
  */
-const BLOCK_SIZE = 65536;
+const BLOCK_SIZE = 65536 * 4;
 
 /**
- * Number of cached byte ranges, 512 blocks of 64 KB take about 32 MB.
+ * Memory taken by cached byte ranges, the default cacheSize is derived from it.
  */
-const BLOCK_CACHE_SIZE = 512;
+const BLOCK_CACHE_BYTES = 32 * Math.pow(1024, 2);
 
 const OVERVIEW_RESOLUTION_TOLERANCE = 1.4;
 
@@ -111,7 +111,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         if (typeof src === "string") {
             source = await fromUrl(src, {
                 blockSize: BLOCK_SIZE,
-                cacheSize: BLOCK_CACHE_SIZE,
+                cacheSize: Math.max(1, Math.round(BLOCK_CACHE_BYTES / (this.options.requestOptions?.blockSize || BLOCK_SIZE))),
                 ...this.options.requestOptions
             });
         } else if (
