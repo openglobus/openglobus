@@ -78,7 +78,7 @@ export function packRgbHeightsParams(id: number, p: IRgbHeightsParams): Float64A
  * Unpacks heights parameters from the worker message buffer.
  * @param {Float64Array} params - Packed parameters.
  * @param {Float32Array | null} parentData - Parent segment elevations.
- * @returns {[number, IRgbHeightsParams]} - Task id and parameters.
+ * @returns {Array} - Task id and parameters (exactly 2 entries).
  */
 export function unpackRgbHeightsParams(
     params: Float64Array,
