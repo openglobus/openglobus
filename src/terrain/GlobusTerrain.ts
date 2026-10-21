@@ -382,23 +382,7 @@ class GlobusTerrain extends EmptyTerrain {
                         },
                         (response: IResponse) => {
                             if (response.status === "ready") {
-                                let heights = this._createHeights(
-                                    response.data,
-                                    segment,
-                                    segment._tileGroup,
-                                    segment.tileX,
-                                    segment.tileY,
-                                    segment.tileZoom,
-                                    segment.getExtent(),
-                                    segment.tileZoom === this.maxZoom
-                                );
-
-                                this.setElevationCache(segment.tileIndex, {
-                                    heights: heights,
-                                    extent: segment.getExtent()
-                                });
-
-                                this._applyElevationsData(segment, heights);
+                                this._onTerrainLoaded(segment, response.data);
                             } else if (response.status === "abort") {
                                 segment.terrainIsLoading = false;
                             } else if (response.status === "error") {
@@ -415,6 +399,32 @@ class GlobusTerrain extends EmptyTerrain {
         } else {
             segment.terrainIsLoading = false;
         }
+    }
+
+    /**
+     * Converts loaded segment data to elevations and applies them.
+     * @protected
+     * @param {Segment} segment - Segment that requested terrain data.
+     * @param {any} data - Loaded data.
+     */
+    protected _onTerrainLoaded(segment: Segment, data: any) {
+        let heights = this._createHeights(
+            data,
+            segment,
+            segment._tileGroup,
+            segment.tileX,
+            segment.tileY,
+            segment.tileZoom,
+            segment.getExtent(),
+            segment.tileZoom === this.maxZoom
+        );
+
+        this.setElevationCache(segment.tileIndex, {
+            heights: heights,
+            extent: segment.getExtent()
+        });
+
+        this._applyElevationsData(segment, heights);
     }
 
     protected _getSubdomain(): string {
