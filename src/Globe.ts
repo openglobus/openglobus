@@ -66,6 +66,7 @@ export interface IGlobeParams {
     sun?: {
         active?: boolean;
         stopped?: boolean;
+        dateTime?: Date | null;
         localDateTime?: Date | null;
         useTimeZones?: boolean;
     };
@@ -142,6 +143,9 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {string} [options.name] - Planet name. Default is uniq identifier.
  * @param {EmptyTerrain | Array.<EmptyTerrain>} [options.terrain] - Terrain provider or providers array, where the first one becomes active. Default no terrain - og.terrain.EmptyTerrain.
  * @param {Array.<Control>} [options.controls] - Controls.
+ * @param {Object} [options.sun] - Sun control options.
+ * @param {Date|null} [options.sun.dateTime] - Fixed UTC time.
+ * @param {Date|null} [options.sun.localDateTime] - Local time. Overrides dateTime if provided; null resets fixed lighting.
  * @param {Array.<Layer>} [options.layers] - Planet layers.
  * @param {Extent | ExtentBoundingBox} [options.viewExtent] [options.viewExtent] - Viewable starting extent.
  * @param {boolean} [options.autoActivate=true] - Globe rendering auto activation flag. True is default.
@@ -379,6 +383,9 @@ class Globe {
             }
             if (options.sun.useTimeZones !== undefined) {
                 this.sun.useTimeZones = options.sun.useTimeZones;
+            }
+            if (options.sun.dateTime !== undefined) {
+                this.sun.setDateTime(options.sun.dateTime);
             }
             if (options.sun.localDateTime !== undefined) {
                 this.sun.setLocalDateTime(options.sun.localDateTime);
