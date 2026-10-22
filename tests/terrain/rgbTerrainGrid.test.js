@@ -2,6 +2,10 @@ import {
     createHeightsLevels,
     createVertexGrid,
     decodeRgbHeightsRow,
+    findPeaks,
+    getEdgeHeight,
+    getSubdivisionLevels,
+    getVertexGridCells,
     packRgbHeightsParams,
     RGB_ENCODING_RGB,
     RGB_ENCODING_TERRARIUM,
@@ -9,7 +13,7 @@ import {
     unpackRgbHeightsParams
 } from "../../src/terrain/rgbTerrainGrid";
 
-// Linear heights in pixel-center coordinates: pixel (i, j) has its center at (i + 0.5, j + 0.5).
+// Linear heights in pixel coordinates: pixel (i, j) has its center at (i + 0.5, j + 0.5).
 const plane = (y, x) => 10 + 3 * x - 2 * y;
 
 function createPixels(size, f) {
@@ -25,31 +29,58 @@ function createPixels(size, f) {
 const NO_DATA = -10000;
 
 function rowsOf(heights, size) {
-    const decoded = [];
-    const decodeRow = (row, outHeights) => {
-        decoded.push(row);
-        outHeights.set(heights.subarray(row * size, (row + 1) * size));
-    };
-    return { decodeRow, decoded };
+    return (row, outHeights) => outHeights.set(heights.subarray(row * size, (row + 1) * size));
 }
 
-test("createVertexGrid places vertices at pixel corners, including extrapolated edges", () => {
-    const size = 8;
-    const grid = createVertexGrid(size, rowsOf(createPixels(size, plane), size).decodeRow, NO_DATA);
+// Peaks of the pixel centers grid
+const peaksOf = (pixels, size) => findPeaks(pixels, size, 0.5, 2);
 
-    expect(grid.length).toBe((size + 1) * (size + 1));
-    for (let i = 0; i <= size; i++) {
-        for (let j = 0; j <= size; j++) {
-            expect(grid[i * (size + 1) + j]).toBeCloseTo(plane(i, j), 4);
+test("getVertexGridCells doubles 2^n images cells, (2^n + 1) images are the grid", () => {
+    expect(getVertexGridCells(256)).toBe(512);
+    expect(getVertexGridCells(257)).toBe(256);
+});
+
+test("getSubdivisionLevels keeps native zoom levels down to the pixels, and goes down to the vertex grid above", () => {
+    // Native zooms only
+    expect(getSubdivisionLevels(256, 128, 5, 17, 14)).toBe(1);
+    expect(getSubdivisionLevels(512, 128, 5, 17, 14)).toBe(2);
+    // Above the native zooms only
+    expect(getSubdivisionLevels(512, 128, 17, 21, 17)).toBe(3);
+    // Native and above
+    expect(getSubdivisionLevels(256, 128, 13, 17, 14)).toBe(2);
+    // Limited by the max zoom
+    expect(getSubdivisionLevels(512, 128, 17, 19, 17)).toBe(2);
+    expect(getSubdivisionLevels(9, 4, 0, 10, 0)).toBe(1);
+});
+
+test("createVertexGrid places vertices at pixel centers and corners, including extrapolated edges", () => {
+    const size = 8,
+        gs = 2 * size + 1;
+    const grid = createVertexGrid(createPixels(size, plane), size, NO_DATA);
+
+    expect(grid.length).toBe(gs * gs);
+    for (let i = 0; i < gs; i++) {
+        for (let j = 0; j < gs; j++) {
+            expect(grid[i * gs + j]).toBeCloseTo(plane(i / 2, j / 2), 4);
         }
     }
 });
 
-test("createVertexGrid decodes every pixel row once, in order", () => {
-    const size = 8;
-    const { decodeRow, decoded } = rowsOf(createPixels(size, plane), size);
-    createVertexGrid(size, decodeRow, NO_DATA);
-    expect(decoded).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+test("createVertexGrid without pixel centers is the pixel corners of the full grid", () => {
+    const size = 8,
+        gs = size + 1;
+    const pixels = createPixels(size, (y, x) => Math.sin(x) * 5 + y * y);
+    pixels[3 * size + 4] = NaN;
+
+    const full = createVertexGrid(pixels, size, NO_DATA);
+    const corners = createVertexGrid(pixels, size, NO_DATA, false);
+
+    expect(corners.length).toBe(gs * gs);
+    for (let i = 0; i < gs; i++) {
+        for (let j = 0; j < gs; j++) {
+            expect(corners[i * gs + j]).toBe(full[2 * i * (2 * size + 1) + 2 * j]);
+        }
+    }
 });
 
 test("createVertexGrid skips no data pixels", () => {
@@ -57,7 +88,7 @@ test("createVertexGrid skips no data pixels", () => {
     const heights = new Float32Array(size * size).fill(100);
     heights[5] = NaN;
 
-    const grid = createVertexGrid(size, rowsOf(heights, size).decodeRow, NO_DATA);
+    const grid = createVertexGrid(heights, size, NO_DATA);
 
     for (let k = 0; k < grid.length; k++) {
         expect(grid[k]).toBe(100);
@@ -65,47 +96,248 @@ test("createVertexGrid skips no data pixels", () => {
 });
 
 test("createVertexGrid writes noDataHeight where all nearest pixels have no data", () => {
-    const size = 4;
+    const size = 4,
+        gs = 2 * size + 1;
     const heights = new Float32Array(size * size).fill(100);
-    // Pixels around the vertex (2, 2)
+    // Pixels around the corner vertex (4, 4)
     heights[5] = heights[6] = heights[9] = heights[10] = NaN;
 
-    const grid = createVertexGrid(size, rowsOf(heights, size).decodeRow, NO_DATA);
+    const grid = createVertexGrid(heights, size, NO_DATA);
 
     for (let k = 0; k < grid.length; k++) {
-        expect(grid[k]).toBe(k === 2 * (size + 1) + 2 ? NO_DATA : 100);
+        expect(grid[k]).toBe(k === 4 * gs + 4 ? NO_DATA : 100);
     }
+});
+
+test("getEdgeHeight extrapolates slopes, but not peaks, pits and slope breaks", () => {
+    expect(getEdgeHeight(1, 2, 3)).toBe(0.5);
+    // Cliff at the edge
+    expect(getEdgeHeight(10, 0, 0)).toBe(10);
+    expect(getEdgeHeight(0, 10, 10)).toBe(0);
+    // Peak at the edge
+    expect(getEdgeHeight(5, 3, 4)).toBe(5);
+    // The gentler slope is taken
+    expect(getEdgeHeight(1, 2, 4)).toBe(0.5);
+});
+
+test("createVertexGrid does not overshoot a cliff at the tile edge", () => {
+    const size = 4,
+        gs = 2 * size + 1;
+    const heights = new Float32Array(size * size).map((_, k) => (k % size === 0 ? 10 : 0));
+
+    const grid = createVertexGrid(heights, size, NO_DATA);
+
+    for (let i = 0; i < gs; i++) {
+        expect(grid[i * gs]).toBe(10);
+    }
+});
+
+test("example: a stone one pixel wide keeps its height at the pixel center", () => {
+    // Seabed at -10m with a 0.5m stone at the pixel (1, 2)
+    const pixels = new Float32Array(
+        [
+            [-10, -10, -10, -10],
+            [-10, -10, -9.5, -10],
+            [-10, -10, -10, -10],
+            [-10, -10, -10, -10]
+        ].flat()
+    );
+
+    const grid = createVertexGrid(pixels, 4, NO_DATA);
+
+    // Odd rows and columns are the pixel centers
+    // prettier-ignore
+    expect(Array.from(grid)).toEqual([
+        -10, -10, -10, -10, -10,     -10,    -10,     -10, -10,
+        -10, -10, -10, -10, -10,     -10,    -10,     -10, -10,
+        -10, -10, -10, -10, -9.875,  -9.75,  -9.875,  -10, -10,
+        -10, -10, -10, -10, -9.75,   -9.5,   -9.75,   -10, -10,
+        -10, -10, -10, -10, -9.875,  -9.75,  -9.875,  -10, -10,
+        -10, -10, -10, -10, -10,     -10,    -10,     -10, -10,
+        -10, -10, -10, -10, -10,     -10,    -10,     -10, -10,
+        -10, -10, -10, -10, -10,     -10,    -10,     -10, -10,
+        -10, -10, -10, -10, -10,     -10,    -10,     -10, -10
+    ]);
+});
+
+test("findPeaks finds peaks and pits of the pixels, not flat areas and slopes", () => {
+    const size = 8;
+    const pixels = new Float32Array(size * size).fill(-10);
+    pixels[2 * size + 5] = -9.5;
+    // Pit on a slope
+    for (let j = 0; j < size; j++) {
+        pixels[6 * size + j] = -20 + j;
+    }
+    pixels[6 * size + 3] = -25;
+
+    const peaks = peaksOf(pixels, size);
+    const found = (row, col) => {
+        for (let p = peaks.rowStart[row]; p < peaks.rowStart[row + 1]; p++) {
+            if (peaks.cols[p] === col) {
+                return peaks.isPeak[p] ? "peak" : "pit";
+            }
+        }
+        return null;
+    };
+
+    expect(found(2, 5)).toBe("peak");
+    expect(found(6, 3)).toBe("pit");
+    // Flat area and slope
+    expect(found(0, 0)).toBe(null);
+    expect(found(6, 5)).toBe(null);
+});
+
+test("findPeaks compares every pixel with all its neighbours", () => {
+    const size = 7;
+    let seed = 7;
+    const pixels = new Float32Array(size * size).map(() => {
+        seed = (seed * 16807) % 2147483647;
+        return seed % 11 === 0 ? NaN : seed % 5;
+    });
+
+    const expected = [];
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            const h = pixels[r * size + c];
+            let higher = false,
+                lower = false;
+            for (let nr = Math.max(r - 1, 0); nr <= Math.min(r + 1, size - 1); nr++) {
+                for (let nc = Math.max(c - 1, 0); nc <= Math.min(c + 1, size - 1); nc++) {
+                    const n = pixels[nr * size + nc];
+                    higher ||= n > h;
+                    lower ||= n < h;
+                }
+            }
+            if (higher !== lower) {
+                expected.push([r, c, lower ? 1 : 0]);
+            }
+        }
+    }
+
+    const peaks = findPeaks(pixels, size, 0, 1);
+    const found = [];
+    for (let r = 0; r < size; r++) {
+        for (let p = peaks.rowStart[r]; p < peaks.rowStart[r + 1]; p++) {
+            found.push([r, peaks.cols[p], peaks.isPeak[p]]);
+        }
+    }
+
+    expect(expected.length).toBeGreaterThan(0);
+    expect(found).toEqual(expected);
 });
 
 test("sampleSubGrid splits the grid recursively with shared edges", () => {
     const size = 16,
+        cells = 2 * size,
         gridSize = 4,
         gs = gridSize + 1;
-    const grid = createVertexGrid(size, rowsOf(createPixels(size, plane), size).decodeRow, NO_DATA);
+    const pixels = createPixels(size, plane);
+    const grid = createVertexGrid(pixels, size, NO_DATA);
+    const peaks = peaksOf(pixels, size);
+    const sample = (row0, col0, c) => sampleSubGrid(grid, cells, row0, col0, c, gridSize, undefined, 0, peaks, NO_DATA);
 
-    const parent = sampleSubGrid(grid, size, 0, 0, size, gridSize);
+    const parent = sample(0, 0, cells);
     expect(parent.length).toBe(gs * gs);
-    expect(parent[0]).toBeCloseTo(plane(0, 0), 4);
-    expect(parent[gs * gs - 1]).toBeCloseTo(plane(size, size), 4);
+    for (let i = 0; i < gs; i++) {
+        for (let j = 0; j < gs; j++) {
+            expect(parent[i * gs + j]).toBeCloseTo(plane(i * 4, j * 4), 4);
+        }
+    }
 
-    // Level 1: 2x2 tiles of 8 cells
-    const left = sampleSubGrid(grid, size, 0, 0, 8, gridSize);
-    const right = sampleSubGrid(grid, size, 0, 8, 8, gridSize);
-    const bottom = sampleSubGrid(grid, size, 8, 0, 8, gridSize);
+    // Level 1: 2x2 tiles of 16 cells
+    const left = sample(0, 0, 16);
+    const right = sample(0, 16, 16);
+    const bottom = sample(16, 0, 16);
     for (let r = 0; r < gs; r++) {
         expect(right[r * gs]).toBe(left[r * gs + gridSize]);
         expect(bottom[r]).toBe(left[gridSize * gs + r]);
     }
 
-    // Level 2 tile is the same as the quarter of the level 1 tile
-    const quarter = sampleSubGrid(grid, size, 4, 4, 4, gridSize);
+    // Level 3 tile takes all of its vertices
+    const tile = sample(4, 4, 4);
     for (let r = 0; r < gs; r++) {
         for (let c = 0; c < gs; c++) {
-            expect(quarter[r * gs + c]).toBe(grid[(4 + r) * (size + 1) + 4 + c]);
+            expect(tile[r * gs + c]).toBe(grid[(4 + r) * (cells + 1) + 4 + c]);
         }
     }
-    expect(quarter[0]).toBe(left[2 * gs + 2]);
-    expect(quarter[gs * gs - 1]).toBe(left[gs * gs - 1]);
+});
+
+test("sampleSubGrid keeps a peak on a slope, the slope keeps its sampled heights", () => {
+    const size = 8,
+        cells = 2 * size,
+        gridSize = 4,
+        gs = gridSize + 1;
+    const pixels = createPixels(size, plane);
+    pixels[2 * size + 5] += 5;
+
+    const grid = createVertexGrid(pixels, size, NO_DATA);
+    const tile = sampleSubGrid(grid, cells, 0, 0, cells, gridSize, undefined, 0, peaksOf(pixels, size), NO_DATA);
+
+    // The stone moves from the pixel center vertex (5, 11) to the nearest tile vertex (4, 12)
+    for (let i = 0; i < gs; i++) {
+        for (let j = 0; j < gs; j++) {
+            if (i === 1 && j === 3) {
+                expect(tile[i * gs + j]).toBeCloseTo(plane(2.5, 5.5) + 5, 4);
+            } else {
+                expect(tile[i * gs + j]).toBeCloseTo(grid[i * 4 * (cells + 1) + j * 4], 4);
+            }
+        }
+    }
+});
+
+test("sampleSubGrid skips peaks with no data around", () => {
+    const size = 9;
+    const grid = new Float32Array(size * size).fill(-10);
+    grid[3 * size + 3] = -9;
+    grid[4 * size + 4] = NO_DATA;
+
+    const peaks = findPeaks(grid, size, 0, 1);
+
+    expect(Array.from(sampleSubGrid(grid, size - 1, 0, 0, size - 1, 2, undefined, 0, peaks, NO_DATA))).toEqual([
+        -10,
+        -10,
+        -10,
+        -10,
+        NO_DATA,
+        -10,
+        -10,
+        -10,
+        -10
+    ]);
+});
+
+function levelRanges(out, gridSize, levels) {
+    const tileLength = (gridSize + 1) * (gridSize + 1);
+    const ranges = [];
+    for (let k = 0, offset = 0; k <= levels; k++) {
+        const level = out.subarray(offset, offset + (1 << (2 * k)) * tileLength);
+        ranges.push([Math.min(...level), Math.max(...level)]);
+        offset += level.length;
+    }
+    return ranges;
+}
+
+test("example: every level keeps a stone and a pit one pixel wide", () => {
+    // 8x8 seabed at -10m with a 0.5m stone at the pixel (2, 5) and a 0.4m pit at the pixel (5, 1)
+    const size = 8,
+        gridSize = 4,
+        gs = gridSize + 1;
+    const pixels = new Float32Array(size * size).fill(-10);
+    pixels[2 * size + 5] = -9.5;
+    pixels[5 * size + 1] = -10.4;
+
+    const out = createHeightsLevels(size, gridSize, 2, rowsOf(pixels, size), NO_DATA);
+
+    expect(out.length).toBe((1 + 4 + 16) * gs * gs);
+    expect(levelRanges(out, gridSize, 2)).toEqual([
+        [-10.399999618530273, -9.5],
+        [-10.399999618530273, -9.5],
+        [-10.399999618530273, -9.5]
+    ]);
+
+    // The tile vertices are 2 pixels apart, the stone and the pit are moved to the nearest of them by half a pixel
+    expect(out[1 * gs + 3]).toBe(-9.5);
+    expect(out[3 * gs + 1]).toBeCloseTo(-10.4, 5);
 });
 
 function decodeParams(encoding, noDataValues, parentData = null) {
@@ -196,18 +428,33 @@ test("createHeightsLevels outputs the tile and its levels row by row", () => {
     const size = 16,
         gridSize = 4,
         tileLength = (gridSize + 1) * (gridSize + 1);
-    const pixels = createPixels(size, plane);
-    const grid = createVertexGrid(size, rowsOf(pixels, size).decodeRow, NO_DATA);
+    const pixels = createPixels(size, (y, x) => Math.sin(x) * 5 + y * y);
+    const peaks = (scale) => findPeaks(pixels, size, 0.5, scale);
 
-    const out = createHeightsLevels(size, gridSize, 2, rowsOf(pixels, size).decodeRow, NO_DATA);
-    const tile = (n) => Array.from(out.subarray(n * tileLength, (n + 1) * tileLength));
+    // The last level is not finer than the pixels, vertices at the pixel corners
+    let grid = createVertexGrid(pixels, size, NO_DATA, false);
+    let out = createHeightsLevels(size, gridSize, 2, rowsOf(pixels, size), NO_DATA);
+    let tile = (n) => Array.from(out.subarray(n * tileLength, (n + 1) * tileLength));
+    let sample = (row0, col0, c) =>
+        Array.from(sampleSubGrid(grid, size, row0, col0, c, gridSize, undefined, 0, peaks(1), NO_DATA));
 
     expect(out.length).toBe((1 + 4 + 16) * tileLength);
-    expect(tile(0)).toEqual(Array.from(sampleSubGrid(grid, size, 0, 0, size, gridSize)));
+    expect(tile(0)).toEqual(sample(0, 0, size));
     // Level 1, row 1, column 0
-    expect(tile(1 + 2)).toEqual(Array.from(sampleSubGrid(grid, size, 8, 0, 8, gridSize)));
+    expect(tile(1 + 2)).toEqual(sample(8, 0, 8));
     // Level 2, row 3, column 3
-    expect(tile(1 + 4 + 15)).toEqual(Array.from(sampleSubGrid(grid, size, 12, 12, 4, gridSize)));
+    expect(tile(1 + 4 + 15)).toEqual(sample(12, 12, 4));
+
+    // The last level is finer than the pixels, vertices at the pixel centers and corners
+    grid = createVertexGrid(pixels, size, NO_DATA);
+    out = createHeightsLevels(size, gridSize, 3, rowsOf(pixels, size), NO_DATA);
+    sample = (row0, col0, c) =>
+        Array.from(sampleSubGrid(grid, 2 * size, row0, col0, c, gridSize, undefined, 0, peaks(2), NO_DATA));
+
+    expect(out.length).toBe((1 + 4 + 16 + 64) * tileLength);
+    expect(tile(0)).toEqual(sample(0, 0, 2 * size));
+    // Level 3, row 7, column 7
+    expect(tile(1 + 4 + 16 + 63)).toEqual(sample(28, 28, 4));
 });
 
 test("createHeightsLevels uses (2^n + 1) images as the grid", () => {
@@ -216,7 +463,7 @@ test("createHeightsLevels uses (2^n + 1) images as the grid", () => {
     const pixels = new Float32Array(size * size).map((_, k) => k);
     pixels[size * 2 + 2] = NaN;
 
-    const out = createHeightsLevels(size, gridSize, 1, rowsOf(pixels, size).decodeRow, NO_DATA);
+    const out = createHeightsLevels(size, gridSize, 1, rowsOf(pixels, size), NO_DATA);
 
     // The tile takes every second vertex, the first level tiles take all of them
     expect(out[0]).toBe(0);

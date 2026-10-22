@@ -15,6 +15,7 @@ import {
     decodeRgbHeightsRow,
     getGridCells,
     getParentHeight,
+    getSubdivisionLevels,
     RGB_ENCODING_CUSTOM,
     RGB_ENCODING_RGB,
     RGB_ENCODING_TERRARIUM
@@ -60,7 +61,7 @@ let _rgbTerrainWorker: RgbTerrainWorker | null = null;
 
 function getRgbTerrainWorker(): RgbTerrainWorker {
     if (!_rgbTerrainWorker) {
-        _rgbTerrainWorker = new RgbTerrainWorker(2);
+        _rgbTerrainWorker = new RgbTerrainWorker(3);
     }
     return _rgbTerrainWorker;
 }
@@ -233,18 +234,13 @@ class RgbTerrain extends GlobusTerrain {
             }
         }
 
-        let levels = 0;
-        if (!preventChildren) {
-            for (let c = getGridCells(size) >> 1; c >= gridSize && tileZoom + levels + 1 <= this.maxZoom; c >>= 1) {
-                levels++;
-            }
-        }
-
         return {
             decode: decode,
             size: size,
             gridSize: gridSize,
-            levels: levels,
+            levels: preventChildren
+                ? 0
+                : getSubdivisionLevels(size, gridSize, tileZoom, this.maxZoom, this.maxNativeZoom),
             // Vertices with no data around them get the first no data value, the terrain worker recognizes it
             noDataHeight: this.noDataValues.length ? this.noDataValues[0] : 0
         };
