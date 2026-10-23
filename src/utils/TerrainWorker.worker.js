@@ -2,6 +2,7 @@
 //
 //Terrain worker
 //
+import { getMeshHeights } from "../terrain/terrainUtils";
 
 function binarySearchFast(arr, x) {
     let start = 0,
@@ -104,6 +105,8 @@ var _rtcTempVec = new Vec3(0.0, 0.0, 0.0);
 var _tempHigh = new Vec3(0.0, 0.0, 0.0),
     _tempLow = new Vec3(0.0, 0.0, 0.0);
 
+var _meshHeights = new Float32Array(0);
+
 self.onmessage = function (e) {
     var elevations = e.data.elevations,
         this_plainVertices = e.data.this_plainVertices,
@@ -160,6 +163,21 @@ self.onmessage = function (e) {
         normalMapNormals = new Float32Array(fileGridSize_one_x2 * 3);
         normalMapVertices = new Float64Array(fileGridSize_one_x2 * 3);
 
+        // Mesh heights keep the elevations peaks and pits, moved to the nearest mesh vertices
+        let meshHeights = null;
+        if (dg > 1) {
+            if (_meshHeights.length !== gs * gs) {
+                _meshHeights = new Float32Array(gs * gs);
+            }
+            meshHeights = getMeshHeights(
+                elevations,
+                fileGridSize,
+                tgs,
+                noDataValues.length ? noDataValues[0] : NaN,
+                _meshHeights
+            );
+        }
+
         for (let k = 0; k < fileGridSize_one_x2; k++) {
             var j = k % fileGridSize_one,
                 i = ~~(k / fileGridSize_one);
@@ -202,23 +220,37 @@ self.onmessage = function (e) {
                     eps = deltaElv / step > 10.0 || currElv < -5000;
                 }
 
+                let mv = v0;
+                if (meshHeights) {
+                    let meshElv = meshHeights[(i / dg) * gs + j / dg];
+                    // Only the vertices a peak or pit is moved to
+                    if (meshElv !== elevations[hInd0] && !checkNoDataValue(noDataValues, meshElv)) {
+                        let mh = hf * meshElv;
+                        mv = new Vec3(
+                            rtc_x + nv[vInd0] + mh * nn[vInd0],
+                            rtc_y + nv[vInd0 + 1] + mh * nn[vInd0 + 1],
+                            rtc_z + nv[vInd0 + 2] + mh * nn[vInd0 + 2]
+                        );
+                    }
+                }
+
                 if (eps) {
                     noDataVertices[noDataInd] = 1;
                 } else {
                     noDataVertices[noDataInd] = 0;
-                    if (v0.x < xmin) xmin = v0.x;
-                    if (v0.x > xmax) xmax = v0.x;
-                    if (v0.y < ymin) ymin = v0.y;
-                    if (v0.y > ymax) ymax = v0.y;
-                    if (v0.z < zmin) zmin = v0.z;
-                    if (v0.z > zmax) zmax = v0.z;
+                    if (mv.x < xmin) xmin = mv.x;
+                    if (mv.x > xmax) xmax = mv.x;
+                    if (mv.y < ymin) ymin = mv.y;
+                    if (mv.y > ymax) ymax = mv.y;
+                    if (mv.z < zmin) zmin = mv.z;
+                    if (mv.z > zmax) zmax = mv.z;
 
-                    let r2_v0 = v0.x * v0.x + v0.y * v0.y + v0.z * v0.z;
+                    let r2_v0 = mv.x * mv.x + mv.y * mv.y + mv.z * mv.z;
                     if (r2_v0 < r2min) r2min = r2_v0;
                     if (r2_v0 > r2max) r2max = r2_v0;
                 }
 
-                let rtc_v0 = new Vec3(v0.x - rtc_x, v0.y - rtc_y, v0.z - rtc_z);
+                let rtc_v0 = new Vec3(mv.x - rtc_x, mv.y - rtc_y, mv.z - rtc_z);
                 doubleToTwoFloats(rtc_v0, _tempHigh, _tempLow);
 
                 terrainVerticesHigh[vInd] = _tempHigh.x;

@@ -12,9 +12,8 @@ import type { FetchCache, IResponse } from "../utils/Loader";
 import { LonLat } from "../LonLat";
 import { NOTRENDERING } from "../quadTree/quadTree";
 import { Segment, TILEGROUP_COMMON } from "../segment/Segment";
+import { getGroundHeight } from "./terrainUtils";
 // import { QueueArray } from '../QueueArray';
-import { Ray } from "../math/Ray";
-import { Vec3 } from "../math/Vec3";
 
 export interface IGlobusTerrainParams extends IEmptyTerrainParams {
     subdomains?: string[];
@@ -56,7 +55,7 @@ type TileData = {
  * @fires loadend
  */
 class GlobusTerrain extends EmptyTerrain {
-    public events: GlobusTerrainEvents;
+    public events: TerrainEvents;
 
     protected _s: string[];
 
@@ -101,7 +100,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         this._s = options.subdomains || ["a", "b", "c"];
 
-        this.events = createEvents(GLOBUSTERRAIN_EVENTS, this);
+        this.events = createEvents(TERRAIN_EVENTS, this);
 
         this._requestCount = 0;
 
@@ -262,61 +261,9 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     protected _getGroundHeightMerc(merc: LonLat, tileData: TileData): number {
-        if (!(tileData.extent && tileData.heights)) {
-            return 0;
-        }
-
-        let w = tileData.extent.getWidth(),
-            gs = Math.sqrt(tileData.heights.length);
-
-        let size = w / (gs - 1);
-
-        /*
-        v2-----------v3
-        |            |
-        |            |
-        |            |
-        v0-----------v1
-        */
-
-        let i = gs - Math.ceil((merc.lat - tileData.extent.southWest.lat) / size) - 1,
-            j = Math.floor((merc.lon - tileData.extent.southWest.lon) / size);
-
-        let v0Ind = (i + 1) * gs + j,
-            v1Ind = v0Ind + 1,
-            v2Ind = i * gs + j,
-            v3Ind = v2Ind + 1;
-
-        let h0 = tileData.heights[v0Ind],
-            h1 = tileData.heights[v1Ind],
-            h2 = tileData.heights[v2Ind],
-            h3 = tileData.heights[v3Ind];
-
-        let v0 = new Vec3(
-                tileData.extent.southWest.lon + size * j,
-                h0,
-                tileData.extent.northEast.lat - size * i - size
-            ),
-            v1 = new Vec3(v0.x + size, h1, v0.z),
-            v2 = new Vec3(v0.x, h2, v0.z + size),
-            v3 = new Vec3(v0.x + size, h3, v0.z + size);
-
-        let xyz = new Vec3(merc.lon, 100000.0, merc.lat),
-            ray = new Ray(xyz, new Vec3(0, -1, 0));
-
-        let res = new Vec3();
-        let d = ray.hitTriangleRes(v0, v1, v2, res);
-
-        if (d === Ray.INSIDE) {
-            return res.y;
-        }
-
-        d = ray.hitTriangleRes(v1, v3, v2, res);
-        if (d === Ray.INSIDE) {
-            return res.y;
-        }
-
-        return 0;
+        return tileData.extent && tileData.heights
+            ? getGroundHeight(merc.lon, merc.lat, tileData.extent, tileData.heights)
+            : 0;
     }
 
     /**
@@ -475,14 +422,14 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Sets url rewrite callback, used for custom url rewriting for every tile loading.
      * @public
-     * @param {UrlRewriteFunc} ur - The callback that returns tile custom created url.
+     * @param {UrlRewriteFunc} ur - The callback that returns tile custom-created url.
      */
     public override setUrlRewriteCallback(ur: UrlRewriteFunc) {
         this._urlRewriteCallback = ur;
     }
 
     /**
-     * Converts loaded data to segment elevation data type(column major elevation data array in meters)
+     * Converts loaded data to segment elevation data type (column major elevation data array in meters)
      * @public
      * @returns {Array.<number> | TypedArray} Column-major elevation data array in meters.
      */
@@ -523,13 +470,13 @@ class GlobusTerrain extends EmptyTerrain {
     }
 }
 
-type GlobusTerrainEventsList = ["load", "loadend"];
+export type TerrainEventsList = ["load", "loadend"];
 
-type GlobusTerrainEvents = EventsHandler<GlobusTerrainEventsList>;
+export type TerrainEvents = EventsHandler<TerrainEventsList>;
 
-const GLOBUSTERRAIN_EVENTS: GlobusTerrainEventsList = [
+export const TERRAIN_EVENTS: TerrainEventsList = [
     /**
-     * Triggered when current elevation tile has loaded but before rendering.
+     * Triggered when the current elevation tile has loaded but before rendering.
      * @event og.terrain.GlobusTerrain#load
      */
     "load",

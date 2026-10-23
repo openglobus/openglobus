@@ -2,6 +2,7 @@ import { EPSG3857 } from "../proj/EPSG3857";
 import { Layer } from "../layer/Layer";
 import { Vector } from "../layer/Vector";
 import { Node } from "../quadTree/Node";
+import { NE, NW, SE, SW } from "../quadTree/quadTree";
 import { Planet } from "../scene/Planet";
 import { Proj } from "../proj/Proj";
 import { LonLat } from "../LonLat";
@@ -471,6 +472,32 @@ export class QuadTreeStrategy {
 
     public get quadTreeList(): Node[] {
         return this._quadTreeList;
+    }
+
+    /**
+     * Returns the most detailed node made under the point, not deeper than the zoom.
+     * @public
+     * @param {LonLat} lonLat - Point.
+     * @param {number} [zoom] - Maximal node zoom.
+     * @returns {Node | null} -
+     */
+    public getNodeByLonLat(lonLat: LonLat, zoom: number = Infinity): Node | null {
+        let node: Node | undefined = this._quadTreeList.find((root) => root.segment.getExtentLonLat().isInside(lonLat));
+
+        if (!node) {
+            return null;
+        }
+
+        let p = node.segment.projectNative(lonLat);
+
+        while (node.nodes.length && node.segment.tileZoom < zoom) {
+            let e: Extent = node.segment._extent,
+                isEast = p.lon >= (e.southWest.lon + e.northEast.lon) * 0.5,
+                isSouth = p.lat < (e.southWest.lat + e.northEast.lat) * 0.5;
+            node = node.nodes[isSouth ? (isEast ? SE : SW) : isEast ? NE : NW];
+        }
+
+        return node;
     }
 
     public getTileXY(lonLat: LonLat, zoom: number): [number, number, number, number] {

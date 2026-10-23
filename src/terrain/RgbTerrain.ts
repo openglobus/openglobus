@@ -9,16 +9,18 @@ import { Segment } from "../segment/Segment";
 import type { TypedArray } from "../utils/shared";
 import { binarySearchFast } from "../utils/shared";
 import type { IResponse } from "../utils/Loader";
-import type { DecodeHeightsRowFunc, IRgbDecodeParams, IRgbHeightsParams } from "./rgbTerrainGrid";
+import type { DecodeHeightsRowFunc, IRgbDecodeParams, IRgbHeightsParams } from "./terrainUtils";
 import {
     createHeightsLevels,
     decodeRgbHeightsRow,
     getGridCells,
     getParentHeight,
+    getSubdivisionLevels,
     RGB_ENCODING_CUSTOM,
     RGB_ENCODING_RGB,
-    RGB_ENCODING_TERRARIUM
-} from "./rgbTerrainGrid";
+    RGB_ENCODING_TERRARIUM,
+    TERRAIN_GRID_SIZE_BY_ZOOM
+} from "./terrainUtils";
 import { RgbTerrainWorker } from "../utils/RgbTerrainWorker";
 
 export type RgbTerrainEncoding = "rgb" | "terrarium";
@@ -60,7 +62,7 @@ let _rgbTerrainWorker: RgbTerrainWorker | null = null;
 
 function getRgbTerrainWorker(): RgbTerrainWorker {
     if (!_rgbTerrainWorker) {
-        _rgbTerrainWorker = new RgbTerrainWorker(2);
+        _rgbTerrainWorker = new RgbTerrainWorker(3);
     }
     return _rgbTerrainWorker;
 }
@@ -113,9 +115,7 @@ class RgbTerrain extends GlobusTerrain {
                 options.url != undefined
                     ? options.url
                     : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${options.key || "<key>"}`,
-            gridSizeByZoom: options.gridSizeByZoom || [
-                64, 32, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 64, 64, 64, 32, 32, 16, 8
-            ],
+            gridSizeByZoom: options.gridSizeByZoom || TERRAIN_GRID_SIZE_BY_ZOOM.slice(),
             ...options
         });
 
@@ -233,18 +233,13 @@ class RgbTerrain extends GlobusTerrain {
             }
         }
 
-        let levels = 0;
-        if (!preventChildren) {
-            for (let c = getGridCells(size) >> 1; c >= gridSize && tileZoom + levels + 1 <= this.maxZoom; c >>= 1) {
-                levels++;
-            }
-        }
-
         return {
             decode: decode,
             size: size,
             gridSize: gridSize,
-            levels: levels,
+            levels: preventChildren
+                ? 0
+                : getSubdivisionLevels(size, gridSize, tileZoom, this.maxZoom, this.maxNativeZoom),
             // Vertices with no data around them get the first no data value, the terrain worker recognizes it
             noDataHeight: this.noDataValues.length ? this.noDataValues[0] : 0
         };
