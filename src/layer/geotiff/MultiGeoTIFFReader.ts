@@ -95,9 +95,9 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
         const metas = await Promise.all(
             this.childReaders.map((reader, i) => {
                 const s = srcList[i];
-                const src = s.src || s.url;
+                const src = s.src;
                 if (!src) {
-                    throw new Error(`[MultiGeoTIFFReader] Source at index ${i} has no src or url.`);
+                    throw new Error(`[MultiGeoTIFFReader] Source at index ${i} has no src.`);
                 }
                 return reader.init(src);
             })

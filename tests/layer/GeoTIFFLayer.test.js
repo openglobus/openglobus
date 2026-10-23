@@ -126,7 +126,7 @@ describe("ColorScale & Palette", () => {
 describe("GeoTIFFLayer", () => {
     it("should instantiate with default options", () => {
         const layer = new GeoTIFFLayer("test-tiff", {
-            url: "https://example.com/cog.tif"
+            src: "https://example.com/cog.tif"
         });
 
         expect(layer.instanceName).toBe("GeoTIFFLayer");
@@ -135,18 +135,18 @@ describe("GeoTIFFLayer", () => {
     });
 
     it("requests the visible tile without waiting for the parent material", () => {
-        const layer = new GeoTIFFLayer("test-tiff", { url: "https://example.com/cog.tif" });
+        const layer = new GeoTIFFLayer("test-tiff", { src: "https://example.com/cog.tif" });
         expect(layer.waitForParentMaterial).toBe(false);
 
         const waiting = new GeoTIFFLayer("test-tiff", {
-            url: "https://example.com/cog.tif",
+            src: "https://example.com/cog.tif",
             waitForParentMaterial: true
         });
         expect(waiting.waitForParentMaterial).toBe(true);
     });
     it("should support opacity property and opacity setter/getter methods", () => {
         const layer = new GeoTIFFLayer("test-tiff", {
-            url: "https://example.com/cog.tif",
+            src: "https://example.com/cog.tif",
             opacity: 0.75
         });
 
@@ -161,7 +161,7 @@ describe("GeoTIFFLayer", () => {
 
     it("should update render options and clear cache", () => {
         const layer = new GeoTIFFLayer("test-tiff", {
-            url: "https://example.com/cog.tif"
+            src: "https://example.com/cog.tif"
         });
 
         layer.setRenderOptions({
@@ -173,7 +173,7 @@ describe("GeoTIFFLayer", () => {
 
     it("should clear both raster and tile caches when clearCache, clear, or redraw are called", () => {
         const layer = new GeoTIFFLayer("test-tiff", {
-            url: "https://example.com/cog.tif"
+            src: "https://example.com/cog.tif"
         });
 
         layer._tileCache.set("0_0_0", {});
@@ -201,7 +201,7 @@ describe("GeoTIFFLayer", () => {
     it("renders a stack of more than four bands as a single band, not as RGB", () => {
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-        const layer = new GeoTIFFLayer("test-tiff", { url: "https://example.com/cog.tif" });
+        const layer = new GeoTIFFLayer("test-tiff", { src: "https://example.com/cog.tif" });
         layer._renderOptions = {};
 
         layer._normalizeRenderOptions({
@@ -219,7 +219,7 @@ describe("GeoTIFFLayer", () => {
     });
 
     it("keeps rendering three and four sample files as RGB", () => {
-        const layer = new GeoTIFFLayer("test-tiff", { url: "https://example.com/cog.tif" });
+        const layer = new GeoTIFFLayer("test-tiff", { src: "https://example.com/cog.tif" });
 
         for (const samplesPerPixel of [3, 4]) {
             layer._renderOptions = {};
@@ -246,7 +246,7 @@ describe("GeoTIFFLayer", () => {
             bands: { 1: { min: 0, max: 255 } }
         };
 
-        const layer = new GeoTIFFLayer("test-tiff", { url: "https://example.com/cog.tif" });
+        const layer = new GeoTIFFLayer("test-tiff", { src: "https://example.com/cog.tif" });
         expect(layer._readerDestroyed).toBe(false);
 
         layer.remove();
@@ -270,8 +270,8 @@ describe("GeoTIFFLayer", () => {
 
     it("reopens every source of a multi-source layer after remove", async () => {
         const sources = [
-            { url: "https://example.com/a.tif", band: 1 },
-            { url: "https://example.com/b.tif", band: 1 }
+            { src: "https://example.com/a.tif", band: 1 },
+            { src: "https://example.com/b.tif", band: 1 }
         ];
         const layer = new GeoTIFFLayer("test-tiff", { sources });
 
@@ -299,7 +299,7 @@ describe("GeoTIFFLayer", () => {
 
     it("should clear all materials and caches when bands change (samplesChanged === true)", () => {
         const layer = new GeoTIFFLayer("test-tiff", {
-            url: "https://example.com/cog.tif",
+            src: "https://example.com/cog.tif",
             renderOptions: {
                 single: { band: 1 }
             }
@@ -340,7 +340,7 @@ describe("GeoTIFFLayer", () => {
 
     it("should clear non-rendered materials and prune non-rendered canvases when styling changes (samplesChanged === false)", () => {
         const layer = new GeoTIFFLayer("test-tiff", {
-            url: "https://example.com/cog.tif",
+            src: "https://example.com/cog.tif",
             renderOptions: {
                 single: { band: 1, domain: [0, 100] }
             }
@@ -976,6 +976,11 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
         });
     }
 
+    it("should reject a source without src", async () => {
+        const multiReader = new MultiGeoTIFFReader();
+        await expect(multiReader.init([{ url: "a.tif" }])).rejects.toThrow("Source at index 0 has no src.");
+    });
+
     it("should aggregate extents and metadata across multiple sources in multi-band mode", async () => {
         const ext1 = new Extent(new LonLat(10, 40), new LonLat(20, 50));
         const ext2 = new Extent(new LonLat(15, 45), new LonLat(25, 55));
@@ -987,8 +992,8 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
         try {
             const multiReader = new MultiGeoTIFFReader();
             const sources = [
-                { url: "red.tif", bands: [1] },
-                { url: "green_blue.tif", bands: [1, 2] }
+                { src: "red.tif", bands: [1] },
+                { src: "green_blue.tif", bands: [1, 2] }
             ];
 
             const meta = await multiReader.init(sources);
@@ -1041,7 +1046,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
         const spy = setupMockChildReaders([r1, r2]);
         try {
             const multiReader = new MultiGeoTIFFReader();
-            const sources = [{ url: "b1.tif" }, { url: "b2.tif" }];
+            const sources = [{ src: "b1.tif" }, { src: "b2.tif" }];
 
             await multiReader.init(sources);
 
@@ -1080,7 +1085,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
         const spy = setupMockChildReaders([rWest, rEast]);
         try {
             const multiReader = new MultiGeoTIFFReader();
-            const sources = [{ url: "west.tif" }, { url: "east.tif" }];
+            const sources = [{ src: "west.tif" }, { src: "east.tif" }];
 
             await multiReader.init(sources);
 
@@ -1140,7 +1145,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
         const spy = setupMockChildReaders([rWest, rEast]);
         try {
             const multiReader = new MultiGeoTIFFReader({ mosaic: true });
-            const sources = [{ url: "west.tif" }, { url: "east.tif" }];
+            const sources = [{ src: "west.tif" }, { src: "east.tif" }];
 
             await multiReader.init(sources);
 
@@ -1162,9 +1167,9 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
     it("should instantiate GeoTIFFLayer with sources and render multi-source RGB composite", async () => {
         const layer = new GeoTIFFLayer("multi-cog", {
             sources: [
-                { url: "https://example.com/b4_red.tif", min: 0, max: 4000 },
-                { url: "https://example.com/b3_green.tif", min: 0, max: 4000 },
-                { url: "https://example.com/b2_blue.tif", min: 0, max: 4000 }
+                { src: "https://example.com/b4_red.tif", min: 0, max: 4000 },
+                { src: "https://example.com/b3_green.tif", min: 0, max: 4000 },
+                { src: "https://example.com/b2_blue.tif", min: 0, max: 4000 }
             ]
         });
 
@@ -1228,8 +1233,8 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
     it("should evaluate band expressions (NDVI) across multiple sources", async () => {
         const layer = new GeoTIFFLayer("ndvi-cog", {
             sources: [
-                { url: "https://example.com/b4_red.tif" },
-                { url: "https://example.com/b8_nir.tif" }
+                { src: "https://example.com/b4_red.tif" },
+                { src: "https://example.com/b8_nir.tif" }
             ],
             renderOptions: {
                 single: {
@@ -1268,8 +1273,8 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
 
     it("should instantiate via GeoTIFFLayer.fromSources static helper", async () => {
         const sources = [
-            { url: "https://example.com/s1.tif" },
-            { url: "https://example.com/s2.tif" }
+            { src: "https://example.com/s1.tif" },
+            { src: "https://example.com/s2.tif" }
         ];
 
         // Mock init
