@@ -369,6 +369,8 @@ export interface IGridPeaks {
 const HIGHER_AROUND = 1,
     LOWER_AROUND = 2;
 
+let _around = new Uint8Array(0);
+
 /** Marks pixels a and b with the neighbour higher or lower flags, NaN pixels are not compared. */
 function compareNeighbours(pixels: Float32Array, around: Uint8Array, a: number, b: number) {
     let ha = pixels[a],
@@ -394,7 +396,15 @@ function compareNeighbours(pixels: Float32Array, around: Uint8Array, a: number, 
  */
 export function findPeaks(pixels: Float32Array, size: number, offset: number, scale: number): IGridPeaks {
     let last = size - 1,
-        around = new Uint8Array(size * size);
+        length = size * size;
+
+    if (_around.length < length) {
+        _around = new Uint8Array(length);
+    } else {
+        _around.fill(0, 0, length);
+    }
+
+    let around = _around;
 
     // Every neighbour pair is compared once, in 2x2 squares a b / c d: a-b, a-c, a-d and b-c
     for (let r = 0; r < last; r++) {
@@ -414,7 +424,7 @@ export function findPeaks(pixels: Float32Array, size: number, offset: number, sc
     let rowStart = new Int32Array(size + 1),
         count = 0;
 
-    for (let k = 0; k < around.length; k++) {
+    for (let k = 0; k < length; k++) {
         if (around[k] === HIGHER_AROUND || around[k] === LOWER_AROUND) {
             count++;
         }
@@ -555,7 +565,7 @@ function keepPeaks(
                 h = pixels[pr * size + cols[p]],
                 deviation = isPeak[p] ? h - surface : surface - h;
 
-            if (deviation <= 0) {
+            if (deviation <= 0 || h === noDataHeight) {
                 continue;
             }
 
@@ -568,6 +578,37 @@ function keepPeaks(
             }
         }
     }
+}
+
+/**
+ * Returns (gridSize + 1) x (gridSize + 1) mesh heights of (fileGridSize + 1) x (fileGridSize + 1) elevations,
+ * their peaks and pits are moved to the nearest mesh vertices.
+ * @param {Float32Array} elevations - Elevations grid, rows from north to south.
+ * @param {number} fileGridSize - Elevations grid size.
+ * @param {number} gridSize - Mesh grid size, fileGridSize divided by a power of two.
+ * @param {number} noDataHeight - Height of no data elevations.
+ * @param {Float32Array} [out] - Mesh heights.
+ * @returns {Float32Array} -
+ */
+export function getMeshHeights(
+    elevations: Float32Array,
+    fileGridSize: number,
+    gridSize: number,
+    noDataHeight: number,
+    out: Float32Array = new Float32Array((gridSize + 1) * (gridSize + 1))
+): Float32Array {
+    return sampleSubGrid(
+        elevations,
+        fileGridSize,
+        0,
+        0,
+        fileGridSize,
+        gridSize,
+        out,
+        0,
+        findPeaks(elevations, fileGridSize + 1, 0, 1),
+        noDataHeight
+    );
 }
 
 /**

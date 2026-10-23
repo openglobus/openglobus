@@ -7,6 +7,7 @@ import {
     findPeaks,
     getEdgeHeight,
     getGroundHeight,
+    getMeshHeights,
     getSubdivisionLevels,
     getVertexGridCells,
     RGB_ENCODING_RGB,
@@ -496,4 +497,43 @@ test("getGroundHeight splits the cell by the south east to north west diagonal",
 test("getGroundHeight works with heights over 100km", () => {
     const extent = new Extent(new LonLat(0, 0), new LonLat(10, 10));
     expect(getGroundHeight(3, 4, extent, [200000, 200000, 200000, 200000])).toBe(200000);
+});
+
+test("getMeshHeights moves peaks and pits to the nearest mesh vertices, edges and slopes are sampled", () => {
+    const fileGridSize = 8,
+        gs = fileGridSize + 1,
+        gridSize = 2;
+    const elevations = new Float32Array(gs * gs).map((_, k) => 3 * (k % gs) - 2 * Math.floor(k / gs));
+    // Peak at the vertex (3, 3), smaller pit at the edge vertex (0, 5)
+    elevations[3 * gs + 3] += 50;
+    elevations[5] -= 30;
+
+    const mesh = getMeshHeights(elevations, fileGridSize, gridSize, NaN);
+    const sample = (i, j) => elevations[i * 4 * gs + j * 4];
+
+    expect(mesh.length).toBe(9);
+    // The only inner vertex gets the most deviating one, the peak
+    expect(mesh[4]).toBe(elevations[3 * gs + 3]);
+    // Edges are sampled, the pit is not moved to them
+    for (const [i, j] of [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [1, 0],
+        [1, 2],
+        [2, 0],
+        [2, 1],
+        [2, 2]
+    ]) {
+        expect(mesh[i * 3 + j]).toBe(sample(i, j));
+    }
+});
+
+test("getMeshHeights does not move no data elevations", () => {
+    const fileGridSize = 4,
+        gs = fileGridSize + 1;
+    const elevations = new Float32Array(gs * gs).fill(10);
+    elevations[1 * gs + 1] = NO_DATA;
+
+    expect(Array.from(getMeshHeights(elevations, fileGridSize, 2, NO_DATA))).toEqual(new Array(9).fill(10));
 });
