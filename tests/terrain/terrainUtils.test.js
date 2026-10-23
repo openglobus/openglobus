@@ -1,17 +1,18 @@
+import { Extent } from "../../src/Extent";
+import { LonLat } from "../../src/LonLat";
 import {
     createHeightsLevels,
     createVertexGrid,
     decodeRgbHeightsRow,
     findPeaks,
     getEdgeHeight,
+    getGroundHeight,
     getSubdivisionLevels,
     getVertexGridCells,
-    packRgbHeightsParams,
     RGB_ENCODING_RGB,
     RGB_ENCODING_TERRARIUM,
-    sampleSubGrid,
-    unpackRgbHeightsParams
-} from "../../src/terrain/rgbTerrainGrid";
+    sampleSubGrid
+} from "../../src/terrain/terrainUtils";
 
 // Linear heights in pixel coordinates: pixel (i, j) has its center at (i + 0.5, j + 0.5).
 const plane = (y, x) => 10 + 3 * x - 2 * y;
@@ -406,24 +407,6 @@ test("decodeRgbHeightsRow takes zero and no data heights from the parent", () =>
     expect(Array.from(out)).toEqual([7, 7, 2]);
 });
 
-test("packRgbHeightsParams and unpackRgbHeightsParams keep parameters", () => {
-    const p = {
-        decode: { ...decodeParams(RGB_ENCODING_TERRARIUM, [-9999, 32767]), skipPositiveHeights: true },
-        size: 512,
-        gridSize: 128,
-        levels: 2,
-        noDataHeight: -9999
-    };
-    const parent = new Float32Array(4);
-    const [id, q] = unpackRgbHeightsParams(packRgbHeightsParams(42, p), parent);
-
-    expect(id).toBe(42);
-    expect({ ...q, decode: { ...q.decode, noDataValues: Array.from(q.decode.noDataValues) } }).toEqual({
-        ...p,
-        decode: { ...p.decode, parentData: parent }
-    });
-});
-
 test("createHeightsLevels outputs the tile and its levels row by row", () => {
     const size = 16,
         gridSize = 4,
@@ -470,4 +453,47 @@ test("createHeightsLevels uses (2^n + 1) images as the grid", () => {
     expect(out[1]).toBe(2);
     expect(out[1 * (gridSize + 1) + 1]).toBe(NO_DATA);
     expect(out[(gridSize + 1) * (gridSize + 1) + 2 * (gridSize + 1) + 2]).toBe(NO_DATA);
+});
+
+test("getGroundHeight takes the vertex heights and interpolates planes exactly", () => {
+    const gs = 5,
+        extent = new Extent(new LonLat(100, -20), new LonLat(140, 0)),
+        f = (x, y) => 3 * x - 7 * y + 1;
+
+    // Rows from north to south
+    const heights = new Float32Array(gs * gs);
+    for (let i = 0; i < gs; i++) {
+        for (let j = 0; j < gs; j++) {
+            heights[i * gs + j] = f(100 + j * 10, 0 - i * 5);
+        }
+    }
+
+    for (let i = 0; i < gs; i++) {
+        for (let j = 0; j < gs; j++) {
+            expect(getGroundHeight(100 + j * 10, -i * 5, extent, heights)).toBeCloseTo(heights[i * gs + j], 3);
+        }
+    }
+
+    for (const [x, y] of [
+        [101.3, -0.7],
+        [117, -13.2],
+        [139.9, -19.9],
+        [125, -10]
+    ]) {
+        expect(getGroundHeight(x, y, extent, heights)).toBeCloseTo(f(x, y), 3);
+    }
+});
+
+test("getGroundHeight splits the cell by the south east to north west diagonal", () => {
+    const extent = new Extent(new LonLat(0, 0), new LonLat(10, 10));
+    // North west, north east, south west, south east
+    const heights = [0, 10, 0, 0];
+
+    expect(getGroundHeight(5, 5, extent, heights)).toBe(0);
+    expect(getGroundHeight(7.5, 7.5, extent, heights)).toBe(5);
+});
+
+test("getGroundHeight works with heights over 100km", () => {
+    const extent = new Extent(new LonLat(0, 0), new LonLat(10, 10));
+    expect(getGroundHeight(3, 4, extent, [200000, 200000, 200000, 200000])).toBe(200000);
 });

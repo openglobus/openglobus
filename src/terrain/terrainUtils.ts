@@ -1,8 +1,14 @@
 import type { TypedArray } from "../utils/shared";
+import type { Extent } from "../Extent";
 
 export const RGB_ENCODING_CUSTOM = -1;
 export const RGB_ENCODING_RGB = 0;
 export const RGB_ENCODING_TERRARIUM = 1;
+
+/** Segment grid sizes by zoom of the elevation terrains. */
+export const TERRAIN_GRID_SIZE_BY_ZOOM = [
+    64, 32, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 64, 64, 64, 32, 32, 16, 8
+];
 
 /** Writes a row of pixel heights, NaN for no data pixels. */
 export type DecodeHeightsRowFunc = (row: number, outHeights: Float32Array) => void;
@@ -26,85 +32,6 @@ export interface IRgbHeightsParams {
     gridSize: number;
     levels: number;
     noDataHeight: number;
-}
-
-const PARAMS_ID = 0,
-    PARAMS_SIZE = 1,
-    PARAMS_GRID_SIZE = 2,
-    PARAMS_LEVELS = 3,
-    PARAMS_ENCODING = 4,
-    PARAMS_MIN_HEIGHT = 5,
-    PARAMS_RESOLUTION = 6,
-    PARAMS_HEIGHT_FACTOR = 7,
-    PARAMS_PARENT_OFFSET_X = 8,
-    PARAMS_PARENT_OFFSET_Y = 9,
-    PARAMS_PARENT_ZOOM_DIFF = 10,
-    PARAMS_SKIP_POSITIVE_HEIGHTS = 11,
-    PARAMS_NO_DATA_HEIGHT = 12,
-    PARAMS_NO_DATA_VALUES = 13;
-
-/**
- * Packs heights parameters to the buffer for the worker message.
- * @param {number} id - Worker task id.
- * @param {IRgbHeightsParams} p - Heights parameters, parent data is sent separately.
- * @returns {Float64Array} -
- */
-export function packRgbHeightsParams(id: number, p: IRgbHeightsParams): Float64Array {
-    let d = p.decode,
-        ndv = d.noDataValues;
-    let params = new Float64Array(PARAMS_NO_DATA_VALUES + ndv.length);
-
-    params[PARAMS_ID] = id;
-    params[PARAMS_SIZE] = p.size;
-    params[PARAMS_GRID_SIZE] = p.gridSize;
-    params[PARAMS_LEVELS] = p.levels;
-    params[PARAMS_ENCODING] = d.encoding;
-    params[PARAMS_MIN_HEIGHT] = d.minHeight;
-    params[PARAMS_RESOLUTION] = d.resolution;
-    params[PARAMS_HEIGHT_FACTOR] = d.heightFactor;
-    params[PARAMS_PARENT_OFFSET_X] = d.parentOffsetX;
-    params[PARAMS_PARENT_OFFSET_Y] = d.parentOffsetY;
-    params[PARAMS_PARENT_ZOOM_DIFF] = d.parentZoomDiff;
-    params[PARAMS_SKIP_POSITIVE_HEIGHTS] = d.skipPositiveHeights ? 1 : 0;
-    params[PARAMS_NO_DATA_HEIGHT] = p.noDataHeight;
-
-    for (let i = 0; i < ndv.length; i++) {
-        params[PARAMS_NO_DATA_VALUES + i] = ndv[i];
-    }
-    return params;
-}
-
-/**
- * Unpacks heights parameters from the worker message buffer.
- * @param {Float64Array} params - Packed parameters.
- * @param {Float32Array | null} parentData - Parent segment elevations.
- * @returns {Array} - Task id and parameters (exactly 2 entries).
- */
-export function unpackRgbHeightsParams(
-    params: Float64Array,
-    parentData: Float32Array | null
-): [number, IRgbHeightsParams] {
-    return [
-        params[PARAMS_ID],
-        {
-            decode: {
-                encoding: params[PARAMS_ENCODING],
-                minHeight: params[PARAMS_MIN_HEIGHT],
-                resolution: params[PARAMS_RESOLUTION],
-                heightFactor: params[PARAMS_HEIGHT_FACTOR],
-                noDataValues: params.subarray(PARAMS_NO_DATA_VALUES),
-                parentData: parentData,
-                parentOffsetX: params[PARAMS_PARENT_OFFSET_X],
-                parentOffsetY: params[PARAMS_PARENT_OFFSET_Y],
-                parentZoomDiff: params[PARAMS_PARENT_ZOOM_DIFF],
-                skipPositiveHeights: params[PARAMS_SKIP_POSITIVE_HEIGHTS] === 1
-            },
-            size: params[PARAMS_SIZE],
-            gridSize: params[PARAMS_GRID_SIZE],
-            levels: params[PARAMS_LEVELS],
-            noDataHeight: params[PARAMS_NO_DATA_HEIGHT]
-        }
-    ];
 }
 
 /**
@@ -271,6 +198,40 @@ export function getEdgeHeight(p0: number, p1: number, p2: number): number {
     let s0 = p0 - p1,
         s1 = p1 - p2;
     return p0 + 0.5 * (s0 * s1 <= 0 ? 0 : Math.abs(s0) < Math.abs(s1) ? s0 : s1);
+}
+
+/**
+ * Returns the ground height at the point of the tile heights grid, on the grid triangles as they are rendered.
+ * @param {number} x - Point x in the tile extent projection.
+ * @param {number} y - Point y in the tile extent projection.
+ * @param {Extent} extent - Tile extent.
+ * @param {number[] | TypedArray} heights - Tile heights grid, rows from north to south.
+ * @returns {number} -
+ */
+export function getGroundHeight(x: number, y: number, extent: Extent, heights: number[] | TypedArray): number {
+    let gs = Math.sqrt(heights.length),
+        cells = gs - 1,
+        col = ((x - extent.southWest.lon) / extent.getWidth()) * cells,
+        row = ((extent.northEast.lat - y) / extent.getHeight()) * cells,
+        j = Math.min(Math.max(Math.floor(col), 0), cells - 1),
+        i = Math.min(Math.max(Math.floor(row), 0), cells - 1),
+        fx = col - j,
+        fy = 1 - (row - i);
+
+    /*
+    v2-----------v3
+    |  \         |
+    |     \      |
+    |        \   |
+    v0-----------v1
+    */
+    let k = i * gs + j,
+        h2 = heights[k],
+        h3 = heights[k + 1],
+        h0 = heights[k + gs],
+        h1 = heights[k + gs + 1];
+
+    return fx + fy <= 1 ? h0 + fx * (h1 - h0) + fy * (h2 - h0) : h3 + (1 - fx) * (h2 - h3) + (1 - fy) * (h1 - h3);
 }
 
 /**

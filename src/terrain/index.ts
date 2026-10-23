@@ -11,7 +11,9 @@ import {
 import type { IRgbTerrainParams, RgbTerrainEncoding, RgbToHeightFunc } from "./RgbTerrain";
 import { GlobusRgbTerrain } from "./GlobusRgbTerrain";
 import { MapterhornTerrain } from "./MapterhornTerrain";
+import { ProceduralTerrain } from "./ProceduralTerrain";
+import type { GetHeightsFunc, IProceduralTerrainParams, ProceduralHeights } from "./ProceduralTerrain";
 
-export { EmptyTerrain, GlobusTerrain, RgbTerrain, BilTerrain, GlobusRgbTerrain, MapterhornTerrain };
+export { EmptyTerrain, GlobusTerrain, RgbTerrain, BilTerrain, GlobusRgbTerrain, MapterhornTerrain, ProceduralTerrain };
 export { rgbToHeightByEncoding, rgbToHeightRgb, rgbToHeightTerrarium, resolveRgbToHeightFunc };
-export type { IRgbTerrainParams, RgbTerrainEncoding, RgbToHeightFunc };
+export type { IRgbTerrainParams, RgbTerrainEncoding, RgbToHeightFunc, GetHeightsFunc, IProceduralTerrainParams };

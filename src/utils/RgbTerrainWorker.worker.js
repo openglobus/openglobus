@@ -2,12 +2,8 @@
 //
 // RGB terrain heights worker
 //
-import {
-    createHeightsLevels,
-    decodeRgbHeightsRow,
-    getGridCells,
-    unpackRgbHeightsParams
-} from "../terrain/rgbTerrainGrid";
+import { createHeightsLevels, decodeRgbHeightsRow, getGridCells } from "../terrain/terrainUtils";
+import { unpackRgbHeightsParams } from "./RgbTerrainWorkerParams";
 
 let ctx = null;
 

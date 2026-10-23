@@ -9,7 +9,7 @@ import { Segment } from "../segment/Segment";
 import type { TypedArray } from "../utils/shared";
 import { binarySearchFast } from "../utils/shared";
 import type { IResponse } from "../utils/Loader";
-import type { DecodeHeightsRowFunc, IRgbDecodeParams, IRgbHeightsParams } from "./rgbTerrainGrid";
+import type { DecodeHeightsRowFunc, IRgbDecodeParams, IRgbHeightsParams } from "./terrainUtils";
 import {
     createHeightsLevels,
     decodeRgbHeightsRow,
@@ -18,8 +18,9 @@ import {
     getSubdivisionLevels,
     RGB_ENCODING_CUSTOM,
     RGB_ENCODING_RGB,
-    RGB_ENCODING_TERRARIUM
-} from "./rgbTerrainGrid";
+    RGB_ENCODING_TERRARIUM,
+    TERRAIN_GRID_SIZE_BY_ZOOM
+} from "./terrainUtils";
 import { RgbTerrainWorker } from "../utils/RgbTerrainWorker";
 
 export type RgbTerrainEncoding = "rgb" | "terrarium";
@@ -114,9 +115,7 @@ class RgbTerrain extends GlobusTerrain {
                 options.url != undefined
                     ? options.url
                     : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${options.key || "<key>"}`,
-            gridSizeByZoom: options.gridSizeByZoom || [
-                64, 32, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 64, 64, 64, 32, 32, 16, 8
-            ],
+            gridSizeByZoom: options.gridSizeByZoom || TERRAIN_GRID_SIZE_BY_ZOOM.slice(),
             ...options
         });
 

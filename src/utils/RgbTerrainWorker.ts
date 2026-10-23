@@ -1,7 +1,7 @@
 import { BaseWorker } from "./BaseWorker";
 import { Segment } from "../segment/Segment";
-import type { IRgbHeightsParams } from "../terrain/rgbTerrainGrid";
-import { packRgbHeightsParams } from "../terrain/rgbTerrainGrid";
+import type { IRgbHeightsParams } from "../terrain/terrainUtils";
+import { packRgbHeightsParams } from "./RgbTerrainWorkerParams";
 //@ts-ignore
 import RgbTerrainWorkerImpl from "./RgbTerrainWorker.worker.js?worker&inline";
 
