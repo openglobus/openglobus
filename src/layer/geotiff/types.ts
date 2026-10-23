@@ -139,9 +139,6 @@ export interface IGeoTIFFSourceCommon {
     /** Remote URL or local Blob/File/ArrayBuffer */
     src?: GeoTIFFSource;
 
-    /** Alias for src when passing a URL */
-    url?: string;
-
     /** Custom NoData value. Set to null or NaN to disable nodata masking. */
     nodata?: NoDataValue;
 

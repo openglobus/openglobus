@@ -134,7 +134,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
      */
     protected _initReader(): Promise<IGeoTIFFMetadata> {
         const options = this._sourceOptions;
-        const src = options.src || options.url;
+        const src = options.src;
         let promise: Promise<IGeoTIFFMetadata>;
 
         if (Array.isArray(options.sources) && options.sources.length > 0) {
@@ -153,7 +153,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     }
 
     public static async fromUrl(name: string, url: string, options: IGeoTIFFLayerParams = {}): Promise<GeoTIFFLayer> {
-        const layer = new GeoTIFFLayer(name, { ...options, url });
+        const layer = new GeoTIFFLayer(name, { ...options, src: url });
         await layer.whenReady();
         return layer;
     }

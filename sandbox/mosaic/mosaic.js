@@ -42,10 +42,10 @@ async function loadMosaic() {
             mosaic: true,
             sources: [
                 {
-                    url: "https://tile-service-raster.s3.us-east-1.amazonaws.com/cogs/as-raster-tile/HM_COG.tif"
+                    src: "https://tile-service-raster.s3.us-east-1.amazonaws.com/cogs/as-raster-tile/HM_COG.tif"
                 },
                 {
-                    url: "https://tile-service-raster.s3.us-east-1.amazonaws.com/cogs/as-raster-tile/HN_COG.tif"
+                    src: "https://tile-service-raster.s3.us-east-1.amazonaws.com/cogs/as-raster-tile/HN_COG.tif"
                 }
             ],
             opacity
