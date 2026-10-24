@@ -612,6 +612,121 @@ export function getMeshHeights(
 }
 
 /**
+ * Tile pixels, the source of its subdivision level tiles made one by one with createLevelHeights.
+ */
+export interface IHeightsLevelsSource {
+    /** Pixel heights, NaN for no data. (2^n + 1) images are the vertex grid, no data are noDataHeight there. */
+    pixels: Float32Array;
+    size: number;
+    gridSize: number;
+    levels: number;
+    noDataHeight: number;
+    /** Peaks of the (2^n + 1) vertex grid, 2^n images find them around every level tile. */
+    peaks: IGridPeaks | null;
+}
+
+// Vertices at the pixel centers are needed when the last level is not coarser than the pixels,
+// pixel corners alone would average its peaks and pits away
+function isPixelCentersGrid(size: number, gridSize: number, levels: number): boolean {
+    return size >> levels <= gridSize;
+}
+
+/**
+ * Decodes the tile pixels for its subdivision level tiles.
+ * @param {number} size - Image size, 2^n or (2^n + 1).
+ * @param {number} gridSize - Tile grid size.
+ * @param {number} levels - Subdivision levels.
+ * @param {DecodeHeightsRowFunc} decodeRow - Decodes pixel row heights, NaN for no data.
+ * @param {number} noDataHeight - Height for vertices without data.
+ * @returns {IHeightsLevelsSource} -
+ */
+export function createHeightsLevelsSource(
+    size: number,
+    gridSize: number,
+    levels: number,
+    decodeRow: DecodeHeightsRowFunc,
+    noDataHeight: number
+): IHeightsLevelsSource {
+    let pixels = new Float32Array(size * size),
+        peaks: IGridPeaks | null = null;
+
+    for (let row = 0; row < size; row++) {
+        decodeRow(row, pixels.subarray(row * size, (row + 1) * size));
+    }
+
+    if (getGridCells(size) !== size) {
+        peaks = findPeaks(pixels, size, 0, 1);
+        for (let k = 0; k < pixels.length; k++) {
+            if (pixels[k] !== pixels[k]) {
+                pixels[k] = noDataHeight;
+            }
+        }
+    }
+
+    return { pixels, size, gridSize, levels, noDataHeight, peaks };
+}
+
+// Pixels around a level tile in its window: vertices and peaks depend on the next pixels only, at the image
+// edges the window is shifted inside and keeps the three pixels the edge vertices are extrapolated from
+const LEVEL_TILE_MARGIN = 1;
+
+/**
+ * Returns the heights of the level tile in the row i and the column j, the same as createHeightsLevels makes.
+ * 2^n images make the vertex grid and find the peaks in the window of the tile pixels with a margin around,
+ * so a tile costs its own pixels only.
+ * @param {IHeightsLevelsSource} source - Tile pixels.
+ * @param {number} level - Subdivision level, 0 is the tile itself.
+ * @param {number} i - Level tile row, from the north.
+ * @param {number} j - Level tile column, from the west.
+ * @param {Float32Array} [out] - Level tile heights.
+ * @returns {Float32Array} -
+ */
+export function createLevelHeights(
+    source: IHeightsLevelsSource,
+    level: number,
+    i: number,
+    j: number,
+    out: Float32Array = new Float32Array((source.gridSize + 1) * (source.gridSize + 1))
+): Float32Array {
+    let { pixels, size, gridSize, levels, noDataHeight, peaks } = source;
+
+    if (peaks) {
+        let c = (size - 1) >> level;
+        return sampleSubGrid(pixels, size - 1, i * c, j * c, c, gridSize, out, 0, peaks, noDataHeight);
+    }
+
+    let pixelCenters = isPixelCentersGrid(size, gridSize, levels),
+        scale = pixelCenters ? 2 : 1,
+        tilePixels = size >> level,
+        w = Math.min(tilePixels + 2 * LEVEL_TILE_MARGIN, size),
+        row0 = Math.min(Math.max(i * tilePixels - LEVEL_TILE_MARGIN, 0), size - w),
+        col0 = Math.min(Math.max(j * tilePixels - LEVEL_TILE_MARGIN, 0), size - w);
+
+    let windowPixels = pixels;
+
+    if (w < size) {
+        windowPixels = new Float32Array(w * w);
+        for (let r = 0; r < w; r++) {
+            let src = (row0 + r) * size + col0;
+            windowPixels.set(pixels.subarray(src, src + w), r * w);
+        }
+    }
+
+    return sampleSubGrid(
+        createVertexGrid(windowPixels, w, noDataHeight, pixelCenters),
+        w * scale,
+        (i * tilePixels - row0) * scale,
+        (j * tilePixels - col0) * scale,
+        tilePixels * scale,
+        gridSize,
+        out,
+        0,
+        findPeaks(windowPixels, w, 0.5, scale),
+        noDataHeight
+    );
+}
+
+/**
  * Creates the tile heights grid and its subdivision levels, each tile is (gridSize + 1) x (gridSize + 1).
  * Output order is the tile itself, then 2x2 tiles of the first level, 4x4 of the second and so on, row by row.
  * Peaks and pits of the pixels stay in all the levels.
@@ -629,29 +744,20 @@ export function createHeightsLevels(
     decodeRow: DecodeHeightsRowFunc,
     noDataHeight: number
 ): Float32Array {
-    let pixels = new Float32Array(size * size);
-
-    for (let row = 0; row < size; row++) {
-        decodeRow(row, pixels.subarray(row * size, (row + 1) * size));
-    }
+    let source = createHeightsLevelsSource(size, gridSize, levels, decodeRow, noDataHeight),
+        pixels = source.pixels;
 
     let grid: Float32Array, cells: number, peaks: IGridPeaks;
 
-    if (getGridCells(size) === size) {
-        // Vertices at the pixel centers are needed when the last level is finer than the pixels
-        let pixelCenters = size >> levels < gridSize;
+    if (source.peaks) {
+        grid = pixels;
+        cells = size - 1;
+        peaks = source.peaks;
+    } else {
+        let pixelCenters = isPixelCentersGrid(size, gridSize, levels);
         grid = createVertexGrid(pixels, size, noDataHeight, pixelCenters);
         cells = pixelCenters ? size * 2 : size;
         peaks = findPeaks(pixels, size, 0.5, cells / size);
-    } else {
-        peaks = findPeaks(pixels, size, 0, 1);
-        for (let k = 0; k < pixels.length; k++) {
-            if (pixels[k] !== pixels[k]) {
-                pixels[k] = noDataHeight;
-            }
-        }
-        grid = pixels;
-        cells = size - 1;
     }
 
     let tileLength = (gridSize + 1) * (gridSize + 1),

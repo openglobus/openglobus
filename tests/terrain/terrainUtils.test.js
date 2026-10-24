@@ -2,6 +2,8 @@ import { Extent } from "../../src/Extent";
 import { LonLat } from "../../src/LonLat";
 import {
     createHeightsLevels,
+    createHeightsLevelsSource,
+    createLevelHeights,
     createVertexGrid,
     decodeRgbHeightsRow,
     findPeaks,
@@ -342,6 +344,25 @@ test("example: every level keeps a stone and a pit one pixel wide", () => {
     expect(out[3 * gs + 1]).toBeCloseTo(-10.4, 5);
 });
 
+test("example: a vertex per pixel keeps a stone and a pit one pixel wide", () => {
+    const size = 8,
+        gridSize = 8,
+        gs = gridSize + 1;
+    const pixels = new Float32Array(size * size).fill(-10);
+    pixels[2 * size + 5] = -9.5;
+    pixels[5 * size + 1] = -10.4;
+
+    const out = createHeightsLevels(size, gridSize, 0, rowsOf(pixels, size), NO_DATA);
+
+    // Pixel corners alone average the stone to -9.875 and the pit to -10.1, the stone and the pit are moved
+    // to the nearest corners by half a pixel, other vertices stay the pixel corners
+    const expected = createVertexGrid(pixels, size, NO_DATA, false);
+    expected[3 * gs + 6] = -9.5;
+    expected[6 * gs + 2] = pixels[5 * size + 1];
+
+    expect(Array.from(out)).toEqual(Array.from(expected));
+});
+
 function decodeParams(encoding, noDataValues, parentData = null) {
     return {
         encoding,
@@ -415,25 +436,31 @@ test("createHeightsLevels outputs the tile and its levels row by row", () => {
     const pixels = createPixels(size, (y, x) => Math.sin(x) * 5 + y * y);
     const peaks = (scale) => findPeaks(pixels, size, 0.5, scale);
 
-    // The last level is not finer than the pixels, vertices at the pixel corners
+    // The last level is coarser than the pixels, vertices at the pixel corners
     let grid = createVertexGrid(pixels, size, NO_DATA, false);
-    let out = createHeightsLevels(size, gridSize, 2, rowsOf(pixels, size), NO_DATA);
+    let out = createHeightsLevels(size, gridSize, 1, rowsOf(pixels, size), NO_DATA);
     let tile = (n) => Array.from(out.subarray(n * tileLength, (n + 1) * tileLength));
     let sample = (row0, col0, c) =>
         Array.from(sampleSubGrid(grid, size, row0, col0, c, gridSize, undefined, 0, peaks(1), NO_DATA));
 
-    expect(out.length).toBe((1 + 4 + 16) * tileLength);
+    expect(out.length).toBe((1 + 4) * tileLength);
     expect(tile(0)).toEqual(sample(0, 0, size));
     // Level 1, row 1, column 0
     expect(tile(1 + 2)).toEqual(sample(8, 0, 8));
-    // Level 2, row 3, column 3
-    expect(tile(1 + 4 + 15)).toEqual(sample(12, 12, 4));
 
-    // The last level is finer than the pixels, vertices at the pixel centers and corners
+    // The last level has a vertex per pixel or is finer, vertices at the pixel centers and corners
     grid = createVertexGrid(pixels, size, NO_DATA);
-    out = createHeightsLevels(size, gridSize, 3, rowsOf(pixels, size), NO_DATA);
     sample = (row0, col0, c) =>
         Array.from(sampleSubGrid(grid, 2 * size, row0, col0, c, gridSize, undefined, 0, peaks(2), NO_DATA));
+
+    out = createHeightsLevels(size, gridSize, 2, rowsOf(pixels, size), NO_DATA);
+
+    expect(out.length).toBe((1 + 4 + 16) * tileLength);
+    expect(tile(0)).toEqual(sample(0, 0, 2 * size));
+    // Level 2, row 3, column 3
+    expect(tile(1 + 4 + 15)).toEqual(sample(24, 24, 8));
+
+    out = createHeightsLevels(size, gridSize, 3, rowsOf(pixels, size), NO_DATA);
 
     expect(out.length).toBe((1 + 4 + 16 + 64) * tileLength);
     expect(tile(0)).toEqual(sample(0, 0, 2 * size));
@@ -536,4 +563,62 @@ test("getMeshHeights does not move no data elevations", () => {
     elevations[1 * gs + 1] = NO_DATA;
 
     expect(Array.from(getMeshHeights(elevations, fileGridSize, 2, NO_DATA))).toEqual(new Array(9).fill(10));
+});
+
+// Rough seabed with one pixel stones and pits, and no data patches at an edge, a corner and inside
+function createRoughPixels(size) {
+    let seed = 7;
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const pixels = createPixels(size, (y, x) => -10 + Math.sin(x * 0.7) + Math.cos(y * 0.4) + random() * 0.3);
+
+    for (let k = 0; k < size; k++) {
+        pixels[Math.floor(random() * size * size)] += 2;
+        pixels[Math.floor(random() * size * size)] -= 2;
+    }
+
+    pixels[0] = NaN;
+    pixels[1] = NaN;
+    pixels[size] = NaN;
+    pixels[3 * size + size - 1] = NaN;
+    pixels[5 * size + 5] = NaN;
+    pixels[5 * size + 6] = NaN;
+    pixels[6 * size + 5] = NaN;
+
+    return pixels;
+}
+
+test("createLevelHeights makes every level tile the same as createHeightsLevels", () => {
+    const cases = [
+        // [size, gridSize, levels], pixel corners grid
+        [16, 4, 1],
+        [32, 4, 2],
+        // Pixel centers grid, the last level has a vertex per pixel or is finer
+        [16, 4, 2],
+        [16, 4, 3],
+        [32, 8, 3],
+        [8, 2, 3],
+        // (2^n + 1) vertex grids
+        [17, 4, 2],
+        [9, 2, 2]
+    ];
+
+    for (const [size, gridSize, levels] of cases) {
+        const pixels = createRoughPixels(size),
+            tileLength = (gridSize + 1) * (gridSize + 1),
+            all = createHeightsLevels(size, gridSize, levels, rowsOf(pixels, size), NO_DATA),
+            source = createHeightsLevelsSource(size, gridSize, levels, rowsOf(pixels, size), NO_DATA);
+
+        for (let k = 0, offset = 0; k <= levels; k++) {
+            const d = 1 << k;
+            for (let i = 0; i < d; i++) {
+                for (let j = 0; j < d; j++, offset += tileLength) {
+                    const tile = Array.from(createLevelHeights(source, k, i, j)),
+                        expected = Array.from(all.subarray(offset, offset + tileLength));
+                    expect(tile, `size ${size}, grid ${gridSize}, levels ${levels}, tile ${k}/${i}/${j}`).toEqual(
+                        expected
+                    );
+                }
+            }
+        }
+    }
 });

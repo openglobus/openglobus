@@ -1,11 +1,12 @@
 import { ProceduralTerrain } from "../../src/terrain/ProceduralTerrain";
-import { TERRAIN_GRID_SIZE_BY_ZOOM } from "../../src/terrain/terrainUtils";
+import { createHeightsLevels, TERRAIN_GRID_SIZE_BY_ZOOM } from "../../src/terrain/terrainUtils";
 import { QuadTreeStrategy } from "../../src/quadTree/QuadTreeStrategy";
 import { LonLat } from "../../src/LonLat";
 import * as mercator from "../../src/mercator";
 import { Extent } from "../../src/Extent";
 import { Segment } from "../../src/segment/Segment";
 import { SegmentLonLatEqui } from "../../src/segment/SegmentLonLatEqui";
+import { Layer } from "../../src/layer/Layer";
 
 const tile = { tileIndex: "0::0_0_0" };
 
@@ -288,4 +289,169 @@ test("ProceduralTerrain getHeightAsync calls back when the promised heights are 
     // Ready now
     expect(terrain.getHeightAsync(new LonLat(30, 10), callback)).toBe(true);
     expect(callback).toHaveBeenCalledTimes(2);
+});
+
+// Heights grow to the east from the segment edge in 8 x 8 pixels, by one in a native projection unit
+function createEastPixels(segment) {
+    const e = segment.getExtent(),
+        step = e.getWidth() / 8,
+        heights = new Float32Array(64);
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            heights[i * 8 + j] = (j + 0.5) * step;
+        }
+    }
+    return heights;
+}
+
+// Tile of a 16 x 8 world with two tiles of the zoom 1, in the quad tree under the native tile when it is given
+function createLevelTile(x, y, z, native = null) {
+    const w = 16 / 2 ** z;
+    return {
+        tileX: x,
+        tileY: y,
+        tileZoom: z,
+        _tileGroup: 0,
+        tileIndex: Layer.getTileIndex(x, y, z, 0),
+        node: native && { segment: { tileZoom: z }, parentNode: { segment: native } },
+        getExtent: () => new Extent(new LonLat(x * w, 8 - (y + 1) * w), new LonLat((x + 1) * w, 8 - y * w))
+    };
+}
+
+// 8x8 seabed at -10m with a 0.5m stone at the pixel (2, 5)
+function createStonePixels() {
+    const pixels = new Float32Array(64).fill(-10);
+    pixels[2 * 8 + 5] = -9.5;
+    return pixels;
+}
+
+test("ProceduralTerrain segments deeper than maxNativeZoom are the native segment levels, its pixels keep heights", () => {
+    const getHeights = vi.fn(createStonePixels);
+    const terrain = new ProceduralTerrain(null, { plainGridSize: 4, maxZoom: 4, maxNativeZoom: 1, getHeights });
+
+    // The native tile x = 1, y = 0 of the zoom 1, reached from its zoom 3 tile in the quad tree
+    const native = createLevelTile(1, 0, 1);
+    const tile = terrain._getSegmentHeights(createLevelTile(6, 1, 3, native));
+
+    expect(getHeights).toHaveBeenCalledTimes(1);
+    expect(getHeights.mock.calls[0][0]).toBe(native);
+
+    // Two pixels of the zoom 3 tile by side, the stone pixel center is its vertex (1, 3)
+    expect(tile.extent.southWest.lon).toBe(12);
+    expect(tile.extent.northEast.lat).toBe(6);
+    expect(tile.heights.length).toBe(25);
+    expect(tile.heights[1 * 5 + 3]).toBe(-9.5);
+
+    // Only the native tile and the asked level tile are made, the native pixels are kept
+    expect(terrain.getCacheInfo()).toEqual({ tiles: 2, native: 1 });
+
+    // Levels end at the vertex grid, two vertices by pixel
+    expect(terrain._getSegmentHeights(createLevelTile(12, 2, 4, native)).heights).toBe(null);
+    expect(getHeights).toHaveBeenCalledTimes(1);
+});
+
+test("ProceduralTerrain requests the native pixels again when they are dropped from the cache", () => {
+    const getHeights = vi.fn(createStonePixels);
+    const terrain = new ProceduralTerrain(null, {
+        plainGridSize: 4,
+        maxZoom: 4,
+        maxNativeZoom: 1,
+        nativeCacheSize: 1,
+        getHeights
+    });
+
+    const west = createLevelTile(0, 0, 1),
+        east = createLevelTile(1, 0, 1);
+
+    terrain._getSegmentHeights(createLevelTile(0, 0, 2, west));
+    terrain._getSegmentHeights(createLevelTile(2, 0, 2, east));
+
+    expect(getHeights.mock.calls.map((c) => c[0])).toEqual([west, east]);
+    expect(terrain.getCacheInfo().native).toBe(1);
+
+    // The west tile pixels and heights are dropped, made level tiles stay
+    expect(terrain._getSegmentHeights(createLevelTile(0, 0, 2, west)).heights).not.toBe(null);
+    expect(getHeights).toHaveBeenCalledTimes(2);
+
+    const tile = terrain._getSegmentHeights(createLevelTile(2, 1, 3, west));
+
+    expect(getHeights).toHaveBeenCalledTimes(3);
+    expect(getHeights.mock.calls[2][0]).toBe(west);
+    expect(tile.heights[1 * 5 + 3]).toBe(-9.5);
+});
+
+test("ProceduralTerrain level tiles are the same as createHeightsLevels makes", () => {
+    const pixels = createStonePixels(),
+        terrain = new ProceduralTerrain(null, {
+            plainGridSize: 4,
+            maxZoom: 4,
+            maxNativeZoom: 1,
+            getHeights: () => pixels
+        }),
+        native = createLevelTile(1, 0, 1),
+        all = createHeightsLevels(8, 4, 2, (row, out) => out.set(pixels.subarray(row * 8, row * 8 + 8)), NaN),
+        tile = (n) => Array.from(all.subarray(n * 25, (n + 1) * 25));
+
+    expect(Array.from(terrain._getSegmentHeights(native).heights)).toEqual(tile(0));
+    // Level 1, row 1, column 0
+    expect(Array.from(terrain._getSegmentHeights(createLevelTile(2, 1, 2, native)).heights)).toEqual(tile(1 + 2));
+    // Level 2, row 1, column 2
+    expect(Array.from(terrain._getSegmentHeights(createLevelTile(6, 1, 3, native)).heights)).toEqual(tile(1 + 4 + 6));
+});
+
+test("ProceduralTerrain getHeightAsync deeper than maxNativeZoom takes the level heights out of the quad tree", () => {
+    const zoom = 10,
+        x = 600,
+        y = 380;
+
+    const getHeights = vi.fn(createEastPixels);
+    const terrain = new ProceduralTerrain(null, {
+        plainGridSize: 4,
+        maxZoom: zoom + 2,
+        maxNativeZoom: zoom,
+        getHeights
+    });
+    terrain._planet = createPlanet(
+        Segment,
+        new Extent(new LonLat(-mercator.POLE, -mercator.POLE), new LonLat(mercator.POLE, mercator.POLE))
+    );
+
+    const e = mercator.getTileExtent(x, y, zoom);
+    const point = new LonLat(e.southWest.lon + e.getWidth() * 0.3, e.southWest.lat + e.getHeight() * 0.6);
+
+    let height;
+    expect(terrain.getHeightAsync(point.inverseMercator(), (h) => (height = h))).toBe(true);
+
+    expect(getHeights).toHaveBeenCalledTimes(1);
+    expect(getHeights.mock.calls[0][0].node).toBe(null);
+    expect(getHeights.mock.calls[0][0].tileIndex).toBe(`0::${x}_${y}_${zoom}`);
+    expect(height).toBeCloseTo(point.lon - e.southWest.lon, 0);
+});
+
+test("ProceduralTerrain getHeightAsync deeper than the levels takes the height of the level above", () => {
+    const zoom = 10,
+        x = 600,
+        y = 380;
+
+    // Grid size heights have no levels
+    const getHeights = vi.fn(createEastHeights);
+    const terrain = new ProceduralTerrain(null, {
+        plainGridSize: 4,
+        maxZoom: zoom + 2,
+        maxNativeZoom: zoom,
+        getHeights
+    });
+    terrain._planet = createPlanet(
+        Segment,
+        new Extent(new LonLat(-mercator.POLE, -mercator.POLE), new LonLat(mercator.POLE, mercator.POLE))
+    );
+
+    const e = mercator.getTileExtent(x, y, zoom);
+    const point = new LonLat(e.southWest.lon + e.getWidth() * 0.3, e.southWest.lat + e.getHeight() * 0.6);
+
+    let height;
+    terrain.getHeightAsync(point.inverseMercator(), (h) => (height = h));
+
+    expect(getHeights).toHaveBeenCalledTimes(1);
+    expect(height).toBeCloseTo(point.lon - e.southWest.lon, 0);
 });
