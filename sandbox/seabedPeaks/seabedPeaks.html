@@ -1,90 +1,73 @@
 <html>
-    <head>
-        <title>OpenGlobus - Seabed Peaks</title>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="../../css/og.css" type="text/css" />
-        <style>
-            body {
-                padding: 0;
-                margin: 0;
-            }
-        </style>
-    </head>
+<head>
+    <title>OpenGlobus - Seabed Peaks</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</head>
 
-    <body>
-        <div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
-        <script type="module" id="og-sandbox-script">
-            import { Globe, control, RgbTerrain } from "../../lib/og.es.js";
+<body>
+<div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
+<script type="module" id="og-sandbox-script">
+    import { Globe, control, RgbTerrain } from "../../lib/og.es.js";
 
-            //
-            // The only terrarium tile is ZOOM/x/y.png, made by createSeabedTile.mjs.
-            // Requests of all the other tiles fail, as beyond the native zoom of a real terrain server.
-            //
-            const LON = 37.8,
-                LAT = 44.7,
-                ZOOM = 17,
-                SIZE = 512;
+    const LON = 37.8,
+        LAT = 44.7,
+        ZOOM = 17,
+        SIZE = 256;
 
-            const n = 2 ** ZOOM,
-                lat = (LAT * Math.PI) / 180,
-                tileX = Math.floor(((LON + 180) / 360) * n),
-                tileY = Math.floor(((1 - Math.log(Math.tan(lat) + 1 / Math.cos(lat)) / Math.PI) / 2) * n);
+    const n = 2 ** ZOOM,
+        lat = (LAT * Math.PI) / 180,
+        tileX = Math.floor(((LON + 180) / 360) * n),
+        tileY = Math.floor(((1 - Math.log(Math.tan(lat) + 1 / Math.cos(lat)) / Math.PI) / 2) * n);
 
-            const tileLon = (x) => (x / n) * 360 - 180,
-                tileLat = (y) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / n))) * 180) / Math.PI;
+    const tileLon = (x) => (x / n) * 360 - 180,
+        tileLat = (y) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / n))) * 180) / Math.PI;
 
-            const tileExtent = [tileLon(tileX), tileLat(tileY + 1), tileLon(tileX + 1), tileLat(tileY)];
+    const tileExtent = [tileLon(tileX), tileLat(tileY + 1), tileLon(tileX + 1), tileLat(tileY)];
 
-            // Terrain extent is a bit inside the tile, so the neighbour tiles are not requested
-            const EPS = 1e-9;
+    // Terrain extent is a bit inside the tile, so the neighbour tiles are not requested
+    const EPS = 1e-9;
 
-            // Segment grids up to the vertex grid, so the elevation grid is seen as it is
-            const DEFAULT_GRID_SIZES = [
-                64, 32, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 64, 64, 64, 32, 32, 16, 8
-            ];
-            const getGridSizeByZoom = (size) => DEFAULT_GRID_SIZES.map((gs, z) => (z < ZOOM ? gs : size));
+    // Segment grids up to the vertex grid, so the elevation grid is seen as it is
+    const DEFAULT_GRID_SIZES = [
+        64, 32, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 64, 64, 64, 32, 32, 16, 8
+    ];
 
-            const createTerrain = (name, options) =>
-                new RgbTerrain(name, {
-                    url: "./{z}/{x}/{y}.png",
-                    encoding: "terrarium",
-                    imageSize: SIZE,
-                    plainGridSize: 128,
-                    gridSizeByZoom: getGridSizeByZoom(options.plainGridSize || 128),
-                    minZoom: ZOOM,
-                    maxNativeZoom: ZOOM,
-                    extent: [
-                        [tileExtent[0] + EPS, tileExtent[1] + EPS],
-                        [tileExtent[2] - EPS, tileExtent[3] - EPS]
-                    ],
-                    ...options
-                });
+    // A vertex per pixel: the tile is the last terrain zoom, its pixels are the grid itself
+    const terrain = new RgbTerrain("Seabed", {
+        url: `./${SIZE}/{z}/{x}/{y}.png`,
+        encoding: "terrarium",
+        imageSize: SIZE,
+        plainGridSize: SIZE,
+        //gridSizeByZoom: DEFAULT_GRID_SIZES.map((gs, z) => (z < ZOOM ? gs : SIZE)),
+        minZoom: ZOOM,
+        maxZoom: ZOOM,
+        maxNativeZoom: ZOOM,
+        extent: [
+            [tileExtent[0] + EPS, tileExtent[1] + EPS],
+            [tileExtent[2] - EPS, tileExtent[3] - EPS]
+        ]
+    });
 
-            const terrains = [
-                // Full detail at ZOOM + 3
-                createTerrain("Grid 128", {
-                    maxZoom: ZOOM + 3
-                }),
-                // Twice as dense grids, full detail at ZOOM + 2
-                createTerrain("Grid 256", {
-                    plainGridSize: 256,
-                    maxZoom: ZOOM + 2
-                })
-            ];
+    window.globe = new Globe({
+        target: "globus",
+        name: "Earth",
+        terrain: terrain,
+        maxGridSize: 256,
+        viewExtent: tileExtent
+    });
 
-            window.globe = new Globe({
-                target: "globus",
-                name: "Earth",
-                terrain: terrains,
-                maxGridSize: 256,
-                viewExtent: tileExtent
-            });
-
-            globe.planet.addControl(new control.LayerSwitcher());
-            globe.planet.addControl(new control.DebugInfo());
-            globe.planet.addControl(new control.TimelineControl());
-            globe.planet.addControl(new control.ToggleWireframe());
-        </script>
-    </body>
+    globe.planet.addControl(new control.LayerSwitcher());
+    globe.planet.addControl(new control.DebugInfo());
+    globe.planet.addControl(new control.TimelineControl());
+    globe.planet.addControl(new control.ToggleWireframe());
+</script>
+</body>
 </html>

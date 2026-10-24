@@ -325,6 +325,16 @@ export class DebugInfo extends Control {
                     }
                 },
                 {
+                    label: "TerrainCache",
+                    frame: () => {
+                        let c = p.terrain && p.terrain.getCacheInfo();
+                        if (!c) {
+                            return "";
+                        }
+                        return c.native !== undefined ? `${c.tiles} native ${c.native}` : `${c.tiles}`;
+                    }
+                },
+                {
                     label: "TerrainWorker",
                     frame: () => p._terrainWorker.pendingQueue.length
                 },
