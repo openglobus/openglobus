@@ -140,7 +140,6 @@ class ProceduralTerrain extends EmptyTerrain {
     }
 
     protected _applyHeights(segment: Segment, tile: TileHeights) {
-        // The segment is not waiting for the heights any more, or the terrain is not on the planet
         if (!this._planet || !segment.plainReady || !segment.terrainIsLoading) {
             return;
         }

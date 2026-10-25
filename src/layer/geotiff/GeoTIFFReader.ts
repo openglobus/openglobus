@@ -9,6 +9,7 @@ import { acquireWorkerPool, type IWorkerPoolHandle } from "./workerPool";
 import { Proj } from "../../proj/Proj";
 import { EPSG3857 } from "../../proj/EPSG3857";
 import { EPSG4326 } from "../../proj/EPSG4326";
+import { defineProjection } from "../../proj/epsgIo";
 import type {
     DecodedTileData,
     GeoTIFFSource,
@@ -17,6 +18,7 @@ import type {
     IGeoTIFFReader,
     IGeoTIFFReaderParams,
     IGeoTIFFRenderOptions,
+    IGeoTIFFSourceItem,
     ProjFunc
 } from "./types";
 
@@ -58,6 +60,13 @@ const BLOCK_CACHE_BYTES = 32 * Math.pow(1024, 2);
 const OVERVIEW_RESOLUTION_TOLERANCE = 1.4;
 
 /**
+ * Reading optimization, in source pixels. The projected tile edge on a pixel edge lands a bit off it, so
+ * the window takes the next pixel row or column and the next TIFF tiles are read and decoded too.
+ * The tolerance keeps the window on the tile pixels, the heights and colors are the same without it.
+ */
+const WINDOW_TOLERANCE = 1e-3;
+
+/**
  * Photometric interpretations that do not store RGB in the samples: CMYK, YCbCr and CIELab.
  * JPEG compressed imagery is usually YCbCr.
  */
@@ -71,6 +80,26 @@ export function parseCrsCode(crs?: number | string): number | undefined {
         return match ? parseInt(match[0], 10) : undefined;
     }
     return;
+}
+
+/**
+ * Opens the source with the reader. If its CRS is unresolved, fetches the projection
+ * from the EPSG registry and reopens the source with it.
+ *
+ * Projections provided via `projFunc` or registered in {@link proj4}
+ * are already resolved and require no lookup.
+ */
+export async function initGeoTIFFReader(
+    reader: IGeoTIFFReader,
+    src: GeoTIFFSource | IGeoTIFFSourceItem[]
+): Promise<IGeoTIFFMetadata> {
+    const meta = await reader.init(src);
+
+    if (meta.crsResolved) {
+        return meta;
+    }
+
+    return (await defineProjection(meta.crsCode)) ? reader.init(src) : meta;
 }
 
 export class GeoTIFFReader implements IGeoTIFFReader {
@@ -111,7 +140,10 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         if (typeof src === "string") {
             source = await fromUrl(src, {
                 blockSize: BLOCK_SIZE,
-                cacheSize: Math.max(1, Math.round(BLOCK_CACHE_BYTES / (this.options.requestOptions?.blockSize || BLOCK_SIZE))),
+                cacheSize: Math.max(
+                    1,
+                    Math.round(BLOCK_CACHE_BYTES / (this.options.requestOptions?.blockSize || BLOCK_SIZE))
+                ),
                 ...this.options.requestOptions
             });
         } else if (
@@ -394,12 +426,14 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         const imgWidth = image.getWidth();
         const imgHeight = image.getHeight();
 
-        // 4. Source window covers the whole projected tile boundary, with a one pixel margin.
-        // A tile may be larger than the raster itself, so the window is clamped to the image.
-        const winX0 = Math.max(0, Math.floor(Math.max(0, uMin) * imgWidth) - 1);
-        const winY0 = Math.max(0, Math.floor(Math.max(0, vMin) * imgHeight) - 1);
-        const winX1 = Math.min(imgWidth, Math.ceil(Math.min(1, uMax) * imgWidth) + 1);
-        const winY1 = Math.min(imgHeight, Math.ceil(Math.min(1, vMax) * imgHeight) + 1);
+        // 4. Source window covers the whole projected tile boundary. Bilinear takes the next pixels too, with
+        // a one pixel margin, nearest takes the tile pixels only, so a raster aligned to the tiles is read
+        // tile by tile. A tile may be larger than the raster itself, so the window is clamped to the image.
+        const margin = this.options.renderOptions?.resampleMethod === "bilinear" ? 1 : 0;
+        const winX0 = Math.max(0, Math.floor(Math.max(0, uMin) * imgWidth + WINDOW_TOLERANCE) - margin);
+        const winY0 = Math.max(0, Math.floor(Math.max(0, vMin) * imgHeight + WINDOW_TOLERANCE) - margin);
+        const winX1 = Math.min(imgWidth, Math.ceil(Math.min(1, uMax) * imgWidth - WINDOW_TOLERANCE) + margin);
+        const winY1 = Math.min(imgHeight, Math.ceil(Math.min(1, vMax) * imgHeight - WINDOW_TOLERANCE) + margin);
 
         if (winX1 <= winX0 || winY1 <= winY0) {
             return null;

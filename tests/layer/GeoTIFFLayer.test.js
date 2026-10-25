@@ -1306,3 +1306,38 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
         }
     });
 });
+
+describe("GeoTIFFReader window of a raster on the tile grid", () => {
+    // Web Mercator raster of the 256 pixel tiles of zoom 16, from the tile 32768, 24064, as the dem2m sandbox one.
+    // Projected tile edges are a bit off the pixel edges there.
+    function createReader(resampleMethod) {
+        const reader = new GeoTIFFReader({ renderOptions: { resampleMethod } });
+        const image = {
+            getWidth: () => 163840,
+            getHeight: () => 163840,
+            readRasters: vi.fn(async ({ window }) => [
+                new Float32Array((window[2] - window[0]) * (window[3] - window[1]))
+            ])
+        };
+        reader.source = {};
+        reader.images = [image];
+        reader.nativeBBox = [0, 4931105.56873329, 391357.58482010243, 5322463.153553393];
+        reader.crsCode = 3857;
+        reader.metadata = { noData: null };
+        reader.extentWgs84 = new Extent(new LonLat(0, 40), new LonLat(3.6, 43.2));
+        reader.isReady = true;
+        return reader;
+    }
+
+    const tile = mercator.getTileExtent(32769, 24065, 16).inverseMercator();
+
+    it("nearest reads the tile pixels only", async () => {
+        const data = await createReader().readTileRasters(tile, 16, 256, [0]);
+        expect(data.window).toEqual([256, 256, 512, 512]);
+    });
+
+    it("bilinear reads the next pixels too", async () => {
+        const data = await createReader("bilinear").readTileRasters(tile, 16, 256, [0]);
+        expect(data.window).toEqual([255, 255, 513, 513]);
+    });
+});

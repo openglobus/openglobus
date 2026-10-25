@@ -318,8 +318,9 @@ export class DebugInfo extends Control {
                 {
                     label: "TerrainLoader",
                     frame: () => {
-                        if (p.terrain && !p.terrain.isEmpty) {
-                            return `${(p.terrain as GlobusTerrain).loader.loading}  ${(p.terrain as GlobusTerrain).loader.queue.length}`;
+                        let loader = p.terrain && (p.terrain as GlobusTerrain).loader;
+                        if (loader) {
+                            return `${loader.loading}  ${loader.queue.length}`;
                         }
                         return "";
                     }
