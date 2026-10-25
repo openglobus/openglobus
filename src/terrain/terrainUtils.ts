@@ -7,7 +7,7 @@ export const RGB_ENCODING_TERRARIUM = 1;
 
 /** Segment grid sizes by zoom of the elevation terrains. */
 export const TERRAIN_GRID_SIZE_BY_ZOOM = [
-    64, 32, 16, 8, 8, 8, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 64, 64, 32, 16, 8, 4
+    64, 32, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 64, 64, 64, 32, 32, 16, 8
 ];
 
 /** Writes a row of pixel heights, NaN for no data pixels. */
