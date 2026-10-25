@@ -48,7 +48,7 @@
     function flyToTerrain(terrain) {
         terrain.whenReady().then(() => {
             console.log(`${terrain.name} native zoom ${terrain.maxNativeZoom}`);
-            globe.planet.flyExtent(terrain.reader.extentWgs84);
+            globe.planet.flyExtent(terrain.reader.extentWgs84, undefined, { duration: 5000 });
         });
     }
 
