@@ -64,11 +64,7 @@ type TileHeights = {
 class ProceduralTerrain extends EmptyTerrain {
     public events: TerrainEvents;
 
-    /**
-     * Height requests counters as GlobusTerrain loader ones: promises in progress, the queue is empty,
-     * every request starts right away.
-     */
-    public loader: { loading: number; queue: Segment[] };
+    protected _loading: number;
 
     protected _getHeights: GetHeightsFunc;
 
@@ -97,7 +93,7 @@ class ProceduralTerrain extends EmptyTerrain {
         this.equalizeNormals = true;
         this.plainGridSize = options.plainGridSize || 32;
         this.noDataValues = options.noDataValues || [];
-        this.loader = { loading: 0, queue: [] };
+        this._loading = 0;
         this._getHeights = options.getHeights;
         this._heightsCache = {};
         this._pendingHeights = {};
@@ -156,9 +152,8 @@ class ProceduralTerrain extends EmptyTerrain {
         segment.applyTerrain(tile.heights);
     }
 
-    // As GlobusTerrain loader, loadend is when there are no requests and the planet terrain is completed
     protected _checkLoadend = () => {
-        if (!this._planet || (this.loader.loading === 0 && this._planet.quadTreeStrategy._terrainCompletedActivated)) {
+        if (!this._planet || (this._loading === 0 && this._planet.quadTreeStrategy._terrainCompletedActivated)) {
             this._loadendFrame = 0;
             this.events.dispatch(this.events.loadend!, this);
         } else {
@@ -270,7 +265,7 @@ class ProceduralTerrain extends EmptyTerrain {
             return this._setHeights(segment, extent, heights);
         }
 
-        this.loader.loading++;
+        this._loading++;
 
         return (this._pendingHeights[tileIndex] = heights
             .then(
@@ -282,7 +277,7 @@ class ProceduralTerrain extends EmptyTerrain {
             )
             .then((tile) => {
                 delete this._pendingHeights[tileIndex];
-                this.loader.loading--;
+                this._loading--;
                 return tile;
             }));
     }

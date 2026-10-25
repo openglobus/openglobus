@@ -212,7 +212,7 @@ test("ProceduralTerrain applies promised heights when they are made, once for a 
     terrain.loadTerrain(segments[1]);
 
     expect(getHeights).toHaveBeenCalledTimes(1);
-    expect(terrain.loader.loading).toBe(1);
+    expect(terrain._loading).toBe(1);
     expect(segments[0].applyTerrain).not.toHaveBeenCalled();
 
     request.resolve(heights);
@@ -220,7 +220,7 @@ test("ProceduralTerrain applies promised heights when they are made, once for a 
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(terrain.loader.loading).toBe(0);
+    expect(terrain._loading).toBe(0);
     expect(segments[0].applyTerrain).toHaveBeenCalledWith(heights);
     expect(segments[1].applyTerrain).toHaveBeenCalledWith(heights);
     expect(load).toHaveBeenCalledTimes(2);
@@ -245,7 +245,7 @@ test("ProceduralTerrain does not apply promised heights out of the planet, and r
 
     expect(error).toHaveBeenCalled();
     expect(segment.applyTerrain).toHaveBeenCalledWith(null);
-    expect(terrain.loader.loading).toBe(0);
+    expect(terrain._loading).toBe(0);
 
     const other = createSegment("0::1_1_1");
     terrain.loadTerrain(other);
