@@ -22,7 +22,7 @@
     });
 
     const usgs = new GeoTiffTerrain("USGS Zion", {
-        src: "./USGS_one_meter_x32y413_UT_ZionNP_QL2_2016.tif"
+        src: "./zion-cog.tif"
     });
 
     const createRaster = (name, src) =>
@@ -41,7 +41,7 @@
         layers: [
             new OpenStreetMap(),
             createRaster("dem2m raster", "./dem2m-lerc02-cog.tiff"),
-            createRaster("USGS Zion raster", "./USGS_one_meter_x32y413_UT_ZionNP_QL2_2016.tif")
+            createRaster("USGS Zion raster", "./zion-cog.tif")
         ]
     });
 
