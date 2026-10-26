@@ -126,6 +126,7 @@ export class CompassButton extends Control {
     };
 
     public setHeading(heading: number) {
+        heading = Math.round(heading * 10) / 10;
         if (this._heading !== heading && Number.isFinite(heading)) {
             this._heading = heading;
             this._icon!.style.transform = `rotate(${-heading}deg)`;
