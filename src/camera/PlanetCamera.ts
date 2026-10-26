@@ -23,6 +23,9 @@ import { EPS12, RADIANS } from "../math";
  */
 const LINEAR_FLIGHT_DISTANCE = 2000000;
 
+// Cosine of the view pitch 1 degree off the vertical, it covers the view to the planet center
+const FLIGHT_VERTICAL_COS = Math.sin(1.0 * RADIANS);
+
 export interface IPlanetCameraParams extends ICameraParams {
     minAltitude?: number;
     maxAltitude?: number;
@@ -47,6 +50,15 @@ function getAlignedUp(forward: Vec3, preferredUp: Vec3): Vec3 {
     }
 
     return up.normalize();
+}
+
+function getFlightAngles(q: Quat): [number, number] {
+    let pitch = q.getPitch();
+    if (Math.cos(pitch) > FLIGHT_VERTICAL_COS) {
+        return [pitch, q.getYaw()];
+    }
+    let s = Math.sign(pitch);
+    return [s * math.PI_TWO, q.getYaw() + s * q.getRoll()];
 }
 
 /**
@@ -605,29 +617,23 @@ class PlanetCamera extends Camera {
         if (params.linearPath) {
             let ground_a = this.eye.clone();
 
-            let v_a = this._u,
-                n_a = this._b;
-
             let up_b = params.up;
             let ground_b = cartesian.clone();
             let n_b = Vec3.sub(cartesian, look).normalize();
             let v_b = getAlignedUp(n_b.negateTo(), up_b);
+            let orientation = this._createFlightOrientation(cartesian, n_b, v_b);
 
             this._flight = {
                 fly: (progress: number) => {
                     let t = ease(progress);
                     let d = 1 - t;
                     let eye_i = ground_a.smerp(ground_b, d);
-                    let up_i = v_a.smerp(v_b, d);
-                    let n = n_a.slerp(Vec3.sub(eye_i, look).normalize(), t);
-                    n.normalize();
-                    let v = getAlignedUp(n.negateTo(), up_i);
-                    let u = v.cross(n);
+                    let o = orientation(eye_i, t, 0);
                     return {
                         eye: eye_i,
-                        n: n,
-                        u: u,
-                        v: v,
+                        n: o.n,
+                        u: o.u,
+                        v: o.v,
                         focusDistance: lookIsCenter
                             ? this.planet.ellipsoid.cartesianToLonLat(eye_i).height
                             : eye_i.distance(look)
@@ -641,9 +647,6 @@ class PlanetCamera extends Camera {
         }
 
         let ground_a = this.eye.clone();
-
-        let v_a = this._u,
-            n_a = this._b;
 
         let lonlat_b = this.planet.ellipsoid.cartesianToLonLat(cartesian);
         let up_b = params.up;
@@ -663,6 +666,8 @@ class PlanetCamera extends Camera {
         }
         let max_h = currMaxHeight + 2.5 * hM_a * (maxHeight - currMaxHeight);
         let zero = Vec3.ZERO;
+
+        let orientation = this._createFlightOrientation(cartesian, n_b, v_b);
 
         this._flight = {
             fly: (progress: number) => {
@@ -686,17 +691,13 @@ class PlanetCamera extends Camera {
 
                     eye_i = ground_i!.addA(g_i.scale(height_i));
                 }
-                // orientation calculation
-                let up_i = v_a.smerp(v_b, d);
-                let n = n_a.slerp(Vec3.sub(eye_i, look).normalize(), t);
-                n.normalize();
-                let v = getAlignedUp(n.negateTo(), up_i);
-                let u = v.cross(n);
+                // orientation calculation, on the arc top the camera looks down, so the planet stays in view
+                let o = orientation(eye_i, t, 4 * t * d);
                 return {
                     eye: eye_i,
-                    n: n,
-                    u: u,
-                    v: v,
+                    n: o.n,
+                    u: o.u,
+                    v: o.v,
                     focusDistance: lookIsCenter ? height_i : eye_i.distance(look)
                 };
             },
@@ -704,6 +705,59 @@ class PlanetCamera extends Camera {
             startedAt: Date.now()
         };
         this._startFlying();
+    }
+
+    /**
+     * Returns the flight orientation during the flight.
+     * @protected
+     */
+    protected _createFlightOrientation(
+        eye_b: Vec3,
+        n_b: Vec3,
+        v_b: Vec3
+    ): (eye: Vec3, t: number, down: number) => { n: Vec3; u: Vec3; v: Vec3 } {
+        let ellipsoid = this.planet.ellipsoid;
+
+        let q_a = this.planet.getFrameRotation(this.eye).mul(this.getRotation()),
+            q_b = this.planet.getFrameRotation(eye_b).mul(Quat.getLookRotation(n_b.negateTo(), v_b).conjugate());
+
+        let [pitch_a, yaw_a] = getFlightAngles(q_a),
+            [pitch_b, yaw_b] = getFlightAngles(q_b);
+
+        let dYaw = Math.atan2(Math.sin(yaw_b - yaw_a), Math.cos(yaw_b - yaw_a));
+
+        let c_a = q_a.mul(new Quat().setPitchYawRoll(pitch_a, yaw_a, 0).conjugate()),
+            c_b = q_b.mul(new Quat().setPitchYawRoll(pitch_b, yaw_b, 0).conjugate());
+
+        return (eye: Vec3, t: number, down: number) => {
+            if (t >= 1) {
+                let n = n_b.clone().normalize(),
+                    v = getAlignedUp(n.negateTo(), v_b);
+                return { n: n, u: v.cross(n), v: v };
+            }
+
+            let pitch = pitch_a + (pitch_b - pitch_a) * t;
+            pitch += (-math.PI_TWO - pitch) * down;
+
+            let yaw = yaw_a + dYaw * t,
+                cp = Math.cos(pitch),
+                sp = Math.sin(pitch),
+                cy = Math.cos(yaw),
+                sy = Math.sin(yaw);
+
+            let c = c_a.slerp(c_b, t),
+                n_l = c.mulVec3(new Vec3(-cp * sy, -sp, cp * cy)),
+                v_l = c.mulVec3(new Vec3(-sp * sy, cp, sp * cy));
+
+            let up = ellipsoid.getSurfaceNormal3v(eye),
+                north = Vec3.proj_b_to_plane(Vec3.NORTH, up).normalize(),
+                east = north.cross(up);
+
+            let n = east.scaleTo(n_l.x).addA(up.scaleTo(n_l.y)).subA(north.scaleTo(n_l.z)),
+                v = east.scaleTo(v_l.x).addA(up.scaleTo(v_l.y)).subA(north.scaleTo(v_l.z));
+
+            return { n: n, u: v.cross(n), v: v };
+        };
     }
 
     override stopFlying(): void {
