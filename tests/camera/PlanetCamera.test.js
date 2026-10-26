@@ -85,6 +85,49 @@ describe("PlanetCamera flyExtent orientation", () => {
     });
 });
 
+describe("PlanetCamera linear flight", () => {
+    function flyLinear(camera, lonLat) {
+        const target = camera.planet.ellipsoid.lonLatToCartesian(lonLat);
+        camera.flyCartesian(target, { linearPath: true, duration: 1000, preventLock: true });
+        return target;
+    }
+
+    test.each([
+        ["with linearPath", true],
+        ["without linearPath", undefined]
+    ])("a near flight goes straight %s", (_name, linearPath) => {
+        const camera = planetCamera(15000);
+        const start = camera.eye.clone();
+        const target = camera.planet.ellipsoid.lonLatToCartesian(new LonLat(10.5, 10.2, 15000));
+        camera.flyCartesian(target, { linearPath: linearPath, duration: 1000, preventLock: true });
+
+        const middle = camera._flight.fly(0.5).eye;
+        const chord = target.sub(start).normalize();
+        expect(middle.sub(start).normalize().dot(chord)).toBeCloseTo(1, 9);
+    });
+
+    test("a flight farther than 2000 km goes by the arc", () => {
+        const camera = planetCamera(15000);
+        const start = camera.eye.clone();
+        const target = camera.planet.ellipsoid.lonLatToCartesian(new LonLat(30, 10, 15000));
+        camera.flyCartesian(target, { duration: 1000, preventLock: true });
+
+        const height = camera.planet.ellipsoid.cartesianToLonLat(camera._flight.fly(0.5).eye).height;
+        expect(height).toBeGreaterThan(100000);
+        expect(start.distance(target)).toBeGreaterThan(2000000);
+    });
+
+    test("a flight from the other hemisphere goes by the arc, not through the planet", () => {
+        const camera = planetCamera(15000);
+        flyLinear(camera, new LonLat(-120, -30, 15000));
+
+        for (let progress = 0; progress <= 1; progress += 0.05) {
+            const height = camera.planet.ellipsoid.cartesianToLonLat(camera._flight.fly(progress).eye).height;
+            expect(height).toBeGreaterThan(14000);
+        }
+    });
+});
+
 describe("PlanetCamera orthographic instant views", () => {
     const extent = () => new Extent(new LonLat(10, 10), new LonLat(11, 11));
 

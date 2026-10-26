@@ -18,6 +18,11 @@ import { Extent } from "../Extent";
 import { Segment } from "../segment/Segment";
 import { EPS12, RADIANS } from "../math";
 
+/**
+ * Distance between the flight ends in meters, where the flight goes straight without linearPath too.
+ */
+const LINEAR_FLIGHT_DISTANCE = 2000000;
+
 export interface IPlanetCameraParams extends ICameraParams {
     minAltitude?: number;
     maxAltitude?: number;
@@ -563,6 +568,15 @@ class PlanetCamera extends Camera {
             this.planet.normalMapCreator.lock(this._keyLock);
         }
         params.amplitude = params.amplitude != undefined ? params.amplitude : 1.0;
+
+        // A near flight goes straight, a straight path through the planet goes by the arc
+        let isLinear = params.linearPath || this.eye.distance(cartesian) <= LINEAR_FLIGHT_DISTANCE;
+        if (isLinear && !this.isVisible(cartesian)) {
+            isLinear = false;
+            params.amplitude = 1.0;
+        }
+        params.linearPath = isLinear;
+
         const hasExplicitLook = params.look != undefined;
         const lookParam = params.look || Vec3.ZERO;
         const look = lookParam instanceof LonLat ? this.planet.ellipsoid.lonLatToCartesian(lookParam) : lookParam;
@@ -573,7 +587,7 @@ class PlanetCamera extends Camera {
 
         // Looking straight down, the surface normal is (almost) the view direction, so it
         // cannot orient the camera: only the small geodetic tilt of the normal would be
-        // left, and that points south in the southern hemisphere. Keep north up instead.
+        // left, and that points south in the Southern Hemisphere. Keep north up instead.
         params.up =
             params.up ||
             (hasExplicitLook && !lookIsCenter ? this.planet.ellipsoid.getSurfaceNormal3v(cartesian) : Vec3.NORTH);
