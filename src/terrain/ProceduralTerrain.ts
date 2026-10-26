@@ -19,10 +19,20 @@ import { LonLat } from "../LonLat";
 import { isPowerOfTwo } from "../math";
 import { Vec3 } from "../math/Vec3";
 import type { Segment } from "../segment/Segment";
+import { HeightsGridWorker } from "../utils/HeightsGridWorker";
 import { LRUCache } from "../utils/LRUCache";
 import type { TypedArray } from "../utils/shared";
 
 const _point = new Vec3();
+
+let _heightsGridWorker: HeightsGridWorker | null = null;
+
+function getHeightsGridWorker(): HeightsGridWorker | null {
+    if (!_heightsGridWorker && typeof Worker !== "undefined") {
+        _heightsGridWorker = new HeightsGridWorker(2);
+    }
+    return _heightsGridWorker;
+}
 
 export type ProceduralHeights = number[] | TypedArray | null;
 
@@ -50,8 +60,10 @@ type TileHeights = {
  * to south, vertices evenly spaced in segment.getExtent(), or null when the segment has no terrain.
  * (plainGridSize + 1)² heights are taken as they are. Larger (2^n + 1)² vertices, or 2^n x 2^n pixels, are reduced
  * to them keeping peaks and pits. Segments of the height requests are not in the quad tree, their node is null.
+ * The function runs in the main thread. Returned heights are reduced in the main thread too and applied right away,
+ * promised heights are reduced in a worker when the promise is resolved.
  * @param {number} [options.plainGridSize=32] - Elevation grid size.
- * @param {number} [options.maxNativeZoom=maxZoom] - Last zoom of the heights requests. Deeper segments are the
+ * @param {number} [options.maxNativeZoom=maxZoom] - Last zoom of the height requests. Deeper segments are the
  * subdivision levels of the maxNativeZoom segment heights, as RgbTerrain ones, its pixels keep their heights there.
  * @param {number} [options.nativeCacheSize=50] - Number of maxNativeZoom segments which pixels are kept to make
  * their levels when they are needed. The least recently used are dropped and requested again.
@@ -60,6 +72,17 @@ type TileHeights = {
  *
  * @fires load
  * @fires loadend
+ *
+ * @example
+ * // Heights made right away are reduced in the main thread
+ * new ProceduralTerrain("Flat", {
+ *     getHeights: (segment) => new Float32Array(129 * 129).fill(100)
+ * });
+ *
+ * // Promised heights are reduced in a worker
+ * new ProceduralTerrain("Loaded", {
+ *     getHeights: (segment) => loadTilePixels(segment) // Promise<Float32Array>
+ * });
  */
 class ProceduralTerrain extends EmptyTerrain {
     public events: TerrainEvents;
@@ -261,12 +284,14 @@ class ProceduralTerrain extends EmptyTerrain {
             heights = this._getHeights(segment);
 
         if (!(heights instanceof Promise)) {
-            return this._setHeights(segment, extent, heights);
+            return this._setHeights(segment, extent, this._toGridHeights(segment, heights, null));
         }
 
         this._loading++;
 
+        // Loaded heights make their grid in the worker, it takes the frame time of the main thread
         return (this._pendingHeights[tileIndex] = heights
+            .then((h) => this._toGridHeights(segment, h, getHeightsGridWorker()))
             .then(
                 (h) => this._setHeights(segment, extent, h),
                 (err) => {
@@ -352,16 +377,26 @@ class ProceduralTerrain extends EmptyTerrain {
 
     protected _setHeights(segment: Segment, extent: Extent, heights: ProceduralHeights): TileHeights {
         return (this._heightsCache[segment.tileIndex] = {
-            heights: this._toGridHeights(segment, heights),
+            heights: heights,
             extent: extent
         });
     }
 
     /**
-     * Returns the grid heights of the segment. The maxNativeZoom segment with subdivision levels keeps its pixels
-     * to make them.
+     * Returns the grid heights of the segment, or the promise of them the worker makes. The maxNativeZoom segment
+     * with subdivision levels keeps its pixels to make them.
      */
-    protected _toGridHeights(segment: Segment, heights: ProceduralHeights): ProceduralHeights {
+    protected _toGridHeights(segment: Segment, heights: ProceduralHeights, worker: null): ProceduralHeights;
+    protected _toGridHeights(
+        segment: Segment,
+        heights: ProceduralHeights,
+        worker: HeightsGridWorker | null
+    ): ProceduralHeights | Promise<ProceduralHeights>;
+    protected _toGridHeights(
+        segment: Segment,
+        heights: ProceduralHeights,
+        worker: HeightsGridWorker | null
+    ): ProceduralHeights | Promise<ProceduralHeights> {
         if (!heights) {
             return null;
         }
@@ -393,6 +428,29 @@ class ProceduralTerrain extends EmptyTerrain {
                 : 0;
 
         let noDataHeight = this.noDataValues.length ? this.noDataValues[0] : NaN;
+
+        if (worker) {
+            if (levels) {
+                this._levelsSources.set(
+                    segment.tileIndex,
+                    createHeightsLevelsSource(size, this.plainGridSize, levels, decodeRow, noDataHeight)
+                );
+            }
+
+            let pixels = new Float32Array(heights),
+                gridSize = this.plainGridSize;
+
+            return new Promise((resolve) =>
+                worker.make({
+                    pixels,
+                    size,
+                    gridSize,
+                    levels,
+                    noDataHeight,
+                    callback: resolve
+                })
+            );
+        }
 
         if (!levels) {
             return createHeightsLevels(size, this.plainGridSize, 0, decodeRow, noDataHeight);

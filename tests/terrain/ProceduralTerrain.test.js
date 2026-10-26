@@ -1,5 +1,5 @@
 import { ProceduralTerrain } from "../../src/terrain/ProceduralTerrain";
-import { createHeightsLevels, TERRAIN_GRID_SIZE_BY_ZOOM } from "../../src/terrain/terrainUtils";
+import { createHeightsLevels, createTileHeights, TERRAIN_GRID_SIZE_BY_ZOOM } from "../../src/terrain/terrainUtils";
 import { QuadTreeStrategy } from "../../src/quadTree/QuadTreeStrategy";
 import { LonLat } from "../../src/LonLat";
 import * as mercator from "../../src/mercator";
@@ -181,6 +181,9 @@ test("ProceduralTerrain segment grid sizes by zoom are the elevation terrains on
 });
 
 // Promise resolved by the test
+// Promised heights go through a few then calls, a macrotask waits for all of them
+const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
 function deferred() {
     let resolve, reject;
     const promise = new Promise((res, rej) => {
@@ -217,8 +220,7 @@ test("ProceduralTerrain applies promised heights when they are made, once for a 
 
     request.resolve(heights);
     await request.promise;
-    await Promise.resolve();
-    await Promise.resolve();
+    await settle();
 
     expect(terrain._loading).toBe(0);
     expect(segments[0].applyTerrain).toHaveBeenCalledWith(heights);
@@ -240,8 +242,7 @@ test("ProceduralTerrain does not apply promised heights out of the planet, and r
     terrain.loadTerrain(segment);
     requests[0].reject(new Error("no heights"));
     await requests[0].promise.catch(() => {});
-    await Promise.resolve();
-    await Promise.resolve();
+    await settle();
 
     expect(error).toHaveBeenCalled();
     expect(segment.applyTerrain).toHaveBeenCalledWith(null);
@@ -254,8 +255,7 @@ test("ProceduralTerrain does not apply promised heights out of the planet, and r
     terrain._planet = null;
     requests[1].resolve(new Float32Array(25));
     await requests[1].promise;
-    await Promise.resolve();
-    await Promise.resolve();
+    await settle();
 
     expect(other.applyTerrain).not.toHaveBeenCalled();
 
@@ -279,9 +279,7 @@ test("ProceduralTerrain getHeightAsync calls back when the promised heights are 
 
     request.resolve();
     await request.promise;
-    for (let i = 0; i < 4; i++) {
-        await Promise.resolve();
-    }
+    await settle();
 
     expect(callback).toHaveBeenCalledTimes(1);
     expect(callback.mock.calls[0][0]).toBeCloseTo(30, 4);
@@ -454,4 +452,52 @@ test("ProceduralTerrain getHeightAsync deeper than the levels takes the height o
 
     expect(getHeights).toHaveBeenCalledTimes(1);
     expect(height).toBeCloseTo(point.lon - e.southWest.lon, 0);
+});
+
+describe("ProceduralTerrain grid heights in the worker", () => {
+    // The worker runs createTileHeights on the pixels it is given
+    const worker = {
+        make: vi.fn((t) => t.callback(createTileHeights(t.pixels, t.size, t.gridSize, t.levels, t.noDataHeight)))
+    };
+
+    function createTerrain() {
+        return new ProceduralTerrain(null, { plainGridSize: 4, maxZoom: 4, maxNativeZoom: 2, getHeights: () => null });
+    }
+
+    // 16x16 pixels with a peak, a pit and no data
+    function createPixels() {
+        const pixels = new Float32Array(256).map((_, k) => (k % 16) + (k >> 4));
+        pixels[5 * 16 + 6] = 100;
+        pixels[10 * 16 + 9] = -50;
+        pixels[3] = NaN;
+        return pixels;
+    }
+
+    test.each([
+        ["without subdivision levels", 1],
+        ["of the maxNativeZoom segment with subdivision levels", 2]
+    ])("are the same as in the main thread %s", async (_name, tileZoom) => {
+        const segment = { tileIndex: `0::0_0_${tileZoom}`, tileZoom };
+        const main = createTerrain(),
+            inWorker = createTerrain();
+
+        const expected = main._toGridHeights(segment, createPixels(), null);
+        const heights = await inWorker._toGridHeights(segment, createPixels(), worker);
+
+        expect(Array.from(heights)).toEqual(Array.from(expected));
+        expect(inWorker._levelsSources.size).toBe(main._levelsSources.size);
+        if (tileZoom === 2) {
+            expect(inWorker._levelsSources.size).toBe(1);
+        }
+    });
+
+    test("gets a copy of the heights, their source keeps them", async () => {
+        const pixels = createPixels();
+
+        await createTerrain()._toGridHeights({ tileIndex: "0::0_0_1", tileZoom: 1 }, pixels, worker);
+
+        const sent = worker.make.mock.calls[worker.make.mock.calls.length - 1][0].pixels;
+        expect(sent).not.toBe(pixels);
+        expect(Array.from(sent)).toEqual(Array.from(pixels));
+    });
 });

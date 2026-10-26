@@ -473,16 +473,21 @@ export class GeoTIFFReader implements IGeoTIFFReader {
             const [rasters, maskRasters] = await Promise.all([rastersPromise, maskPromise]);
             const maskRaster = maskRasters?.[0];
 
+            // Tile pixels of a raster on the tile grid are the image ones, nearest takes them as they are
+            const origin = margin === 0 ? this._getAlignedOrigin(grid, imgWidth, imgHeight, tileSize) : null;
+
             return {
-                rasters: this._warpRasters(
-                    rasters,
-                    grid,
-                    imgWidth,
-                    imgHeight,
-                    [winX0, winY0, winX1, winY1],
-                    tileSize,
-                    maskRaster
-                ),
+                rasters: origin
+                    ? this._copyRasters(rasters, origin, [winX0, winY0, winX1, winY1], tileSize, maskRaster)
+                    : this._warpRasters(
+                          rasters,
+                          grid,
+                          imgWidth,
+                          imgHeight,
+                          [winX0, winY0, winX1, winY1],
+                          tileSize,
+                          maskRaster
+                      ),
                 width: tileSize,
                 height: tileSize,
                 dstX: 0,
@@ -691,6 +696,84 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         }
 
         return 0;
+    }
+
+    /**
+     * Returns the image column and row of the tile when tile pixels match the source grid, so its rows are copied
+     * without resampling; otherwise null.
+     */
+    private _getAlignedOrigin(
+        grid: TileGrid,
+        imgWidth: number,
+        imgHeight: number,
+        tileSize: number
+    ): [number, number] | null {
+        const { gridU, gridV, gridSize } = grid;
+        const side = gridSize + 1;
+        const cellSize = tileSize / gridSize;
+        const col0 = Math.round(gridU[0] * imgWidth);
+        const row0 = Math.round(gridV[0] * imgHeight);
+
+        for (let j = 0; j < side; j++) {
+            for (let i = 0; i < side; i++) {
+                const n = j * side + i;
+                if (
+                    Math.abs(gridU[n] * imgWidth - col0 - i * cellSize) > WINDOW_TOLERANCE ||
+                    Math.abs(gridV[n] * imgHeight - row0 - j * cellSize) > WINDOW_TOLERANCE
+                ) {
+                    return null;
+                }
+            }
+        }
+
+        return [col0, row0];
+    }
+
+    /**
+     * Returns the tile rasters copied from the window rows starting at the origin, the same as the nearest
+     * resampling gives; tile pixels out of the image stay NaN.
+     */
+    private _copyRasters(
+        rasters: TypedArray[],
+        origin: [number, number],
+        window: [number, number, number, number],
+        tileSize: number,
+        maskRaster?: TypedArray
+    ): Float32Array[] {
+        const [col0, row0] = origin;
+        const [winX0, winY0, winX1, winY1] = window;
+        const winWidth = winX1 - winX0;
+
+        const nodata = this._getEffectiveNoData();
+        const checkNoData = nodata !== null ? getFastNoDataChecker(nodata) : null;
+
+        // Tile pixels inside the window, the window is the tile clamped to the image
+        const x0 = Math.max(0, winX0 - col0);
+        const x1 = Math.min(tileSize, winX1 - col0);
+        const y0 = Math.max(0, winY0 - row0);
+        const y1 = Math.min(tileSize, winY1 - row0);
+
+        const out: Float32Array[] = [];
+
+        for (let b = 0; b < rasters.length; b++) {
+            const src = rasters[b];
+            const dst = new Float32Array(tileSize * tileSize).fill(NaN);
+
+            for (let y = y0; y < y1; y++) {
+                let s = (row0 + y - winY0) * winWidth + col0 + x0 - winX0;
+                for (let d = y * tileSize + x0, end = y * tileSize + x1; d < end; d++, s++) {
+                    const val = src[s];
+                    if ((maskRaster && !maskRaster[s]) || (checkNoData ? checkNoData(val) : Number.isNaN(val))) {
+                        continue;
+                    }
+                    dst[d] = val;
+                }
+            }
+
+            out.push(dst);
+        }
+
+        return out;
     }
 
     private _warpRasters(

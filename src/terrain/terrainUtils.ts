@@ -727,6 +727,32 @@ export function createLevelHeights(
 }
 
 /**
+ * Returns the (gridSize + 1) x (gridSize + 1) heights of the tile pixels, peaks and pits stay. Subdivision levels
+ * the pixels are kept for change the vertex grid, so the tile is made as its level 0.
+ * @param {Float32Array} pixels - Pixel heights, rows from north to south, NaN for no data.
+ * @param {number} size - Image size, 2^n or (2^n + 1).
+ * @param {number} gridSize - Tile grid size.
+ * @param {number} levels - Subdivision levels of the tile pixels.
+ * @param {number} noDataHeight - Height for vertices without data.
+ * @returns {Float32Array} -
+ */
+export function createTileHeights(
+    pixels: Float32Array,
+    size: number,
+    gridSize: number,
+    levels: number,
+    noDataHeight: number
+): Float32Array {
+    let decodeRow = (row: number, out: Float32Array) => out.set(pixels.subarray(row * size, (row + 1) * size));
+
+    if (!levels) {
+        return createHeightsLevels(size, gridSize, 0, decodeRow, noDataHeight);
+    }
+
+    return createLevelHeights(createHeightsLevelsSource(size, gridSize, levels, decodeRow, noDataHeight), 0, 0, 0);
+}
+
+/**
  * Creates the tile heights grid and its subdivision levels, each tile is (gridSize + 1) x (gridSize + 1).
  * Output order is the tile itself, then 2x2 tiles of the first level, 4x4 of the second and so on, row by row.
  * Peaks and pits of the pixels stay in all the levels.

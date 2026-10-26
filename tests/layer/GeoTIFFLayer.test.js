@@ -1341,3 +1341,80 @@ describe("GeoTIFFReader window of a raster on the tile grid", () => {
         expect(data.window).toEqual([255, 255, 513, 513]);
     });
 });
+
+describe("GeoTIFFReader copy of a raster on the tile grid", () => {
+    // Web Mercator raster on the 256 pixel tiles of zoom 16 from the tile 32768, 24064, 1000 pixels wide,
+    // so its last tile column is out of the image partly. Pixel values tell their image position.
+    const PIXEL = 391357.58482010243 / 163840;
+    const SIZE = 1000;
+    const NODATA = -9999;
+
+    const value = (col, row) => ((col + row) % 17 === 0 ? NODATA : col * 7 + row * 13);
+
+    function createReader(withMask) {
+        const reader = new GeoTIFFReader({});
+        const readWindow = (window, f) => {
+            const [x0, y0, x1, y1] = window;
+            const data = new Float32Array((x1 - x0) * (y1 - y0));
+            for (let y = y0, k = 0; y < y1; y++) {
+                for (let x = x0; x < x1; x++, k++) {
+                    data[k] = f(x, y);
+                }
+            }
+            return [data];
+        };
+        reader.source = {};
+        reader.images = [
+            { getWidth: () => SIZE, getHeight: () => SIZE, readRasters: async ({ window }) => readWindow(window, value) }
+        ];
+        reader.masks = [
+            withMask
+                ? {
+                      readRasters: async ({ window }) => readWindow(window, (x, y) => ((x * 3 + y) % 11 === 0 ? 0 : 255))
+                  }
+                : null
+        ];
+        reader.nativeBBox = [0, 5322463.153553393 - SIZE * PIXEL, SIZE * PIXEL, 5322463.153553393];
+        reader.crsCode = 3857;
+        reader.metadata = { noData: NODATA };
+        reader.extentWgs84 = new Extent(new LonLat(0, 40), new LonLat(3.6, 43.2));
+        reader.isReady = true;
+        return reader;
+    }
+
+    async function readBoth(reader, x, y) {
+        const tile = mercator.getTileExtent(x, y, 16).inverseMercator();
+        const copy = vi.spyOn(reader, "_copyRasters");
+        const copied = await reader.readTileRasters(tile, 16, 256, [0]);
+        expect(copy).toHaveBeenCalledTimes(1);
+        copy.mockRestore();
+
+        reader._getAlignedOrigin = () => null;
+        const warped = await reader.readTileRasters(tile, 16, 256, [0]);
+        delete reader._getAlignedOrigin;
+
+        return [copied.rasters[0], warped.rasters[0]];
+    }
+
+    it.each([
+        ["inside the image", 32769, 24065, false],
+        ["partly out of the image", 32771, 24067, false],
+        ["with a mask", 32769, 24066, true]
+    ])("gives the nearest resampling pixels for a tile %s", async (_name, x, y, withMask) => {
+        const [copied, warped] = await readBoth(createReader(withMask), x, y);
+
+        expect(Array.from(copied)).toEqual(Array.from(warped));
+        expect(copied.some((v) => !Number.isNaN(v))).toBe(true);
+        expect(copied.some((v) => Number.isNaN(v))).toBe(true);
+    });
+
+    it("bilinear resamples a raster on the tile grid as before", async () => {
+        const reader = createReader(false);
+        reader.options.renderOptions = { resampleMethod: "bilinear" };
+        const copy = vi.spyOn(reader, "_copyRasters");
+
+        await reader.readTileRasters(mercator.getTileExtent(32769, 24065, 16).inverseMercator(), 16, 256, [0]);
+
+        expect(copy).not.toHaveBeenCalled();
+    });
+});
