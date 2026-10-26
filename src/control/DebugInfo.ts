@@ -384,6 +384,10 @@ export class DebugInfo extends Control {
     protected _frame() {
         this._drawnFrames++;
 
+        if (!this._dialog.getVisibility()) {
+            return;
+        }
+
         this._watch.forEach((w) => {
             if (w.valEl) {
                 w.valEl.innerHTML = w.frame ? String(w.frame()) : "";
