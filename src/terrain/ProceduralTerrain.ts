@@ -19,20 +19,11 @@ import { LonLat } from "../LonLat";
 import { isPowerOfTwo } from "../math";
 import { Vec3 } from "../math/Vec3";
 import type { Segment } from "../segment/Segment";
-import { HeightsGridWorker } from "../utils/HeightsGridWorker";
 import { LRUCache } from "../utils/LRUCache";
+import { getRasterWorker, RasterWorker } from "../utils/RasterWorker";
 import type { TypedArray } from "../utils/shared";
 
 const _point = new Vec3();
-
-let _heightsGridWorker: HeightsGridWorker | null = null;
-
-function getHeightsGridWorker(): HeightsGridWorker | null {
-    if (!_heightsGridWorker && typeof Worker !== "undefined") {
-        _heightsGridWorker = new HeightsGridWorker(2);
-    }
-    return _heightsGridWorker;
-}
 
 export type ProceduralHeights = number[] | TypedArray | null;
 
@@ -291,7 +282,7 @@ class ProceduralTerrain extends EmptyTerrain {
 
         // Loaded heights make their grid in the worker, it takes the frame time of the main thread
         return (this._pendingHeights[tileIndex] = heights
-            .then((h) => this._toGridHeights(segment, h, getHeightsGridWorker()))
+            .then((h) => this._toGridHeights(segment, h, getRasterWorker()))
             .then(
                 (h) => this._setHeights(segment, extent, h),
                 (err) => {
@@ -390,12 +381,12 @@ class ProceduralTerrain extends EmptyTerrain {
     protected _toGridHeights(
         segment: Segment,
         heights: ProceduralHeights,
-        worker: HeightsGridWorker | null
+        worker: RasterWorker | null
     ): ProceduralHeights | Promise<ProceduralHeights>;
     protected _toGridHeights(
         segment: Segment,
         heights: ProceduralHeights,
-        worker: HeightsGridWorker | null
+        worker: RasterWorker | null
     ): ProceduralHeights | Promise<ProceduralHeights> {
         if (!heights) {
             return null;
@@ -437,19 +428,7 @@ class ProceduralTerrain extends EmptyTerrain {
                 );
             }
 
-            let pixels = new Float32Array(heights),
-                gridSize = this.plainGridSize;
-
-            return new Promise((resolve) =>
-                worker.make({
-                    pixels,
-                    size,
-                    gridSize,
-                    levels,
-                    noDataHeight,
-                    callback: resolve
-                })
-            );
+            return worker.heights(new Float32Array(heights), size, this.plainGridSize, levels, noDataHeight);
         }
 
         if (!levels) {

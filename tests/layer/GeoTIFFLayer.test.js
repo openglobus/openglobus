@@ -1,4 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
+
+// The raster worker runs in a browser, the tests resample in the main thread with the same functions
+vi.mock("../../src/utils/RasterWorker", () => ({ getRasterWorker: () => null }));
 import { GeoTIFFLayer } from "../../src/layer/GeoTIFFLayer";
 import { Material } from "../../src/layer/Material";
 import { GeoTIFFReader } from "../../src/layer/geotiff/GeoTIFFReader";

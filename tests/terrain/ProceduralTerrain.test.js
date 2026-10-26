@@ -457,7 +457,7 @@ test("ProceduralTerrain getHeightAsync deeper than the levels takes the height o
 describe("ProceduralTerrain grid heights in the worker", () => {
     // The worker runs createTileHeights on the pixels it is given
     const worker = {
-        make: vi.fn((t) => t.callback(createTileHeights(t.pixels, t.size, t.gridSize, t.levels, t.noDataHeight)))
+        heights: vi.fn(async (...args) => createTileHeights(...args))
     };
 
     function createTerrain() {
@@ -496,7 +496,7 @@ describe("ProceduralTerrain grid heights in the worker", () => {
 
         await createTerrain()._toGridHeights({ tileIndex: "0::0_0_1", tileZoom: 1 }, pixels, worker);
 
-        const sent = worker.make.mock.calls[worker.make.mock.calls.length - 1][0].pixels;
+        const sent = worker.heights.mock.calls[worker.heights.mock.calls.length - 1][0];
         expect(sent).not.toBe(pixels);
         expect(Array.from(sent)).toEqual(Array.from(pixels));
     });
