@@ -1,7 +1,7 @@
 import { ProceduralTerrain } from "./ProceduralTerrain";
 import type { IProceduralTerrainParams, ProceduralHeights } from "./ProceduralTerrain";
 import { TERRAIN_GRID_SIZE_BY_ZOOM } from "./terrainUtils";
-import { GeoTIFFReader, initGeoTIFFReader } from "../layer/geotiff/GeoTIFFReader";
+import { GeoTIFFReader } from "../layer/geotiff/GeoTIFFReader";
 import type { IGeoTIFFMetadata, IGeoTIFFSourceCommon } from "../layer/geotiff/types";
 import type { LonLat } from "../LonLat";
 import type { Segment } from "../segment/Segment";
@@ -53,7 +53,8 @@ class GeoTiffTerrain extends ProceduralTerrain {
         this._samples = [(options.band || 1) - 1];
         this._sourceReady = false;
 
-        this._readyPromise = initGeoTIFFReader(this._reader, options.src!)
+        this._readyPromise = this._reader
+            .init(options.src!)
             .then((meta) => {
                 if (options.maxNativeZoom == undefined) {
                     this.maxNativeZoom = Math.min(this._getNativeZoom(meta), this.maxZoom);

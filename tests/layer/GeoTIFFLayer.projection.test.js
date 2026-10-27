@@ -1,4 +1,5 @@
 import { GeoTIFFLayer } from "../../src/layer/GeoTIFFLayer";
+import { GeoTIFFReader } from "../../src/layer/geotiff/GeoTIFFReader";
 import { getProjectionHelper } from "../../src/layer/geotiff/utm";
 import { proj4 } from "../../src/proj/proj4";
 
@@ -18,97 +19,57 @@ function stubFetch(bodyByCode) {
     return calls;
 }
 
-// A reader stub: a real one needs a GeoTIFF to parse. `crsResolved` is what it reports about the
-// CRS it has just parsed, and a source read again after a definition was registered resolves.
-function stubReader(layer, crsCode, crsResolved) {
-    const reads = [];
-    layer._reader = {
-        extentWgs84: null,
-        init: (src) => {
-            reads.push(src);
-            return Promise.resolve({
-                crsCode,
-                crsResolved: crsResolved || reads.length > 1,
-                bbox: [0, 0, 1, 1],
-                width: 1,
-                height: 1,
-                samplesPerPixel: 1,
-                noData: null,
-                isTiled: false,
-                overviewCount: 1,
-                bands: { 1: { min: 0, max: 255 } }
-            });
-        }
-    };
-    return reads;
-}
-
 afterEach(() => {
     delete globalThis.proj4;
     delete globalThis.fetch;
 });
 
-describe("GeoTIFFLayer resolving the projection of a source", () => {
-    test("a CRS the reader georeferenced itself is read once", async () => {
-        const calls = stubFetch({ 32636: "+proj=utm +zone=36 +no_defs" });
-        const layer = new GeoTIFFLayer("utm");
-        const reads = stubReader(layer, 32636, true);
+describe("GeoTIFFReader resolving the projection of a source", () => {
+    test("a UTM zone of WGS 84 needs no definition", async () => {
+        const calls = stubFetch({});
 
-        const meta = await layer._readSource("utm.tif");
-
-        expect(meta.crsResolved).toBe(true);
-        expect(reads.length).toBe(1);
-        // A UTM zone needs no definition
+        expect(await new GeoTIFFReader({})._resolveProjection(32636)).not.toBeNull();
         expect(calls.length).toBe(0);
     });
 
-    test("an unresolved CRS is registered from epsg.io and the source is read again", async () => {
-        const calls = stubFetch({ 6582: "+proj=tmerc +lat_0=0 +lon_0=141 +k=0.9999 +no_defs" });
-        const layer = new GeoTIFFLayer("tmerc");
-        const reads = stubReader(layer, 6582, false);
+    test("lon/lat and Web Mercator are never looked up", async () => {
+        const calls = stubFetch({});
+        const reader = new GeoTIFFReader({});
 
-        const meta = await layer._readSource("tmerc.tif");
+        await reader._resolveProjection(4326);
+        await reader._resolveProjection(3857);
+        await reader._resolveProjection(900913);
+
+        expect(calls.length).toBe(0);
+    });
+
+    test("a CRS unknown to proj4 is registered from epsg.io before the source is used", async () => {
+        const calls = stubFetch({ 6582: "+proj=tmerc +lat_0=0 +lon_0=141 +k=0.9999 +no_defs" });
+
+        const helper = await new GeoTIFFReader({})._resolveProjection(6582);
 
         expect(calls).toEqual(["https://epsg.io/6582.proj4"]);
-        expect(reads.length).toBe(2);
-        expect(meta.crsResolved).toBe(true);
+        expect(helper).not.toBeNull();
         // The definition landed in the registry the readers go to
         expect(proj4.defs("EPSG:6582")).toBeTruthy();
         expect(getProjectionHelper(6582)).not.toBeNull();
     });
 
-    test("a CRS with no definition anywhere is read once and kept as it is", async () => {
+    test("a CRS with no definition anywhere has no helper, the registry is asked once", async () => {
         const calls = stubFetch({ 3059: "<!DOCTYPE html><html lang=\"en\">" });
-        const layer = new GeoTIFFLayer("unknown");
-        const reads = stubReader(layer, 3059, false);
 
-        const meta = await layer._readSource("unknown.tif");
-
-        expect(calls.length).toBe(1);
-        expect(reads.length).toBe(1);
-        expect(meta.crsResolved).toBe(false);
-
-        // The registry has already been asked for this code
-        const again = new GeoTIFFLayer("unknown2");
-        stubReader(again, 3059, false);
-        await again._readSource("unknown.tif");
+        expect(await new GeoTIFFReader({})._resolveProjection(3059)).toBeNull();
+        expect(await new GeoTIFFReader({})._resolveProjection(3059)).toBeNull();
         expect(calls.length).toBe(1);
     });
 
     test("a projection the application brings itself is never looked up", async () => {
         const calls = stubFetch({ 2193: "+proj=tmerc +lat_0=0 +lon_0=173 +no_defs" });
-
-        // Whichever way it is supplied, a projFunc or a definition registered beforehand, the
-        // reader georeferences the CRS on the first read and reports it as resolved
-        const layer = new GeoTIFFLayer("nztm", {
-            projFunc: (code) =>
-                code === 2193 ? { project: (p) => p, unproject: (p) => p } : undefined
+        const reader = new GeoTIFFReader({
+            projFunc: (code) => (code === 2193 ? { project: (p) => p, unproject: (p) => p } : undefined)
         });
-        const reads = stubReader(layer, 2193, true);
 
-        await layer._readSource("nztm.tif");
-
-        expect(reads.length).toBe(1);
+        expect(await reader._resolveProjection(2193)).not.toBeNull();
         expect(calls.length).toBe(0);
     });
 
@@ -126,18 +87,12 @@ describe("GeoTIFFLayer resolving the projection of a source", () => {
 
     test("a code projFunc does not cover falls through to the registry", async () => {
         const calls = stubFetch({ 3346: "+proj=tmerc +lat_0=0 +lon_0=24 +no_defs" });
-        const layer = new GeoTIFFLayer("other", {
-            projFunc: (code) =>
-                code === 2180 ? { project: (p) => p, unproject: (p) => p } : undefined
+        const reader = new GeoTIFFReader({
+            projFunc: (code) => (code === 2180 ? { project: (p) => p, unproject: (p) => p } : undefined)
         });
-        const reads = stubReader(layer, 3346, false);
 
-        const meta = await layer._readSource("other.tif");
-
-        // projFunc declined this code, so the usual fallback chain applies
+        expect(await reader._resolveProjection(3346)).not.toBeNull();
         expect(calls.length).toBe(1);
-        expect(reads.length).toBe(2);
-        expect(meta.crsResolved).toBe(true);
     });
 
     test("a read that fails is not retried", async () => {

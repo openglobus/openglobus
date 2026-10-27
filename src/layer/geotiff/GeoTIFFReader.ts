@@ -58,13 +58,13 @@ const BLOCK_SIZE = 65536 * 4;
 /**
  * Memory taken by cached byte ranges, the default cacheSize is derived from it.
  */
-const BLOCK_CACHE_BYTES = 32 * Math.pow(1024, 2);
+const BLOCK_CACHE_BYTES = 64 * Math.pow(1024, 2);
 
 const OVERVIEW_RESOLUTION_TOLERANCE = 1.4;
 
 /**
- * Reading optimization, in source pixels. The projected tile edge on a pixel edge lands a bit off it, so
- * the window takes the next pixel row or column and the next TIFF tiles are read and decoded too.
+ * Reading optimization in source pixels. The projected tile edge on a pixel edge lands a bit off it, so
+ * the window takes the next pixel row or column, and the next TIFF tiles are read and decoded too.
  * The tolerance keeps the window on the tile pixels, the heights and colors are the same without it.
  */
 const WINDOW_TOLERANCE = 1e-3;
@@ -83,26 +83,6 @@ export function parseCrsCode(crs?: number | string): number | undefined {
         return match ? parseInt(match[0], 10) : undefined;
     }
     return;
-}
-
-/**
- * Opens the source with the reader. If its CRS is unresolved, fetches the projection
- * from the EPSG registry and reopens the source with it.
- *
- * Projections provided via `projFunc` or registered in {@link proj4}
- * are already resolved and require no lookup.
- */
-export async function initGeoTIFFReader(
-    reader: IGeoTIFFReader,
-    src: GeoTIFFSource | IGeoTIFFSourceItem[]
-): Promise<IGeoTIFFMetadata> {
-    const meta = await reader.init(src);
-
-    if (meta.crsResolved) {
-        return meta;
-    }
-
-    return (await defineProjection(meta.crsCode)) ? reader.init(src) : meta;
 }
 
 export class GeoTIFFReader implements IGeoTIFFReader {
@@ -224,7 +204,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
             }
         }
         this.crsCode = crsCode;
-        this._projHelper = getProjectionHelper(crsCode, this.projFunc);
+        this._projHelper = await this._resolveProjection(crsCode);
         this.crsResolved = true;
 
         // Calculate WGS84 Extent
@@ -248,7 +228,10 @@ export class GeoTIFFReader implements IGeoTIFFReader {
                 new LonLat(Math.max(...lons), Math.max(...lats))
             );
         } else {
-            console.warn(`[GeoTIFFReader] Unrecognized CRS: EPSG:${crsCode}. Assuming bounds are lon/lat.`);
+            console.warn(
+                `[GeoTIFFReader] Unrecognized CRS: EPSG:${crsCode}, define it with proj4.defs("EPSG:${crsCode}", "...") ` +
+                    `or projFunc. Assuming bounds are lon/lat.`
+            );
             this.extentWgs84 = new Extent(new LonLat(minX, minY), new LonLat(maxX, maxY));
             this.crsResolved = false;
         }
@@ -362,6 +345,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
      * @param tileSize - Output tile size in pixels.
      * @param readSamples - Band indexes to read.
      * @param segmentProj - Projection of the segment the tile belongs to, EPSG:3857 by default.
+     * @returns Tile rasters, null for a tile out of the raster. A failed read rejects.
      */
     public async readTileRasters(
         tileExtentLonLat: Extent,
@@ -453,74 +437,93 @@ export class GeoTIFFReader implements IGeoTIFFReader {
             options.samples = readSamples;
         }
 
-        try {
-            // readRGB() converts the samples of a non RGB color space and returns R, G and B
-            const rastersPromise = this._convertPhotometric
-                ? image.readRGB({
-                      window: options.window,
-                      pool: options.pool,
-                      interleave: false
-                  })
-                : image.readRasters(options);
+        const read = () =>
+            Promise.all([
+                // readRGB() converts the samples of a non RGB color space and returns R, G and B
+                this._convertPhotometric
+                    ? image.readRGB({
+                          window: options.window,
+                          pool: options.pool,
+                          interleave: false
+                      })
+                    : image.readRasters(options),
+                // The mask covers the same window as the image and marks the valid pixels of the file
+                mask
+                    ? mask.readRasters({
+                          window: options.window,
+                          pool: options.pool,
+                          samples: [0],
+                          interleave: false
+                      })
+                    : undefined
+            ]);
 
-            // The mask covers the same window as the image and marks the valid pixels of the file
-            const maskPromise = mask
-                ? mask.readRasters({
-                      window: options.window,
-                      pool: options.pool,
-                      samples: [0],
-                      interleave: false
-                  })
-                : undefined;
-
-            const [rasters, maskRasters] = await Promise.all([rastersPromise, maskPromise]);
-            const maskRaster = maskRasters?.[0];
-
-            const win: [number, number, number, number] = [winX0, winY0, winX1, winY1];
-
-            // Tile pixels of a raster on the tile grid are the image ones, nearest takes them as they are
-            const origin = margin === 0 ? this._getAlignedOrigin(grid, imgWidth, imgHeight, tileSize) : null;
-
-            let tileRasters: Float32Array[] | null;
-
-            if (origin) {
-                tileRasters = this._copyRasters(rasters, origin, win, tileSize, maskRaster);
-            } else {
-                const p: IWarpParams = {
-                    rasters,
-                    gridU: grid.gridU,
-                    gridV: grid.gridV,
-                    gridSize: grid.gridSize,
-                    imgWidth,
-                    imgHeight,
-                    window: win,
-                    tileSize,
-                    bilinear: margin === 1,
-                    nodata: this._getEffectiveNoData(),
-                    maskRaster
-                };
-                const worker = getRasterWorker();
-                tileRasters = worker ? await worker.warp(p) : warpRasters(p);
+        // Concurrent reads may lose their blocks when the block cache is full, geotiff throws AggregateError then,
+        // the second read loads them again. Other errors go to the caller, a failed tile is not taken as empty.
+        const [rasters, maskRasters] = await read().catch((err) => {
+            if (err instanceof AggregateError) {
+                return read();
             }
+            throw err;
+        });
+        const maskRaster = maskRasters?.[0];
 
-            if (!tileRasters) {
-                return null;
-            }
+        const win: [number, number, number, number] = [winX0, winY0, winX1, winY1];
 
-            return {
-                rasters: tileRasters,
-                width: tileSize,
-                height: tileSize,
-                dstX: 0,
-                dstY: 0,
+        // Tile pixels of a raster on the tile grid are the image ones, nearest takes them as they are
+        const origin = margin === 0 ? this._getAlignedOrigin(grid, imgWidth, imgHeight, tileSize) : null;
+
+        let tileRasters: Float32Array[] | null;
+
+        if (origin) {
+            tileRasters = this._copyRasters(rasters, origin, win, tileSize, maskRaster);
+        } else {
+            const p: IWarpParams = {
+                rasters,
+                gridU: grid.gridU,
+                gridV: grid.gridV,
+                gridSize: grid.gridSize,
+                imgWidth,
+                imgHeight,
+                window: win,
                 tileSize,
-                window: [winX0, winY0, winX1, winY1],
-                isRGB: false
+                bilinear: margin === 1,
+                nodata: this._getEffectiveNoData(),
+                maskRaster
             };
-        } catch (err) {
-            console.error("[GeoTIFFReader] Error reading rasters:", err);
+            const worker = getRasterWorker();
+            tileRasters = worker ? await worker.warp(p) : warpRasters(p);
+        }
+
+        if (!tileRasters) {
             return null;
         }
+
+        return {
+            rasters: tileRasters,
+            width: tileSize,
+            height: tileSize,
+            dstX: 0,
+            dstY: 0,
+            tileSize,
+            window: [winX0, winY0, winX1, winY1],
+            isRGB: false
+        };
+    }
+
+    /**
+     * Returns the projection helper of the CRS, null if there is none. A projection that proj4 does not know is
+     * taken from the EPSG registry first, so the source is read once. Lon/lat and Web Mercator need no helper.
+     */
+    protected async _resolveProjection(crsCode: number): Promise<IProjectionHelper | null> {
+        let helper = getProjectionHelper(crsCode, this.projFunc),
+            lonLatOrMercator = crsCode === 4326 || crsCode === 3857 || crsCode === 900913;
+
+        if (!helper && !lonLatOrMercator && (await defineProjection(crsCode))) {
+            helper = getProjectionHelper(crsCode, this.projFunc);
+        }
+
+        return helper;
     }
 
     /**

@@ -1421,3 +1421,41 @@ describe("GeoTIFFReader copy of a raster on the tile grid", () => {
         expect(copy).not.toHaveBeenCalled();
     });
 });
+
+describe("GeoTIFFReader failed reads", () => {
+    function createReader(readRasters) {
+        const reader = new GeoTIFFReader({});
+        reader.source = {};
+        reader.images = [{ getWidth: () => 163840, getHeight: () => 163840, readRasters }];
+        reader.masks = [null];
+        reader.nativeBBox = [0, 4931105.56873329, 391357.58482010243, 5322463.153553393];
+        reader.crsCode = 3857;
+        reader.metadata = { noData: null };
+        reader.extentWgs84 = new Extent(new LonLat(0, 40), new LonLat(3.6, 43.2));
+        reader.isReady = true;
+        return reader;
+    }
+
+    const tile = mercator.getTileExtent(32769, 24065, 16).inverseMercator();
+
+    it("reads again the blocks a concurrent read has lost", async () => {
+        const readRasters = vi
+            .fn()
+            .mockRejectedValueOnce(new AggregateError([], "Request failed"))
+            .mockResolvedValue([new Float32Array(256 * 256).fill(7)]);
+
+        const data = await createReader(readRasters).readTileRasters(tile, 16, 256, [0]);
+
+        expect(readRasters).toHaveBeenCalledTimes(2);
+        expect(data.rasters[0][0]).toBe(7);
+    });
+
+    it("gives other errors to the caller, the tile is not empty data", async () => {
+        const readRasters = vi.fn().mockRejectedValue(new Error("Error fetching data."));
+
+        await expect(createReader(readRasters).readTileRasters(tile, 16, 256, [0])).rejects.toThrow(
+            "Error fetching data."
+        );
+        expect(readRasters).toHaveBeenCalledTimes(1);
+    });
+});

@@ -10,7 +10,6 @@ import {
     createImageData,
     getFastNoDataChecker,
     GeoTIFFReader,
-    initGeoTIFFReader,
     MultiGeoTIFFReader,
     parseNoDataValue,
     renderMultiBandToImageData,
@@ -422,7 +421,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     }
 
     private _readSource(src: GeoTIFFSource | IGeoTIFFSourceItem[]): Promise<IGeoTIFFMetadata> {
-        return initGeoTIFFReader(this._reader, src);
+        return this._reader.init(src);
     }
 
     private async _initSource(src: GeoTIFFSource, options: IGeoTIFFLayerParams): Promise<IGeoTIFFMetadata> {
