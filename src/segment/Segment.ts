@@ -887,10 +887,21 @@ class Segment {
             return;
         }
 
-        this._equalizeSide(N);
-        this._equalizeSide(E);
-        this._equalizeSide(S);
-        this._equalizeSide(W);
+        const nn = this.node.neighbors;
+
+        for (let side = N; side <= W; side++) {
+            const n = nn[side][0];
+            if (n && n.segment.tileZoom === this.tileZoom) {
+                this._equalizeSide(side);
+            }
+        }
+
+        for (let side = N; side <= W; side++) {
+            const n = nn[side][0];
+            if (n && n.segment.tileZoom < this.tileZoom) {
+                this._equalizeSide(side);
+            }
+        }
     }
 
     /*
