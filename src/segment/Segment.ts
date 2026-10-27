@@ -887,8 +887,6 @@ class Segment {
             return;
         }
 
-        this.readyToEngage = true;
-
         this._equalizeSide(N);
         this._equalizeSide(E);
         this._equalizeSide(S);
