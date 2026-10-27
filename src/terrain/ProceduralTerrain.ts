@@ -29,11 +29,14 @@ export type ProceduralHeights = number[] | TypedArray | null;
 
 export type GetHeightsFunc = (segment: Segment) => ProceduralHeights | Promise<ProceduralHeights>;
 
-export interface IProceduralTerrainParams extends IEmptyTerrainParams {
-    getHeights: GetHeightsFunc;
+export interface IProceduralTerrainCommon extends IEmptyTerrainParams {
     plainGridSize?: number;
     noDataValues?: number[];
     nativeCacheSize?: number;
+}
+
+export interface IProceduralTerrainParams extends IProceduralTerrainCommon {
+    getHeights: GetHeightsFunc;
 }
 
 type TileHeights = {

@@ -1,12 +1,12 @@
 import { ProceduralTerrain } from "./ProceduralTerrain";
-import type { IProceduralTerrainParams, ProceduralHeights } from "./ProceduralTerrain";
+import type { IProceduralTerrainCommon, ProceduralHeights } from "./ProceduralTerrain";
 import { TERRAIN_GRID_SIZE_BY_ZOOM } from "./terrainUtils";
 import { GeoTIFFReader } from "../layer/geotiff/GeoTIFFReader";
 import type { IGeoTIFFMetadata, IGeoTIFFSourceCommon } from "../layer/geotiff/types";
 import type { LonLat } from "../LonLat";
 import type { Segment } from "../segment/Segment";
 
-export interface IGeoTiffTerrainParams extends Omit<IProceduralTerrainParams, "getHeights">, IGeoTIFFSourceCommon {
+export interface IGeoTiffTerrainParams extends IProceduralTerrainCommon, IGeoTIFFSourceCommon {
     sampleSize?: number;
     band?: number;
 }

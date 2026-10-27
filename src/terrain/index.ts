@@ -12,7 +12,12 @@ import type { IRgbTerrainParams, RgbTerrainEncoding, RgbToHeightFunc } from "./R
 import { GlobusRgbTerrain } from "./GlobusRgbTerrain";
 import { MapterhornTerrain } from "./MapterhornTerrain";
 import { ProceduralTerrain } from "./ProceduralTerrain";
-import type { GetHeightsFunc, IProceduralTerrainParams, ProceduralHeights } from "./ProceduralTerrain";
+import type {
+    GetHeightsFunc,
+    IProceduralTerrainCommon,
+    IProceduralTerrainParams,
+    ProceduralHeights
+} from "./ProceduralTerrain";
 import { GeoTiffTerrain } from "./GeoTiffTerrain";
 import type { IGeoTiffTerrainParams } from "./GeoTiffTerrain";
 
@@ -32,6 +37,7 @@ export type {
     RgbTerrainEncoding,
     RgbToHeightFunc,
     GetHeightsFunc,
+    IProceduralTerrainCommon,
     IProceduralTerrainParams,
     IGeoTiffTerrainParams
 };
