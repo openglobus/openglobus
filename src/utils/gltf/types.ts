@@ -70,6 +70,10 @@ export interface GltfMetadata {
         bufferView?: number;
         name?: string;
     }[];
+    buffers?: {
+        uri?: string;
+        byteLength: number;
+    }[];
     scene: number;
     scenes: {
         nodes?: number[];

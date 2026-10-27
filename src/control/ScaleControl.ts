@@ -5,6 +5,7 @@ import { RADIANS } from "../math";
 import { Vec2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
 import { GlobusTerrain } from "../terrain/GlobusTerrain";
+import { ProceduralTerrain } from "../terrain/ProceduralTerrain";
 import type { IMouseState } from "../renderer/RendererEvents";
 
 interface IScaleControlParams extends IControlParams {
@@ -73,10 +74,12 @@ export class ScaleControl extends Control {
                 this._drawScreen(this.planet!.renderer!.handler.getCenter());
             });
 
-            !this.planet!.terrain!.isEmpty &&
-                (this.planet!.terrain as GlobusTerrain).events.on("loadend", () => {
+            const terrain = this.planet!.terrain;
+            if (terrain instanceof GlobusTerrain || terrain instanceof ProceduralTerrain) {
+                terrain.events.on("loadend", () => {
                     this._drawScreen(this.planet!.renderer!.handler.getCenter());
                 });
+            }
         } else {
             this.renderer!.events.on("mousemove", (e: IMouseState) => {
                 if (!e.leftButtonHold && !e.rightButtonHold) {

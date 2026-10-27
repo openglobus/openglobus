@@ -142,7 +142,7 @@ export class Line2 {
      * Finds the intersection of the line with a circle.
      * @param {Vec2} center - Circle center.
      * @param {number} radius - Circle radius.
-     * @returns {[Vec2] | [Vec2, Vec2] | []}
+     * @returns {Array.<Vec2>} Zero, one, or two intersection points.
      */
     public getCircleIntersection(center: Vec2, radius: number): [] | [Vec2] | [Vec2, Vec2] {
         const a = this.a,

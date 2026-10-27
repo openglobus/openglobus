@@ -64,6 +64,7 @@ export class EntityTreeView extends View<Entity[]> {
         const rowEl = document.createElement("div");
         rowEl.classList.add("og-entityTree__row");
         nodeEl.appendChild(rowEl);
+        rowEl.dataset.entityId = entity.id.toString();
 
         const hasChildren = entity.childEntities.length !== 0;
         let expanded = hasChildren && (this._expandedByDefault || this._expandedEntityIds.has(entity.id));
@@ -108,6 +109,11 @@ export class EntityTreeView extends View<Entity[]> {
             toggleBtn.addEventListener("click", (e: MouseEvent) => {
                 e.stopPropagation();
                 expanded = !expanded;
+                if (expanded) {
+                    this._expandedEntityIds.add(entity.id);
+                } else {
+                    this._expandedEntityIds.delete(entity.id);
+                }
                 toggleBtn.textContent = this._getToggleText(expanded);
                 childrenEl.classList.toggle("og-entityTree__children_hidden", !expanded);
             });
@@ -119,6 +125,14 @@ export class EntityTreeView extends View<Entity[]> {
         });
 
         return nodeEl;
+    }
+
+    public setSelectedEntity(entity: Entity | null): void {
+        this.el?.querySelector(".og-entityTree__row_selected")?.classList.remove("og-entityTree__row_selected");
+
+        if (entity) {
+            this.el?.querySelector(`[data-entity-id="${entity.id}"]`)?.classList.add("og-entityTree__row_selected");
+        }
     }
 
     protected _getToggleText(isExpanded: boolean): string {

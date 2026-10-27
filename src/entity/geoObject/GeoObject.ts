@@ -6,6 +6,7 @@ import { Vec4, type NumberArray4 } from "../../math/Vec4";
 import { GeoObjectHandler } from "./GeoObjectHandler";
 import { InstanceData } from "./InstanceData";
 import { Object3d } from "../../Object3d";
+import { LINEAR, linearToSrgbArr } from "../../utils/colorSpace";
 
 export const LOCAL_FORWARD = new Vec3(0.0, 0.0, -1.0);
 
@@ -113,7 +114,11 @@ class GeoObject {
 
         this._localPosition = new Vec3();
 
-        const [r = 1.0, g = 1.0, b = 1.0, a = 1.0] = options.object3d?.color ? Array.from(options.object3d.color) : [];
+        let [r = 1.0, g = 1.0, b = 1.0, a = 1.0] = options.object3d?.color ? Array.from(options.object3d.color) : [];
+
+        if (options.object3d?.colorSpace === LINEAR) {
+            [r, g, b] = linearToSrgbArr([r, g, b]);
+        }
 
         this._color = utils.createColorRGBA(options.color, new Vec4(r, g, b, a));
 

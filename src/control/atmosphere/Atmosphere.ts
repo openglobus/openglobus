@@ -68,6 +68,8 @@ export class Atmosphere extends Control {
         this.removeLookupTexturesShaders();
 
         this.initPlanetAtmosphereShader();
+
+        this.renderer && this.renderer.requestRedraw();
     }
 
     public get isReady(): boolean {

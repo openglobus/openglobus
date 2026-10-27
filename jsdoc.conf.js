@@ -1,4 +1,6 @@
-{
+const { version } = require("./package.json");
+
+module.exports = {
   "source" : {
     "include" : [
       "README.md"
@@ -18,13 +20,8 @@
     "private" : false,
     "lenient" : true,
     "template" : "./node_modules/clean-jsdoc-theme/dist",
-    "theme_opts" : {
-      "default_theme" : "dark",
-      "base_url": "https://openglobus.github.io/docs/",
-      "favicon": "https://openglobus.github.io/favicon.ico",
-      "homepageTitle": "OpenGlobus",
-      "title": "OpenGlobus"
-    }
+    "basePath": "/docs",
+    "siteName": `OpenGlobus v${version}`
   },
   "babel": {
     "extensions": ["ts", "tsx"],
@@ -37,4 +34,4 @@
     "hardwrap" : false,
     "idInHeadings" : true
   }
-}
+};

@@ -9,6 +9,7 @@ import type { Node } from "../../quadTree/Node";
 import type { Renderer } from "../../renderer/Renderer";
 import type { Planet } from "../../scene/Planet";
 import type { Segment } from "../../segment/Segment";
+import type { EmptyTerrain } from "../../terrain/EmptyTerrain";
 import { Framebuffer } from "../../webgl";
 import type { CascadeShadowManager } from "./CascadeShadowManager";
 
@@ -19,7 +20,6 @@ const DEFAULT_CASCADE_SPLIT_LAMBDA = 0.65;
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
 const DEFAULT_CASCADE_BIAS = 10000;
 const DEFAULT_CASCADE_NORMAL_BIAS = 100;
-const DEFAULT_CASCADE_DEPTH_EPSILON = 10000;
 const DEFAULT_CASCADE_ORTHOGRAPHIC_MARGIN_FACTOR = 0.02;
 const DEFAULT_CASCADE_CASTER_MARGIN = 0.0;
 const DEFAULT_CASCADE_CASTER_MARGIN_FACTOR = 0.25;
@@ -33,17 +33,15 @@ const MIN_CASCADE_LIGHT_SIZE = 1e-3;
  * @property enabled - Enables the cascade.
  * @property splitNear - Near split distance.
  * @property splitFar - Far split distance.
- * @property bias - Shadow depth bias. Converted to normalized depth by CascadeShadowManager.
+ * @property depthBiasWorld - Occlusion bias in meters.
  * @property normalBias - Surface normal offset in RTC/world units.
- * @property depthEpsilon - Shadow depth transition width. Converted to normalized depth by CascadeShadowManager.
  */
 export interface CascadeParams {
     enabled: boolean;
     splitNear: number;
     splitFar: number;
-    bias: number;
+    depthBiasWorld: number;
     normalBias: number;
-    depthEpsilon: number;
 }
 
 /**
@@ -94,6 +92,7 @@ export class CascadeShadowMap {
     protected _enabled: boolean;
     protected _depthArrayTexture: WebGLTexture | null;
     protected _lastPlanetHeightFactor: number;
+    protected _lastPlanetTerrain: EmptyTerrain | null;
     protected _cascadeBoundingSpheres: Sphere[];
     protected _depthCameraBoundingSphere: Sphere;
 
@@ -127,6 +126,7 @@ export class CascadeShadowMap {
         this._initialized = false;
         this._depthArrayTexture = null;
         this._lastPlanetHeightFactor = 1.0;
+        this._lastPlanetTerrain = null;
         this.quadTreeStrategy = null;
     }
 
@@ -260,9 +260,8 @@ export class CascadeShadowMap {
                 enabled: true,
                 splitNear,
                 splitFar,
-                bias: DEFAULT_CASCADE_BIAS,
+                depthBiasWorld: DEFAULT_CASCADE_BIAS,
                 normalBias: DEFAULT_CASCADE_NORMAL_BIAS,
-                depthEpsilon: DEFAULT_CASCADE_DEPTH_EPSILON,
                 ...params.cascades?.[i]
             };
 
@@ -349,7 +348,7 @@ export class CascadeShadowMap {
             this.size,
             this.size,
             this.cascades.length,
-            "LINEAR",
+            renderer.handler.floatTextureFilter,
             "R32F",
             "CLAMP_TO_EDGE",
             1
@@ -406,14 +405,20 @@ export class CascadeShadowMap {
 
         this.quadTreeStrategy = this._createQuadTreeStrategy(planet, this.depthCamera as PlanetCamera);
         this._lastPlanetHeightFactor = planet._heightFactor;
+        this._lastPlanetTerrain = planet.terrain;
     }
 
     protected _syncPlanetHeightFactor(): void {
-        if (!this._planet || this._lastPlanetHeightFactor === this._planet._heightFactor) {
+        const planet = this._planet;
+        if (
+            !planet ||
+            (this._lastPlanetHeightFactor === planet._heightFactor && this._lastPlanetTerrain === planet.terrain)
+        ) {
             return;
         }
 
-        this._lastPlanetHeightFactor = this._planet._heightFactor;
+        this._lastPlanetHeightFactor = planet._heightFactor;
+        this._lastPlanetTerrain = planet.terrain;
 
         if (this.quadTreeStrategy) {
             this.quadTreeStrategy.destroyBranches();

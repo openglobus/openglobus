@@ -14,6 +14,8 @@ import type { EntityCollectionsTreeStrategy } from "./EntityCollectionsTreeStrat
 
 export type NodesDict = Record<number, Node>;
 
+const MAX_NODE_ZOOM = 24;
+
 /**
  * @todo: remove planet parameter. It's already available in the layer.
  */
@@ -88,6 +90,10 @@ class EntityCollectionNode {
                 this.entityCollection = ec;
             }
 
+            for (let i = 0; i < entities.length; i++) {
+                entities[i]._nodePtr = this;
+            }
+
             if (rightNow || !l.async) {
                 this.entityCollection!.addEntities(entities);
             } else {
@@ -121,41 +127,68 @@ class EntityCollectionNode {
     public buildTree(entities: Entity[], rightNow: boolean = false) {
         this.count += entities.length;
 
-        if (entities.length > this.layer._nodeCapacity) {
-            const cn = this.childNodes;
-            if (!cn.length) {
-                this.createChildNodes();
+        // A node with children never owns a collection, the render traversal stops at the first collection
+        if (this.childNodes.length) {
+            this._addEntitiesToChildNodes(entities, rightNow);
+        } else if (this.count > this.layer._nodeCapacity && this.zoom < MAX_NODE_ZOOM) {
+            this.createChildNodes();
+            this._moveCollectionToChildNodes();
+            this._addEntitiesToChildNodes(entities, rightNow);
+        } else {
+            // Leaves at MAX_NODE_ZOOM may exceed the capacity, e.g. many entities at the same point
+            this._addEntitiesToCollection(entities, rightNow);
+        }
+    }
+
+    protected _addEntitiesToChildNodes(entities: Entity[], rightNow: boolean = false) {
+        const cn = this.childNodes;
+
+        let en_nw = [],
+            en_ne = [],
+            en_sw = [],
+            en_se = [];
+
+        let i = entities.length;
+        while (i--) {
+            const ei = entities[i];
+            if (cn[NW].isInside(ei)) {
+                ei._nodePtr = cn[NW];
+                en_nw.push(ei);
+            } else if (cn[NE].isInside(ei)) {
+                ei._nodePtr = cn[NE];
+                en_ne.push(ei);
+            } else if (cn[SW].isInside(ei)) {
+                ei._nodePtr = cn[SW];
+                en_sw.push(ei);
+            } else if (cn[SE].isInside(ei)) {
+                ei._nodePtr = cn[SE];
+                en_se.push(ei);
             }
+        }
 
-            let en_nw = [],
-                en_ne = [],
-                en_sw = [],
-                en_se = [];
+        en_nw.length && cn[NW].buildTree(en_nw, rightNow);
+        en_ne.length && cn[NE].buildTree(en_ne, rightNow);
+        en_sw.length && cn[SW].buildTree(en_sw, rightNow);
+        en_se.length && cn[SE].buildTree(en_se, rightNow);
+    }
 
+    protected _moveCollectionToChildNodes() {
+        const ec = this.entityCollection;
+        if (ec) {
+            const entities = ec.getEntities();
             let i = entities.length;
             while (i--) {
-                const ei = entities[i];
-                if (cn[NW].isInside(ei)) {
-                    ei._nodePtr = cn[NW];
-                    en_nw.push(ei);
-                } else if (cn[NE].isInside(ei)) {
-                    ei._nodePtr = cn[NE];
-                    en_ne.push(ei);
-                } else if (cn[SW].isInside(ei)) {
-                    ei._nodePtr = cn[SW];
-                    en_sw.push(ei);
-                } else if (cn[SE].isInside(ei)) {
-                    ei._nodePtr = cn[SE];
-                    en_se.push(ei);
-                }
+                ec._removeEntitySilent(entities[i]);
             }
+            ec.remove();
+            this.entityCollection = null;
+            this._addEntitiesToChildNodes(entities, true);
+        }
 
-            en_nw.length && cn[NW].buildTree(en_nw, rightNow);
-            en_ne.length && cn[NE].buildTree(en_ne, rightNow);
-            en_sw.length && cn[SW].buildTree(en_sw, rightNow);
-            en_se.length && cn[SE].buildTree(en_se, rightNow);
-        } else {
-            this._addEntitiesToCollection(entities, rightNow);
+        if (this.deferredEntities.length) {
+            const deferred = this.deferredEntities;
+            this.deferredEntities = [];
+            this._addEntitiesToChildNodes(deferred);
         }
     }
 
@@ -241,7 +274,7 @@ class EntityCollectionNode {
     }
 
     public applyCollection() {
-        this.entityCollection!.addEntities(this.deferredEntities);
+        this.entityCollection && this.entityCollection.addEntities(this.deferredEntities);
         this.deferredEntities.length = 0;
         this.deferredEntities = [];
         this._inTheQueue = false;

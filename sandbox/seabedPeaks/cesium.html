@@ -1,0 +1,152 @@
+<html>
+    <head>
+        <title>Cesium - Seabed Peaks</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script>
+            window.CESIUM_BASE_URL = "https://unpkg.com/cesium@1.121.0/Build/Cesium/";
+        </script>
+        <link rel="stylesheet" href="https://unpkg.com/cesium@1.121.0/Build/Cesium/Widgets/widgets.css" />
+        <script src="https://unpkg.com/cesium@1.121.0/Build/Cesium/Cesium.js"></script>
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="cesiumContainer" style="position: absolute; width: 100%; height: 100%"></div>
+        <script type="module">
+            //
+            // Cesium does not read terrarium images, its terrain is a heightmap (or a mesh) for every tile
+            // of every level, made by a tiler on the server. Here the heightmaps are made from the single
+            // ZOOM/x/y.png tile in the browser, as a tiler would do: heights at the posts are bilinearly
+            // resampled from the pixels. Posts are on the tile edges, shared with the neighbour tiles.
+            //
+            const LON = 37.8,
+                LAT = 44.7,
+                ZOOM = 17,
+                SIZE = 512;
+
+            // Heightmap posts per tile side
+            const POSTS = 129;
+
+            const n = 2 ** ZOOM,
+                lat = (LAT * Math.PI) / 180,
+                tileX = Math.floor(((LON + 180) / 360) * n),
+                tileY = Math.floor(((1 - Math.log(Math.tan(lat) + 1 / Math.cos(lat)) / Math.PI) / 2) * n);
+
+            const tileLon = (x) => (x / n) * 360 - 180,
+                tileLat = (y) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / n))) * 180) / Math.PI;
+
+            async function loadHeights() {
+                let blob = await (await fetch(`./${ZOOM}/${tileX}/${tileY}.png`)).blob(),
+                    bitmap = await createImageBitmap(blob, { colorSpaceConversion: "none", premultiplyAlpha: "none" }),
+                    ctx = new OffscreenCanvas(SIZE, SIZE).getContext("2d");
+
+                ctx.drawImage(bitmap, 0, 0);
+
+                let data = ctx.getImageData(0, 0, SIZE, SIZE).data,
+                    heights = new Float32Array(SIZE * SIZE);
+
+                for (let k = 0; k < heights.length; k++) {
+                    heights[k] = data[k * 4] * 256 + data[k * 4 + 1] + data[k * 4 + 2] / 256 - 32768;
+                }
+
+                return heights;
+            }
+
+            const heights = await loadHeights();
+
+            // Height at u, v, the Web Mercator world fractions from the west and north
+            function getHeight(u, v) {
+                // Pixel center coordinates
+                let px = (u * n - tileX) * SIZE - 0.5,
+                    py = (v * n - tileY) * SIZE - 0.5;
+
+                if (px < -0.5 || py < -0.5 || px > SIZE - 0.5 || py > SIZE - 0.5) {
+                    return 0;
+                }
+
+                px = Math.min(Math.max(px, 0), SIZE - 1);
+                py = Math.min(Math.max(py, 0), SIZE - 1);
+
+                let j = Math.min(Math.floor(px), SIZE - 2),
+                    i = Math.min(Math.floor(py), SIZE - 2),
+                    fx = px - j,
+                    fy = py - i,
+                    k = i * SIZE + j;
+
+                return (
+                    (1 - fy) * ((1 - fx) * heights[k] + fx * heights[k + 1]) +
+                    fy * ((1 - fx) * heights[k + SIZE] + fx * heights[k + SIZE + 1])
+                );
+            }
+
+            const terrainProvider = new Cesium.CustomHeightmapTerrainProvider({
+                width: POSTS,
+                height: POSTS,
+                tilingScheme: new Cesium.WebMercatorTilingScheme(),
+                callback: (x, y, level) => {
+                    let out = new Float32Array(POSTS * POSTS),
+                        m = 2 ** level;
+
+                    // The tile does not overlap the seabed tile
+                    if (
+                        level >= ZOOM
+                            ? x >> (level - ZOOM) !== tileX || y >> (level - ZOOM) !== tileY
+                            : tileX >> (ZOOM - level) !== x || tileY >> (ZOOM - level) !== y
+                    ) {
+                        return out;
+                    }
+
+                    for (let i = 0; i < POSTS; i++) {
+                        for (let j = 0; j < POSTS; j++) {
+                            out[i * POSTS + j] = getHeight((x + j / (POSTS - 1)) / m, (y + i / (POSTS - 1)) / m);
+                        }
+                    }
+
+                    return out;
+                }
+            });
+
+            const viewer = new Cesium.Viewer("cesiumContainer", {
+                terrainProvider: terrainProvider,
+                baseLayer: false,
+                baseLayerPicker: false,
+                geocoder: false,
+                homeButton: false,
+                sceneModePicker: false,
+                navigationHelpButton: false,
+                animation: false,
+                timeline: false,
+                infoBox: false,
+                selectionIndicator: false
+            });
+
+            // Terrain wireframe is in the inspector, "Terrain" section
+            viewer.extend(Cesium.viewerCesiumInspectorMixin);
+
+            viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#c8c8c8");
+            viewer.scene.globe.enableLighting = true;
+            viewer.clock.currentTime = Cesium.JulianDate.fromIso8601("2024-06-21T09:30:00Z");
+            viewer.clock.shouldAnimate = false;
+
+            const centerLon = (tileLon(tileX) + tileLon(tileX + 1)) / 2,
+                centerLat = (tileLat(tileY) + tileLat(tileY + 1)) / 2;
+
+            viewer.camera.setView({
+                destination: Cesium.Cartesian3.fromDegrees(centerLon, centerLat - 0.003, 300),
+                orientation: {
+                    heading: 0,
+                    pitch: Cesium.Math.toRadians(-35),
+                    roll: 0
+                }
+            });
+
+            window.viewer = viewer;
+        </script>
+    </body>
+</html>

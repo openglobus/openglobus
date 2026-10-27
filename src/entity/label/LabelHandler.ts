@@ -402,8 +402,9 @@ class LabelHandler extends BaseBillboardHandler {
             ec.scaleByDistance[0],
             ec.scaleByDistance[1],
             ec.scaleByDistance[2],
-            r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
+            ec.scaleByDistance[3]
         );
+        gl.uniform1f(shu.uFocusDistance, r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0);
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
         gl.uniform1f(shu.planetRadius, (ec.scene as Planet)._planetRadius2 || 0);
         gl.uniform2fv(shu.viewport, [h.canvas!.clientWidth, h.canvas!.clientHeight]);
@@ -516,8 +517,9 @@ class LabelHandler extends BaseBillboardHandler {
             ec.scaleByDistance[0],
             ec.scaleByDistance[1],
             ec.scaleByDistance[2],
-            r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0
+            ec.scaleByDistance[3]
         );
+        gl.uniform1f(shu.uFocusDistance, r.activeCamera.isOrthographic ? r.activeCamera.focusDistance : 0.0);
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
         gl.uniform1f(shu.planetRadius, (rn as Planet)._planetRadius2 || 0);
         gl.uniform2fv(shu.viewport, [h.canvas!.clientWidth, h.canvas!.clientHeight]);
@@ -749,7 +751,7 @@ class LabelHandler extends BaseBillboardHandler {
             a[j + 23] = EMPTY;
         }
 
-        this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._setChangedBuffer(TEXCOORD_BUFFER);
     }
 
     public override setPositionArr(index: number, positionHigh: Vec3, positionLow: Vec3) {
@@ -815,7 +817,7 @@ class LabelHandler extends BaseBillboardHandler {
             b[j + 17] = zl;
         }
 
-        this._changedBuffers[POSITION_BUFFER] = true;
+        this._setChangedPositionRange(index * 18 * this._maxLetters, (index + 1) * 18 * this._maxLetters);
     }
 
     public override setPickingColorArr(index: number, color: Vec3) {
@@ -852,7 +854,7 @@ class LabelHandler extends BaseBillboardHandler {
             a[j + 17] = z;
         }
 
-        this._changedBuffers[PICKINGCOLOR_BUFFER] = true;
+        this._setChangedBuffer(PICKINGCOLOR_BUFFER);
     }
 
     public override setSizeArr(index: number, size: number) {
@@ -869,7 +871,7 @@ class LabelHandler extends BaseBillboardHandler {
             a[j + 5] = size;
         }
 
-        this._changedBuffers[SIZE_BUFFER] = true;
+        this._setChangedBuffer(SIZE_BUFFER);
     }
 
     public override setOffsetArr(index: number, offset: Vec2) {
@@ -899,7 +901,7 @@ class LabelHandler extends BaseBillboardHandler {
             a[j + 11] = y;
         }
 
-        this._changedBuffers[OFFSET_BUFFER] = true;
+        this._setChangedBuffer(OFFSET_BUFFER);
     }
 
     public override setRgbaArr(index: number, rgba: Vec4) {
@@ -948,7 +950,7 @@ class LabelHandler extends BaseBillboardHandler {
         if (opacityChanged) {
             this.refresh();
         } else {
-            this._changedBuffers[RGBA_BUFFER] = true;
+            this._setChangedBuffer(RGBA_BUFFER);
         }
     }
 
@@ -1000,7 +1002,7 @@ class LabelHandler extends BaseBillboardHandler {
         if (opacityChanged) {
             this.refresh();
         } else {
-            this._changedBuffers[OUTLINECOLOR_BUFFER] = true;
+            this._setChangedBuffer(OUTLINECOLOR_BUFFER);
         }
     }
 
@@ -1018,7 +1020,7 @@ class LabelHandler extends BaseBillboardHandler {
             a[j + 5] = outline;
         }
 
-        this._changedBuffers[OUTLINE_BUFFER] = true;
+        this._setChangedBuffer(OUTLINE_BUFFER);
     }
 
     public override setRotationArr(index: number, rotation: number) {
@@ -1035,7 +1037,7 @@ class LabelHandler extends BaseBillboardHandler {
             a[j + 5] = rotation;
         }
 
-        this._changedBuffers[ROTATION_BUFFER] = true;
+        this._setChangedBuffer(ROTATION_BUFFER);
     }
 
     public override setVisibility(index: number, visibility: boolean) {
@@ -1074,7 +1076,7 @@ class LabelHandler extends BaseBillboardHandler {
             a[j + 11] = vertexArr[11];
         }
 
-        this._changedBuffers[VERTEX_BUFFER] = true;
+        this._setChangedBuffer(VERTEX_BUFFER);
     }
 
     public setFontIndexArr(index: number, fontIndex: number) {
@@ -1091,7 +1093,7 @@ class LabelHandler extends BaseBillboardHandler {
             a[j + 5] = fontIndex;
         }
 
-        this._changedBuffers[FONTINDEX_BUFFER] = true;
+        this._setChangedBuffer(FONTINDEX_BUFFER);
     }
 
     public override createSizeBuffer() {

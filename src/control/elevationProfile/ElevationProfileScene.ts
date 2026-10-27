@@ -1,3 +1,4 @@
+import * as math from "../../math";
 import { Entity } from "../../entity/Entity";
 import { createEvents, type EventsHandler } from "../../Events";
 import { LonLat } from "../../LonLat";
@@ -45,7 +46,7 @@ const POINTER_LABEL_OPTIONS: ILabelParams = {
     size: 12,
     color: "rgba(255,255,255,1.0)",
     outlineColor: "rgba(0,0,0,1)",
-    outline: 0.7,
+    outline: 2,
     align: "left",
     offset: [5, 15]
 };
@@ -56,7 +57,7 @@ const LABEL_OPTIONS: ILabelParams = {
     size: 12,
     color: "rgba(255,255,255,1)",
     outlineColor: "rgba(0,0,0,1)",
-    outline: 0.7,
+    outline: 2,
     align: "right",
     offset: [-47, 25]
 };
@@ -123,7 +124,7 @@ class ElevationProfileScene extends Scene {
             entities: [],
             pickingEnabled: true,
             hideInLayerSwitcher: true,
-            scaleByDistance: [1, 5000, 0.02],
+            scaleByDistance: [1, 5000, math.MAX32, 0.02],
             pickingScale: 1,
             shadeMode: SHADE_UNLIT
         });
@@ -132,7 +133,7 @@ class ElevationProfileScene extends Scene {
             entities: [],
             pickingEnabled: true,
             hideInLayerSwitcher: true,
-            scaleByDistance: [1, 10000, 0.02],
+            scaleByDistance: [1, 10000, math.MAX32, 0.02],
             pickingScale: 1,
             shadeMode: SHADE_UNLIT
         });

@@ -69,6 +69,9 @@ class BaseBillboardHandler {
 
     protected _changedBuffers: boolean[];
 
+    protected _changedPositionFrom: number;
+    protected _changedPositionTo: number;
+
     protected _configureDepthPass(depthWrite: boolean) {
         const gl = this._renderer!.handler.gl!;
         const disableDepthTest = this._renderer!.activeCamera.slope > 0.5;
@@ -134,6 +137,9 @@ class BaseBillboardHandler {
         this._buffersUpdateCallbacks[VERTEX_BUFFER] = this.createVertexBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
+
+        this._changedPositionFrom = 0;
+        this._changedPositionTo = 0;
     }
 
     public isEqual(handler: BaseBillboardHandler) {
@@ -234,8 +240,45 @@ class BaseBillboardHandler {
     public refresh() {
         let i = this._changedBuffers.length;
         while (i--) {
-            this._changedBuffers[i] = true;
+            this._setChangedBuffer(i);
         }
+    }
+
+    /**
+     * Marks a buffer to be updated in the next frame and requests the frame to be rendered.
+     * @protected
+     * @param {number} index - Buffer index.
+     */
+    protected _setChangedBuffer(index: number) {
+        if (index === POSITION_BUFFER) {
+            this._changedPositionFrom = 0;
+            this._changedPositionTo = Number.MAX_SAFE_INTEGER;
+        }
+        this._changedBuffers[index] = true;
+        this._renderer && this._renderer.requestRedraw();
+    }
+
+    /**
+     * Marks a half open range of the position arrays as changed, so that the next update uploads
+     * only that range instead of the whole buffer.
+     * @protected
+     * @param {number} from - First changed float index.
+     * @param {number} to - Index past the last changed float.
+     */
+    protected _setChangedPositionRange(from: number, to: number) {
+        if (this._changedPositionFrom >= this._changedPositionTo) {
+            this._changedPositionFrom = from;
+            this._changedPositionTo = to;
+        } else {
+            if (from < this._changedPositionFrom) {
+                this._changedPositionFrom = from;
+            }
+            if (to > this._changedPositionTo) {
+                this._changedPositionTo = to;
+            }
+        }
+        this._changedBuffers[POSITION_BUFFER] = true;
+        this._renderer && this._renderer.requestRedraw();
     }
 
     protected _removeBillboards() {
@@ -373,8 +416,9 @@ class BaseBillboardHandler {
             ec.scaleByDistance[0],
             ec.scaleByDistance[1],
             ec.scaleByDistance[2],
-            r.activeCamera!.isOrthographic ? r.activeCamera!.focusDistance : 0.0
+            ec.scaleByDistance[3]
         );
+        gl.uniform1f(shu.uFocusDistance, r.activeCamera!.isOrthographic ? r.activeCamera!.focusDistance : 0.0);
 
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
 
@@ -448,8 +492,9 @@ class BaseBillboardHandler {
             ec.scaleByDistance[0],
             ec.scaleByDistance[1],
             ec.scaleByDistance[2],
-            r.activeCamera!.isOrthographic ? r.activeCamera!.focusDistance : 0.0
+            ec.scaleByDistance[3]
         );
+        gl.uniform1f(shu.uFocusDistance, r.activeCamera!.isOrthographic ? r.activeCamera!.focusDistance : 0.0);
 
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
 
@@ -649,7 +694,7 @@ class BaseBillboardHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        this._changedBuffers[POSITION_BUFFER] = true;
+        this._setChangedPositionRange(i, i + 18);
     }
 
     public setPickingColorArr(index: number, color: Vec3) {
@@ -683,7 +728,7 @@ class BaseBillboardHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        this._changedBuffers[PICKINGCOLOR_BUFFER] = true;
+        this._setChangedBuffer(PICKINGCOLOR_BUFFER);
     }
 
     public setSizeArr(index: number, width: number, height: number) {
@@ -710,7 +755,7 @@ class BaseBillboardHandler {
         a[i + 10] = x;
         a[i + 11] = y;
 
-        this._changedBuffers[SIZE_BUFFER] = true;
+        this._setChangedBuffer(SIZE_BUFFER);
     }
 
     public setOffsetArr(index: number, offset: Vec2) {
@@ -737,7 +782,7 @@ class BaseBillboardHandler {
         a[i + 10] = x;
         a[i + 11] = y;
 
-        this._changedBuffers[OFFSET_BUFFER] = true;
+        this._setChangedBuffer(OFFSET_BUFFER);
     }
 
     public setRgbaArr(index: number, rgba: Vec4) {
@@ -782,7 +827,7 @@ class BaseBillboardHandler {
         if (opacityChanged) {
             this.refresh();
         } else {
-            this._changedBuffers[RGBA_BUFFER] = true;
+            this._setChangedBuffer(RGBA_BUFFER);
         }
     }
 
@@ -797,7 +842,7 @@ class BaseBillboardHandler {
         a[i + 4] = rotation;
         a[i + 5] = rotation;
 
-        this._changedBuffers[ROTATION_BUFFER] = true;
+        this._setChangedBuffer(ROTATION_BUFFER);
     }
 
     public setTexCoordArr(index: number, tcoordArr: number[] | TypedArray) {
@@ -822,7 +867,7 @@ class BaseBillboardHandler {
         a[i + 10] = tcoordArr[10];
         a[i + 11] = tcoordArr[11];
 
-        this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._setChangedBuffer(TEXCOORD_BUFFER);
     }
 
     public setVisibility(index: number, visibility: boolean) {
@@ -855,22 +900,41 @@ class BaseBillboardHandler {
         a[i + 10] = vertexArr[10];
         a[i + 11] = vertexArr[11];
 
-        this._changedBuffers[VERTEX_BUFFER] = true;
+        this._setChangedBuffer(VERTEX_BUFFER);
     }
 
     public createPositionBuffer() {
         let h = this._renderer!.handler,
-            numItems = this._positionHighArr.length / 3;
+            len = this._positionHighArr.length,
+            numItems = len / 3;
 
         if (!this._positionHighBuffer || this._positionHighBuffer.numItems !== numItems) {
             h.gl!.deleteBuffer(this._positionHighBuffer as WebGLBuffer);
             h.gl!.deleteBuffer(this._positionLowBuffer as WebGLBuffer);
             this._positionHighBuffer = h.createStreamArrayBuffer(3, numItems);
             this._positionLowBuffer = h.createStreamArrayBuffer(3, numItems);
+            this._changedPositionFrom = 0;
+            this._changedPositionTo = len;
         }
 
-        h.setStreamArrayBuffer(this._positionHighBuffer!, this._positionHighArr);
-        h.setStreamArrayBuffer(this._positionLowBuffer!, this._positionLowArr);
+        let from = this._changedPositionFrom,
+            to = this._changedPositionTo < len ? this._changedPositionTo : len;
+
+        this._changedPositionFrom = 0;
+        this._changedPositionTo = 0;
+
+        if (from >= to) {
+            return;
+        }
+
+        if (from === 0 && to === len) {
+            h.setStreamArrayBuffer(this._positionHighBuffer!, this._positionHighArr);
+            h.setStreamArrayBuffer(this._positionLowBuffer!, this._positionLowArr);
+        } else {
+            let byteOffset = from * Float32Array.BYTES_PER_ELEMENT;
+            h.setStreamArrayBuffer(this._positionHighBuffer!, this._positionHighArr.subarray(from, to), byteOffset);
+            h.setStreamArrayBuffer(this._positionLowBuffer!, this._positionLowArr.subarray(from, to), byteOffset);
+        }
     }
 
     public createSizeBuffer() {

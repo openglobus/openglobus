@@ -12,6 +12,7 @@ class PolylineHandler {
     public _entityCollection: EntityCollection;
     public pickingEnabled: boolean;
     protected _renderer: Renderer | null;
+    protected _scene: Scene | null;
     public _relativeCenter: Vec3;
     public _rtcEyePositionHigh: Float32Array;
     public _rtcEyePositionLow: Float32Array;
@@ -20,8 +21,35 @@ class PolylineHandler {
     public _transparentRenderer: PolylineBatchRenderer;
     public _opaqueTexRenderer: PolylineBatchRenderer;
     public _transparentTexRenderer: PolylineBatchRenderer;
+    public _timedRenderer: PolylineBatchRenderer | null;
+    public _timedTexRenderer: PolylineBatchRenderer | null;
 
     protected _polylines: Polyline[] = [];
+    protected _visibleSpherePosition: Vec3 | null;
+    protected _visibleSphereRadius: number;
+
+    /**
+     * Current time of the lines with path times, in the same units as their times.
+     * @public
+     * @type {number}
+     */
+    public time: number = 0;
+
+    /**
+     * Opacity multipliers of the path parts already passed and still ahead of the current time.
+     * @public
+     * @type {Float32Array}
+     */
+    public timeOpacity: Float32Array = new Float32Array([1, 1]);
+
+    public setTime(time: number) {
+        this.time = time;
+    }
+
+    public setTimeOpacity(past: number, future: number) {
+        this.timeOpacity[0] = past;
+        this.timeOpacity[1] = future;
+    }
 
     constructor(entityCollection: EntityCollection) {
         this.__id = PolylineHandler.__counter__++;
@@ -29,6 +57,8 @@ class PolylineHandler {
         this._entityCollection = entityCollection;
 
         this._renderer = null;
+
+        this._scene = null;
 
         this._polylines = [];
 
@@ -52,6 +82,12 @@ class PolylineHandler {
             isTextured: true
         });
 
+        this._timedRenderer = null;
+        this._timedTexRenderer = null;
+
+        this._visibleSpherePosition = null;
+        this._visibleSphereRadius = 0;
+
         this.pickingEnabled = true;
 
         this._relativeCenter = new Vec3();
@@ -72,18 +108,67 @@ class PolylineHandler {
         this._transparentRenderer.setVisibleSphere(p, r);
         this._opaqueTexRenderer.setVisibleSphere(p, r);
         this._transparentTexRenderer.setVisibleSphere(p, r);
+        this._timedRenderer && this._timedRenderer.setVisibleSphere(p, r);
+        this._timedTexRenderer && this._timedTexRenderer.setVisibleSphere(p, r);
+        this._visibleSpherePosition = p;
+        this._visibleSphereRadius = r;
+    }
+
+    /**
+     * Requests the next frame to be rendered.
+     * @public
+     */
+    public requestRedraw() {
+        this._renderer && (this._renderer.handler.needRedraw = true);
     }
 
     protected _initProgram() {
         if (!this._renderer) return;
 
         this._renderer.addPrograms(shaders.polylineTex(), shaders.polylinePlain(), shaders.polyline_picking());
+
         if (!this._renderer.deferredDisabled) {
             this._renderer.addPrograms(shaders.polylineTexWoit(), shaders.polylineWoitPlain());
         }
+
+        if (this._timedRenderer || this._timedTexRenderer) {
+            this._initTimedPrograms();
+        }
+    }
+
+    protected _initTimedPrograms() {
+        if (!this._renderer) return;
+
+        this._renderer.addPrograms(shaders.polylineTexTime(), shaders.polylinePlainTime());
+
+        if (!this._renderer.deferredDisabled) {
+            this._renderer.addPrograms(shaders.polylineTexWoitTime(), shaders.polylineWoitPlainTime());
+        }
+    }
+
+    protected _createTimedRenderer(textured: boolean): PolylineBatchRenderer {
+        const renderer = new PolylineBatchRenderer(this, {
+            path3v: [],
+            isTextured: textured,
+            isTimed: true
+        });
+
+        renderer.__doubleToTwoFloats = this.getRTCPosition.bind(this);
+
+        if (this._visibleSpherePosition) {
+            renderer.setVisibleSphere(this._visibleSpherePosition, this._visibleSphereRadius);
+        }
+
+        if (this._scene) {
+            this._initTimedPrograms();
+            renderer.bindScene(this._scene);
+        }
+
+        return renderer;
     }
 
     public bindScene(scene: Scene) {
+        this._scene = scene;
         this._renderer = scene.renderer;
         this._initProgram();
 
@@ -92,17 +177,26 @@ class PolylineHandler {
 
         this._opaqueTexRenderer.bindScene(scene);
         this._transparentTexRenderer.bindScene(scene);
+
+        this._timedRenderer && this._timedRenderer.bindScene(scene);
+        this._timedTexRenderer && this._timedTexRenderer.bindScene(scene);
     }
 
     public add(polyline: Polyline) {
         if (polyline._handlerIndex === -1) {
-            const batchRenderer = this.getRenderer(polyline.getOpacity(), polyline.getSrc() != null);
+            const batchRenderer = this.getRenderer(
+                polyline.getOpacity(),
+                polyline.getSrc() != null,
+                polyline.isTimed()
+            );
             polyline._handler = this;
             polyline._handlerIndex = this._polylines.length;
             polyline._batchRenderer = batchRenderer;
             this._polylines.push(polyline);
 
-            polyline._addToBatchRenderer();
+            if (polyline.getVisibility()) {
+                polyline._addToBatchRenderer();
+            }
 
             if (this._entityCollection && this._entityCollection.scene) {
                 batchRenderer.updateRTCPosition();
@@ -122,10 +216,18 @@ class PolylineHandler {
         }
     }
 
-    public getRenderer(opacity: number, textured: boolean): PolylineBatchRenderer {
+    public getRenderer(opacity: number, textured: boolean, timed: boolean = false): PolylineBatchRenderer {
+        if (timed) {
+            if (textured) {
+                return this._timedTexRenderer || (this._timedTexRenderer = this._createTimedRenderer(true));
+            }
+            return this._timedRenderer || (this._timedRenderer = this._createTimedRenderer(false));
+        }
+
         if (textured) {
             return opacity < 1.0 ? this._transparentTexRenderer : this._opaqueTexRenderer;
         }
+
         return opacity < 1.0 ? this._transparentRenderer : this._opaqueRenderer;
     }
 
@@ -164,12 +266,16 @@ class PolylineHandler {
         this._updateRTCEyePosition();
         this._transparentRenderer.drawTransparent();
         this._transparentTexRenderer.drawTransparent();
+        this._timedRenderer && this._timedRenderer.drawTransparent();
+        this._timedTexRenderer && this._timedTexRenderer.drawTransparent();
     }
 
     public drawTransparentForward() {
         this._updateRTCEyePosition();
         this._transparentRenderer.drawOpaque();
         this._transparentTexRenderer.drawOpaque();
+        this._timedRenderer && this._timedRenderer.drawOpaque();
+        this._timedTexRenderer && this._timedTexRenderer.drawOpaque();
     }
 
     public drawPicking() {
@@ -178,6 +284,8 @@ class PolylineHandler {
             this._transparentRenderer.drawPicking();
             this._opaqueTexRenderer.drawPicking();
             this._transparentTexRenderer.drawPicking();
+            this._timedRenderer && this._timedRenderer.drawPicking();
+            this._timedTexRenderer && this._timedTexRenderer.drawPicking();
         }
     }
 
@@ -199,6 +307,8 @@ class PolylineHandler {
         this._transparentRenderer.clear();
         this._opaqueTexRenderer.clear();
         this._transparentTexRenderer.clear();
+        this._timedRenderer && this._timedRenderer.clear();
+        this._timedTexRenderer && this._timedTexRenderer.clear();
     }
 
     public getRTCPosition(pos: Vec3, rtcPositionHigh: Vec3, rtcPositionLow: Vec3) {
@@ -212,6 +322,8 @@ class PolylineHandler {
         this._transparentRenderer.updateRTCPosition();
         this._opaqueTexRenderer.updateRTCPosition();
         this._transparentTexRenderer.updateRTCPosition();
+        this._timedRenderer && this._timedRenderer.updateRTCPosition();
+        this._timedTexRenderer && this._timedTexRenderer.updateRTCPosition();
     }
 
     protected _updateRTCEyePosition() {
@@ -252,6 +364,7 @@ class PolylineHandler {
         for (let i = 0; i < this._polylines.length; i++) {
             this._updateTexCoords(this._opaqueTexRenderer);
             this._updateTexCoords(this._transparentTexRenderer);
+            this._timedTexRenderer && this._updateTexCoords(this._timedTexRenderer);
         }
     }
 }

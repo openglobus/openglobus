@@ -100,7 +100,10 @@ export type PlanetEventsList = [
     "layervisibilitychange",
     "rendercompleted",
     "terraincompleted",
-    "layerloadend"
+    "layerloadend",
+    "terrainadd",
+    "terrainremove",
+    "terrainchange"
 ];
 
 /**
@@ -230,6 +233,13 @@ export class Planet extends Scene {
      * @type {EmptyTerrain}
      */
     public terrain: EmptyTerrain | null;
+
+    /**
+     * Attached terrain providers array. Only one of them could be active at a time.
+     * @public
+     * @type {Array.<EmptyTerrain>}
+     */
+    public _terrains: EmptyTerrain[];
 
     /**
      * Camera is this.renderer.activeCamera pointer.
@@ -404,6 +414,8 @@ export class Planet extends Scene {
 
         this._layers = [];
 
+        this._terrains = [];
+
         this._updateLayers = false;
 
         this.visibleTileLayers = [];
@@ -568,6 +580,7 @@ export class Planet extends Scene {
      */
     public set atmosphereMaxOpacity(opacity: number) {
         this._atmosphereMaxMinOpacity[0] = opacity;
+        this.renderer?.requestRedraw();
     }
 
     /**
@@ -586,6 +599,7 @@ export class Planet extends Scene {
      */
     public set atmosphereMinOpacity(opacity: number) {
         this._atmosphereMaxMinOpacity[1] = opacity;
+        this.renderer?.requestRedraw();
     }
 
     /**
@@ -604,6 +618,7 @@ export class Planet extends Scene {
      */
     public set atmosphereOpacityCurveShift(curveShift: number) {
         this._atmosphereMaxMinOpacity[2] = curveShift;
+        this.renderer?.requestRedraw();
     }
 
     /**
@@ -673,6 +688,7 @@ export class Planet extends Scene {
         if (enabled != this._atmosphereEnabled) {
             this._atmosphereEnabled = enabled;
             this._initializeAtmosphere();
+            this.renderer?.requestRedraw();
         }
     }
 
@@ -701,6 +717,7 @@ export class Planet extends Scene {
      */
     public set shadeMode(m: ShadeModeInput) {
         this._shadeMode = normalizeShadeMode(m);
+        this.renderer?.requestRedraw();
     }
 
     protected _restoreSurfaceDepthMask() {
@@ -911,11 +928,83 @@ export class Planet extends Scene {
     }
 
     /**
-     * Sets terrain provider
+     * Returns attached terrain providers snapshot.
+     * @public
+     * @returns {EmptyTerrain[]} - Terrain providers array copy.
+     */
+    public get terrains(): EmptyTerrain[] {
+        return [...this._terrains];
+    }
+
+    /**
+     * Returns a terrain provider by name.
+     * @public
+     * @param {string} name - Terrain provider name.
+     * @returns {EmptyTerrain | undefined} -
+     */
+    public getTerrainByName(name: string): EmptyTerrain | undefined {
+        for (let i = 0, len = this._terrains.length; i < len; i++) {
+            if (name === this._terrains[i].name) {
+                return this._terrains[i];
+            }
+        }
+    }
+
+    /**
+     * Attaches terrain provider to the planet without activating it.
+     * @public
+     * @param {EmptyTerrain} terrain - Terrain provider.
+     */
+    public addTerrain(terrain: EmptyTerrain) {
+        for (let i = 0, len = this._terrains.length; i < len; i++) {
+            if (this._terrains[i].isEqual(terrain)) {
+                return;
+            }
+        }
+        this._terrains.push(terrain);
+        this.events.dispatch(this.events.terrainadd, terrain);
+    }
+
+    /**
+     * Attaches the given terrain providers array to the planet.
+     * @public
+     * @param {Array.<EmptyTerrain>} terrains - Terrain providers array.
+     */
+    public addTerrains(terrains: EmptyTerrain[]) {
+        for (let i = 0, len = terrains.length; i < len; i++) {
+            this.addTerrain(terrains[i]);
+        }
+    }
+
+    /**
+     * Detaches terrain provider from the planet. Currently active terrain provider can't be removed.
+     * @public
+     * @param {EmptyTerrain} terrain - Terrain provider.
+     */
+    public removeTerrain(terrain: EmptyTerrain) {
+        if (this.terrain && this.terrain.isEqual(terrain)) {
+            return;
+        }
+        for (let i = 0, len = this._terrains.length; i < len; i++) {
+            if (this._terrains[i].isEqual(terrain)) {
+                this._terrains.splice(i, 1);
+                this.events.dispatch(this.events.terrainremove, terrain);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Sets terrain provider. Only one terrain provider could be active at a time.
+     * The given provider is automatically attached to the planet terrain providers list.
      * @public
      * @param {EmptyTerrain} terrain - Terrain provider.
      */
     public setTerrain(terrain: EmptyTerrain) {
+        if (this.terrain && this.terrain.isEqual(terrain)) {
+            return;
+        }
+
         if (this._initialized) {
             this.memClear(true);
         }
@@ -929,7 +1018,14 @@ export class Planet extends Scene {
         this.terrain = terrain;
         this.terrain._planet = this;
 
+        this.addTerrain(terrain);
+
         this.quadTreeStrategy.destroyBranches();
+        this.quadTreeStrategy.clearRenderedNodes();
+
+        this.events.dispatch(this.events.terrainchange, terrain);
+
+        this.updateAttributionsList();
 
         if (terrain._geoid.model) {
             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
@@ -1229,6 +1325,7 @@ export class Planet extends Scene {
         }
 
         this.renderer!.activeCamera = this.camera;
+        this.camera.onViewChange = () => this.renderer!.requestRedraw();
 
         this.camera.bindFrustumsPickingColors(this.renderer!);
         this.camera.update();
@@ -1293,12 +1390,19 @@ export class Planet extends Scene {
         return `<div class="og-attribution__layer">${layer.getAttribution()}</div>`;
     }
 
+    protected _getTerrainAttributionHTML(): string {
+        if (this.terrain && this.terrain.getAttribution().length) {
+            return `<div class="og-attribution__layer og-attribution__terrain">${this.terrain.getAttribution()}</div>`;
+        }
+        return "";
+    }
+
     /**
      * Updates attribution lists
      * @public
      */
     public updateAttributionsList() {
-        let html = "";
+        let html = this._getTerrainAttributionHTML();
         for (let i = 0, len = this._layers.length; i < len; i++) {
             let li = this._layers[i];
             if (li.getVisibility()) {
@@ -1316,6 +1420,7 @@ export class Planet extends Scene {
      */
     public updateVisibleLayers() {
         this._updateLayers = true;
+        this.renderer && this.renderer.requestRedraw();
     }
 
     protected _updateVisibleLayers() {
@@ -1325,7 +1430,7 @@ export class Planet extends Scene {
         this.visibleVectorLayers = [];
         this.visibleVectorLayers.length = 0;
 
-        let html = "";
+        let html = this._getTerrainAttributionHTML();
         for (let i = 0, len = this._layers.length; i < len; i++) {
             let li = this._layers[i];
             if (li.getVisibility()) {
@@ -1367,14 +1472,10 @@ export class Planet extends Scene {
      * @protected
      */
     protected _applyAttribution(html: string) {
-        if (this.renderer && this.renderer.div) {
-            if (html.length) {
-                if (this.renderer.div.attributions!.innerHTML !== html) {
-                    this.renderer.div.attributions!.innerHTML = html;
-                }
-            } else {
-                this.renderer.div.attributions!.innerHTML = "";
-            }
+        const el = this.renderer && this.renderer.getAttributionsContainer();
+
+        if (el && el.innerHTML !== html) {
+            el.innerHTML = html;
         }
     }
 
@@ -1553,6 +1654,16 @@ export class Planet extends Scene {
 
         // Vector tiles rasterization
         this._vectorTileCreator.frame();
+
+        // Keeps the loop alive while something is still being rasterized or loaded
+        if (
+            !this._normalMapCreator.isIdle ||
+            !this._geoImageCreator.isIdle ||
+            !this._vectorTileCreator.isIdle ||
+            !this._tileLoader.isFree
+        ) {
+            this.renderer!.requestRedraw();
+        }
 
         this.camera.checkTerrainCollision();
         this.applyNear(this.camera);
@@ -2534,6 +2645,36 @@ export class Planet extends Scene {
     }
 
     /**
+     * Finds terrain point under a cartesian point.
+     * @public
+     * @param {Vec3} cart - Cartesian point to test.
+     * @param {Vec3} res - Output vector for terrain point.
+     * @returns {number | undefined} - Distance from the point to the terrain, undefined when no rendered
+     * segment covers it.
+     */
+    public getCartesianTerrainPoint(cart: Vec3, res: Vec3): number | undefined {
+        let nodes = this.quadTreeStrategy._renderedNodes;
+        let lonLat = this.ellipsoid.cartesianToLonLat(cart);
+        let bestSegment: Segment | null = null;
+
+        for (let i = nodes.length - 1; i >= 0; i--) {
+            let segment = nodes[i].segment;
+
+            if (segment && segment._extentLonLat && segment._extentLonLat.isInside(lonLat)) {
+                if (!bestSegment || segment.tileZoom > bestSegment.tileZoom) {
+                    bestSegment = segment;
+                }
+            }
+        }
+
+        if (!bestSegment) {
+            return undefined;
+        }
+
+        return bestSegment.getTerrainPoint(cart, bestSegment.projectNative(lonLat), res);
+    }
+
+    /**
      * Returns terrain height at the given coordinates in default terrain datum.
      * @public
      * @param {LonLat} lonLat - Geodetic coordinates.
@@ -2591,8 +2732,7 @@ export class Planet extends Scene {
     public override destroy() {
         this._terrainWorker.destroy();
         this._plainSegmentWorker.destroy();
-        this.renderer?.destroy();
-        this.onremove();
+        this.remove();
         super.destroy();
     }
 
@@ -2657,5 +2797,23 @@ const PLANET_EVENTS: PlanetEventsList = [
      * Triggered when layer data finishes loading.
      * @event layerloadend
      */
-    "layerloadend"
+    "layerloadend",
+
+    /**
+     * Triggered when a terrain provider is added to the planet.
+     * @event terrainadd
+     */
+    "terrainadd",
+
+    /**
+     * Triggered when a terrain provider is removed from the planet.
+     * @event terrainremove
+     */
+    "terrainremove",
+
+    /**
+     * Triggered when the current terrain provider changes.
+     * @event terrainchange
+     */
+    "terrainchange"
 ];

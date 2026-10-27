@@ -16,6 +16,7 @@
 import { CompassButton } from "./control/CompassButton";
 import { Control } from "./control/Control";
 import { EarthCoordinates } from "./control/EarthCoordinates";
+import { FreeNavigation } from "./control/FreeNavigation";
 import { Ellipsoid } from "./ellipsoid/Ellipsoid";
 import { EmptyTerrain } from "./terrain/EmptyTerrain";
 import { Handler } from "./webgl/Handler";
@@ -38,6 +39,7 @@ import type { ShadeModeInput } from "./shadeModeConstants";
 
 export interface IGlobeParams {
     attributionContainer?: HTMLElement;
+    uiContainer?: HTMLElement;
     target?: string | HTMLElement;
     skybox?: Scene;
     pixelRatio?: number;
@@ -58,12 +60,15 @@ export interface IGlobeParams {
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
     transitionOpacityEnabled?: boolean;
-    terrain?: EmptyTerrain;
+    terrain?: EmptyTerrain | EmptyTerrain[];
     controls?: Control[];
     minSlope?: number;
     sun?: {
         active?: boolean;
         stopped?: boolean;
+        dateTime?: Date | null;
+        localDateTime?: Date | null;
+        useTimeZones?: boolean;
     };
     navigation?: {
         active?: boolean;
@@ -96,6 +101,7 @@ export interface IGlobeParams {
     frameOpacity?: number;
     shadeMode?: ShadeModeInput;
     reverseDepth?: boolean;
+    idleMode?: boolean;
 }
 
 const DEFAULT_NIGHT_SRC = `/night.png`;
@@ -135,12 +141,17 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {IGlobeParams} options - Options:
  * @param {string|HTMLElement} options.target - HTML element id where planet canvas have to be created.
  * @param {string} [options.name] - Planet name. Default is uniq identifier.
- * @param {EmptyTerrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
+ * @param {EmptyTerrain | Array.<EmptyTerrain>} [options.terrain] - Terrain provider or providers array, where the first one becomes active. Default no terrain - og.terrain.EmptyTerrain.
  * @param {Array.<Control>} [options.controls] - Controls.
+ * @param {Object} [options.sun] - Sun control options.
+ * @param {Date|null} [options.sun.dateTime] - Fixed UTC time.
+ * @param {Date|null} [options.sun.localDateTime] - Local time. Overrides dateTime if provided; null resets fixed lighting.
  * @param {Array.<Layer>} [options.layers] - Planet layers.
  * @param {Extent | ExtentBoundingBox} [options.viewExtent] [options.viewExtent] - Viewable starting extent.
  * @param {boolean} [options.autoActivate=true] - Globe rendering auto activation flag. True is default.
+ * @param {boolean} [options.idleMode=false] - Skips a frame rendering when nothing has been changed. False is default.
  * @param {HTMLElement} [options.attributionContainer] - Container for attribution list.
+ * @param {HTMLElement} [options.uiContainer] - Container for dialogs, the render container by default.
  * @param {number} [options.maxGridSize=128] = Maximal segment grid size. 128 is default
  * @param {string} [options.fontsSrc] - Fonts collection url.
  * @param {string} [options.resourcesSrc] - Resources root src.
@@ -262,6 +273,7 @@ class Globe {
             }),
             {
                 autoActivate: false,
+                idleMode: options.idleMode,
                 msaa: options.msaa,
                 deferredDisabled: options.deferredDisabled,
                 fontsSrc: options.fontsSrc,
@@ -273,6 +285,7 @@ class Globe {
         );
 
         this.renderer.div = this.$inner;
+        this.renderer.uiContainer = options.uiContainer || null;
 
         // Skybox
         if (options.skybox) {
@@ -313,11 +326,12 @@ class Globe {
             reverseDepth: options.reverseDepth
         });
 
-        // Attach terrain provider (can be one object or array)
         if (options.terrain) {
-            //@todo: refactoring
             if (Array.isArray(options.terrain)) {
-                this.planet.setTerrain(options.terrain[0]); // If array get the terrain from 1st element
+                this.planet.addTerrains(options.terrain);
+                if (options.terrain[0]) {
+                    this.planet.setTerrain(options.terrain[0]);
+                }
             } else {
                 this.planet.setTerrain(options.terrain);
             }
@@ -336,7 +350,8 @@ class Globe {
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
-                new CompassButton()
+                new CompassButton(),
+                new FreeNavigation({ autoActivate: false, showInfo: false })
             ]);
         }
 
@@ -353,7 +368,7 @@ class Globe {
         }
 
         if (!sun) {
-            this.sun = new Sun();
+            this.sun = new Sun({ useTimeZones: true });
             this.planet.addControl(this.sun);
         } else {
             this.sun = sun;
@@ -365,6 +380,15 @@ class Globe {
             }
             if (options.sun.stopped === true) {
                 this.sun.stop();
+            }
+            if (options.sun.useTimeZones !== undefined) {
+                this.sun.useTimeZones = options.sun.useTimeZones;
+            }
+            if (options.sun.dateTime !== undefined) {
+                this.sun.setDateTime(options.sun.dateTime);
+            }
+            if (options.sun.localDateTime !== undefined) {
+                this.sun.setLocalDateTime(options.sun.localDateTime);
             }
         }
 

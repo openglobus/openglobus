@@ -38,6 +38,7 @@ export class SimpleSkyBackground extends Control {
         this._colorOne[0] = srgbToLinear(rgb.x);
         this._colorOne[1] = srgbToLinear(rgb.y);
         this._colorOne[2] = srgbToLinear(rgb.z);
+        this.renderer && this.renderer.requestRedraw();
     }
 
     public set colorTwo(htmlColor: string) {
@@ -45,6 +46,7 @@ export class SimpleSkyBackground extends Control {
         this._colorTwo[0] = srgbToLinear(rgb.x);
         this._colorTwo[1] = srgbToLinear(rgb.y);
         this._colorTwo[2] = srgbToLinear(rgb.z);
+        this.renderer && this.renderer.requestRedraw();
     }
 
     public override oninit() {

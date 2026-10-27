@@ -19,6 +19,7 @@ uniform mat4 projectionMatrix;
 uniform vec3 eyePositionHigh;
 uniform vec3 eyePositionLow;
 uniform vec4 uScaleByDistance;
+uniform float uFocusDistance;
 uniform float opacity;
 uniform float planetRadius;
 uniform vec2 viewport;
@@ -42,8 +43,11 @@ void main() {
     //vec3 up = vec3( viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1] );
     //vec3 right = vec3( viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0] );
 
-    float distMetric = uScaleByDistance[3] > 0.0 ? uScaleByDistance[3] : lookDist;
-    float scd = (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], distMetric)) * (1.0 - step(uScaleByDistance[2], distMetric));
+    float distMetric = uFocusDistance > 0.0 ? uFocusDistance : lookDist;
+    float scd = uScaleByDistance[2] > uScaleByDistance[1]
+        ? 1.0 - smoothstep(uScaleByDistance[1], uScaleByDistance[2], distMetric)
+        : 1.0;
+    scd *= uScaleByDistance[3];
 
     mat4 viewMatrixRTE = viewMatrix;
     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);

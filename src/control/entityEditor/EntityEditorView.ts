@@ -6,16 +6,16 @@ import { Input } from "../../ui/Input";
 import { Slider } from "../../ui/Slider";
 import { TitleBarView } from "../../ui/TitleBarView";
 import { View, type IViewParams } from "../../ui/View";
-import { EntityEditorScene, NATIVE_MODE, YAW_MODE } from "./EntityEditorScene";
+import { EntityGizmoScene, NATIVE_MODE, YAW_MODE } from "../entityGizmo/EntityGizmoScene";
 
 interface IEntityEditorViewParams extends IViewParams {
-    model: EntityEditorScene;
+    model: EntityGizmoScene;
     entity?: Entity;
 }
 
 const TEMPLATE = `<div class="og-editor-panel"></div>`;
 
-export class EntityEditorView extends View<EntityEditorScene> {
+export class EntityEditorView extends View<EntityGizmoScene> {
     protected _entity: Entity | null;
     protected _titleBarView: TitleBarView;
     protected _bodyEl: HTMLElement | null;

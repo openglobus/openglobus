@@ -52,6 +52,7 @@ export interface IHandlerParameters {
     };
     extensions?: string[];
     autoActivate?: boolean;
+    idleMode?: boolean;
 }
 
 export interface Texture3DParams {
@@ -207,12 +208,18 @@ class Handler {
 
     public ONCANVASRESIZE: Function | null;
 
+    /** Runs on every animation tick before the idle check, so it can request a frame. */
+    public ONFRAMECHECK: Function | null;
+
     public intersectionObserver?: IntersectionObserver;
     public resizeObserver?: ResizeObserver;
 
     protected _requestAnimationFrameId: number = 0;
     protected _clipControlZeroToOne: boolean = false;
     public clipControl: ((origin: number, depth: number) => void) | undefined = undefined;
+
+    protected _idleMode: boolean;
+    public needRedraw: boolean;
 
     protected _getMipmapLevels(width: number, height: number): number {
         return Math.max(1, Math.floor(Math.log2(Math.max(width, height))) + 1);
@@ -249,6 +256,9 @@ class Handler {
             context: params.context || {}
         };
 
+        this._idleMode = params.idleMode || false;
+        this.needRedraw = true;
+
         //this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
 
         this.extensions = {};
@@ -277,12 +287,35 @@ class Handler {
         this.createTextureDefault = this.createTexture.NEAREST;
 
         this.ONCANVASRESIZE = null;
+        this.ONFRAMECHECK = null;
 
         this._createCanvas();
 
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.initialize();
         }
+    }
+
+    /**
+     * Idle mode skips a frame rendering when nothing has been changed since the previous frame.
+     * @public
+     */
+    public set idleMode(isEnabled: boolean) {
+        this._idleMode = isEnabled;
+        this.needRedraw = true;
+    }
+
+    public get idleMode(): boolean {
+        return this._idleMode;
+    }
+
+    /**
+     * Returns true when the idle mode is on and nothing has requested a frame yet, i.e.
+     * the next frame is going to be skipped.
+     * @public
+     */
+    public get isIdle(): boolean {
+        return this._idleMode && !this.needRedraw;
     }
 
     public set frameDelay(delay: number) {
@@ -511,11 +544,13 @@ class Handler {
     ): WebGLTextureExt | null {
         let gl = this.gl!;
 
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
+        if (!texture) {
+            texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
+        } else {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+        }
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -543,11 +578,15 @@ class Handler {
     ): WebGLTextureExt | null {
         let gl = this.gl!;
 
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
+        if (!texture) {
+            texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+            gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
+        } else {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+        }
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -576,10 +615,14 @@ class Handler {
         let gl = this.gl!;
         const levels = this._getMipmapLevels(image.width, image.height);
 
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
+        if (!texture) {
+            texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+            gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
+        } else {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+        }
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
@@ -608,11 +651,13 @@ class Handler {
         let gl = this.gl!;
         const levels = this._getMipmapLevels(image.width, image.height);
 
-        texture = texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
+        if (!texture) {
+            texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat || gl.RGBA8, image.width, image.height);
+        } else {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+        }
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
@@ -786,6 +831,25 @@ class Handler {
     }
 
     /**
+     * True when 32 bit float textures can be sampled with LINEAR filter.
+     * @public
+     * @returns {boolean} -
+     */
+    public get isFloatTextureFilterable(): boolean {
+        return !!this.extensions.OES_texture_float_linear;
+    }
+
+    /**
+     * Texture filter for 32 bit float textures. Falls back to NEAREST where
+     * OES_texture_float_linear is unavailable, iOS in particular.
+     * @public
+     * @returns {string} -
+     */
+    public get floatTextureFilter(): string {
+        return this.isFloatTextureFilterable ? "LINEAR" : "NEAREST";
+    }
+
+    /**
      * Main function that initializes handler.
      * @public
      */
@@ -853,6 +917,7 @@ class Handler {
 
     protected _toggleVisibilityChange(visibility: boolean) {
         if (visibility) {
+            this.needRedraw = true;
             this.start();
             this.ONCANVASRESIZE && this.ONCANVASRESIZE();
             this.events.dispatch(this.events.visibilitychange, true);
@@ -1045,6 +1110,7 @@ class Handler {
             this.gl && this.gl.viewport(0, 0, w, h);
             this.ONCANVASRESIZE && this.ONCANVASRESIZE(this.canvas);
             this.events.dispatch(this.events.resize, this);
+            this.needRedraw = true;
         }
     }
 
@@ -1133,6 +1199,14 @@ class Handler {
             }
         }
 
+        this.ONFRAMECHECK && this.ONFRAMECHECK();
+
+        if (this._idleMode && !this.needRedraw) {
+            return;
+        }
+
+        this.needRedraw = false;
+
         /** Draw frame */
         this._frameCallback();
     };
@@ -1153,6 +1227,7 @@ class Handler {
      */
     public start() {
         if (!this._requestAnimationFrameId && this._initialized) {
+            this.needRedraw = true;
             this._animationFrameCallback();
         }
     }

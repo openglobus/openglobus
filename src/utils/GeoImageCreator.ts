@@ -109,6 +109,24 @@ export class GeoImageCreator {
         ];
     }
 
+    /**
+     * Returns true when there is nothing left to rasterize and no animated
+     * geo images(i.e. GeoVideo) are being played.
+     * @public
+     * @returns {boolean}
+     */
+    public get isIdle(): boolean {
+        if (this._queue.length !== 0) {
+            return false;
+        }
+        for (let i = 0; i < this._animate.length; i++) {
+            if (this._animate[i].getVisibility()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public frame() {
         let i = this.MAX_FRAMES;
         while (i-- && this._queue.length) {
@@ -135,6 +153,8 @@ export class GeoImageCreator {
             } else {
                 this._queue.push(geoImage);
             }
+
+            this._planet.renderer?.requestRedraw();
         }
     }
 

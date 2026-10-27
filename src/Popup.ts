@@ -154,7 +154,7 @@ class Popup extends View<null> {
         this._visibility = true;
         if (this._planet) {
             this._planet.events.on("draw", this._updatePosition, this);
-            this.appendTo(this._planet.renderer!.div as HTMLElement);
+            this.appendTo(this._planet.renderer!.getInnerContainer());
             this.events.dispatch(this.events.open, this);
         }
         return this;

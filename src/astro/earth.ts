@@ -6,6 +6,13 @@ import * as jd from "./jd";
 import type { JulianDate } from "./jd";
 
 /**
+ * Epoch of the Sun orbital elements below: 1999-12-31 00:00 UT, 1.5 days before J2000.
+ * @const
+ * @type{number}
+ */
+const ELEMENTS_EPOCH = 2451543.5;
+
+/**
  * Returns Sun position in the geocentric coordinate system by the time.
  * @param {JulianDate} jDate - Julian date time.
  * @returns {Vec3} - Sun geocentric coordinates.
@@ -63,7 +70,7 @@ export function getSunPosition(jDate: JulianDate): Vec3 {
     //        position (seen from the Sun) should be converted to a
     //        corresponding geocentric position (seen from the Earth).
 
-    var d = jDate - jd.J2000;
+    var d = jDate - ELEMENTS_EPOCH;
 
     var w = 282.9404 + 4.70935e-5 * d; // longitude of perihelion
     // var a = 1.000000; // mean distance, a.u.
@@ -94,7 +101,8 @@ export function getSunPosition(jDate: JulianDate): Vec3 {
     var yequat = y * Math.cos(oblecl * math.RADIANS);
     var zequat = y * Math.sin(oblecl * math.RADIANS);
 
-    var theta = math.TWO_PI * ((d * 24.0) / 23.9344694 - 259.853 / 360.0); // Siderial spin time
+    // Siderial spin time, counted from J2000 and phased so that 180 - 259.53938 is GMST at J2000
+    var theta = math.TWO_PI * (((jDate - jd.J2000) * 24.0) / 23.934469592 - 259.53938 / 360.0);
 
     return Quat.zRotation(-theta).mulVec3(
         new Vec3(-xequat * astro.AU_TO_METERS, -yequat * astro.AU_TO_METERS, zequat * astro.AU_TO_METERS)

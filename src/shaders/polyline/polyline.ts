@@ -8,6 +8,14 @@ import polyline_plain_vert from "./polyline_plain.vert.glsl";
 import polyline_plain_frag from "./polyline_plain.frag.glsl";
 import polyline_plain_woit_frag from "./polyline_plain_woit.frag.glsl";
 
+import polyline_tex_time_vert from "./polyline_time.vert.glsl";
+import polyline_tex_time_frag from "./polyline_forward_time.frag.glsl";
+import polyline_woit_time_frag from "./polyline_woit_time.frag.glsl";
+
+import polyline_plain_time_vert from "./polyline_plain_time.vert.glsl";
+import polyline_plain_time_frag from "./polyline_plain_time.frag.glsl";
+import polyline_plain_woit_time_frag from "./polyline_plain_woit_time.frag.glsl";
+
 import polyline_picking_vert from "./polyline_picking.vert.glsl";
 import polyline_picking_frag from "./polyline_picking.frag.glsl";
 
@@ -107,6 +115,90 @@ export function polylineWoitPlain(): ShaderProgram {
         },
         vertexShader: polyline_plain_vert,
         fragmentShader: polyline_plain_woit_frag
+    });
+}
+
+const TIME_UNIFORMS = {
+    timeCut: "ivec2",
+    timeOpacity: "vec2"
+};
+
+const TIME_ATTRIBUTES = {
+    pathTime: "ivec2"
+};
+
+const TEX_ATTRIBUTES = {
+    texCoord: "vec4",
+    textureParams: "vec3",
+    pathPhase: "float",
+    boundingSphere: "vec4"
+};
+
+export function polylineTexTime(): ShaderProgram {
+    return new ShaderProgram("polylineTexTime", {
+        uniforms: {
+            ...SHARED_UNIFORMS,
+            ...TIME_UNIFORMS,
+            time: "float",
+            texAtlas: "sampler2d"
+        },
+        attributes: {
+            ...SHARED_ATTRIBUTES,
+            ...TIME_ATTRIBUTES,
+            ...TEX_ATTRIBUTES
+        },
+        vertexShader: polyline_tex_time_vert,
+        fragmentShader: polyline_tex_time_frag
+    });
+}
+
+export function polylinePlainTime(): ShaderProgram {
+    return new ShaderProgram("polylinePlainTime", {
+        uniforms: {
+            ...SHARED_UNIFORMS,
+            ...TIME_UNIFORMS
+        },
+        attributes: {
+            ...SHARED_ATTRIBUTES,
+            ...TIME_ATTRIBUTES
+        },
+        vertexShader: polyline_plain_time_vert,
+        fragmentShader: polyline_plain_time_frag
+    });
+}
+
+export function polylineTexWoitTime(): ShaderProgram {
+    return new ShaderProgram("polylineTexWoitTime", {
+        uniforms: {
+            ...SHARED_UNIFORMS,
+            ...TIME_UNIFORMS,
+            useReverseDepth: "float",
+            time: "float",
+            texAtlas: "sampler2d"
+        },
+        attributes: {
+            ...SHARED_ATTRIBUTES,
+            ...TIME_ATTRIBUTES,
+            ...TEX_ATTRIBUTES
+        },
+        vertexShader: polyline_tex_time_vert,
+        fragmentShader: polyline_woit_time_frag
+    });
+}
+
+export function polylineWoitPlainTime(): ShaderProgram {
+    return new ShaderProgram("polylineWoitPlainTime", {
+        uniforms: {
+            ...SHARED_UNIFORMS,
+            ...TIME_UNIFORMS,
+            useReverseDepth: "float"
+        },
+        attributes: {
+            ...SHARED_ATTRIBUTES,
+            ...TIME_ATTRIBUTES
+        },
+        vertexShader: polyline_plain_time_vert,
+        fragmentShader: polyline_plain_woit_time_frag
     });
 }
 

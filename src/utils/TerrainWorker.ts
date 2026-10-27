@@ -22,6 +22,7 @@ export interface ITerrainWorkerData {
     terrainVerticesLow: Float32Array | null;
     noDataVertices: Uint8Array | null;
     bounds: NumberArray6;
+    radiusRange: number[] | null;
     relativeCenter: NumberArray3;
 }
 

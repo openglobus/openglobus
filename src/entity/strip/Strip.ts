@@ -10,6 +10,7 @@ import { StripHandler } from "./StripHandler";
 import type { WebGLBufferExt } from "../../webgl/Handler";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import { srgbToLinear } from "../../utils/colorSpace";
+import { splitPathTime } from "../pathTime";
 
 type TPoiExt = Vec3 | NumberArray3;
 type TStripExt = [TPoiExt, TPoiExt];
@@ -23,16 +24,20 @@ export interface IStripParams {
     color?: string | NumberArray4 | Vec4;
     opacity?: number;
     path?: TStrip[];
+    pathTimes?: number[];
 }
 
 let _tempHigh = new Vec3(),
-    _tempLow = new Vec3();
+    _tempLow = new Vec3(),
+    _tempRtc = new Vec3();
 
 /**
  * Strip object.
  * @class
  * @param {*} [options] - Strip options:
  * @param {boolean} [options.visibility] - Strip visibility.
+ * @param {number[]} [options.pathTimes] - Time of every path edge. Makes the strip follow the
+ * entity collection time, see {@link EntityCollection#setTime} and {@link EntityCollection#setTimeOpacity}.
  * @example <caption>Stripe example</caption>
  * new og.Entity({
  *     strip: {
@@ -78,6 +83,12 @@ class Strip {
     protected _verticesLow: number[];
     protected _indexes: number[];
     protected _path: TStrip[];
+
+    protected _times: number[] | null;
+    protected _timesArr: Int32Array;
+    protected _timesBuffer: WebGLBufferExt | null;
+    protected _suspendBuffers: boolean;
+    protected _rtcCenter: Vec3;
 
     protected _pickingColor: Float32Array;
 
@@ -133,6 +144,12 @@ class Strip {
 
         this._path = [];
 
+        this._times = options.pathTimes ? options.pathTimes.slice() : null;
+        this._timesArr = new Int32Array(0);
+        this._timesBuffer = null;
+        this._suspendBuffers = false;
+        this._rtcCenter = new Vec3();
+
         this._pickingColor = new Float32Array(4);
 
         this._gridSize = 1;
@@ -179,6 +196,9 @@ class Strip {
         this._indexes.length = 0;
         this._indexes = [];
 
+        this._times = this._times ? [] : null;
+        this._timesArr = new Int32Array(0);
+
         this._deleteBuffers();
     }
 
@@ -221,7 +241,75 @@ class Strip {
     }
 
     public isOpaque(): boolean {
-        return this._color[3] >= 0.999999;
+        return this._color[3] >= 0.999999 && !this._times;
+    }
+
+    /**
+     * Returns true when the strip has edge times and follows the entity collection time.
+     * @public
+     * @returns {boolean}
+     */
+    public isTimed(): boolean {
+        return this._times !== null;
+    }
+
+    public getPathTimes(): number[] | null {
+        return this._times;
+    }
+
+    /**
+     * Sets edge times. Null removes them and the strip stops following the entity collection time.
+     * @public
+     * @param {number[] | null} times - Time of every path edge, missing values repeat the previous one.
+     */
+    public setPathTimes(times: number[] | null) {
+        this._times = times ? times.slice() : null;
+        if (this._handler) {
+            this._handler.updateStripOpacity(this);
+            this._times && this._handler.initTimedPrograms();
+        }
+        this._createBuffers();
+    }
+
+    protected _resolveTimes(): number[] {
+        const times = this._times || [];
+        const count = this._path.length;
+        const res: number[] = new Array(count);
+
+        let t = times.find((v) => Number.isFinite(v)) ?? 0;
+
+        for (let i = 0; i < count; i++) {
+            if (Number.isFinite(times[i])) {
+                t = times[i];
+            }
+            res[i] = t;
+        }
+        return res;
+    }
+
+    protected _rebuildTimes() {
+        const gs = this._gridSize,
+            gs1 = gs + 1;
+        const times = this._resolveTimes();
+        const quads = Math.max(0, this._path.length - 1);
+        const arr = new Int32Array(quads * gs1 * gs1 * 2);
+
+        for (let k = 0; k < quads; k++) {
+            const t0 = times[k],
+                t1 = times[k + 1];
+
+            for (let i = 0; i < gs1; i++) {
+                const [high, low] = splitPathTime(t0 + ((t1 - t0) * i) / gs);
+                const row = (k * gs1 + i) * gs1;
+
+                for (let j = 0; j < gs1; j++) {
+                    arr[(row + j) * 2] = high;
+                    arr[(row + j) * 2 + 1] = low;
+                }
+            }
+        }
+
+        this._timesArr = arr;
     }
 
     /**
@@ -247,7 +335,33 @@ class Strip {
      */
     public bindScene(scene: Scene) {
         this._scene = scene;
-        this._createBuffers();
+        if (!this.updateRTCPosition()) {
+            this._createBuffers();
+        }
+    }
+
+    protected _toTwoFloats(p: Vec3) {
+        const c = this._rtcCenter;
+        _tempRtc.set(p.x - c.x, p.y - c.y, p.z - c.z);
+        Vec3.doubleToTwoFloats(_tempRtc, _tempHigh, _tempLow);
+    }
+
+    /**
+     * Rebuilds vertices relative to the handler relative center when it has moved.
+     * @public
+     * @returns {boolean} True when the strip was rebuilt.
+     */
+    public updateRTCPosition(): boolean {
+        const center = this._handler && this._handler._relativeCenter;
+
+        if (!center || center.equal(this._rtcCenter)) {
+            return false;
+        }
+
+        this._rtcCenter.copy(center);
+        this.setPath(([] as TStrip[]).concat(this._path));
+
+        return true;
     }
 
     /**
@@ -280,11 +394,20 @@ class Strip {
             gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
 
-            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
+            gl.uniform3fv(shu.eyePositionHigh, this._handler!._rtcEyePositionHigh);
+            gl.uniform3fv(shu.eyePositionLow, this._handler!._rtcEyePositionLow);
 
             gl.uniform4fv(shu.uColor, color);
             gl.uniform1f(shu.uOpacity, opacity);
+
+            if (this._times && this._timesBuffer) {
+                const handler = this._handler!;
+                const [high, low] = splitPathTime(handler.time);
+                gl.uniform2i(shu.timeCut, high, low);
+                gl.uniform2fv(shu.timeOpacity, handler.timeOpacity);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this._timesBuffer);
+                gl.vertexAttribIPointer(sha.pathTime, 2, gl.INT, 0, 0);
+            }
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer!);
             gl.vertexAttribPointer(sha.aVertexPositionHigh, this._verticesHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -298,16 +421,18 @@ class Strip {
     }
 
     public drawTransparent() {
+        const programs = this._scene!.renderer!.handler.programs;
         this._drawImpl(
-            this._scene!.renderer!.handler.programs.stripTransparent,
+            this._times ? programs.stripTransparentTime : programs.stripTransparent,
             this._color,
             this._entity!._entityCollection!._fadingOpacity
         );
     }
 
     public drawOpaque() {
+        const programs = this._scene!.renderer!.handler.programs;
         this._drawImpl(
-            this._scene!.renderer!.handler.programs.stripForward,
+            this._times ? programs.stripForwardTime : programs.stripForward,
             this._color,
             this._entity!._entityCollection!._fadingOpacity
         );
@@ -331,8 +456,8 @@ class Strip {
             gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
 
-            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
+            gl.uniform3fv(shu.eyePositionHigh, this._handler!._rtcEyePositionHigh);
+            gl.uniform3fv(shu.eyePositionLow, this._handler!._rtcEyePositionLow);
 
             gl.uniform1f(shu.uOpacity, this._entity!._entityCollection!._fadingOpacity != 0 ? 1 : 0);
 
@@ -360,14 +485,24 @@ class Strip {
             gl.deleteBuffer(this._indexBuffer!);
             gl.deleteBuffer(this._verticesHighBuffer!);
             gl.deleteBuffer(this._verticesLowBuffer!);
+            gl.deleteBuffer(this._timesBuffer!);
         }
         this._verticesHighBuffer = null;
         this._verticesLowBuffer = null;
         this._indexBuffer = null;
+        this._timesBuffer = null;
     }
 
     protected _createBuffers() {
+        if (this._suspendBuffers) return;
+
+        if (this._times) {
+            this._rebuildTimes();
+        }
+
         if (this._scene && this._scene.renderer && this._scene.renderer.isInitialized()) {
+            this._scene.renderer.requestRedraw();
+
             let gl = this._scene.renderer.handler.gl!;
 
             gl.deleteBuffer(this._indexBuffer as WebGLBuffer);
@@ -389,11 +524,21 @@ class Strip {
                 1,
                 this._indexes.length
             );
+
+            gl.deleteBuffer(this._timesBuffer as WebGLBuffer);
+            this._timesBuffer = this._times
+                ? this._scene.renderer.handler.createArrayBuffer(this._timesArr, 2, this._timesArr.length / 2)
+                : null;
         }
     }
 
-    public addEdge3v(p2: Vec3, p3: Vec3) {
+    public addEdge3v(p2: Vec3, p3: Vec3, time?: number) {
         let length = this._path.length;
+
+        if (this._times && time !== undefined) {
+            this._times.length = length;
+            this._times.push(time);
+        }
 
         if (length === 0) {
             this._path.push([p2.clone(), p3.clone()]);
@@ -427,14 +572,14 @@ class Strip {
                         p23 = p2.lerp(p3, dj);
 
                     if (d !== 1.0) {
-                        new Line3(p02, p13).intersects(new Line3(p01, p23), p);
+                        p = gridPoint(p02, p13, p01, p23, di, p);
                     } else {
                         p = p23;
                     }
 
                     ind = last + i * gs1 + j;
 
-                    Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+                    this._toTwoFloats(p);
 
                     let ind3 = ind * 3;
 
@@ -460,12 +605,16 @@ class Strip {
         }
     }
 
-    public setEdge3v(p2: Vec3, p3: Vec3, index: number) {
+    public setEdge3v(p2: Vec3, p3: Vec3, index: number, time?: number) {
         if (index === this._path.length) {
-            this.addEdge3v(p2, p3);
+            this.addEdge3v(p2, p3, time);
             return;
         }
+
         if (this._path[index]) {
+            if (this._times && time !== undefined) {
+                this._times[index] = time;
+            }
             this._path[index][0] = p2;
             this._path[index][1] = p3;
 
@@ -500,14 +649,14 @@ class Strip {
                                 p23 = p2.lerp(p3, dj);
 
                             if (d !== 1.0) {
-                                new Line3(p02, p13).intersects(new Line3(p01, p23), p);
+                                p = gridPoint(p02, p13, p01, p23, di, p);
                             } else {
                                 p = p23;
                             }
 
                             ind = prev + i * gs1 + j;
 
-                            Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+                            this._toTwoFloats(p);
 
                             let ind3 = ind * 3;
 
@@ -539,11 +688,11 @@ class Strip {
                             let p01 = p0.lerp(p1, dj),
                                 p23 = p2.lerp(p3, dj);
 
-                            new Line3(p02, p13).intersects(new Line3(p01, p23), p);
+                            p = gridPoint(p02, p13, p01, p23, di, p);
 
                             ind = i * gs1 + j;
 
-                            Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+                            this._toTwoFloats(p);
 
                             let ind3 = ind * 3;
 
@@ -580,13 +729,13 @@ class Strip {
                                 p23 = p2.lerp(p3, dj);
 
                             // prev
-                            new Line3(p02, p13).intersects(new Line3(p01, p23), p);
+                            p = gridPoint(p02, p13, p01, p23, di, p);
 
                             let ij = i * gs1 + j;
 
                             ind = prev + ij;
 
-                            Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+                            this._toTwoFloats(p);
 
                             let ind3 = ind * 3;
 
@@ -603,11 +752,11 @@ class Strip {
 
                             p23 = p2.lerp(p3, dj);
 
-                            new Line3(p24, p35).intersects(new Line3(p23, p45), p);
+                            p = gridPoint(p24, p35, p23, p45, di, p);
 
                             ind = next + ij;
 
-                            Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+                            this._toTwoFloats(p);
 
                             ind3 = ind * 3;
 
@@ -631,6 +780,9 @@ class Strip {
 
     public removeEdge(index: number) {
         this._path.splice(index, 1);
+        if (this._times && index < this._times.length) {
+            this._times.splice(index, 1);
+        }
         this.setPath(([] as TStrip[]).concat(this._path));
     }
 
@@ -643,7 +795,18 @@ class Strip {
         return this._path;
     }
 
-    public setPath(path: TStripExt[] | TStrip[]) {
+    public setPath(path: TStripExt[] | TStrip[], pathTimes?: number[]) {
+        if (pathTimes) {
+            const wasTimed = this.isTimed();
+            this._times = pathTimes.slice();
+            if (!wasTimed && this._handler) {
+                this._handler.updateStripOpacity(this);
+                this._handler.initTimedPrograms();
+            }
+        }
+
+        this._suspendBuffers = true;
+
         this._verticesHigh = [];
         this._verticesLow = [];
         this._indexes = [];
@@ -663,17 +826,32 @@ class Strip {
 
             this.addEdge3v(p0 as Vec3, p1 as Vec3);
         }
+
+        this._suspendBuffers = false;
+        this._createBuffers();
     }
 
-    public insertEdge3v(p0: Vec3, p1: Vec3, index: number) {
+    public insertEdge3v(p0: Vec3, p1: Vec3, index: number, time?: number) {
         if (index < this._path.length) {
             let p: TStrip[] = ([] as TStrip[]).concat(this._path);
             p.splice(index, 0, [p0, p1]);
+            if (this._times) {
+                this._times.length = Math.max(this._times.length, index);
+                this._times.splice(index, 0, time ?? this._times[Math.max(0, index - 1)]);
+            }
             this.setPath(p);
         } else if (index === this._path.length) {
-            this.addEdge3v(p0, p1);
+            this.addEdge3v(p0, p1, time);
         }
     }
+}
+
+function gridPoint(p02: Vec3, p13: Vec3, p01: Vec3, p23: Vec3, di: number, res: Vec3): Vec3 {
+    if (new Line3(p02, p13).intersects(new Line3(p01, p23), res)) {
+        return res;
+    }
+
+    return p01.lerp(p23, di);
 }
 
 export { Strip };

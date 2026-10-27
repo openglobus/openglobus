@@ -1,10 +1,7 @@
 import * as quadTree from "../quadTree/quadTree";
-import type { EventCallback, EventsHandler } from "../Events";
 import { BaseTileMaterialLayer } from "./BaseTileMaterialLayer";
 import type { IBaseTileMaterialLayerParams } from "./BaseTileMaterialLayer";
-import type { LayerEventsList } from "./Layer";
 import { Material } from "../layer/Material";
-import { Planet } from "../scene/Planet";
 
 type ApplyImageFunc = (material: HTMLCanvasElement | ImageBitmap | HTMLImageElement) => void;
 type DrawTileCallback = (material: Material, applyImage: ApplyImageFunc) => void;
@@ -15,24 +12,6 @@ export interface ICanvasTilesParams extends IBaseTileMaterialLayerParams {
     minNativeZoom?: number;
     maxNativeZoom?: number;
 }
-
-type CanvasTilesEventsList = ["load", "loadend"];
-
-type CanvasTilesEventsType = EventsHandler<CanvasTilesEventsList> & EventsHandler<LayerEventsList>;
-
-const CANVASTILES_EVENTS: CanvasTilesEventsList = [
-    /**
-     * Triggered when the current tile image has loaded before rendering.
-     * @event load
-     */
-    "load",
-
-    /**
-     * Triggered when all tiles have loaded or loading has stopped.
-     * @event loadend
-     */
-    "loadend"
-];
 
 /**
  * Layer that renders each tile as a separate canvas object.
@@ -57,8 +36,6 @@ class CanvasTiles extends BaseTileMaterialLayer {
     static MAX_REQUESTS: number = 20;
     static __requestsCounter: number = 0;
 
-    public override events: CanvasTilesEventsType;
-
     public animated: boolean;
 
     /**
@@ -82,13 +59,8 @@ class CanvasTiles extends BaseTileMaterialLayer {
      */
     public drawTile: DrawTileCallback;
 
-    protected _onLoadend_: EventCallback | null;
-
     constructor(name: string | null, options: ICanvasTilesParams) {
         super(name, options);
-
-        //@ts-ignore
-        this.events = this.events.registerNames(CANVASTILES_EVENTS);
 
         this.animated = options.animated || false;
 
@@ -100,26 +72,6 @@ class CanvasTiles extends BaseTileMaterialLayer {
         this._pendingsQueue = []; // new og.QueueArray();
 
         this.drawTile = options.drawTile;
-
-        this._onLoadend_ = null;
-    }
-
-    public override addTo(planet: Planet) {
-        this._onLoadend_ = this._onLoadend.bind(this);
-        this.events.on("loadend", this._onLoadend_!, this);
-        return super.addTo(planet);
-    }
-
-    public override remove() {
-        this.events.off("loadend", this._onLoadend_);
-        this._onLoadend_ = null;
-        return super.remove();
-    }
-
-    public _onLoadend() {
-        if (this._planet && this._planet.quadTreeStrategy._terrainCompletedActivated) {
-            this._planet.events.dispatch(this._planet.events.layerloadend, this);
-        }
     }
 
     public override get instanceName(): string {
@@ -236,8 +188,8 @@ class CanvasTiles extends BaseTileMaterialLayer {
                     this._exec(pmat);
                 }
             }
-        } else if (this._counter === 0 && this._planet && this._planet.quadTreeStrategy._terrainCompletedActivated) {
-            this.events.dispatch(this.events.loadend);
+        } else {
+            this._checkLoadend();
         }
     }
 

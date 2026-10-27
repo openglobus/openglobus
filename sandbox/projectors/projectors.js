@@ -68,18 +68,16 @@ globus.planet.addControl(depthCameraHandler);
 const depthCamera1 = new DepthCamera({
     showFrustum: true,
     showFootprint: true,
-    bias: 0.00006, //0.00003 .. 0.00008 - 0.0005
+    depthBiasWorld: 1, // meters
     normalBias: 0.45, // 0.2 .. 1.0
-    depthEpsilon: 0.0001 //0.00015 .. 0.0005 - 0.0015
 });
 depthCameraHandler.add(depthCamera1);
 
 const depthCamera2 = new DepthCamera({
     showFrustum: true,
     showFootprint: true,
-    bias: 0.00006, //0.00003 .. 0.00008 - 0.0005
+    depthBiasWorld: 1, // meters
     normalBias: 0.45, // 0.2 .. 1.0
-    depthEpsilon: 0.0001 //0.00015 .. 0.0005 - 0.0015
 });
 depthCameraHandler.add(depthCamera2);
 
