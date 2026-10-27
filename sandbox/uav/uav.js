@@ -29,7 +29,7 @@ const globus = new Globe({
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
     layers: [new Bing(), new OpenStreetMap(), uavLayer, myObjects],
-    atmosphereEnabled: false,
+    atmosphereEnabled: true,
     fontsSrc: "../../res/fonts",
     //deferredDisabled: true,
     //transparentBackground: true,
@@ -49,19 +49,6 @@ const trackedCameraEntities = [];
 const skyCubeObject3d = Object3d.createCube(10000, 10000, 10000).setColor("white");
 const PROJECTOR_NEAR = 300.0;
 const PROJECTOR_FAR = 100000.0;
-
-// Shared, looping video source projected onto the terrain by every UAV projector below.
-const PROJECTOR_VIDEO_SRC = "./bigbuck_bunny_8bit_750kbps_720p_60.0fps_h264.mp4";
-const projectorVideo = document.createElement("video");
-projectorVideo.src = PROJECTOR_VIDEO_SRC;
-projectorVideo.crossOrigin = "anonymous";
-projectorVideo.loop = true;
-projectorVideo.muted = true;
-projectorVideo.playsInline = true;
-projectorVideo.autoplay = true;
-projectorVideo.play().catch((error) => {
-    console.warn("Unable to autoplay projector video", error);
-});
 
 myObjects.add(
     new Entity({
@@ -148,10 +135,9 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     const projector = new Projector({
         enabled: true,
         depthCamera,
-        color: [1.0, 1.0, 1.0, 1.0],
+        color: [1.0, 1.0, 0.0, 0.3],
         renderMode: "color",
-        priority: 0,
-        video: projectorVideo
+        priority: 0
     });
     globus.planet.renderer.projectors.add(projector);
 
