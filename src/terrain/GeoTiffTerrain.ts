@@ -21,9 +21,10 @@ export interface IGeoTiffTerrainParams extends Omit<IProceduralTerrainParams, "g
  * @param {number} [options.sampleSize=256] - Pixels by the segment side read from the GeoTIFF, power of two,
  * not less than plainGridSize. The GeoTIFF overview is taken by them.
  * @param {number} [options.band=1] - Elevation band.
+ * @param {string} [options.attribution=""] - Elevation source attribution shown in the attribution area.
  * @param {number} [options.plainGridSize=128] - Elevation grid size.
  * @param {number} [options.maxZoom=21] - Last zoom of the segment heights, the last zoom of the default grid sizes.
- * @param {number} [options.maxNativeZoom] - Last zoom of the GeoTIFF reads, by default the first zoom which
+ * @param {number} [options.maxNativeZoom] - Last zoom of the GeoTIFF reads, by default, the first zoom which
  * sampleSize pixels are not larger than the GeoTIFF ones. Deeper segments are its subdivision levels.
  * @param {string} [options.geoidSrc="https://openglobus.org/geoid/egm84-30.pgm"] - Geoid of the heights.
  * @param {Array.<number>} [options.noDataValues=[-10000]] - Heights of no data, GeoTIFF nodata pixels

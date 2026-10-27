@@ -17,12 +17,18 @@
 <script type="module" id="og-sandbox-script">
     import { Globe, control, GeoTiffTerrain, GeoTIFFLayer, OpenStreetMap } from "../../lib/og.es.js";
 
+    const DEM2M_ATTRIBUTION = "dem2m 2m DEM";
+    const USGS_ATTRIBUTION =
+        '<a href="https://www.usgs.gov/3d-elevation-program" target="_blank">USGS 3DEP</a> 1m Zion NP';
+
     const dem2m = new GeoTiffTerrain("dem2m", {
-        src: "./dem2m-lerc02-cog.tiff"
+        src: "./dem2m-lerc02-cog.tiff",
+        attribution: DEM2M_ATTRIBUTION
     });
 
     const usgs = new GeoTiffTerrain("USGS Zion", {
-        src: "./zion-cog.tif"
+        src: "./zion-cog.tif",
+        attribution: USGS_ATTRIBUTION
     });
 
     const createRaster = (name, src) =>
