@@ -244,6 +244,15 @@ export class Loader<T extends Obj<T>> {
         return this._loading;
     }
 
+    /**
+     * Returns true when there is nothing being loaded and nothing left in the queue.
+     * @public
+     * @returns {boolean}
+     */
+    public get isFree(): boolean {
+        return this._loading === 0 && this._queue.length === 0;
+    }
+
     public get queue(): QueueData<T>[] {
         return this._queue;
     }

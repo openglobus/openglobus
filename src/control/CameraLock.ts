@@ -91,6 +91,9 @@ export class CameraLock extends Control {
         this._deactivateLockViewEvents();
 
         this._lockEntity = entity;
+
+        this.renderer.setRelativeCenter(entity.getAbsoluteCartesian());
+
         let cam = this.renderer.activeCamera;
         if (this.planet) {
             this.planet.camera.stopFlying();
@@ -155,6 +158,10 @@ export class CameraLock extends Control {
             let dist = cam.eye.distance(cartesian);
             if (prevEntity) {
                 dist = cam.eye.distance(prevEntity.getAbsoluteCartesian());
+            }
+
+            if (dist <= MIN_LOCK_DISTANCE) {
+                return MIN_VIEW_DISTANCE;
             }
 
             if (this.isVisibleDistance(cartesian)) {

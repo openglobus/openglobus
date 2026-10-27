@@ -6,6 +6,7 @@ export const projectorUniforms = {
     u_projectorEyeRel: "vec3",
     u_projectorColor: "vec4",
     u_projectorParams: "vec4",
+    u_projectorDepthRange: "vec3",
     u_projectorDepthArray: "sampler2darray",
     u_projectorColorArray: "sampler2darray"
 };
@@ -16,6 +17,7 @@ export const shadowMapUniforms = {
     u_shadowMapViewProjRTE: "mat4",
     u_shadowMapEyeRel: "vec3",
     u_shadowMapParams: "vec4",
+    u_shadowMapDepthRange: "vec3",
     u_shadowMapDepthArray: "sampler2darray"
 };
 

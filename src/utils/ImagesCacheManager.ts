@@ -18,6 +18,7 @@ class ImagesCacheManager {
     protected _counter: number;
     protected _pendingsQueue: QueueArray<IImagesCacheRequest>;
     protected _imageIndexCounter: number;
+    protected _loadingImages: HTMLImageElementExt[];
 
     constructor() {
         this.imagesCache = {};
@@ -25,6 +26,19 @@ class ImagesCacheManager {
         this._counter = 0;
         this._pendingsQueue = new QueueArray<IImagesCacheRequest>();
         this._imageIndexCounter = 0;
+        this._loadingImages = [];
+    }
+
+    public abort() {
+        this._pendingsQueue.clear();
+
+        for (let i = 0; i < this._loadingImages.length; i++) {
+            this._loadingImages[i].onload = null;
+            this._loadingImages[i].onerror = null;
+        }
+
+        this._loadingImages = [];
+        this._counter = 0;
     }
 
     public load(src: string, success: ImagesCacheManagerCallback) {
@@ -46,7 +60,23 @@ class ImagesCacheManager {
 
         let img: HTMLImageElementExt = new Image();
         img.crossOrigin = "";
+
+        this._loadingImages.push(img);
+
+        /** Takes the image off the in flight list, so abort() has nothing left to detach. */
+        const settle = function () {
+            img.onload = null;
+            img.onerror = null;
+
+            let i = that._loadingImages.indexOf(img);
+            if (i !== -1) {
+                that._loadingImages.splice(i, 1);
+            }
+        };
+
         img.onload = function () {
+            settle();
+
             that.imagesCache[req.src] = img;
             img.__nodeIndex = that._imageIndexCounter++;
             req.success(img);
@@ -54,6 +84,7 @@ class ImagesCacheManager {
         };
 
         img.onerror = function () {
+            settle();
             that._dequeueRequest();
         };
 

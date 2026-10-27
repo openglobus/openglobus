@@ -6,6 +6,7 @@ import { DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF } from "./math";
 import { Mat4 } from "./math/Mat4";
 import { Obj } from "./utils/objParser";
 import type { IObjGeometry } from "./utils/objParser";
+import { getColorSpace, SRGB } from "./utils/colorSpace";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
     if (color instanceof Array) {
@@ -39,6 +40,7 @@ interface IObject3dParams {
     normals?: number[];
     center?: boolean;
     color?: number[] | TypedArray | string;
+    colorSpace?: string | number;
     scale?: number | Vec3;
     metallic?: number;
     roughness?: number;
@@ -65,6 +67,8 @@ class Object3d {
     protected _normals: number[];
 
     public color: Float32Array;
+
+    public colorSpace: number;
 
     public metallic: number;
     public roughness: number;
@@ -93,6 +97,7 @@ class Object3d {
         // }
 
         this.color = getColor(data.color);
+        this.colorSpace = Object3d.getColorSpace(data.colorSpace);
 
         this.metallic = data.metallic ?? 0;
         this.roughness = data.roughness ?? 0;
@@ -184,9 +189,14 @@ class Object3d {
         return this;
     }
 
-    public setColor(color: number[] | TypedArray | string): this {
+    public setColor(color: number[] | TypedArray | string, colorSpace?: string | number): this {
         this.color = getColor(color);
+        this.colorSpace = Object3d.getColorSpace(colorSpace);
         return this;
+    }
+
+    public static getColorSpace(colorSpace?: string | number): number {
+        return getColorSpace(colorSpace, SRGB);
     }
 
     public centering(): this {

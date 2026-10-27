@@ -1,4 +1,5 @@
-﻿import { Entity } from "../../entity/Entity";
+﻿import * as math from "../../math";
+import { Entity } from "../../entity/Entity";
 import { Events } from "../../Events";
 import { Vector } from "../../layer/Vector";
 import { LonLat } from "../../LonLat";
@@ -67,7 +68,7 @@ class SelectionScene extends Scene {
                 size: 11,
                 color: "rgba(455,455,455,1.0)",
                 outlineColor: "rgba(0,0,0,0.34)",
-                outline: 0.23,
+                outline: 1,
                 align: "center",
                 offset: [0, 18]
             }
@@ -127,7 +128,7 @@ class SelectionScene extends Scene {
             entities: [this._cornerEntity[0], this._cornerEntity[1]],
             pickingEnabled: true,
             hideInLayerSwitcher: true,
-            scaleByDistance: [1.0, 4000000, 0.01],
+            scaleByDistance: [1.0, 4000000, math.MAX32, 0.01],
             pickingScale: 2
         });
     }

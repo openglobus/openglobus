@@ -16,9 +16,10 @@ export * from "./control/Control";
 export * from "./entity/index";
 export * from "./layer/index";
 export * from "./Globe";
+export { proj4 } from "./proj/proj4";
 
 export type { IControlParams } from "./control/Control";
-export type { ITouchState } from "./renderer/RendererEvents";
+export type { IMouseState, ITouchState } from "./renderer/RendererEvents";
 export type { IDeferredShadingPass } from "./renderer/IDeferredShadingPass";
 export type { ITransparencyPass } from "./renderer/ITransparencyPass";
 export type { ProjectorSourceType, ProjectorRenderMode, IProjectorParams } from "./renderer/projectors/Projector";
@@ -30,6 +31,18 @@ export type { IDepthCameraParams } from "./control/depthCamera/DepthCamera";
 export { DepthCamera } from "./control/depthCamera/DepthCamera";
 export type { IDepthCameraHandlerParams } from "./control/depthCamera/DepthCameraHandler";
 export { DepthCameraHandler } from "./control/depthCamera/DepthCameraHandler";
+export type { IEntityGizmoParams } from "./control/entityGizmo/EntityGizmo";
+export { EntityGizmo } from "./control/entityGizmo/EntityGizmo";
+export type {
+    EditMode,
+    EditModeName,
+    GizmoTools,
+    GizmoTransformHandle,
+    GizmoTransformKind,
+    IEntityGizmoSceneParams,
+    IGizmoTransformEvent
+} from "./control/entityGizmo/EntityGizmoScene";
+export { EntityGizmoScene } from "./control/entityGizmo/EntityGizmoScene";
 export { PhongDeferredShading } from "./renderer/PhongDeferredShading";
 export { AtmosphereDeferredShading } from "./renderer/AtmosphereDeferredShading";
 export { WOITPass } from "./renderer/WOITPass";
@@ -37,6 +50,17 @@ export { ProjectorsPass } from "./renderer/projectors/ProjectorsPass";
 export { ProjectorManager } from "./renderer/projectors/ProjectorManager";
 export { ShadowManager } from "./renderer/shadows/ShadowManager";
 export { SHADE_UNLIT, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "./shadeModeConstants";
+export type { CameraFootprintCorners, ICameraFootprintParams } from "./utils/cameraFootprint";
+export { CameraFootprint, getCameraFootprint } from "./utils/cameraFootprint";
+export type {
+    ILightSpaceBounds,
+    IOrthoBounds,
+    IShadowCameraFitParams,
+    IShadowCameraFitStats
+} from "./utils/shadowCameraFit";
+export { ShadowCameraFit } from "./utils/shadowCameraFit";
+export type { ITimeZoneData, ITimeZoneFeature, ITimeZoneProviderParams } from "./utils/tz";
+export { TimeZoneProvider, tzOffsetMinutes } from "./utils/tz";
 
 declare const __OG_VERSION__: string;
 export const version = __OG_VERSION__;
@@ -54,6 +78,7 @@ import { Line2, Line3, Mat3, Mat4, Plane, Quat, Ray, Vec2, Vec3, Vec4 } from "./
 
 import { Renderer } from "./renderer/Renderer";
 import { Clock } from "./Clock";
+import { TimelineModel } from "./control/timeline/TimelineModel";
 import { Events, type EventsHandler, createEvents } from "./Events";
 import { Extent } from "./Extent";
 import { LonLat } from "./LonLat";
@@ -81,13 +106,14 @@ import {
     BilTerrain,
     GlobusRgbTerrain,
     MapterhornTerrain,
+    ProceduralTerrain,
     rgbToHeightByEncoding,
     rgbToHeightRgb,
     rgbToHeightTerrarium,
     resolveRgbToHeightFunc
 } from "./terrain/index";
 
-import { MoveAxisEntity } from "./control/entityEditor/MoveAxisEntity";
+import { MoveAxisEntity } from "./control/entityGizmo/MoveAxisEntity";
 import { Gltf } from "./utils/gltf/gltfParser";
 import { Easing } from "./utils/easing";
 import type { EasingFunction } from "./utils/easing";
@@ -117,6 +143,7 @@ export {
     RgbTerrain,
     GlobusRgbTerrain,
     MapterhornTerrain,
+    ProceduralTerrain,
     rgbToHeightByEncoding,
     rgbToHeightRgb,
     rgbToHeightTerrarium,
@@ -131,6 +158,7 @@ export {
     Multisample,
     Renderer,
     Clock,
+    TimelineModel,
     Events,
     EventsHandler,
     createEvents,

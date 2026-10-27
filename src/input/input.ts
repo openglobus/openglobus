@@ -5,6 +5,7 @@ export const input: { [id: string]: number } = {
     KEY_CTRL: 17,
     KEY_ALT: 18,
     KEY_SHIFT: 16,
+    KEY_ESC: 27,
     KEY_SPACE: 32,
     KEY_PGUP: 33,
     KEY_PGDN: 34,

@@ -5,6 +5,8 @@ import {
     scene,
     control,
     GlobusRgbTerrain,
+    MapterhornTerrain,
+    EmptyTerrain,
     Object3d,
     Vector,
     Bing,
@@ -85,8 +87,8 @@ let globe = new Globe({
     target: "earth",
     name: "Earth",
     //frustums: [[1, 1e12]],
-    terrain: new GlobusRgbTerrain(),
-    deferredDisabled: true,
+    terrain: [new GlobusRgbTerrain(), new MapterhornTerrain(), new EmptyTerrain({ name: "Empty" })],
+    //deferredDisabled: true,
     //pixelRatio: 0.5,
     //skybox: skybox,
     // navigation: {
@@ -94,6 +96,10 @@ let globe = new Globe({
     //     maxInertia: 1.1,
     //     minInertiaAltitude: 3000000
     // },
+    sun: {
+        // Aug 3 2026, 18:00 on the local clock wherever the camera goes
+        localDateTime: new Date(Date.UTC(2026, 7, 3, 18, 0, 0))
+    },
     layers: [new OpenStreetMap(), new Bing(), objLayer, collection, pointLayer]
     //    reverseDepth: false,
     //msaa: 0
@@ -200,7 +206,7 @@ globe.renderer.events.on("lclick", function (e) {
                     offset: [0, 50, 0],
                     color: "rgba(0,0,0,1)",
                     outlineColor: "rgba(255,255,255,0.3)",
-                    outline: 0.2
+                    outline: 1.5
                 }
             })
         );
@@ -346,3 +352,5 @@ globe.planet.addControl(ruler);
 
 globe.planet.addControl(new control.AtmosphereConfig());
 globe.planet.addControl(new control.Lighting());
+
+globe.planet.addControl(new control.FreeNavigation({ autoActivate: false, showInfo: true }));

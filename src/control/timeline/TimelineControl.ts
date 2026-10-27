@@ -2,6 +2,7 @@ import { Dialog } from "../../ui/Dialog";
 import { ToggleButton } from "../../ui/ToggleButton";
 import { Control, type IControlParams } from "../Control";
 import { TimelineView } from "./TimelineView";
+import type { ITimelineSpan, ITimelineSpanParams, TimelineModel } from "./TimelineModel";
 import { createEvents, type EventsHandler } from "../../Events";
 
 type TimelineControlEventsList = [
@@ -16,7 +17,9 @@ type TimelineControlEventsList = [
     "startdrag",
     "stopdrag",
     "startdragcurrent",
-    "stopdragcurrent"
+    "stopdragcurrent",
+    "changelocaltime",
+    "changelocaldatetime"
 ];
 
 const TIMELINECONTROL_EVENTS: TimelineControlEventsList = [
@@ -31,7 +34,9 @@ const TIMELINECONTROL_EVENTS: TimelineControlEventsList = [
     "startdrag",
     "stopdrag",
     "startdragcurrent",
-    "stopdragcurrent"
+    "stopdragcurrent",
+    "changelocaltime",
+    "changelocaldatetime"
 ];
 
 interface ITimelineControlParams extends IControlParams {
@@ -39,6 +44,8 @@ interface ITimelineControlParams extends IControlParams {
     current?: Date;
     rangeStart?: Date;
     rangeEnd?: Date;
+    use24HourClock?: boolean;
+    template?: string;
 }
 
 function addHours(date: Date, hours: number): Date {
@@ -79,25 +86,29 @@ class TimelineControl extends Control {
         this._timelineView = new TimelineView({
             rangeStart: startDate,
             rangeEnd: endDate,
-            currentDate: currentDate
+            currentDate: currentDate,
+            use24HourClock: options.use24HourClock,
+            dateTemplate: options.template
         });
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-timeline_button"],
-            icon: ICON_BUTTON_SVG
+            icon: ICON_BUTTON_SVG,
+            isActive: true
         });
 
         this._dialog = new Dialog({
             title: "Timeline",
-            visible: false,
+            dock: "bottom",
+            visible: true,
             resizable: true,
             useHide: true,
             top: 10,
             left: 60,
             width: 600,
-            height: 115,
-            minHeight: 115,
-            maxHeight: 110
+            height: 128,
+            minHeight: 128,
+            maxHeight: 128
         });
 
         this._dialog.events.on("visibility", (v: boolean) => {
@@ -106,15 +117,145 @@ class TimelineControl extends Control {
         });
     }
 
+    /**
+     * Returns timeline data model.
+     * @public
+     */
+    public get model(): TimelineModel {
+        return this._timelineView.model;
+    }
+
+    /** Date the Sun marker stands on. Setting it moves the marker without dispatching. */
+    public get localDateTime(): Date {
+        return this._timelineView.localDateTime;
+    }
+
+    public set localDateTime(date: Date) {
+        this._timelineView.localDateTime = date;
+    }
+
+    /**
+     * Marker label date format, e.g. "MM/dd/yyyy" or "hh:mm:ss.ms". Tokens: yyyy/yy, MMM,
+     * MM/M, dd/d, hh/h, mm/m, ss/s, ms, a/A; case matters for M/m only. An empty template
+     * keeps the adaptive scale format. am/pm follows {@link TimelineControl.use24HourClock}.
+     */
+    public get template(): string {
+        return this._timelineView.dateTemplate;
+    }
+
+    public set template(template: string) {
+        this._timelineView.dateTemplate = template;
+    }
+
+    /** Scale time notation: 24-hour, or 12-hour with am/pm. */
+    public get use24HourClock(): boolean {
+        return this._timelineView.use24HourClock;
+    }
+
+    public set use24HourClock(use24HourClock: boolean) {
+        this._timelineView.use24HourClock = use24HourClock;
+    }
+
+    /** Lights the scene by the Sun marker, the civil clock time under the camera. */
+    public applyLocalDateTime() {
+        const sun = this.planet?.sun;
+
+        if (!sun) return;
+
+        sun.setLocalDateTime(this._timelineView.localDateTime);
+        this.renderer && this.renderer.requestRedraw();
+    }
+
+    /**
+     * Adds a colored time interval drawn on the scale, e.g. one per telemetry track.
+     * Spans that overlap in time are placed on separate rows automatically, and the
+     * rows share the scale height between them.
+     * @public
+     * @param {ITimelineSpanParams} params - Span start, end and color. An omitted id is generated.
+     * @returns {ITimelineSpan} - Stored span, with its id and assigned row.
+     */
+    public addSpan(params: ITimelineSpanParams): ITimelineSpan {
+        return this.model.addSpan(params);
+    }
+
+    /**
+     * Adds several spans at once, keeping the ones already on the scale.
+     * @public
+     * @param {ITimelineSpanParams[]} params - Spans to add.
+     * @returns {ITimelineSpan[]} - Stored spans, in the order they were given.
+     */
+    public addSpans(params: ITimelineSpanParams[]): ITimelineSpan[] {
+        return this.model.addSpans(params);
+    }
+
+    /**
+     * Replaces every span on the scale, e.g. to redraw the whole set after a source
+     * was added or removed.
+     * @public
+     * @param {ITimelineSpanParams[]} params - Spans the scale is left with.
+     * @returns {ITimelineSpan[]} - Stored spans, in the order they were given.
+     */
+    public setSpans(params: ITimelineSpanParams[]): ITimelineSpan[] {
+        return this.model.setSpans(params);
+    }
+
+    /**
+     * Replaces the time range, color and payload of a span, and reassigns the rows when
+     * its time range moved.
+     * @public
+     * @param {string} id - Span id.
+     * @param {ITimelineSpanParams} params - New span fields. Every field is replaced, the id is kept.
+     * @returns {ITimelineSpan | undefined} - Updated span, or undefined when the id is unknown.
+     */
+    public updateSpan(id: string, params: ITimelineSpanParams): ITimelineSpan | undefined {
+        return this.model.updateSpan(id, params);
+    }
+
+    /**
+     * Removes a single span from the scale. An unknown id is ignored.
+     * @public
+     * @param {string} id - Span id.
+     */
+    public removeSpan(id: string): void {
+        this.model.removeSpan(id);
+    }
+
+    /**
+     * Removes every span from the scale.
+     * @public
+     */
+    public clearSpans(): void {
+        this.model.clearSpans();
+    }
+
+    /**
+     * Returns the spans currently on the scale.
+     * @public
+     * @returns {ITimelineSpan[]} - Stored spans, each carrying its assigned row.
+     */
+    public getSpans(): ITimelineSpan[] {
+        return this.model.getSpans();
+    }
+
+    /**
+     * Returns a single span by its id.
+     * @public
+     * @param {string} id - Span id.
+     * @returns {ITimelineSpan | undefined} - Stored span, or undefined when the id is unknown.
+     */
+    public getSpan(id: string): ITimelineSpan | undefined {
+        return this.model.getSpan(id);
+    }
+
     public override oninit() {
-        let $container = this.renderer!.div!;
+        let $container = this.renderer!.getUIContainer();
         const defaultClock = this.renderer!.handler.defaultClock;
 
         this._toggleBtn.appendTo(this.renderer!.topLeftContainer());
         this._dialog.appendTo($container);
         this._dialog.events.on("visibility", (v: boolean) => {
             if (v) {
-                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.div);
+                this._dialog.positionNearElementOnFirstOpen(this._toggleBtn.el, this.renderer!.getUIContainer());
             }
         });
 
@@ -126,8 +267,35 @@ class TimelineControl extends Control {
         });
 
         this._timelineView.appendTo(this._dialog.container!);
+
+        let sun = this.planet?.sun;
+        let initialDateTime: Date | null = null;
+
+        if (sun) {
+            if (sun.dateTime) {
+                initialDateTime = sun.dateTime;
+            } else if (sun.localDateTime) {
+                initialDateTime = sun.localDateTime;
+            }
+        }
+
+        if (sun && initialDateTime) {
+            let halfRange = this._timelineView.model.range * 0.5;
+            this._timelineView.model.set(
+                new Date(initialDateTime.getTime() - halfRange),
+                new Date(initialDateTime.getTime() + halfRange)
+            );
+            this._timelineView.model.current = initialDateTime;
+
+            if (!sun.dateTime) {
+                this._timelineView.localDateTime = initialDateTime;
+                this._timelineView.localTime = true;
+            }
+        }
+
         defaultClock.multiplier = this._timelineView.model.multiplier;
         defaultClock.setDate(this._timelineView.model.current);
+
         if (this._timelineView.model.stopped()) {
             defaultClock.stop();
         } else {
@@ -136,7 +304,30 @@ class TimelineControl extends Control {
 
         this._timelineView.events.on("setcurrent", (d: Date) => {
             this.renderer && defaultClock.setDate(d);
+
+            if (!this._timelineView.localTime) {
+                this.planet?.sun?.setDateTime(d);
+            }
+
             this.events.dispatch(this.events.setcurrent, d);
+        });
+
+        this._timelineView.events.on("changelocaltime", (isActive: boolean) => {
+            let sun = this.planet?.sun;
+            if (sun) {
+                if (isActive) {
+                    this.applyLocalDateTime();
+                } else {
+                    sun.setDateTime(this._timelineView.model.current);
+                    this.renderer && this.renderer.requestRedraw();
+                }
+            }
+            this.events.dispatch(this.events.changelocaltime, isActive);
+        });
+
+        this._timelineView.events.on("changelocaldatetime", (d: Date) => {
+            this.applyLocalDateTime();
+            this.events.dispatch(this.events.changelocaldatetime, d);
         });
 
         this._timelineView.model.events.on("change", (...args: unknown[]) => {

@@ -182,6 +182,25 @@ export class Extent {
     }
 
     /**
+     * Creates union of this extent and another extent.
+     * @public
+     * @param {Extent} extent - Other extent.
+     * @return {Extent} Union extent.
+     */
+    public createUnion(extent: Extent): Extent {
+        return new Extent(
+            new LonLat(
+                Math.min(this.southWest.lon, extent.southWest.lon),
+                Math.min(this.southWest.lat, extent.southWest.lat)
+            ),
+            new LonLat(
+                Math.max(this.northEast.lon, extent.northEast.lon),
+                Math.max(this.northEast.lat, extent.northEast.lat)
+            )
+        );
+    }
+
+    /**
      * Gets the center coordinate of the extent.
      * @public
      * @return {number} Center coordinate.

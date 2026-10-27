@@ -1,0 +1,93 @@
+<html>
+    <head>
+        <title>OpenGlobus - Procedural Terrain</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
+        <script type="module" id="og-sandbox-script">
+            import { Globe, control, ProceduralTerrain, LonLat } from "../../lib/og.es.js";
+
+            //
+            // Terrain made by a function: a square area raised by 1000m.
+            // The heights are made at the segment grid vertices and go to the segment as they are.
+            //
+            const LON = 37.8,
+                LAT = 44.7;
+
+            // Square side in meters on the ground, and its height
+            const SQUARE = 200,
+                HEIGHT = 1000;
+
+            const GRID_SIZE = 128,
+                MAX_ZOOM = 22;
+
+            // Mercator meters by ground meter
+            const K = 1 / Math.cos((LAT * Math.PI) / 180);
+            const center = new LonLat(LON, LAT).forwardMercator(),
+                half = (SQUARE / 2) * K;
+
+            // Height at x, y Mercator meters
+            function getHeight(x, y) {
+                return Math.abs(x - center.lon) < half && Math.abs(y - center.lat) < half ? HEIGHT : 0;
+            }
+
+            // (GRID_SIZE + 1)² heights at the segment grid vertices, rows from north to south
+            function getHeights(segment) {
+                let e = segment.getExtent();
+
+                // No terrain away from the square
+                if (
+                    e.northEast.lon < center.lon - half ||
+                    e.southWest.lon > center.lon + half ||
+                    e.northEast.lat < center.lat - half ||
+                    e.southWest.lat > center.lat + half
+                ) {
+                    return null;
+                }
+
+                let step = e.getWidth() / GRID_SIZE,
+                    gs = GRID_SIZE + 1,
+                    heights = new Float32Array(gs * gs);
+
+                for (let i = 0; i < gs; i++) {
+                    for (let j = 0; j < gs; j++) {
+                        heights[i * gs + j] = getHeight(e.southWest.lon + j * step, e.northEast.lat - i * step);
+                    }
+                }
+
+                return heights;
+            }
+
+            const proceduralTerrain = new ProceduralTerrain("Procedural", {
+                getHeights: getHeights,
+                plainGridSize: GRID_SIZE,
+                minZoom: 0,
+                maxZoom: MAX_ZOOM
+            });
+
+            // Square with a margin in degrees
+            const margin = SQUARE / 111320;
+
+            window.globe = new Globe({
+                target: "globus",
+                name: "Earth",
+                terrain: proceduralTerrain,
+                viewExtent: [LON - 2 * margin * K, LAT - 2 * margin, LON + 2 * margin * K, LAT + 2 * margin]
+            });
+
+            globe.planet.addControl(new control.DebugInfo());
+            globe.planet.addControl(new control.TimelineControl());
+            globe.planet.addControl(new control.ToggleWireframe());
+        </script>
+    </body>
+</html>

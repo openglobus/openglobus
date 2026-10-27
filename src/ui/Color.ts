@@ -95,14 +95,18 @@ class Color extends View<null> {
         return this._value;
     }
 
+    public override afterRender(parentNode: HTMLElement) {
+        this._initEvents();
+    }
+
     protected _initEvents() {
-        this.$pickerInput!.addEventListener("input", this._onPickerInput);
-        this.$valueInput!.addEventListener("input", this._onValueInput);
+        this.$pickerInput?.addEventListener("input", this._onPickerInput);
+        this.$valueInput?.addEventListener("input", this._onValueInput);
     }
 
     protected _clearEvents() {
-        this.$pickerInput!.removeEventListener("input", this._onPickerInput);
-        this.$valueInput!.removeEventListener("input", this._onValueInput);
+        this.$pickerInput?.removeEventListener("input", this._onPickerInput);
+        this.$valueInput?.removeEventListener("input", this._onValueInput);
     }
 
     protected _onPickerInput = (e: Event) => {

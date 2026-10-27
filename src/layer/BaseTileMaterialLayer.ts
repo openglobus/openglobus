@@ -1,28 +1,89 @@
-import { Layer } from "./Layer";
-import type { ILayerParams } from "./Layer";
-import { Material } from "./Material";
-import type { NumberArray4 } from "../math/Vec4";
-import type { Node } from "../quadTree/Node";
-import { Segment } from "../segment/Segment";
+import type {EventsHandler} from "../Events";
+import {Layer} from "./Layer";
+import type {ILayerParams, LayerEventsList} from "./Layer";
+import {Material} from "./Material";
+import type {NumberArray4} from "../math/Vec4";
+import type {Node} from "../quadTree/Node";
+import type {Planet} from "../scene/Planet";
+import {Segment} from "../segment/Segment";
 
 export interface IBaseTileMaterialLayerParams extends ILayerParams {
     minNativeZoom?: number;
     maxNativeZoom?: number;
 }
 
+type BaseTileMaterialLayerEventsList = ["load", "loadend"];
+
+const BASETILEMATERIALLAYER_EVENTS: BaseTileMaterialLayerEventsList = [
+    /**
+     * Triggered when a tile material is loaded.
+     * @event load
+     */
+    "load",
+
+    /**
+     * Triggered when all tiles have loaded or loading has stopped.
+     * @event loadend
+     */
+    "loadend"
+];
+
+export type BaseTileMaterialLayerEventsType = EventsHandler<BaseTileMaterialLayerEventsList> &
+    EventsHandler<LayerEventsList>;
+
 /**
  * Shared tile material application for imagery/canvas tile layers.
  * It can be applied to any type of tiled data that can be displayed on the planet in either of these two ways, such as BUildings, vector tiles etc.
  */
 export abstract class BaseTileMaterialLayer extends Layer {
+    public override events: BaseTileMaterialLayerEventsType;
+
     public minNativeZoom: number = 0;
     public maxNativeZoom: number = 50;
 
+    protected _loadendFrame: number = 0;
+
     constructor(name?: string | null, options: IBaseTileMaterialLayerParams = {}) {
         super(name, options);
+
+        //@ts-ignore
+        this.events = this.events.registerNames(BASETILEMATERIALLAYER_EVENTS);
+
         this.minNativeZoom = options.minNativeZoom ?? this.minNativeZoom;
         this.maxNativeZoom = options.maxNativeZoom ?? this.maxNativeZoom;
     }
+
+    public override addTo(planet: Planet) {
+        this.events.on("loadend", this._onLoadend, this);
+        return super.addTo(planet);
+    }
+
+    public override remove() {
+        cancelAnimationFrame(this._loadendFrame);
+        this._loadendFrame = 0;
+        this.events.off("loadend", this._onLoadend);
+        return super.remove();
+    }
+
+    protected _checkLoadend(): void {
+        cancelAnimationFrame(this._loadendFrame);
+
+        this._loadendFrame = requestAnimationFrame(() => {
+            this._loadendFrame = 0;
+
+            if (this.isIdle) {
+                this.events.dispatch(this.events.loadend, this);
+            } else if (this._planet) {
+                this._checkLoadend();
+            }
+        });
+    }
+
+    protected _onLoadend = () => {
+        if (this._planet?.quadTreeStrategy?._terrainCompletedActivated) {
+            this._planet.events.dispatch(this._planet.events.layerloadend, this);
+        }
+    };
 
     public override applyMaterial(material: Material, forceLoading: boolean = false): NumberArray4 {
         if (this.waitForParentMaterial) {
@@ -164,9 +225,11 @@ export abstract class BaseTileMaterialLayer extends Layer {
         material.texOffset[3] = 1.0;
     }
 
-    protected _onMaterialReady(_material: Material): void {}
+    protected _onMaterialReady(_material: Material): void {
+    }
 
-    protected _onParentMaterialApplied(_material: Material, _psegm: Material): void {}
+    protected _onParentMaterialApplied(_material: Material, _psegm: Material): void {
+    }
 
     protected _beforeFastMaterialParentWalk(material: Material, segment: Segment, forceLoading: boolean): void {
         if (

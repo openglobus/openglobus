@@ -46,6 +46,10 @@ class RayHandler {
     protected _rays: Ray[];
     protected _opaqueCounterIndex: number;
 
+    public _relativeCenter: Vec3;
+    protected _rtcEyePositionHigh: Float32Array;
+    protected _rtcEyePositionLow: Float32Array;
+
     protected _vertexBuffer: WebGLBufferExt | null;
     protected _startPositionHighBuffer: WebGLBufferExt | null;
     protected _startPositionLowBuffer: WebGLBufferExt | null;
@@ -91,6 +95,11 @@ class RayHandler {
         this._opaqueCounterIndex = 0;
 
         this._vertexBuffer = null;
+
+        this._relativeCenter = new Vec3();
+        this._rtcEyePositionHigh = new Float32Array(3);
+        this._rtcEyePositionLow = new Float32Array(3);
+
         this._startPositionHighBuffer = null;
         this._startPositionLowBuffer = null;
         this._endPositionHighBuffer = null;
@@ -241,8 +250,13 @@ class RayHandler {
     public refresh() {
         let i = this._changedBuffers.length;
         while (i--) {
-            this._changedBuffers[i] = true;
+            this._setChangedBuffer(i);
         }
+    }
+
+    protected _setChangedBuffer(index: number) {
+        this._changedBuffers[index] = true;
+        this._renderer && this._renderer.requestRedraw();
     }
 
     protected _removeRays() {
@@ -342,6 +356,7 @@ class RayHandler {
             ray._handler = this;
             ray._handlerIndex = this._rays.length;
             this._rays.push(ray);
+            ray._splitPositions();
             this._addRayToArrays(ray);
             this._insertRayByOpacity(ray._handlerIndex, this._isRayOpaque(ray));
             this.refresh();
@@ -557,8 +572,10 @@ class RayHandler {
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
 
-        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
+        const rtcEyePosition = r.activeCamera!.eye.sub(this._relativeCenter);
+        Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
+        gl.uniform3fv(shu.eyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(shu.eyePositionLow, this._rtcEyePositionLow);
 
         gl.uniform1f(shu.resolution, r.activeCamera!._tanViewAngle_hradOneByHeight);
         gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
@@ -683,6 +700,13 @@ class RayHandler {
         ray._handler = null;
     }
 
+    public setRelativeCenter(c: Vec3) {
+        this._relativeCenter.copy(c);
+        for (let i = 0; i < this._rays.length; i++) {
+            this._rays[i].updateRTCPosition();
+        }
+    }
+
     public remove(ray: Ray) {
         if (ray._handler && this.__id === ray._handler.__id) {
             this._removeRay(ray);
@@ -752,7 +776,7 @@ class RayHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        this._changedBuffers[START_POSITION_BUFFER] = true;
+        this._setChangedBuffer(START_POSITION_BUFFER);
     }
 
     public setEndPositionArr(index: number, positionHigh: Vec3, positionLow: Vec3) {
@@ -818,7 +842,7 @@ class RayHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        this._changedBuffers[END_POSITION_BUFFER] = true;
+        this._setChangedBuffer(END_POSITION_BUFFER);
     }
 
     public setPickingColorArr(index: number, color: Vec3) {
@@ -852,7 +876,7 @@ class RayHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        this._changedBuffers[PICKINGCOLOR_BUFFER] = true;
+        this._setChangedBuffer(PICKINGCOLOR_BUFFER);
     }
 
     public setRgbaArr(index: number, startColor: Vec4, endColor: Vec4) {
@@ -901,7 +925,7 @@ class RayHandler {
         if (opacityChanged) {
             this.refresh();
         } else {
-            this._changedBuffers[RGBA_BUFFER] = true;
+            this._setChangedBuffer(RGBA_BUFFER);
         }
     }
 
@@ -916,7 +940,7 @@ class RayHandler {
         a[i + 4] = thickness;
         a[i + 5] = thickness;
 
-        this._changedBuffers[THICKNESS_BUFFER] = true;
+        this._setChangedBuffer(THICKNESS_BUFFER);
     }
 
     public setVisibility(index: number, visibility: boolean) {
@@ -949,7 +973,7 @@ class RayHandler {
         a[i + 10] = vertexArr[10];
         a[i + 11] = vertexArr[11];
 
-        this._changedBuffers[VERTEX_BUFFER] = true;
+        this._setChangedBuffer(VERTEX_BUFFER);
     }
 
     public createStartPositionBuffer() {
@@ -1090,7 +1114,7 @@ class RayHandler {
         a[i + 22] = minY;
         a[i + 23] = imgHeight;
 
-        this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._setChangedBuffer(TEXCOORD_BUFFER);
     }
 
     public setTextureDisabled(index: number) {
@@ -1104,7 +1128,7 @@ class RayHandler {
         a[i + 19] = 0;
         a[i + 23] = 0;
 
-        this._changedBuffers[TEXCOORD_BUFFER] = true;
+        this._setChangedBuffer(TEXCOORD_BUFFER);
     }
 
     public setTexOffsetArr(index: number, value: number) {
@@ -1118,7 +1142,7 @@ class RayHandler {
         a[i + 4] = value;
         a[i + 5] = value;
 
-        this._changedBuffers[TEXOFFSET_BUFFER] = true;
+        this._setChangedBuffer(TEXOFFSET_BUFFER);
     }
 
     public setStrokeSizeArr(index: number, value: number) {
@@ -1132,7 +1156,7 @@ class RayHandler {
         a[i + 4] = value;
         a[i + 5] = value;
 
-        this._changedBuffers[STROKESIZE_BUFFER] = true;
+        this._setChangedBuffer(STROKESIZE_BUFFER);
     }
 
     public refreshTexCoordsArr() {

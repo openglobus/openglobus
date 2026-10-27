@@ -19,6 +19,7 @@ export function label_webgl2(): ShaderProgram {
             eyePositionLow: "vec3",
             planetRadius: "float",
             scaleByDistance: "vec4",
+            uFocusDistance: "float",
             opacity: "float",
             isOutlinePass: "int",
             depthOffset: "float",
@@ -54,6 +55,7 @@ export function label_woit(): ShaderProgram {
             eyePositionLow: "vec3",
             planetRadius: "float",
             scaleByDistance: "vec4",
+            uFocusDistance: "float",
             opacity: "float",
             isOutlinePass: "int",
             depthOffset: "float",
@@ -88,6 +90,7 @@ export function labelPicking(): ShaderProgram {
             eyePositionLow: "vec3",
             planetRadius: "float",
             scaleByDistance: "vec4",
+            uFocusDistance: "float",
             opacity: "float",
             depthOffset: "float",
             depthOffsetNear: "float"

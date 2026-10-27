@@ -1032,8 +1032,13 @@ class GeometryHandler {
     protected refresh() {
         let i = this._changedBuffers.length;
         while (i--) {
-            this._changedBuffers[i] = true;
+            this._setChangedBuffer(i);
         }
+    }
+
+    protected _setChangedBuffer(index: number) {
+        this._changedBuffers[index] = true;
+        this._handler && (this._handler.needRedraw = true);
     }
 
     public update() {
@@ -1074,8 +1079,8 @@ class GeometryHandler {
             b[ind + i] = geometry._lineVerticesLowMerc[i] * v;
         }
 
-        this._changedBuffers[POLYVERTICES_BUFFER] = true;
-        this._changedBuffers[LINEVERTICES_BUFFER] = true;
+        this._setChangedBuffer(POLYVERTICES_BUFFER);
+        this._setChangedBuffer(LINEVERTICES_BUFFER);
 
         !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
         this._updatedGeometry[geometry.__id] = true;
@@ -1091,7 +1096,7 @@ class GeometryHandler {
             a[i + 2] = color.z;
             a[i + 3] = color.w;
         }
-        this._changedBuffers[POLYCOLORS_BUFFER] = true;
+        this._setChangedBuffer(POLYCOLORS_BUFFER);
         !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
         this._updatedGeometry[geometry.__id] = true;
     }
@@ -1106,7 +1111,7 @@ class GeometryHandler {
             a[i + 2] = color.z;
             a[i + 3] = color.w;
         }
-        this._changedBuffers[LINESTROKECOLORS_BUFFER] = true;
+        this._setChangedBuffer(LINESTROKECOLORS_BUFFER);
         !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
         this._updatedGeometry[geometry.__id] = true;
     }
@@ -1121,7 +1126,7 @@ class GeometryHandler {
             a[i + 2] = color.z;
             a[i + 3] = color.w;
         }
-        this._changedBuffers[LINECOLORS_BUFFER] = true;
+        this._setChangedBuffer(LINECOLORS_BUFFER);
         !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
         this._updatedGeometry[geometry.__id] = true;
     }
@@ -1145,7 +1150,7 @@ class GeometryHandler {
         for (let i = index; i < size; i++) {
             a[i] = width;
         }
-        this._changedBuffers[LINETHICKNESS_BUFFER] = true;
+        this._setChangedBuffer(LINETHICKNESS_BUFFER);
         !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
         this._updatedGeometry[geometry.__id] = true;
     }
@@ -1173,8 +1178,8 @@ class GeometryHandler {
         this._polyIndexes.push.apply(this._polyIndexes, polyIndexes);
         this._lineIndexes.push.apply(this._lineIndexes, lineIndexes);
 
-        this._changedBuffers[POLYINDEXES_BUFFER] = true;
-        this._changedBuffers[LINEINDEXES_BUFFER] = true;
+        this._setChangedBuffer(POLYINDEXES_BUFFER);
+        this._setChangedBuffer(LINEINDEXES_BUFFER);
 
         !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
         this._updatedGeometry[geometry.__id] = true;

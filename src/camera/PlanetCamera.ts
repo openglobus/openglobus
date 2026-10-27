@@ -29,12 +29,16 @@ export interface IPlanetFlyCartesianParams extends IFlyCartesianParams {
     linearPath?: boolean;
 }
 
-function getNorthAlignedUp(forward: Vec3): Vec3 {
-    let up = Vec3.proj_b_to_plane(Vec3.NORTH, forward);
+function getAlignedUp(forward: Vec3, preferredUp: Vec3): Vec3 {
+    let up = Vec3.proj_b_to_plane(preferredUp, forward);
 
     if (up.length2() < EPS12) {
-        const fallback = Math.abs(forward.x) < Math.abs(forward.y) ? Vec3.UNIT_X : Vec3.UNIT_Y;
-        up = Vec3.proj_b_to_plane(fallback, forward);
+        up = Vec3.proj_b_to_plane(Vec3.NORTH, forward);
+
+        if (up.length2() < EPS12) {
+            const fallback = Math.abs(forward.x) < Math.abs(forward.y) ? Vec3.UNIT_X : Vec3.UNIT_Y;
+            up = Vec3.proj_b_to_plane(fallback, forward);
+        }
     }
 
     return up.normalize();
@@ -252,7 +256,7 @@ class PlanetCamera extends Camera {
      * @public
      * @param {LonLat} lonlat - New camera and camera view position.
      * @param {LonLat} [lookLonLat] - Look up coordinates.
-     * @param {Vec3} [up] - Camera UP vector. Default (0,1,0)
+     * @param {Vec3} [up] - Camera UP vector. Defaults to the local surface normal for an explicit look point.
      */
     public setLonLat(lonlat: LonLat, lookLonLat?: LonLat, up?: Vec3) {
         this.stopFlying();
@@ -261,7 +265,8 @@ class PlanetCamera extends Camera {
         let newEye = el.lonLatToCartesian(this._lonLat);
         let newLook = lookLonLat ? el.lonLatToCartesian(lookLonLat) : Vec3.ZERO;
         let forward = Vec3.sub(newLook, newEye).normalize();
-        this.set(newEye, newLook, up || getNorthAlignedUp(forward));
+        let preferredUp = lookLonLat ? el.getSurfaceNormal3v(newEye) : Vec3.NORTH;
+        this.set(newEye, newLook, up || getAlignedUp(forward, preferredUp));
         this.update();
     }
 
@@ -418,21 +423,18 @@ class PlanetCamera extends Camera {
         const requestId = ++this._extentFitRequestId;
 
         if (height != undefined) {
-            this.set(this.getExtentPosition(extent, height), Vec3.ZERO, Vec3.NORTH);
-            this.update();
+            this._viewExtentHeight(extent, height);
             return;
         }
 
         const info = this._getExtentCenterHeightInfo(extent);
         if (this._isSegmentHeightAccurate(info.height, info.segmentZoom)) {
-            this.set(this.getExtentPosition(extent, info.height), Vec3.ZERO, Vec3.NORTH);
-            this.update();
+            this._viewExtentHeight(extent, info.height);
             return;
         }
 
         if (!this.planet.terrain) {
-            this.set(this.getExtentPosition(extent, 0), Vec3.ZERO, Vec3.NORTH);
-            this.update();
+            this._viewExtentHeight(extent, 0);
             return;
         }
 
@@ -442,11 +444,22 @@ class PlanetCamera extends Camera {
             extent.getCenter(),
             (h: number) => {
                 if (requestId !== this._extentFitRequestId) return;
-                this.set(this.getExtentPosition(extent, h || 0), Vec3.ZERO, Vec3.NORTH);
-                this.update();
+                this._viewExtentHeight(extent, h || 0);
             },
             zoom
         );
+    }
+
+    /**
+     * Places the camera over the extent center at the given ground height.
+     * @protected
+     * @param {Extent} extent - Extent to fit.
+     * @param {number} height - Ground height under the extent center.
+     */
+    protected _viewExtentHeight(extent: Extent, height: number): void {
+        this.set(this.getExtentPosition(extent, height), Vec3.ZERO, Vec3.NORTH);
+        this.update();
+        this._setOrthoFocus(this._lonLat.height);
     }
 
     /**
@@ -506,6 +519,7 @@ class PlanetCamera extends Camera {
             this.set(newPos, cartesian, newUp);
         }
         this.update();
+        this._setOrthoFocus(distance);
     }
 
     /**
@@ -549,8 +563,20 @@ class PlanetCamera extends Camera {
             this.planet.normalMapCreator.lock(this._keyLock);
         }
         params.amplitude = params.amplitude != undefined ? params.amplitude : 1.0;
-        params.look = params.look || Vec3.ZERO;
-        params.up = params.up || Vec3.NORTH;
+        const hasExplicitLook = params.look != undefined;
+        const lookParam = params.look || Vec3.ZERO;
+        const look = lookParam instanceof LonLat ? this.planet.ellipsoid.lonLatToCartesian(lookParam) : lookParam;
+
+        // Looking at the planet center is looking straight down, and then the ground in
+        // view is an altitude away; any other target is a point in space at its own distance.
+        const lookIsCenter = look.isZero();
+
+        // Looking straight down, the surface normal is (almost) the view direction, so it
+        // cannot orient the camera: only the small geodetic tilt of the normal would be
+        // left, and that points south in the southern hemisphere. Keep north up instead.
+        params.up =
+            params.up ||
+            (hasExplicitLook && !lookIsCenter ? this.planet.ellipsoid.getSurfaceNormal3v(cartesian) : Vec3.NORTH);
         params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
         const ease = params.ease || DEFAULT_EASING;
 
@@ -562,10 +588,6 @@ class PlanetCamera extends Camera {
             params.startCallback.call(this);
         }
 
-        if (params.look instanceof LonLat) {
-            params.look = this.planet.ellipsoid.lonLatToCartesian(params.look);
-        }
-
         if (params.linearPath) {
             let ground_a = this.eye.clone();
 
@@ -574,11 +596,8 @@ class PlanetCamera extends Camera {
 
             let up_b = params.up;
             let ground_b = cartesian.clone();
-            let n_b = Vec3.sub(cartesian, params.look as Vec3);
-            let u_b = up_b.cross(n_b);
-            n_b.normalize();
-            u_b.normalize();
-            let v_b = n_b.cross(u_b);
+            let n_b = Vec3.sub(cartesian, look).normalize();
+            let v_b = getAlignedUp(n_b.negateTo(), up_b);
 
             this._flight = {
                 fly: (progress: number) => {
@@ -586,26 +605,24 @@ class PlanetCamera extends Camera {
                     let d = 1 - t;
                     let eye_i = ground_a.smerp(ground_b, d);
                     let up_i = v_a.smerp(v_b, d);
-                    let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
-
-                    let n = new Vec3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
-                    let u = up_i.cross(n);
+                    let n = n_a.slerp(Vec3.sub(eye_i, look).normalize(), t);
                     n.normalize();
-                    u.normalize();
-
-                    let v = n.cross(u);
+                    let v = getAlignedUp(n.negateTo(), up_i);
+                    let u = v.cross(n);
                     return {
                         eye: eye_i,
                         n: n,
                         u: u,
-                        v: v
+                        v: v,
+                        focusDistance: lookIsCenter
+                            ? this.planet.ellipsoid.cartesianToLonLat(eye_i).height
+                            : eye_i.distance(look)
                     };
                 },
                 duration: params.duration,
                 startedAt: Date.now()
             };
-            this._flying = true;
-            this.events.dispatch(this.events.flystart, this);
+            this._startFlying();
             return;
         }
 
@@ -617,11 +634,8 @@ class PlanetCamera extends Camera {
         let lonlat_b = this.planet.ellipsoid.cartesianToLonLat(cartesian);
         let up_b = params.up;
         let ground_b = this.planet.ellipsoid.lonLatToCartesian(new LonLat(lonlat_b.lon, lonlat_b.lat, 0));
-        let n_b = Vec3.sub(cartesian, params.look as Vec3);
-        let u_b = up_b.cross(n_b);
-        n_b.normalize();
-        u_b.normalize();
-        let v_b = n_b.cross(u_b);
+        let n_b = Vec3.sub(cartesian, look).normalize();
+        let v_b = getAlignedUp(n_b.negateTo(), up_b);
 
         let an = ground_a.getNormal();
         let bn = ground_b.getNormal();
@@ -641,14 +655,16 @@ class PlanetCamera extends Camera {
                 let t = ease(progress);
                 let d = 1 - t;
                 let eye_i: Vec3;
+                let height_i: number;
                 if (t >= 1) {
                     eye_i = cartesian.clone();
+                    height_i = lonlat_b.height;
                 } else {
                     // camera path calculation
                     let g_i = ground_a.smerp(cartesian, d).normalize();
                     let ground_i = this.planet.getRayIntersectionEllipsoid(new Ray(zero, g_i));
 
-                    let height_i =
+                    height_i =
                         this._lonLat.height * d * d * d +
                         max_h * 3 * d * d * t +
                         max_h * 3 * d * t * t +
@@ -658,26 +674,22 @@ class PlanetCamera extends Camera {
                 }
                 // orientation calculation
                 let up_i = v_a.smerp(v_b, d);
-                let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
-
-                let n = new Vec3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
-                let u = up_i.cross(n);
+                let n = n_a.slerp(Vec3.sub(eye_i, look).normalize(), t);
                 n.normalize();
-                u.normalize();
-
-                let v = n.cross(u);
+                let v = getAlignedUp(n.negateTo(), up_i);
+                let u = v.cross(n);
                 return {
                     eye: eye_i,
                     n: n,
                     u: u,
-                    v: v
+                    v: v,
+                    focusDistance: lookIsCenter ? height_i : eye_i.distance(look)
                 };
             },
             duration: params.duration,
             startedAt: Date.now()
         };
-        this._flying = true;
-        this.events.dispatch(this.events.flystart, this);
+        this._startFlying();
     }
 
     override stopFlying(): void {
@@ -946,7 +958,7 @@ class PlanetCamera extends Camera {
     public override setPitchYawRoll(pitch: number, yaw: number, roll: number) {
         let qFrame = this.planet.getFrameRotation(this.eye);
         let qRot = new Quat();
-        qRot.setPitchYawRoll(pitch, yaw, roll, qFrame).conjugate();
+        qRot.setPitchYawRoll(pitch, yaw, roll, qFrame);
         this.setRotation(qRot);
     }
 }

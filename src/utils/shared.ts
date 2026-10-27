@@ -10,6 +10,7 @@ import { Vec3 } from "../math/Vec3";
 import type { NumberArray3 } from "../math/Vec3";
 import { Vec4 } from "../math/Vec4";
 import type { NumberArray4 } from "../math/Vec4";
+import { MAX32 } from "../math";
 import { colorTable } from "./colorTable";
 import { Ellipsoid } from "../ellipsoid/Ellipsoid";
 import { wgs84 } from "../ellipsoid/wgs84";
@@ -108,6 +109,8 @@ export function rgbToStringHTML(rgb: NumberArray3 | Vec3): string {
     return `#${r}${g}${b}`;
 }
 
+const LIGHTGREY = 211 / 255;
+
 /**
  * Convert html color string to the RGBA number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
@@ -118,6 +121,9 @@ export function htmlColorToRgba(htmlColor: string, opacity?: number): Vec4 {
     let hColor: any | undefined = colorTable[htmlColor];
     if (hColor) {
         htmlColor = hColor;
+    } else if (htmlColor[0] !== "#" && !htmlColor.startsWith("rgb")) {
+        console.warn(`Invalid or unknown color "${htmlColor}", using lightgrey as fallback.`);
+        htmlColor = colorTable.lightgrey;
     }
 
     if (htmlColor[0] === "#") {
@@ -134,13 +140,18 @@ export function htmlColorToRgba(htmlColor: string, opacity?: number): Vec4 {
                 isEmpty(opacity) ? 1.0 : opacity
             );
         } else {
-            return new Vec4();
+            console.warn(`Invalid color "${htmlColor}", using lightgrey as fallback.`);
+            return new Vec4(LIGHTGREY, LIGHTGREY, LIGHTGREY, isEmpty(opacity) ? 1.0 : opacity);
         }
     } else {
         if (isEmpty(opacity)) {
             opacity = 1.0;
         }
         let m = htmlColor.split(",");
+        if (m.length < 3) {
+            console.warn(`Invalid color "${htmlColor}", using lightgrey as fallback.`);
+            return new Vec4(LIGHTGREY, LIGHTGREY, LIGHTGREY, opacity);
+        }
         return new Vec4(
             parseInt(m[0].split("(")[1]) / 255,
             parseInt(m[1]) / 255,
@@ -164,6 +175,9 @@ export function htmlColorToRgb(htmlColor: string): Vec3 {
     let hColor: any | undefined = colorTable[htmlColor];
     if (hColor) {
         htmlColor = hColor;
+    } else if (htmlColor[0] !== "#" && !htmlColor.startsWith("rgb")) {
+        console.warn(`Invalid or unknown color "${htmlColor}", using lightgrey as fallback.`);
+        htmlColor = colorTable.lightgrey;
     }
 
     if (htmlColor[0] === "#") {
@@ -179,10 +193,15 @@ export function htmlColorToRgb(htmlColor: string): Vec3 {
                 parseInt(result[3], 16) / 255
             );
         } else {
-            return new Vec3();
+            console.warn(`Invalid color "${htmlColor}", using lightgrey as fallback.`);
+            return new Vec3(LIGHTGREY, LIGHTGREY, LIGHTGREY);
         }
     } else {
         let m = htmlColor.split(",");
+        if (m.length < 3) {
+            console.warn(`Invalid color "${htmlColor}", using lightgrey as fallback.`);
+            return new Vec3(LIGHTGREY, LIGHTGREY, LIGHTGREY);
+        }
         return new Vec3(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255);
     }
 }
@@ -279,6 +298,31 @@ export function createVec2(v?: number | Vec2 | NumberArray2 | null, def?: Vec2):
         return def;
     }
     return new Vec2();
+}
+
+const MIN_SCALE_BY_DISTANCE = 1e-7;
+
+export const SCALE_BY_DISTANCE_1_TO_1: NumberArray4 = [MAX32, MAX32, MAX32, 1.0];
+
+/**
+ * Normalizes `[near, far, vanish, scale]`, defaulting `scale` to `1`.
+ * `near <= 0` disables world scaling. It is set to `far` so the shader scale remains `1`.
+ * If `far <= 0`, both use a small epsilon to avoid division by zero without affecting fading.
+ * @param {NumberArray3 | NumberArray4} [v] - Source parameters.
+ * @param {NumberArray4} def - Default parameters.
+ * @returns {NumberArray4} Normalized parameters.
+ */
+export function createScaleByDistance(v: NumberArray3 | NumberArray4 | undefined, def: NumberArray4): NumberArray4 {
+    let src = v || def;
+    let near = src[0],
+        far = src[1];
+
+    if (near <= 0) {
+        near = far > 0 ? far : MIN_SCALE_BY_DISTANCE;
+        far = near;
+    }
+
+    return [near, far, src[2], src.length > 3 ? (src as NumberArray4)[3] : 1.0];
 }
 
 export function createVec3(v?: number | Vec3 | Vec2 | NumberArray3 | NumberArray2 | null, def?: Vec3): Vec3 {
@@ -1122,6 +1166,10 @@ export function getMatrixSubArrayBoundsExt(
                 if (y > outBounds.ymax) outBounds.ymax = y;
                 if (z < outBounds.zmin) outBounds.zmin = z;
                 if (z > outBounds.zmax) outBounds.zmax = z;
+
+                let r2 = x * x + y * y + z * z;
+                if (r2 < outBounds.r2min) outBounds.r2min = r2;
+                if (r2 > outBounds.r2max) outBounds.r2max = r2;
             } else {
                 outNoDataVertices[nInd] = 1;
             }

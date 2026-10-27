@@ -112,6 +112,11 @@ export class Control {
      */
     public addTo(renderer: Renderer) {
         if (renderer) {
+            const currentControl = renderer.controls[this.name];
+            if (currentControl && !this.isEqual(currentControl)) {
+                currentControl.remove();
+            }
+
             this.renderer = renderer;
             renderer.controls[this.name] = this;
             this.onadd && this.onadd();

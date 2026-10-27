@@ -2,6 +2,7 @@ import { EPSG3857 } from "../proj/EPSG3857";
 import { Layer } from "../layer/Layer";
 import { Vector } from "../layer/Vector";
 import { Node } from "../quadTree/Node";
+import { NE, NW, SE, SW } from "../quadTree/quadTree";
 import { Planet } from "../scene/Planet";
 import { Proj } from "../proj/Proj";
 import { LonLat } from "../LonLat";
@@ -63,6 +64,16 @@ export class QuadTreeStrategy {
      * @type {Node}
      */
     public _renderedNodes: Node[];
+
+    /**
+     * Geocentric distance range of the terrain collected for the current rendering frame.     * @public
+     * @type {number}
+     */
+    public minTerrainRadius: number = 0;
+    public maxTerrainRadius: number = 0;
+
+    public _minTerrainRadiusAcc: number = Infinity;
+    public _maxTerrainRadiusAcc: number = -Infinity;
 
     public _renderedNodesInFrustum: Node[][];
 
@@ -162,6 +173,7 @@ export class QuadTreeStrategy {
         this._curLodSize = currentLodSize;
         this._renderCompletedActivated = false;
         this._terrainCompletedActivated = false;
+        this.planet.renderer?.requestRedraw();
     }
 
     public createEntityCollectionsTreeStrategy(layer: Vector, nodeCapacity: number): EntityCollectionsTreeStrategy {
@@ -174,6 +186,7 @@ export class QuadTreeStrategy {
         for (let i = 0, len = this._quadTreeList.length; i < len; i++) {
             this._quadTreeList[i].destroyBranches();
         }
+        this.planet.renderer?.requestRedraw();
     }
 
     /**
@@ -203,7 +216,21 @@ export class QuadTreeStrategy {
         return this._terrainCompleted && this._terrainCompletedActivated;
     }
 
+    /**
+     * Returns true when every rendered segment has got its materials applied and
+     * the completion has already been announced.
+     * @public
+     * @returns {boolean}
+     */
+    public get renderReady(): boolean {
+        return this._renderCompleted && this._renderCompletedActivated;
+    }
+
     protected _checkRendercompleted() {
+        if (!this.renderReady || !this.terrainReady) {
+            this.planet.renderer!.requestRedraw();
+        }
+
         if (this._renderCompleted) {
             if (!this._renderCompletedActivated) {
                 this._renderCompletedActivated = true;
@@ -261,6 +288,7 @@ export class QuadTreeStrategy {
     public clearRenderedNodes() {
         this._clearRenderedNodeList();
         this._clearRenderNodesInFrustum();
+        this.planet.renderer?.requestRedraw();
     }
 
     protected _clearRenderedNodeList() {
@@ -346,11 +374,16 @@ export class QuadTreeStrategy {
             this.minCurrZoom = math.MAX;
             this.maxCurrZoom = math.MIN;
 
+            this._minTerrainRadiusAcc = Infinity;
+            this._maxTerrainRadiusAcc = -Infinity;
+
             this._collectRenderNodes(cam);
 
-            // No visible nodes collected (e.g. camera tilted strongly upward)
-            // — clamp to 0/0 so Vector layer visibility gate doesn't compare
-            // against sentinel values and reject all entities.
+            if (this._minTerrainRadiusAcc <= this._maxTerrainRadiusAcc) {
+                this.minTerrainRadius = this._minTerrainRadiusAcc;
+                this.maxTerrainRadius = this._maxTerrainRadiusAcc;
+            }
+
             if (this.maxCurrZoom === math.MIN) {
                 this.minCurrZoom = 0;
                 this.maxCurrZoom = 0;
@@ -439,6 +472,32 @@ export class QuadTreeStrategy {
 
     public get quadTreeList(): Node[] {
         return this._quadTreeList;
+    }
+
+    /**
+     * Returns the most detailed node made under the point, not deeper than the zoom.
+     * @public
+     * @param {LonLat} lonLat - Point.
+     * @param {number} [zoom] - Maximal node zoom.
+     * @returns {Node | null} -
+     */
+    public getNodeByLonLat(lonLat: LonLat, zoom: number = Infinity): Node | null {
+        let node: Node | undefined = this._quadTreeList.find((root) => root.segment.getExtentLonLat().isInside(lonLat));
+
+        if (!node) {
+            return null;
+        }
+
+        let p = node.segment.projectNative(lonLat);
+
+        while (node.nodes.length && node.segment.tileZoom < zoom) {
+            let e: Extent = node.segment._extent,
+                isEast = p.lon >= (e.southWest.lon + e.northEast.lon) * 0.5,
+                isSouth = p.lat < (e.southWest.lat + e.northEast.lat) * 0.5;
+            node = node.nodes[isSouth ? (isEast ? SE : SW) : isEast ? NE : NW];
+        }
+
+        return node;
     }
 
     public getTileXY(lonLat: LonLat, zoom: number): [number, number, number, number] {

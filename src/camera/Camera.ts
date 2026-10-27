@@ -90,6 +90,7 @@ type CameraFrame = {
     n: Vec3;
     u: Vec3;
     v: Vec3;
+    focusDistance?: number;
 };
 
 type CameraFlight = {
@@ -212,6 +213,14 @@ class Camera {
     protected _peye: Vec3;
 
     public isMoving: boolean;
+
+    /**
+     * Fires when the camera view or projection has been changed. It is assigned by the renderer
+     * to wake it up from the idle mode.
+     * @public
+     * @type {?function(): void}
+     */
+    public onViewChange: (() => void) | null = null;
 
     protected _pViewAngle: number;
     protected _pAspect: number;
@@ -436,6 +445,16 @@ class Camera {
     }
 
     /**
+     * Keeps the orthographic scale on whatever the camera has just been aimed at.
+     * @protected
+     * @param {number} [distance] - Distance from the eye to the point in view.
+     */
+    protected _setOrthoFocus(distance?: number): void {
+        if (!this._isOrthographic || !distance) return;
+        this.focusDistance = Math.abs(distance);
+    }
+
+    /**
      * Returns camera identifier.
      * @public
      * @returns {number} Camera id.
@@ -470,9 +489,10 @@ class Camera {
         let v_a = this._u,
             n_a = this._b;
 
+        let look = params.look as Vec3;
         let up_b = params.up;
         let ground_b = cartesian.clone();
-        let n_b = Vec3.sub(cartesian, params.look as Vec3);
+        let n_b = Vec3.sub(cartesian, look);
         let u_b = up_b.cross(n_b);
         n_b.normalize();
         u_b.normalize();
@@ -498,14 +518,20 @@ class Camera {
                     eye: eye_i,
                     n: n,
                     u: u,
-                    v: v
+                    v: v,
+                    focusDistance: eye_i.distance(look)
                 };
             },
             duration: params.duration,
             startedAt: Date.now()
         };
+        this._startFlying();
+    }
+
+    protected _startFlying() {
         this._flying = true;
         this.events.dispatch(this.events.flystart, this);
+        this.onViewChange && this.onViewChange();
     }
 
     /**
@@ -537,6 +563,8 @@ class Camera {
             this._b = frame.n;
             this._f.set(-this._b.x, -this._b.y, -this._b.z);
 
+            this._setOrthoFocus(frame.focusDistance);
+
             if (this._frameCallback) {
                 this._frameCallback();
             }
@@ -566,10 +594,11 @@ class Camera {
     /**
      * Checks camera movement and projection changes.
      * @public
+     * @returns {boolean} `true` when the view or projection changed since the previous check.
      */
-    public checkViewChanges() {
+    public checkViewChanges(): boolean {
         this.checkMoveEnd();
-        this._checkViewChange();
+        return this._checkViewChange();
     }
 
     /**
@@ -604,8 +633,9 @@ class Camera {
     /**
      * Checks whether the camera view or projection changed and dispatches `viewchange`.
      * @protected
+     * @returns {boolean} `true` when the view or projection changed.
      */
-    protected _checkViewChange() {
+    protected _checkViewChange(): boolean {
         const aspect = this.getAspectRatio();
         const focusDistance = this.focusDistance;
         const projectionChanged =
@@ -616,8 +646,11 @@ class Camera {
             this._pIsOrthographic !== this._isOrthographic ||
             (this._isOrthographic && this._pFocusDistance !== focusDistance);
 
-        if (this.isMoving || projectionChanged) {
+        const changed = this.isMoving || projectionChanged;
+
+        if (changed) {
             this.events.dispatch(this.events.viewchange, this);
+            this.onViewChange && this.onViewChange();
         }
 
         this._pViewAngle = this._viewAngle;
@@ -626,6 +659,8 @@ class Camera {
         this._pHeight = this._height;
         this._pIsOrthographic = this._isOrthographic;
         this._pFocusDistance = focusDistance;
+
+        return changed;
     }
 
     /**
@@ -774,6 +809,7 @@ class Camera {
     public refresh() {
         this._setProj(this._viewAngle, this.getAspectRatio());
         this.update();
+        this.onViewChange && this.onViewChange();
     }
 
     /**
@@ -1482,6 +1518,7 @@ class Camera {
         let newPos = cartesian.add(this.getBackward().scaleTo(distance));
         this.set(newPos, cartesian);
         this.update();
+        this._setOrthoFocus(distance);
     }
 
     /**

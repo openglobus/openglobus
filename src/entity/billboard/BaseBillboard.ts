@@ -149,6 +149,9 @@ class BaseBillboard {
      * @param {number} z - Z coordinate.
      */
     public setPosition(x: number, y: number, z: number) {
+        if (x === this._position.x && y === this._position.y && z === this._position.z) {
+            return;
+        }
         this._position.x = x;
         this._position.y = y;
         this._position.z = z;
@@ -166,6 +169,9 @@ class BaseBillboard {
      * @param {Vec3} position - Cartesian coordinates.
      */
     public setPosition3v(position: Vec3) {
+        if (position.x === this._position.x && position.y === this._position.y && position.z === this._position.z) {
+            return;
+        }
         this._position.x = position.x;
         this._position.y = position.y;
         this._position.z = position.z;

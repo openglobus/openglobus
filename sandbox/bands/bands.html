@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenGlobus - GeoTIFF RGB Composite</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #globus {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .control-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            z-index: 1000;
+            width: 260px;
+            box-sizing: border-box;
+            max-height: calc(100vh - 20px);
+            overflow-y: auto;
+        }
+
+        .control-panel h4 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+        }
+
+        .control-row {
+            margin-bottom: 8px;
+        }
+
+        .control-row label {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .control-panel select,
+        .control-panel button,
+        .control-panel input[type="range"] {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .control-panel button {
+            cursor: pointer;
+            margin-top: 4px;
+            padding: 4px;
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .flex-col {
+            flex: 1;
+        }
+
+        .channel-title {
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+
+        .meta-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px;
+            margin-top: 4px;
+            max-height: 120px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 11px;
+            word-break: break-all;
+        }
+    </style>
+    <script src="./bands.js" type="module"></script>
+</head>
+<body>
+    <div id="globus"></div>
+
+    <div class="control-panel">
+        <h4>RGB Composite</h4>
+
+        <div class="control-row">
+            <div class="channel-title">Red Channel</div>
+            <select id="rgbRedBand">
+                <option value="1">Band 1</option>
+            </select>
+            <div class="flex-row" style="font-size: 11px; color: #ccc; margin-top: 2px;">
+                <span>Min: <span id="rgbRedMinVal">0</span></span>
+            </div>
+            <input type="range" id="rgbRedMinSlider" min="0" max="255" value="0">
+            <div class="flex-row" style="font-size: 11px; color: #ccc; margin-top: 2px;">
+                <span>Max: <span id="rgbRedMaxVal">255</span></span>
+            </div>
+            <input type="range" id="rgbRedMaxSlider" min="0" max="255" value="255">
+        </div>
+
+        <div class="control-row">
+            <div class="channel-title">Green Channel</div>
+            <select id="rgbGreenBand">
+                <option value="2">Band 2</option>
+            </select>
+            <div class="flex-row" style="font-size: 11px; color: #ccc; margin-top: 2px;">
+                <span>Min: <span id="rgbGreenMinVal">0</span></span>
+            </div>
+            <input type="range" id="rgbGreenMinSlider" min="0" max="255" value="0">
+            <div class="flex-row" style="font-size: 11px; color: #ccc; margin-top: 2px;">
+                <span>Max: <span id="rgbGreenMaxVal">255</span></span>
+            </div>
+            <input type="range" id="rgbGreenMaxSlider" min="0" max="255" value="255">
+        </div>
+
+        <div class="control-row">
+            <div class="channel-title">Blue Channel</div>
+            <select id="rgbBlueBand">
+                <option value="3">Band 3</option>
+            </select>
+            <div class="flex-row" style="font-size: 11px; color: #ccc; margin-top: 2px;">
+                <span>Min: <span id="rgbBlueMinVal">0</span></span>
+            </div>
+            <input type="range" id="rgbBlueMinSlider" min="0" max="255" value="0">
+            <div class="flex-row" style="font-size: 11px; color: #ccc; margin-top: 2px;">
+                <span>Max: <span id="rgbBlueMaxVal">255</span></span>
+            </div>
+            <input type="range" id="rgbBlueMaxSlider" min="0" max="255" value="255">
+        </div>
+
+    </div>
+</body>
+</html>

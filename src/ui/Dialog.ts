@@ -4,6 +4,7 @@ import { CLOSE_ICON } from "./icons";
 import { View } from "./View";
 import type { IViewParams, ViewEventsList } from "./View";
 import type { EventsHandler } from "../Events";
+import type { DockSide } from "./Dock";
 
 export interface IDialogParams extends IViewParams {
     title?: string;
@@ -18,15 +19,28 @@ export interface IDialogParams extends IViewParams {
     maxHeight?: number;
     minWidth?: number;
     maxWidth?: number;
-    useHide?: boolean; // Using hide instead of remove when close
+    useHide?: boolean;
+    dock?: DockSide;
+    hideToolbar?: boolean;
 }
 
 export type DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
+
+/** Carries the dialog back from its element, the way a Button does. */
+export interface DialogElement extends HTMLElement {
+    __og_dialog__?: Dialog<any>;
+}
+
+/** Preferred side of the anchor element a dialog opens on. */
+export type DialogPlacement = "right" | "below";
 
 const DEFAULT_WIDTH = 300;
 const DEFAULT_HEIGHT = 200;
 
 const DIALOG_EVENTS: DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
+
+/** Pixels the pointer has to move past its header press before that counts as a drag */
+const DRAG_THRESHOLD = 4;
 
 const TEMPLATE = `<div class="og-ddialog"
         style="display:{display}; resize:{resize}; width: {width}px; {height}; top: {top}px; left: {left}px; min-height: {minHeight}; max-height: {maxHeight}; min-width: {minWidth}; max-width: {maxWidth};">
@@ -38,8 +52,31 @@ const TEMPLATE = `<div class="og-ddialog"
        <div class="og-ddialog-resize-handle" style="display:{resizeHandleDisplay};"></div>
     </div>`;
 
+/**
+ * Floating dialog window with a draggable header, a resizable body and a close button.
+ * Dragged by its header to an edge of its container, the dialog docks to that side when a
+ * {@link DockManager} watches the container, and the `dock` option opens it docked at once.
+ * @class
+ * @extends {View}
+ * @param {IDialogParams} [options] - Options:
+ * @param {string} [options.title=""] - Header title.
+ * @param {boolean} [options.visible=true] - Initial visibility.
+ * @param {boolean} [options.resizable=true] - Resize handle flag.
+ * @param {number} [options.width=300] - Dialog width in pixels.
+ * @param {number} [options.height=200] - Dialog height in pixels. Fits the content when it is not set.
+ * @param {number} [options.left=0] - Offset from the left edge of the container in pixels.
+ * @param {number} [options.right] - Offset from the right edge of the container in pixels, applied instead of the left one.
+ * @param {number} [options.top=0] - Offset from the top edge of the container in pixels.
+ * @param {number} [options.minHeight] - Minimal height in pixels.
+ * @param {number} [options.maxHeight] - Maximal height in pixels.
+ * @param {number} [options.minWidth] - Minimal width in pixels.
+ * @param {number} [options.maxWidth] - Maximal width in pixels.
+ * @param {boolean} [options.useHide=false] - Hides the dialog on close instead of removing it.
+ * @param {DockSide} [options.dock] - Side to open docked to the first time the dialog is shown, if a dock manager is there.
+ * @param {boolean} [options.hideToolbar=false] - Hides the bar the dialog is dragged by. Without it the dialog cannot be moved.
+ */
 class Dialog<M> extends View<M> {
-    static __zIndex__: number = 0;
+    static __zIndex__: number = 100;
 
     public override events: EventsHandler<DialogEventsList> & EventsHandler<ViewEventsList>;
 
@@ -70,6 +107,8 @@ class Dialog<M> extends View<M> {
     protected _touchDragPointerId: number | null;
     protected _touchResizePointerId: number | null;
     protected _titleText: string;
+    protected _dock: DockSide | null;
+    protected _hideToolbar: boolean;
 
     constructor(options: IDialogParams = {}) {
         const title = options.title || "";
@@ -125,6 +164,13 @@ class Dialog<M> extends View<M> {
         this._touchDragPointerId = null;
         this._touchResizePointerId = null;
         this._titleText = title;
+        this._dock = options.dock || null;
+        this._hideToolbar = getDefault(options.hideToolbar, false);
+    }
+
+    /** Side this dialog asks to open docked to. */
+    public get dock(): DockSide | null {
+        return this._dock;
     }
 
     public setContainer(htmlStr: string) {
@@ -156,12 +202,18 @@ class Dialog<M> extends View<M> {
 
     public override render(params: any): this {
         super.render(params);
+        (this.el as DialogElement).__og_dialog__ = this;
         this.bringToFront();
         this.$header = this.select(".og-ddialog-header");
         this.$title = this.select(".og-ddialog-header__title");
         this.$container = this.select(".og-ddialog-container");
         this.$buttons = this.select(".og-ddialog-header__buttons");
         this.$resizeHandle = this.select(".og-ddialog-resize-handle");
+
+        if (this._hideToolbar) {
+            this.$header!.style.display = "none";
+        }
+
         this.setTitle(this._titleText);
         this._initEvents();
         this._initButtons();
@@ -227,7 +279,20 @@ class Dialog<M> extends View<M> {
         return this._visibility;
     }
 
-    public positionNearElementOnFirstOpen(anchorEl: HTMLElement | null, rootEl?: HTMLElement | null, gap: number = 8) {
+    /**
+     * Places the dialog next to an anchor element, once, on its first open.
+     * @param anchorEl - Element to place the dialog against, e.g. the control toggle button.
+     * @param rootEl - Container the dialog is kept inside of, the dialog parent by default.
+     * @param gap - Distance between the anchor and the dialog in pixels.
+     * @param placement - "right" opens the dialog right of the anchor, mirrored to its left when the
+     * anchor sits in the right half of the container; "below" opens it underneath the anchor.
+     */
+    public positionNearElementOnFirstOpen(
+        anchorEl: HTMLElement | null,
+        rootEl?: HTMLElement | null,
+        gap: number = 8,
+        placement: DialogPlacement = "right"
+    ) {
         if (this._firstOpenPositioned || !this.el || !anchorEl) return;
 
         const root = rootEl || this.el.parentElement || document.body;
@@ -242,13 +307,20 @@ class Dialog<M> extends View<M> {
         const rootHeight = root.clientHeight || rootRect.height || window.innerHeight;
 
         const anchorCenterX = anchorRect.left + anchorRect.width * 0.5 - rootRect.left;
-        const anchorTop = anchorRect.top - rootRect.top;
         const openToRight = anchorCenterX <= rootWidth * 0.5;
 
-        let left = openToRight
-            ? anchorRect.right - rootRect.left + gap
-            : anchorRect.left - rootRect.left - dialogWidth - gap;
-        let top = anchorTop;
+        let left: number;
+        let top: number;
+
+        if (placement === "below") {
+            left = anchorRect.left - rootRect.left;
+            top = anchorRect.bottom - rootRect.top + gap;
+        } else {
+            left = openToRight
+                ? anchorRect.right - rootRect.left + gap
+                : anchorRect.left - rootRect.left - dialogWidth - gap;
+            top = anchorRect.top - rootRect.top;
+        }
 
         left = Math.max(0, Math.min(left, rootWidth - dialogWidth));
         if (rootHeight > dialogHeight) {
@@ -266,12 +338,18 @@ class Dialog<M> extends View<M> {
         this._closeBtn.appendTo(this.$buttons!);
     }
 
+    public override afterRender(parentNode: HTMLElement) {
+        this._initEvents();
+    }
+
     protected _initEvents() {
-        this.$header!.style.touchAction = "none";
-        this.$header!.addEventListener("mousedown", this._onMouseDown);
-        this.$header!.addEventListener("pointerdown", this._onPointerDown);
-        this.el!.addEventListener("mousedown", this._onMouseDownAll);
-        this.el!.addEventListener("pointerdown", this._onPointerDownAll);
+        if (this.$header) {
+            this.$header.style.touchAction = "none";
+            this.$header.addEventListener("mousedown", this._onMouseDown);
+            this.$header.addEventListener("pointerdown", this._onPointerDown);
+        }
+        this.el?.addEventListener("mousedown", this._onMouseDownAll);
+        this.el?.addEventListener("pointerdown", this._onPointerDownAll);
         if (this.$resizeHandle && this._resizable) {
             this.$resizeHandle.addEventListener("mousedown", this._onResizeMouseDown);
             this.$resizeHandle.addEventListener("pointerdown", this._onResizePointerDown);
@@ -303,8 +381,6 @@ class Dialog<M> extends View<M> {
         }
         e.preventDefault();
 
-        this._startDragging();
-
         this._startPosX = e.clientX;
         this._startPosY = e.clientY;
 
@@ -317,8 +393,6 @@ class Dialog<M> extends View<M> {
             return;
         }
         e.preventDefault();
-
-        this._startDragging();
 
         this._startPosX = e.clientX;
         this._startPosY = e.clientY;
@@ -357,6 +431,11 @@ class Dialog<M> extends View<M> {
 
     protected _onMouseMove = (e: MouseEvent) => {
         e.preventDefault();
+
+        if (!this._beginDragIfPastThreshold(e.clientX, e.clientY)) {
+            return;
+        }
+
         let dx = this._startPosX - e.clientX;
         let dy = this._startPosY - e.clientY;
         this._startPosX = e.clientX;
@@ -369,12 +448,34 @@ class Dialog<M> extends View<M> {
             return;
         }
         e.preventDefault();
+
+        if (!this._beginDragIfPastThreshold(e.clientX, e.clientY)) {
+            return;
+        }
+
         let dx = this._startPosX - e.clientX;
         let dy = this._startPosY - e.clientY;
         this._startPosX = e.clientX;
         this._startPosY = e.clientY;
         this.setPosition(this.el!.offsetLeft - dx, this.el!.offsetTop - dy);
     };
+
+    protected _beginDragIfPastThreshold(clientX: number, clientY: number): boolean {
+        if (this.el!.classList.contains("dragging")) {
+            return true;
+        }
+
+        const dx = clientX - this._startPosX;
+        const dy = clientY - this._startPosY;
+
+        if (dx * dx + dy * dy < DRAG_THRESHOLD * DRAG_THRESHOLD) {
+            return false;
+        }
+
+        this._startDragging();
+
+        return true;
+    }
 
     protected _startDragging() {
         if (!this.el!.classList.contains("dragging")) {
@@ -531,10 +632,10 @@ class Dialog<M> extends View<M> {
         document.removeEventListener("pointerup", this._onResizePointerUp);
         document.removeEventListener("pointercancel", this._onResizePointerUp);
 
-        this.$header!.removeEventListener("mousedown", this._onMouseDown);
-        this.$header!.removeEventListener("pointerdown", this._onPointerDown);
-        this.el!.removeEventListener("mousedown", this._onMouseDownAll);
-        this.el!.removeEventListener("pointerdown", this._onPointerDownAll);
+        this.$header?.removeEventListener("mousedown", this._onMouseDown);
+        this.$header?.removeEventListener("pointerdown", this._onPointerDown);
+        this.el?.removeEventListener("mousedown", this._onMouseDownAll);
+        this.el?.removeEventListener("pointerdown", this._onPointerDownAll);
         if (this.$resizeHandle && this._resizable) {
             this.$resizeHandle.removeEventListener("mousedown", this._onResizeMouseDown);
             this.$resizeHandle.removeEventListener("pointerdown", this._onResizePointerDown);

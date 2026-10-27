@@ -9,3 +9,4 @@ lib
 .vscode
 **/.DS_Store
 examples
+*.tsbuildinfo

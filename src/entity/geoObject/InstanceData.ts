@@ -700,8 +700,18 @@ export class InstanceData {
     public refresh() {
         let i = this._changedBuffers.length;
         while (i--) {
-            this._changedBuffers[i] = true;
+            this.setChangedBuffer(i);
         }
+    }
+
+    /**
+     * Marks a buffer to be updated in the next frame and requests the frame to be rendered.
+     * @public
+     * @param {number} index - Buffer index.
+     */
+    public setChangedBuffer(index: number) {
+        this._changedBuffers[index] = true;
+        this._geoObjectHandler._renderer && this._geoObjectHandler._renderer.requestRedraw();
     }
 
     public update() {
