@@ -1,4 +1,4 @@
-import {proj4} from "./proj4";
+import { proj4 } from "./proj4";
 
 const EPSG_IO_URL = "https://epsg.io";
 const PROJ_DEFINITIONS = new Map<number, string | null>();

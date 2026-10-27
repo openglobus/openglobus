@@ -111,7 +111,10 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         if (typeof src === "string") {
             source = await fromUrl(src, {
                 blockSize: BLOCK_SIZE,
-                cacheSize: Math.max(1, Math.round(BLOCK_CACHE_BYTES / (this.options.requestOptions?.blockSize || BLOCK_SIZE))),
+                cacheSize: Math.max(
+                    1,
+                    Math.round(BLOCK_CACHE_BYTES / (this.options.requestOptions?.blockSize || BLOCK_SIZE))
+                ),
                 ...this.options.requestOptions
             });
         } else if (
