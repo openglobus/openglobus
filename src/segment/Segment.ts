@@ -785,10 +785,6 @@ class Segment {
         let n = this.node.neighbors[side][0];
 
         if (this._checkEqualization(side, n)) {
-            let v = this.renderVertices!,
-                vHigh = this.renderVerticesHigh!,
-                vLow = this.renderVerticesLow!;
-
             let gs = this.gridSize;
             let gsOne = gs + 1;
 
@@ -805,10 +801,6 @@ class Segment {
                 dzRtc = ns._relativeCenter.z - this._relativeCenter.z;
 
             let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
-
-            let inc = Math.max(gs / (n_gs * dz), 1),
-                n_inc = Math.max((n_gs * dz) / gs, 1),
-                n_offset = offset * n_gs;
 
             let indexMul = 1,
                 indexOffset = 0,
@@ -832,30 +824,61 @@ class Segment {
             this.node.equalizedSideWithNodeId[side] = n.equalizedSideWithNodeId[OPSIDE[side]];
             this.readyToEngage = true;
 
-            for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-                let index = (indexMul * k + indexOffset) * 3;
-                let n_index = (nIndexMul * nk + nIndexOffset) * 3;
+            if (n_gs * dz >= 1) {
+                let inc = Math.max(gs / (n_gs * dz), 1),
+                    n_inc = Math.max((n_gs * dz) / gs, 1),
+                    n_offset = offset * n_gs;
 
-                let x = nv[n_index] + dxRtc;
-                let y = nv[n_index + 1] + dyRtc;
-                let z = nv[n_index + 2] + dzRtc;
+                for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
+                    let n_index = (nIndexMul * nk + nIndexOffset) * 3;
+                    this._setRenderVertex(
+                        (indexMul * k + indexOffset) * 3,
+                        nv[n_index] + dxRtc,
+                        nv[n_index + 1] + dyRtc,
+                        nv[n_index + 2] + dzRtc
+                    );
+                }
+            } else {
+                // The side is inside one neighbour segment, there are no neighbour vertices to copy,
+                // the side is drawn by its corners, they are put on the segment.
+                for (let k = 0; k < gsOne; k += gs) {
+                    let u = (offset + (k / gs) * dz) * n_gs,
+                        nk = Math.floor(u),
+                        f = u - nk;
 
-                v[index] = x;
-                v[index + 1] = y;
-                v[index + 2] = z;
+                    let n_index0 = (nIndexMul * nk + nIndexOffset) * 3,
+                        n_index1 = f > 0 ? n_index0 + nIndexMul * 3 : n_index0;
 
-                _v0.set(x, y, z);
-                Vec3.doubleToTwoFloats(_v0, _tempHigh, _tempLow);
-
-                vHigh[index] = _tempHigh.x;
-                vHigh[index + 1] = _tempHigh.y;
-                vHigh[index + 2] = _tempHigh.z;
-
-                vLow[index] = _tempLow.x;
-                vLow[index + 1] = _tempLow.y;
-                vLow[index + 2] = _tempLow.z;
+                    this._setRenderVertex(
+                        (indexMul * k + indexOffset) * 3,
+                        nv[n_index0] + (nv[n_index1] - nv[n_index0]) * f + dxRtc,
+                        nv[n_index0 + 1] + (nv[n_index1 + 1] - nv[n_index0 + 1]) * f + dyRtc,
+                        nv[n_index0 + 2] + (nv[n_index1 + 2] - nv[n_index0 + 2]) * f + dzRtc
+                    );
+                }
             }
         }
+    }
+
+    protected _setRenderVertex(index: number, x: number, y: number, z: number) {
+        let v = this.renderVertices!,
+            vHigh = this.renderVerticesHigh!,
+            vLow = this.renderVerticesLow!;
+
+        v[index] = x;
+        v[index + 1] = y;
+        v[index + 2] = z;
+
+        _v0.set(x, y, z);
+        Vec3.doubleToTwoFloats(_v0, _tempHigh, _tempLow);
+
+        vHigh[index] = _tempHigh.x;
+        vHigh[index + 1] = _tempHigh.y;
+        vHigh[index + 2] = _tempHigh.z;
+
+        vLow[index] = _tempLow.x;
+        vLow[index + 1] = _tempLow.y;
+        vLow[index + 2] = _tempLow.z;
     }
 
     public equalize() {
