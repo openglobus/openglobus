@@ -2,6 +2,10 @@
 // 16 processes projectors 0-15; additional projectors require another pass.
 const int MAX_PROJECTORS = 16;
 
+// Distinct image/video/texture sources sampled per draw call.
+// Keep in sync with MAX_FORWARD_PROJECTOR_SOURCES and sampleProjectorSource().
+const int PROJECTOR_MAX_SOURCES = 3;
+
 // u_projectorParams layout:
 // x = depthBiasWorld   // occlusion bias in meters, from DepthCamera.depthBiasWorld
 // y = normalBiasWorld  // bias along receiver normal in RTC/world units, usually meters
@@ -19,13 +23,13 @@ uniform vec4 u_projectorParams[MAX_PROJECTORS];
 uniform vec3 u_projectorDepthRange[MAX_PROJECTORS];
 uniform vec3 u_projectorEyeRel[MAX_PROJECTORS];
 uniform int u_projectorLayer[MAX_PROJECTORS];
-uniform int u_projectorHasImage[MAX_PROJECTORS];
+// Slot in u_projectorSource per projector, -1 = solid u_projectorColor only.
+uniform int u_projectorSourceIndex[MAX_PROJECTORS];
 uniform int u_projectorCount;
 
 uniform highp sampler2DArray u_projectorDepthArray;
-// RGBA image projected instead of (multiplied with, see applyProjector()) the solid u_projectorColor,
-// for projectors that had Projector.setImage() called. Shares layer indices with u_projectorDepthArray.
-uniform highp sampler2DArray u_projectorColorArray;
+// Image/video sources, each TEXTURE_2D at its own size, multiplied with u_projectorColor (see applyProjector()).
+uniform sampler2D u_projectorSource[PROJECTOR_MAX_SOURCES];
 
 // Enables 3x3 depth filtering.
 // 1 = smoother occlusion edges; 0 = faster, hard depth comparison.
@@ -95,6 +99,13 @@ float linearizeProjectorDepth(int index, float depth) {
 
 float sampleProjectorDepth(int index, vec2 uv) {
     return texture(u_projectorDepthArray, vec3(uv, float(u_projectorLayer[index]))).r;
+}
+
+// Sampler arrays only take constant indices in GLSL ES 3.00; slot is uniform per projector.
+vec4 sampleProjectorSource(int slot, vec2 uv) {
+    if (slot == 0) return texture(u_projectorSource[0], uv);
+    if (slot == 1) return texture(u_projectorSource[1], uv);
+    return texture(u_projectorSource[2], uv);
 }
 
 float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal, out vec2 outUv) {
@@ -211,8 +222,11 @@ void applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal, out vec3 proje
 
     // Image, when present, replaces the flat color/opacity as a tinted/masked decal;
     // u_projectorColor keeps working as a tint + overall opacity multiplier on top of it.
-    if (u_projectorHasImage[projectorIndex] > 0) {
-        vec4 imageColor = texture(u_projectorColorArray, vec3(uv, float(u_projectorLayer[projectorIndex])));
+    int sourceSlot = u_projectorSourceIndex[projectorIndex];
+    if (sourceSlot >= 0) {
+        vec4 imageColor = sampleProjectorSource(sourceSlot, uv);
+        // Sources are uploaded as RGBA8 holding sRGB, same approximation as srgbToLinear().
+        imageColor.rgb = pow(imageColor.rgb, vec3(2.2));
         color *= imageColor.rgb;
         opacity *= imageColor.a;
     }

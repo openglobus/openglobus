@@ -1596,6 +1596,8 @@ class Renderer {
 
         e.dispatch(e.predraw, this);
 
+        this.projectors.updateSources();
+
         this.activeCamera.checkFly();
 
         let frustums = this.activeCamera.frustums;

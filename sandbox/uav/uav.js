@@ -101,9 +101,6 @@ function syncTrackedCameras() {
         const entity = trackedCameraEntities[i];
         const camera = entity?.properties?.camera;
         const frustumEntity = entity?.properties?.frustumEntity;
-        const projector = entity?.properties?.projector;
-
-        projector?.updateImage();
 
         if (!camera || !frustumEntity) {
             continue;
@@ -154,7 +151,7 @@ async function createTrackedCameraEntity(cameraSnapshot) {
         color: [1.0, 1.0, 1.0, 1.0],
         renderMode: "color",
         priority: 0,
-        image: projectorVideo
+        video: projectorVideo
     });
     globus.planet.renderer.projectors.add(projector);
 
