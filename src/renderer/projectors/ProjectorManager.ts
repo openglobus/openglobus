@@ -5,7 +5,7 @@ import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
 import type { Renderer } from "../Renderer";
 import { DEFAULT_PROJECTOR_TEXTURE_UNIT_START } from "../textureUnits";
 import { Projector } from "./Projector";
-import type { ProjectorImageSource, ProjectorSourceKind } from "./Projector";
+import type { ProjectorSource, ProjectorSourceKind } from "./Projector";
 
 /**
  * Maximum number of depth layers allocated in manager-owned projector array texture.
@@ -29,7 +29,7 @@ export const MAX_FORWARD_PROJECTORS = 8;
 export const MAX_FORWARD_PROJECTOR_SOURCES = 3;
 
 interface IProjectorSource {
-    source: ProjectorImageSource;
+    source: ProjectorSource;
     kind: ProjectorSourceKind;
     /** TEXTURE_2D sized to the source. The user texture itself for the "texture" kind. */
     texture: WebGLTexture | null;
@@ -45,7 +45,7 @@ interface IProjectorSource {
     updateFrame: number;
 }
 
-function isDynamicCanvas(source: ProjectorImageSource): boolean {
+function isDynamicCanvas(source: ProjectorSource): boolean {
     return (
         (typeof HTMLCanvasElement !== "undefined" && source instanceof HTMLCanvasElement) ||
         (typeof OffscreenCanvas !== "undefined" && source instanceof OffscreenCanvas)
@@ -137,7 +137,7 @@ export class ProjectorManager {
      * Projectors sharing a source object share its entry (`projector._sourceIndex`).
      */
     protected _sources: (IProjectorSource | null)[];
-    protected _sourceIndexMap: Map<ProjectorImageSource, number>;
+    protected _sourceIndexMap: Map<ProjectorSource, number>;
     protected _freeSourceIndices: number[];
     protected _frame: number;
     protected _sourceSize: number[];
@@ -661,11 +661,11 @@ export class ProjectorManager {
     }
 
     /**
-     * Called by Projector.imageSource setter. Assigning the current source again marks it for re-upload.
+     * Called by Projector.source setter. Assigning the current source again marks it for re-upload.
      */
     public _setSource(projector: Projector): void {
         const index = projector._sourceIndex;
-        if (index !== -1 && this._sources[index]!.source === projector.imageSource) {
+        if (index !== -1 && this._sources[index]!.source === projector.source) {
             this._sources[index]!.dirty = true;
             return;
         }
@@ -676,7 +676,7 @@ export class ProjectorManager {
     }
 
     protected _attachSource(projector: Projector): void {
-        const source = projector.imageSource;
+        const source = projector.source;
         if (!source) return;
 
         let index = this._sourceIndexMap.get(source);
