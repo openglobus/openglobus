@@ -22,6 +22,7 @@ import {
     TERRAIN_GRID_SIZE_BY_ZOOM
 } from "./terrainUtils";
 import { RgbTerrainWorker } from "../utils/RgbTerrainWorker";
+import { LRUCache } from "../utils/LRUCache";
 
 export type RgbTerrainEncoding = "rgb" | "terrarium";
 
@@ -71,6 +72,7 @@ export interface IRgbTerrainParams extends IGlobusTerrainParams {
     equalizeNormals?: boolean;
     key?: string;
     imageSize?: number;
+    imageDataCacheSize?: number;
     minHeight?: number;
     resolution?: number;
     encoding?: RgbTerrainEncoding;
@@ -85,6 +87,8 @@ export interface IRgbTerrainParams extends IGlobusTerrainParams {
  * @param {boolean} [options.equalizeNormals=true] - Enables normal equalization on tile edges.
  * @param {string} [options.key=""] - API key.
  * @param {number} [options.imageSize=256] - Source image size.
+ * @param {number} [options.imageDataCacheSize=50] - Number of images which pixels are kept for getHeightAsync,
+ * the least recently used are loaded again.
  * @param {number} [options.minHeight=-10000] - Minimal height for RGB-to-height conversion.
  * @param {number} [options.resolution=0.1] - RGB-to-height conversion resolution.
  * @param {RgbTerrainEncoding} [options.encoding="rgb"] - RGB elevation encoding: `"rgb"` (default) or `"terrarium"`. Ignored when `options.rgbToHeightFunc` is set.
@@ -95,7 +99,7 @@ class RgbTerrain extends GlobusTerrain {
 
     protected _ctx: CanvasRenderingContext2D;
 
-    protected _imageDataCache: Record<string, Uint8ClampedArray>;
+    protected _imageDataCache: LRUCache<string, Uint8ClampedArray>;
 
     protected _minHeight: number;
 
@@ -127,7 +131,7 @@ class RgbTerrain extends GlobusTerrain {
 
         this._ctx = this._createTemporalCanvas(this._imageSize);
 
-        this._imageDataCache = {};
+        this._imageDataCache = new LRUCache(options.imageDataCacheSize || 50);
 
         this._minHeight = options.minHeight || -10000.0;
         this._resolution = options.resolution || 0.1;
@@ -137,6 +141,11 @@ class RgbTerrain extends GlobusTerrain {
             : normalizeRgbTerrainEncoding(options.encoding) === "terrarium"
               ? RGB_ENCODING_TERRARIUM
               : RGB_ENCODING_RGB;
+    }
+
+    public override clearCache() {
+        this._imageDataCache.clear();
+        super.clearCache();
     }
 
     static override checkNoDataValue(noDataValues: number[] | TypedArray, value: number): boolean {
@@ -413,8 +422,9 @@ class RgbTerrain extends GlobusTerrain {
         const index = (i * this._imageSize + j) * 4;
         const tileIndex = Layer.getTileIndex(x, y, z, tileGroup);
 
-        if (this._imageDataCache[tileIndex]) {
-            let data = this._imageDataCache[tileIndex];
+        let data = this._imageDataCache.get(tileIndex);
+
+        if (data) {
             let height = this._heightFactor * this.rgb2Height(data[index], data[index + 1], data[index + 2]);
             let isNoData = RgbTerrain.checkNoDataValue(this.noDataValues, height);
             if (isNoData) {
@@ -441,10 +451,12 @@ class RgbTerrain extends GlobusTerrain {
 
         def!.then((response: IResponse) => {
             if (response.status === "ready") {
+                delete this._fetchCache[tileIndex];
+
                 this._ctx.clearRect(0, 0, this._imageSize, this._imageSize);
                 this._ctx.drawImage(response.data, 0, 0);
                 let data = this._ctx.getImageData(0, 0, this._imageSize, this._imageSize).data;
-                this._imageDataCache[tileIndex] = data;
+                this._imageDataCache.set(tileIndex, data);
 
                 let height = this._heightFactor * this.rgb2Height(data[index], data[index + 1], data[index + 2]);
                 let isNoData = RgbTerrain.checkNoDataValue(this.noDataValues, height);

@@ -12,6 +12,7 @@ export * from "./LayerSwitcher";
 export * from "./Lighting";
 export * from "./Navigation";
 export * from "./OrthoSwitcher";
+export * from "./PoweredBy";
 export * from "./RulerSwitcher";
 export * from "./ScaleControl";
 export * from "./ShowFps";

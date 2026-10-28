@@ -4,11 +4,15 @@ import { Extent } from "../../Extent";
 import { LonLat } from "../../LonLat";
 import * as mercator from "../../mercator";
 import { getFastNoDataChecker, getRasterMinMax, parseNoDataValue } from "./ColorScale";
+import { warpRasters } from "./warp";
+import type { IWarpParams } from "./warp";
 import { getProjectionHelper, type IProjectionHelper } from "./utm";
 import { acquireWorkerPool, type IWorkerPoolHandle } from "./workerPool";
 import { Proj } from "../../proj/Proj";
 import { EPSG3857 } from "../../proj/EPSG3857";
 import { EPSG4326 } from "../../proj/EPSG4326";
+import { defineProjection } from "../../proj/epsgIo";
+import { getRasterWorker } from "../../utils/RasterWorker";
 import type {
     DecodedTileData,
     GeoTIFFSource,
@@ -17,6 +21,7 @@ import type {
     IGeoTIFFReader,
     IGeoTIFFReaderParams,
     IGeoTIFFRenderOptions,
+    IGeoTIFFSourceItem,
     ProjFunc
 } from "./types";
 
@@ -53,9 +58,16 @@ const BLOCK_SIZE = 65536 * 4;
 /**
  * Memory taken by cached byte ranges, the default cacheSize is derived from it.
  */
-const BLOCK_CACHE_BYTES = 32 * Math.pow(1024, 2);
+const BLOCK_CACHE_BYTES = 64 * Math.pow(1024, 2);
 
 const OVERVIEW_RESOLUTION_TOLERANCE = 1.4;
+
+/**
+ * Reading optimization in source pixels. The projected tile edge on a pixel edge lands a bit off it, so
+ * the window takes the next pixel row or column, and the next TIFF tiles are read and decoded too.
+ * The tolerance keeps the window on the tile pixels, the heights and colors are the same without it.
+ */
+const WINDOW_TOLERANCE = 1e-3;
 
 /**
  * Photometric interpretations that do not store RGB in the samples: CMYK, YCbCr and CIELab.
@@ -192,7 +204,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
             }
         }
         this.crsCode = crsCode;
-        this._projHelper = getProjectionHelper(crsCode, this.projFunc);
+        this._projHelper = await this._resolveProjection(crsCode);
         this.crsResolved = true;
 
         // Calculate WGS84 Extent
@@ -216,7 +228,10 @@ export class GeoTIFFReader implements IGeoTIFFReader {
                 new LonLat(Math.max(...lons), Math.max(...lats))
             );
         } else {
-            console.warn(`[GeoTIFFReader] Unrecognized CRS: EPSG:${crsCode}. Assuming bounds are lon/lat.`);
+            console.warn(
+                `[GeoTIFFReader] Unrecognized CRS: EPSG:${crsCode}, define it with proj4.defs("EPSG:${crsCode}", "...") ` +
+                    `or projFunc. Assuming bounds are lon/lat.`
+            );
             this.extentWgs84 = new Extent(new LonLat(minX, minY), new LonLat(maxX, maxY));
             this.crsResolved = false;
         }
@@ -330,6 +345,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
      * @param tileSize - Output tile size in pixels.
      * @param readSamples - Band indexes to read.
      * @param segmentProj - Projection of the segment the tile belongs to, EPSG:3857 by default.
+     * @returns Tile rasters, null for a tile out of the raster. A failed read rejects.
      */
     public async readTileRasters(
         tileExtentLonLat: Extent,
@@ -397,12 +413,14 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         const imgWidth = image.getWidth();
         const imgHeight = image.getHeight();
 
-        // 4. Source window covers the whole projected tile boundary, with a one pixel margin.
-        // A tile may be larger than the raster itself, so the window is clamped to the image.
-        const winX0 = Math.max(0, Math.floor(Math.max(0, uMin) * imgWidth) - 1);
-        const winY0 = Math.max(0, Math.floor(Math.max(0, vMin) * imgHeight) - 1);
-        const winX1 = Math.min(imgWidth, Math.ceil(Math.min(1, uMax) * imgWidth) + 1);
-        const winY1 = Math.min(imgHeight, Math.ceil(Math.min(1, vMax) * imgHeight) + 1);
+        // 4. Source window covers the whole projected tile boundary. Bilinear takes the next pixels too, with
+        // a one pixel margin, nearest takes the tile pixels only, so a raster aligned to the tiles is read
+        // tile by tile. A tile may be larger than the raster itself, so the window is clamped to the image.
+        const margin = this.options.renderOptions?.resampleMethod === "bilinear" ? 1 : 0;
+        const winX0 = Math.max(0, Math.floor(Math.max(0, uMin) * imgWidth + WINDOW_TOLERANCE) - margin);
+        const winY0 = Math.max(0, Math.floor(Math.max(0, vMin) * imgHeight + WINDOW_TOLERANCE) - margin);
+        const winX1 = Math.min(imgWidth, Math.ceil(Math.min(1, uMax) * imgWidth - WINDOW_TOLERANCE) + margin);
+        const winY1 = Math.min(imgHeight, Math.ceil(Math.min(1, vMax) * imgHeight - WINDOW_TOLERANCE) + margin);
 
         if (winX1 <= winX0 || winY1 <= winY0) {
             return null;
@@ -419,51 +437,93 @@ export class GeoTIFFReader implements IGeoTIFFReader {
             options.samples = readSamples;
         }
 
-        try {
-            // readRGB() converts the samples of a non RGB color space and returns R, G and B
-            const rastersPromise = this._convertPhotometric
-                ? image.readRGB({
-                      window: options.window,
-                      pool: options.pool,
-                      interleave: false
-                  })
-                : image.readRasters(options);
+        const read = () =>
+            Promise.all([
+                // readRGB() converts the samples of a non RGB color space and returns R, G and B
+                this._convertPhotometric
+                    ? image.readRGB({
+                          window: options.window,
+                          pool: options.pool,
+                          interleave: false
+                      })
+                    : image.readRasters(options),
+                // The mask covers the same window as the image and marks the valid pixels of the file
+                mask
+                    ? mask.readRasters({
+                          window: options.window,
+                          pool: options.pool,
+                          samples: [0],
+                          interleave: false
+                      })
+                    : undefined
+            ]);
 
-            // The mask covers the same window as the image and marks the valid pixels of the file
-            const maskPromise = mask
-                ? mask.readRasters({
-                      window: options.window,
-                      pool: options.pool,
-                      samples: [0],
-                      interleave: false
-                  })
-                : undefined;
+        // Concurrent reads may lose their blocks when the block cache is full, geotiff throws AggregateError then,
+        // the second read loads them again. Other errors go to the caller, a failed tile is not taken as empty.
+        const [rasters, maskRasters] = await read().catch((err) => {
+            if (err instanceof AggregateError) {
+                return read();
+            }
+            throw err;
+        });
+        const maskRaster = maskRasters?.[0];
 
-            const [rasters, maskRasters] = await Promise.all([rastersPromise, maskPromise]);
-            const maskRaster = maskRasters?.[0];
+        const win: [number, number, number, number] = [winX0, winY0, winX1, winY1];
 
-            return {
-                rasters: this._warpRasters(
-                    rasters,
-                    grid,
-                    imgWidth,
-                    imgHeight,
-                    [winX0, winY0, winX1, winY1],
-                    tileSize,
-                    maskRaster
-                ),
-                width: tileSize,
-                height: tileSize,
-                dstX: 0,
-                dstY: 0,
+        // Tile pixels of a raster on the tile grid are the image ones, nearest takes them as they are
+        const origin = margin === 0 ? this._getAlignedOrigin(grid, imgWidth, imgHeight, tileSize) : null;
+
+        let tileRasters: Float32Array[] | null;
+
+        if (origin) {
+            tileRasters = this._copyRasters(rasters, origin, win, tileSize, maskRaster);
+        } else {
+            const p: IWarpParams = {
+                rasters,
+                gridU: grid.gridU,
+                gridV: grid.gridV,
+                gridSize: grid.gridSize,
+                imgWidth,
+                imgHeight,
+                window: win,
                 tileSize,
-                window: [winX0, winY0, winX1, winY1],
-                isRGB: false
+                bilinear: margin === 1,
+                nodata: this._getEffectiveNoData(),
+                maskRaster
             };
-        } catch (err) {
-            console.error("[GeoTIFFReader] Error reading rasters:", err);
+            const worker = getRasterWorker();
+            tileRasters = worker ? await worker.warp(p) : warpRasters(p);
+        }
+
+        if (!tileRasters) {
             return null;
         }
+
+        return {
+            rasters: tileRasters,
+            width: tileSize,
+            height: tileSize,
+            dstX: 0,
+            dstY: 0,
+            tileSize,
+            window: [winX0, winY0, winX1, winY1],
+            isRGB: false
+        };
+    }
+
+    /**
+     * Returns the projection helper of the CRS, null if there is none. A projection that proj4 does not know is
+     * taken from the EPSG registry first, so the source is read once. Lon/lat and Web Mercator need no helper.
+     */
+    protected async _resolveProjection(crsCode: number): Promise<IProjectionHelper | null> {
+        let helper = getProjectionHelper(crsCode, this.projFunc),
+            lonLatOrMercator = crsCode === 4326 || crsCode === 3857 || crsCode === 900913;
+
+        if (!helper && !lonLatOrMercator && (await defineProjection(crsCode))) {
+            helper = getProjectionHelper(crsCode, this.projFunc);
+        }
+
+        return helper;
     }
 
     /**
@@ -662,116 +722,79 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         return 0;
     }
 
-    private _warpRasters(
-        rasters: TypedArray[],
+    /**
+     * Returns the image column and row of the tile when tile pixels match the source grid, so its rows are copied
+     * without resampling; otherwise null.
+     */
+    private _getAlignedOrigin(
         grid: TileGrid,
         imgWidth: number,
         imgHeight: number,
+        tileSize: number
+    ): [number, number] | null {
+        const { gridU, gridV, gridSize } = grid;
+        const side = gridSize + 1;
+        const cellSize = tileSize / gridSize;
+        const col0 = Math.round(gridU[0] * imgWidth);
+        const row0 = Math.round(gridV[0] * imgHeight);
+
+        for (let j = 0; j < side; j++) {
+            for (let i = 0; i < side; i++) {
+                const n = j * side + i;
+                if (
+                    Math.abs(gridU[n] * imgWidth - col0 - i * cellSize) > WINDOW_TOLERANCE ||
+                    Math.abs(gridV[n] * imgHeight - row0 - j * cellSize) > WINDOW_TOLERANCE
+                ) {
+                    return null;
+                }
+            }
+        }
+
+        return [col0, row0];
+    }
+
+    /**
+     * Returns the tile rasters copied from the window rows starting at the origin, the same as the nearest
+     * resampling gives; tile pixels out of the image stay NaN.
+     */
+    private _copyRasters(
+        rasters: TypedArray[],
+        origin: [number, number],
         window: [number, number, number, number],
         tileSize: number,
         maskRaster?: TypedArray
     ): Float32Array[] {
+        const [col0, row0] = origin;
         const [winX0, winY0, winX1, winY1] = window;
         const winWidth = winX1 - winX0;
-        const winHeight = winY1 - winY0;
-
-        const { gridU, gridV, gridSize } = grid;
-        const side = gridSize + 1;
-        const cellSize = tileSize / gridSize;
-        const bilinear = this.options.renderOptions?.resampleMethod === "bilinear";
 
         const nodata = this._getEffectiveNoData();
         const checkNoData = nodata !== null ? getFastNoDataChecker(nodata) : null;
 
+        // Tile pixels inside the window, the window is the tile clamped to the image
+        const x0 = Math.max(0, winX0 - col0);
+        const x1 = Math.min(tileSize, winX1 - col0);
+        const y0 = Math.max(0, winY0 - row0);
+        const y1 = Math.min(tileSize, winY1 - row0);
+
         const out: Float32Array[] = [];
+
         for (let b = 0; b < rasters.length; b++) {
-            out.push(new Float32Array(tileSize * tileSize).fill(NaN));
-        }
+            const src = rasters[b];
+            const dst = new Float32Array(tileSize * tileSize).fill(NaN);
 
-        for (let y = 0; y < tileSize; y++) {
-            // Grid nodes sit on tile pixel borders, so pixel centers are used here
-            const gy = (y + 0.5) / cellSize;
-            const j0 = Math.min(gridSize - 1, gy | 0);
-            const fy = gy - j0;
-
-            for (let x = 0; x < tileSize; x++) {
-                const gx = (x + 0.5) / cellSize;
-                const i0 = Math.min(gridSize - 1, gx | 0);
-                const fx = gx - i0;
-
-                // Bilinear interpolation of the source position between the grid nodes
-                const n00 = j0 * side + i0;
-                const n10 = n00 + 1;
-                const n01 = n00 + side;
-                const n11 = n01 + 1;
-
-                const w00 = (1 - fx) * (1 - fy);
-                const w10 = fx * (1 - fy);
-                const w01 = (1 - fx) * fy;
-                const w11 = fx * fy;
-
-                const u = gridU[n00] * w00 + gridU[n10] * w10 + gridU[n01] * w01 + gridU[n11] * w11;
-                const v = gridV[n00] * w00 + gridV[n10] * w10 + gridV[n01] * w01 + gridV[n11] * w11;
-
-                if (u < 0 || u >= 1 || v < 0 || v >= 1) continue;
-
-                // Source position inside the window, in pixel centers
-                const sx = u * imgWidth - winX0 - 0.5;
-                const sy = v * imgHeight - winY0 - 0.5;
-
-                const outIdx = y * tileSize + x;
-
-                // Pixels the mask marks as invalid stay NaN, which is rendered as transparent
-                if (maskRaster) {
-                    const mx = Math.max(0, Math.min(winWidth - 1, Math.round(sx)));
-                    const my = Math.max(0, Math.min(winHeight - 1, Math.round(sy)));
-                    if (!maskRaster[my * winWidth + mx]) continue;
-                }
-
-                if (bilinear) {
-                    const x0 = Math.floor(sx);
-                    const y0 = Math.floor(sy);
-                    const tx = sx - x0;
-                    const ty = sy - y0;
-                    const x1 = Math.min(winWidth - 1, x0 + 1);
-                    const y1 = Math.min(winHeight - 1, y0 + 1);
-                    const cx0 = Math.max(0, Math.min(winWidth - 1, x0));
-                    const cy0 = Math.max(0, Math.min(winHeight - 1, y0));
-
-                    const i00 = cy0 * winWidth + cx0;
-                    const i10 = cy0 * winWidth + x1;
-                    const i01 = y1 * winWidth + cx0;
-                    const i11 = y1 * winWidth + x1;
-
-                    for (let b = 0; b < rasters.length; b++) {
-                        const src = rasters[b];
-                        const v00 = src[i00],
-                            v10 = src[i10],
-                            v01 = src[i01],
-                            v11 = src[i11];
-
-                        if (
-                            checkNoData
-                                ? checkNoData(v00) || checkNoData(v10) || checkNoData(v01) || checkNoData(v11)
-                                : Number.isNaN(v00) || Number.isNaN(v10) || Number.isNaN(v01) || Number.isNaN(v11)
-                        ) {
-                            continue;
-                        }
-
-                        out[b][outIdx] = (v00 * (1 - tx) + v10 * tx) * (1 - ty) + (v01 * (1 - tx) + v11 * tx) * ty;
+            for (let y = y0; y < y1; y++) {
+                let s = (row0 + y - winY0) * winWidth + col0 + x0 - winX0;
+                for (let d = y * tileSize + x0, end = y * tileSize + x1; d < end; d++, s++) {
+                    const val = src[s];
+                    if ((maskRaster && !maskRaster[s]) || (checkNoData ? checkNoData(val) : Number.isNaN(val))) {
+                        continue;
                     }
-                } else {
-                    const px = Math.max(0, Math.min(winWidth - 1, Math.round(sx)));
-                    const py = Math.max(0, Math.min(winHeight - 1, Math.round(sy)));
-                    const srcIdx = py * winWidth + px;
-
-                    for (let b = 0; b < rasters.length; b++) {
-                        const val = rasters[b][srcIdx];
-                        if (checkNoData ? checkNoData(val) : Number.isNaN(val)) continue;
-                        out[b][outIdx] = val;
-                    }
+                    dst[d] = val;
                 }
             }
+
+            out.push(dst);
         }
 
         return out;

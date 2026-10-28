@@ -6,7 +6,6 @@ import type { Planet } from "../scene/Planet";
 import type { Segment } from "../segment/Segment";
 import type { TypedArray } from "geotiff";
 import { RENDERING } from "../quadTree/quadTree";
-import { defineProjection } from "../proj/epsgIo";
 import {
     createImageData,
     getFastNoDataChecker,
@@ -421,21 +420,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._planet.renderer?.requestRedraw();
     }
 
-    /**
-     * Opens the source. If its CRS is unresolved, fetches the projection
-     * from the EPSG registry and reopens the source with it.
-     *
-     * Projections provided via `projFunc` or registered in {@link proj4}
-     * are already resolved and require no lookup.
-     */
-    private async _readSource(src: GeoTIFFSource | IGeoTIFFSourceItem[]): Promise<IGeoTIFFMetadata> {
-        const meta = await this._reader.init(src);
-
-        if (meta.crsResolved) {
-            return meta;
-        }
-
-        return (await defineProjection(meta.crsCode)) ? this._reader.init(src) : meta;
+    private _readSource(src: GeoTIFFSource | IGeoTIFFSourceItem[]): Promise<IGeoTIFFMetadata> {
+        return this._reader.init(src);
     }
 
     private async _initSource(src: GeoTIFFSource, options: IGeoTIFFLayerParams): Promise<IGeoTIFFMetadata> {
