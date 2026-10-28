@@ -148,12 +148,42 @@
     bottom: 0;
     left: 0;
     position: absolute;
-    font-size: 0.7rem;
     padding: 1px 0 1px 0;
     line-height: 1.375em;
-    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
     display: flex;
     flex-direction: row;
+    align-items: center;
+}
+
+.og-attribution,
+.og-attribution * {
+    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.7rem;
+}
+
+.og-attribution a {
+    color: var(--blue0);
+    text-decoration: none;
+}
+
+.og-attribution a:hover {
+    text-decoration: underline;
+}
+
+.og-attribution__layers {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+}
+
+/* "Powered by OpenGlobus" label, see src/control/PoweredBy.ts */
+.og-attribution__powered-by {
+    margin-left: 5px;
+    margin-right: 5px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    color: #1f1f1f;
 }
 
 .og-attribution .og-attribution__layer {
@@ -165,6 +195,21 @@
     overflow: hidden;
     white-space: nowrap;
     color: #1f1f1f;
+}
+
+/* A "|" between every two neighbouring attribution entries. The separator
+   carries the spacing itself, so the entry's own left margin is dropped. */
+.og-attribution__layer + .og-attribution__layer,
+.og-attribution__layers:not(:empty) + .og-attribution__powered-by {
+    margin-left: 0;
+}
+
+.og-attribution__layer + .og-attribution__layer::before,
+.og-attribution__layers:not(:empty) + .og-attribution__powered-by::before {
+    content: "|";
+    margin-right: 5px;
+    color: #1f1f1f;
+    opacity: 0.5;
 }
 
 .og-attribution img {

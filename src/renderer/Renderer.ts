@@ -8,7 +8,7 @@ import { EntityCollection } from "../entity/EntityCollection";
 import { Framebuffer, Multisample, ShaderProgram } from "../webgl/index";
 import { FontAtlas } from "../utils/FontAtlas";
 import { Handler } from "../webgl/Handler";
-import type { ImageSource, WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
+import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 import { input } from "../input/input";
 import { isEmpty } from "../utils/shared";
 import { linearToSrgbArr, srgbToLinearArr } from "../utils/colorSpace";
@@ -64,6 +64,8 @@ interface IFrameCallbackHandler {
 }
 
 const MSAA_DEFAULT = 0;
+
+const PICKING_READ_INTERVAL = 200;
 
 let __pickingCallbackCounter__ = 0;
 
@@ -233,6 +235,11 @@ class Renderer {
 
     protected _depthRefreshRequired: boolean;
 
+    protected _pickingReadAt: number;
+
+    // The pointer has moved since the last picking readback, it is made when the interval passes
+    protected _pickingReadPending: boolean;
+
     public forwardFramebuffer: Multisample | null;
     protected hdrFramebuffer: Framebuffer | null;
 
@@ -378,6 +385,10 @@ class Renderer {
         this.depthFramebuffer = null;
 
         this._depthRefreshRequired = false;
+
+        this._pickingReadAt = 0;
+
+        this._pickingReadPending = false;
 
         let urlParams = new URLSearchParams(location.search);
         let msaaParam = urlParams.get("og_msaa");
@@ -1576,11 +1587,28 @@ class Renderer {
         let pointerEvent = e.pointerEvent();
         let pointerFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown;
         let touchTrigger = e.touchState.touchStart || e.touchState.touchEnd;
-        const refreshPicking = (pointerEvent && pointerFree) || touchTrigger || this._depthRefreshRequired;
+
+        let pointerRead = (pointerEvent && pointerFree) || this._pickingReadPending,
+            now = performance.now();
+
+        const refreshPicking =
+            (pointerRead && now - this._pickingReadAt >= PICKING_READ_INTERVAL) ||
+            touchTrigger ||
+            this._depthRefreshRequired;
+
         let h = this.handler,
             gl = h.gl!;
 
         this._depthRefreshRequired = false;
+
+        if (refreshPicking) {
+            this._pickingReadAt = now;
+        }
+
+        this._pickingReadPending = pointerRead && !refreshPicking;
+        if (this._pickingReadPending) {
+            this.requestRedraw();
+        }
 
         e.handleEvents();
 

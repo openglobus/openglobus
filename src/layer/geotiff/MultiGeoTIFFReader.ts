@@ -433,7 +433,7 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
         const outRasters: Float32Array[] = [];
 
         for (let b = 0; b < numBands; b++) {
-            // _warpRasters allocates a fresh buffer per read, so the first source is filled in place
+            // Every read returns fresh tile rasters, so the first source is filled in place
             const merged = validResults[0].rasters[b] as Float32Array;
 
             for (let s = 1; s < validResults.length; s++) {

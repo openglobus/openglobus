@@ -1,4 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
+
+// The raster worker runs in a browser, the tests resample in the main thread with the same functions
+vi.mock("../../src/utils/RasterWorker", () => ({ getRasterWorker: () => null }));
 import { GeoTIFFLayer } from "../../src/layer/GeoTIFFLayer";
 import { Material } from "../../src/layer/Material";
 import { GeoTIFFReader } from "../../src/layer/geotiff/GeoTIFFReader";
@@ -1304,5 +1307,155 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
         } finally {
             MultiGeoTIFFReader.prototype.init = origInit;
         }
+    });
+});
+
+describe("GeoTIFFReader window of a raster on the tile grid", () => {
+    // Web Mercator raster of the 256 pixel tiles of zoom 16, from the tile 32768, 24064, as the dem2m sandbox one.
+    // Projected tile edges are a bit off the pixel edges there.
+    function createReader(resampleMethod) {
+        const reader = new GeoTIFFReader({ renderOptions: { resampleMethod } });
+        const image = {
+            getWidth: () => 163840,
+            getHeight: () => 163840,
+            readRasters: vi.fn(async ({ window }) => [
+                new Float32Array((window[2] - window[0]) * (window[3] - window[1]))
+            ])
+        };
+        reader.source = {};
+        reader.images = [image];
+        reader.nativeBBox = [0, 4931105.56873329, 391357.58482010243, 5322463.153553393];
+        reader.crsCode = 3857;
+        reader.metadata = { noData: null };
+        reader.extentWgs84 = new Extent(new LonLat(0, 40), new LonLat(3.6, 43.2));
+        reader.isReady = true;
+        return reader;
+    }
+
+    const tile = mercator.getTileExtent(32769, 24065, 16).inverseMercator();
+
+    it("nearest reads the tile pixels only", async () => {
+        const data = await createReader().readTileRasters(tile, 16, 256, [0]);
+        expect(data.window).toEqual([256, 256, 512, 512]);
+    });
+
+    it("bilinear reads the next pixels too", async () => {
+        const data = await createReader("bilinear").readTileRasters(tile, 16, 256, [0]);
+        expect(data.window).toEqual([255, 255, 513, 513]);
+    });
+});
+
+describe("GeoTIFFReader copy of a raster on the tile grid", () => {
+    // Web Mercator raster on the 256 pixel tiles of zoom 16 from the tile 32768, 24064, 1000 pixels wide,
+    // so its last tile column is out of the image partly. Pixel values tell their image position.
+    const PIXEL = 391357.58482010243 / 163840;
+    const SIZE = 1000;
+    const NODATA = -9999;
+
+    const value = (col, row) => ((col + row) % 17 === 0 ? NODATA : col * 7 + row * 13);
+
+    function createReader(withMask) {
+        const reader = new GeoTIFFReader({});
+        const readWindow = (window, f) => {
+            const [x0, y0, x1, y1] = window;
+            const data = new Float32Array((x1 - x0) * (y1 - y0));
+            for (let y = y0, k = 0; y < y1; y++) {
+                for (let x = x0; x < x1; x++, k++) {
+                    data[k] = f(x, y);
+                }
+            }
+            return [data];
+        };
+        reader.source = {};
+        reader.images = [
+            { getWidth: () => SIZE, getHeight: () => SIZE, readRasters: async ({ window }) => readWindow(window, value) }
+        ];
+        reader.masks = [
+            withMask
+                ? {
+                      readRasters: async ({ window }) => readWindow(window, (x, y) => ((x * 3 + y) % 11 === 0 ? 0 : 255))
+                  }
+                : null
+        ];
+        reader.nativeBBox = [0, 5322463.153553393 - SIZE * PIXEL, SIZE * PIXEL, 5322463.153553393];
+        reader.crsCode = 3857;
+        reader.metadata = { noData: NODATA };
+        reader.extentWgs84 = new Extent(new LonLat(0, 40), new LonLat(3.6, 43.2));
+        reader.isReady = true;
+        return reader;
+    }
+
+    async function readBoth(reader, x, y) {
+        const tile = mercator.getTileExtent(x, y, 16).inverseMercator();
+        const copy = vi.spyOn(reader, "_copyRasters");
+        const copied = await reader.readTileRasters(tile, 16, 256, [0]);
+        expect(copy).toHaveBeenCalledTimes(1);
+        copy.mockRestore();
+
+        reader._getAlignedOrigin = () => null;
+        const warped = await reader.readTileRasters(tile, 16, 256, [0]);
+        delete reader._getAlignedOrigin;
+
+        return [copied.rasters[0], warped.rasters[0]];
+    }
+
+    it.each([
+        ["inside the image", 32769, 24065, false],
+        ["partly out of the image", 32771, 24067, false],
+        ["with a mask", 32769, 24066, true]
+    ])("gives the nearest resampling pixels for a tile %s", async (_name, x, y, withMask) => {
+        const [copied, warped] = await readBoth(createReader(withMask), x, y);
+
+        expect(Array.from(copied)).toEqual(Array.from(warped));
+        expect(copied.some((v) => !Number.isNaN(v))).toBe(true);
+        expect(copied.some((v) => Number.isNaN(v))).toBe(true);
+    });
+
+    it("bilinear resamples a raster on the tile grid as before", async () => {
+        const reader = createReader(false);
+        reader.options.renderOptions = { resampleMethod: "bilinear" };
+        const copy = vi.spyOn(reader, "_copyRasters");
+
+        await reader.readTileRasters(mercator.getTileExtent(32769, 24065, 16).inverseMercator(), 16, 256, [0]);
+
+        expect(copy).not.toHaveBeenCalled();
+    });
+});
+
+describe("GeoTIFFReader failed reads", () => {
+    function createReader(readRasters) {
+        const reader = new GeoTIFFReader({});
+        reader.source = {};
+        reader.images = [{ getWidth: () => 163840, getHeight: () => 163840, readRasters }];
+        reader.masks = [null];
+        reader.nativeBBox = [0, 4931105.56873329, 391357.58482010243, 5322463.153553393];
+        reader.crsCode = 3857;
+        reader.metadata = { noData: null };
+        reader.extentWgs84 = new Extent(new LonLat(0, 40), new LonLat(3.6, 43.2));
+        reader.isReady = true;
+        return reader;
+    }
+
+    const tile = mercator.getTileExtent(32769, 24065, 16).inverseMercator();
+
+    it("reads again the blocks a concurrent read has lost", async () => {
+        const readRasters = vi
+            .fn()
+            .mockRejectedValueOnce(new AggregateError([], "Request failed"))
+            .mockResolvedValue([new Float32Array(256 * 256).fill(7)]);
+
+        const data = await createReader(readRasters).readTileRasters(tile, 16, 256, [0]);
+
+        expect(readRasters).toHaveBeenCalledTimes(2);
+        expect(data.rasters[0][0]).toBe(7);
+    });
+
+    it("gives other errors to the caller, the tile is not empty data", async () => {
+        const readRasters = vi.fn().mockRejectedValue(new Error("Error fetching data."));
+
+        await expect(createReader(readRasters).readTileRasters(tile, 16, 256, [0])).rejects.toThrow(
+            "Error fetching data."
+        );
+        expect(readRasters).toHaveBeenCalledTimes(1);
     });
 });
