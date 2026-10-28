@@ -148,9 +148,6 @@ export function getProjectionHelper(
     const epsgStr = `EPSG:${crsCode}`;
 
     if (typeof proj4.defs === "function" && !(proj4.defs(epsgStr) || proj4.defs(String(crsCode)))) {
-        console.warn(
-            `[GeoTIFF] Projection ${epsgStr} is not defined in proj4. Call proj4.defs("${epsgStr}", "...") before loading.`
-        );
         return null;
     }
 

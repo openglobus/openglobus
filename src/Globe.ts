@@ -26,6 +26,7 @@ import { Navigation } from "./control/Navigation";
 import type { NumberArray2 } from "./math/Vec2";
 import type { NumberArray4 } from "./math/Vec4";
 import { Planet } from "./scene/Planet";
+import { PoweredBy } from "./control/PoweredBy";
 import { ScaleControl } from "./control/ScaleControl";
 import { Sun } from "./control/Sun";
 import { TouchNavigation } from "./control/TouchNavigation";
@@ -86,6 +87,7 @@ export interface IGlobeParams {
         disableTilt?: boolean;
     };
     layers?: Layer[];
+    poweredBy?: boolean;
     viewExtent?: Extent | NumberArray4;
     autoActivate?: boolean;
 
@@ -358,6 +360,7 @@ class Globe {
         const _controls = this.renderer.controls;
         let sun;
         let navigation;
+        let poweredBy;
         for (let i in _controls) {
             if (_controls[i] instanceof Sun) {
                 sun = _controls[i] as Sun;
@@ -365,6 +368,15 @@ class Globe {
             if (_controls[i] instanceof Navigation) {
                 navigation = _controls[i] as Navigation;
             }
+            if (_controls[i] instanceof PoweredBy) {
+                poweredBy = _controls[i] as PoweredBy;
+            }
+        }
+
+        // "Powered by OpenGlobus" label. Pass `poweredBy: false` to turn it off.
+        // Please read the note at the top of src/control/PoweredBy.ts before removing it.
+        if (!poweredBy && options.poweredBy !== false) {
+            this.planet.addControl(new PoweredBy());
         }
 
         if (!sun) {

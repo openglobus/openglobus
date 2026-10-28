@@ -199,15 +199,16 @@ export class TouchNavigation extends Control {
 
             t1.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(new Vec2(t1.x, t1.y)) || null;
 
-            this.pointOnEarth = this.planet!.getCartesianFromPixelTerrain(this.renderer!.handler.getCenter()) || null;
-
-            if (this.pointOnEarth) {
-                this.earthUp = this.pointOnEarth.normal();
-            }
+            // Gesture pivot: the surface point under the fingers' midpoint, fixed for the whole gesture
+            this.pointOnEarth = this._getTargetPoint(t0.vec.add(t1.vec).scale(0.5));
+            this.earthUp = this.pointOnEarth ? this.pointOnEarth.getNormal() : null;
 
             if (t0.grabbedPoint && t1.grabbedPoint) {
                 t0.grabbedSpheroid.radius = t0.grabbedPoint.length();
                 t1.grabbedSpheroid.radius = t1.grabbedPoint.length();
+            }
+
+            if (this.pointOnEarth) {
                 this.stopRotation();
             }
         } else if (e.sys!.pointers.length === 1) {
@@ -234,6 +235,20 @@ export class TouchNavigation extends Control {
         }
     }
 
+    protected _getTargetPoint(p: Vec2): Vec3 | null {
+        const planet = this.planet!;
+
+        if (planet.camera.isOrthographic) {
+            return this.renderer!.getCartesianFromPixel(p) || null;
+        }
+
+        if (planet.camera.getAltitude() > 80000) {
+            return planet.getCartesianFromPixelEllipsoid(p) || null;
+        }
+
+        return this.renderer!.getCartesianFromPixel(p) || planet.getCartesianFromPixelTerrain(p) || null;
+    }
+
     public stopRotation() {
         this.qRot.clear();
         this.planet!.layerLock.free(this._keyLock);
@@ -256,6 +271,11 @@ export class TouchNavigation extends Control {
     protected onTouchEnd(e: ITouchState) {
         if (e.sys!.pointers.length === 0) {
             this._touching = false;
+        }
+
+        if (e.sys!.pointers.length < 2) {
+            this.pointOnEarth = null;
+            this.earthUp = null;
         }
 
         if (e.sys!.pointers.length === 1) {
@@ -281,7 +301,8 @@ export class TouchNavigation extends Control {
             let t0 = this.touches[0],
                 t1 = this.touches[1];
 
-            if (!t0.grabbedPoint || !t1.grabbedPoint) {
+            const pivot = this.pointOnEarth;
+            if (!pivot || !this.earthUp) {
                 return;
             }
 
@@ -297,39 +318,33 @@ export class TouchNavigation extends Control {
             t1.x = (e.sys!.pointers[1].clientX - e.sys!.offsetLeft) * handler.pixelRatio;
             t1.y = (e.sys!.pointers[1].clientY - e.sys!.offsetTop) * handler.pixelRatio;
 
-            const middle = t0.vec.add(t1.vec).scale(0.5);
-            const earthMiddlePoint = this.planet!.getCartesianFromPixelEllipsoid(middle);
-            if (earthMiddlePoint) {
-                this.pointOnEarth = earthMiddlePoint;
+            const prevAngle = Math.atan2(t0.prev_y - t1.prev_y, t0.prev_x - t1.prev_x);
+            const curAngle = Math.atan2(t0.y - t1.y, t0.x - t1.x);
 
-                const prevAngle = Math.atan2(t0.prev_y - t1.prev_y, t0.prev_x - t1.prev_x);
-                const curAngle = Math.atan2(t0.y - t1.y, t0.x - t1.x);
+            const deltaAngle = curAngle - prevAngle;
+            const distanceToPointOnEarth = cam.eye.distance(pivot);
 
-                const deltaAngle = curAngle - prevAngle;
-                const distanceToPointOnEarth = cam.eye.distance(this.pointOnEarth);
+            const zoomCur = t0.vec.sub(t1.vec);
+            const zoomPrev = t0.vecPrev.sub(t1.vecPrev);
+            let scale = zoomCur.length() / zoomPrev.length();
+            const jerkMax = 1 + this.jerkLimit;
+            const jerkMin = 1 - this.jerkLimit;
+            scale = scale > jerkMax ? jerkMax : scale < jerkMin ? jerkMin : scale;
+            // Move along the eye-pivot ray, so the pivot stays under the same pixel
+            cam.eye.addA(pivot.sub(cam.eye).scale(1 - 1 / scale));
+            cam.rotateAround(-deltaAngle, false, pivot, this.earthUp);
 
-                const zoomCur = t0.vec.sub(t1.vec);
-                const zoomPrev = t0.vecPrev.sub(t1.vecPrev);
-                let scale = zoomCur.length() / zoomPrev.length();
-                const jerkMax = 1 + this.jerkLimit;
-                const jerkMin = 1 - this.jerkLimit;
-                scale = scale > jerkMax ? jerkMax : scale < jerkMin ? jerkMin : scale;
-                let d = distanceToPointOnEarth * -(1 - scale);
-                cam.eye.addA(cam.getForward().scale(d));
-                cam.rotateAround(-deltaAngle, false, this.pointOnEarth, this.earthUp!);
+            const panCur = t0.vec.add(t1.vec).scale(0.5);
+            const panPrev = t0.vecPrev.add(t1.vecPrev).scale(0.5);
+            const panOffset = panCur.sub(panPrev).scale(-1);
+            var l = (0.5 / distanceToPointOnEarth) * cam._lonLat.height * math.RADIANS;
+            if (l > 0.003) l = 0.003;
+            cam.rotateHorizontal(l * -panOffset.x, false, pivot, this.earthUp);
+            cam.rotateVertical(l * -panOffset.y, pivot, this.minSlope);
 
-                const panCur = t0.vec.add(t1.vec).scale(0.5);
-                const panPrev = t0.vecPrev.add(t1.vecPrev).scale(0.5);
-                const panOffset = panCur.sub(panPrev).scale(-1);
-                var l = (0.5 / distanceToPointOnEarth) * cam._lonLat.height * math.RADIANS;
-                if (l > 0.003) l = 0.003;
-                cam.rotateHorizontal(l * -panOffset.x, false, this.pointOnEarth, this.earthUp!);
-                cam.rotateVertical(l * -panOffset.y, this.pointOnEarth, this.minSlope);
-
-                cam.checkTerrainCollision();
-                cam.update();
-                this.events.dispatch(this.events.drag, this);
-            }
+            cam.checkTerrainCollision();
+            cam.update();
+            this.events.dispatch(this.events.drag, this);
             this.scaleRot = 0;
         } else if (e.sys!.pointers.length === 1) {
             let t = this.touches[0];

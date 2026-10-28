@@ -4,7 +4,7 @@ import type { EventsHandler } from "../Events";
 import { createExtent, stringTemplate } from "../utils/shared";
 import type { TypedArray } from "../utils/shared";
 import { EmptyTerrain } from "./EmptyTerrain";
-import type { IEmptyTerrainParams, UrlRewriteFunc } from "./EmptyTerrain";
+import type { IEmptyTerrainParams, ITerrainCacheInfo, UrlRewriteFunc } from "./EmptyTerrain";
 import { Extent } from "../Extent";
 import { Layer } from "../layer/Layer";
 import { Loader } from "../utils/Loader";
@@ -173,6 +173,10 @@ class GlobusTerrain extends EmptyTerrain {
         return segment.tileZoom >= 6;
     }
 
+    public override getCacheInfo(): ITerrainCacheInfo {
+        return { tiles: Object.keys(this._elevationCache).length };
+    }
+
     public setElevationCache(tileIndex: string, tileData: TileData) {
         this._elevationCache[tileIndex] = tileData;
     }
@@ -228,6 +232,8 @@ class GlobusTerrain extends EmptyTerrain {
                 let extent = mercator.getTileExtent(x, y, z);
 
                 if (response.status === "ready") {
+                    delete this._fetchCache[tileIndex];
+
                     let cache: TileData = {
                         heights: this._createHeights(response.data, null, tileGroup, x, y, z, extent),
                         extent: extent

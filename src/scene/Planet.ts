@@ -1474,8 +1474,20 @@ export class Planet extends Scene {
     protected _applyAttribution(html: string) {
         const el = this.renderer && this.renderer.getAttributionsContainer();
 
-        if (el && el.innerHTML !== html) {
-            el.innerHTML = html;
+        if (!el) {
+            return;
+        }
+
+        let layersEl = el.querySelector<HTMLElement>(".og-attribution__layers");
+
+        if (!layersEl) {
+            layersEl = document.createElement("div");
+            layersEl.classList.add("og-attribution__layers");
+            el.insertBefore(layersEl, el.firstChild);
+        }
+
+        if (layersEl.innerHTML !== html) {
+            layersEl.innerHTML = html;
         }
     }
 

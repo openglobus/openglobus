@@ -318,10 +318,21 @@ export class DebugInfo extends Control {
                 {
                     label: "TerrainLoader",
                     frame: () => {
-                        if (p.terrain && !p.terrain.isEmpty) {
-                            return `${(p.terrain as GlobusTerrain).loader.loading}  ${(p.terrain as GlobusTerrain).loader.queue.length}`;
+                        let loader = p.terrain && (p.terrain as GlobusTerrain).loader;
+                        if (loader) {
+                            return `${loader.loading}  ${loader.queue.length}`;
                         }
                         return "";
+                    }
+                },
+                {
+                    label: "TerrainCache",
+                    frame: () => {
+                        let c = p.terrain && p.terrain.getCacheInfo();
+                        if (!c) {
+                            return "";
+                        }
+                        return c.native !== undefined ? `${c.tiles} native ${c.native}` : `${c.tiles}`;
                     }
                 },
                 {
@@ -372,6 +383,10 @@ export class DebugInfo extends Control {
 
     protected _frame() {
         this._drawnFrames++;
+
+        if (!this._dialog.getVisibility()) {
+            return;
+        }
 
         this._watch.forEach((w) => {
             if (w.valEl) {

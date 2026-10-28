@@ -1,11 +1,11 @@
-import type {EventsHandler} from "../Events";
-import {Layer} from "./Layer";
-import type {ILayerParams, LayerEventsList} from "./Layer";
-import {Material} from "./Material";
-import type {NumberArray4} from "../math/Vec4";
-import type {Node} from "../quadTree/Node";
-import type {Planet} from "../scene/Planet";
-import {Segment} from "../segment/Segment";
+import type { EventsHandler } from "../Events";
+import { Layer } from "./Layer";
+import type { ILayerParams, LayerEventsList } from "./Layer";
+import { Material } from "./Material";
+import type { NumberArray4 } from "../math/Vec4";
+import type { Node } from "../quadTree/Node";
+import type { Planet } from "../scene/Planet";
+import { Segment } from "../segment/Segment";
 
 export interface IBaseTileMaterialLayerParams extends ILayerParams {
     minNativeZoom?: number;
@@ -225,11 +225,9 @@ export abstract class BaseTileMaterialLayer extends Layer {
         material.texOffset[3] = 1.0;
     }
 
-    protected _onMaterialReady(_material: Material): void {
-    }
+    protected _onMaterialReady(_material: Material): void {}
 
-    protected _onParentMaterialApplied(_material: Material, _psegm: Material): void {
-    }
+    protected _onParentMaterialApplied(_material: Material, _psegm: Material): void {}
 
     protected _beforeFastMaterialParentWalk(material: Material, segment: Segment, forceLoading: boolean): void {
         if (

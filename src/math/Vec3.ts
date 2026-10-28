@@ -899,7 +899,7 @@ export class Vec3 {
             scale1 = t;
         }
 
-        return Vec3.add(this.scaleTo(scale0), v2.scale(scale1));
+        return Vec3.add(this.scaleTo(scale0), v2.scaleTo(scale1));
     }
 
     public mulVecA(a: Vec3): Vec3 {

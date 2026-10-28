@@ -21,6 +21,16 @@ export interface IEmptyTerrainParams {
     gridSizeByZoom?: number[];
 }
 
+/**
+ * Terrain cache state, for the debug info.
+ */
+export interface ITerrainCacheInfo {
+    /** Cached tile heights. */
+    tiles: number;
+    /** Native tiles which pixels are kept for their subdivision levels. */
+    native?: number;
+}
+
 export type UrlRewriteFunc = (
     tileX: number,
     tileY: number,
@@ -29,7 +39,7 @@ export type UrlRewriteFunc = (
 ) => string | null | undefined;
 
 /**
- * Class represents terrain provider without elevation data.
+ * Class represents a terrain provider without elevation data.
  * @param {IEmptyTerrainParams} [options] - Provider options:
  * @param {string} [options.name="empty"] - Provider name.
  * @param {string} [options.attribution=""] - Terrain attribution shown in the attribution area.
@@ -297,6 +307,15 @@ class EmptyTerrain {
     public abortLoading() {}
 
     public clearCache() {}
+
+    /**
+     * Returns the cache state, null when the terrain has no cache.
+     * @public
+     * @returns {ITerrainCacheInfo | null} -
+     */
+    public getCacheInfo(): ITerrainCacheInfo | null {
+        return null;
+    }
 
     public getHeightAsync(lonLat: LonLat, callback: (height: number) => void, zoom?: number): boolean {
         callback(0);
