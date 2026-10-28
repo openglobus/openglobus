@@ -20,7 +20,8 @@ const globus = new Globe({
     layers: [new Bing(), new OpenStreetMap()],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
-    deferredDisabled: forward
+    deferredDisabled: forward,
+    idleMode: true
 });
 
 globus.planet.addControl(new control.TimelineControl());

@@ -571,6 +571,11 @@ export class ProjectorManager {
         return this._placeholderTexture;
     }
 
+    /** One function for all image load listeners, so re-attaching a loading image does not add duplicates. */
+    protected _requestRedraw = (): void => {
+        this._renderer.requestRedraw();
+    };
+
     protected _isSourceReady = (sourceIndex: number): boolean => {
         const source = this._sources[sourceIndex];
         return !!source && source.texture !== null;
@@ -667,6 +672,8 @@ export class ProjectorManager {
      * marks it for re-upload.
      */
     public _setSource(projector: Projector): void {
+        this._renderer.requestRedraw();
+
         const index = projector._sourceIndex;
         if (index !== -1 && projector.sourceEnabled && this._sources[index]!.source === projector.source) {
             this._sources[index]!.dirty = true;
@@ -707,6 +714,9 @@ export class ProjectorManager {
 
             if (kind === "video") {
                 this._watchVideoFrames(entry);
+            } else if ((source as HTMLImageElement).complete === false) {
+                // Only <img> has `complete`; a still loading one requests a frame once loaded.
+                (source as HTMLImageElement).addEventListener("load", this._requestRedraw, { once: true });
             }
         }
 
@@ -750,10 +760,35 @@ export class ProjectorManager {
         const onFrame = () => {
             if (entry.refCount <= 0) return;
             entry.dirty = true;
+            this._renderer.requestRedraw();
             entry.frameCallbackId = video.requestVideoFrameCallback(onFrame);
         };
 
         entry.frameCallbackId = video.requestVideoFrameCallback(onFrame);
+    }
+
+    /**
+     * Called by the renderer on every animation tick in idle mode. Keeps it drawing while an enabled
+     * projector shows a canvas, or a playing video when requestVideoFrameCallback is not supported.
+     */
+    public checkRedraw(): void {
+        const active = this._getActiveProjectors();
+
+        for (let i = 0; i < active.length; i++) {
+            const index = active[i]._sourceIndex;
+            if (index === -1) continue;
+
+            const entry = this._sources[index]!;
+            if (entry.failed) continue;
+
+            const playingVideo =
+                entry.kind === "video" && entry.frameCallbackId === -1 && !(entry.source as HTMLVideoElement).paused;
+
+            if (playingVideo || isDynamicCanvas(entry.source)) {
+                this._renderer.requestRedraw();
+                return;
+            }
+        }
     }
 
     /**

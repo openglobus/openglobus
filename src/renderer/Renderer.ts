@@ -1029,6 +1029,12 @@ class Renderer {
 
         this.handler.ONFRAMECHECK = () => {
             this._checkActiveCameraChanges();
+
+            // Idle mode only for the sources have
+            // to request a frame themselves.
+            if (this.handler.idleMode) {
+                this.projectors.checkRedraw();
+            }
         };
 
         this.screenFramePositionBuffer = this.handler.createArrayBuffer(

@@ -25,9 +25,10 @@ function createManager() {
             gl,
             floatTextureFilter: "NEAREST",
             createEmptyTexture2DArrayExt: () => ({})
-        }
+        },
+        requestRedraw: vi.fn()
     };
-    return { gl, manager: new ProjectorManager(renderer) };
+    return { gl, renderer, manager: new ProjectorManager(renderer) };
 }
 
 function createDepthCamera() {
@@ -239,6 +240,50 @@ describe("ProjectorManager sources", () => {
         expect(manager._isSourceReady(projector._sourceIndex)).toBe(true);
 
         warn.mockRestore();
+    });
+
+    test("idle mode: changing the source requests a frame", () => {
+        const { renderer, manager } = createManager();
+        const projector = createProjector();
+        manager.add(projector);
+
+        projector.source = createCanvas(8, 8);
+        expect(renderer.requestRedraw).toHaveBeenCalledTimes(1);
+
+        projector.sourceEnabled = false;
+        expect(renderer.requestRedraw).toHaveBeenCalledTimes(2);
+    });
+
+    test("idle mode: a new video frame requests a frame", () => {
+        const { renderer, manager } = createManager();
+        const video = document.createElement("video");
+        let onFrame = null;
+        video.requestVideoFrameCallback = vi.fn((callback) => {
+            onFrame = callback;
+            return 1;
+        });
+        video.cancelVideoFrameCallback = vi.fn();
+        manager.add(createProjector({ video }));
+        renderer.requestRedraw.mockClear();
+
+        onFrame();
+        expect(renderer.requestRedraw).toHaveBeenCalledTimes(1);
+    });
+
+    test("idle mode: a canvas keeps requesting frames, a paused video or color does not", () => {
+        const { renderer, manager } = createManager();
+        const projector = createProjector({ video: document.createElement("video") });
+        manager.add(projector);
+        manager.add(createProjector());
+        renderer.requestRedraw.mockClear();
+
+        manager.checkRedraw();
+        expect(renderer.requestRedraw).not.toHaveBeenCalled();
+
+        projector.source = createCanvas(8, 8);
+        renderer.requestRedraw.mockClear();
+        manager.checkRedraw();
+        expect(renderer.requestRedraw).toHaveBeenCalledTimes(1);
     });
 
     test("a user texture is bound as is and never deleted", () => {
