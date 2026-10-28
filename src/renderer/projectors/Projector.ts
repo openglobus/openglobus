@@ -5,7 +5,7 @@ import { linearToSrgbArr, srgbToLinear } from "../../utils/colorSpace";
 import { htmlColorToRgba, rgbToStringHTML, TypedArray } from "../../utils/shared";
 import type { ProjectorManager } from "./ProjectorManager";
 
-export type ProjectorImageSource = TexImageSource | WebGLTexture;
+export type ProjectorSource = TexImageSource | WebGLTexture;
 export type ProjectorSourceKind = "image" | "video" | "texture";
 export type ProjectorRenderMode = "color" | "light";
 export type ProjectorColor = NumberArray3 | NumberArray4 | TypedArray | string;
@@ -23,7 +23,7 @@ export interface IProjectorParams {
     priority?: number;
     /**
      * Image, canvas, ImageBitmap or VideoFrame to project. A canvas is re-uploaded every frame;
-     * other images once, or again when assigned to {@link Projector.imageSource} once more.
+     * other images once, or again when assigned to {@link Projector.source} once more.
      */
     image?: TexImageSource;
     /**
@@ -47,7 +47,7 @@ export class Projector {
     protected _enabled: boolean;
     protected _renderMode: number;
     protected _priority: number;
-    protected _imageSource: ProjectorImageSource | null = null;
+    protected _source: ProjectorSource | null = null;
 
     /**
      * Layer index in the manager-owned depth array texture. -1 if not yet added.
@@ -71,7 +71,7 @@ export class Projector {
         this.color = Projector._resolveColor(params.color);
         this._renderMode = Projector._resolveRenderMode(params.renderMode);
         this._priority = params.priority || 0;
-        this._imageSource = Projector._resolveImageSource(params);
+        this._source = Projector._resolveSource(params);
     }
 
     public get enabled(): boolean {
@@ -118,8 +118,8 @@ export class Projector {
     /**
      * The last of image/video/texture declared in params is the active source.
      */
-    protected static _resolveImageSource(params: IProjectorParams): ProjectorImageSource | null {
-        let source: ProjectorImageSource | null = null;
+    protected static _resolveSource(params: IProjectorParams): ProjectorSource | null {
+        let source: ProjectorSource | null = null;
         const keys = Object.keys(params);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i] as (typeof SOURCE_PARAMS)[number];
@@ -130,7 +130,7 @@ export class Projector {
         return source;
     }
 
-    public static getSourceKind(source: ProjectorImageSource): ProjectorSourceKind {
+    public static getSourceKind(source: ProjectorSource): ProjectorSourceKind {
         if (typeof HTMLVideoElement !== "undefined" && source instanceof HTMLVideoElement) return "video";
         if (typeof WebGLTexture !== "undefined" && source instanceof WebGLTexture) return "texture";
         return "image";
@@ -188,16 +188,16 @@ export class Projector {
      * Image, video or texture projected onto the terrain, or null when the projector
      * only uses a solid {@link Projector.color}.
      */
-    public get imageSource(): ProjectorImageSource | null {
-        return this._imageSource;
+    public get source(): ProjectorSource | null {
+        return this._source;
     }
 
     /**
      * Sets (or clears, when null) the projected source. Assigning the current source again
      * re-uploads it on the next frame, e.g. after drawing on a canvas or for a new VideoFrame.
      */
-    public set imageSource(source: ProjectorImageSource | null) {
-        this._imageSource = source || null;
+    public set source(source: ProjectorSource | null) {
+        this._source = source || null;
         this._manager?._setSource(this);
     }
 

@@ -23,7 +23,7 @@ export type { IMouseState, ITouchState } from "./renderer/RendererEvents";
 export type { IDeferredShadingPass } from "./renderer/IDeferredShadingPass";
 export type { ITransparencyPass } from "./renderer/ITransparencyPass";
 export type {
-    ProjectorImageSource,
+    ProjectorSource,
     ProjectorSourceKind,
     ProjectorRenderMode,
     IProjectorParams

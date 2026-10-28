@@ -57,19 +57,19 @@ function createCanvas(width, height) {
     return canvas;
 }
 
-describe("Projector image source params", () => {
+describe("Projector source params", () => {
     test("the last declared of image/video/texture is active", () => {
         const image = createCanvas(4, 4);
         const video = document.createElement("video");
 
-        expect(createProjector({ image, video }).imageSource).toBe(video);
-        expect(createProjector({ video, image }).imageSource).toBe(image);
-        expect(createProjector({ image, video: undefined }).imageSource).toBe(image);
+        expect(createProjector({ image, video }).source).toBe(video);
+        expect(createProjector({ video, image }).source).toBe(image);
+        expect(createProjector({ image, video: undefined }).source).toBe(image);
     });
 
     test("without a source the projector is color only", () => {
         const projector = createProjector({ color: "red" });
-        expect(projector.imageSource).toBe(null);
+        expect(projector.source).toBe(null);
         expect(projector._sourceIndex).toBe(-1);
     });
 
@@ -170,7 +170,7 @@ describe("ProjectorManager sources", () => {
         manager.remove(a);
         expect(gl.deleteTexture).not.toHaveBeenCalled();
 
-        b.imageSource = null;
+        b.source = null;
         expect(b._sourceIndex).toBe(-1);
         expect(gl.deleteTexture).toHaveBeenCalledTimes(1);
     });
