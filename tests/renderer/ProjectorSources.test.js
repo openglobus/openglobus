@@ -214,6 +214,33 @@ describe("ProjectorManager sources", () => {
         expect(manager._sources[projector._sourceIndex].source).toBe(canvas);
     });
 
+    test("a source that fails to upload falls back to color and is retried when assigned again", () => {
+        const { gl, manager } = createManager();
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        gl.texImage2D.mockImplementationOnce(() => {
+            throw new DOMException("Tainted canvases may not be loaded.", "SecurityError");
+        });
+        const canvas = createCanvas(16, 16);
+        const projector = createProjector({ image: canvas });
+        manager.add(projector);
+
+        expect(() => manager.updateSources()).not.toThrow();
+        expect(manager._isSourceReady(projector._sourceIndex)).toBe(false);
+        expect(gl.deleteTexture).toHaveBeenCalledTimes(1);
+        expect(gl.pixelStorei).toHaveBeenLastCalledWith(gl.UNPACK_FLIP_Y_WEBGL, false);
+        expect(warn).toHaveBeenCalledTimes(1);
+
+        manager.updateSources();
+        expect(gl.texImage2D).toHaveBeenCalledTimes(1);
+
+        projector.source = canvas;
+        manager.updateSources();
+        expect(gl.texImage2D).toHaveBeenCalledTimes(2);
+        expect(manager._isSourceReady(projector._sourceIndex)).toBe(true);
+
+        warn.mockRestore();
+    });
+
     test("a user texture is bound as is and never deleted", () => {
         globalThis.WebGLTexture ??= class WebGLTexture {};
         const { gl, manager } = createManager();

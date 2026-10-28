@@ -43,6 +43,8 @@ interface IProjectorSource {
     frameCallbackId: number;
     /** Last frame this source was updated in, so shared sources upload once per frame. */
     updateFrame: number;
+    /** Upload threw (e.g. a cross-origin source without CORS); retried when the source is assigned again. */
+    failed: boolean;
 }
 
 function isDynamicCanvas(source: ProjectorSource): boolean {
@@ -668,6 +670,7 @@ export class ProjectorManager {
         const index = projector._sourceIndex;
         if (index !== -1 && projector.sourceEnabled && this._sources[index]!.source === projector.source) {
             this._sources[index]!.dirty = true;
+            this._sources[index]!.failed = false;
             return;
         }
 
@@ -694,7 +697,8 @@ export class ProjectorManager {
                 dirty: true,
                 refCount: 0,
                 frameCallbackId: -1,
-                updateFrame: -1
+                updateFrame: -1,
+                failed: false
             };
 
             index = this._freeSourceIndices.length ? this._freeSourceIndices.pop()! : this._sources.length;
@@ -778,7 +782,9 @@ export class ProjectorManager {
     }
 
     protected _updateSource(gl: WebGL2RenderingContext, entry: IProjectorSource): void {
-        if (entry.kind === "texture") return;
+        if (entry.kind === "texture" || entry.failed) {
+            return;
+        }
 
         const source = entry.source as TexImageSource;
 
@@ -814,16 +820,23 @@ export class ProjectorManager {
         // uploaded canvas/image/video source has v=0 at the top (HTML convention) — flip on
         // upload rather than in the shader, and restore the engine-wide default right after.
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        // Always a full texImage2D into RGBA8: Chromium copies video frames on the GPU only on that path.
-        // texSubImage2D or an SRGB8_ALPHA8 target falls back to a CPU copy, ~5x slower on Ultra
-        // (Mali-G57, Chromium 100). The shader converts the sRGB sample to linear instead.
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, source);
-        entry.width = width;
-        entry.height = height;
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-
-        entry.dirty = false;
+        try {
+            // Always a full texImage2D into RGBA8: Chromium copies video frames on the GPU only on that path.
+            // texSubImage2D or an SRGB8_ALPHA8 target falls back to a CPU copy, ~5x slower on Ultra
+            // (Mali-G57, Chromium 100). The shader converts the sRGB sample to linear instead.
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, source);
+            entry.width = width;
+            entry.height = height;
+            entry.dirty = false;
+        } catch (err) {
+            console.warn("ProjectorManager: unable to upload projector source, rendering color instead.", err);
+            gl.deleteTexture(entry.texture);
+            entry.texture = null;
+            entry.failed = true;
+        } finally {
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
     }
 
     protected _collectActiveProjectors(): Projector[] {
