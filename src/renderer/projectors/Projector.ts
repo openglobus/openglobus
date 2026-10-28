@@ -15,25 +15,34 @@ export const PROJECTOR_RENDER_MODE_LIGHT = 1;
 export interface IProjectorParams {
     enabled?: boolean;
     depthCamera: DepthCamera;
+
     /**
      * Solid color, or the tint and opacity multiplier applied on top of image/video/texture.
      */
     color?: ProjectorColor;
     renderMode?: ProjectorRenderMode;
     priority?: number;
+
     /**
      * Image, canvas, ImageBitmap or VideoFrame to project. A canvas is re-uploaded every frame;
      * other images once, or again when assigned to {@link Projector.source} once more.
      */
     image?: TexImageSource;
+
     /**
      * Video element to project, uploaded on every new video frame.
      */
     video?: HTMLVideoElement;
+
     /**
      * Ready WebGL texture to project. It is sampled as is and never deleted by the projector manager.
      */
     texture?: WebGLTexture;
+
+    /**
+     * False renders only the color while keeping the source assigned. Default true.
+     */
+    sourceEnabled?: boolean;
 }
 
 const SOURCE_PARAMS = ["image", "video", "texture"] as const;
@@ -48,6 +57,7 @@ export class Projector {
     protected _renderMode: number;
     protected _priority: number;
     protected _source: ProjectorSource | null = null;
+    protected _sourceEnabled: boolean;
 
     /**
      * Layer index in the manager-owned depth array texture. -1 if not yet added.
@@ -72,6 +82,7 @@ export class Projector {
         this._renderMode = Projector._resolveRenderMode(params.renderMode);
         this._priority = params.priority || 0;
         this._source = Projector._resolveSource(params);
+        this._sourceEnabled = params.sourceEnabled ?? true;
     }
 
     public get enabled(): boolean {
@@ -198,6 +209,21 @@ export class Projector {
      */
     public set source(source: ProjectorSource | null) {
         this._source = source || null;
+        this._manager?._setSource(this);
+    }
+
+    /**
+     * When false, the projector renders only its color and the source texture is freed;
+     * {@link Projector.source} stays assigned and is uploaded again once re-enabled.
+     */
+    public get sourceEnabled(): boolean {
+        return this._sourceEnabled;
+    }
+
+    public set sourceEnabled(enabled: boolean) {
+        if (this._sourceEnabled === enabled) return;
+
+        this._sourceEnabled = enabled;
         this._manager?._setSource(this);
     }
 

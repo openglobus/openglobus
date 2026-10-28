@@ -661,11 +661,12 @@ export class ProjectorManager {
     }
 
     /**
-     * Called by Projector.source setter. Assigning the current source again marks it for re-upload.
+     * Called by Projector.source and Projector.sourceEnabled setters. Assigning the current source again
+     * marks it for re-upload.
      */
     public _setSource(projector: Projector): void {
         const index = projector._sourceIndex;
-        if (index !== -1 && this._sources[index]!.source === projector.source) {
+        if (index !== -1 && projector.sourceEnabled && this._sources[index]!.source === projector.source) {
             this._sources[index]!.dirty = true;
             return;
         }
@@ -677,7 +678,7 @@ export class ProjectorManager {
 
     protected _attachSource(projector: Projector): void {
         const source = projector.source;
-        if (!source) return;
+        if (!source || !projector.sourceEnabled) return;
 
         let index = this._sourceIndexMap.get(source);
 

@@ -175,6 +175,45 @@ describe("ProjectorManager sources", () => {
         expect(gl.deleteTexture).toHaveBeenCalledTimes(1);
     });
 
+    test("a disabled source frees its texture and is uploaded again when enabled", () => {
+        const { gl, manager } = createManager();
+        const canvas = createCanvas(16, 16);
+        const projector = createProjector({ image: canvas });
+        manager.add(projector);
+        manager.updateSources();
+
+        projector.sourceEnabled = false;
+        expect(projector.source).toBe(canvas);
+        expect(projector._sourceIndex).toBe(-1);
+        expect(gl.deleteTexture).toHaveBeenCalledTimes(1);
+
+        manager.updateSources();
+        expect(gl.texImage2D).toHaveBeenCalledTimes(1);
+
+        projector.sourceEnabled = true;
+        expect(projector._sourceIndex).not.toBe(-1);
+        manager.updateSources();
+        expect(gl.createTexture).toHaveBeenCalledTimes(2);
+        expect(gl.texImage2D).toHaveBeenCalledTimes(2);
+    });
+
+    test("a source assigned or added while disabled waits for enabling", () => {
+        const { gl, manager } = createManager();
+        const projector = createProjector({ image: createCanvas(8, 8), sourceEnabled: false });
+        manager.add(projector);
+        expect(projector._sourceIndex).toBe(-1);
+
+        const canvas = createCanvas(16, 16);
+        projector.source = canvas;
+        manager.updateSources();
+        expect(projector._sourceIndex).toBe(-1);
+        expect(gl.createTexture).not.toHaveBeenCalled();
+
+        projector.sourceEnabled = true;
+        manager.updateSources();
+        expect(manager._sources[projector._sourceIndex].source).toBe(canvas);
+    });
+
     test("a user texture is bound as is and never deleted", () => {
         globalThis.WebGLTexture ??= class WebGLTexture {};
         const { gl, manager } = createManager();
