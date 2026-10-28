@@ -607,10 +607,7 @@ class EntityGizmoScene extends Scene {
     protected _isGizmoEntity(entity: Entity): boolean {
         let ec = entity.entityCollection;
         return (
-            ec === this._moveLayer ||
-            ec === this._planeLayer ||
-            ec === this._rotateLayer ||
-            ec === this._axisTrackLayer
+            ec === this._moveLayer || ec === this._planeLayer || ec === this._rotateLayer || ec === this._axisTrackLayer
         );
     }
 

@@ -1,0 +1,77 @@
+<html>
+<head>
+    <title>OpenGlobus - Camera Flights</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        button {
+            margin: 5px;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+<div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
+<div style="position: absolute; margin: 10px;">
+    <button id="viewPoint">View point</button>
+    <button id="flyPoint">Fly point</button>
+    <button id="viewExtent">View extent</button>
+</div>
+<script type="module" id="og-sandbox-script">
+    import { Globe, GlobusRgbTerrain, OpenStreetMap, LonLat, Extent } from "../../lib/og.es.js";
+
+    document.getElementById("viewPoint").onclick = function() {
+        const DIST = 2000;
+        let viewPoi = new LonLat(7.9981766, 46.4310708, 3633);
+        let ell = globus.planet.ellipsoid;
+        globus.planet.camera.flyDistance(ell.lonLatToCartesian(viewPoi), DIST, {
+            //linearPath: true
+        });
+    };
+
+    document.getElementById("flyPoint").onclick = function() {
+        let ell = globus.planet.ellipsoid;
+
+        let destPos = new LonLat(8.0385638, 46.3662788, 15779);
+        let viewPoi = new LonLat(8.1385638, 46.3562788, 2636);
+
+        let lookCart = ell.lonLatToCartesian(viewPoi);
+        let upVec = ell.lonLatToCartesian(destPos).normalize();
+
+        globus.planet.camera.flyLonLat(destPos, {
+            look: lookCart,
+            up: upVec,
+            amplitude: 0
+            //linearPath: true
+        });
+    };
+
+    document.getElementById("viewExtent").onclick = function() {
+        globus.planet.flyExtent(
+            new Extent(new LonLat(8.444305070806447, 46.83498494404538), new LonLat(8.359558474132529, 46.81334158471044))
+        );
+    };
+
+    let osm = new OpenStreetMap("OpenStreetMap", {
+        isBaseLayer: true,
+        url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        visibility: true,
+        attribution: "Data @ OpenStreetMap contributors, ODbL"
+    });
+
+    let globus = new Globe({
+        target: "globus",
+        name: "Earth",
+        terrain: new GlobusRgbTerrain(),
+        layers: [osm]
+    });
+</script>
+</body>
+</html>
