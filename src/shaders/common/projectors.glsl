@@ -103,9 +103,9 @@ float sampleProjectorDepth(int index, vec2 uv) {
 
 // Sampler arrays only take constant indices in GLSL ES 3.00; slot is uniform per projector.
 vec4 sampleProjectorSource(int slot, vec2 uv) {
-    if (slot == 0) return texture(u_projectorSource[0], uv);
-    if (slot == 1) return texture(u_projectorSource[1], uv);
-    return texture(u_projectorSource[2], uv);
+    if (slot == 0) return textureLod(u_projectorSource[0], uv, 0.0);
+    if (slot == 1) return textureLod(u_projectorSource[1], uv, 0.0);
+    return textureLod(u_projectorSource[2], uv, 0.0);
 }
 
 float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal, out vec2 outUv) {
@@ -223,7 +223,7 @@ void applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal, out vec3 proje
     // Image, when present, replaces the flat color/opacity as a tinted/masked decal;
     // u_projectorColor keeps working as a tint + overall opacity multiplier on top of it.
     int sourceSlot = u_projectorSourceIndex[projectorIndex];
-    if (sourceSlot >= 0) {
+    if (sourceSlot >= 0 && visibility > 0.0) {
         vec4 imageColor = sampleProjectorSource(sourceSlot, uv);
         // Sources are uploaded as RGBA8 holding sRGB, same approximation as srgbToLinear().
         imageColor.rgb = pow(imageColor.rgb, vec3(2.2));

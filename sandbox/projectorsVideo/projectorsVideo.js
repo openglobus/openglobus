@@ -23,8 +23,10 @@ const globus = new Globe({
     deferredDisabled: forward
 });
 
+globus.planet.addControl(new control.TimelineControl());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.LayerSwitcher());
+globus.planet.addControl(new control.EntityEditor());
 
 const depthCameraHandler = new control.DepthCameraHandler();
 globus.planet.addControl(depthCameraHandler);
