@@ -159,8 +159,8 @@ export class DepthCamera {
         this._renderer = null;
         this._initialized = false;
         this._forceOwnQuadTreeStrategyPass = true;
-        this._showFrustum = params.showFrustum ?? true;
-        this._showFootprint = params.showFootprint ?? true;
+        this._showFrustum = params.showFrustum ?? false;
+        this._showFootprint = params.showFootprint ?? false;
         this._isOrthographic = params.isOrthographic ?? false;
         this._focusDistance = params.focusDistance ?? this.far;
         this._lastPlanetHeightFactor = 1.0;
