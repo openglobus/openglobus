@@ -1,10 +1,12 @@
-// Maximum number of projectors processed in one draw call.
-// 16 processes projectors 0-15; additional projectors require another pass.
-const int MAX_PROJECTORS = 16;
+// Maximum number of projectors processed in one draw call, MAX_FORWARD_PROJECTORS (ProjectorManager.ts).
+const int MAX_PROJECTORS = ${MAX_PROJECTORS};
 
-// Distinct image/video/texture sources sampled per draw call.
-// Keep in sync with MAX_FORWARD_PROJECTOR_SOURCES and sampleProjectorSource().
-const int PROJECTOR_MAX_SOURCES = 3;
+// Distinct image/video/texture sources sampled per draw call, MAX_FORWARD_PROJECTOR_SOURCES (ProjectorManager.ts).
+#define PROJECTOR_MAX_SOURCES ${PROJECTOR_MAX_SOURCES}
+
+#if PROJECTOR_MAX_SOURCES > 3
+#error sampleProjectorSource() samples at most 3 sources, add branches for more
+#endif
 
 // u_projectorParams layout:
 // x = depthBiasWorld   // occlusion bias in meters, from DepthCamera.depthBiasWorld
@@ -103,9 +105,13 @@ float sampleProjectorDepth(int index, vec2 uv) {
 
 // Sampler arrays only take constant indices in GLSL ES 3.00; slot is uniform per projector.
 vec4 sampleProjectorSource(int slot, vec2 uv) {
-    if (slot == 0) return textureLod(u_projectorSource[0], uv, 0.0);
+#if PROJECTOR_MAX_SOURCES > 1
     if (slot == 1) return textureLod(u_projectorSource[1], uv, 0.0);
-    return textureLod(u_projectorSource[2], uv, 0.0);
+#endif
+#if PROJECTOR_MAX_SOURCES > 2
+    if (slot == 2) return textureLod(u_projectorSource[2], uv, 0.0);
+#endif
+    return textureLod(u_projectorSource[0], uv, 0.0);
 }
 
 float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal, out vec2 outUv) {

@@ -1,3 +1,11 @@
+import { MAX_FORWARD_PROJECTOR_SOURCES, MAX_FORWARD_PROJECTORS } from "../../renderer/projectors/ProjectorManager";
+
+/** Array sizes for projectors.glsl, filled in with stringTemplate2() by every program that includes it. */
+export const projectorShaderParams = {
+    MAX_PROJECTORS: MAX_FORWARD_PROJECTORS,
+    PROJECTOR_MAX_SOURCES: MAX_FORWARD_PROJECTOR_SOURCES
+};
+
 export const projectorUniforms = {
     u_projectorCount: "int",
     u_projectorLayer: "intxx",

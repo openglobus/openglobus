@@ -7,17 +7,24 @@ import {
     Bing,
     Projector,
     DepthCamera,
-    input
+    input,
+    Vector,
+    Entity,
+    Object3d
 } from "../../lib/og.es.js";
 
 // ?forward renders with forward shaders, where at most 3 distinct video sources are sampled per draw.
 const forward = new URLSearchParams(window.location.search).has("forward");
 
+let myObjects = new Vector("myObjects", {
+    scaleByDistance: [1, 1, 1]
+});
+
 const globus = new Globe({
     target: "earth",
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
-    layers: [new Bing(), new OpenStreetMap()],
+    layers: [new Bing(), new OpenStreetMap(), myObjects],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
     deferredDisabled: forward,
@@ -28,6 +35,17 @@ globus.planet.addControl(new control.TimelineControl());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.LayerSwitcher());
 globus.planet.addControl(new control.EntityEditor());
+
+const skyCubeEntity = new Entity({
+    name: "sky-cube",
+    lonlat: new LonLat(9.08, 46.455, 5000),
+    independentPicking: true,
+    geoObject: {
+        tag: "sky-cube",
+        object3d: Object3d.createCube(1000, 1000, 1000).setColor("white")
+    }
+});
+myObjects.add(skyCubeEntity);
 
 const depthCameraHandler = new control.DepthCameraHandler();
 globus.planet.addControl(depthCameraHandler);

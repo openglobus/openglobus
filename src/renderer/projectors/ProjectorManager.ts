@@ -16,14 +16,15 @@ const INITIAL_PROJECTOR_LAYERS = 8;
 /**
  * Maximum number of projectors processed in a single shader invocation.
  * Used by forward / WOIT paths as top-K by priority per draw call.
- * Deferred projector pass binds one projector per draw.
+ * Deferred projector pass binds one projector per draw. Sizes MAX_PROJECTORS in projectors.glsl.
  */
 export const MAX_FORWARD_PROJECTORS = 8;
 
 /**
  * Maximum number of distinct image/video/texture sources sampled in one forward draw call
  * (`u_projectorSource[]`, PROJECTOR_MAX_SOURCES in projectors.glsl). Projectors beyond it render
- * their solid color. Limited by the free texture units between the projector depth array and shadows.
+ * their solid color. Limited by the free texture units between the projector depth array and shadows,
+ * at most 3 (see sampleProjectorSource()).
  */
 export const MAX_FORWARD_PROJECTOR_SOURCES = 3;
 
