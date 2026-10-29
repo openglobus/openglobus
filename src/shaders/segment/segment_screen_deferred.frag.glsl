@@ -90,9 +90,4 @@ void main(void) {
     }
 
     blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
-    if (samplerCount == 4) {
-        return;
-    }
-
-    blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
 }

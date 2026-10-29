@@ -54,7 +54,6 @@ void main(void) {
     if (samplerCount > 1) blend(fragColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
     if (samplerCount > 2) blend(fragColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
     if (samplerCount > 3) blend(fragColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
-    if (samplerCount > 4) blend(fragColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
 
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
