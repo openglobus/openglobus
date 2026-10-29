@@ -1,6 +1,7 @@
 import { Mat4 } from "../../math/Mat4";
 import { projectorsPass } from "../../shaders/projectorsPass/projectorsPass";
 import type { Renderer } from "../Renderer";
+import { DEFAULT_PROJECTOR_TEXTURE_UNIT_START } from "../textureUnits";
 import type { Framebuffer } from "../../webgl/Framebuffer";
 import type { Projector } from "./Projector";
 import type { NumberArray16 } from "../../math/Mat4";
@@ -212,7 +213,7 @@ export class ProjectorsPass {
                 continue;
             }
             gl.scissor(this._scissor[0], this._scissor[1], this._scissor[2], this._scissor[3]);
-            projectors.bindDeferred(p, 6, i);
+            projectors.bindDeferred(p, DEFAULT_PROJECTOR_TEXTURE_UNIT_START, i);
             gl.drawElements(gl.TRIANGLES, this._indexCount, gl.UNSIGNED_SHORT, 0);
         }
 
