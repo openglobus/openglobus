@@ -1030,8 +1030,7 @@ class Renderer {
         this.handler.ONFRAMECHECK = () => {
             this._checkActiveCameraChanges();
 
-            // Idle mode only for the sources have
-            // to request a frame themselves.
+            // Idle mode only: sources that change without a camera move request a frame themselves.
             if (this.handler.idleMode) {
                 this.projectors.checkRedraw();
             }

@@ -1,4 +1,3 @@
-import { Mat4 } from "../../math/Mat4";
 import { cons } from "../../cons";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
@@ -17,7 +16,7 @@ const INITIAL_PROJECTOR_LAYERS = 8;
 /**
  * Maximum number of projectors processed in a single shader invocation.
  * Used by forward / WOIT paths as top-K by priority per draw call.
- * Deferred projector pass binds one projector per draw (`chunkSize = 1`).
+ * Deferred projector pass binds one projector per draw.
  */
 export const MAX_FORWARD_PROJECTORS = 8;
 
@@ -35,8 +34,6 @@ interface IProjectorSource {
     texture: WebGLTexture | null;
     /** False for user textures, which the manager never deletes. */
     owned: boolean;
-    width: number;
-    height: number;
     dirty: boolean;
     refCount: number;
     /** requestVideoFrameCallback handle, -1 when not watching frames. */
@@ -113,14 +110,12 @@ export function assignSourceSlots(
     return used;
 }
 
-/** Default texture unit where the depth array sampler is bound. */
 export class ProjectorManager {
     protected _renderer: Renderer;
     protected _projectors: Projector[];
     protected _activeProjectors: Projector[];
 
     protected _viewProjData: Float32Array;
-    protected _invViewProjData: Float32Array;
     protected _eyeRelData: Float32Array;
     protected _colorIntensityData: Float32Array;
     protected _paramsData: Float32Array;
@@ -150,15 +145,12 @@ export class ProjectorManager {
     protected _sourceUnitData: Int32Array;
     protected _placeholderTexture: WebGLTexture | null;
 
-    protected _tmpInverse: Mat4;
-
     constructor(renderer: Renderer) {
         this._renderer = renderer;
         this._projectors = [];
         this._activeProjectors = [];
 
         this._viewProjData = new Float32Array(MAX_FORWARD_PROJECTORS * 16);
-        this._invViewProjData = new Float32Array(MAX_FORWARD_PROJECTORS * 16);
         this._eyeRelData = new Float32Array(MAX_FORWARD_PROJECTORS * 3);
         this._colorIntensityData = new Float32Array(MAX_FORWARD_PROJECTORS * 4);
         this._paramsData = new Float32Array(MAX_FORWARD_PROJECTORS * 4);
@@ -182,8 +174,6 @@ export class ProjectorManager {
         this._slotSourceData = new Int32Array(MAX_FORWARD_PROJECTOR_SOURCES);
         this._sourceUnitData = new Int32Array(MAX_FORWARD_PROJECTOR_SOURCES);
         this._placeholderTexture = null;
-
-        this._tmpInverse = new Mat4();
     }
 
     /** Total active projectors count (used by consumers to choose _proj / _noproj programs). */
@@ -402,9 +392,6 @@ export class ProjectorManager {
             const pvRTE = camera.getProjectionViewRTEMatrix();
             this._viewProjData.set(pvRTE, mOffset);
 
-            this._tmpInverse.set(pvRTE).inverseTo(this._tmpInverse);
-            this._invViewProjData.set(this._tmpInverse._m, mOffset);
-
             this._eyeRelData[eOffset] = camera.eye.x - activeCameraEye.x;
             this._eyeRelData[eOffset + 1] = camera.eye.y - activeCameraEye.y;
             this._eyeRelData[eOffset + 2] = camera.eye.z - activeCameraEye.z;
@@ -493,9 +480,6 @@ export class ProjectorManager {
         const camera = pi.depthCamera.camera;
         const activeCameraEye = this._renderer.activeCamera.eye;
         const pvRTE = camera.getProjectionViewRTEMatrix();
-
-        this._tmpInverse.set(pvRTE).inverseTo(this._tmpInverse);
-
         const color = pi.color;
 
         gl.uniform1i(u.u_projectorCount, 1);
@@ -520,7 +504,6 @@ export class ProjectorManager {
             camera.isOrthographic ? 1.0 : 0.0
         );
         gl.uniform3f(u.u_projectorDepthRange, frustum.near, frustum.far, pi.depthCamera.texelScale);
-        gl.uniformMatrix4fv(u.u_projectorInvViewProjRTE, false, this._tmpInverse._m);
 
         gl.activeTexture(gl.TEXTURE0 + textureUnitStart);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, this._depthArrayTexture);
@@ -699,8 +682,6 @@ export class ProjectorManager {
                 kind,
                 texture: kind === "texture" ? (source as WebGLTexture) : null,
                 owned: kind !== "texture",
-                width: 0,
-                height: 0,
                 dirty: true,
                 refCount: 0,
                 frameCallbackId: -1,
@@ -833,10 +814,9 @@ export class ProjectorManager {
 
         if (!entry.dirty) return;
 
+        // Zero while an image is loading or a frame is closed.
         getSourceSize(source, this._sourceSize);
-        const width = this._sourceSize[0];
-        const height = this._sourceSize[1];
-        if (!width || !height) return;
+        if (!this._sourceSize[0] || !this._sourceSize[1]) return;
 
         if (!entry.texture) {
             entry.texture = gl.createTexture();
@@ -860,8 +840,6 @@ export class ProjectorManager {
             // texSubImage2D or an SRGB8_ALPHA8 target falls back to a CPU copy, ~5x slower on Ultra
             // (Mali-G57, Chromium 100). The shader converts the sRGB sample to linear instead.
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, source);
-            entry.width = width;
-            entry.height = height;
             entry.dirty = false;
         } catch (err) {
             console.warn("ProjectorManager: unable to upload projector source, rendering color instead.", err);
