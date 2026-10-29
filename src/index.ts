@@ -22,7 +22,12 @@ export type { IControlParams } from "./control/Control";
 export type { IMouseState, ITouchState } from "./renderer/RendererEvents";
 export type { IDeferredShadingPass } from "./renderer/IDeferredShadingPass";
 export type { ITransparencyPass } from "./renderer/ITransparencyPass";
-export type { ProjectorSourceType, ProjectorRenderMode, IProjectorParams } from "./renderer/projectors/Projector";
+export type {
+    ProjectorSource,
+    ProjectorSourceKind,
+    ProjectorRenderMode,
+    IProjectorParams
+} from "./renderer/projectors/Projector";
 export { Projector } from "./renderer/projectors/Projector";
 export type { IShadowMapParams } from "./renderer/shadows/ShadowMap";
 export { ShadowMap } from "./renderer/shadows/ShadowMap";

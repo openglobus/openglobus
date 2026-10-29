@@ -1029,6 +1029,11 @@ class Renderer {
 
         this.handler.ONFRAMECHECK = () => {
             this._checkActiveCameraChanges();
+
+            // Idle mode only: sources that change without a camera move request a frame themselves.
+            if (this.handler.idleMode) {
+                this.projectors.checkRedraw();
+            }
         };
 
         this.screenFramePositionBuffer = this.handler.createArrayBuffer(
@@ -1623,6 +1628,8 @@ class Renderer {
         this.enableBlendDefault();
 
         e.dispatch(e.predraw, this);
+
+        this.projectors.updateSources();
 
         this.activeCamera.checkFly();
 

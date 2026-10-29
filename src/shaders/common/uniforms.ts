@@ -1,12 +1,14 @@
 export const projectorUniforms = {
     u_projectorCount: "int",
     u_projectorLayer: "intxx",
+    u_projectorSourceIndex: "intxx",
     u_projectorViewProjRTE: "mat4",
     u_projectorEyeRel: "vec3",
     u_projectorColor: "vec4",
     u_projectorParams: "vec4",
     u_projectorDepthRange: "vec3",
-    u_projectorDepthArray: "sampler2darray"
+    u_projectorDepthArray: "sampler2darray",
+    u_projectorSource: "sampler2darraylegacy"
 };
 
 export const shadowMapUniforms = {
