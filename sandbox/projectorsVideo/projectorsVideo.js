@@ -87,6 +87,9 @@ const checkerCanvas = document.createElement("canvas");
 checkerCanvas.width = checkerCanvas.height = 512;
 drawChecker(checkerCanvas, 0);
 
+const renderer = globus.planet.renderer;
+const canvas = renderer.handler.canvas;
+
 const sources = [
     {
         params: { video: createVideo("./smpte_360p.mp4") },
@@ -108,6 +111,13 @@ const sources = [
         height: 448,
         eye: [9.26, 46.45],
         look: [9.26, 46.46]
+    },
+    {
+        params: { texture: renderer.screenTexture.screen },
+        width: canvas.width,
+        height: canvas.height,
+        eye: [9.35, 46.45],
+        look: [9.35, 46.46]
     }
 ];
 
@@ -145,7 +155,15 @@ setInterval(() => {
     projectors[1].source = checkerCanvas;
 }, 500);
 
-globus.planet.viewLonLat(new LonLat(9.17, 46.28, 22000), new LonLat(9.17, 46.47, 0));
+// The screen texture is recreated on resize.
+renderer.events.on("resizeend", () => {
+    const camera = projectors[3].depthCamera.camera;
+    camera.setViewportSize(canvas.width, canvas.height);
+    camera.update();
+    projectors[3].source = renderer.screenTexture.screen;
+});
+
+globus.planet.viewLonLat(new LonLat(9.215, 46.28, 24000), new LonLat(9.215, 46.47, 0));
 
 // C aims the first projector at the terrain point under the mouse.
 globus.planet.renderer.events.on("charkeypress", input.KEY_C, () => {
