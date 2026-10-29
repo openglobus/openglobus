@@ -230,6 +230,7 @@ export class ProjectorManager {
         this._updateActiveProjectors = true;
 
         this._attachSource(projector);
+        this.requestRedraw();
 
         return projector.id;
     }
@@ -288,6 +289,7 @@ export class ProjectorManager {
         if (index === -1) return false;
         this._projectors[index] = projector;
         this._updateActiveProjectors = true;
+        this.requestRedraw();
         return true;
     }
 
@@ -316,6 +318,7 @@ export class ProjectorManager {
 
         this._projectors.splice(index, 1);
         this._updateActiveProjectors = true;
+        this.requestRedraw();
         return true;
     }
 
@@ -554,8 +557,11 @@ export class ProjectorManager {
         return this._placeholderTexture;
     }
 
-    /** One function for all image load listeners, so re-attaching a loading image does not add duplicates. */
-    protected _requestRedraw = (): void => {
+    /**
+     * Requests a frame in idle mode after a projector change. One function for all image load listeners,
+     * so re-attaching a loading image does not add duplicates.
+     */
+    public requestRedraw = (): void => {
         this._renderer.requestRedraw();
     };
 
@@ -655,7 +661,7 @@ export class ProjectorManager {
      * marks it for re-upload.
      */
     public _setSource(projector: Projector): void {
-        this._renderer.requestRedraw();
+        this.requestRedraw();
 
         const index = projector._sourceIndex;
         if (index !== -1 && projector.sourceEnabled && this._sources[index]!.source === projector.source) {
@@ -697,7 +703,7 @@ export class ProjectorManager {
                 this._watchVideoFrames(entry);
             } else if ((source as HTMLImageElement).complete === false) {
                 // Only <img> has `complete`; a still loading one requests a frame once loaded.
-                (source as HTMLImageElement).addEventListener("load", this._requestRedraw, { once: true });
+                (source as HTMLImageElement).addEventListener("load", this.requestRedraw, { once: true });
             }
         }
 
@@ -741,11 +747,24 @@ export class ProjectorManager {
         const onFrame = () => {
             if (entry.refCount <= 0) return;
             entry.dirty = true;
-            this._renderer.requestRedraw();
+            if (this._renderer.handler.idleMode && this._isActiveSource(entry)) {
+                this.requestRedraw();
+            }
             entry.frameCallbackId = video.requestVideoFrameCallback(onFrame);
         };
 
         entry.frameCallbackId = video.requestVideoFrameCallback(onFrame);
+    }
+
+    protected _isActiveSource(entry: IProjectorSource): boolean {
+        const active = this._getActiveProjectors();
+
+        for (let i = 0; i < active.length; i++) {
+            const index = active[i]._sourceIndex;
+            if (index !== -1 && this._sources[index] === entry) return true;
+        }
+
+        return false;
     }
 
     /**

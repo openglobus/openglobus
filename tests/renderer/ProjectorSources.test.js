@@ -24,6 +24,7 @@ function createManager() {
         handler: {
             gl,
             floatTextureFilter: "NEAREST",
+            idleMode: true,
             createEmptyTexture2DArrayExt: () => ({})
         },
         requestRedraw: vi.fn()
@@ -246,12 +247,28 @@ describe("ProjectorManager sources", () => {
         const { renderer, manager } = createManager();
         const projector = createProjector();
         manager.add(projector);
+        renderer.requestRedraw.mockClear();
 
         projector.source = createCanvas(8, 8);
         expect(renderer.requestRedraw).toHaveBeenCalledTimes(1);
 
         projector.sourceEnabled = false;
         expect(renderer.requestRedraw).toHaveBeenCalledTimes(2);
+    });
+
+    test("idle mode: projector changes request a frame", () => {
+        const { renderer, manager } = createManager();
+        const projector = createProjector();
+        manager.add(projector);
+        expect(renderer.requestRedraw).toHaveBeenCalledTimes(1);
+
+        projector.enabled = false;
+        projector.setColor(1, 0, 0);
+        projector.setOpacity(0.5);
+        expect(renderer.requestRedraw).toHaveBeenCalledTimes(4);
+
+        manager.remove(projector);
+        expect(renderer.requestRedraw).toHaveBeenCalledTimes(5);
     });
 
     test("idle mode: a new video frame requests a frame", () => {
@@ -263,11 +280,18 @@ describe("ProjectorManager sources", () => {
             return 1;
         });
         video.cancelVideoFrameCallback = vi.fn();
-        manager.add(createProjector({ video }));
+        const projector = createProjector({ video });
+        manager.add(projector);
         renderer.requestRedraw.mockClear();
 
         onFrame();
         expect(renderer.requestRedraw).toHaveBeenCalledTimes(1);
+
+        projector.enabled = false;
+        renderer.requestRedraw.mockClear();
+        onFrame();
+        expect(renderer.requestRedraw).not.toHaveBeenCalled();
+        expect(video.requestVideoFrameCallback).toHaveBeenCalledTimes(3);
     });
 
     test("idle mode: a canvas keeps requesting frames, a paused video or color does not", () => {

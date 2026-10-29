@@ -175,10 +175,12 @@ export class Projector {
         this.color[1] = srgbToLinear(g);
         this.color[2] = srgbToLinear(b);
         a !== undefined && (this.color[3] = a);
+        this._manager?.requestRedraw();
     }
 
     public setOpacity(a: number): void {
         this.color[3] = a;
+        this._manager?.requestRedraw();
     }
 
     public getColor(): string {
