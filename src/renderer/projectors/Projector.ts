@@ -24,8 +24,8 @@ export interface IProjectorParams {
     priority?: number;
 
     /**
-     * Image, canvas, ImageBitmap or VideoFrame to project. A canvas is re-uploaded every frame;
-     * other images once, or again when assigned to {@link Projector.source} once more.
+     * Image, canvas, ImageBitmap or VideoFrame to project. Uploaded once; after drawing on a canvas
+     * assign it to {@link Projector.source} again to upload the new pixels.
      */
     image?: TexImageSource;
 

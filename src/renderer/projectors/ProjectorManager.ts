@@ -45,13 +45,6 @@ interface IProjectorSource {
     failed: boolean;
 }
 
-function isDynamicCanvas(source: ProjectorSource): boolean {
-    return (
-        (typeof HTMLCanvasElement !== "undefined" && source instanceof HTMLCanvasElement) ||
-        (typeof OffscreenCanvas !== "undefined" && source instanceof OffscreenCanvas)
-    );
-}
-
 function getSourceSize(source: TexImageSource, out: number[]): void {
     if (typeof HTMLVideoElement !== "undefined" && source instanceof HTMLVideoElement) {
         out[0] = source.videoWidth;
@@ -770,7 +763,7 @@ export class ProjectorManager {
 
     /**
      * Called by the renderer on every animation tick in idle mode. Keeps it drawing while an enabled
-     * projector shows a canvas, or a playing video when requestVideoFrameCallback is not supported.
+     * projector shows a playing video and requestVideoFrameCallback is not supported.
      */
     public checkRedraw(): void {
         const active = this._getActiveProjectors();
@@ -780,12 +773,12 @@ export class ProjectorManager {
             if (index === -1) continue;
 
             const entry = this._sources[index]!;
-            if (entry.failed) continue;
-
-            const playingVideo =
-                entry.kind === "video" && entry.frameCallbackId === -1 && !(entry.source as HTMLVideoElement).paused;
-
-            if (playingVideo || isDynamicCanvas(entry.source)) {
+            if (
+                entry.kind === "video" &&
+                !entry.failed &&
+                entry.frameCallbackId === -1 &&
+                !(entry.source as HTMLVideoElement).paused
+            ) {
                 this._renderer.requestRedraw();
                 return;
             }
@@ -828,8 +821,6 @@ export class ProjectorManager {
             const video = source as HTMLVideoElement;
             if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
             if (entry.frameCallbackId === -1 && !video.paused) entry.dirty = true;
-        } else if (isDynamicCanvas(source)) {
-            entry.dirty = true;
         }
 
         if (!entry.dirty) return;

@@ -133,22 +133,26 @@ describe("ProjectorManager sources", () => {
         expect(gl.texImage2D).toHaveBeenCalledTimes(1);
     });
 
-    test("each source gets its own texture, reused across uploads", () => {
+    test("each source gets its own texture, uploaded once and again when assigned after drawing", () => {
         const { gl, manager } = createManager();
         const small = createCanvas(512, 512);
-        const large = createCanvas(1920, 1080);
+        const smallProjector = createProjector({ image: small });
 
-        manager.add(createProjector({ image: small }));
-        manager.add(createProjector({ image: large }));
+        manager.add(smallProjector);
+        manager.add(createProjector({ image: createCanvas(1920, 1080) }));
         manager.add(createProjector());
         manager.updateSources();
 
         expect(gl.createTexture).toHaveBeenCalledTimes(2);
         expect(gl.texImage2D).toHaveBeenCalledTimes(2);
 
-        small.width = 256;
         manager.updateSources();
-        expect(gl.texImage2D).toHaveBeenCalledTimes(4);
+        expect(gl.texImage2D).toHaveBeenCalledTimes(2);
+
+        small.width = 256;
+        smallProjector.source = small;
+        manager.updateSources();
+        expect(gl.texImage2D).toHaveBeenCalledTimes(3);
         expect(gl.texSubImage2D).not.toHaveBeenCalled();
         expect(gl.createTexture).toHaveBeenCalledTimes(2);
     });
@@ -294,18 +298,18 @@ describe("ProjectorManager sources", () => {
         expect(video.requestVideoFrameCallback).toHaveBeenCalledTimes(3);
     });
 
-    test("idle mode: a canvas keeps requesting frames, a paused video or color does not", () => {
+    test("idle mode: only a playing video without requestVideoFrameCallback keeps requesting frames", () => {
         const { renderer, manager } = createManager();
-        const projector = createProjector({ video: document.createElement("video") });
-        manager.add(projector);
+        const video = document.createElement("video");
+        manager.add(createProjector({ video }));
+        manager.add(createProjector({ image: createCanvas(8, 8) }));
         manager.add(createProjector());
         renderer.requestRedraw.mockClear();
 
         manager.checkRedraw();
         expect(renderer.requestRedraw).not.toHaveBeenCalled();
 
-        projector.source = createCanvas(8, 8);
-        renderer.requestRedraw.mockClear();
+        Object.defineProperty(video, "paused", { value: false });
         manager.checkRedraw();
         expect(renderer.requestRedraw).toHaveBeenCalledTimes(1);
     });

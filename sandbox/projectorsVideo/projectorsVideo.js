@@ -13,7 +13,7 @@ import {
     Object3d
 } from "../../lib/og.es.js";
 
-// ?forward renders with forward shaders, where at most 3 distinct video sources are sampled per draw.
+// ?forward renders with forward shaders, where at most 3 distinct sources are sampled per draw.
 const forward = new URLSearchParams(window.location.search).has("forward");
 
 let myObjects = new Vector("myObjects", {
@@ -64,13 +64,54 @@ function createVideo(src) {
     return video;
 }
 
-// Each clip has its own resolution, so each gets a texture of its own size.
+function createImage(src) {
+    const image = new Image();
+    image.src = src;
+    return image;
+}
+
+const CHECKER_CELLS = 8;
+
+function drawChecker(canvas, offset) {
+    const ctx = canvas.getContext("2d");
+    const cell = canvas.width / CHECKER_CELLS;
+    for (let y = 0; y < CHECKER_CELLS; y++) {
+        for (let x = 0; x < CHECKER_CELLS; x++) {
+            ctx.fillStyle = (x + y + offset) % 2 ? "#ff6a00" : "#1e90ff";
+            ctx.fillRect(x * cell, y * cell, cell, cell);
+        }
+    }
+}
+
+const checkerCanvas = document.createElement("canvas");
+checkerCanvas.width = checkerCanvas.height = 512;
+drawChecker(checkerCanvas, 0);
+
 const sources = [
-    { src: "./smpte_360p.mp4", width: 640, height: 360, eye: [9.08, 46.45], look: [9.08, 46.46] },
-    { src: "./mandelbrot_512.mp4", width: 512, height: 512, eye: [9.26, 46.45], look: [9.26, 46.46] }
+    {
+        params: { video: createVideo("./smpte_360p.mp4") },
+        width: 640,
+        height: 360,
+        eye: [9.08, 46.45],
+        look: [9.08, 46.46]
+    },
+    {
+        params: { image: checkerCanvas },
+        width: 512,
+        height: 512,
+        eye: [9.17, 46.45],
+        look: [9.17, 46.46]
+    },
+    {
+        params: { image: createImage("./grid.jpg") },
+        width: 640,
+        height: 448,
+        eye: [9.26, 46.45],
+        look: [9.26, 46.46]
+    }
 ];
 
-const projectors = sources.map(({ src, width, height, eye, look }) => {
+const projectors = sources.map(({ params, width, height, eye, look }) => {
     const depthCamera = new DepthCamera({
         showFrustum: true,
         // The footprint reads the depth map back to the CPU every frame, too slow on Ultra (Mali).
@@ -91,21 +132,20 @@ const projectors = sources.map(({ src, width, height, eye, look }) => {
         depthCamera,
         color: [1.0, 1.0, 1.0, 1.0],
         renderMode: "color",
-        video: createVideo(src)
+        ...params
     });
     globus.planet.renderer.projectors.add(projector);
 
     return projector;
 });
 
-globus.planet.viewLonLat(new LonLat(9.17, 46.28, 22000), new LonLat(9.17, 46.47, 0));
+let checkerOffset = 0;
+setInterval(() => {
+    drawChecker(checkerCanvas, ++checkerOffset);
+    projectors[1].source = checkerCanvas;
+}, 500);
 
-// 1, 2 toggle the projectors.
-projectors.forEach((projector, i) => {
-    globus.planet.renderer.events.on("charkeypress", 49 + i, () => {
-        projector.enabled = !projector.enabled;
-    });
-});
+globus.planet.viewLonLat(new LonLat(9.17, 46.28, 22000), new LonLat(9.17, 46.47, 0));
 
 // C aims the first projector at the terrain point under the mouse.
 globus.planet.renderer.events.on("charkeypress", input.KEY_C, () => {

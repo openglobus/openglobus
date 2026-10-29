@@ -1,8 +1,8 @@
 // Maximum number of projectors processed in one draw call, MAX_FORWARD_PROJECTORS (ProjectorManager.ts).
-const int MAX_PROJECTORS = ${MAX_PROJECTORS};
+const int MAX_PROJECTORS = ${ MAX_PROJECTORS};
 
 // Distinct image/video/texture sources sampled per draw call, MAX_FORWARD_PROJECTOR_SOURCES (ProjectorManager.ts).
-#define PROJECTOR_MAX_SOURCES ${PROJECTOR_MAX_SOURCES}
+#define PROJECTOR_MAX_SOURCES ${ PROJECTOR_MAX_SOURCES }
 
 #if PROJECTOR_MAX_SOURCES > 3
 #error sampleProjectorSource() samples at most 3 sources, add branches for more
@@ -105,12 +105,12 @@ float sampleProjectorDepth(int index, vec2 uv) {
 
 // Sampler arrays only take constant indices in GLSL ES 3.00; slot is uniform per projector.
 vec4 sampleProjectorSource(int slot, vec2 uv) {
-#if PROJECTOR_MAX_SOURCES > 1
+    #if PROJECTOR_MAX_SOURCES > 1
     if (slot == 1) return textureLod(u_projectorSource[1], uv, 0.0);
-#endif
-#if PROJECTOR_MAX_SOURCES > 2
+    #endif
+    #if PROJECTOR_MAX_SOURCES > 2
     if (slot == 2) return textureLod(u_projectorSource[2], uv, 0.0);
-#endif
+    #endif
     return textureLod(u_projectorSource[0], uv, 0.0);
 }
 
@@ -214,7 +214,7 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal, out v
     #endif
 }
 
-void applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal, out vec3 projectorEmission, out vec3 projectorLight) {
+void applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal, out vec4 projectorDecal, out vec3 projectorLight) {
     vec3 N = normalize(normal);
 
     vec2 uv;
@@ -246,14 +246,14 @@ void applyProjector(int projectorIndex, vec3 rtcPos, vec3 normal, out vec3 proje
     float ndotl = max(signedNdotl, 0.0);
     float grazingFade = smoothstep(PROJECTOR_GRAZING_FADE_MIN, PROJECTOR_GRAZING_FADE_MAX, ndotl);
     float wrappedNdotl = clamp((signedNdotl + PROJECTOR_LIGHT_WRAP) / (1.0 + PROJECTOR_LIGHT_WRAP), 0.0, 1.0);
-    vec3 projectedColor = color * opacity * visibility * grazingFade;
+    float coverage = opacity * visibility * grazingFade;
 
-    projectorEmission = projectedColor * colorMode;
-    projectorLight = projectedColor * wrappedNdotl * lightMode;
+    projectorDecal = vec4(color, 1.0) * coverage * colorMode;
+    projectorLight = color * coverage * wrappedNdotl * lightMode;
 }
 
-void applyProjectors(vec3 rtcPos, vec3 normal, out vec3 projectorEmission, out vec3 projectorLight) {
-    projectorEmission = vec3(0.0);
+void applyProjectors(vec3 rtcPos, vec3 normal, out vec4 projectorDecal, out vec3 projectorLight) {
+    projectorDecal = vec4(0.0);
     projectorLight = vec3(0.0);
 
     for (int i = 0; i < MAX_PROJECTORS; i++) {
@@ -261,10 +261,16 @@ void applyProjectors(vec3 rtcPos, vec3 normal, out vec3 projectorEmission, out v
             break;
         }
 
-        vec3 projectorEmissionPart;
+        vec4 projectorDecalPart;
         vec3 projectorLightPart;
-        applyProjector(i, rtcPos, normal, projectorEmissionPart, projectorLightPart);
-        projectorEmission += projectorEmissionPart;
+        applyProjector(i, rtcPos, normal, projectorDecalPart, projectorLightPart);
+        // Projectors come by priority, so composite front to back to keep the higher one on top.
+        projectorDecal += projectorDecalPart * (1.0 - projectorDecal.a);
         projectorLight += projectorLightPart;
     }
+}
+
+// Color mode covers the surface like a decal: opacity 1 shows the projector color as is, black included.
+vec3 applyProjectorDecal(vec3 surfaceColor, vec4 projectorDecal) {
+    return surfaceColor * (1.0 - projectorDecal.a) + projectorDecal.rgb;
 }

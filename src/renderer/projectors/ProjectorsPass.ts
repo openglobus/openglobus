@@ -173,7 +173,7 @@ export class ProjectorsPass {
         gl.depthMask(false);
         gl.disable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE);
+        gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
         gl.blendEquation(gl.FUNC_ADD);
         gl.enable(gl.SCISSOR_TEST);
 
@@ -208,7 +208,7 @@ export class ProjectorsPass {
         const vpH = gBuffer.height;
         const active = projectors.active;
 
-        for (let i = 0; i < total; i++) {
+        for (let i = total - 1; i >= 0; i--) {
             if (!this._computeScissor(active[i], mainPV, mainEye, vpW, vpH)) {
                 continue;
             }

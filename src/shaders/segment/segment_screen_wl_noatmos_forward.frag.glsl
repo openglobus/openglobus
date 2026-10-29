@@ -57,15 +57,15 @@ void main(void) {
 
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
-    vec3 projectorEmission;
+    vec4 projectorDecal;
     vec3 projectorLight;
-    applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
+    applyProjectors(v_rtcPos, normal, projectorDecal, projectorLight);
     float shadowVisibility =
         getShadowMapsDirectVisibility(v_rtcPos, normal) *
         getCascadeShadowDirectVisibility(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
-        fragColor.rgb += projectorEmission;
+        fragColor.rgb = applyProjectorDecal(fragColor.rgb, projectorDecal);
         applyPremultipliedSurfaceOpacity(fragColor, transitionOpacity, frameOpacity);
         return;
     }
@@ -118,10 +118,12 @@ void main(void) {
     specularWeighting *= shadowVisibility;
 
     fragColor = vec4(
-    fragColor.rgb * (lightWeighting.rgb + projectorLight) +
-    specularWeighting +
-    emission +
-    projectorEmission,
+    applyProjectorDecal(
+        fragColor.rgb * (lightWeighting.rgb + projectorLight) +
+        specularWeighting +
+        emission,
+        projectorDecal
+    ),
     fragColor.a
     );
     applyPremultipliedSurfaceOpacity(fragColor, transitionOpacity, frameOpacity);
