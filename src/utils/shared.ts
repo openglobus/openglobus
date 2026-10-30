@@ -919,6 +919,27 @@ export function concatTypedArrays(a: TypedArray, b: TypedArray | number[]): Type
     return c;
 }
 
+/**
+ * Appends `b` to `a` and returns an exact-length view. Grows the backing
+ * buffer by doubling, so repeated appends are amortized O(1).
+ * The caller must own `a.buffer` exclusively, including the unused space
+ * after `a`, which is overwritten. The result may share `a`'s buffer.
+ * @param {TypedArray} a
+ * @param {TypedArray | number[]} b
+ */
+export function appendTypedArray<T extends TypedArray>(a: T, b: T | number[]): T {
+    const length = a.length + b.length;
+    if (a.byteOffset + length * a.BYTES_PER_ELEMENT <= a.buffer.byteLength) {
+        const c = new (a as any).constructor(a.buffer, a.byteOffset, length) as T; //hacky
+        c.set(b as any, a.length);
+        return c;
+    }
+    const c = new (a as any).constructor(Math.max(length, a.length * 2)) as T; //hacky
+    c.set(a, 0);
+    c.set(b as any, a.length);
+    return c.subarray(0, length) as T;
+}
+
 export function insertTypedArray<T extends TypedArray>(arr: T, starting: number, insert: T | number[]): T {
     if (insert.length === 0) return arr;
     if (starting < 0) starting = 0;

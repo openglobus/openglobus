@@ -146,6 +146,35 @@ test('Test concatTypedArrays', () => {
 
 });
 
+test('Test appendTypedArray', () => {
+    let arr = new Float32Array(0);
+    const expected = [];
+    for (let i = 0; i < 100; i++) {
+        arr = shared.appendTypedArray(arr, [i, i + 0.5]);
+        expected.push(i, i + 0.5);
+        expect(arr.length).toBe(expected.length);
+    }
+    expect(Array.from(arr)).toEqual(expected);
+    expect(arr).toBeInstanceOf(Float32Array);
+
+    // Grows by doubling: a full buffer is copied once, then appends reuse it.
+    const full = new Float32Array([1, 2, 3, 4]);
+    const grown = shared.appendTypedArray(full, new Float32Array([5]));
+    expect(Array.from(grown)).toEqual([1, 2, 3, 4, 5]);
+    expect(grown.buffer).not.toBe(full.buffer);
+    expect(grown.buffer.byteLength).toBe(8 * Float32Array.BYTES_PER_ELEMENT);
+
+    const appended = shared.appendTypedArray(grown, [6, 7]);
+    expect(Array.from(appended)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(appended.buffer).toBe(grown.buffer);
+    expect(Array.from(grown)).toEqual([1, 2, 3, 4, 5]);
+
+    // A view that ends before its buffer, e.g. after a removal shortened it, keeps working.
+    const view = new Uint16Array(new ArrayBuffer(16), 4, 2);
+    view.set([1, 2]);
+    expect(Array.from(shared.appendTypedArray(view, [3, 4]))).toEqual([1, 2, 3, 4]);
+});
+
 test('Test stringTemplate2 replaces escaped placeholders', () => {
     const res = shared.stringTemplate2('a/${x}/\\${operator}/${zero}', {
         x: 12,
