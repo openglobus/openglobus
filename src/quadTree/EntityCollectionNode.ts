@@ -97,7 +97,9 @@ class EntityCollectionNode {
             if (rightNow || !l.async) {
                 this.entityCollection!.addEntities(entities);
             } else {
-                this.deferredEntities.push.apply(this.deferredEntities, entities);
+                for (let i = 0; i < entities.length; i++) {
+                    this.deferredEntities.push(entities[i]);
+                }
             }
         }
     }
