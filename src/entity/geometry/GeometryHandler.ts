@@ -22,6 +22,7 @@ import type {
 import { GeometryTypeEnum } from "./Geometry";
 
 import { earcut, flatten } from "../../utils/earcut";
+import { concatArrays } from "../../utils/shared";
 
 const POLYVERTICES_BUFFER = 0;
 const POLYINDEXES_BUFFER = 1;
@@ -633,8 +634,8 @@ class GeometryHandler {
                     geometry._polyVerticesHighMerc = verticesHigh;
                     geometry._polyVerticesLowMerc = verticesLow;
 
-                    this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
-                    this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
+                    concatArrays(this._polyVerticesHighMerc, verticesHigh);
+                    concatArrays(this._polyVerticesLowMerc, verticesLow);
 
                     geometry._polyVerticesLength = data.vertices.length;
                     geometry._polyIndexesLength = indexes.length;
@@ -701,7 +702,7 @@ class GeometryHandler {
                             indexes.push(dataIndexes[j] + vertices.length * 0.5);
                         }
 
-                        vertices.push.apply(vertices, data.vertices);
+                        concatArrays(vertices, data.vertices);
 
                         GeometryHandler.appendLineData(
                             ci,
@@ -751,8 +752,8 @@ class GeometryHandler {
                     geometry._polyVerticesHighMerc = verticesHigh;
                     geometry._polyVerticesLowMerc = verticesLow;
 
-                    this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
-                    this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
+                    concatArrays(this._polyVerticesHighMerc, verticesHigh);
+                    concatArrays(this._polyVerticesLowMerc, verticesLow);
 
                     geometry._polyVerticesLength = vertices.length;
                     geometry._polyIndexesLength = indexes.length;
@@ -1175,8 +1176,8 @@ class GeometryHandler {
         geometry._handlerIndex = this._geometries.length;
         this._geometries.push(geometry);
 
-        this._polyIndexes.push.apply(this._polyIndexes, polyIndexes);
-        this._lineIndexes.push.apply(this._lineIndexes, lineIndexes);
+        concatArrays(this._polyIndexes, polyIndexes);
+        concatArrays(this._lineIndexes, lineIndexes);
 
         this._setChangedBuffer(POLYINDEXES_BUFFER);
         this._setChangedBuffer(LINEINDEXES_BUFFER);
