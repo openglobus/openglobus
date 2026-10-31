@@ -984,6 +984,22 @@ class Vector extends BaseTileMaterialLayer {
     }
 
     public override applyMaterial(material: Material) {
+        // A tile that is being redrawn keeps showing its own previous texture
+        if (
+            !material.isReady &&
+            material.textureExists &&
+            material._updateTexture &&
+            material.segment.tileZoom >= this.minNativeZoom
+        ) {
+            !material.isLoading && this.loadMaterial(material);
+            material.texture = material._updateTexture;
+            material.pickingMask = material._updatePickingMask;
+            material.texOffset[0] = 0.0;
+            material.texOffset[1] = 0.0;
+            material.texOffset[2] = 1.0;
+            material.texOffset[3] = 1.0;
+            return material.texOffset;
+        }
         return super.applyMaterial(material);
     }
     // @deprecated, now it gets algorithm from the parent class.
@@ -1070,14 +1086,23 @@ class Vector extends BaseTileMaterialLayer {
             t = material.pickingMask;
             material.pickingMask = null;
             t && !t.default && gl.deleteTexture(t);
+        }
 
-            t = material._updateTexture;
-            material._updateTexture = null;
-            t && !t.default && gl.deleteTexture(t);
-
-            t = material._updatePickingMask;
-            material._updatePickingMask = null;
-            t && !t.default && gl.deleteTexture(t);
+        // A tile that is being redrawn still owns its previous texture and picking mask
+        const updateTexture = material._updateTexture,
+            updatePickingMask = material._updatePickingMask;
+        material._updateTexture = null;
+        material._updatePickingMask = null;
+        if (updateTexture || updatePickingMask) {
+            const gl = material.segment.handler.gl!;
+            if (updateTexture && !updateTexture.default) {
+                material.texture === updateTexture && (material.texture = null);
+                gl.deleteTexture(updateTexture);
+            }
+            if (updatePickingMask && !updatePickingMask.default) {
+                material.pickingMask === updatePickingMask && (material.pickingMask = null);
+                gl.deleteTexture(updatePickingMask);
+            }
         }
 
         this.abortMaterialLoading(material);

@@ -985,11 +985,14 @@ class GeometryHandler {
                     this._refreshRecursevelyExt(extent, ni);
                     let m = ni.segment.materials[lid];
                     if (m && m.isReady) {
-                        m.layer.clearMaterial(m);
-                        // m.pickingReady = false;
-                        // m.isReady = false;
-                        // m._updateTexture = m.texture;
-                        // m._updatePickingMask = m.pickingMask;
+                        if (!m.textureExists || m.segment.node.getState() !== quadTree.RENDERING) {
+                            m.layer.clearMaterial(m);
+                        } else {
+                            m.pickingReady = false;
+                            m.isReady = false;
+                            m._updateTexture = m.texture;
+                            m._updatePickingMask = m.pickingMask;
+                        }
                     }
                 }
             }
