@@ -985,7 +985,7 @@ class GeometryHandler {
                     this._refreshRecursevelyExt(extent, ni);
                     let m = ni.segment.materials[lid];
                     if (m && m.isReady) {
-                        if (m.segment.node.getState() !== quadTree.RENDERING) {
+                        if (!m.textureExists || m.segment.node.getState() !== quadTree.RENDERING) {
                             m.layer.clearMaterial(m);
                         } else {
                             m.pickingReady = false;
