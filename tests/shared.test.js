@@ -169,7 +169,7 @@ test('Test appendFloat32Array', () => {
     expect(appended.buffer).toBe(grown.buffer);
     expect(Array.from(grown)).toEqual([1, 2, 3, 4, 5]);
 
-    // A view that ends before its buffer, e.g. after a removal shortened it, keeps working.
+    // A view with an offset and spare space after it is appended to in place.
     const view = new Float32Array(new ArrayBuffer(32), 8, 2);
     view.set([1, 2]);
     expect(Array.from(shared.appendFloat32Array(view, [3, 4]))).toEqual([1, 2, 3, 4]);
