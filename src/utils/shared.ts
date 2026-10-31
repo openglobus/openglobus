@@ -924,20 +924,20 @@ export function concatTypedArrays(a: TypedArray, b: TypedArray | number[]): Type
  * buffer by doubling, so repeated appends are amortized O(1).
  * The caller must own `a.buffer` exclusively, including the unused space
  * after `a`, which is overwritten. The result may share `a`'s buffer.
- * @param {TypedArray} a
- * @param {TypedArray | number[]} b
+ * @param {Float32Array} a
+ * @param {ArrayLike<number>} b
  */
-export function appendTypedArray<T extends TypedArray>(a: T, b: T | number[]): T {
+export function appendFloat32Array(a: Float32Array, b: ArrayLike<number>): Float32Array {
     const length = a.length + b.length;
-    if (a.byteOffset + length * a.BYTES_PER_ELEMENT <= a.buffer.byteLength) {
-        const c = new (a as any).constructor(a.buffer, a.byteOffset, length) as T; //hacky
-        c.set(b as any, a.length);
+    if (a.byteOffset + length * Float32Array.BYTES_PER_ELEMENT <= a.buffer.byteLength) {
+        const c = new Float32Array(a.buffer, a.byteOffset, length);
+        c.set(b, a.length);
         return c;
     }
-    const c = new (a as any).constructor(Math.max(length, a.length * 2)) as T; //hacky
-    c.set(a, 0);
-    c.set(b as any, a.length);
-    return c.subarray(0, length) as T;
+    const c = new Float32Array(Math.max(length, a.length * 2));
+    c.set(a);
+    c.set(b, a.length);
+    return c.subarray(0, length);
 }
 
 export function insertTypedArray<T extends TypedArray>(arr: T, starting: number, insert: T | number[]): T {

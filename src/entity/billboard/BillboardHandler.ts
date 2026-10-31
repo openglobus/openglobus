@@ -1,6 +1,6 @@
 import { BaseBillboardHandler } from "./BaseBillboardHandler";
 import { Billboard } from "./Billboard";
-import { appendTypedArray } from "../../utils/shared";
+import { appendFloat32Array } from "../../utils/shared";
 import { EntityCollection } from "../EntityCollection";
 
 /**
@@ -31,21 +31,21 @@ class BillboardHandler extends BaseBillboardHandler {
 
     protected _addBillboardToArrays(billboard: Billboard) {
         if (billboard.getVisibility()) {
-            this._vertexArr = appendTypedArray(
+            this._vertexArr = appendFloat32Array(
                 this._vertexArr,
                 [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]
             );
         } else {
-            this._vertexArr = appendTypedArray(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+            this._vertexArr = appendFloat32Array(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
         }
 
-        this._texCoordArr = appendTypedArray(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        this._texCoordArr = appendFloat32Array(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
         let x = billboard._positionHigh.x,
             y = billboard._positionHigh.y,
             z = billboard._positionHigh.z,
             w;
-        this._positionHighArr = appendTypedArray(this._positionHighArr, [
+        this._positionHighArr = appendFloat32Array(this._positionHighArr, [
             x,
             y,
             z,
@@ -69,7 +69,7 @@ class BillboardHandler extends BaseBillboardHandler {
         x = billboard._positionLow.x;
         y = billboard._positionLow.y;
         z = billboard._positionLow.z;
-        this._positionLowArr = appendTypedArray(this._positionLowArr, [
+        this._positionLowArr = appendFloat32Array(this._positionLowArr, [
             x,
             y,
             z,
@@ -92,17 +92,17 @@ class BillboardHandler extends BaseBillboardHandler {
 
         x = billboard._width;
         y = billboard._height;
-        this._sizeArr = appendTypedArray(this._sizeArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
+        this._sizeArr = appendFloat32Array(this._sizeArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
         x = billboard._offset.x;
         y = billboard._offset.y;
-        this._offsetArr = appendTypedArray(this._offsetArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
+        this._offsetArr = appendFloat32Array(this._offsetArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
         x = billboard._color.x;
         y = billboard._color.y;
         z = billboard._color.z;
         w = billboard._color.w;
-        this._rgbaArr = appendTypedArray(this._rgbaArr, [
+        this._rgbaArr = appendFloat32Array(this._rgbaArr, [
             x,
             y,
             z,
@@ -130,12 +130,12 @@ class BillboardHandler extends BaseBillboardHandler {
         ]);
 
         x = billboard._rotation;
-        this._rotationArr = appendTypedArray(this._rotationArr, [x, x, x, x, x, x]);
+        this._rotationArr = appendFloat32Array(this._rotationArr, [x, x, x, x, x, x]);
 
         x = billboard._entity!._pickingColor.x / 255;
         y = billboard._entity!._pickingColor.y / 255;
         z = billboard._entity!._pickingColor.z / 255;
-        this._pickingColorArr = appendTypedArray(this._pickingColorArr, [
+        this._pickingColorArr = appendFloat32Array(this._pickingColorArr, [
             x,
             y,
             z,
