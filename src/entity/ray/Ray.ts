@@ -340,6 +340,33 @@ class Ray {
         this._handler && this._handler.setThicknessArr(this._handlerIndex, thickness);
     }
 
+    /**
+     * Returns ray thickness.
+     * @public
+     * @returns {number}
+     */
+    public getThickness(): number {
+        return this._thickness;
+    }
+
+    /**
+     * Returns a copy of the start point color, without the opacity multiplier.
+     * @public
+     * @returns {Vec4}
+     */
+    public getStartColor(): Vec4 {
+        return this._startColor.clone();
+    }
+
+    /**
+     * Returns a copy of the end point color, without the opacity multiplier.
+     * @public
+     * @returns {Vec4}
+     */
+    public getEndColor(): Vec4 {
+        return this._endColor.clone();
+    }
+
     public setColors4v(startColor?: Vec4, endColor?: Vec4) {
         if (startColor) {
             this._startColor.x = startColor.x;
