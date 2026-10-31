@@ -24,6 +24,24 @@ import { GeometryTypeEnum } from "./Geometry";
 import { earcut, flatten } from "../../utils/earcut";
 import { concatArrays } from "../../utils/shared";
 
+type GeometryOffsetKey =
+    | "_polyVerticesHandlerIndex"
+    | "_polyIndexesHandlerIndex"
+    | "_lineVerticesHandlerIndex"
+    | "_lineOrdersHandlerIndex"
+    | "_lineColorsHandlerIndex"
+    | "_lineThicknessHandlerIndex"
+    | "_lineIndexesHandlerIndex";
+
+type GeometryLengthKey =
+    | "_polyVerticesLength"
+    | "_polyIndexesLength"
+    | "_lineVerticesLength"
+    | "_lineOrdersLength"
+    | "_lineColorsLength"
+    | "_lineThicknessLength"
+    | "_lineIndexesLength";
+
 const POLYVERTICES_BUFFER = 0;
 const POLYINDEXES_BUFFER = 1;
 const POLYCOLORS_BUFFER = 2;
@@ -76,6 +94,11 @@ class GeometryHandler {
     protected _handler: Handler | null;
 
     protected _geometries: Geometry[];
+
+    /**
+     * True after bringToFront(): the geometry list and the vertex arrays are then in different orders.
+     */
+    protected _reordered: boolean;
 
     protected _updatedGeometryArr: Geometry[];
     protected _updatedGeometry: Record<number, boolean>;
@@ -130,6 +153,7 @@ class GeometryHandler {
         this._handler = null;
 
         this._geometries = [];
+        this._reordered = false;
 
         this._updatedGeometryArr = [];
         this._updatedGeometry = {};
@@ -919,36 +943,170 @@ class GeometryHandler {
                 gi._lineIndexesHandlerIndex -= geometry._lineIndexesLength;
             }
 
-            geometry._pickingReady = false;
-
-            geometry._handler = null;
-            geometry._handlerIndex = -1;
-
-            geometry._polyVerticesHighMerc = [];
-            geometry._polyVerticesLowMerc = [];
-            geometry._polyVerticesLength = -1;
-            geometry._polyIndexesLength = -1;
-            geometry._polyVerticesHandlerIndex = -1;
-            geometry._polyIndexesHandlerIndex = -1;
-
-            geometry._lineVerticesHighMerc = [];
-            geometry._lineVerticesLowMerc = [];
-            geometry._lineVerticesLength = -1;
-            geometry._lineOrdersLength = -1;
-            geometry._lineIndexesLength = -1;
-            geometry._lineColorsLength = -1;
-            geometry._lineThicknessLength = -1;
-            geometry._lineVerticesHandlerIndex = -1;
-            geometry._lineOrdersHandlerIndex = -1;
-            geometry._lineIndexesHandlerIndex = -1;
-            geometry._lineThicknessHandlerIndex = -1;
-            geometry._lineColorsHandlerIndex = -1;
-
-            !this._removeGeometryExtents[geometry.__id] && this._removeGeometryExtentArr.push(geometry.getExtent());
-            this._removeGeometryExtents[geometry.__id] = true;
+            this._detachGeometry(geometry);
 
             this.refresh();
         }
+    }
+
+    /**
+     * Removes several geometries with one compaction pass over the shared arrays,
+     * instead of one splice and reindex per geometry.
+     * @public
+     * @param {Geometry[]} geometries - Geometries to remove; others are ignored.
+     */
+    public removeGeometries(geometries: Geometry[]) {
+        const removed = new Set<Geometry>();
+        for (let i = 0; i < geometries.length; i++) {
+            const g = geometries[i];
+            if (g._handler === this && g._handlerIndex !== -1) {
+                removed.add(g);
+            }
+        }
+        if (!removed.size) return;
+
+        // The compaction needs list order to match vertex order, so keep the
+        // per-geometry path after bringToFront().
+        if (this._reordered) {
+            for (let i = geometries.length - 1; i >= 0; i--) {
+                removed.has(geometries[i]) && this.remove(geometries[i]);
+            }
+            return;
+        }
+
+        // Nothing before the first removed geometry moves.
+        const all = this._geometries;
+        let start = all.length;
+        for (const g of removed) {
+            start = Math.min(start, g._handlerIndex);
+        }
+
+        // Moves each kept geometry's range down to the write position. Arrays in one
+        // group share the geometry's offset field; scale is the number of values per
+        // offset unit. Index arrays also drop the vertices removed before them.
+        const compact = (
+            arrays: [number[], number][],
+            offsetKey: GeometryOffsetKey,
+            lengthKey: GeometryLengthKey,
+            vertexLengthKey?: GeometryLengthKey
+        ) => {
+            let write = -1,
+                shift = 0;
+            for (let k = start; k < all.length; k++) {
+                const g = all[k],
+                    length = g[lengthKey];
+                // The geometry has no data of this kind
+                if (length < 0) continue;
+                if (write === -1) write = g[offsetKey];
+                if (removed.has(g)) {
+                    if (vertexLengthKey) shift += g[vertexLengthKey] * 0.5;
+                    continue;
+                }
+                const offset = g[offsetKey];
+                if (offset !== write || shift) {
+                    for (const [a, scale] of arrays) {
+                        const from = offset * scale,
+                            to = write * scale,
+                            n = length * scale;
+                        for (let i = 0; i < n; i++) {
+                            a[to + i] = a[from + i] - shift;
+                        }
+                    }
+                }
+                g[offsetKey] = write;
+                write += length;
+            }
+            if (write !== -1) {
+                for (const [a, scale] of arrays) {
+                    a.length = write * scale;
+                }
+            }
+        };
+
+        compact(
+            [
+                [this._polyVerticesHighMerc, 1],
+                [this._polyVerticesLowMerc, 1],
+                [this._polyColors, 2],
+                [this._polyPickingColors, 2]
+            ],
+            "_polyVerticesHandlerIndex",
+            "_polyVerticesLength"
+        );
+        compact([[this._polyIndexes, 1]], "_polyIndexesHandlerIndex", "_polyIndexesLength", "_polyVerticesLength");
+        compact(
+            [
+                [this._lineVerticesHighMerc, 1],
+                [this._lineVerticesLowMerc, 1]
+            ],
+            "_lineVerticesHandlerIndex",
+            "_lineVerticesLength"
+        );
+        compact([[this._lineOrders, 1]], "_lineOrdersHandlerIndex", "_lineOrdersLength");
+        compact(
+            [
+                [this._lineColors, 1],
+                [this._linePickingColors, 1],
+                [this._lineStrokeColors, 1]
+            ],
+            "_lineColorsHandlerIndex",
+            "_lineColorsLength"
+        );
+        compact(
+            [
+                [this._lineThickness, 1],
+                [this._lineStrokes, 1]
+            ],
+            "_lineThicknessHandlerIndex",
+            "_lineThicknessLength"
+        );
+        compact([[this._lineIndexes, 1]], "_lineIndexesHandlerIndex", "_lineIndexesLength", "_lineVerticesLength");
+
+        let j = start;
+        for (let k = start; k < all.length; k++) {
+            const g = all[k];
+            if (!removed.has(g)) {
+                g._handlerIndex = j;
+                all[j++] = g;
+            }
+        }
+        all.length = j;
+
+        for (const g of removed) {
+            this._detachGeometry(g);
+        }
+
+        this.refresh();
+    }
+
+    protected _detachGeometry(geometry: Geometry) {
+        geometry._pickingReady = false;
+
+        geometry._handler = null;
+        geometry._handlerIndex = -1;
+
+        geometry._polyVerticesHighMerc = [];
+        geometry._polyVerticesLowMerc = [];
+        geometry._polyVerticesLength = -1;
+        geometry._polyIndexesLength = -1;
+        geometry._polyVerticesHandlerIndex = -1;
+        geometry._polyIndexesHandlerIndex = -1;
+
+        geometry._lineVerticesHighMerc = [];
+        geometry._lineVerticesLowMerc = [];
+        geometry._lineVerticesLength = -1;
+        geometry._lineOrdersLength = -1;
+        geometry._lineIndexesLength = -1;
+        geometry._lineColorsLength = -1;
+        geometry._lineThicknessLength = -1;
+        geometry._lineVerticesHandlerIndex = -1;
+        geometry._lineOrdersHandlerIndex = -1;
+        geometry._lineIndexesHandlerIndex = -1;
+        geometry._lineThicknessHandlerIndex = -1;
+        geometry._lineColorsHandlerIndex = -1;
+
+        !this._removeGeometryExtents[geometry.__id] && this._removeGeometryExtentArr.push(geometry.getExtent());
+        this._removeGeometryExtents[geometry.__id] = true;
     }
 
     protected _refreshRecursevely(geometry: Geometry, treeNode: Node) {
@@ -1157,6 +1315,8 @@ class GeometryHandler {
     }
 
     public bringToFront(geometry: Geometry) {
+        this._reordered = true;
+
         let polyIndexes = this._polyIndexes.splice(geometry._polyIndexesHandlerIndex, geometry._polyIndexesLength);
         let lineIndexes = this._lineIndexes.splice(geometry._lineIndexesHandlerIndex, geometry._lineIndexesLength);
 
@@ -1318,6 +1478,7 @@ class GeometryHandler {
 
     public clear() {
         this._geometries = [];
+        this._reordered = false;
         this._polyVerticesHighMerc = [];
         this._polyVerticesLowMerc = [];
         this._polyIndexes = [];
