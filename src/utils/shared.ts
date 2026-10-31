@@ -919,6 +919,27 @@ export function concatTypedArrays(a: TypedArray, b: TypedArray | number[]): Type
     return c;
 }
 
+/**
+ * Appends `b` to `a` and returns an exact-length view. Grows the backing
+ * buffer by doubling, so repeated appends are amortized O(1).
+ * The caller must own `a.buffer` exclusively, including the unused space
+ * after `a`, which is overwritten. The result may share `a`'s buffer.
+ * @param {Float32Array} a
+ * @param {ArrayLike<number>} b
+ */
+export function appendFloat32Array(a: Float32Array, b: ArrayLike<number>): Float32Array {
+    const length = a.length + b.length;
+    if (a.byteOffset + length * Float32Array.BYTES_PER_ELEMENT <= a.buffer.byteLength) {
+        const c = new Float32Array(a.buffer, a.byteOffset, length);
+        c.set(b, a.length);
+        return c;
+    }
+    const c = new Float32Array(Math.max(length, a.length * 2));
+    c.set(a);
+    c.set(b, a.length);
+    return c.subarray(0, length);
+}
+
 export function insertTypedArray<T extends TypedArray>(arr: T, starting: number, insert: T | number[]): T {
     if (insert.length === 0) return arr;
     if (starting < 0) starting = 0;
