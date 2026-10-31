@@ -105,3 +105,40 @@ test("removeGeometries falls back to remove() after bringToFront()", () => {
 
     expect(snapshot(batch, kept)).toEqual(snapshot(one, kept));
 });
+
+// remove() mishandles geometries without polygon data, so lines are checked against
+// a handler built from the surviving geometries only.
+test("removeGeometries handles line strings and mixed layers", () => {
+    const makeMixed = (indexes) =>
+        indexes.map((i) => {
+            const kind = i % 4;
+            const geometry =
+                kind === 0
+                    ? { type: "POLYGON", coordinates: [ring(i, 0, 3 + (i % 5))] }
+                    : kind === 1
+                      ? { type: "LINESTRING", coordinates: ring(i, 2, 2 + (i % 4)) }
+                      : kind === 2
+                        ? { type: "MULTILINESTRING", coordinates: [ring(i, 4, 3), ring(i, 6, 2 + (i % 3))] }
+                        : { type: "MULTIPOLYGON", coordinates: [[ring(i, 8, 4)], [ring(i, 10, 3 + (i % 2))]] };
+            return new Entity({ geometry });
+        });
+
+    const all = [...Array(32).keys()];
+    const removedIndexes = [0, 1, 2, 6, 7, 13, 21, 22, 30, 31];
+    const kept = all.filter((i) => !removedIndexes.includes(i));
+
+    const batch = new GeometryHandler({});
+    const entities = makeMixed(all);
+    for (const e of entities) batch.add(e.geometry);
+    batch.removeGeometries(removedIndexes.map((i) => entities[i].geometry));
+
+    const reference = new GeometryHandler({});
+    const survivors = makeMixed(kept);
+    for (const e of survivors) reference.add(e.geometry);
+
+    expect(ARRAYS.map((name) => batch[name])).toEqual(ARRAYS.map((name) => reference[name]));
+    expect(kept.map((i) => OFFSETS.map((name) => entities[i].geometry[name]))).toEqual(
+        survivors.map((e) => OFFSETS.map((name) => e.geometry[name]))
+    );
+    expect(batch._lineIndexes.length).toBeGreaterThan(0);
+});
