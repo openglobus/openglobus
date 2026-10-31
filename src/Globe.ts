@@ -161,7 +161,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {string} [options.resourcesSrc] - Resources root src.
  * @param {string} [options.nightTextureSrc] - Night-glowing image sources
  * @param {string} [options.specularTextureSrc] - Specular water mask image sourcr
- * @param {number} [options.specularMinCameraHeight=3000000] - Minimal camera height for the specular mask. Use 0 for planets without a coarse sea mask.
+ * @param {number} [options.specularMinCameraHeight=160000] - Minimal camera height for the specular mask; it fades in up to three times this height. Use 0 for planets without a coarse sea mask.
  * @param {number} [options.nightMinCameraHeight=3000000] - Minimal camera height for night lights; they fade in up to three times this height.
  * @param {number} [options.maxAltitude] - Maximal camera altitude above terrain
  * @param {number} [options.minAltitude=1.0] - Minimal camera altitude above terrain
