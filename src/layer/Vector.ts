@@ -4,6 +4,7 @@ import { EntityCollection } from "../entity/EntityCollection";
 import { EntityCollectionsTreeStrategy } from "../quadTree/EntityCollectionsTreeStrategy";
 import type { EventsHandler } from "../Events";
 import { GeometryHandler } from "../entity/geometry/GeometryHandler";
+import type { Geometry } from "../entity/geometry/Geometry";
 import type { IMouseState, ITouchState } from "../renderer/RendererEvents";
 import { BaseTileMaterialLayer } from "./BaseTileMaterialLayer";
 import type { BaseTileMaterialLayerEventsType, IBaseTileMaterialLayerParams } from "./BaseTileMaterialLayer";
@@ -629,6 +630,21 @@ class Vector extends BaseTileMaterialLayer {
      * @returns {Vector} - Returns this layer.
      */
     public removeEntities(entities: Entity[]): this {
+        // Without entityremove listeners no other code runs between the removals below,
+        // so every geometry can leave the shared buffers in one pass.
+        const listeners = this.events.entityremove;
+        if (this._planet && !(listeners && listeners.handlers.length)) {
+            const geometries: Geometry[] = [];
+            for (let j = 0; j < entities.length; j++) {
+                const e = entities[j];
+                // The same ownership test removeEntity() applies
+                if (e._layer && this.isEqual(e._layer) && e.geometry) {
+                    geometries.push(e.geometry);
+                }
+            }
+            this._geometryHandler.removeGeometries(geometries);
+        }
+
         let i = entities.length;
         while (i--) {
             this.removeEntity(entities[i]);
