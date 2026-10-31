@@ -52,6 +52,8 @@ export interface IGlobeParams {
     maxGridSize?: number;
     nightTextureSrc?: string | null;
     specularTextureSrc?: string | null;
+    specularMinCameraHeight?: number;
+    nightMinCameraHeight?: number;
     minAltitude?: number;
     maxAltitude?: number;
     maxEqualZoomAltitude?: number;
@@ -159,6 +161,8 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {string} [options.resourcesSrc] - Resources root src.
  * @param {string} [options.nightTextureSrc] - Night-glowing image sources
  * @param {string} [options.specularTextureSrc] - Specular water mask image sourcr
+ * @param {number} [options.specularMinCameraHeight=3000000] - Minimal camera height for the specular mask. Use 0 for planets without a coarse sea mask.
+ * @param {number} [options.nightMinCameraHeight=3000000] - Minimal camera height for night lights; they fade in up to three times this height.
  * @param {number} [options.maxAltitude] - Maximal camera altitude above terrain
  * @param {number} [options.minAltitude=1.0] - Minimal camera altitude above terrain
  * @param {number} [options.maxEqualZoomAltitude] - Maximal altitude since segments on the screen became the same zoom level
@@ -310,6 +314,8 @@ class Globe {
                     ? null
                     : options.specularTextureSrc ||
                       `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_SPEC_SRC}`,
+            specularMinCameraHeight: options.specularMinCameraHeight,
+            nightMinCameraHeight: options.nightMinCameraHeight,
             minAltitude: options.minAltitude,
             maxAltitude: options.maxAltitude,
             maxEqualZoomAltitude: options.maxEqualZoomAltitude,

@@ -34,7 +34,7 @@ import { Key, Lock } from "../Lock";
 import { Layer } from "../layer/Layer";
 import { Loader } from "../utils/Loader";
 import { LonLat } from "../LonLat";
-import { lerp } from "../math";
+import { clamp, lerp } from "../math";
 import { Node } from "../quadTree/Node";
 import { NormalMapCreator } from "../utils/NormalMapCreator";
 import { PlainSegmentWorker } from "../utils/PlainSegmentWorker";
@@ -52,7 +52,7 @@ import type { NumberArray2, NumberArray4 } from "../math/index";
 import { Vector } from "../layer/Vector";
 import { VectorTileCreator } from "../utils/VectorTileCreator";
 import { wgs84 } from "../ellipsoid/wgs84";
-import type { WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams } from "../webgl/Handler";
+import type { WebGLBufferExt, WebGLContextExt, WebGLTextureExt, IDefaultTextureParams } from "../webgl/Handler";
 import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Segment } from "../segment/Segment";
 import type { AtmosphereParameters } from "../shaders/atmos/atmos";
@@ -77,6 +77,8 @@ export interface IPlanetParams {
     quadTreeStrategyPrototype?: typeof QuadTreeStrategy;
     nightTextureSrc?: string | null;
     specularTextureSrc?: string | null;
+    specularMinCameraHeight?: number;
+    nightMinCameraHeight?: number;
     maxGridSize?: number;
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
@@ -119,6 +121,11 @@ const ATMOSPHERE_OPACITY_MIN_ALTITUDE = 1500000.0;
 const LOW_ALTITUDE_ATMOSPHERE_MIN_OPACITY = 0.1;
 const LOW_ALTITUDE_ATMOSPHERE_CURVE_SHIFT = 0.0;
 
+const DEFAULT_SPECULAR_MIN_CAMERA_HEIGHT = 3000000.0;
+const DEFAULT_NIGHT_MIN_CAMERA_HEIGHT = 3000000.0;
+// Night lights fade in from nightMinCameraHeight up to this multiple of it.
+const NIGHT_FADE_END_FACTOR = 3.0;
+
 // Reserved early renderer priorities for the planet frame pipeline.
 const PLANET_DRAW_PRIORITY = -10000;
 const PLANET_PREDRAW_PRIORITY = -9900;
@@ -144,6 +151,8 @@ type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
  * @param {Function} [options.quadTreeStrategyPrototype=EarthQuadTreeStrategy] - Quadtree strategy class.
  * @param {string|null} [options.nightTextureSrc] - Night lights texture URL (`null` disables texture loading).
  * @param {string|null} [options.specularTextureSrc] - Water/specular mask texture URL (`null` disables texture loading).
+ * @param {number} [options.specularMinCameraHeight=3000000] - Minimal camera height for the specular mask. The Earth sea mask is coarse and spills onto land when zoomed in; use 0 for planets without such a mask.
+ * @param {number} [options.nightMinCameraHeight=3000000] - Minimal camera height for night lights; they fade in up to three times this height. 0 shows them at full brightness at any height.
  * @param {boolean} [options.atmosphereEnabled=false] - Enables atmosphere rendering.
  * @param {boolean} [options.transitionOpacityEnabled] - Enables terrain transition opacity blending.
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
@@ -367,6 +376,18 @@ export class Planet extends Scene {
     public nightTextureCoefficient: number;
 
     /**
+     * Minimal camera height for the specular mask.
+     * @type {number}
+     */
+    public specularMinCameraHeight: number;
+
+    /**
+     * Minimal camera height for night lights; they fade in up to three times this height.
+     * @type {number}
+     */
+    public nightMinCameraHeight: number;
+
+    /**
      * Global terrain shading for segment (forward + deferred): 0 unlit, 0.5 Phong, 1 PBR.
      * @public
      */
@@ -516,6 +537,10 @@ export class Planet extends Scene {
         this._collectRenderNodesIsActive = true;
 
         this.nightTextureCoefficient = 1.0;
+
+        this.specularMinCameraHeight = options.specularMinCameraHeight ?? DEFAULT_SPECULAR_MIN_CAMERA_HEIGHT;
+
+        this.nightMinCameraHeight = options.nightMinCameraHeight ?? DEFAULT_NIGHT_MIN_CAMERA_HEIGHT;
 
         //this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSNoAtmos;
         //this._renderTransparentScreenNodesPASS = this._renderTransparentScreenNodesPASSNoAtmos;
@@ -872,7 +897,7 @@ export class Planet extends Scene {
         }
     }
 
-    protected _applyBaseLayerLighting(layer: Layer) {
+    public _applyBaseLayerLighting(layer: Layer) {
         const renderer = this.renderer;
         if (!renderer) return;
 
@@ -889,6 +914,19 @@ export class Planet extends Scene {
         }
 
         this.nightTextureCoefficient = layer.nightTextureCoefficient;
+    }
+
+    protected _setSurfaceEffectFactors(
+        gl: WebGLContextExt,
+        shu: { [id: string]: WebGLUniformLocation },
+        cameraHeight: number
+    ) {
+        gl.uniform1f(shu.specularFactor, cameraHeight >= this.specularMinCameraHeight ? 1.0 : 0.0);
+
+        const minH = this.nightMinCameraHeight;
+        const nightFade =
+            minH > 0.0 ? clamp((cameraHeight - minH) / (minH * (NIGHT_FADE_END_FACTOR - 1.0)), 0.0, 1.0) : 1.0;
+        gl.uniform1f(shu.nightFactor, nightFade * this.nightTextureCoefficient);
     }
 
     /**
@@ -1737,8 +1775,6 @@ export class Planet extends Scene {
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
 
-        gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
-
         //
         // Night and specular
         //
@@ -1750,7 +1786,7 @@ export class Planet extends Scene {
         gl.bindTexture(gl.TEXTURE_2D, this._specularTexture! || this.transparentTexture!);
         gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
-        gl.uniform1f(shu.camHeight, cam.getHeight());
+        this._setSurfaceEffectFactors(gl, shu, cam.getHeight());
 
         return sh;
     }
@@ -1789,8 +1825,6 @@ export class Planet extends Scene {
         gl.uniform3fv(shu.ambient, renderer._lightAmbient);
         gl.uniform4fv(shu.specular, renderer._lightSpecular);
 
-        gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
-
         //
         // Night and specular
         //
@@ -1802,7 +1836,7 @@ export class Planet extends Scene {
         gl.bindTexture(gl.TEXTURE_2D, this._specularTexture! || this.transparentTexture!);
         gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
-        gl.uniform1f(shu.camHeight, cam.getHeight());
+        this._setSurfaceEffectFactors(gl, shu, cam.getHeight());
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
 
         renderer.projectors.bindForward(sh, this.SLICE_SIZE + TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET);
@@ -1849,8 +1883,6 @@ export class Planet extends Scene {
         gl.uniform3fv(shu.ambient, renderer._lightAmbient);
         gl.uniform4fv(shu.specular, renderer._lightSpecular);
 
-        gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
-
         //
         // Night and specular
         //
@@ -1875,7 +1907,7 @@ export class Planet extends Scene {
 
         gl.uniform2fv(shu.atmosFadeDist, this.atmosphereFadeDist);
         gl.uniform3fv(shu.atmosMaxMinOpacity, this._atmosphereCurrentMaxMinOpacity);
-        gl.uniform1f(shu.camHeight, cam.getHeight());
+        this._setSurfaceEffectFactors(gl, shu, cam.getHeight());
 
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
         gl.uniform3fv(shu.cameraForward, cam.getForward().toArray());

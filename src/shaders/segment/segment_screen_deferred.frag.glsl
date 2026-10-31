@@ -23,8 +23,8 @@ uniform float shadeMode;
 uniform vec3 cameraPosition;
 
 uniform int samplerCount;
-uniform float nightTextureCoefficient;
-uniform float camHeight;
+uniform float nightFactor;
+uniform float specularFactor;
 
 in vec4 vTextureCoord;
 in vec3 v_vertex;
@@ -52,14 +52,17 @@ void main(void) {
         normal = normalize((texNormal - 0.5) * 2.0);
     }
 
-    float specularMask = 0.0;
-    vec3 emission = vec3(0.0);
-    if (camHeight >= NIGHT_SPECULAR_MIN_CAM_HEIGHT) {
-        float overGround = 1.0 - step(0.1, v_height);
-        specularMask = overGround * texture(specularTexture, vGlobalTextureCoord.st).r;
+    float overGround = 1.0 - step(0.1, v_height);
 
+    float specularMask = 0.0;
+    if (specularFactor > 0.0) {
+        specularMask = specularFactor * overGround * texture(specularTexture, vGlobalTextureCoord.st).r;
+    }
+
+    vec3 emission = vec3(0.0);
+    if (nightFactor > 0.0) {
         vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-        emission = overGround * getNightEmission(normal, sunPos, emissionImageColor, nightTextureCoefficient, camHeight);
+        emission = overGround * getNightEmission(normal, sunPos, emissionImageColor, nightFactor);
     }
 
     // R = ambient occlusion, G = roughness, B = metallic(specular mask proxy), A = material flags
