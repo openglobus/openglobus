@@ -984,6 +984,17 @@ class Vector extends BaseTileMaterialLayer {
     }
 
     public override applyMaterial(material: Material) {
+        // A tile that is being redrawn keeps showing its previous texture
+        if (!material.isReady && material._updateTexture && material.segment.tileZoom >= this.minNativeZoom) {
+            !material.isLoading && this.loadMaterial(material);
+            material.texture = material._updateTexture;
+            material.pickingMask = material._updatePickingMask;
+            material.texOffset[0] = 0.0;
+            material.texOffset[1] = 0.0;
+            material.texOffset[2] = 1.0;
+            material.texOffset[3] = 1.0;
+            return material.texOffset;
+        }
         return super.applyMaterial(material);
     }
     // @deprecated, now it gets algorithm from the parent class.
