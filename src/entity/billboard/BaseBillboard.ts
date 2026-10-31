@@ -268,6 +268,15 @@ class BaseBillboard {
     }
 
     /**
+     * Returns billboard opacity, the color alpha value.
+     * @public
+     * @returns {number}
+     */
+    public getOpacity(): number {
+        return this._color.w;
+    }
+
+    /**
      * Sets RGBA color. Each channel from 0.0 to 1.0.
      * @public
      * @param {number} r - Red.

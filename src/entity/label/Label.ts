@@ -205,11 +205,15 @@ class Label extends BaseBillboard {
     }
 
     /**
-     * Change text direction.
+     * Right-to-left text direction.
      * @public
-     * @param {boolean} isRTL - Text string.
+     * @type {boolean}
      */
-    public setRtl(isRTL: boolean) {
+    public get isRtl(): boolean {
+        return this._isRTL;
+    }
+
+    public set isRtl(isRTL: boolean) {
         this._isRTL = isRTL;
         if (this._isReady && this._handler) {
             this._handler.setText(
