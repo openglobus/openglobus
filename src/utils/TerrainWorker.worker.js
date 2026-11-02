@@ -2,7 +2,8 @@
 //
 //Terrain worker
 //
-import { getMeshHeights } from "../terrain/terrainUtils";
+import { getMedian, getMeshHeights } from "../terrain/terrainUtils";
+import { doubleToTwoFloatsV3 } from "../math/doubleToTwoFloats";
 
 function binarySearchFast(arr, x) {
     let start = 0,
@@ -24,44 +25,6 @@ var Vec3 = function (x, y, z) {
     this.x = x;
     this.y = y;
     this.z = z;
-};
-
-var doubleToTwoFloats = function (v, high, low) {
-    let x = v.x,
-        y = v.y,
-        z = v.z;
-
-    var doubleHigh;
-
-    if (x >= 0.0) {
-        doubleHigh = Math.floor(x / 65536.0) * 65536.0;
-        high.x = Math.fround(doubleHigh);
-        low.x = Math.fround(x - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
-        high.x = Math.fround(-doubleHigh);
-        low.x = Math.fround(x + doubleHigh);
-    }
-
-    if (y >= 0.0) {
-        doubleHigh = Math.floor(y / 65536.0) * 65536.0;
-        high.y = Math.fround(doubleHigh);
-        low.y = Math.fround(y - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
-        high.y = Math.fround(-doubleHigh);
-        low.y = Math.fround(y + doubleHigh);
-    }
-
-    if (z >= 0.0) {
-        doubleHigh = Math.floor(z / 65536.0) * 65536.0;
-        high.z = Math.fround(doubleHigh);
-        low.z = Math.fround(z - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
-        high.z = Math.fround(-doubleHigh);
-        low.z = Math.fround(z + doubleHigh);
-    }
 };
 
 Vec3.prototype.sub = function (v) {
@@ -87,14 +50,6 @@ Vec3.prototype.normalize = function () {
     return this;
 };
 
-Vec3.prototype.distance = function (v) {
-    return this.sub(v).length();
-};
-
-Vec3.prototype.length = function () {
-    return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-};
-
 var blerp = function (x, y, fQ11, fQ21, fQ12, fQ22) {
     return fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y;
 };
@@ -106,6 +61,9 @@ var _tempHigh = new Vec3(0.0, 0.0, 0.0),
     _tempLow = new Vec3(0.0, 0.0, 0.0);
 
 var _meshHeights = new Float32Array(0);
+
+// Squared vertex radii, their median is the LOD radius
+var _r2 = new Float64Array(0);
 
 self.onmessage = function (e) {
     var elevations = e.data.elevations,
@@ -144,15 +102,17 @@ self.onmessage = function (e) {
     const gs = tgs + 1;
     const hf = heightFactor;
 
-    var vInd = 0,
-        noDataInd = 0;
+    var vInd = 0;
 
     var gsgs3 = gs * gs * 3;
 
+    if (_r2.length !== gs * gs) {
+        _r2 = new Float64Array(gs * gs);
+    }
+
     var terrainVertices = new Float64Array(gsgs3),
         terrainVerticesHigh = new Float32Array(gsgs3),
-        terrainVerticesLow = new Float32Array(gsgs3),
-        noDataVertices = new Uint8Array(gs * gs);
+        terrainVerticesLow = new Float32Array(gsgs3);
 
     var normalMapNormals, normalMapVertices;
 
@@ -205,21 +165,6 @@ self.onmessage = function (e) {
             //
             // The vertex goes into screen buffer
             if (i % dg === 0 && j % dg === 0) {
-                let currVert = new Vec3(rtc_x + nv[vInd0], rtc_y + nv[vInd0 + 1], rtc_z + nv[vInd0 + 2]);
-                let nextVert = new Vec3(rtc_x + nv[vInd0 + 3], rtc_y + nv[vInd0 + 4], rtc_z + nv[vInd0 + 5]);
-
-                let nextElv = elevations[hInd0 + 1];
-                if (checkNoDataValue(noDataValues, nextElv)) {
-                    nextElv = 0.0;
-                }
-
-                let eps = false;
-                if (noDataValues.length === 0) {
-                    let step = currVert.distance(nextVert);
-                    let deltaElv = Math.abs(currElv - nextElv);
-                    eps = deltaElv / step > 10.0 || currElv < -5000;
-                }
-
                 let mv = v0;
                 if (meshHeights) {
                     let meshElv = meshHeights[(i / dg) * gs + j / dg];
@@ -234,24 +179,20 @@ self.onmessage = function (e) {
                     }
                 }
 
-                if (eps) {
-                    noDataVertices[noDataInd] = 1;
-                } else {
-                    noDataVertices[noDataInd] = 0;
-                    if (mv.x < xmin) xmin = mv.x;
-                    if (mv.x > xmax) xmax = mv.x;
-                    if (mv.y < ymin) ymin = mv.y;
-                    if (mv.y > ymax) ymax = mv.y;
-                    if (mv.z < zmin) zmin = mv.z;
-                    if (mv.z > zmax) zmax = mv.z;
+                if (mv.x < xmin) xmin = mv.x;
+                if (mv.x > xmax) xmax = mv.x;
+                if (mv.y < ymin) ymin = mv.y;
+                if (mv.y > ymax) ymax = mv.y;
+                if (mv.z < zmin) zmin = mv.z;
+                if (mv.z > zmax) zmax = mv.z;
 
-                    let r2_v0 = mv.x * mv.x + mv.y * mv.y + mv.z * mv.z;
-                    if (r2_v0 < r2min) r2min = r2_v0;
-                    if (r2_v0 > r2max) r2max = r2_v0;
-                }
+                let r2_v0 = mv.x * mv.x + mv.y * mv.y + mv.z * mv.z;
+                if (r2_v0 < r2min) r2min = r2_v0;
+                if (r2_v0 > r2max) r2max = r2_v0;
+                _r2[vInd / 3] = r2_v0;
 
                 let rtc_v0 = new Vec3(mv.x - rtc_x, mv.y - rtc_y, mv.z - rtc_z);
-                doubleToTwoFloats(rtc_v0, _tempHigh, _tempLow);
+                doubleToTwoFloatsV3(rtc_v0, _tempHigh, _tempLow);
 
                 terrainVerticesHigh[vInd] = _tempHigh.x;
                 terrainVerticesLow[vInd] = _tempLow.x;
@@ -264,8 +205,6 @@ self.onmessage = function (e) {
                 terrainVerticesHigh[vInd] = _tempHigh.z;
                 terrainVerticesLow[vInd] = _tempLow.z;
                 terrainVertices[vInd++] = rtc_v0.z;
-
-                noDataInd++;
             }
 
             if (i !== fileGridSize && j !== fileGridSize) {
@@ -417,7 +356,7 @@ self.onmessage = function (e) {
             _rtcTempVec.y = this_plainVertices[i3 + 1] + hi * this_plainNormals[i3 + 1];
             _rtcTempVec.z = this_plainVertices[i3 + 2] + hi * this_plainNormals[i3 + 2];
 
-            doubleToTwoFloats(_rtcTempVec, _tempHigh, _tempLow);
+            doubleToTwoFloatsV3(_rtcTempVec, _tempHigh, _tempLow);
 
             terrainVertices[i3] = _rtcTempVec.x;
             terrainVertices[i3 + 1] = _rtcTempVec.y;
@@ -445,6 +384,7 @@ self.onmessage = function (e) {
             let r2_tmp = _tempVec.x * _tempVec.x + _tempVec.y * _tempVec.y + _tempVec.z * _tempVec.z;
             if (r2_tmp < r2min) r2min = r2_tmp;
             if (r2_tmp > r2max) r2max = r2_tmp;
+            _r2[i] = r2_tmp;
         }
 
         normalMapVertices.set(terrainVertices);
@@ -515,9 +455,9 @@ self.onmessage = function (e) {
             terrainVertices: terrainVertices,
             terrainVerticesHigh: terrainVerticesHigh,
             terrainVerticesLow: terrainVerticesLow,
-            noDataVertices: noDataVertices,
             bounds: [xmin, ymin, zmin, xmax, ymax, zmax],
             radiusRange: r2max >= r2min ? [Math.sqrt(r2min), Math.sqrt(r2max)] : null,
+            lodRadius: Math.sqrt(getMedian(_r2, gs * gs)),
             relativeCenter: e.data.relativeCenter
         },
         [
@@ -525,8 +465,7 @@ self.onmessage = function (e) {
             normalMapVertices.buffer,
             terrainVertices.buffer,
             terrainVerticesHigh.buffer,
-            terrainVerticesLow.buffer,
-            noDataVertices.buffer
+            terrainVerticesLow.buffer
         ]
     );
 };

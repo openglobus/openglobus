@@ -1,6 +1,7 @@
 import { Extent } from "../Extent";
 import { EPSG3857 } from "../proj/EPSG3857";
 import { binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
+import { getMedian } from "../terrain/terrainUtils";
 import { LonLat } from "../LonLat";
 import { MAX, MIN } from "../math";
 import { Segment } from "../segment/Segment";
@@ -60,6 +61,16 @@ let BOUNDS: BoundsType = {
     r2min: 0.0,
     r2max: 0.0
 };
+
+// Squared vertex radii of the cut segment, their median is the LOD radius
+let _r2 = new Float64Array(_vertOrder.length);
+
+function getR2Buffer(count: number): Float64Array {
+    if (_r2.length < count) {
+        _r2 = new Float64Array(count);
+    }
+    return _r2;
+}
 
 let __staticCounter = 0;
 
@@ -183,6 +194,8 @@ class Node {
 
         // Initial relative center is the same as bounding sphere center
         seg._relativeCenter.set(x, y, z);
+
+        seg._createPlainBounds();
     }
 
     public getState(): number | null {
@@ -353,8 +366,7 @@ class Node {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
             } else if (
                 seg.terrainReady &&
-                ((!maxZoom &&
-                    lodCam.projectedSize(seg.bsphere.center, seg._plainRadius) < this.quadTreeStrategy.lodSize) ||
+                ((!maxZoom && lodCam.projectedSize(seg.lodCenter, seg._plainRadius) < this.quadTreeStrategy.lodSize) ||
                     (maxZoom && (seg.tileZoom === maxZoom || !altVis)))
             ) {
                 if (altVis) {
@@ -366,8 +378,7 @@ class Node {
             } else if (
                 seg.terrainReady &&
                 seg.checkZoom() &&
-                (!maxZoom ||
-                    lodCam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.quadTreeStrategy._maxLodSize)
+                (!maxZoom || lodCam.projectedSize(seg.lodCenter, seg._plainRadius) > this.quadTreeStrategy._maxLodSize)
             ) {
                 if (seg.tileZoom < this.quadTreeStrategy.maxZoomLimit) {
                     this.traverseNodes(cam, maxZoom, seg, stopLoading, zoomPassNode);
@@ -798,10 +809,7 @@ class Node {
 
         const pseg = pn.segment;
 
-        let renderVertices: Float64Array,
-            renderVerticesHigh: Float32Array,
-            renderVerticesLow: Float32Array,
-            noDataVertices: Uint8Array;
+        let renderVertices: Float64Array, renderVerticesHigh: Float32Array, renderVerticesLow: Float32Array;
 
         this.appliedTerrainNodeId = pn.nodeId;
         this.equalizedSideWithNodeId[N] =
@@ -826,13 +834,8 @@ class Node {
             renderVerticesHigh = new Float32Array(len);
             renderVerticesLow = new Float32Array(len);
 
-            if (pseg.noDataVertices) {
-                noDataVertices = new Uint8Array(len / 3);
-            }
-
             getMatrixSubArrayBoundsExt(
                 pseg.terrainVertices!,
-                pseg.noDataVertices!,
                 pseg.gridSize,
                 gridSize * offsetY,
                 gridSize * offsetX,
@@ -843,7 +846,7 @@ class Node {
                 renderVerticesHigh,
                 renderVerticesLow,
                 BOUNDS,
-                noDataVertices!
+                getR2Buffer(len / 3)
             );
         } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
             seg.gridSize = gridSizeExt;
@@ -853,13 +856,8 @@ class Node {
             renderVerticesHigh = new Float32Array(len);
             renderVerticesLow = new Float32Array(len);
 
-            if (pseg.noDataVertices) {
-                noDataVertices = new Uint8Array(len / 3);
-            }
-
             getMatrixSubArrayBoundsExt(
                 pseg.normalMapVertices!,
-                pseg.noDataVertices!,
                 pn.segment.fileGridSize,
                 gridSizeExt * offsetY,
                 gridSizeExt * offsetX,
@@ -870,7 +868,7 @@ class Node {
                 renderVerticesHigh,
                 renderVerticesLow,
                 BOUNDS,
-                noDataVertices!
+                getR2Buffer(len / 3)
             );
         } else {
             seg.gridSize = _neGridSize;
@@ -949,6 +947,7 @@ class Node {
                 let r2 = coords.x * coords.x + coords.y * coords.y + coords.z * coords.z;
                 if (r2 < BOUNDS.r2min) BOUNDS.r2min = r2;
                 if (r2 > BOUNDS.r2max) BOUNDS.r2max = r2;
+                _r2[i] = r2;
             }
         }
 
@@ -962,17 +961,14 @@ class Node {
         seg.renderVerticesHigh = renderVerticesHigh;
         seg.renderVerticesLow = renderVerticesLow;
 
-        seg.noDataVertices = noDataVertices!;
-
-        seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
+        seg.setTerrainBoundingVolume([BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax]);
         seg.setTerrainRadiusRange(
             BOUNDS.r2max >= BOUNDS.r2min ? [Math.sqrt(BOUNDS.r2min), Math.sqrt(BOUNDS.r2max)] : null
         );
+        seg.setLodRadius(Math.sqrt(getMedian(_r2, renderVertices.length / 3)));
 
         if (seg.tileZoom > seg.planet.terrain!.maxZoom) {
             if (pn.segment.tileZoom >= seg.planet.terrain!.maxZoom) {
-                seg._plainRadius = pn.segment._plainRadius / dZ2;
-
                 seg.terrainReady = true;
                 seg.terrainIsLoading = false;
 

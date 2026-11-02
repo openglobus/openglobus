@@ -3,7 +3,7 @@ import * as quadTree from "../../quadTree/quadTree";
 import { Extent } from "../../Extent";
 import { Handler } from "../../webgl/Handler";
 import type { WebGLBufferExt } from "../../webgl/Handler";
-import { doubleToTwoFloatsV2 } from "../../math/coder";
+import { doubleToTwoFloatsV2 } from "../../math/doubleToTwoFloats";
 import { Vector } from "../../layer/Vector";
 import { Vec2 } from "../../math/Vec2";
 import type { NumberArray2 } from "../../math/Vec2";

@@ -1,5 +1,7 @@
 "use strict";
 
+import { doubleToTwoFloatsV3 } from "../math/doubleToTwoFloats";
+
 let model = null;
 
 let cached_ix = null;
@@ -117,44 +119,6 @@ var rtcPos = new Vec3(0.0, 0.0, 0.0);
 var _tempHigh = new Vec3(0.0, 0.0, 0.0);
 var _tempLow = new Vec3(0.0, 0.0, 0.0);
 
-var doubleToTwoFloats = function (v, high, low) {
-    let x = v.x,
-        y = v.y,
-        z = v.z;
-
-    var doubleHigh;
-
-    if (x >= 0.0) {
-        doubleHigh = Math.floor(x / 65536.0) * 65536.0;
-        high.x = Math.fround(doubleHigh);
-        low.x = Math.fround(x - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
-        high.x = Math.fround(-doubleHigh);
-        low.x = Math.fround(x + doubleHigh);
-    }
-
-    if (y >= 0.0) {
-        doubleHigh = Math.floor(y / 65536.0) * 65536.0;
-        high.y = Math.fround(doubleHigh);
-        low.y = Math.fround(y - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
-        high.y = Math.fround(-doubleHigh);
-        low.y = Math.fround(y + doubleHigh);
-    }
-
-    if (z >= 0.0) {
-        doubleHigh = Math.floor(z / 65536.0) * 65536.0;
-        high.z = Math.fround(doubleHigh);
-        low.z = Math.fround(z - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
-        high.z = Math.fround(-doubleHigh);
-        low.z = Math.fround(z + doubleHigh);
-    }
-};
-
 self.onmessage = function (msg) {
     if (msg.data.model) {
         model = msg.data.model;
@@ -163,13 +127,6 @@ self.onmessage = function (msg) {
         let rtc_x = msg.data.params[14];
         let rtc_y = msg.data.params[15];
         let rtc_z = msg.data.params[16];
-
-        let xmin = 549755748352.0,
-            xmax = -549755748352.0,
-            ymin = 549755748352.0,
-            ymax = -549755748352.0,
-            zmin = 549755748352.0,
-            zmax = -549755748352.0;
 
         E2 = msg.data.params[8];
         A = msg.data.params[9];
@@ -241,7 +198,7 @@ self.onmessage = function (msg) {
             normalMapNormals[nmInd++] = nzl;
 
             if (i % dg === 0 && j % dg === 0) {
-                doubleToTwoFloats(rtcPos, _tempHigh, _tempLow);
+                doubleToTwoFloatsV3(rtcPos, _tempHigh, _tempLow);
 
                 plainVertices[ind] = rtcPos.x;
                 plainVerticesHigh[ind] = _tempHigh.x;
@@ -257,21 +214,8 @@ self.onmessage = function (msg) {
                 plainVerticesHigh[ind] = _tempHigh.z;
                 plainVerticesLow[ind] = _tempLow.z;
                 plainNormals[ind++] = nzl;
-
-                if (worldPos.x < xmin) xmin = worldPos.x;
-                if (worldPos.x > xmax) xmax = worldPos.x;
-                if (worldPos.y < ymin) ymin = worldPos.y;
-                if (worldPos.y > ymax) ymax = worldPos.y;
-                if (worldPos.z < zmin) zmin = worldPos.z;
-                if (worldPos.z > zmax) zmax = worldPos.z;
             }
         }
-
-        let x = (xmax - xmin) * 0.5,
-            y = (ymax - ymin) * 0.5,
-            z = (zmax - zmin) * 0.5;
-
-        let plainRadius = Math.sqrt(x * x + y * y + z * z);
 
         self.postMessage(
             {
@@ -282,7 +226,6 @@ self.onmessage = function (msg) {
                 plainNormals: plainNormals,
                 normalMapNormals: normalMapNormals,
                 normalMapVertices: normalMapVertices,
-                plainRadius: plainRadius,
                 relativeCenter: [rtc_x, rtc_y, rtc_z]
             },
             [

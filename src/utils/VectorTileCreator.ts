@@ -1,4 +1,4 @@
-import { doubleToTwoFloats2 } from "../math/coder";
+import { doubleToTwoFloats2 } from "../math/doubleToTwoFloats";
 import { Framebuffer } from "../webgl/Framebuffer";
 import { Handler } from "../webgl/Handler";
 import { Material } from "../layer/Material";

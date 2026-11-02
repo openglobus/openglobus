@@ -13,7 +13,6 @@ export interface IPlainSegmentWorkerData {
     plainVerticesHigh: Float32Array | null;
     plainVerticesLow: Float32Array | null;
     plainNormals: Float32Array | null;
-    plainRadius: number;
 
     normalMapNormals: Float32Array | null;
     normalMapVertices: Float64Array | null;
