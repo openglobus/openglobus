@@ -664,6 +664,16 @@ class Vector extends BaseTileMaterialLayer {
             temp[i] = this._entities[i];
         }
 
+        // Every geometry leaves the shared buffers in one pass; the removals below then skip them.
+        if (this._planet) {
+            const geometries: Geometry[] = [];
+            for (let j = 0; j < this._entities.length; j++) {
+                const e = this._entities[j];
+                e.geometry && geometries.push(e.geometry);
+            }
+            this._geometryHandler.removeGeometries(geometries);
+        }
+
         let i = this._entities.length;
         while (i--) {
             this._entities[i].remove();

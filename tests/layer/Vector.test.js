@@ -45,3 +45,38 @@ describe("Vector.removeEntities", () => {
         expect(removeEntity).toHaveBeenCalledTimes(2);
     });
 });
+
+test("Vector.clear removes every geometry from the shared buffers in one pass", () => {
+    const square = (x) => ({
+        type: "POLYGON",
+        coordinates: [
+            [
+                [x, 0],
+                [x + 1, 0],
+                [x + 1, 1],
+                [x, 1]
+            ]
+        ]
+    });
+    const vector = new Vector("name", {});
+    const entities = [0, 2, 4, 6].map((x) => new Entity({ geometry: square(x) }));
+    vector.addEntities(entities);
+    vector._planet = {
+        _clearLayerMaterial: () => {},
+        renderer: { clearPickingColor: () => {}, requestRedraw: () => {} }
+    };
+    for (const e of entities) vector._geometryHandler.add(e.geometry);
+    // No WebGL context in tests
+    vi.spyOn(vector._geometryHandler, "_deleteBuffers").mockImplementation(() => {});
+    const batch = vi.spyOn(vector._geometryHandler, "removeGeometries");
+    const single = vi.spyOn(vector._geometryHandler, "remove");
+
+    vector.clear();
+
+    expect(batch).toHaveBeenCalledTimes(1);
+    expect(batch).toHaveBeenCalledWith(entities.map((e) => e.geometry));
+    // The removals that follow find the geometries already detached.
+    for (const e of entities) expect(e.geometry._handler).toBe(null);
+    expect(single.mock.calls.length).toBe(entities.length);
+    expect(vector._geometryHandler._geometries).toEqual([]);
+});
