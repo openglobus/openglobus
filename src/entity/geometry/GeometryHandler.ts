@@ -882,8 +882,114 @@ class GeometryHandler {
         }
     }
 
+    /**
+     * Removes one geometry. Works in any array order, including after bringToFront(): every range
+     * after the removed one in an array moves down, and every index past its vertices goes down
+     * by its vertex count. Nothing moves when its ranges are at the ends of the arrays.
+     * @public
+     * @param {Geometry} geometry - Geometry to remove; ignored if it belongs to another handler.
+     */
     public remove(geometry: Geometry) {
-        this.removeGeometries([geometry]);
+        const index = geometry._handlerIndex;
+        if (geometry._handler !== this || index === -1) {
+            return;
+        }
+
+        const all = this._geometries;
+        all.splice(index, 1);
+        for (let i = index; i < all.length; i++) {
+            all[i]._handlerIndex = i;
+        }
+
+        // A length of -1 means the geometry has no data of that kind, e.g. a line string has no polygon.
+        const pv = geometry._polyVerticesHandlerIndex,
+            pvl = geometry._polyVerticesLength,
+            pi = geometry._polyIndexesHandlerIndex,
+            pil = geometry._polyIndexesLength,
+            lv = geometry._lineVerticesHandlerIndex,
+            lvl = geometry._lineVerticesLength,
+            lo = geometry._lineOrdersHandlerIndex,
+            lol = geometry._lineOrdersLength,
+            lc = geometry._lineColorsHandlerIndex,
+            lcl = geometry._lineColorsLength,
+            lt = geometry._lineThicknessHandlerIndex,
+            ltl = geometry._lineThicknessLength,
+            li = geometry._lineIndexesHandlerIndex,
+            lil = geometry._lineIndexesLength;
+
+        // Whether anything follows the removed range in its arrays
+        let shift = false;
+
+        if (pil > 0) {
+            shift ||= pi + pil < this._polyIndexes.length;
+            this._polyIndexes.splice(pi, pil);
+        }
+        if (pvl > 0) {
+            if (pv + pvl < this._polyVerticesHighMerc.length) {
+                shift = true;
+                const first = pv * 0.5,
+                    n = pvl * 0.5,
+                    a = this._polyIndexes;
+                for (let i = 0; i < a.length; i++) {
+                    if (a[i] >= first) a[i] -= n;
+                }
+            }
+            this._polyVerticesHighMerc.splice(pv, pvl);
+            this._polyVerticesLowMerc.splice(pv, pvl);
+            this._polyColors.splice(pv * 2, pvl * 2);
+            this._polyPickingColors.splice(pv * 2, pvl * 2);
+        }
+
+        if (lil > 0) {
+            shift ||= li + lil < this._lineIndexes.length;
+            this._lineIndexes.splice(li, lil);
+        }
+        if (lvl > 0) {
+            if (lv + lvl < this._lineVerticesHighMerc.length) {
+                shift = true;
+                const first = lv * 0.5,
+                    n = lvl * 0.5,
+                    a = this._lineIndexes;
+                for (let i = 0; i < a.length; i++) {
+                    if (a[i] >= first) a[i] -= n;
+                }
+            }
+            this._lineVerticesHighMerc.splice(lv, lvl);
+            this._lineVerticesLowMerc.splice(lv, lvl);
+        }
+        if (lol > 0) {
+            shift ||= lo + lol < this._lineOrders.length;
+            this._lineOrders.splice(lo, lol);
+        }
+        if (lcl > 0) {
+            shift ||= lc + lcl < this._lineColors.length;
+            this._lineColors.splice(lc, lcl);
+            this._linePickingColors.splice(lc, lcl);
+            this._lineStrokeColors.splice(lc, lcl);
+        }
+        if (ltl > 0) {
+            shift ||= lt + ltl < this._lineThickness.length;
+            this._lineThickness.splice(lt, ltl);
+            this._lineStrokes.splice(lt, ltl);
+        }
+
+        if (shift) {
+            // Offsets of -1 (no data of that kind) are never above a real offset.
+            for (let i = 0; i < all.length; i++) {
+                const g = all[i];
+                if (pvl > 0 && g._polyVerticesHandlerIndex > pv) g._polyVerticesHandlerIndex -= pvl;
+                if (pil > 0 && g._polyIndexesHandlerIndex > pi) g._polyIndexesHandlerIndex -= pil;
+                if (lvl > 0 && g._lineVerticesHandlerIndex > lv) g._lineVerticesHandlerIndex -= lvl;
+                if (lol > 0 && g._lineOrdersHandlerIndex > lo) g._lineOrdersHandlerIndex -= lol;
+                if (lcl > 0 && g._lineColorsHandlerIndex > lc) g._lineColorsHandlerIndex -= lcl;
+                if (ltl > 0 && g._lineThicknessHandlerIndex > lt) g._lineThicknessHandlerIndex -= ltl;
+                if (lil > 0 && g._lineIndexesHandlerIndex > li) g._lineIndexesHandlerIndex -= lil;
+            }
+        }
+
+        this._detachGeometry(geometry);
+
+        this.refresh();
     }
 
     /**
