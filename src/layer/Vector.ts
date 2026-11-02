@@ -630,10 +630,7 @@ class Vector extends BaseTileMaterialLayer {
      * @returns {Vector} - Returns this layer.
      */
     public removeEntities(entities: Entity[]): this {
-        // Without entityremove listeners no other code runs between the removals below,
-        // so every geometry can leave the shared buffers in one pass.
-        const listeners = this.events.entityremove;
-        if (this._planet && !(listeners && listeners.handlers.length)) {
+        if (this._planet) {
             const geometries: Geometry[] = [];
             for (let j = 0; j < entities.length; j++) {
                 const e = entities[j];
