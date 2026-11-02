@@ -1025,48 +1025,6 @@ class Vector extends BaseTileMaterialLayer {
         }
         return super.applyMaterial(material);
     }
-    // @deprecated, now it gets algorithm from the parent class.
-    // public override applyMaterial(material: Material): NumberArray4 {
-    //     if (material.isReady) {
-    //         return [0, 0, 1, 1];
-    //     } else {
-    //         !material.isLoading && this.loadMaterial(material);
-    //
-    //         const segment = material.segment;
-    //         let pn = segment.node,
-    //             notEmpty = false;
-    //
-    //         let mId = this.__id;
-    //         let psegm = material;
-    //
-    //         while (pn.parentNode) {
-    //             if (psegm && psegm.isReady) {
-    //                 notEmpty = true;
-    //                 break;
-    //             }
-    //             pn = pn.parentNode;
-    //             psegm = pn.segment.materials[mId];
-    //         }
-    //
-    //         if (notEmpty) {
-    //             material.appliedNodeId = pn.nodeId;
-    //             material.texture = psegm.texture;
-    //             material.pickingMask = psegm.pickingMask;
-    //             const dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
-    //             return [segment.tileX * dZ2 - pn.segment.tileX, segment.tileY * dZ2 - pn.segment.tileY, dZ2, dZ2];
-    //         } else {
-    //             if (material.textureExists && material._updateTexture) {
-    //                 material.texture = material._updateTexture;
-    //                 material.pickingMask = material._updatePickingMask;
-    //             } else {
-    //                 material.texture = segment.planet.transparentTexture;
-    //                 material.pickingMask = segment.planet.transparentTexture;
-    //             }
-    //             material.pickingReady = true;
-    //             return [0, 0, 1, 1];
-    //         }
-    //     }
-    // }
 
     protected override _allowsLoadWithoutPassReady(): boolean {
         return true;
