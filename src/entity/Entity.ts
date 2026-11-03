@@ -771,8 +771,11 @@ class Entity {
      * @param {Quat} rot - The new absolute rotation quaternion.
      */
     public setAbsoluteRotation(rot: Quat) {
-        this._absoluteQRot.copy(rot);
-        this._updatePitchYawRoll();
+        if (this.parent && this._relativePosition) {
+            this.setDirectQuaternionRotation(this.parent._absoluteQRot.conjugate().mul(rot));
+        } else {
+            this.setDirectQuaternionRotation(this._qFrame.isEqual(Quat.IDENTITY) ? rot : this._qFrame.mul(rot));
+        }
     }
 
     /**

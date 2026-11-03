@@ -377,3 +377,52 @@ describe('Entity.computeAbsoluteRotation', () => {
         expectSameRotation(child.getAbsoluteRotation(), expected);
     });
 });
+
+describe("Entity.setAbsoluteRotation", () => {
+    const cartesian = wgs84.lonLatToCartesian(new LonLat(37.6, 55.7, 120));
+    const target = new Quat().setPitchYawRoll(0.3, 1.1, -0.4);
+
+    function expectSameRotation(a, b) {
+        const s = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w < 0 ? -1 : 1;
+        expect(Math.abs(a.x - s * b.x)).toBeLessThan(1e-9);
+        expect(Math.abs(a.y - s * b.y)).toBeLessThan(1e-9);
+        expect(Math.abs(a.z - s * b.z)).toBeLessThan(1e-9);
+        expect(Math.abs(a.w - s * b.w)).toBeLessThan(1e-9);
+    }
+
+    function inScene(entity) {
+        const collection = new EntityCollection();
+        collection.scene = { ellipsoid: wgs84, getFrameRotation: (c) => wgs84.getNorthFrameRotation(c) };
+        collection.add(entity);
+        return entity;
+    }
+
+    test("a root entity in a scene frame ends up with the given rotation and keeps it", () => {
+        const root = inScene(new Entity({ cartesian: cartesian.clone() }));
+
+        root.setAbsoluteRotation(target);
+        expectSameRotation(root.getAbsoluteRotation(), target);
+
+        root.setScale(2);
+        expectSameRotation(root.getAbsoluteRotation(), target);
+    });
+
+    test("a nested entity ends up with the given rotation and carries its children", () => {
+        const root = new Entity({ cartesian: cartesian.clone(), yaw: 0.7 });
+        const child = new Entity({ cartesian: new Vec3(5, 0, 0), relativePosition: true, pitch: 0.2 });
+        const grandchild = new Entity({ cartesian: new Vec3(0, 0, -3), relativePosition: true, roll: 0.5 });
+        child.appendChild(grandchild);
+        root.appendChild(child);
+        inScene(root);
+
+        const local = child.getAbsoluteRotation().conjugate().mul(grandchild.getAbsoluteRotation());
+
+        child.setAbsoluteRotation(target);
+
+        expectSameRotation(child.getAbsoluteRotation(), target);
+        expectSameRotation(grandchild.getAbsoluteRotation(), target.mul(local));
+
+        root.setYaw(-0.3);
+        expectSameRotation(child.getAbsoluteRotation(), root.getAbsoluteRotation().mul(child.getRotation()));
+    });
+});
