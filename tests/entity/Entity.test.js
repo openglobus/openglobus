@@ -8,6 +8,7 @@ import { Strip } from '../../src/entity/strip/Strip';
 import { LonLat } from '../../src/LonLat';
 import { Vec3 } from '../../src/math/Vec3';
 import { Quat } from '../../src/math/Quat';
+import { wgs84 } from '../../src/ellipsoid/wgs84';
 
 test('Testing Entity', () => {
     let entity1 = new Entity({
@@ -310,5 +311,69 @@ describe('Entity direct quaternion rotation', () => {
 
         expect(angleBetween(absoluteRotation(direct), expected)).toBeLessThan(0.001);
         expect(angleBetween(absoluteRotation(euler), expected)).toBeLessThan(0.001);
+    });
+});
+
+describe('Entity.computeAbsoluteRotation', () => {
+    const direct = new Quat().setPitchYawRoll(0.3, 1.1, -0.4);
+    const cartesian = wgs84.lonLatToCartesian(new LonLat(37.6, 55.7, 120));
+
+    function expectSameRotation(a, b) {
+        const s = a.dot(b) < 0 ? -1 : 1;
+        expect(Math.abs(a.x - s * b.x)).toBeLessThan(1e-9);
+        expect(Math.abs(a.y - s * b.y)).toBeLessThan(1e-9);
+        expect(Math.abs(a.z - s * b.z)).toBeLessThan(1e-9);
+        expect(Math.abs(a.w - s * b.w)).toBeLessThan(1e-9);
+    }
+
+    test('returns the direct rotation for the identity frame', () => {
+        const out = new Quat();
+        expect(Entity.computeAbsoluteRotation(direct, Quat.IDENTITY, out)).toBe(out);
+        expectSameRotation(out, direct);
+    });
+
+    test('applies the conjugated frame', () => {
+        const frame = wgs84.getNorthFrameRotation(cartesian);
+        expectSameRotation(Entity.computeAbsoluteRotation(direct, frame), frame.conjugate().mul(direct));
+    });
+
+    test('allows out to be one of the arguments', () => {
+        const frame = wgs84.getNorthFrameRotation(cartesian);
+        const expected = frame.conjugate().mul(direct);
+
+        const d = direct.clone();
+        expectSameRotation(Entity.computeAbsoluteRotation(d, frame, d), expected);
+
+        const f = frame.clone();
+        expectSameRotation(Entity.computeAbsoluteRotation(direct, f, f), expected);
+    });
+
+    test('matches the absolute rotation of a root entity in a scene', () => {
+        const collection = new EntityCollection();
+        collection.scene = { ellipsoid: wgs84, getFrameRotation: (c) => wgs84.getNorthFrameRotation(c) };
+
+        const entity = new Entity({ name: 'sensor', cartesian: cartesian.clone() });
+        collection.add(entity);
+        entity.setDirectQuaternionRotation(direct);
+
+        const expected = Entity.computeAbsoluteRotation(direct, wgs84.getNorthFrameRotation(entity.getAbsoluteCartesian()));
+        expectSameRotation(entity.getAbsoluteRotation(), expected);
+    });
+
+    test('matches the absolute rotation of a relative child for the chained direct rotation', () => {
+        const collection = new EntityCollection();
+        collection.scene = { ellipsoid: wgs84, getFrameRotation: (c) => wgs84.getNorthFrameRotation(c) };
+
+        const childDirect = new Quat().setPitchYawRoll(-0.7, 0.4, 0.2);
+        const root = new Entity({ name: 'root', cartesian: cartesian.clone() });
+        const child = new Entity({ name: 'child', cartesian: new Vec3(500, -300, 200), relativePosition: true });
+        root.appendChild(child);
+        collection.add(root);
+        root.setDirectQuaternionRotation(direct);
+        child.setDirectQuaternionRotation(childDirect);
+
+        const frame = wgs84.getNorthFrameRotation(root.getAbsoluteCartesian());
+        const expected = Entity.computeAbsoluteRotation(direct.mul(childDirect), frame);
+        expectSameRotation(child.getAbsoluteRotation(), expected);
     });
 });
