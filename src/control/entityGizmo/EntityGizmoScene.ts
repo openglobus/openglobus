@@ -42,7 +42,11 @@ export interface IEntityGizmoSceneParams {
     editMode?: EditModeName;
     tools?: GizmoTools;
     autoSelect?: boolean;
+    selectTarget?: GizmoSelectTarget;
 }
+
+/** Maps a clicked entity to the one the gizmo selects, `null` keeps it unselectable. */
+export type GizmoSelectTarget = (entity: Entity) => Entity | null;
 
 export const NATIVE_MODE = 0;
 export const YAW_MODE = 1;
@@ -193,6 +197,7 @@ class EntityGizmoScene extends Scene {
     protected _editMode: EditMode;
     protected _tools: GizmoTools;
     protected _autoSelect: boolean;
+    protected _selectTarget: GizmoSelectTarget | null;
     protected _visibility: boolean;
     protected _isActivated: boolean;
 
@@ -208,6 +213,7 @@ class EntityGizmoScene extends Scene {
         this._editMode = this._parseEditMode(options.editMode);
         this._tools = options.tools === "full" ? "full" : "translate";
         this._autoSelect = options.autoSelect !== false;
+        this._selectTarget = options.selectTarget || null;
 
         this._startPos = null;
         this._startClick = new Vec2();
@@ -619,11 +625,12 @@ class EntityGizmoScene extends Scene {
     protected _onLclick = (e: IMouseState) => {
         if (!this._autoSelect || this._gesture) return;
 
-        let entity = e.pickingObject instanceof Entity ? e.pickingObject : null;
+        let picked = e.pickingObject instanceof Entity ? e.pickingObject : null;
+        let entity = picked && this._selectTarget ? this._selectTarget(picked) : picked;
 
         if (entity && this.readyToEdit(entity)) {
             this.select(entity);
-        } else if (this._selectedEntity && (!entity || !this._isGizmoEntity(entity))) {
+        } else if (this._selectedEntity && (!picked || !this._isGizmoEntity(picked))) {
             this.unselect();
         }
     };

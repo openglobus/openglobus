@@ -259,6 +259,26 @@ test("autoSelect: false leaves the selection to the host application", () => {
     expect(gizmo.getSelectedEntity()).toBe(clicked);
 });
 
+test("selectTarget redirects a click to another entity or refuses it", () => {
+    const root = new Entity({ cartesian: new Vec3(0, 0, 0) });
+    const part = new Entity({ cartesian: new Vec3(1, 0, 0), relativePosition: true });
+    const other = new Entity({ cartesian: new Vec3(2, 0, 0) });
+    root.appendChild(part);
+    attachEntity(root);
+    attachEntity(other);
+
+    const { renderer, gizmo } = setup({ selectTarget: (entity) => (entity === other ? null : root) });
+
+    renderer.events.dispatch("lclick", { pickingObject: part });
+    expect(gizmo.getSelectedEntity()).toBe(root);
+
+    renderer.events.dispatch("lclick", { pickingObject: gizmo._scene._axisEntity });
+    expect(gizmo.getSelectedEntity(), "a handle click keeps the selection").toBe(root);
+
+    renderer.events.dispatch("lclick", { pickingObject: other });
+    expect(gizmo.getSelectedEntity()).toBeNull();
+});
+
 test("one drag produces one transformstart, changes and one transformend", () => {
     const { gizmo } = setup();
     const entity = new Entity({ cartesian: new Vec3(0, 0, 0) });
