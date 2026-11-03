@@ -77,6 +77,13 @@ export class QuadTreeStrategy {
 
     public _renderedNodesInFrustum: Node[][];
 
+    /**
+     * Squared distance from the camera to the horizon of the highest terrain point.
+     * @public
+     * @type {number}
+     */
+    public _horizonDist2: number = 0;
+
     public _fadingNodes: Map<number, Node>;
 
     public _fadingOpaqueSegments: Segment[];
@@ -377,6 +384,8 @@ export class QuadTreeStrategy {
             this._minTerrainRadiusAcc = Infinity;
             this._maxTerrainRadiusAcc = -Infinity;
 
+            this._updateHorizonDist(this.lodCamera || cam);
+
             this._collectRenderNodes(cam);
 
             if (this._minTerrainRadiusAcc <= this._maxTerrainRadiusAcc) {
@@ -451,6 +460,20 @@ export class QuadTreeStrategy {
                 this.planet._normalMapCreator.drawSingle(quadTree.nodes[j].segment);
             }
         }
+    }
+
+    /**
+     * Calculates the distance from the camera to the horizon of the highest terrain point: a point farther than it
+     * is under the horizon. Used in renderTree to skip rendering of segments that are under the horizon.
+     * @protected
+     */
+    protected _updateHorizonDist(cam: PlanetCamera) {
+        let planet = this.planet,
+            r = planet.ellipsoid.polarSize,
+            h = (planet.terrain ? planet.terrain.getMaxHeight() : 0) * planet._heightFactor,
+            eyeHorizon2 = cam.eye.length2() - r * r,
+            d = Math.sqrt(eyeHorizon2 > 0 ? eyeHorizon2 : 0) + Math.sqrt(2 * r * h + h * h);
+        this._horizonDist2 = d * d;
     }
 
     protected _clearVisibleNodes() {

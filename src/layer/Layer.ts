@@ -372,6 +372,7 @@ class Layer {
         } else {
             this._diffuse = null;
         }
+        this._applyBaseLayerLighting();
     }
 
     public set ambient(rgb: string | NumberArray3 | Vec3 | null | undefined) {
@@ -381,6 +382,7 @@ class Layer {
         } else {
             this._ambient = null;
         }
+        this._applyBaseLayerLighting();
     }
 
     public set specular(rgb: string | NumberArray3 | Vec3 | null | undefined) {
@@ -390,11 +392,21 @@ class Layer {
         } else {
             this._specular = null;
         }
+        this._applyBaseLayerLighting();
     }
 
     public set shininess(v: number) {
         if (this._specular) {
             this._specular[3] = v;
+            this._applyBaseLayerLighting();
+        }
+    }
+
+    protected _applyBaseLayerLighting() {
+        const p = this._planet;
+        if (p && p.baseLayer && this.isEqual(p.baseLayer)) {
+            p._applyBaseLayerLighting(this);
+            p.renderer?.requestRedraw();
         }
     }
 
@@ -446,6 +458,7 @@ class Layer {
     public set nightTextureCoefficient(coefficient: number) {
         if (this._nightTextureCoefficient !== coefficient) {
             this._nightTextureCoefficient = coefficient;
+            this._applyBaseLayerLighting();
             this._planet?.renderer?.requestRedraw();
         }
     }

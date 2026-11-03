@@ -74,12 +74,12 @@ void main(void) {
         );
     }
 
-    vec3 projectorEmission;
+    vec4 projectorDecal;
     vec3 projectorLight;
-    applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
+    applyProjectors(v_rtcPos, normal, projectorDecal, projectorLight);
     float receiveProjectors = materialReceivesProjectorsMask(materialFlags);
     float receiveShadows = materialReceivesShadowsMask(materialFlags);
-    projectorEmission *= receiveProjectors;
+    projectorDecal *= receiveProjectors;
     projectorLight *= receiveProjectors;
     float directShadowVisibility =
         getShadowMapsDirectVisibility(v_rtcPos, normal) *
@@ -88,7 +88,7 @@ void main(void) {
 
     if (shade == SHADE_UNLIT) {
         color = baseColor;
-        color.rgb += projectorEmission;
+        color.rgb = applyProjectorDecal(color.rgb, projectorDecal);
         weightedOITAccumulate(color, accumColor, accumAlpha);
         return;
     }
@@ -131,9 +131,7 @@ void main(void) {
         lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
         specularWeighting *= shadowVisibility;
         color = vec4(
-        baseColor.rgb * (lightWeighting.rgb + projectorLight) +
-        specularWeighting +
-        projectorEmission,
+        applyProjectorDecal(baseColor.rgb * (lightWeighting.rgb + projectorLight) + specularWeighting, projectorDecal),
         baseColor.a
         );
     } else {
@@ -164,9 +162,7 @@ void main(void) {
         lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
         specularWeighting *= shadowVisibility;
         color = vec4(
-        baseColor.rgb * (lightWeighting.rgb + projectorLight) +
-        specularWeighting +
-        projectorEmission,
+        applyProjectorDecal(baseColor.rgb * (lightWeighting.rgb + projectorLight) + specularWeighting, projectorDecal),
         baseColor.a
         );
     }

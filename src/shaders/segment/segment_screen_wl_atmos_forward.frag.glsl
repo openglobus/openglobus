@@ -34,11 +34,11 @@ uniform vec4 tileOffsetArr[SLICE_SIZE];
 uniform float layerOpacityArr[SLICE_SIZE];
 
 uniform int samplerCount;
-uniform float nightTextureCoefficient;
 
 uniform vec2 atmosFadeDist;
 uniform vec3 atmosMaxMinOpacity;
-uniform float camHeight;
+uniform float nightFactor;
+uniform float specularFactor;
 
 uniform float transitionOpacity;
 uniform float shadeMode;
@@ -64,31 +64,33 @@ void main(void) {
     if (samplerCount > 1) blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
     if (samplerCount > 2) blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
     if (samplerCount > 3) blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
-    if (samplerCount > 4) blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
 
     vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
-    vec3 projectorEmission;
+    vec4 projectorDecal;
     vec3 projectorLight;
-    applyProjectors(v_rtcPos, normal, projectorEmission, projectorLight);
+    applyProjectors(v_rtcPos, normal, projectorDecal, projectorLight);
     float shadowVisibility =
         getShadowMapsDirectVisibility(v_rtcPos, normal) *
         getCascadeShadowDirectVisibility(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
-        diffuseColor.rgb += projectorEmission;
+        diffuseColor.rgb = applyProjectorDecal(diffuseColor.rgb, projectorDecal);
         applyPremultipliedSurfaceOpacity(diffuseColor, transitionOpacity, frameOpacity);
         return;
     }
 
-    float specularMask = 0.0;
-    vec3 emission = vec3(0.0);
-    if (camHeight >= NIGHT_SPECULAR_MIN_CAM_HEIGHT) {
-        float overGround = 1.0 - step(0.1, v_height);
-        specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
+    float overGround = 1.0 - step(0.1, v_height);
 
+    float specularMask = 0.0;
+    if (specularFactor > 0.0) {
+        specularMask = specularFactor * texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
+    }
+
+    vec3 emission = vec3(0.0);
+    if (nightFactor > 0.0) {
         vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-        emission = overGround * getNightEmission(normal, lightPosition, emissionImageColor, nightTextureCoefficient, camHeight);
+        emission = overGround * getNightEmission(normal, lightPosition, emissionImageColor, nightFactor);
     }
 
     vec4 lightWeighting;
@@ -149,10 +151,12 @@ void main(void) {
     specularWeighting *= mix(vec3(1.0), sunIlluminance, atmosColor.a);
 
     diffuseColor = vec4(
-    mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) +
-    diffuseColor.rgb * projectorLight +
-    specularWeighting +
-    projectorEmission,
+    applyProjectorDecal(
+        mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) +
+        diffuseColor.rgb * projectorLight +
+        specularWeighting,
+        projectorDecal
+    ),
     diffuseColor.a
     );
 

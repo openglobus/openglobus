@@ -1,0 +1,85 @@
+<html>
+    <head>
+        <title>Vector: removing geometries</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+        <script src="./vectorRemove.js" type="module"></script>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+            #globus {
+                width: 100%;
+                height: 100%;
+            }
+            #panel {
+                position: absolute;
+                top: 8px;
+                left: 8px;
+                z-index: 10;
+                width: 380px;
+                padding: 8px 10px;
+                background: rgba(255, 255, 255, 0.92);
+                font: 12px/1.5 monospace;
+            }
+            #panel .row {
+                margin: 4px 0;
+            }
+            #panel input[type="number"] {
+                width: 6em;
+            }
+            #panel button {
+                font: 12px monospace;
+            }
+            #out {
+                margin-top: 6px;
+                white-space: pre-wrap;
+            }
+            #check.ok {
+                color: #087f23;
+            }
+            #check.bad {
+                color: #c62828;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="globus"></div>
+        <div id="panel">
+            <div class="row">
+                entities <input id="count" type="number" value="2000" step="1000" />
+                <button id="rebuild">rebuild</button>
+            </div>
+            <div class="row">
+                N <input id="n" type="number" value="200" step="50" />
+            </div>
+            <div class="row">
+                <button id="front">bringToFront N</button>
+                <button id="frontOne">bringToFront 1 polygon</button>
+                <button id="frontLine">bringToFront 1 line</button>
+            </div>
+            <div class="row">
+                <button id="bulk">removeEntities N</button>
+                <button id="oneByOne">removeEntity N, one by one</button>
+            </div>
+            <div class="row">
+                <button id="onePolygon">remove 1 polygon</button>
+                <button id="oneLine">remove 1 line</button>
+            </div>
+            <div class="row">
+                <label><input id="listener" type="checkbox" /> entityremove listener</label>
+            </div>
+            <div class="row">
+                <label><input id="hover" type="checkbox" checked /> bringToFront on hover</label>
+            </div>
+            <div class="row">click an entity to remove it</div>
+            <div id="out"></div>
+            <div id="check"></div>
+        </div>
+    </body>
+</html>

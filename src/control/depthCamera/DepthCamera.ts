@@ -137,6 +137,7 @@ export class DepthCamera {
     protected _prevCameraFrustumEntityPitch: number;
     protected _prevCameraFrustumEntityYaw: number;
     protected _prevCameraFrustumEntityRoll: number;
+    protected _prevFrustumScale: Vec3;
 
     constructor(params: IDepthCameraParams = {}) {
         this.id = DepthCamera.__counter__++;
@@ -158,8 +159,8 @@ export class DepthCamera {
         this._renderer = null;
         this._initialized = false;
         this._forceOwnQuadTreeStrategyPass = true;
-        this._showFrustum = params.showFrustum ?? true;
-        this._showFootprint = params.showFootprint ?? true;
+        this._showFrustum = params.showFrustum ?? false;
+        this._showFootprint = params.showFootprint ?? false;
         this._isOrthographic = params.isOrthographic ?? false;
         this._focusDistance = params.focusDistance ?? this.far;
         this._lastPlanetHeightFactor = 1.0;
@@ -188,6 +189,7 @@ export class DepthCamera {
         this._prevCameraFrustumEntityPitch = 0;
         this._prevCameraFrustumEntityYaw = 0;
         this._prevCameraFrustumEntityRoll = 0;
+        this._prevFrustumScale = new Vec3();
     }
 
     public get initialized(): boolean {
@@ -439,7 +441,24 @@ export class DepthCamera {
         if (!this._showFrustum || !cameraFrustumEntity) return;
 
         const cam = this.camera;
-        cameraFrustumEntity.setScale3v(this.frustumScale);
+        const scale = this.frustumScale;
+
+        if (
+            this._prevCameraPos.equal(cam.eye) &&
+            this._prevCameraPitch === cam.getPitch() &&
+            this._prevCameraYaw === cam.getYaw() &&
+            this._prevCameraRoll === cam.getRoll() &&
+            this._prevFrustumScale.equal(scale) &&
+            this._prevCameraFrustumEntityPos.equal(cameraFrustumEntity.getAbsoluteCartesian()) &&
+            this._prevCameraFrustumEntityPitch === cameraFrustumEntity.getPitch() &&
+            this._prevCameraFrustumEntityYaw === cameraFrustumEntity.getYaw() &&
+            this._prevCameraFrustumEntityRoll === cameraFrustumEntity.getRoll()
+        ) {
+            return;
+        }
+
+        cameraFrustumEntity.setScale3v(scale);
+        this._prevFrustumScale.copy(scale);
         cameraFrustumEntity.setCartesian3v(cam.eye);
         cameraFrustumEntity.setAbsolutePitch(cam.getPitch());
         cameraFrustumEntity.setAbsoluteYaw(cam.getYaw());

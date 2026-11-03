@@ -29,7 +29,4 @@ void main(void) {
     if (samplerCount == 3) return;
 
     blendPicking(gl_FragColor, tileOffsetArr[3], samplerArr[3], pickingMaskArr[3], pickingColorArr[3], 1.0);
-    if (samplerCount == 4) return;
-
-    blendPicking(gl_FragColor, tileOffsetArr[4], samplerArr[4], pickingMaskArr[4], pickingColorArr[4], 1.0);
 }

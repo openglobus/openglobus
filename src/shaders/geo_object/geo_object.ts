@@ -1,6 +1,6 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { stringTemplate2 } from "../../utils/shared";
-import { cascadeShadowUniforms, projectorUniforms, shadowMapUniforms } from "../common/uniforms";
+import { cascadeShadowUniforms, projectorShaderParams, projectorUniforms, shadowMapUniforms } from "../common/uniforms";
 import type { AtmosphereParameters } from "../atmos/atmos";
 import { DEFAULT_PARAMS } from "../atmos/atmos";
 import geo_object_vert from "./geo_object.vert.glsl";
@@ -153,7 +153,7 @@ export const geo_object_woit = (): ShaderProgram =>
             qRot: { type: "vec4", divisor: 1 }
         },
         vertexShader: geo_object_vert,
-        fragmentShader: geo_object_woit_frag
+        fragmentShader: stringTemplate2(geo_object_woit_frag, projectorShaderParams)
     });
 
 export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): ShaderProgram {
@@ -212,7 +212,8 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
         },
         vertexShader: geo_object_vert,
         fragmentShader: stringTemplate2(geo_object_woit_atmos_frag, {
-            ...atmosParams
+            ...atmosParams,
+            ...projectorShaderParams
         })
     });
 }

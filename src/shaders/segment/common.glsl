@@ -7,7 +7,7 @@
 #define TEXTURE_FUNC texture2D
 #endif
 
-#define SLICE_SIZE 5
+#define SLICE_SIZE 4
 
 // GeoImage textures: keep this enabled to clip samples outside [0..1]
 // and avoid clamp-to-edge smear with mipmaps. Set to 0 only to restore legacy behavior.

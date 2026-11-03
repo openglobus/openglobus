@@ -19,6 +19,7 @@ export interface IEmptyTerrainParams {
     geoidSrc?: string;
     geoid?: Geoid;
     gridSizeByZoom?: number[];
+    maxHeight?: number;
 }
 
 /**
@@ -51,6 +52,7 @@ export type UrlRewriteFunc = (
  * @param {Array.<number>} [options.gridSizeByZoom] - Segment triangulation grid sizes by zoom index.
  * @param {Geoid} [options.geoid] - Geoid model instance.
  * @param {string} [options.geoidSrc] - URL to geoid model source.
+ * @param {number} [options.maxHeight=8848] - The highest terrain point over the ellipsoid, in meters. Segments behind the horizon of a point this high are not rendered.
  */
 class EmptyTerrain {
     static __counter__: number = 0;
@@ -127,6 +129,14 @@ class EmptyTerrain {
     public plainGridSize: number;
 
     /**
+     * The highest terrain point over the ellipsoid, in meters.
+     * It sets the horizon culling distance.
+     * @public
+     * @type {number}
+     */
+    public maxHeight: number;
+
+    /**
      * Planet scene.
      * @public
      * @type {Planet}
@@ -170,6 +180,8 @@ class EmptyTerrain {
         this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 
         this.plainGridSize = 2;
+
+        this.maxHeight = options.maxHeight != undefined ? options.maxHeight : 8848;
 
         this.noDataValues = [];
 
@@ -302,6 +314,15 @@ class EmptyTerrain {
 
     public isReady(): boolean {
         return this._isReady;
+    }
+
+    /**
+     * Returns the highest terrain point over the ellipsoid with the terrain height factor, in meters.
+     * @public
+     * @returns {number} -
+     */
+    public getMaxHeight(): number {
+        return this.maxHeight;
     }
 
     public abortLoading() {}

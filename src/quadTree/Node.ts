@@ -269,8 +269,7 @@ class Node {
 
         this.clearNeighbors();
 
-        let seg = this.segment,
-            planet = this.quadTreeStrategy.planet;
+        let seg = this.segment;
 
         this._cameraInside = false;
 
@@ -317,9 +316,7 @@ class Node {
         if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
             let h = Math.abs(lodCam._lonLat.height);
 
-            let horizonDist = lodCam.eye.length2() - planet.ellipsoid.polarSizeSqr;
-            let maxDist = 106876472875.63281 * planet._heightFactor;
-            horizonDist = horizonDist < maxDist ? maxDist : horizonDist;
+            let horizonDist = this.quadTreeStrategy._horizonDist2;
 
             let altVis =
                 seg.tileZoom < 2 ||

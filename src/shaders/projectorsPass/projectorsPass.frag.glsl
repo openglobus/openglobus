@@ -33,13 +33,14 @@ void main(void) {
     vec3 normal = normalize(normalColor.rgb * 2.0 - 1.0);
     float litMask = step(0.001, normalColor.a);
 
-    vec3 projectorEmission;
+    vec4 projectorDecal;
     vec3 projectorLight;
-    applyProjectors(rtcPos, normal, projectorEmission, projectorLight);
+    applyProjectors(rtcPos, normal, projectorDecal, projectorLight);
 
     float frameTransparency = materialReceivesFrameTransparencyMask(materialFlags);
     float receiverOpacity = mix(1.0, frameOpacity, frameTransparency);
-    vec3 contribution = (projectorEmission + baseColor.rgb * projectorLight * litMask) * receiverOpacity;
+    vec3 contribution = (projectorDecal.rgb + baseColor.rgb * projectorLight * litMask) * receiverOpacity;
 
-    fragColor = vec4(contribution, 0.0);
+    // Blended as ONE, ONE_MINUS_SRC_ALPHA: the decal covers the lit frame, light adds to it.
+    fragColor = vec4(contribution, projectorDecal.a * receiverOpacity);
 }

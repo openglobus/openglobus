@@ -14,3 +14,114 @@ test("Vector.addEntities preserves entity order", () => {
     expect(vector.getEntities()).toEqual(entities);
     expect(entities.map((entity) => entity._layerIndex)).toEqual([0, 1, 2]);
 });
+
+describe("Vector.removeEntities", () => {
+    const setup = () => {
+        const vector = new Vector("name", {});
+        const entities = [new Entity({ geometry: { type: "POINT", coordinates: [0, 0] } }), new Entity()];
+        vector.addEntities(entities);
+        vector._planet = {};
+        const batch = vi.spyOn(vector._geometryHandler, "removeGeometries").mockImplementation(() => {});
+        const removeEntity = vi.spyOn(vector, "removeEntity").mockImplementation(() => vector);
+        return { vector, entities, batch, removeEntity };
+    };
+
+    test("removes the geometries in one pass", () => {
+        const { vector, entities, batch, removeEntity } = setup();
+
+        vector.removeEntities(entities);
+
+        expect(batch).toHaveBeenCalledWith([entities[0].geometry]);
+        expect(removeEntity.mock.calls.map((c) => c[0])).toEqual([entities[1], entities[0]]);
+    });
+
+    test("removes polygons and lines correctly with an entityremove listener", () => {
+        const makeEntities = (indexes) =>
+            indexes.map((i) => {
+                const coordinates = [
+                    [i, 0],
+                    [i + 1, 0],
+                    [i + 1, 1 + (i % 3)]
+                ];
+                const geometry =
+                    i % 2 ? { type: "LINESTRING", coordinates } : { type: "POLYGON", coordinates: [coordinates] };
+                return new Entity({ geometry });
+            });
+        const ARRAYS = [
+            "_polyVerticesHighMerc",
+            "_polyIndexes",
+            "_lineVerticesHighMerc",
+            "_lineIndexes",
+            "_lineOrders"
+        ];
+
+        const all = [...Array(12).keys()];
+        const removedIndexes = [1, 2, 5, 8, 11];
+        const kept = all.filter((i) => !removedIndexes.includes(i));
+
+        const vector = new Vector("name", {});
+        const entities = makeEntities(all);
+        vector.addEntities(entities);
+        vector._planet = { renderer: { clearPickingColor: () => {} } };
+        for (const e of entities) vector._geometryHandler.add(e.geometry);
+
+        const removed = removedIndexes.map((i) => entities[i]);
+        const notified = [];
+        vector.events.on("entityremove", (e) => {
+            expect(e._layer).toBe(null);
+            expect(e.geometry._handler).toBe(null);
+            notified.push(e);
+        });
+        const batch = vi.spyOn(vector._geometryHandler, "removeGeometries");
+
+        vector.removeEntities(removed);
+
+        expect(batch).toHaveBeenCalledWith(removed.map((e) => e.geometry));
+
+        const reference = new Vector("ref", {});
+        const survivors = makeEntities(kept);
+        reference.addEntities(survivors);
+        for (const e of survivors) reference._geometryHandler.add(e.geometry);
+
+        expect(notified).toEqual([...removed].reverse());
+        expect(vector.getEntities()).toEqual(kept.map((i) => entities[i]));
+        expect(ARRAYS.map((name) => vector._geometryHandler[name])).toEqual(
+            ARRAYS.map((name) => reference._geometryHandler[name])
+        );
+    });
+});
+
+test("Vector.clear removes every geometry from the shared buffers in one pass", () => {
+    const square = (x) => ({
+        type: "POLYGON",
+        coordinates: [
+            [
+                [x, 0],
+                [x + 1, 0],
+                [x + 1, 1],
+                [x, 1]
+            ]
+        ]
+    });
+    const vector = new Vector("name", {});
+    const entities = [0, 2, 4, 6].map((x) => new Entity({ geometry: square(x) }));
+    vector.addEntities(entities);
+    vector._planet = {
+        _clearLayerMaterial: () => {},
+        renderer: { clearPickingColor: () => {}, requestRedraw: () => {} }
+    };
+    for (const e of entities) vector._geometryHandler.add(e.geometry);
+    // No WebGL context in tests
+    vi.spyOn(vector._geometryHandler, "_deleteBuffers").mockImplementation(() => {});
+    const batch = vi.spyOn(vector._geometryHandler, "removeGeometries");
+    const single = vi.spyOn(vector._geometryHandler, "remove");
+
+    vector.clear();
+
+    expect(batch).toHaveBeenCalledTimes(1);
+    expect(batch).toHaveBeenCalledWith(entities.map((e) => e.geometry));
+    // The removals that follow find the geometries already detached.
+    for (const e of entities) expect(e.geometry._handler).toBe(null);
+    expect(single.mock.calls.length).toBe(entities.length);
+    expect(vector._geometryHandler._geometries).toEqual([]);
+});

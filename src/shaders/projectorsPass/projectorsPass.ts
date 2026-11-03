@@ -1,5 +1,6 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
-import { projectorUniforms } from "../common/uniforms";
+import { projectorShaderParams, projectorUniforms } from "../common/uniforms";
+import { stringTemplate2 } from "../../utils/shared";
 
 import vert from "./projectorsPass.vert.glsl";
 import frag from "./projectorsPass.frag.glsl";
@@ -19,6 +20,6 @@ export function projectorsPass(): ShaderProgram {
             a_corners: "vec3"
         },
         vertexShader: vert,
-        fragmentShader: frag
+        fragmentShader: stringTemplate2(frag, projectorShaderParams)
     });
 }

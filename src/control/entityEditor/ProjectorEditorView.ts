@@ -31,6 +31,7 @@ function getNumber(value: string): number | null {
 
 export class ProjectorEditorView extends View<Projector> {
     protected _enabledView: Checkbox;
+    protected _sourceEnabledView: Checkbox;
     protected _colorView: Color;
     protected _opacityView: Input;
     protected _priorityView: Input;
@@ -47,6 +48,10 @@ export class ProjectorEditorView extends View<Projector> {
 
         this._enabledView = new Checkbox({
             label: "Enabled"
+        });
+
+        this._sourceEnabledView = new Checkbox({
+            label: "Source enabled"
         });
 
         this._colorView = new Color({
@@ -92,6 +97,7 @@ export class ProjectorEditorView extends View<Projector> {
         this.el!.appendChild(this._bodyEl);
 
         this._enabledView.appendTo(this._bodyEl);
+        this._sourceEnabledView.appendTo(this._bodyEl);
         this._colorView.appendTo(this._bodyEl);
         this._opacityView.appendTo(this._bodyEl);
         this._priorityView.appendTo(this._bodyEl);
@@ -101,6 +107,7 @@ export class ProjectorEditorView extends View<Projector> {
         this._bodyEl.appendChild(this._modeRowEl);
 
         this._enabledView.events.on("change", this._onChangeEnabled);
+        this._sourceEnabledView.events.on("change", this._onChangeSourceEnabled);
         this._colorView.events.on("input", this._onChangeColor);
         this._opacityView.events.on("change", this._onChangeOpacity);
         this._priorityView.events.on("change", this._onChangePriority);
@@ -118,6 +125,12 @@ export class ProjectorEditorView extends View<Projector> {
             this._enabledView.stopPropagation();
             this._enabledView.checked = projector.enabled;
         }
+
+        if (this._sourceEnabledView.checked !== projector.sourceEnabled) {
+            this._sourceEnabledView.stopPropagation();
+            this._sourceEnabledView.checked = projector.sourceEnabled;
+        }
+        this._sourceEnabledView.disabled = !projector.source;
 
         const color = projector.getColor();
         if (this._colorView.value !== color) {
@@ -138,6 +151,7 @@ export class ProjectorEditorView extends View<Projector> {
 
     public override remove(): void {
         this._enabledView.remove();
+        this._sourceEnabledView.remove();
         this._colorView.remove();
         this._opacityView.remove();
         this._priorityView.remove();
@@ -161,6 +175,10 @@ export class ProjectorEditorView extends View<Projector> {
 
     protected _onChangeEnabled = (enabled: boolean): void => {
         this.model.enabled = enabled;
+    };
+
+    protected _onChangeSourceEnabled = (enabled: boolean): void => {
+        this.model.sourceEnabled = enabled;
     };
 
     protected _onChangeColor = (color: string): void => {

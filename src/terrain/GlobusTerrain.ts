@@ -145,6 +145,10 @@ class GlobusTerrain extends EmptyTerrain {
         this._urlRewriteCallback = options.urlRewrite || null;
     }
 
+    public override getMaxHeight(): number {
+        return this.maxHeight * this._heightFactor;
+    }
+
     public get loader(): Loader<GlobusTerrain> {
         return this._loader;
     }

@@ -1,6 +1,7 @@
 import { Mat4 } from "../../math/Mat4";
 import { projectorsPass } from "../../shaders/projectorsPass/projectorsPass";
 import type { Renderer } from "../Renderer";
+import { DEFAULT_PROJECTOR_TEXTURE_UNIT_START } from "../textureUnits";
 import type { Framebuffer } from "../../webgl/Framebuffer";
 import type { Projector } from "./Projector";
 import type { NumberArray16 } from "../../math/Mat4";
@@ -172,7 +173,7 @@ export class ProjectorsPass {
         gl.depthMask(false);
         gl.disable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE);
+        gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
         gl.blendEquation(gl.FUNC_ADD);
         gl.enable(gl.SCISSOR_TEST);
 
@@ -207,12 +208,12 @@ export class ProjectorsPass {
         const vpH = gBuffer.height;
         const active = projectors.active;
 
-        for (let i = 0; i < total; i++) {
+        for (let i = total - 1; i >= 0; i--) {
             if (!this._computeScissor(active[i], mainPV, mainEye, vpW, vpH)) {
                 continue;
             }
             gl.scissor(this._scissor[0], this._scissor[1], this._scissor[2], this._scissor[3]);
-            projectors.bindDeferred(p, 6, i);
+            projectors.bindDeferred(p, DEFAULT_PROJECTOR_TEXTURE_UNIT_START, i);
             gl.drawElements(gl.TRIANGLES, this._indexCount, gl.UNSIGNED_SHORT, 0);
         }
 

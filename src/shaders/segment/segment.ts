@@ -14,7 +14,7 @@ import segment_colorPicking_frag from "./segment_colorPicking.frag.glsl";
 import segment_depth_vert from "./segment_depth.vert.glsl";
 import segment_depth_frag from "./segment_depth.frag.glsl";
 import { stringTemplate2 } from "../../utils/shared";
-import { cascadeShadowUniforms, projectorUniforms, shadowMapUniforms } from "../common/uniforms";
+import { cascadeShadowUniforms, projectorShaderParams, projectorUniforms, shadowMapUniforms } from "../common/uniforms";
 
 // REMEMBER!
 // src*(1)+dest*(1-src.alpha)
@@ -51,8 +51,8 @@ export function segment_screen_deferred(): ShaderProgram {
             specularTexture: "sampler2d",
             lightPosition: "vec3",
             shadeMode: "float",
-            camHeight: "float",
-            nightTextureCoefficient: "float"
+            specularFactor: "float",
+            nightFactor: "float"
         },
         attributes: {
             aVertexPositionHigh: "vec3",
@@ -87,8 +87,8 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4",
-            camHeight: "float",
-            nightTextureCoefficient: "float",
+            specularFactor: "float",
+            nightFactor: "float",
             transitionOpacity: "float",
             shadeMode: "float",
             frameOpacity: "float",
@@ -102,7 +102,7 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             aTextureCoord: "vec2"
         },
         vertexShader: segment_screen_wl,
-        fragmentShader: segment_screen_wl_noatmos_forward_frag
+        fragmentShader: stringTemplate2(segment_screen_wl_noatmos_forward_frag, projectorShaderParams)
     });
 }
 
@@ -135,8 +135,8 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             scatteringTexture: "sampler2D",
             atmosFadeDist: "vec2",
             atmosMaxMinOpacity: "vec3",
-            camHeight: "float",
-            nightTextureCoefficient: "float",
+            specularFactor: "float",
+            nightFactor: "float",
             transitionOpacity: "float",
             shadeMode: "float",
             frameOpacity: "float",
@@ -150,7 +150,10 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             aTextureCoord: "vec2"
         },
         vertexShader: segment_screen_wl,
-        fragmentShader: stringTemplate2(segment_screen_wl_atmos_forward_frag, atmosParams)
+        fragmentShader: stringTemplate2(segment_screen_wl_atmos_forward_frag, {
+            ...atmosParams,
+            ...projectorShaderParams
+        })
     });
 }
 

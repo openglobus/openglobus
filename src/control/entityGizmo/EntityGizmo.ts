@@ -21,6 +21,7 @@ import {
     NATIVE_MODE,
     YAW_MODE,
     type EditModeName,
+    type GizmoSelectTarget,
     type GizmoTools,
     type IGizmoTransformEvent
 } from "./EntityGizmoScene";
@@ -29,6 +30,7 @@ export interface IEntityGizmoParams extends IControlParams {
     tools?: GizmoTools;
     editMode?: EditModeName;
     autoSelect?: boolean;
+    selectTarget?: GizmoSelectTarget;
 }
 
 type EntityGizmoEventsList = [
@@ -63,6 +65,8 @@ const ENTITY_GIZMO_EVENTS: EntityGizmoEventsList = [
  * a left click anywhere else drops the selection. When `false`, clicks do not
  * change the gizmo selection, so the host application stays the only source of the selection.
  * Default is `true`.
+ * @param {GizmoSelectTarget} [options.selectTarget] - Maps a clicked entity to the one to select, e.g. the
+ * root of a compound object; `null` leaves the entity unselectable. Applies to `autoSelect` clicks only.
  */
 export class EntityGizmo extends Control {
     public events: EventsHandler<EntityGizmoEventsList>;
@@ -82,7 +86,8 @@ export class EntityGizmo extends Control {
             name: `entityGizmoScene:${this.__id}`,
             tools: options.tools,
             editMode: options.editMode,
-            autoSelect: options.autoSelect
+            autoSelect: options.autoSelect,
+            selectTarget: options.selectTarget
         });
 
         this._bindSceneEvents();
