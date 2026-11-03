@@ -41,6 +41,7 @@ export { EntityGizmo } from "./control/entityGizmo/EntityGizmo";
 export type {
     EditMode,
     EditModeName,
+    GizmoSelectTarget,
     GizmoTools,
     GizmoTransformHandle,
     GizmoTransformKind,
