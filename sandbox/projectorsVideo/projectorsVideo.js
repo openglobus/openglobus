@@ -47,8 +47,7 @@ const skyCubeEntity = new Entity({
 });
 myObjects.add(skyCubeEntity);
 
-const depthCameraHandler = new control.DepthCameraHandler();
-globus.planet.addControl(depthCameraHandler);
+const depthCameraHandler = globus.renderer.depthCameraHandler;
 
 function createVideo(src) {
     const video = document.createElement("video");

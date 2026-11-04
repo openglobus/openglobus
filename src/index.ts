@@ -34,7 +34,6 @@ export { ShadowMap } from "./renderer/shadows/ShadowMap";
 export { CascadeShadowMap } from "./renderer/cascadeShadows/CascadeShadowMap";
 export type { IDepthCameraParams } from "./control/depthCamera/DepthCamera";
 export { DepthCamera } from "./control/depthCamera/DepthCamera";
-export type { IDepthCameraHandlerParams } from "./control/depthCamera/DepthCameraHandler";
 export { DepthCameraHandler } from "./control/depthCamera/DepthCameraHandler";
 export type { IEntityGizmoParams } from "./control/entityGizmo/EntityGizmo";
 export { EntityGizmo } from "./control/entityGizmo/EntityGizmo";

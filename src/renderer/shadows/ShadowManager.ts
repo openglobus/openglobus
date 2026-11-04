@@ -65,17 +65,21 @@ export class ShadowManager {
     public add(shadowMap: ShadowMap): number {
         if (shadowMap._slot !== -1) return shadowMap.id;
 
+        if (shadowMap.depthCamera._handlerIndex === -1) {
+            this._renderer.depthCameraHandler.add(shadowMap.depthCamera);
+        }
+
+        if (!shadowMap.depthCamera.initialized) {
+            console.warn("ShadowManager.add(): the renderer must be initialized before add()");
+            return -1;
+        }
+
         if (this._freeSlots.length === 0 && this._shadowMaps.length >= MAX_SHADOW_MAPS) {
             console.warn(`ShadowManager.add(): max shadow map layers (${MAX_SHADOW_MAPS}) reached`);
             return -1;
         }
 
         const framebuffer = shadowMap.depthCamera.framebuffer;
-        if (!framebuffer._fbo) {
-            console.warn("ShadowManager.add(): shadowMap.depthCamera.framebuffer must be initialized before add()");
-            return -1;
-        }
-
         const fbW = framebuffer.width;
         const fbH = framebuffer.height;
         if (fbW !== fbH) {

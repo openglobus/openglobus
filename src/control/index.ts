@@ -34,7 +34,6 @@ export * from "./entityEditor/EntityEditor";
 export * from "./CameraLock";
 export * from "./object3dManager/Object3dManager";
 export * from "./depthCamera/DepthCamera";
-export * from "./depthCamera/DepthCameraHandler";
 export * from "./FramebufferPreview";
 export * from "./SimpleTouchNavigation";
 export * from "./entityTree/EntityTree";

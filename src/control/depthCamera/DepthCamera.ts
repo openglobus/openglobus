@@ -1,18 +1,17 @@
-import { Camera } from "../../camera/Camera";
+import { Camera, type ICameraParams } from "../../camera/Camera";
 import { PlanetCamera } from "../../camera/PlanetCamera";
 import { Entity } from "../../entity/Entity";
 import { LonLat } from "../../LonLat";
-import { DEGREES } from "../../math";
 import { Vec2 } from "../../math/Vec2";
 import { Vec3 } from "../../math/Vec3";
 import { Vec4, type NumberArray4 } from "../../math/Vec4";
 import { RADIANS_HALF } from "../../math";
 import { Object3d } from "../../Object3d";
-import { QuadTreeStrategy } from "../../quadTree";
 import type { Renderer } from "../../renderer/Renderer";
 import { VARIANCE_SHADOW_ENABLED } from "../../renderer/shadows/ShadowManager";
 import type { Planet } from "../../scene/Planet";
-import type { EmptyTerrain } from "../../terrain/EmptyTerrain";
+import type { Scene } from "../../scene/Scene";
+import type { EntityCollection } from "../../entity/EntityCollection";
 import { Framebuffer } from "../../webgl";
 import { Vector } from "../../layer/Vector";
 import type { ShadowMap } from "../../renderer/shadows/ShadowMap";
@@ -57,6 +56,8 @@ export interface IDepthCameraParams {
     enableSegmentSkirts?: boolean;
     enableSegmentFaceCulling?: boolean;
     excludeLayers?: Vector[];
+    excludeEntityCollections?: EntityCollection[];
+    planet?: Planet;
     depthBiasWorld?: number;
     normalBias?: number; // 0.2 .. 1.0
 }
@@ -69,7 +70,7 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
 
     framebuffer.readData(nx, ny, ddd, 0);
 
-    if (ddd[0] === 0) {
+    if (ddd[0] === 0 || ddd[0] >= 1.0) {
         return 0;
     }
 
@@ -94,6 +95,7 @@ export class DepthCamera {
     public readonly verticalViewAngle: number;
     public readonly horizontalViewAngle?: number;
     public readonly excludeLayers: Vector[];
+    public readonly excludeEntityCollections: EntityCollection[];
     public depthBiasWorld: number;
     public normalBias: number;
 
@@ -101,9 +103,10 @@ export class DepthCamera {
     public enableSegmentSkirts: boolean;
     public enableSegmentFaceCulling: boolean;
 
+    public frustumMask: number;
+
     public camera!: Camera;
     public framebuffer!: Framebuffer;
-    public quadTreeStrategy!: QuadTreeStrategy;
     public shadowMap: ShadowMap | null;
 
     public _handler: DepthCameraHandler | null;
@@ -112,13 +115,10 @@ export class DepthCamera {
     protected _planet: Planet | null;
     protected _renderer: Renderer | null;
     protected _initialized: boolean;
-    public _forceOwnQuadTreeStrategyPass: boolean;
     protected _showFrustum: boolean;
     protected _showFootprint: boolean;
     protected _isOrthographic: boolean;
     protected _focusDistance: number;
-    protected _lastPlanetHeightFactor: number;
-    protected _lastPlanetTerrain: EmptyTerrain | null;
     protected _orthoTexelSizeX: number;
     protected _orthoTexelSizeY: number;
 
@@ -143,6 +143,7 @@ export class DepthCamera {
         this.id = DepthCamera.__counter__++;
 
         this.enabled = params.enabled ?? true;
+        this.frustumMask = -1;
         this.enableSegmentSkirts = params.enableSegmentSkirts ?? false;
         this.enableSegmentFaceCulling = params.enableSegmentFaceCulling ?? true;
         this.width = params.width ?? CAM_WIDTH;
@@ -152,19 +153,17 @@ export class DepthCamera {
         this.verticalViewAngle = params.verticalViewAngle ?? DEFAULT_VERTICAL_VIEW_ANGLE;
         this.horizontalViewAngle = params.horizontalViewAngle;
         this.excludeLayers = params.excludeLayers ? [...params.excludeLayers] : [];
+        this.excludeEntityCollections = params.excludeEntityCollections ? [...params.excludeEntityCollections] : [];
         this.depthBiasWorld = params.depthBiasWorld ?? DEPTH_BIAS_WORLD;
         this.normalBias = params.normalBias ?? DEPTH_NORMAL_BIAS;
 
-        this._planet = null;
+        this._planet = params.planet ?? null;
         this._renderer = null;
         this._initialized = false;
-        this._forceOwnQuadTreeStrategyPass = true;
         this._showFrustum = params.showFrustum ?? false;
         this._showFootprint = params.showFootprint ?? false;
         this._isOrthographic = params.isOrthographic ?? false;
         this._focusDistance = params.focusDistance ?? this.far;
-        this._lastPlanetHeightFactor = 1.0;
-        this._lastPlanetTerrain = null;
         this._orthoTexelSizeX = 0.0;
         this._orthoTexelSizeY = 0.0;
 
@@ -196,6 +195,13 @@ export class DepthCamera {
         return this._initialized;
     }
 
+    /**
+     * Planet the camera is geographically bound to (PlanetCamera, footprint, lon/lat), null without a planet.
+     */
+    public get planet(): Planet | null {
+        return this._planet;
+    }
+
     public get showFrustum(): boolean {
         return this._showFrustum;
     }
@@ -208,11 +214,7 @@ export class DepthCamera {
         }
 
         if (this._handler && this._handlerIndex !== -1 && this._cameraFrustumEntity) {
-            if (showFrustum) {
-                this._handler.cameraFrustumLayer.add(this._cameraFrustumEntity);
-            } else {
-                this._handler.cameraFrustumLayer.removeEntity(this._cameraFrustumEntity);
-            }
+            this._handler._showFrustumEntity(this._cameraFrustumEntity, showFrustum);
         }
     }
 
@@ -228,11 +230,7 @@ export class DepthCamera {
         }
 
         if (this._handler && this._handlerIndex !== -1 && this._cameraFootprintEntity) {
-            if (showFootprint) {
-                this._handler.cameraFootprintLayer.add(this._cameraFootprintEntity);
-            } else {
-                this._handler.cameraFootprintLayer.removeEntity(this._cameraFootprintEntity);
-            }
+            this._handler._showFootprintEntity(this._cameraFootprintEntity, showFootprint);
         }
     }
 
@@ -253,7 +251,6 @@ export class DepthCamera {
 
     public set isOrthographic(isOrthographic: boolean) {
         this._isOrthographic = isOrthographic;
-        this._forceOwnQuadTreeStrategyPass = true;
 
         if (this._initialized) {
             if (isOrthographic) {
@@ -271,7 +268,6 @@ export class DepthCamera {
         if (!Number.isFinite(focusDistance) || focusDistance <= 0) return;
 
         this._focusDistance = focusDistance;
-        this._forceOwnQuadTreeStrategyPass = true;
 
         if (this._initialized) {
             this.camera.focusDistance = focusDistance;
@@ -321,55 +317,65 @@ export class DepthCamera {
         );
     }
 
-    public init(planet: Planet, renderer: Renderer): void {
+    /**
+     * @param {Planet | null} planet - Default planet to bind the camera to when it has none.
+     * @param {Renderer} renderer - Renderer.
+     */
+    public init(planet: Planet | null, renderer: Renderer): void {
         if (this._initialized) return;
 
-        this._planet = planet;
+        this._planet = this._planet || planet;
         this._renderer = renderer;
-        this.camera = this._createCamera(planet);
+        this.camera = this._createCamera(this._planet);
         this.framebuffer = this._createFramebuffer(renderer);
         this.framebuffer.init();
 
-        this.quadTreeStrategy = this._createQuadTreeStrategy(planet, this.camera as PlanetCamera);
-        this._lastPlanetHeightFactor = planet._heightFactor;
-        this._lastPlanetTerrain = planet.terrain;
-        this._forceOwnQuadTreeStrategyPass = true;
         this._initialized = true;
     }
 
     public destroy(): void {
         if (!this._initialized) return;
 
-        this.quadTreeStrategy.clear();
         this.framebuffer.destroy();
 
-        this._planet = null;
         this._renderer = null;
         this._initialized = false;
     }
 
+    /**
+     * Renders the depth frame of all renderer scenes. Planets give the nodes they have collected for this
+     * camera, so it runs after the planet collection, and prepareFrame before it.
+     */
     public frame(): void {
-        if (!this.enabled || !this._initialized || !this._renderer || !this._planet) return;
+        if (!this.enabled || !this._initialized || !this._renderer) return;
 
         const framebuffer = this.framebuffer;
         const gl = framebuffer.handler.gl!;
         const mainCam = this._renderer.activeCamera;
-        const depthCamera = this.camera as PlanetCamera;
-
-        this.prepareFrame();
+        const depthCamera = this.camera;
 
         framebuffer.activate();
 
         this._renderer.applyDepthForCamera(depthCamera);
 
-        const quadTreeStrategy = this._getQuadTreeStrategy(depthCamera);
+        depthCamera.updateCameraSlope();
 
         gl.clearColor(1.0, 1.0, 1.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
 
-        this._segmentsPass(depthCamera, quadTreeStrategy);
-        this._geoObjectsPass(depthCamera);
+        const scenes = this._renderer._scenesArr;
+        for (let i = 0; i < scenes.length; i++) {
+            const scene = scenes[i];
+            if (!scene.isActive() || scene.disableDepthCamera) continue;
+
+            const planet = scene as Planet;
+            if (planet.quadTreeStrategy) {
+                this._segmentsPass(depthCamera, planet);
+                this._vectorLayersPass(depthCamera, planet);
+            }
+            this._entityCollectionsPass(depthCamera, scene);
+        }
 
         gl.enable(gl.BLEND);
 
@@ -386,7 +392,6 @@ export class DepthCamera {
     }
 
     public prepareFrame(): void {
-        this._syncPlanetHeightFactor();
         this._prepareOrthographicProjection();
         this._prepareCameraEntitySync();
     }
@@ -530,22 +535,6 @@ export class DepthCamera {
         return this.framebuffer.textures[0]!;
     }
 
-    protected _syncPlanetHeightFactor(): void {
-        const planet = this._planet;
-        if (
-            !planet ||
-            (this._lastPlanetHeightFactor === planet._heightFactor && this._lastPlanetTerrain === planet.terrain)
-        ) {
-            return;
-        }
-
-        this._lastPlanetHeightFactor = planet._heightFactor;
-        this._lastPlanetTerrain = planet.terrain;
-        this.quadTreeStrategy.destroyBranches();
-        this.quadTreeStrategy.clearRenderedNodes();
-        this._forceOwnQuadTreeStrategyPass = true;
-    }
-
     protected _prepareOrthographicProjection(): void {
         if (!this.camera.isMoving) return;
         if (this._snapOrthographicProjectionToTexelGrid()) {
@@ -682,8 +671,8 @@ export class DepthCamera {
         });
     }
 
-    protected _createCamera(planet: Planet): Camera {
-        const camera = new PlanetCamera(planet, {
+    protected _createCamera(planet: Planet | null): Camera {
+        const params: ICameraParams = {
             frustums: [[this.near, this.far]],
             width: this.width,
             height: this.height,
@@ -691,7 +680,9 @@ export class DepthCamera {
             isOrthographic: this._isOrthographic,
             focusDistance: this._focusDistance,
             reverseDepth: false
-        });
+        };
+
+        const camera = planet ? new PlanetCamera(planet, params) : new Camera(params);
 
         if (this.horizontalViewAngle != null) {
             camera.setHorizontalViewAngle(this.horizontalViewAngle);
@@ -716,71 +707,11 @@ export class DepthCamera {
         });
     }
 
-    protected _createQuadTreeStrategy(planet: Planet, camera: PlanetCamera): QuadTreeStrategy {
-        const quadTreeStrategy = new planet.quadTreeStrategyPrototype({
-            planet,
-            maxEqualZoomAltitude: planet.quadTreeStrategy.maxEqualZoomAltitude,
-            minEqualZoomAltitude: planet.quadTreeStrategy.minEqualZoomAltitude,
-            minEqualZoomCameraSlope: planet.quadTreeStrategy.minEqualZoomCameraSlope,
-            transitionOpacityEnabled: false
-        });
-
-        quadTreeStrategy.init(camera);
-        quadTreeStrategy.lodCamera = planet.camera;
-        quadTreeStrategy.preRender();
-        quadTreeStrategy.clearRenderedNodes();
-        quadTreeStrategy.preLoad();
-
-        return quadTreeStrategy;
-    }
-
-    protected _getQuadTreeStrategy(depthCamera: PlanetCamera): QuadTreeStrategy {
-        const planet = this._planet!;
-        const mainCam = this._renderer!.activeCamera;
-
-        //
-        // @test
-        //
-        //return planet.quadTreeStrategy;
-
-        const sun = planet.sun;
-        let sunHorizonAngle = 0;
-        if (sun) {
-            const up = planet.ellipsoid.getSurfaceNormal3v(depthCamera.eye);
-            const toSun = sun.getPosition().sub(depthCamera.eye).normalize();
-            sunHorizonAngle = Math.asin(Math.max(-1.0, Math.min(1.0, up.dot(toSun)))) * DEGREES;
-            //console.log(`Sun horizon angle: ${sunHorizonAngle.toFixed(2)}°`);
-        }
-
-        if (planet.camera.getHeight() > 135818 /* || sunHorizonAngle > 22*/) {
-            return planet.quadTreeStrategy;
-        }
-
-        if (
-            //!depthCamera.isOrthographic &&
-            !this._forceOwnQuadTreeStrategyPass &&
-            mainCam.containsPoint(depthCamera.eye)
-        ) {
-            return planet.quadTreeStrategy;
-        }
-
-        this._forceOwnQuadTreeStrategyPass = false;
-        depthCamera.updateCameraSlope();
-
-        const quadTreeStrategy = this.quadTreeStrategy;
-        quadTreeStrategy.maxZoomLimit = planet.quadTreeStrategy.maxCurrZoom;
-        quadTreeStrategy.disableNeighbors = true;
-        quadTreeStrategy.collectRenderNodes(depthCamera);
-
-        return quadTreeStrategy;
-    }
-
-    protected _segmentsPass(camera: PlanetCamera, quadTreeStrategy: QuadTreeStrategy): void {
+    protected _segmentsPass(camera: Camera, planet: Planet): void {
         const h = this._renderer!.handler;
         const gl = h.gl!;
-        const planet = this._planet;
 
-        if (!planet) return;
+        if (this._handlerIndex === -1) return;
 
         let checkSlope = camera.isOrthographic && camera.slope < RENDER_SKIRTS_SLOPE;
 
@@ -799,38 +730,24 @@ export class DepthCamera {
 
         //const isEq = planet.terrain!.equalizeVertices;
         const baseLayerSlice = planet.visibleTileLayers.length ? [planet.visibleTileLayers[0]] : undefined;
-        const rn = quadTreeStrategy._renderedNodesInFrustum[camera.getCurrentFrustum()];
-        //const renderSkirts = this.enableSegmentSkirts && checkSlope;
-        const renderSkirts = true;
+        const rn = planet.quadTreeStrategy.getViewCameraRenderedNodes(this._handlerIndex, camera.getCurrentFrustum());
 
         let i = rn.length;
         while (i--) {
             const s = rn[i].segment;
-            if (!s.node) continue;
-            if (s._transitionOpacity >= 1) {
-                //isEq && s.equalize();
-                s.readyToEngage && s.engage();
-                s.ensureIndexBuffer();
-                s.updateRTCEyePosition(camera);
-                s.depthRendering(sh, baseLayerSlice, renderSkirts);
-            }
-        }
-
-        for (let j = 0; j < quadTreeStrategy._fadingOpaqueSegments.length; ++j) {
-            const s = quadTreeStrategy._fadingOpaqueSegments[j];
-            if (!s.node) continue;
+            if (!s || !s.node) continue;
             //isEq && s.equalize();
             s.readyToEngage && s.engage();
             s.ensureIndexBuffer();
             s.updateRTCEyePosition(camera);
-            s.depthRendering(sh, baseLayerSlice, renderSkirts);
+            s.depthRendering(sh, baseLayerSlice);
         }
 
         gl.enable(gl.CULL_FACE);
     }
 
-    protected _geoObjectsPass(camera: PlanetCamera): void {
-        const layers = this._planet!.layers;
+    protected _vectorLayersPass(camera: Camera, planet: Planet): void {
+        const layers = planet.layers;
 
         for (let i = 0; i < layers.length; i++) {
             const layer = layers[i];
@@ -843,6 +760,17 @@ export class DepthCamera {
             }
 
             layer._geoObjectEntityCollection.geoObjectHandler.drawDepthCameraPass(camera);
+        }
+    }
+
+    protected _entityCollectionsPass(camera: Camera, scene: Scene): void {
+        const ecs = scene.entityCollections;
+
+        for (let i = 0; i < ecs.length; i++) {
+            const ec = ecs[i];
+            if (ec.getVisibility() && !this.excludeEntityCollections.includes(ec)) {
+                ec.geoObjectHandler.drawDepthCameraPass(camera);
+            }
         }
     }
 

@@ -138,8 +138,7 @@ const depthPreviewShader = `void mainImage(out vec4 fragColor, in vec2 fragCoord
                 fragColor = vec4(vec3(clamp(normalized, 0.0, 1.0)), 1.0);
             }`;
 
-const depthCameraHandler = new control.DepthCameraHandler();
-globus.planet.addControl(depthCameraHandler);
+const depthCameraHandler = globus.renderer.depthCameraHandler;
 
 const depthCamera = new DepthCamera({
     enableSegmentSkirts: true,

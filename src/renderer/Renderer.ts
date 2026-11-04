@@ -23,6 +23,7 @@ import { PhongDeferredShading } from "./PhongDeferredShading";
 import { ProjectorManager } from "./projectors/ProjectorManager";
 import { CascadeShadowManager } from "./cascadeShadows/CascadeShadowManager";
 import { ShadowManager } from "./shadows/ShadowManager";
+import { DepthCameraHandler } from "../control/depthCamera/DepthCameraHandler";
 import { TextureResourceManager } from "../utils/TextureResourceManager";
 import type { RendererTextureRequest } from "../utils/TextureResourceManager";
 import { WOITPass } from "./WOITPass";
@@ -297,6 +298,7 @@ class Renderer {
     public projectors: ProjectorManager;
     public cascadeShadowManager: CascadeShadowManager;
     public shadows: ShadowManager;
+    public depthCameraHandler: DepthCameraHandler;
 
     //public lightColor: Float32Array;
     //public lightIntensity: number;
@@ -333,6 +335,7 @@ class Renderer {
         this.projectors = new ProjectorManager(this);
         this.cascadeShadowManager = new CascadeShadowManager(this);
         this.shadows = new ShadowManager(this);
+        this.depthCameraHandler = new DepthCameraHandler(this);
 
         this.lightAmbient = params.lightAmbient || [0.2, 0.2, 0.2];
         this.lightDiffuse = params.lightDiffuse || [1, 1, 1];
@@ -1050,6 +1053,8 @@ class Renderer {
 
         this._initializeScenes();
 
+        this.depthCameraHandler.init();
+
         this._initializeControls();
     }
 
@@ -1629,6 +1634,8 @@ class Renderer {
 
         e.dispatch(e.predraw, this);
 
+        this.depthCameraHandler.prepareFrame();
+
         this.projectors.updateSources();
 
         this.activeCamera.checkFly();
@@ -1641,6 +1648,8 @@ class Renderer {
         this.activeCamera.setCurrentFrustum(this.activeCamera.FARTHEST_FRUSTUM_INDEX);
 
         e.dispatch(e.draw, this);
+
+        this.depthCameraHandler.frame();
 
         //
         // Scenes PASS
@@ -2121,6 +2130,7 @@ class Renderer {
         this._textureResourceManager.clear();
         this.projectors.clear();
         this.cascadeShadowManager.destroy();
+        this.depthCameraHandler.destroy();
         this.shadows.clear();
 
         this.handler.ONCANVASRESIZE = null;

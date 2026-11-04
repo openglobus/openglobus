@@ -31,6 +31,7 @@ import {
 import { TILEGROUP_COMMON, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "../segment/Segment";
 
 import { PlanetCamera } from "../camera/PlanetCamera";
+import type { Camera } from "../camera/Camera";
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
@@ -393,6 +394,114 @@ class Node {
             }
         } else {
             this.state = NOTRENDERING;
+        }
+    }
+
+    /**
+     * Bit mask of the camera frustums the node is in, the same test renderTree makes.
+     * @public
+     * @param {Camera} cam - Camera.
+     * @returns {number} -
+     */
+    public getFrustumMask(cam: Camera): number {
+        const seg = this.segment,
+            frustums = cam.frustums,
+            useBox = seg.tileZoom >= 6 && seg.terrainReady;
+
+        let mask = 0;
+        for (let i = 0, len = frustums.length; i < len; i++) {
+            if (useBox ? frustums[i].containsBox(seg.bbox) : frustums[i].containsSphere(seg.bsphere)) {
+                mask |= 1 << i;
+            }
+        }
+
+        return mask;
+    }
+
+    /**
+     * Tree traversal of a view (depth) camera, after the main camera one. While mainState is true the node state
+     * was set by the main traversal in this frame: it stops at the main rendered nodes (the strategy takes them)
+     * and goes down where the main camera went down. Elsewhere the nodes are chosen by the main camera LOD and the
+     * node state is not read anymore. It never changes the node state.
+     * @public
+     */
+    public renderViewCameraTree(
+        slot: number,
+        cam: Camera,
+        frustumMask: number,
+        mainCamera: PlanetCamera,
+        horizonDist2: number,
+        mainState: boolean,
+        terrainReadySegment: Segment | null
+    ) {
+        const qts = this.quadTreeStrategy;
+
+        const openFrustums = qts._getViewCameraOpenFrustums(slot);
+        if (!openFrustums) {
+            return;
+        }
+
+        const inFrustum = this.getFrustumMask(cam) & frustumMask & openFrustums;
+        if (!inFrustum) {
+            return;
+        }
+
+        const seg = this.segment;
+        let goDown: boolean;
+
+        if (mainState && this.state === RENDERING) {
+            return;
+        } else if (mainState && this.state === WALKTHROUGH) {
+            goDown = true;
+        } else {
+            mainState = false;
+
+            const altVis =
+                seg.tileZoom < 2 ||
+                seg.tileZoom > 19 ||
+                (seg.tileZoom < 6 && !seg.terrainReady) ||
+                cam.eye.distance2(seg._sw) < horizonDist2 ||
+                cam.eye.distance2(seg._nw) < horizonDist2 ||
+                cam.eye.distance2(seg._ne) < horizonDist2 ||
+                cam.eye.distance2(seg._se) < horizonDist2;
+
+            if (!altVis) {
+                return;
+            }
+
+            goDown =
+                seg.tileZoom < 2 ||
+                (seg.terrainReady &&
+                    seg.tileZoom < qts.maxZoomLimit &&
+                    mainCamera.projectedSize(seg.lodCenter, seg._plainRadius) >= qts.lodSize &&
+                    seg.checkZoom());
+        }
+
+        if (goDown) {
+            if (!this.ready) {
+                this.createChildNodes();
+            }
+            const n = this.nodes,
+                trs = seg.terrainReady ? seg : terrainReadySegment;
+            for (let i = 0; i < n.length; i++) {
+                n[i].renderViewCameraTree(slot, cam, frustumMask, mainCamera, horizonDist2, mainState, trs);
+            }
+        } else {
+            // Terrain loading part of renderNode. Forced, because the terrain loader drops the requests of the nodes
+            // the main traversal has marked NOTRENDERING, and that is where the view camera own nodes are.
+            if (!seg.terrainReady) {
+                if (!seg.initialized) {
+                    seg.initialize();
+                }
+                this.whileTerrainLoading(terrainReadySegment);
+                if (!seg.plainProcessing) {
+                    seg.createPlainSegmentAsync();
+                }
+                if (seg.plainReady) {
+                    seg.loadTerrain(true);
+                }
+            }
+            qts._addViewCameraNode(slot, this, inFrustum);
         }
     }
 

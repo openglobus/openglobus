@@ -1,61 +1,86 @@
 import * as math from "../../math";
-import { Control, IControlParams } from "../Control";
+import type { Renderer } from "../../renderer/Renderer";
+import type { Planet } from "../../scene/Planet";
+import { Scene } from "../../scene/Scene";
+import type { Entity } from "../../entity/Entity";
+import { EntityCollection } from "../../entity/EntityCollection";
 import { DepthCamera } from "./DepthCamera";
 import { depth_camera } from "./depth_camera";
-import { Vector } from "../../layer";
 
-const DEPTH_CAMERA_HANDLER_PREDRAW_PRIORITY = 0;
 const POLYLINE_DEPTH_OFFSET = -100;
 
-export interface IDepthCameraHandlerParams extends IControlParams {
-    depthCameras?: DepthCamera[];
-}
+/**
+ * Renderer depth cameras. A camera index in the list is its slot in the planet quad tree strategies.
+ */
+export class DepthCameraHandler {
+    public readonly renderer: Renderer;
 
-export class DepthCameraHandler extends Control {
-    protected _depthCameras: DepthCamera[];
+    public _depthCameras: DepthCamera[];
 
-    public readonly cameraFootprintLayer: Vector;
-    public readonly cameraFrustumLayer: Vector;
+    public readonly cameraFrustumCollection: EntityCollection;
+    public readonly cameraFootprintCollection: EntityCollection;
 
-    constructor(params: IDepthCameraHandlerParams = {}) {
-        super({
-            name: "DepthCameraHandler",
-            autoActivate: true,
-            ...params
-        });
+    protected _initialized: boolean;
+    protected _planet: Planet | null;
+    protected _scene: Scene;
 
+    constructor(renderer: Renderer) {
+        this.renderer = renderer;
         this._depthCameras = [];
+        this._initialized = false;
+        this._planet = null;
 
-        this.cameraFootprintLayer = new Vector(`depthCameraFootprintLayer`, {
-            entities: [],
+        this.cameraFootprintCollection = new EntityCollection({
             pickingEnabled: false,
             receiveProjectors: false,
             receiveShadows: false,
-            depthOffset: POLYLINE_DEPTH_OFFSET,
-            hideInLayerSwitcher: true,
-            clampToGround: true,
-            visibility: true
+            depthOffset: POLYLINE_DEPTH_OFFSET
         });
 
-        this.cameraFrustumLayer = new Vector(`depthCameraFrustumLayer`, {
-            entities: [],
+        this.cameraFrustumCollection = new EntityCollection({
             pickingEnabled: true,
             receiveProjectors: false,
             receiveShadows: false,
             shadeMode: "phong",
-            hideInLayerSwitcher: true,
             scaleByDistance: [100, 1000000, math.MAX32]
         });
 
-        if (params.depthCameras) {
-            for (let i = 0; i < params.depthCameras.length; i++) {
-                this.add(params.depthCameras[i]);
-            }
-        }
+        this._scene = new Scene("depthCameraHandler");
+        this._scene.disableDepthCamera = true;
     }
 
     public get depthCameras(): DepthCamera[] {
         return [...this._depthCameras];
+    }
+
+    /**
+     * First planet of the renderer, the default one to bind the cameras to.
+     */
+    public get planet(): Planet | null {
+        return this._planet;
+    }
+
+    public init(): void {
+        if (this._initialized) return;
+
+        this._initialized = true;
+
+        this.renderer.handler.addProgram(depth_camera());
+
+        this._bindPlanet();
+
+        if (this._planet) {
+            this.cameraFootprintCollection.addTo(this._planet);
+            this.cameraFrustumCollection.addTo(this._planet);
+        } else {
+            this.renderer.addScene(this._scene);
+            this.cameraFrustumCollection.addTo(this._scene);
+        }
+
+        for (let i = 0; i < this._depthCameras.length; i++) {
+            this._depthCameras[i].init(this._planet, this.renderer);
+            this._addDepthCameraEntities(this._depthCameras[i]);
+        }
     }
 
     public add(depthCamera: DepthCamera): DepthCamera {
@@ -66,23 +91,18 @@ export class DepthCameraHandler extends Control {
         depthCamera._handler = this;
         depthCamera._handlerIndex = this._depthCameras.length;
         this._depthCameras.push(depthCamera);
-        this._addDepthCameraEntities(depthCamera);
 
-        if (this.renderer?.isInitialized() && this.planet) {
-            this._initDepthCamera(depthCamera);
+        if (this._initialized) {
+            depthCamera.init(this._planet, this.renderer);
+            this._addDepthCameraEntities(depthCamera);
         }
+
+        this.renderer.requestRedraw();
 
         return depthCamera;
     }
 
-    public override remove(): void;
-    public override remove(depthCamera: DepthCamera): boolean;
-    public override remove(depthCamera?: DepthCamera): void | boolean {
-        if (!depthCamera) {
-            super.remove();
-            return;
-        }
-
+    public remove(depthCamera: DepthCamera): boolean {
         const index = depthCamera._handlerIndex;
         if (index === -1 || this._depthCameras[index] !== depthCamera) {
             return false;
@@ -102,6 +122,8 @@ export class DepthCameraHandler extends Control {
         depthCamera._handler = null;
         depthCamera._handlerIndex = -1;
 
+        this.renderer.requestRedraw();
+
         return true;
     }
 
@@ -111,74 +133,81 @@ export class DepthCameraHandler extends Control {
         }
     }
 
-    public override oninit(): void {
-        super.oninit();
-
-        if (!this.renderer || !this.planet) return;
-
-        this.renderer.handler.addProgram(depth_camera());
-
-        this.planet.addLayer(this.cameraFootprintLayer);
-        this.planet.addLayer(this.cameraFrustumLayer);
-
-        for (let i = 0; i < this._depthCameras.length; i++) {
-            this._initDepthCamera(this._depthCameras[i]);
-        }
-    }
-
-    public override onactivate(): void {
-        if (this.renderer) {
-            this.renderer.events.on("predraw", this._onDraw, this, DEPTH_CAMERA_HANDLER_PREDRAW_PRIORITY);
-        }
-    }
-
-    public override ondeactivate(): void {
-        if (this.renderer) {
-            this.renderer.events.off("predraw", this._onDraw);
-        }
-    }
-
-    public override onremove(): void {
+    public destroy(): void {
         this.clear();
-        this.cameraFootprintLayer.remove();
-        this.cameraFrustumLayer.remove();
+        this.cameraFootprintCollection.remove();
+        this.cameraFrustumCollection.remove();
+        this._scene.remove();
+        this._planet = null;
+        this._initialized = false;
     }
 
-    protected _initDepthCamera(depthCamera: DepthCamera): void {
-        if (!this.renderer || !this.planet || depthCamera.initialized) return;
+    /**
+     * Puts the cameras in place, before the planets collect their nodes.
+     */
+    public prepareFrame(): void {
+        for (let i = 0; i < this._depthCameras.length; i++) {
+            const depthCamera = this._depthCameras[i];
+            if (depthCamera.enabled && depthCamera.initialized) {
+                depthCamera.prepareFrame();
+            }
+        }
+    }
 
-        depthCamera.init(this.planet, this.renderer);
+    /**
+     * Renders the depth frames, after the planets have collected the nodes and before the scenes are drawn.
+     */
+    public frame(): void {
+        for (let i = 0; i < this._depthCameras.length; i++) {
+            this._depthCameras[i].frame();
+        }
+    }
+
+    protected _bindPlanet(): void {
+        if (this._planet) return;
+
+        const scenes = this.renderer._scenesArr;
+
+        for (let i = scenes.length - 1; i >= 0; i--) {
+            const planet = scenes[i] as Planet;
+            if (planet.quadTreeStrategy) {
+                this._planet = planet;
+                return;
+            }
+        }
+    }
+
+    public _showFrustumEntity(entity: Entity, show: boolean): void {
+        if (!this._initialized) return;
+        show ? this.cameraFrustumCollection.add(entity) : this.cameraFrustumCollection.removeEntity(entity);
+    }
+
+    public _showFootprintEntity(entity: Entity, show: boolean): void {
+        if (!this._initialized || !this._planet) return;
+        show ? this.cameraFootprintCollection.add(entity) : this.cameraFootprintCollection.removeEntity(entity);
     }
 
     protected _addDepthCameraEntities(depthCamera: DepthCamera): void {
         const cameraFootprintEntity = depthCamera.cameraFootprintEntity;
         if (depthCamera.showFootprint && cameraFootprintEntity) {
-            this.cameraFootprintLayer.add(cameraFootprintEntity);
+            this._showFootprintEntity(cameraFootprintEntity, true);
         }
 
         const cameraFrustumEntity = depthCamera.cameraFrustumEntity;
         if (depthCamera.showFrustum && cameraFrustumEntity) {
-            this.cameraFrustumLayer.add(cameraFrustumEntity);
+            this._showFrustumEntity(cameraFrustumEntity, true);
         }
     }
 
     protected _removeDepthCameraEntities(depthCamera: DepthCamera): void {
         const cameraFootprintEntity = depthCamera.cameraFootprintEntity;
         if (cameraFootprintEntity) {
-            this.cameraFootprintLayer.removeEntity(cameraFootprintEntity);
+            this._showFootprintEntity(cameraFootprintEntity, false);
         }
 
         const cameraFrustumEntity = depthCamera.cameraFrustumEntity;
         if (cameraFrustumEntity) {
-            this.cameraFrustumLayer.removeEntity(cameraFrustumEntity);
+            this._showFrustumEntity(cameraFrustumEntity, false);
         }
     }
-
-    protected _onDraw = (): void => {
-        if (!this.renderer || !this.planet) return;
-
-        for (let i = 0; i < this._depthCameras.length; i++) {
-            this._depthCameras[i].frame();
-        }
-    };
 }

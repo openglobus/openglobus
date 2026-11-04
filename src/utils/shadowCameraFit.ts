@@ -1,5 +1,4 @@
 import type { DepthCamera } from "../control/depthCamera/DepthCamera";
-import type { QuadTreeStrategy } from "../quadTree/QuadTreeStrategy";
 import type { Planet } from "../scene/Planet";
 import type { CameraFootprint } from "./cameraFootprint";
 import { Vec3 } from "../math/Vec3";
@@ -136,13 +135,6 @@ export interface IShadowCameraFitParams {
      */
     depthBiasTexels?: number;
     depthBiasOffset?: number;
-
-    /**
-     * Renders the depth pass from the depth camera's own quad tree traversal rather than from the planet's.
-     * The planet's one covers only the near band of the view and drops tiles while they fade. Above a main
-     * camera height of about 136 km DepthCamera takes the planet's traversal whatever this says.
-     */
-    pinOwnQuadTreeTraversal?: boolean;
 }
 
 /** Last fit measurements, for readouts and debugging. */
@@ -205,20 +197,21 @@ function getStableLightUp(footprint: CameraFootprint, lightDirection: Vec3, hori
 
 /**
  * How high the rendered terrain rises above a reference radius, and how deep it drops below it, as two
- * positive heights.
+ * positive heights. A max radius of 0 means no terrain is known.
  */
-function getStrategyRelief(
-    quadTreeStrategy: QuadTreeStrategy | undefined,
+function getRelief(
+    minTerrainRadius: number,
+    maxTerrainRadius: number,
     upFrom: number,
     downFrom: number
 ): { up: number; down: number } {
-    if (!quadTreeStrategy || quadTreeStrategy.maxTerrainRadius <= 0.0) {
+    if (maxTerrainRadius <= 0.0) {
         return { up: 0.0, down: 0.0 };
     }
 
     return {
-        up: Math.max(0.0, quadTreeStrategy.maxTerrainRadius - upFrom),
-        down: Math.max(0.0, downFrom - quadTreeStrategy.minTerrainRadius)
+        up: Math.max(0.0, maxTerrainRadius - upFrom),
+        down: Math.max(0.0, downFrom - minTerrainRadius)
     };
 }
 
@@ -319,7 +312,6 @@ export class ShadowCameraFit {
     public motionMarginFrames: number;
     public depthBiasTexels: number;
     public depthBiasOffset: number;
-    public pinOwnQuadTreeTraversal: boolean;
 
     public readonly stats: IShadowCameraFitStats;
 
@@ -342,7 +334,6 @@ export class ShadowCameraFit {
         this.motionMarginFrames = params.motionMarginFrames ?? 0.0;
         this.depthBiasTexels = params.depthBiasTexels ?? 1.0;
         this.depthBiasOffset = params.depthBiasOffset ?? 100;
-        this.pinOwnQuadTreeTraversal = params.pinOwnQuadTreeTraversal ?? true;
 
         this.stats = {
             texelWorldSize: 0.0,
@@ -408,7 +399,7 @@ export class ShadowCameraFit {
         let up = shadowCamera.getUp();
 
         // 2. Box the ground the view sees, with the terrain relief around it, along the camera axes.
-        let relief = this._getTerrainRelief(depthCamera, footprint);
+        let relief = this._getTerrainRelief(footprint);
         let bounds = getLightSpaceBounds(
             footprint.center,
             right,
@@ -445,7 +436,7 @@ export class ShadowCameraFit {
         let receiverDepthPadding = SHADOW_RECEIVER_DEPTH_PADDING + relief.depthDown;
         let far = Math.max(near + MIN_SHADOW_ORTHO_SIZE, bounds.maxZ + receiverDepthPadding - eyeOffset);
 
-        // 6. Apply, then hand the depth pass its biases and its own traversal.
+        // 6. Apply, then hand the depth pass its biases.
         shadowCamera.set(eye, eye.add(forward), lightUp);
         shadowCamera.frustum.setOrthoProjection(
             orthoBounds.left,
@@ -458,10 +449,6 @@ export class ShadowCameraFit {
         shadowCamera.update();
 
         this._updateDepthBiases(depthCamera, orthoBounds, textureWidth);
-
-        if (this.pinOwnQuadTreeTraversal) {
-            depthCamera._forceOwnQuadTreeStrategyPass = true;
-        }
 
         let stats = this.stats;
 
@@ -483,13 +470,14 @@ export class ShadowCameraFit {
     }
 
     /** Returns how much higher and how much lower the terrain goes than the four footprint corners. */
-    protected _getTerrainRelief(depthCamera: DepthCamera, footprint: CameraFootprint): ITerrainRelief {
+    protected _getTerrainRelief(footprint: CameraFootprint): ITerrainRelief {
         let camera = footprint.camera!;
         let corners = getRadiusRange(footprint.points);
 
-        let view = getStrategyRelief(camera.planet.quadTreeStrategy, corners.max, corners.min);
+        let qts = camera.planet.quadTreeStrategy;
+        let view = getRelief(qts.minTerrainRadius, qts.maxTerrainRadius, corners.max, corners.min);
         let referenceRadius = camera.eye.length() - camera.getHeight() + footprint.ellipsoidHeight;
-        let map = getStrategyRelief(depthCamera.quadTreeStrategy, referenceRadius, referenceRadius);
+        let map = getRelief(qts.minTerrainRadius, qts.maxTerrainRadius, referenceRadius, referenceRadius);
 
         return {
             up: Math.min(this.maxReliefUp, view.up),

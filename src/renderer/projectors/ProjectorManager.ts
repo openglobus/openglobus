@@ -188,17 +188,21 @@ export class ProjectorManager {
     public add(projector: Projector): number {
         if (projector._slot !== -1) return projector.id;
 
+        if (projector.depthCamera._handlerIndex === -1) {
+            this._renderer.depthCameraHandler.add(projector.depthCamera);
+        }
+
+        if (!projector.depthCamera.initialized) {
+            console.warn("ProjectorManager.add(): the renderer must be initialized before add()");
+            return -1;
+        }
+
         if (this._freeSlots.length === 0 && this._depthCapacity >= MAX_PROJECTOR_LAYERS) {
             console.warn(`ProjectorManager.add(): max projector layers (${MAX_PROJECTOR_LAYERS}) reached`);
             return -1;
         }
 
         const framebuffer = projector.depthCamera.framebuffer;
-        if (!framebuffer._fbo) {
-            console.warn("ProjectorManager.add(): projector.depthCamera.framebuffer must be initialized before add()");
-            return -1;
-        }
-
         const fbW = framebuffer.width;
         const fbH = framebuffer.height;
         if (fbW !== fbH) {
@@ -206,8 +210,12 @@ export class ProjectorManager {
             return -1;
         }
 
-        if (!this._ensureDepthArrayTexture(fbW, this._depthCapacity || INITIAL_PROJECTOR_LAYERS)) return -1;
-        if (this._freeSlots.length === 0 && !this._growDepthArrayTexture()) return -1;
+        if (
+            !this._ensureDepthArrayTexture(fbW, this._depthCapacity || INITIAL_PROJECTOR_LAYERS) ||
+            (this._freeSlots.length === 0 && !this._growDepthArrayTexture())
+        ) {
+            return -1;
+        }
 
         projector._slot = this._freeSlots.pop()!;
         projector._manager = this;

@@ -80,8 +80,7 @@ let cameraObjectCounter = 0;
 const keyboardNavigation = new control.KeyboardNavigation();
 globus.planet.addControl(keyboardNavigation);
 
-const depthCameraHandler = new control.DepthCameraHandler();
-globus.planet.addControl(depthCameraHandler);
+const depthCameraHandler = globus.renderer.depthCameraHandler;
 
 function syncTrackedCameras() {
     for (let i = 0; i < trackedCameraEntities.length; i++) {

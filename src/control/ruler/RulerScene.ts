@@ -105,6 +105,8 @@ class RulerScene extends Scene {
     constructor(options: IRulerSceneParams = {}) {
         super(options.name);
 
+        this.disableDepthCamera = true;
+
         this.events = createEvents(RULERSCENE_EVENTS);
 
         this._ignoreTerrain = options.ignoreTerrain != undefined ? options.ignoreTerrain : true;
