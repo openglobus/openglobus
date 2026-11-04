@@ -4,7 +4,7 @@ import { Framebuffer } from "../webgl/Framebuffer";
 import { LonLat } from "../LonLat";
 import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Planet } from "../scene/Planet";
-import { doubleToTwoFloats2 } from "../math/coder";
+import { doubleToTwoFloats2 } from "../math/doubleToTwoFloats";
 import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 
 export class GeoImageCreator {

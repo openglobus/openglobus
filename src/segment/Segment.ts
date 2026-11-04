@@ -142,6 +142,17 @@ class Segment {
     public _plainRadius: number;
 
     /**
+     * Center of the plain segment box raised by the median terrain height, the LOD tests measure the
+     * camera distance from it. Bounding volumes are for the frustum only, terrain spikes inflate them.
+     * @type {Vec3}
+     */
+    public lodCenter: Vec3;
+
+    public _plainCenter: Vec3;
+
+    public _plainSurfaceRadius: number;
+
+    /**
      * Segment bounding box.
      * @type {Box}
      */
@@ -266,7 +277,6 @@ class Segment {
     public terrainVertices: Float64Array | null;
     public terrainVerticesHigh: Float32Array | null;
     public terrainVerticesLow: Float32Array | null;
-    public noDataVertices: Uint8Array | null;
 
     public renderVertices: Float64Array | null;
     public renderVerticesHigh: Float32Array | null;
@@ -336,6 +346,10 @@ class Segment {
 
         this._plainRadius = 0;
 
+        this.lodCenter = new Vec3();
+        this._plainCenter = new Vec3();
+        this._plainSurfaceRadius = 0;
+
         this.bbox = new Box();
 
         this._sw = new Vec3();
@@ -403,7 +417,6 @@ class Segment {
         this.terrainVertices = null;
         this.terrainVerticesHigh = null;
         this.terrainVerticesLow = null;
-        this.noDataVertices = null;
 
         this.renderVertices = null;
         this.renderVerticesHigh = null;
@@ -736,7 +749,7 @@ class Segment {
 
             this._deleteSkirtBuffers();
 
-            this.noDataVertices = null;
+            this.lodCenter.copy(this._plainCenter);
 
             this.fileGridSize = Math.sqrt(this.terrainVertices!.length / 3) - 1;
             this.gridSize = this.fileGridSize;
@@ -1109,7 +1122,6 @@ class Segment {
             this.terrainVertices = null;
             this.terrainVerticesHigh = null;
             this.terrainVerticesLow = null;
-            this.noDataVertices = null;
 
             this.renderVertices = null;
             this.renderVerticesHigh = null;
@@ -1122,16 +1134,15 @@ class Segment {
             this.terrainVerticesHigh = data.terrainVerticesHigh;
             this.terrainVerticesLow = data.terrainVerticesLow;
 
-            this.noDataVertices = data.noDataVertices;
-
             this.renderVertices = this.terrainVertices;
             this.renderVerticesHigh = this.terrainVerticesHigh;
             this.renderVerticesLow = this.terrainVerticesLow;
 
             this._deleteSkirtBuffers();
 
-            this.setBoundingVolumeArr(data.bounds);
+            this.setTerrainBoundingVolume(data.bounds);
             this.setTerrainRadiusRange(data.radiusRange);
+            this.setLodRadius(data.lodRadius);
 
             this.gridSize = Math.sqrt(this.terrainVertices!.length / 3) - 1;
 
@@ -1311,7 +1322,6 @@ class Segment {
         this.terrainVertices = null;
         this.terrainVerticesHigh = null;
         this.terrainVerticesLow = null;
-        this.noDataVertices = null;
 
         this.plainVertices = null;
         this.plainVerticesHigh = null;
@@ -1388,7 +1398,6 @@ class Segment {
         this.terrainVertices = null;
         this.terrainVerticesHigh = null;
         this.terrainVerticesLow = null;
-        this.noDataVertices = null;
 
         this.renderVertices = null;
         this.renderVerticesHigh = null;
@@ -1604,6 +1613,59 @@ class Segment {
         this.bsphere.radius = this.bsphere.center.distance(new Vec3(bounds[0], bounds[1], bounds[2]));
     }
 
+    /**
+     * Sets the bounding volume of the terrain vertices, the plain segment volume when there are no
+     * finite vertices.
+     * @param {NumberArray6} bounds - [xmin, ymin, zmin, xmax, ymax, zmax].
+     */
+    public setTerrainBoundingVolume(bounds: NumberArray6) {
+        if (bounds[0] <= bounds[3] && bounds[1] <= bounds[4] && bounds[2] <= bounds[5]) {
+            this.setBoundingVolumeArr(bounds);
+        } else {
+            this.createBoundsByExtent();
+        }
+    }
+
+    /**
+     * Creates the plain segment box center and half diagonal, the LOD volume without terrain.
+     */
+    public _createPlainBounds() {
+        const e = this.planet.ellipsoid;
+        const ext = this._extentLonLat;
+
+        // Coordinates are monotonic along the tile sides from zoom 2, so the corners span the plain box
+        const sw = e.geodeticToCartesian(ext.southWest.lon, ext.southWest.lat),
+            nw = e.geodeticToCartesian(ext.southWest.lon, ext.northEast.lat),
+            ne = e.geodeticToCartesian(ext.northEast.lon, ext.northEast.lat),
+            se = e.geodeticToCartesian(ext.northEast.lon, ext.southWest.lat);
+
+        const xmin = Math.min(sw.x, nw.x, ne.x, se.x),
+            ymin = Math.min(sw.y, nw.y, ne.y, se.y),
+            zmin = Math.min(sw.z, nw.z, ne.z, se.z),
+            dx = Math.max(sw.x, nw.x, ne.x, se.x) - xmin,
+            dy = Math.max(sw.y, nw.y, ne.y, se.y) - ymin,
+            dz = Math.max(sw.z, nw.z, ne.z, se.z) - zmin;
+
+        this._plainCenter.set(xmin + dx * 0.5, ymin + dy * 0.5, zmin + dz * 0.5);
+        this._plainRadius = 0.5 * Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        // The corners are on the surface
+        this._plainSurfaceRadius = (sw.length() + nw.length() + ne.length() + se.length()) * 0.25;
+
+        this.lodCenter.copy(this._plainCenter);
+    }
+
+    /**
+     * Raises the LOD center over the plain segment center by the height of the median vertex radius
+     * over the surface.
+     * @param {number} radius - Median geocentric radius of the segment vertices.
+     */
+    public setLodRadius(radius: number) {
+        const c = this._plainCenter;
+        const k = 1.0 + (radius - this._plainSurfaceRadius) / c.length();
+        this.lodCenter.set(c.x * k, c.y * k, c.z * k);
+    }
+
     public createCoordsBuffers(verticesHigh: Float32Array, verticesLow: Float32Array, gridSize: number) {
         const gsgs = (gridSize + 1) * (gridSize + 1);
         const h = this.handler;
@@ -1724,7 +1786,6 @@ class Segment {
             this.plainVerticesHigh = data.plainVerticesHigh;
             this.plainVerticesLow = data.plainVerticesLow;
             this.plainNormals = data.plainNormals;
-            this._plainRadius = data.plainRadius;
 
             this.normalMapNormals = data.normalMapNormals;
             this.normalMapVertices = data.normalMapVertices;

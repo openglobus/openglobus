@@ -1,5 +1,7 @@
 "use strict";
 
+import { doubleToTwoFloatsV3 } from "../math/doubleToTwoFloats";
+
 let model = null;
 
 let cached_ix = null;
@@ -79,81 +81,20 @@ const INV_PI_BY_360 = INV_PI_BY_180 * 2.0;
 let E2 = 0.0,
     A = 0.0;
 
-let _projFunc = null;
-
 const Vec3 = function (x, y, z) {
     this.x = x;
     this.y = y;
     this.z = z;
 };
 
-var geodeticToCartesian = function (lon, lat, heightFactor, res) {
-    let h = getHeightMSL(lon, lat) * heightFactor;
+// Longitude terms of the grid columns, the latitude ones are made once per row
+let _lon = new Float64Array(0),
+    _cosLon = new Float64Array(0),
+    _sinLon = new Float64Array(0);
 
-    let latrad = RADIANS * lat,
-        lonrad = RADIANS * lon;
-
-    let slt = Math.sin(latrad);
-
-    let N = A / Math.sqrt(1.0 - E2 * slt * slt);
-    let nc = (N + h) * Math.cos(latrad);
-
-    res.x = nc * Math.cos(lonrad);
-    res.y = nc * Math.sin(lonrad);
-    res.z = (N * (1 - E2) + h) * slt;
-};
-
-var geodeticToCartesianInverse = function (lon, lat, heightFactor, res) {
-    geodeticToCartesian(
-        lon * INV_POLE_BY_180,
-        INV_PI_BY_360 * Math.atan(Math.exp(lat * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI,
-        heightFactor,
-        res
-    );
-};
-
-var worldPos = new Vec3(0.0, 0.0, 0.0);
 var rtcPos = new Vec3(0.0, 0.0, 0.0);
 var _tempHigh = new Vec3(0.0, 0.0, 0.0);
 var _tempLow = new Vec3(0.0, 0.0, 0.0);
-
-var doubleToTwoFloats = function (v, high, low) {
-    let x = v.x,
-        y = v.y,
-        z = v.z;
-
-    var doubleHigh;
-
-    if (x >= 0.0) {
-        doubleHigh = Math.floor(x / 65536.0) * 65536.0;
-        high.x = Math.fround(doubleHigh);
-        low.x = Math.fround(x - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
-        high.x = Math.fround(-doubleHigh);
-        low.x = Math.fround(x + doubleHigh);
-    }
-
-    if (y >= 0.0) {
-        doubleHigh = Math.floor(y / 65536.0) * 65536.0;
-        high.y = Math.fround(doubleHigh);
-        low.y = Math.fround(y - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
-        high.y = Math.fround(-doubleHigh);
-        low.y = Math.fround(y + doubleHigh);
-    }
-
-    if (z >= 0.0) {
-        doubleHigh = Math.floor(z / 65536.0) * 65536.0;
-        high.z = Math.fround(doubleHigh);
-        low.z = Math.fround(z - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
-        high.z = Math.fround(-doubleHigh);
-        low.z = Math.fround(z + doubleHigh);
-    }
-};
 
 self.onmessage = function (msg) {
     if (msg.data.model) {
@@ -163,13 +104,6 @@ self.onmessage = function (msg) {
         let rtc_x = msg.data.params[14];
         let rtc_y = msg.data.params[15];
         let rtc_z = msg.data.params[16];
-
-        let xmin = 549755748352.0,
-            xmax = -549755748352.0,
-            ymin = 549755748352.0,
-            ymax = -549755748352.0,
-            zmin = 549755748352.0,
-            zmax = -549755748352.0;
 
         E2 = msg.data.params[8];
         A = msg.data.params[9];
@@ -182,11 +116,8 @@ self.onmessage = function (msg) {
 
         let heightFactor = msg.data.params[13];
 
-        if (msg.data.params[1] === 0.0) {
-            _projFunc = geodeticToCartesianInverse;
-        } else {
-            _projFunc = geodeticToCartesian;
-        }
+        // Mercator extent, its coordinates are converted to degrees
+        let isMerc = msg.data.params[1] === 0.0;
 
         let maxFgs = Math.max(fgs, gridSize);
         let llStep = (msg.data.params[6] - msg.data.params[4]) / maxFgs;
@@ -213,65 +144,84 @@ self.onmessage = function (msg) {
         let ind = 0,
             nmInd = 0;
 
-        for (let k = 0; k < gsgs; k++) {
-            let j = k % gs,
-                i = ~~(k / gs);
-
-            _projFunc(esw_lon + j * llStep, ene_lat - i * ltStep, heightFactor, worldPos);
-
-            let nx = worldPos.x * r2_x,
-                ny = worldPos.y * r2_y,
-                nz = worldPos.z * r2_z;
-            let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-            let nxl = nx * l,
-                nyl = ny * l,
-                nzl = nz * l;
-
-            rtcPos.x = worldPos.x - rtc_x;
-            rtcPos.y = worldPos.y - rtc_y;
-            rtcPos.z = worldPos.z - rtc_z;
-
-            normalMapVertices[nmInd] = rtcPos.x;
-            normalMapNormals[nmInd++] = nxl;
-
-            normalMapVertices[nmInd] = rtcPos.y;
-            normalMapNormals[nmInd++] = nyl;
-
-            normalMapVertices[nmInd] = rtcPos.z;
-            normalMapNormals[nmInd++] = nzl;
-
-            if (i % dg === 0 && j % dg === 0) {
-                doubleToTwoFloats(rtcPos, _tempHigh, _tempLow);
-
-                plainVertices[ind] = rtcPos.x;
-                plainVerticesHigh[ind] = _tempHigh.x;
-                plainVerticesLow[ind] = _tempLow.x;
-                plainNormals[ind++] = nxl;
-
-                plainVertices[ind] = rtcPos.y;
-                plainVerticesHigh[ind] = _tempHigh.y;
-                plainVerticesLow[ind] = _tempLow.y;
-                plainNormals[ind++] = nyl;
-
-                plainVertices[ind] = rtcPos.z;
-                plainVerticesHigh[ind] = _tempHigh.z;
-                plainVerticesLow[ind] = _tempLow.z;
-                plainNormals[ind++] = nzl;
-
-                if (worldPos.x < xmin) xmin = worldPos.x;
-                if (worldPos.x > xmax) xmax = worldPos.x;
-                if (worldPos.y < ymin) ymin = worldPos.y;
-                if (worldPos.y > ymax) ymax = worldPos.y;
-                if (worldPos.z < zmin) zmin = worldPos.z;
-                if (worldPos.z > zmax) zmax = worldPos.z;
-            }
+        if (_lon.length < gs) {
+            _lon = new Float64Array(gs);
+            _cosLon = new Float64Array(gs);
+            _sinLon = new Float64Array(gs);
         }
 
-        let x = (xmax - xmin) * 0.5,
-            y = (ymax - ymin) * 0.5,
-            z = (zmax - zmin) * 0.5;
+        for (let j = 0; j < gs; j++) {
+            let lon = esw_lon + j * llStep;
+            if (isMerc) {
+                lon = lon * INV_POLE_BY_180;
+            }
+            let lonrad = RADIANS * lon;
+            _lon[j] = lon;
+            _cosLon[j] = Math.cos(lonrad);
+            _sinLon[j] = Math.sin(lonrad);
+        }
 
-        let plainRadius = Math.sqrt(x * x + y * y + z * z);
+        for (let i = 0; i < gs; i++) {
+            let lat = ene_lat - i * ltStep;
+            if (isMerc) {
+                lat = INV_PI_BY_360 * Math.atan(Math.exp(lat * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI;
+            }
+
+            let latrad = RADIANS * lat;
+            let slt = Math.sin(latrad),
+                clt = Math.cos(latrad);
+            let N = A / Math.sqrt(1.0 - E2 * slt * slt),
+                Nb = N * (1 - E2);
+
+            for (let j = 0; j < gs; j++) {
+                let h = getHeightMSL(_lon[j], lat) * heightFactor;
+
+                let nc = (N + h) * clt;
+                let wx = nc * _cosLon[j],
+                    wy = nc * _sinLon[j],
+                    wz = (Nb + h) * slt;
+
+                let nx = wx * r2_x,
+                    ny = wy * r2_y,
+                    nz = wz * r2_z;
+                let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+                let nxl = nx * l,
+                    nyl = ny * l,
+                    nzl = nz * l;
+
+                rtcPos.x = wx - rtc_x;
+                rtcPos.y = wy - rtc_y;
+                rtcPos.z = wz - rtc_z;
+
+                normalMapVertices[nmInd] = rtcPos.x;
+                normalMapNormals[nmInd++] = nxl;
+
+                normalMapVertices[nmInd] = rtcPos.y;
+                normalMapNormals[nmInd++] = nyl;
+
+                normalMapVertices[nmInd] = rtcPos.z;
+                normalMapNormals[nmInd++] = nzl;
+
+                if (i % dg === 0 && j % dg === 0) {
+                    doubleToTwoFloatsV3(rtcPos, _tempHigh, _tempLow);
+
+                    plainVertices[ind] = rtcPos.x;
+                    plainVerticesHigh[ind] = _tempHigh.x;
+                    plainVerticesLow[ind] = _tempLow.x;
+                    plainNormals[ind++] = nxl;
+
+                    plainVertices[ind] = rtcPos.y;
+                    plainVerticesHigh[ind] = _tempHigh.y;
+                    plainVerticesLow[ind] = _tempLow.y;
+                    plainNormals[ind++] = nyl;
+
+                    plainVertices[ind] = rtcPos.z;
+                    plainVerticesHigh[ind] = _tempHigh.z;
+                    plainVerticesLow[ind] = _tempLow.z;
+                    plainNormals[ind++] = nzl;
+                }
+            }
+        }
 
         self.postMessage(
             {
@@ -282,7 +232,6 @@ self.onmessage = function (msg) {
                 plainNormals: plainNormals,
                 normalMapNormals: normalMapNormals,
                 normalMapVertices: normalMapVertices,
-                plainRadius: plainRadius,
                 relativeCenter: [rtc_x, rtc_y, rtc_z]
             },
             [

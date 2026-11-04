@@ -1,5 +1,5 @@
 import * as mercator from "../mercator";
-import { doubleToTwoFloats2 } from "../math/coder";
+import { doubleToTwoFloats2 } from "../math/doubleToTwoFloats";
 import { Extent } from "../Extent";
 import type { EventCallback, EventsHandler } from "../Events";
 import { Layer } from "./Layer";
