@@ -1049,11 +1049,10 @@ class Renderer {
 
         this._appendControlContainers();
 
-        this.cascadeShadowManager.init();
-
         this._initializeScenes();
 
         this.depthCameraHandler.init();
+        this.cascadeShadowManager.init();
 
         this._initializeControls();
     }
