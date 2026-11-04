@@ -73,30 +73,43 @@ const barycentric = ([[ax, ay], [bx, by], [cx, cy]], x, y) => {
     return [l1, l2, 1 - l1 - l2];
 };
 
+// The drawn triangles by the cells of their bounding box, to find the one at a position quickly.
+const byCell = (triangles, size) => {
+    const cells = Array.from({ length: size * size }, () => []);
+    for (const tri of triangles) {
+        for (let row = tri.box[2]; row < tri.box[3]; row++) {
+            for (let col = tri.box[0]; col < tri.box[1]; col++) {
+                cells[row * size + col].push(tri);
+            }
+        }
+    }
+    return { size, cells };
+};
+
 // The drawn triangle that contains the grid position, and how far inside it the position is.
-const drawnAt = (triangles, x, y) => {
+const drawnAt = ({ size, cells }, x, y) => {
     let best = null,
         bestMargin = -Infinity;
-    for (const tri of triangles) {
-        const [x0, x1, y0, y1] = tri.box;
-        if (x < x0 - 1e-9 || x > x1 + 1e-9 || y < y0 - 1e-9 || y > y1 + 1e-9) continue; // far away, only to be quick
-        const m = Math.min(...barycentric(tri.p, x, y));
-        if (m > bestMargin) {
-            bestMargin = m;
-            best = tri;
+    // the cells around the position, a position on a cell edge or corner touches several
+    for (let row = Math.max(Math.floor(y) - 1, 0); row <= Math.min(Math.floor(y) + 1, size - 1); row++) {
+        for (let col = Math.max(Math.floor(x) - 1, 0); col <= Math.min(Math.floor(x) + 1, size - 1); col++) {
+            for (const tri of cells[row * size + col]) {
+                const m = Math.min(...barycentric(tri.p, x, y));
+                if (m > bestMargin) {
+                    bestMargin = m;
+                    best = tri;
+                }
+            }
         }
     }
     return { tri: best, margin: bestMargin };
 };
 
-// Positions in the outer ring of cells: a lattice with the cell corners and edges, the tile corners included.
-const ringPositions = (size, perAxis) => {
+// Positions on a lattice in every cell, with the cell corners and edges and the tile corners.
+const latticePositions = (size, perAxis) => {
     const positions = [];
     for (let row = 0; row < size; row++) {
         for (let col = 0; col < size; col++) {
-            if (row > 0 && col > 0 && row < size - 1 && col < size - 1) {
-                continue;
-            }
             for (let j = 0; j < perAxis; j++) {
                 for (let i = 0; i < perAxis; i++) {
                     positions.push([col + i / (perAxis - 1), row + j / (perAxis - 1)]);
@@ -105,6 +118,20 @@ const ringPositions = (size, perAxis) => {
         }
     }
     return positions;
+};
+
+// Neighbour sizes to test for a grid: all combinations for small grids, equal and random ones above.
+const sidesFor = (log2) => {
+    const list = [];
+    if (log2 <= 3) {
+        for (let n = 0; n <= log2; n++)
+            for (let e = 0; e <= log2; e++)
+                for (let s = 0; s <= log2; s++) for (let w = 0; w <= log2; w++) list.push([n, e, s, w]);
+    } else {
+        list.push([log2, log2, log2, log2]);
+        for (let k = 0; k < 40; k++) list.push(randomSides(log2));
+    }
+    return list;
 };
 
 const inRing = (size, x, y) =>
@@ -149,74 +176,68 @@ describe("the triangles createSegmentIndexes draws", () => {
     });
 });
 
-describe("SegmentHelper.getBorderTriangle", () => {
+describe("SegmentHelper.getCellTriangles", () => {
     const helper = segmentHelper.getInstance();
 
-    test("the drawn triangles of the border strips cover the outer ring of cells once", () => {
-        let withoutArea = 0;
-        for (let log2 = 1; log2 <= MAX_LOG2; log2++) {
+    const listed = ({ start, vertices }, cell) => {
+        const out = [];
+        for (let i = start[cell] * 3; i < start[cell + 1] * 3; i += 3) {
+            out.push([vertices[i], vertices[i + 1], vertices[i + 2]]);
+        }
+        return out;
+    };
+
+    const key = (t) =>
+        t
+            .slice()
+            .sort((a, b) => a - b)
+            .join();
+
+    test("lists every drawn triangle in the cells it covers, and nothing else", () => {
+        for (let log2 = 0; log2 <= MAX_LOG2; log2++) {
             const size = 1 << log2;
-            for (let k = 0; k < 20; k++) {
-                let area = 0;
-                for (const { p } of drawnTriangles(log2, randomSides(log2))) {
-                    // Triangles of the inner cells have all corners off the tile edge and are drawn first.
-                    if (p.some(([x, y]) => x === 0 || y === 0 || x === size || y === size)) {
-                        const [[ax, ay], [bx, by], [cx, cy]] = p,
-                            twice = Math.abs((bx - ax) * (cy - ay) - (cx - ax) * (by - ay));
-                        withoutArea += twice === 0 ? 1 : 0;
-                        area += twice / 2;
+            for (const sides of log2 === 0 ? [[0, 0, 0, 0]] : sidesFor(log2)) {
+                const cells = helper.getCellTriangles(log2, sides),
+                    expected = Array.from({ length: size * size }, () => new Set());
+                for (const { t, box } of drawnTriangles(log2, sides)) {
+                    for (let row = box[2]; row < box[3]; row++) {
+                        for (let col = box[0]; col < box[1]; col++) {
+                            expected[row * size + col].add(key(t));
+                        }
                     }
                 }
-                expect(area).toBe(size * size - Math.max(size - 2, 0) ** 2);
+                for (let cell = 0; cell < size * size; cell++) {
+                    const got = new Set(listed(cells, cell).map(key));
+                    expect(got.size).toBeGreaterThan(0);
+                    expect(got).toEqual(expected[cell]);
+                }
             }
         }
-        // every step of a strip is a triangle with an area or one with a repeated vertex
-        expect(withoutArea).toBe(0);
-    });
+    }, 120000);
 
-    test("returns the drawn triangle at every position of the ring", () => {
-        const out = [0, 0, 0],
-            wrong = [];
+    test("every position of a cell is inside one of the triangles listed for it", () => {
+        const wrong = [];
         let checked = 0;
-        for (let log2 = 1; log2 <= MAX_LOG2; log2++) {
+        for (let log2 = 0; log2 <= MAX_LOG2; log2++) {
             const size = 1 << log2,
-                d = size + 1,
-                sidesList = [];
-            if (log2 <= 3) {
-                // every combination of the neighbour sizes
-                for (let n = 0; n <= log2; n++)
-                    for (let e = 0; e <= log2; e++)
-                        for (let s = 0; s <= log2; s++) for (let w = 0; w <= log2; w++) sidesList.push([n, e, s, w]);
-            } else {
-                sidesList.push([log2, log2, log2, log2]);
-                for (let k = 0; k < 40; k++) sidesList.push(randomSides(log2));
-            }
-            for (const sides of sidesList) {
-                const drawn = new Set(
-                    drawnTriangles(log2, sides).map(({ t }) =>
-                        t
-                            .slice()
-                            .sort((a, b) => a - b)
-                            .join()
-                    )
-                );
-                for (const [x, y] of ringPositions(size, log2 <= 3 ? 5 : 3)) {
-                    helper.getBorderTriangle(log2, sides, x, y, out);
-                    const isDrawn = drawn.has(
-                        out
-                            .slice()
-                            .sort((a, b) => a - b)
-                            .join()
-                    );
-                    const m = Math.min(
-                        ...barycentric(
-                            out.map((k) => [k % d, Math.floor(k / d)]),
-                            x,
-                            y
-                        )
-                    );
-                    if (!isDrawn || !(m >= -1e-12)) {
-                        wrong.push({ log2, sides, x, y, out: [...out], isDrawn, m });
+                d = size + 1;
+            for (const sides of log2 === 0 ? [[0, 0, 0, 0]] : sidesFor(log2)) {
+                const cells = helper.getCellTriangles(log2, sides);
+                for (const [x, y] of latticePositions(size, log2 <= 3 ? 5 : 3)) {
+                    const cell = Math.min(Math.floor(y), size - 1) * size + Math.min(Math.floor(x), size - 1),
+                        m = Math.max(
+                            ...listed(cells, cell).map((t) =>
+                                Math.min(
+                                    ...barycentric(
+                                        t.map((k) => [k % d, Math.floor(k / d)]),
+                                        x,
+                                        y
+                                    )
+                                )
+                            )
+                        );
+                    if (!(m >= -1e-12)) {
+                        wrong.push({ log2, sides, x, y, m });
                     }
                     checked++;
                 }
@@ -225,6 +246,15 @@ describe("SegmentHelper.getBorderTriangle", () => {
         expect(wrong.slice(0, 3)).toEqual([]);
         expect(checked).toBeGreaterThan(100000);
     }, 120000);
+
+    test("follows the strip it is given, whatever its layout", () => {
+        // A 2 x 2 grid drawn with the other diagonal in every cell: (NW, SW, SE) + (NW, SE, NE), one strip per row
+        // joined by repeated vertices.
+        const strip = [3, 0, 4, 1, 5, 2, 2, 6, 6, 3, 7, 4, 8, 5],
+            cells = segmentHelper.createCellTriangles(strip, 2);
+        expect(listed(cells, 0).map(key)).toEqual(["0,3,4", "0,1,4"]);
+        expect(listed(cells, 3).map(key)).toEqual(["4,7,8", "4,5,8"]);
+    });
 });
 
 // A segment on a flat frame: the vertex in the row and column is at (100 * column, -100 * row, height),
@@ -262,19 +292,14 @@ describe("Segment.getTerrainPoint", () => {
             for (let k = 0; k < (log2 < 4 ? 30 : 6); k++) {
                 const sides = log2 === 0 ? [0, 0, 0, 0] : randomSides(log2),
                     segment = flatSegment(log2, sides, () => rand() * 3000),
-                    triangles = drawnTriangles(log2, sides),
-                    // Lattice lines and corners of the cells drawn as the regular split (the inner cells and the grid of one
-                    // cell) are left out: when rounding puts the hit just outside of both triangles, the answer is the plane
-                    // of the second one, as it always was.
-                    positions = ringPositions(size, 4).filter(([x, y]) => size > 1 && inRing(size, x, y));
+                    triangles = byCell(drawnTriangles(log2, sides), size),
+                    positions = latticePositions(size, 4);
                 for (let i = 0; i < 40; i++) {
                     positions.push([rand() * size, rand() * size]);
                 }
                 // A point on the edge of the tile can come out a rounding error outside of it
-                if (size > 1) {
-                    positions.push([-1e-12, 0.3 * size], [size + 1e-12, 0.6 * size], [0.4 * size, -1e-12]);
-                    positions.push([0.7 * size, size + 1e-12], [-1e-12, -1e-12], [size + 1e-12, size + 1e-12]);
-                }
+                positions.push([-1e-12, 0.3 * size], [size + 1e-12, 0.6 * size], [0.4 * size, -1e-12]);
+                positions.push([0.7 * size, size + 1e-12], [-1e-12, -1e-12], [size + 1e-12, size + 1e-12]);
                 for (const [rx, ry] of positions) {
                     const x = Math.min(Math.max(rx, 0), size),
                         y = Math.min(Math.max(ry, 0), size),
@@ -449,30 +474,28 @@ describe("Segment.getTerrainPoint on the globe", () => {
         }
     }, 120000);
 
-    test("the pole row of a tile that reaches the pole is drawn with triangles without area", () => {
-        const extent = new Extent(new LonLat(10, 84), new LonLat(40, 90)),
-            segment = globeSegment(planet, SegmentLonLat, extent, 5, 4, [4, 4, 4, 4], () => 0),
-            v = segment.renderVertices,
-            out = [0, 0, 0];
-        let flat = 0;
-        for (let i = 0; i < 400; i++) {
-            segmentHelper.getInstance().getBorderTriangle(4, segment.node.sideSizeLog2, rand() * 16, rand(), out);
-            const p = out.map((k) => new Vec3(v[k * 3], v[k * 3 + 1], v[k * 3 + 2])),
-                longest = Math.max(p[1].sub(p[0]).length(), p[2].sub(p[0]).length(), p[2].sub(p[1]).length());
-            if (p[1].sub(p[0]).cross(p[2].sub(p[0])).length() < 1e-6 * longest * longest) flat++;
-        }
-        // half of every cell in the pole row, the grid position does not tell which triangle is drawn there
-        expect(flat).toBeGreaterThan(100);
-    }, 120000);
-
-    test("a tile that reaches the pole keeps the regular split of the cells", () => {
+    test("a tile that reaches the pole is within a metre of the drawn surface", () => {
         const extent = new Extent(new LonLat(10, 84), new LonLat(40, 90));
-        // flat: the pole row is one point and the regular split is the drawn surface when the sides are equal,
-        // up to the triangles of the pole row that have no area
-        const flat = globeSegment(planet, SegmentLonLat, extent, 5, 4, [4, 4, 4, 4], () => 0);
-        expect(worstError(planet, flat, 4, 600).worst).toBeLessThan(1);
-        // fans next to a coarser neighbour are not followed there, but the answer stays on the surface
-        const fans = globeSegment(planet, SegmentLonLat, extent, 5, 4, [3, 4, 2, 4], () => 0);
-        expect(worstError(planet, fans, 4, 600).worst).toBeLessThan(500);
+        for (const sides of [
+            [4, 4, 4, 4],
+            [3, 4, 2, 4]
+        ]) {
+            const segment = globeSegment(planet, SegmentLonLat, extent, 5, 4, sides, hills),
+                v = segment.renderVertices,
+                cells = segmentHelper.getInstance().getCellTriangles(4, sides);
+            // The pole row is one point, so half of the triangles listed for its cells have no area
+            let flat = 0;
+            for (let i = 0; i < cells.start[16] * 3; i += 3) {
+                const p = [0, 1, 2].map((j) => {
+                    const k = cells.vertices[i + j] * 3;
+                    return new Vec3(v[k], v[k + 1], v[k + 2]);
+                });
+                flat += p[1].sub(p[0]).cross(p[2].sub(p[0])).length() < 1e-3 ? 1 : 0;
+            }
+            expect(flat).toBeGreaterThan(5);
+            const { worst, misses } = worstError(planet, segment, 4, 600);
+            expect(worst).toBeLessThan(1);
+            expect(misses).toBeLessThan(12); // rays that slip through a seam at the tile edge
+        }
     }, 120000);
 });
