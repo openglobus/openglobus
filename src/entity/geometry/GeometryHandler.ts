@@ -227,14 +227,10 @@ class GeometryHandler {
         outVerticesHigh2: number[],
         outVerticesLow2: number[]
     ) {
-        var index = 0;
-
-        if (outIndexes.length > 0) {
-            index = outIndexes[outIndexes.length - 5] + 9;
-            outIndexes.push(index, index);
-        } else {
-            outIndexes.push(0, 0);
-        }
+        // Index of the first vertex appended below. After bringToFront() the last
+        // index entries belong to another geometry, so they can't be used for this.
+        var index = outVerticesHigh.length * 0.5;
+        outIndexes.push(index, index);
 
         var t = thickness,
             c = [color.x, color.y, color.z, color.w],
