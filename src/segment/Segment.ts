@@ -66,8 +66,9 @@ let _tempLow = new Vec3();
 
 let _v0 = new Vec3(),
     _v1 = new Vec3(),
-    _v2 = new Vec3(),
-    _v3 = new Vec3();
+    _v2 = new Vec3();
+
+const _tri = [0, 0, 0, 0, 0, 0];
 
 let _xyzRtc = new Vec3(),
     _resRtc = new Vec3(),
@@ -586,66 +587,75 @@ class Segment {
             let xn = x - xmin,
                 yn = y - ymin;
 
-            let indX = Math.floor(xn / qx),
-                indY = Math.floor(size - yn / qy);
+            // Position in the grid: columns from the west edge, rows from the north edge. A point on the edge of the
+            // tile can come out a rounding error outside of it.
+            let gx = Math.min(Math.max(xn / qx, 0), size),
+                gy = Math.min(Math.max(size - yn / qy, 0), size);
 
-            let ind_v0 = ((size + 1) * indY + indX) * 3;
-            let ind_v2 = ((size + 1) * (indY + 1) + indX) * 3;
+            let indX = Math.min(Math.floor(gx), size - 1),
+                indY = Math.min(Math.floor(gy), size - 1);
 
-            _v0.set(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]);
-            _v1.set(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]);
-            _v2.set(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
+            // The outer ring of cells is drawn by the border strips, except for a grid of one cell, a plain quad.
+            // A tile that reaches a pole keeps the regular split: the pole row is one point, so the triangles
+            // there have no area and a position in the grid does not tell which triangle is drawn.
+            const ext = this._extentLonLat;
+            const border =
+                size > 1 &&
+                (indX <= 0 || indY <= 0 || indX >= size - 1 || indY >= size - 1) &&
+                ext.northEast.lat < 90 &&
+                ext.southWest.lat > -90;
 
-            let d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
+            // Vertex indexes of the triangles drawn at the position.
+            let count: number;
+            if (border) {
+                segmentHelper.getInstance().getBorderTriangle(Math.log2(size), this.node.sideSizeLog2, gx, gy, _tri);
+                count = 3;
+            } else {
+                // The regular split: (NW, NE, SW) and (NE, SE, SW)
+                const nw = (size + 1) * indY + indX,
+                    sw = nw + size + 1;
+                _tri[0] = nw;
+                _tri[1] = nw + 1;
+                _tri[2] = sw;
+                _tri[3] = nw + 1;
+                _tri[4] = sw + 1;
+                _tri[5] = sw;
+                count = 6;
+            }
 
-            if (d === Ray.INSIDE) {
-                res.set(
-                    _resRtc.x + this._relativeCenter.x,
-                    _resRtc.y + this._relativeCenter.y,
-                    _resRtc.z + this._relativeCenter.z
-                );
-                return _xyzRtc.distance(_resRtc);
-            } else if (d === Ray.AWAY) {
-                _rayEx.set(_xyzRtc, norm);
-                let d = _rayEx.hitTriangleRes(_v0, _v1, _v2, _resRtc);
+            let d = Ray.OUTSIDE;
+
+            for (let i = 0; i < count; i += 3) {
+                const i0 = _tri[i] * 3,
+                    i1 = _tri[i + 1] * 3,
+                    i2 = _tri[i + 2] * 3;
+
+                _v0.set(verts[i0], verts[i0 + 1], verts[i0 + 2]);
+                _v1.set(verts[i1], verts[i1 + 1], verts[i1 + 2]);
+                _v2.set(verts[i2], verts[i2 + 1], verts[i2 + 2]);
+
+                d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
+
                 if (d === Ray.INSIDE) {
-                    res.set(
-                        _resRtc.x + this._relativeCenter.x,
-                        _resRtc.y + this._relativeCenter.y,
-                        _resRtc.z + this._relativeCenter.z
-                    );
-                    return -_xyzRtc.distance(_resRtc);
+                    break;
+                } else if (d === Ray.AWAY) {
+                    // The point is under the terrain
+                    _rayEx.set(_xyzRtc, norm);
+                    if (_rayEx.hitTriangleRes(_v0, _v1, _v2, _resRtc) === Ray.INSIDE) {
+                        break;
+                    }
                 }
             }
 
-            _v3.set(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
+            // The ray follows the ellipsoid normal and the triangle is chosen in the grid,
+            // so the hit can be a hair outside of it: then the plane of the last triangle is used.
+            res.set(
+                _resRtc.x + this._relativeCenter.x,
+                _resRtc.y + this._relativeCenter.y,
+                _resRtc.z + this._relativeCenter.z
+            );
 
-            d = _ray.hitTriangleRes(_v1, _v3, _v2, _resRtc);
-            if (d === Ray.INSIDE) {
-                res.set(
-                    _resRtc.x + this._relativeCenter.x,
-                    _resRtc.y + this._relativeCenter.y,
-                    _resRtc.z + this._relativeCenter.z
-                );
-                return _xyzRtc.distance(_resRtc);
-            } else if (d === Ray.AWAY) {
-                _rayEx.set(_xyzRtc, norm);
-                let d = _rayEx.hitTriangleRes(_v1, _v3, _v2, _resRtc);
-                if (d === Ray.INSIDE) {
-                    res.set(
-                        _resRtc.x + this._relativeCenter.x,
-                        _resRtc.y + this._relativeCenter.y,
-                        _resRtc.z + this._relativeCenter.z
-                    );
-                    return -_xyzRtc.distance(_resRtc);
-                }
-            }
-
-            if (d === Ray.AWAY) {
-                return -_xyzRtc.distance(_resRtc);
-            }
-
-            return _xyzRtc.distance(_resRtc);
+            return d === Ray.AWAY ? -_xyzRtc.distance(_resRtc) : _xyzRtc.distance(_resRtc);
         } else {
             let norm = this.planet.ellipsoid.getSurfaceNormal3v(xyz);
             _ray.set(xyz, norm.negateTo());

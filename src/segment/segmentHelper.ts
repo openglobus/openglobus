@@ -219,6 +219,80 @@ class SegmentHelper {
         }
     }
 
+    /**
+     * Finds the triangle that createSegmentIndexes draws at the grid position (x, y) in the outer ring of cells.
+     * The ring is drawn by the border strips, not by the regular split of the inner cells.
+     * @param size - Grid size, log2.
+     * @param sidesSizes - Neighbour grid sizes, log2.
+     * @param x - Column, in cells from the west edge (0 to the grid size).
+     * @param y - Row, in cells from the north edge (0 to the grid size).
+     * @param out - Receives the three vertex indexes of the triangle.
+     */
+    public getBorderTriangle(
+        size: number,
+        sidesSizes: [number, number, number, number],
+        x: number,
+        y: number,
+        out: number[]
+    ) {
+        const d = (1 << size) + 1,
+            c = this.centerIndexesTable[size],
+            // The order of createSegmentIndexes, of the inner cells only their last two indexes belong to the ring.
+            parts = [
+                c,
+                this.skirtsIndexesTable[W][size][sidesSizes[W]],
+                this.skirtsIndexesTable[N][size][sidesSizes[N]],
+                this.skirtsIndexesTable[E][size][sidesSizes[E]],
+                this.skirtsIndexesTable[S][size][sidesSizes[S]]
+            ];
+        let a = -1,
+            b = -1,
+            ax = 0,
+            ay = 0,
+            bx = 0,
+            by = 0,
+            best = -Infinity;
+        for (let p = 0; p < parts.length; p++) {
+            const part = parts[p];
+            for (let i = p === 0 ? part.length - 2 : 0; i < part.length; i++) {
+                const k = part[i],
+                    ky = (k / d) | 0,
+                    kx = k - ky * d;
+                if (
+                    a >= 0 &&
+                    a !== b &&
+                    b !== k &&
+                    a !== k &&
+                    x >= Math.min(ax, bx, kx) &&
+                    x <= Math.max(ax, bx, kx) &&
+                    y >= Math.min(ay, by, ky) &&
+                    y <= Math.max(ay, by, ky)
+                ) {
+                    // Barycentric coordinates of (x, y), the smallest one is negative outside the triangle.
+                    const det = (by - ky) * (ax - kx) + (kx - bx) * (ay - ky),
+                        l1 = ((by - ky) * (x - kx) + (kx - bx) * (y - ky)) / det,
+                        l2 = ((ky - ay) * (x - kx) + (ax - kx) * (y - ky)) / det,
+                        m = Math.min(l1, l2, 1 - l1 - l2);
+                    if (m > best) {
+                        best = m;
+                        out[0] = a;
+                        out[1] = b;
+                        out[2] = k;
+                        if (m >= 0) {
+                            return;
+                        }
+                    }
+                }
+                a = b;
+                ax = bx;
+                ay = by;
+                b = k;
+                bx = kx;
+                by = ky;
+            }
+        }
+    }
+
     public initTextureCoordsTable(pow: number): Uint16Array[] {
         let table = [];
         for (let i = 0; i <= pow; i++) {
