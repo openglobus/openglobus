@@ -364,18 +364,7 @@ export class DepthCamera {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
 
-        const scenes = this._renderer._scenesArr;
-        for (let i = 0; i < scenes.length; i++) {
-            const scene = scenes[i];
-            if (!scene.isActive() || scene.disableDepthCamera) continue;
-
-            const planet = scene as Planet;
-            if (planet.quadTreeStrategy) {
-                this._segmentsPass(depthCamera, planet);
-                this._vectorLayersPass(depthCamera, planet);
-            }
-            this._entityCollectionsPass(depthCamera, scene);
-        }
+        this._scenesPass(depthCamera);
 
         gl.enable(gl.BLEND);
 
@@ -394,6 +383,25 @@ export class DepthCamera {
     public prepareFrame(): void {
         this._prepareOrthographicProjection();
         this._prepareCameraEntitySync();
+    }
+
+    protected _scenesPass(camera: Camera): void {
+        const scenes = this._renderer!._scenesArr;
+        for (let i = 0; i < scenes.length; i++) {
+            const scene = scenes[i];
+            if (!scene.isActive() || scene.disableDepthCamera) {
+                continue;
+            }
+
+            const planet = scene as Planet;
+
+            if (planet.quadTreeStrategy) {
+                this._segmentsPass(camera, planet);
+                this._vectorLayersPass(camera, planet);
+            }
+
+            this._entityCollectionsPass(camera, scene);
+        }
     }
 
     protected _prepareCameraEntitySync(): void {

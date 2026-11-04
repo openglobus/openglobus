@@ -143,8 +143,8 @@ const depthCameraHandler = globus.renderer.depthCameraHandler;
 const depthCamera = new DepthCamera({
     enableSegmentSkirts: true,
     enableSegmentFaceCulling: false,
-    width: 1024,
-    height: 1024,
+    width: 2048,
+    height: 2048,
     excludeLayers: [footprintDebug],
     near: 1000,
     far: 500000,
