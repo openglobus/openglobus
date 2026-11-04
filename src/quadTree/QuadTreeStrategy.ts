@@ -140,6 +140,12 @@ export class QuadTreeStrategy {
      */
     public _viewCamerasRenderedNodes: Node[][][] = [];
 
+    /**
+     * View camera collection counter, a node gone through by the last collection is marked with it.
+     * @public
+     */
+    public _viewWalkFrame: number = 0;
+
     constructor(params: QuadTreeStrategyParams) {
         this.events = createEvents<QuadTreeStrategyEventsList>(QUADTREESTRATEGY_EVENTS);
 
@@ -382,6 +388,8 @@ export class QuadTreeStrategy {
         const lists = this._viewCamerasRenderedNodes;
 
         lists.length = depthCameras.length;
+
+        this._viewWalkFrame++;
 
         for (let slot = 0; slot < depthCameras.length; slot++) {
             const dc = depthCameras[slot];
@@ -642,46 +650,12 @@ export class QuadTreeStrategy {
     /**
      * Destroys the branches the main camera does not render.
      * @public
-     * @param {boolean} [keepViewCameraNodes=false] - Keeps the branches leading to the nodes the depth cameras
+     * @param {boolean} [keepViewCameraBranches=false] - Keeps the branches leading to the nodes the depth cameras
      * render now. They are under the nodes the main camera has not gone into, and would be made and loaded again.
      */
-    public clear(keepViewCameraNodes: boolean = false) {
-        const keep = keepViewCameraNodes ? this._getViewCameraNodesAncestors() : null;
+    public clear(keepViewCameraBranches: boolean = false) {
         for (let i = 0; i < this._quadTreeList.length; i++) {
-            if (keep && keep.size) {
-                this._clearTreeKeeping(this._quadTreeList[i], keep);
-            } else {
-                this._quadTreeList[i].clearTree();
-            }
-        }
-    }
-
-    protected _getViewCameraNodesAncestors(): Set<number> {
-        const ids = new Set<number>();
-        const lists = this._viewCamerasRenderedNodes;
-        for (let i = 0; i < lists.length; i++) {
-            const frustumLists = lists[i] || __emptyArray__;
-            for (let j = 0; j < frustumLists.length; j++) {
-                const nodes = frustumLists[j];
-                for (let k = 0; k < nodes.length; k++) {
-                    let p = nodes[k].parentNode;
-                    while (p && !ids.has(p.__id)) {
-                        ids.add(p.__id);
-                        p = p.parentNode;
-                    }
-                }
-            }
-        }
-        return ids;
-    }
-
-    protected _clearTreeKeeping(node: Node, keep: Set<number>) {
-        if (keep.has(node.__id)) {
-            for (let i = 0; i < node.nodes.length; i++) {
-                this._clearTreeKeeping(node.nodes[i], keep);
-            }
-        } else {
-            node.clearTree();
+            this._quadTreeList[i].clearTree(keepViewCameraBranches);
         }
     }
 

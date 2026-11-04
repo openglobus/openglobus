@@ -106,6 +106,11 @@ class Node {
     public inFrustum: number;
     public _fadingNodes: Node[];
 
+    /**
+     * View camera collection the node was last gone through by, see QuadTreeStrategy._viewWalkFrame.
+     */
+    public _viewWalkFrame: number;
+
     constructor(
         SegmentPrototype: typeof Segment,
         quadTreeStrategy: QuadTreeStrategy,
@@ -135,6 +140,7 @@ class Node {
         this._cameraInside = false;
         this.inFrustum = 0;
         this._fadingNodes = [];
+        this._viewWalkFrame = -1;
         this.createBounds();
     }
 
@@ -478,11 +484,15 @@ class Node {
         }
 
         if (goDown) {
+            this._viewWalkFrame = qts._viewWalkFrame;
+
             if (!this.ready) {
                 this.createChildNodes();
             }
+
             const n = this.nodes,
                 trs = seg.terrainReady ? seg : terrainReadySegment;
+
             for (let i = 0; i < n.length; i++) {
                 n[i].renderViewCameraTree(slot, cam, frustumMask, mainCamera, horizonDist2, mainState, trs);
             }
@@ -1145,13 +1155,20 @@ class Node {
         this.segment = null;
     }
 
-    public clearTree() {
+    /**
+     * Destroys the branches the main camera does not render.
+     * @public
+     * @param {boolean} [keepViewCameraBranches=false] - Keeps the branches the last view camera collection has
+     * gone through, they lead to the nodes the depth cameras render.
+     */
+    public clearTree(keepViewCameraBranches: boolean = false) {
         const state = this.getState();
-        if (state === NOTRENDERING || state === RENDERING) {
+        const viewBranch = keepViewCameraBranches && this._viewWalkFrame === this.quadTreeStrategy._viewWalkFrame;
+        if (!viewBranch && (state === NOTRENDERING || state === RENDERING)) {
             this.destroyBranches();
         } else {
             for (let i = 0; i < this.nodes.length; i++) {
-                this.nodes[i] && this.nodes[i].clearTree();
+                this.nodes[i] && this.nodes[i].clearTree(keepViewCameraBranches);
             }
         }
     }
