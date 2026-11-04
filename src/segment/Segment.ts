@@ -635,22 +635,24 @@ class Segment {
                 first = cells.start[cell] * 3,
                 last = cells.start[cell + 1] * 3;
 
+            // A tile that reaches a pole has its pole row collapsed into one point. That gives triangles without
+            // area, which draw nothing, but the ray test can report a hit on them by rounding.
+            const pole = this._extentLonLat.northEast.lat >= 90 || this._extentLonLat.southWest.lat <= -90;
+
             let d = Ray.OUTSIDE;
 
-            // A row collapsed into one point (a tile that reaches a pole) gives triangles without area, which draw
-            // nothing, but the ray test can report a hit on them by rounding.
             for (let i = first; i < last; i += 3) {
                 this._setTriangle(tri, i);
                 d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
                 if (d === Ray.INSIDE) {
-                    if (hasArea()) {
+                    if (!pole || hasArea()) {
                         break;
                     }
                     d = Ray.OUTSIDE;
                 } else if (d === Ray.AWAY) {
                     // The point is under the terrain
                     _rayEx.set(_xyzRtc, norm);
-                    if (_rayEx.hitTriangleRes(_v0, _v1, _v2, _resRtc) === Ray.INSIDE && hasArea()) {
+                    if (_rayEx.hitTriangleRes(_v0, _v1, _v2, _resRtc) === Ray.INSIDE && (!pole || hasArea())) {
                         return this._terrainPointResult(res, -1);
                     }
                 }
@@ -662,9 +664,11 @@ class Segment {
                 let best = first,
                     bestMargin = -Infinity;
                 for (let i = first; i < last; i += 3) {
-                    this._setTriangle(tri, i);
-                    if (!hasArea()) {
-                        continue;
+                    if (pole) {
+                        this._setTriangle(tri, i);
+                        if (!hasArea()) {
+                            continue;
+                        }
                     }
                     const m = gridMargin(tri[i], tri[i + 1], tri[i + 2], size + 1, gx, gy);
                     if (m > bestMargin) {

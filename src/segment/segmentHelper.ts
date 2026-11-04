@@ -238,17 +238,24 @@ export function createCellTriangles(strip: ArrayLike<number>, size: number): Cel
     return { start, vertices };
 }
 
+/**
+ * One slot per grid size and neighbour sizes, filled on first use by getCellTriangles.
+ */
+function createCellTrianglesTable(pow: number): (CellTriangles | undefined)[] {
+    return new Array((pow + 1) ** 5).fill(undefined);
+}
+
 class SegmentHelper {
     protected _maxGridSize: number;
     public centerIndexesTable: IndexTypeArray[];
     public skirtsIndexesTable: IndexesTable;
-    protected _cellTriangles: CellTriangles[];
+    protected _cellTriangles: (CellTriangles | undefined)[];
 
     constructor(maxGridSize: number = 0) {
         this._maxGridSize = maxGridSize;
         this.centerIndexesTable = initIndexBodiesTable(this._maxGridSize);
         this.skirtsIndexesTable = initIndexesBodySkirts(this._maxGridSize);
-        this._cellTriangles = [];
+        this._cellTriangles = createCellTrianglesTable(this._maxGridSize);
     }
 
     public get maxGridSize(): number {
@@ -258,7 +265,7 @@ class SegmentHelper {
     public init() {
         this.centerIndexesTable = initIndexBodiesTable(this._maxGridSize);
         this.skirtsIndexesTable = initIndexesBodySkirts(this._maxGridSize);
-        this._cellTriangles = [];
+        this._cellTriangles = createCellTrianglesTable(this._maxGridSize);
     }
 
     public setMaxGridSize(gridSize: number) {
