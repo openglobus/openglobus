@@ -1,6 +1,6 @@
 import { cons } from "../../cons";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
-import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
+import type { DepthCamera } from "../depthCamera/DepthCamera";
 import type { Renderer } from "../Renderer";
 import { DEFAULT_PROJECTOR_TEXTURE_UNIT_START } from "../textureUnits";
 import { Projector } from "./Projector";
@@ -188,35 +188,54 @@ export class ProjectorManager {
     public add(projector: Projector): number {
         if (projector._slot !== -1) return projector.id;
 
+        const depthCameraHandler = this._renderer.depthCameraHandler;
+        const depthCamera = projector.depthCamera;
+
+        if (!depthCameraHandler.initialized) {
+            console.warn("ProjectorManager.add(): the renderer must be initialized before add()");
+            return -1;
+        }
+
         if (this._freeSlots.length === 0 && this._depthCapacity >= MAX_PROJECTOR_LAYERS) {
             console.warn(`ProjectorManager.add(): max projector layers (${MAX_PROJECTOR_LAYERS}) reached`);
             return -1;
         }
 
-        const framebuffer = projector.depthCamera.framebuffer;
-        if (!framebuffer._fbo) {
-            console.warn("ProjectorManager.add(): projector.depthCamera.framebuffer must be initialized before add()");
+        const size = depthCamera.width;
+        if (size !== depthCamera.height) {
+            console.warn(
+                `ProjectorManager.add(): projector framebuffer must be square (${size}x${depthCamera.height})`
+            );
             return -1;
         }
 
-        const fbW = framebuffer.width;
-        const fbH = framebuffer.height;
-        if (fbW !== fbH) {
-            console.warn(`ProjectorManager.add(): projector framebuffer must be square (${fbW}x${fbH})`);
+        if (
+            !this._ensureDepthArrayTexture(size, this._depthCapacity || INITIAL_PROJECTOR_LAYERS) ||
+            (this._freeSlots.length === 0 && !this._growDepthArrayTexture())
+        ) {
             return -1;
         }
 
-        if (!this._ensureDepthArrayTexture(fbW, this._depthCapacity || INITIAL_PROJECTOR_LAYERS)) return -1;
-        if (this._freeSlots.length === 0 && !this._growDepthArrayTexture()) return -1;
+        const registered = depthCamera._handlerIndex === -1;
+        if (registered) {
+            depthCameraHandler.add(depthCamera);
+        }
 
         projector._slot = this._freeSlots.pop()!;
         projector._manager = this;
 
         if (!this._rebindFramebufferToLayer(projector)) {
             this._restoreFramebufferAttachment(projector);
+
             this._freeSlots.push(projector._slot);
+
             projector._slot = -1;
             projector._manager = null;
+
+            if (registered) {
+                depthCameraHandler.remove(depthCamera);
+            }
+
             return -1;
         }
 
@@ -312,6 +331,9 @@ export class ProjectorManager {
 
         this._projectors.splice(index, 1);
         this._updateActiveProjectors = true;
+
+        this._renderer.depthCameraHandler.remove(projector.depthCamera);
+
         this.requestRedraw();
         return true;
     }
@@ -323,6 +345,7 @@ export class ProjectorManager {
             this._releaseSource(p);
             p._slot = -1;
             p._manager = null;
+            this._renderer.depthCameraHandler.remove(p.depthCamera);
         }
         this._projectors.length = 0;
         this._activeProjectors.length = 0;

@@ -1,5 +1,5 @@
 import { cons } from "../../cons";
-import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
+import type { DepthCamera } from "../depthCamera/DepthCamera";
 import { varianceBlur } from "../../shaders/varianceBlur";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { Renderer } from "../Renderer";
@@ -65,37 +65,53 @@ export class ShadowManager {
     public add(shadowMap: ShadowMap): number {
         if (shadowMap._slot !== -1) return shadowMap.id;
 
+        const depthCameraHandler = this._renderer.depthCameraHandler;
+        const depthCamera = shadowMap.depthCamera;
+
+        if (!depthCameraHandler.initialized) {
+            console.warn("ShadowManager.add(): the renderer must be initialized before add()");
+            return -1;
+        }
+
         if (this._freeSlots.length === 0 && this._shadowMaps.length >= MAX_SHADOW_MAPS) {
             console.warn(`ShadowManager.add(): max shadow map layers (${MAX_SHADOW_MAPS}) reached`);
             return -1;
         }
 
-        const framebuffer = shadowMap.depthCamera.framebuffer;
-        if (!framebuffer._fbo) {
-            console.warn("ShadowManager.add(): shadowMap.depthCamera.framebuffer must be initialized before add()");
+        const size = depthCamera.width;
+        if (size !== depthCamera.height) {
+            console.warn(`ShadowManager.add(): shadow map framebuffer must be square (${size}x${depthCamera.height})`);
             return -1;
         }
 
-        const fbW = framebuffer.width;
-        const fbH = framebuffer.height;
-        if (fbW !== fbH) {
-            console.warn(`ShadowManager.add(): shadow map framebuffer must be square (${fbW}x${fbH})`);
+        if (!this._ensureDepthArrayTexture(size)) {
             return -1;
         }
 
-        if (!this._ensureDepthArrayTexture(fbW)) return -1;
+        const registered = depthCamera._handlerIndex === -1;
+        if (registered) {
+            depthCameraHandler.add(depthCamera);
+        }
 
         shadowMap._slot = this._freeSlots.pop()!;
         shadowMap._manager = this;
 
         if (!this._rebindFramebufferToLayer(shadowMap)) {
             this._restoreFramebufferAttachment(shadowMap);
+
             this._freeSlots.push(shadowMap._slot);
+
             shadowMap._slot = -1;
             shadowMap._manager = null;
-            if (shadowMap.depthCamera.shadowMap === shadowMap) {
-                shadowMap.depthCamera.shadowMap = null;
+
+            if (depthCamera.shadowMap === shadowMap) {
+                depthCamera.shadowMap = null;
             }
+
+            if (registered) {
+                depthCameraHandler.remove(depthCamera);
+            }
+
             return -1;
         }
 
@@ -178,6 +194,9 @@ export class ShadowManager {
 
         this._shadowMaps.splice(index, 1);
         this._updateActiveShadowMaps = true;
+
+        this._renderer.depthCameraHandler.remove(shadowMap.depthCamera);
+
         return true;
     }
 
@@ -190,6 +209,7 @@ export class ShadowManager {
             if (s.depthCamera.shadowMap === s) {
                 s.depthCamera.shadowMap = null;
             }
+            this._renderer.depthCameraHandler.remove(s.depthCamera);
         }
         this._shadowMaps.length = 0;
         this._activeShadowMaps.length = 0;

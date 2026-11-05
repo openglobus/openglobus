@@ -1,9 +1,9 @@
-import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
+import { DepthCamera, type IDepthCameraParams } from "../depthCamera/DepthCamera";
 import type { ShadowManager } from "./ShadowManager";
 
 export interface IShadowMapParams {
     enabled?: boolean;
-    depthCamera: DepthCamera;
+    depthCamera?: DepthCamera | IDepthCameraParams;
 }
 
 export class ShadowMap {
@@ -16,10 +16,11 @@ export class ShadowMap {
     public _slot: number = -1;
     public _manager: ShadowManager | null = null;
 
-    constructor(params: IShadowMapParams) {
+    constructor(params: IShadowMapParams = {}) {
         this.id = ShadowMap.__staticCounter__++;
         this._enabled = params.enabled ?? true;
-        this.depthCamera = params.depthCamera;
+        this.depthCamera =
+            params.depthCamera instanceof DepthCamera ? params.depthCamera : new DepthCamera(params.depthCamera);
         this.depthCamera.shadowMap = this;
     }
 

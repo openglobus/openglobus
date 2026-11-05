@@ -10,7 +10,6 @@ import {
     input,
     Object3d,
     ShadowMap,
-    DepthCamera,
     XYZ,
     Vec3,
     CameraFootprint,
@@ -40,6 +39,7 @@ const globus = new Globe({
         footprintDebug
     ],
     atmosphereEnabled: true,
+    idleMode: true,
     fontsSrc: "../../res/fonts",
     sun: {
         localDateTime: new Date(Date.UTC(2026, 7, 4, 18, 0))
@@ -138,26 +138,28 @@ const depthPreviewShader = `void mainImage(out vec4 fragColor, in vec2 fragCoord
                 fragColor = vec4(vec3(clamp(normalized, 0.0, 1.0)), 1.0);
             }`;
 
-const depthCameraHandler = new control.DepthCameraHandler();
-globus.planet.addControl(depthCameraHandler);
-
-const depthCamera = new DepthCamera({
-    enableSegmentSkirts: true,
-    enableSegmentFaceCulling: false,
-    width: 1024,
-    height: 1024,
-    excludeLayers: [footprintDebug],
-    near: 1000,
-    far: 500000,
-    focusDistance: 100000,
-    verticalViewAngle: 45,
-    isOrthographic: true,
-    showFrustum: true,
-    showFootprint: false
+const shadowMap = new ShadowMap({
+    enabled: true,
+    depthCamera: {
+        enableSegmentSkirts: true,
+        enableSegmentFaceCulling: false,
+        width: 2048,
+        height: 2048,
+        excludeLayers: [footprintDebug],
+        near: 1000,
+        far: 500000,
+        focusDistance: 100000,
+        verticalViewAngle: 45,
+        isOrthographic: true,
+        showFrustum: true,
+        showFootprint: false
+    },
+    color: [1.0, 1.0, 1.0, 1.0],
+    priority: 0
 });
+globus.planet.renderer.shadows.add(shadowMap);
 
-depthCameraHandler.add(depthCamera);
-
+const depthCamera = shadowMap.depthCamera;
 const shadowCamera = depthCamera.camera;
 
 const footprint = new CameraFootprint({
@@ -189,25 +191,48 @@ function hideFootprintDebug() {
     footprintContour.setVisibility(false);
 }
 
+const lastSurfacePoints = [],
+    lastPoints = [];
+
+for (let i = 0; i < FOOTPRINT_POINT_COUNT; i++) {
+    lastSurfacePoints.push(new Vec3());
+    lastPoints.push(new Vec3());
+}
+
+let footprintShown = false;
+
+// The debug entities request a frame when they are set, so they are set only when the footprint changes,
+// otherwise the idle mode never stops the frames.
+function footprintChanged() {
+    let changed = !footprintShown;
+    for (let i = 0; i < FOOTPRINT_POINT_COUNT; i++) {
+        if (!lastSurfacePoints[i].equal(footprint.surfacePoints[i]) || !lastPoints[i].equal(footprint.points[i])) {
+            lastSurfacePoints[i].copy(footprint.surfacePoints[i]);
+            lastPoints[i].copy(footprint.points[i]);
+            changed = true;
+        }
+    }
+    return changed;
+}
+
 function updateShadowCamera() {
     if (!footprint.update(globus.planet.camera)) {
-        hideFootprintDebug();
+        if (footprintShown) {
+            hideFootprintDebug();
+            footprintShown = false;
+        }
         return;
     }
 
     shadowCameraFit.fit(depthCamera, footprint, globus.planet.sunPos);
-    updateFootprintDebug();
+
+    if (footprintChanged()) {
+        updateFootprintDebug();
+        footprintShown = true;
+    }
 }
 
 globus.planet.renderer.events.on("predraw", updateShadowCamera, null, -1);
-
-const shadowMap = new ShadowMap({
-    enabled: true,
-    depthCamera,
-    color: [1.0, 1.0, 1.0, 1.0],
-    priority: 0
-});
-globus.planet.renderer.shadows.add(shadowMap);
 
 const depthPreview = new control.FramebufferPreview({
     title: `ShadowMap`,

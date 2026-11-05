@@ -11,8 +11,7 @@ import {
     input,
     Gltf,
     Object3d,
-    Projector,
-    DepthCamera
+    Projector
 } from "../../lib/og.es.js";
 
 let uavLayer = new Vector("UAV.Layer", {
@@ -80,9 +79,6 @@ let cameraObjectCounter = 0;
 const keyboardNavigation = new control.KeyboardNavigation();
 globus.planet.addControl(keyboardNavigation);
 
-const depthCameraHandler = new control.DepthCameraHandler();
-globus.planet.addControl(depthCameraHandler);
-
 function syncTrackedCameras() {
     for (let i = 0; i < trackedCameraEntities.length; i++) {
         const entity = trackedCameraEntities[i];
@@ -117,29 +113,27 @@ async function createTrackedCameraEntity(cameraSnapshot) {
     const rootName = uavObjects[0].name || "root";
     const objectId = cameraObjectCounter++;
 
-    const depthCamera = new DepthCamera({
-        near: PROJECTOR_NEAR,
-        far: PROJECTOR_FAR,
-        showFrustum: false,
-        showFootprint: false,
-        excludeLayers: [uavLayer],
-        depthBiasWorld: 1, // meters
-        normalBias: 0.45, // 0.2 .. 1.0
-    });
-    depthCameraHandler.add(depthCamera);
-
-    const projectorCamera = depthCamera.camera;
-    projectorCamera.copy(cameraSnapshot);
-    projectorCamera.update();
-
     const projector = new Projector({
         enabled: true,
-        depthCamera,
+        depthCamera: {
+            near: PROJECTOR_NEAR,
+            far: PROJECTOR_FAR,
+            showFrustum: false,
+            showFootprint: false,
+            excludeLayers: [uavLayer],
+            depthBiasWorld: 1, // meters
+            normalBias: 0.45 // 0.2 .. 1.0
+        },
         color: [1.0, 1.0, 0.0, 0.3],
         renderMode: "color",
         priority: 0
     });
     globus.planet.renderer.projectors.add(projector);
+
+    const depthCamera = projector.depthCamera;
+    const projectorCamera = depthCamera.camera;
+    projectorCamera.copy(cameraSnapshot);
+    projectorCamera.update();
 
     const depthPreview = new control.FramebufferPreview({
         title: `depthCamera:${objectId}`,

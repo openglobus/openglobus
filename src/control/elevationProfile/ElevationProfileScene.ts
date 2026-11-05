@@ -102,6 +102,8 @@ class ElevationProfileScene extends Scene {
     constructor(options: IElevationProfileSceneParams = {}) {
         super("ElevationProfileScene");
 
+        this.disableDepthCamera = true;
+
         this.events = createEvents(ELEVATIONPROFILESCENE_EVENTS);
 
         this._planet = options.planet || null;

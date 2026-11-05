@@ -10,6 +10,8 @@ class Axes extends Scene {
     constructor(size: number = 100) {
         super("Axes");
 
+        this.disableDepthCamera = true;
+
         this.size = size;
         this.axesBuffer = null;
         this.axesColorBuffer = null;

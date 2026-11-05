@@ -2,7 +2,7 @@ import { EPSG3857 } from "../proj/EPSG3857";
 import { Layer } from "../layer/Layer";
 import { Vector } from "../layer/Vector";
 import { Node } from "../quadTree/Node";
-import { NE, NW, SE, SW } from "../quadTree/quadTree";
+import { MAX_RENDERED_NODES, NE, NW, SE, SW } from "../quadTree/quadTree";
 import { Planet } from "../scene/Planet";
 import { Proj } from "../proj/Proj";
 import { LonLat } from "../LonLat";
@@ -10,6 +10,8 @@ import { getTileCellExtent, getTileCellIndex, Segment, TILEGROUP_COMMON } from "
 import { Extent } from "../Extent";
 import { EntityCollectionsTreeStrategy } from "./EntityCollectionsTreeStrategy";
 import { PlanetCamera } from "../camera";
+import type { Camera } from "../camera/Camera";
+import type { DepthCamera } from "../renderer/depthCamera/DepthCamera";
 import * as math from "../math";
 import { createEvents, EventsHandler } from "../Events";
 
@@ -20,6 +22,8 @@ const MIN_LOD_SIZE = 512; //px
 const MAX_LOD_SIZE = 256; //px
 
 const HORIZON_TANGENT = 0.81;
+
+const __emptyArray__: readonly Node[] = [];
 
 export interface QuadTreeStrategyParams {
     planet: Planet;
@@ -39,8 +43,6 @@ export class QuadTreeStrategy {
     public name: string;
     public projection: Proj;
     public readonly planet: Planet;
-
-    public lodCamera: PlanetCamera | null = null;
 
     public disableNeighbors: boolean = false;
 
@@ -129,6 +131,25 @@ export class QuadTreeStrategy {
     public _terrainCompletedActivated: boolean;
 
     protected _skipPreRender: boolean = false;
+
+    /**
+     * Opaque nodes collected for the renderer depth cameras, [depth camera index][frustumIndex].
+     * @public
+     */
+    public _viewCamerasRenderedNodes: Node[][][] = [];
+
+    /**
+     * View camera collection counter, a node gone through by the last collection is marked with it.
+     * @public
+     */
+    public _viewWalkFrame: number = 0;
+
+    /**
+     * False while a node only the view cameras render waits for its terrain. Keeps the frames coming in the
+     * idle mode, apart from _terrainCompleted, which stays about the main camera view.
+     * @public
+     */
+    public _viewCamerasTerrainCompleted: boolean = true;
 
     constructor(params: QuadTreeStrategyParams) {
         this.events = createEvents<QuadTreeStrategyEventsList>(QUADTREESTRATEGY_EVENTS);
@@ -234,7 +255,7 @@ export class QuadTreeStrategy {
     }
 
     protected _checkRendercompleted() {
-        if (!this.renderReady || !this.terrainReady) {
+        if (!this.renderReady || !this.terrainReady || !this._viewCamerasTerrainCompleted) {
             this.planet.renderer!.requestRedraw();
         }
 
@@ -295,7 +316,128 @@ export class QuadTreeStrategy {
     public clearRenderedNodes() {
         this._clearRenderedNodeList();
         this._clearRenderNodesInFrustum();
+        for (let i = 0; i < this._viewCamerasRenderedNodes.length; i++) {
+            this._clearViewCameraRenderedNodes(i);
+        }
         this.planet.renderer?.requestRedraw();
+    }
+
+    /**
+     * Nodes of a renderer depth camera: where it sees the main camera nodes it gets the same ones, elsewhere
+     * nodes chosen with the main camera LOD.
+     * @public
+     * @param {number} slot - Depth camera index in the renderer depth camera handler.
+     * @param {number} [frustumIndex=0] - Depth camera frustum index.
+     */
+    public getViewCameraRenderedNodes(slot: number, frustumIndex: number = 0): readonly Node[] {
+        const rn = this._viewCamerasRenderedNodes[slot];
+        return (rn && rn[frustumIndex]) || __emptyArray__;
+    }
+
+    protected _clearViewCameraRenderedNodes(slot: number) {
+        const rn = this._viewCamerasRenderedNodes[slot];
+        if (!rn) return;
+        for (let i = 0; i < rn.length; i++) {
+            rn[i].length = 0;
+        }
+    }
+
+    public _addViewCameraNode(slot: number, node: Node, inFrustum: number) {
+        const rf = this._viewCamerasRenderedNodes[slot];
+        let k = 0;
+        while (inFrustum) {
+            if (inFrustum & 1) {
+                rf[k].push(node);
+            }
+            k++;
+            inFrustum >>= 1;
+        }
+    }
+
+    /**
+     * Mask of the view camera frustums whose node lists are not full yet.
+     * @public
+     */
+    public _getViewCameraOpenFrustums(slot: number): number {
+        const rf = this._viewCamerasRenderedNodes[slot];
+        let mask = 0;
+        for (let i = 0; i < rf.length; i++) {
+            if (rf[i].length < MAX_RENDERED_NODES) {
+                mask |= 1 << i;
+            }
+        }
+        return mask;
+    }
+
+    protected _addViewCameraOpaqueNode(slot: number, camera: Camera, frustumMask: number, node: Node) {
+        const inFrustum = node.getFrustumMask(camera) & frustumMask;
+        if (inFrustum) {
+            this._addViewCameraNode(slot, node, inFrustum);
+        }
+    }
+
+    /**
+     * Runs after the main collection is complete. Takes the opaque main nodes the view camera sees, then walks
+     * the tree for the parts the main camera has not rendered, never going under a main rendered node.
+     * @protected
+     */
+    protected _collectViewCamerasRenderNodes(mainCamera: PlanetCamera) {
+        const planet = this.planet;
+
+        const depthCameras: DepthCamera[] =
+            planet.renderer && !planet.disableDepthCamera && planet.quadTreeStrategy === this
+                ? planet.renderer.depthCameraHandler._depthCameras
+                : [];
+
+        const lists = this._viewCamerasRenderedNodes;
+
+        lists.length = depthCameras.length;
+
+        this._viewWalkFrame++;
+        this._viewCamerasTerrainCompleted = true;
+
+        const mainState = this._renderedNodes.length < MAX_RENDERED_NODES;
+
+        for (let slot = 0; slot < depthCameras.length; slot++) {
+            const dc = depthCameras[slot];
+            const rf = lists[slot] || (lists[slot] = []);
+
+            if (!dc.enabled || !dc.initialized) {
+                rf.length = 0;
+                continue;
+            }
+
+            const camera = dc.camera;
+            const frustumMask = dc.frustumMask;
+
+            for (let i = rf.length; i < camera.frustums.length; i++) {
+                rf[i] = [];
+            }
+
+            rf.length = camera.frustums.length;
+            this._clearViewCameraRenderedNodes(slot);
+
+            if (mainState) {
+                const rn = this._renderedNodes;
+
+                for (let i = 0; i < rn.length; i++) {
+                    const ri = rn[i];
+                    if (!this._transitionOpacityEnabled || ri.segment._transitionOpacity >= 1.0) {
+                        this._addViewCameraOpaqueNode(slot, camera, frustumMask, ri);
+                    }
+                }
+
+                // The opaque nodes shown instead of the fading in ones, each of them once. Exactly 1 is the frame the
+                // fading in node has become opaque itself and is taken above.
+                for (const fj of this._fadingNodes.values()) {
+                    if (fj.segment && fj.segment._transitionOpacity > 1.0) {
+                        this._addViewCameraOpaqueNode(slot, camera, frustumMask, fj);
+                    }
+                }
+            }
+
+            this._collectViewRenderNodes(slot, camera, frustumMask, mainCamera, mainState);
+        }
     }
 
     protected _clearRenderedNodeList() {
@@ -384,7 +526,7 @@ export class QuadTreeStrategy {
             this._minTerrainRadiusAcc = Infinity;
             this._maxTerrainRadiusAcc = -Infinity;
 
-            this._updateHorizonDist(this.lodCamera || cam);
+            this._updateHorizonDist(cam);
 
             this._collectRenderNodes(cam);
 
@@ -429,6 +571,8 @@ export class QuadTreeStrategy {
                     }
                 }
             }
+
+            this._collectViewCamerasRenderNodes(cam);
         }
 
         this._skipPreRender = true;
@@ -468,12 +612,16 @@ export class QuadTreeStrategy {
      * @protected
      */
     protected _updateHorizonDist(cam: PlanetCamera) {
+        this._horizonDist2 = this._getHorizonDist2(cam);
+    }
+
+    protected _getHorizonDist2(cam: Camera): number {
         let planet = this.planet,
             r = planet.ellipsoid.polarSize,
             h = (planet.terrain ? planet.terrain.getMaxHeight() : 0) * planet._heightFactor,
             eyeHorizon2 = cam.eye.length2() - r * r,
             d = Math.sqrt(eyeHorizon2 > 0 ? eyeHorizon2 : 0) + Math.sqrt(2 * r * h + h * h);
-        this._horizonDist2 = d * d;
+        return d * d;
     }
 
     protected _clearVisibleNodes() {
@@ -487,9 +635,41 @@ export class QuadTreeStrategy {
         }
     }
 
-    public clear() {
+    /**
+     * The tree traversal of a view camera, it runs after the main camera one.
+     * @protected
+     */
+    protected _collectViewRenderNodes(
+        slot: number,
+        camera: Camera,
+        frustumMask: number,
+        mainCamera: PlanetCamera,
+        mainState: boolean
+    ) {
+        const horizonDist2 = camera.isOrthographic ? Infinity : this._getHorizonDist2(camera);
+
         for (let i = 0; i < this._quadTreeList.length; i++) {
-            this._quadTreeList[i].clearTree();
+            this._quadTreeList[i].renderViewCameraTree(
+                slot,
+                camera,
+                frustumMask,
+                mainCamera,
+                horizonDist2,
+                mainState,
+                null
+            );
+        }
+    }
+
+    /**
+     * Destroys the branches the main camera does not render.
+     * @public
+     * @param {boolean} [keepViewCameraBranches=false] - Keeps the branches leading to the nodes the depth cameras
+     * render now. They are under the nodes the main camera has not gone into, and would be made and loaded again.
+     */
+    public clear(keepViewCameraBranches: boolean = false) {
+        for (let i = 0; i < this._quadTreeList.length; i++) {
+            this._quadTreeList[i].clearTree(keepViewCameraBranches);
         }
     }
 

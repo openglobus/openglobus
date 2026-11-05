@@ -16,6 +16,7 @@ import { Material } from "../layer/Material";
 import { Node } from "../quadTree/Node";
 import { Planet } from "../scene/Planet";
 import { PlanetCamera } from "../camera/PlanetCamera";
+import type { Camera } from "../camera/Camera";
 import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Proj } from "../proj/Proj";
 import { Sphere } from "../bv/Sphere";
@@ -516,7 +517,7 @@ class Segment {
         // }
     }
 
-    public updateRTCEyePosition(camera: PlanetCamera) {
+    public updateRTCEyePosition(camera: Camera) {
         let rtcEyePosition = camera.eye.sub(this._relativeCenter);
         Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
     }

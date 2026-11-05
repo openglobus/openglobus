@@ -150,12 +150,6 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal, out v
     vec2 texSize = vec2(textureSize(u_projectorDepthArray, 0).xy);
     vec2 texelSize = 1.0 / texSize;
 
-    vec2 uvInTexels = uv * texSize;
-
-    float footprintX = length(dFdx(uvInTexels));
-    float footprintY = length(dFdy(uvInTexels));
-    float footprint = max(footprintX, footprintY);
-
     float receiverLinearFwidth = fwidth(receiverLinear);
     #endif
 
@@ -170,17 +164,14 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal, out v
     float depthThreshold = depthBiasWorld + slopeBiasWorld;
 
     #if PROJECTOR_PCF
-    float aliasingBoost = clamp((footprint - 1.0) * 0.75, 0.0, 2.0);
-    float pcfScale = 1.0 + aliasingBoost;
-
-    float transitionWidth = max(receiverLinearFwidth * PROJECTOR_PCF_SOFTNESS * pcfScale, PROJECTOR_MIN_TRANSITION);
+    float transitionWidth = max(receiverLinearFwidth * PROJECTOR_PCF_SOFTNESS, PROJECTOR_MIN_TRANSITION);
 
     float visibility = 0.0;
     float sampleCount = 0.0;
 
     for (int y = -1; y <= 1; y++) {
         for (int x = -1; x <= 1; x++) {
-            vec2 tapOffset = vec2(float(x), float(y)) * texelSize * pcfScale;
+            vec2 tapOffset = vec2(float(x), float(y)) * texelSize;
             vec2 uvOffset = uv + tapOffset;
 
             float inside =
@@ -195,7 +186,7 @@ float getProjectorVisibility(int projectorIndex, vec3 rtcPos, vec3 normal, out v
             float mapLinear = linearizeProjectorDepth(projectorIndex, mapDepth);
 
             float compareDelta = (mapLinear + depthThreshold) - receiverLinear;
-            float sampleVisibility = smoothstep(-transitionWidth, transitionWidth, compareDelta);
+            float sampleVisibility = smoothstep(-2.0 * transitionWidth, 0.0, compareDelta);
 
             float wx = 2.0 - abs(float(x));
             float wy = 2.0 - abs(float(y));
