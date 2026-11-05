@@ -33,6 +33,7 @@ import { Vec3 } from "../math/Vec3";
 import type { NumberArray3 } from "../math/Vec3";
 import { Vec4 } from "../math/Vec4";
 import type { NumberArray4 } from "../math/Vec4";
+import type { Mat4 } from "../math/Mat4";
 
 export interface IRendererParams {
     controls?: Control[];
@@ -235,6 +236,7 @@ class Renderer {
     protected _depthComponent: string;
 
     protected _depthRefreshRequired: boolean;
+    protected _depthReadInverseProjectionViews: Mat4[] = [];
 
     protected _pickingReadAt: number;
 
@@ -1901,7 +1903,12 @@ class Renderer {
     }
 
     protected _readDepthBuffer(callback?: () => void) {
-        this.depthFramebuffer!.readPixelBuffersAsync(callback);
+        const inverseProjectionViews = this.activeCamera.frustums.map((f) => f.inverseProjectionViewMatrix.clone());
+
+        this.depthFramebuffer!.readPixelBuffersAsync(() => {
+            this._depthReadInverseProjectionViews = inverseProjectionViews;
+            callback && callback();
+        });
     }
 
     protected _readPickingBuffer() {
@@ -1965,22 +1972,20 @@ class Renderer {
         if (_tempDepth_[1] === -1) return;
 
         let depth = _tempDepth_[0],
-            frustum = camera.frustums[_tempDepth_[1]];
+            invPV = this._depthReadInverseProjectionViews[_tempDepth_[1]];
 
-        if (!frustum) return;
+        if (!invPV) return;
 
         let ndcZ = camera.depthZeroToOne ? depth : depth * 2.0 - 1.0;
         let ndc = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, ndcZ, 1.0);
-        let view = frustum.inverseProjectionMatrix.mulVec4(ndc);
-        let zView = -view.z / view.w;
+        let d = invPV.mulVec4(ndc).affinity().toVec3().subA(camera.eye);
+        let zView = d.dot(camera.getForward());
 
-        //
-        // todo: maybe lets calculate distance to camera eye????? No?
-        //
-        if (camera.isOrthographic) return zView;
+        if (zView <= 0) {
+            return;
+        }
 
-        let dir = (px as IBaseInputState).direction || camera.unproject(px.x, px.y);
-        return zView / Math.max(1e-6, dir.dot(camera.getForward()));
+        return camera.isOrthographic ? zView : d.length();
     }
 
     /**
