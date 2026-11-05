@@ -11,6 +11,13 @@ const POLYLINE_DEPTH_OFFSET = -100;
 
 /**
  * Renderer depth cameras. A camera index in the list is its slot in the planet quad tree strategies.
+ * The cameras are bound to the first planet the renderer has when it starts. A planet added later is not
+ * picked up: give it to DepthCamera as the planet option, though the footprints still show on the start planet
+ * only. A removed planet is not released.
+ *
+ * @todo Several planets: keep the footprint and frustum collections per planet, in the planet a camera is
+ * bound to. Now they live in the start planet, so the footprint of a camera bound to another planet lands
+ * on the start planet ellipsoid.
  */
 export class DepthCameraHandler {
     public readonly renderer: Renderer;
@@ -61,7 +68,7 @@ export class DepthCameraHandler {
     }
 
     /**
-     * First planet of the renderer, the default one to bind the cameras to.
+     * First planet of the renderer at its start, the default one to bind the cameras to.
      */
     public get planet(): Planet | null {
         return this._planet;

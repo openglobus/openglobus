@@ -125,7 +125,8 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
  * @param {Array.<EntityCollection>} [options.excludeEntityCollections] - Entity collections whose 3D objects are
  * not drawn into the frame.
  * @param {Planet} [options.planet] - Planet the camera is bound to: PlanetCamera, lon/lat coordinates, footprint.
- * Default is the first planet of the renderer. The terrain nodes come from all the planets anyway.
+ * Default is the first planet of the renderer at its start, a planet added after the start has to be given here.
+ * The terrain nodes come from all the planets anyway.
  * @param {number} [options.depthBiasWorld=1] - Occlusion bias of the receivers in meters.
  * @param {number} [options.normalBias=0.45] - Offset of the receiver point along its normal in meters.
  * @param {LonLat|Array.<number>} [options.lonLat] - Start position with a planet, `[lon, lat, height]`. Without
