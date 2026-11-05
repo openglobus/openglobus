@@ -67,8 +67,44 @@ let _tempLow = new Vec3();
 
 let _v0 = new Vec3(),
     _v1 = new Vec3(),
-    _v2 = new Vec3(),
-    _v3 = new Vec3();
+    _v2 = new Vec3();
+
+/**
+ * How far the grid position (x, y) is inside the triangle of grid vertices a, b and c, in barycentric
+ * coordinates: the smallest of the three, negative outside of the triangle.
+ */
+function gridMargin(a: number, b: number, c: number, d: number, x: number, y: number): number {
+    const ay = (a / d) | 0,
+        by = (b / d) | 0,
+        cy = (c / d) | 0,
+        ax = a - ay * d,
+        bx = b - by * d,
+        cx = c - cy * d,
+        det = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy),
+        l1 = ((by - cy) * (x - cx) + (cx - bx) * (y - cy)) / det,
+        l2 = ((cy - ay) * (x - cx) + (ax - cx) * (y - cy)) / det;
+    return Math.min(l1, l2, 1 - l1 - l2);
+}
+
+/**
+ * Whether the triangle _v0, _v1, _v2 has an area: twice the area is at least a millionth of the longest edge squared.
+ */
+function hasArea(): boolean {
+    const ux = _v1.x - _v0.x,
+        uy = _v1.y - _v0.y,
+        uz = _v1.z - _v0.z,
+        vx = _v2.x - _v0.x,
+        vy = _v2.y - _v0.y,
+        vz = _v2.z - _v0.z,
+        nx = uy * vz - uz * vy,
+        ny = uz * vx - ux * vz,
+        nz = ux * vy - uy * vx,
+        wx = vx - ux,
+        wy = vy - uy,
+        wz = vz - uz,
+        longest = Math.max(ux * ux + uy * uy + uz * uz, vx * vx + vy * vy + vz * vz, wx * wx + wy * wy + wz * wz);
+    return nx * nx + ny * ny + nz * nz >= 1e-12 * longest * longest;
+}
 
 let _xyzRtc = new Vec3(),
     _resRtc = new Vec3(),
@@ -587,66 +623,70 @@ class Segment {
             let xn = x - xmin,
                 yn = y - ymin;
 
-            let indX = Math.floor(xn / qx),
-                indY = Math.floor(size - yn / qy);
+            // Position in the grid: columns from the west edge, rows from the north edge. A point on the edge of the
+            // tile can come out a rounding error outside of it.
+            let gx = Math.min(Math.max(xn / qx, 0), size),
+                gy = Math.min(Math.max(size - yn / qy, 0), size);
 
-            let ind_v0 = ((size + 1) * indY + indX) * 3;
-            let ind_v2 = ((size + 1) * (indY + 1) + indX) * 3;
+            const cell = Math.min(Math.floor(gy), size - 1) * size + Math.min(Math.floor(gx), size - 1);
 
-            _v0.set(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]);
-            _v1.set(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]);
-            _v2.set(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
+            // The triangles drawn in the cell, taken from the index buffer layout of the segment
+            const cells = segmentHelper.getInstance().getCellTriangles(Math.log2(size), this.node.sideSizeLog2),
+                tri = cells.vertices,
+                first = cells.start[cell] * 3,
+                last = cells.start[cell + 1] * 3;
 
-            let d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
+            // A tile that reaches a pole has its pole row collapsed into one point. That gives triangles without
+            // area, which draw nothing, but the ray test can report a hit on them by rounding.
+            const pole = this._extentLonLat.northEast.lat >= 90 || this._extentLonLat.southWest.lat <= -90;
 
-            if (d === Ray.INSIDE) {
-                res.set(
-                    _resRtc.x + this._relativeCenter.x,
-                    _resRtc.y + this._relativeCenter.y,
-                    _resRtc.z + this._relativeCenter.z
-                );
-                return _xyzRtc.distance(_resRtc);
-            } else if (d === Ray.AWAY) {
-                _rayEx.set(_xyzRtc, norm);
-                let d = _rayEx.hitTriangleRes(_v0, _v1, _v2, _resRtc);
-                if (d === Ray.INSIDE) {
-                    res.set(
-                        _resRtc.x + this._relativeCenter.x,
-                        _resRtc.y + this._relativeCenter.y,
-                        _resRtc.z + this._relativeCenter.z
-                    );
-                    return -_xyzRtc.distance(_resRtc);
+            // The triangle that contains the position in the grid is nearly always the one the ray hits,
+            // so it is tested first and the others only when it is missed.
+            let best = first,
+                bestMargin = -Infinity;
+            for (let i = first; i < last; i += 3) {
+                const m = gridMargin(tri[i], tri[i + 1], tri[i + 2], size + 1, gx, gy);
+                if (m > bestMargin) {
+                    bestMargin = m;
+                    best = i;
+                    if (m >= 0) {
+                        break;
+                    }
                 }
             }
 
-            _v3.set(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
-
-            d = _ray.hitTriangleRes(_v1, _v3, _v2, _resRtc);
-            if (d === Ray.INSIDE) {
-                res.set(
-                    _resRtc.x + this._relativeCenter.x,
-                    _resRtc.y + this._relativeCenter.y,
-                    _resRtc.z + this._relativeCenter.z
-                );
-                return _xyzRtc.distance(_resRtc);
-            } else if (d === Ray.AWAY) {
-                _rayEx.set(_xyzRtc, norm);
-                let d = _rayEx.hitTriangleRes(_v1, _v3, _v2, _resRtc);
-                if (d === Ray.INSIDE) {
-                    res.set(
-                        _resRtc.x + this._relativeCenter.x,
-                        _resRtc.y + this._relativeCenter.y,
-                        _resRtc.z + this._relativeCenter.z
-                    );
-                    return -_xyzRtc.distance(_resRtc);
+            let sign = this._hitCellTriangle(tri, best, norm, pole);
+            for (let i = first; sign === 0 && i < last; i += 3) {
+                if (i !== best) {
+                    sign = this._hitCellTriangle(tri, i, norm, pole);
                 }
             }
 
-            if (d === Ray.AWAY) {
-                return -_xyzRtc.distance(_resRtc);
+            if (sign !== 0) {
+                return this._terrainPointResult(res, sign);
             }
 
-            return _xyzRtc.distance(_resRtc);
+            // The ray follows the ellipsoid normal and can pass just outside of the triangles of the cell:
+            // then the plane of the triangle that contains the position in the grid is used.
+            if (pole) {
+                bestMargin = -Infinity;
+                for (let i = first; i < last; i += 3) {
+                    this._setTriangle(tri, i);
+                    if (!hasArea()) {
+                        continue;
+                    }
+                    const m = gridMargin(tri[i], tri[i + 1], tri[i + 2], size + 1, gx, gy);
+                    if (m > bestMargin) {
+                        bestMargin = m;
+                        best = i;
+                    }
+                }
+            }
+
+            this._setTriangle(tri, best);
+            const d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
+
+            return this._terrainPointResult(res, d === Ray.AWAY ? -1 : 1);
         } else {
             let norm = this.planet.ellipsoid.getSurfaceNormal3v(xyz);
             _ray.set(xyz, norm.negateTo());
@@ -656,6 +696,44 @@ class Segment {
             }
             return xyz.distance(hit);
         }
+    }
+
+    /**
+     * Ray test of the cell triangle at tri[i]: 1 when the point is above it, -1 when below it, 0 when missed.
+     */
+    protected _hitCellTriangle(tri: Uint32Array, i: number, norm: Vec3, pole: boolean): number {
+        this._setTriangle(tri, i);
+        const d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
+        if (d === Ray.INSIDE) {
+            return !pole || hasArea() ? 1 : 0;
+        }
+        if (d === Ray.AWAY) {
+            // The point is under the terrain
+            _rayEx.set(_xyzRtc, norm);
+            if (_rayEx.hitTriangleRes(_v0, _v1, _v2, _resRtc) === Ray.INSIDE && (!pole || hasArea())) {
+                return -1;
+            }
+        }
+        return 0;
+    }
+
+    protected _setTriangle(tri: Uint32Array, i: number) {
+        const verts = this.renderVertices!,
+            i0 = tri[i] * 3,
+            i1 = tri[i + 1] * 3,
+            i2 = tri[i + 2] * 3;
+        _v0.set(verts[i0], verts[i0 + 1], verts[i0 + 2]);
+        _v1.set(verts[i1], verts[i1 + 1], verts[i1 + 2]);
+        _v2.set(verts[i2], verts[i2 + 1], verts[i2 + 2]);
+    }
+
+    protected _terrainPointResult(res: Vec3, sign: number): number {
+        res.set(
+            _resRtc.x + this._relativeCenter.x,
+            _resRtc.y + this._relativeCenter.y,
+            _resRtc.z + this._relativeCenter.z
+        );
+        return sign * _xyzRtc.distance(_resRtc);
     }
 
     /**
