@@ -59,6 +59,8 @@ class PolygonDrawingScene extends Scene {
     constructor(options: IPolygonDrawingSceneParams) {
         super(options.name);
 
+        this.disableDepthCamera = true;
+
         this.events = createEvents(POLYGONDRAWINGSCENE_EVENTS);
 
         this._planet = null;

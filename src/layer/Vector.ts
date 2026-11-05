@@ -4,6 +4,7 @@ import { EntityCollection } from "../entity/EntityCollection";
 import { EntityCollectionsTreeStrategy } from "../quadTree/EntityCollectionsTreeStrategy";
 import type { EventsHandler } from "../Events";
 import { GeometryHandler } from "../entity/geometry/GeometryHandler";
+import type { Geometry } from "../entity/geometry/Geometry";
 import type { IMouseState, ITouchState } from "../renderer/RendererEvents";
 import { BaseTileMaterialLayer } from "./BaseTileMaterialLayer";
 import type { BaseTileMaterialLayerEventsType, IBaseTileMaterialLayerParams } from "./BaseTileMaterialLayer";
@@ -629,6 +630,18 @@ class Vector extends BaseTileMaterialLayer {
      * @returns {Vector} - Returns this layer.
      */
     public removeEntities(entities: Entity[]): this {
+        if (this._planet) {
+            const geometries: Geometry[] = [];
+            for (let j = 0; j < entities.length; j++) {
+                const e = entities[j];
+                // The same ownership test removeEntity() applies
+                if (e._layer && this.isEqual(e._layer) && e.geometry) {
+                    geometries.push(e.geometry);
+                }
+            }
+            this._geometryHandler.removeGeometries(geometries);
+        }
+
         let i = entities.length;
         while (i--) {
             this.removeEntity(entities[i]);
@@ -646,6 +659,16 @@ class Vector extends BaseTileMaterialLayer {
 
         for (let i = 0; i < temp.length; i++) {
             temp[i] = this._entities[i];
+        }
+
+        // Every geometry leaves the shared buffers in one pass; the removals below then skip them.
+        if (this._planet) {
+            const geometries: Geometry[] = [];
+            for (let j = 0; j < this._entities.length; j++) {
+                const e = this._entities[j];
+                e.geometry && geometries.push(e.geometry);
+            }
+            this._geometryHandler.removeGeometries(geometries);
         }
 
         let i = this._entities.length;
@@ -984,50 +1007,24 @@ class Vector extends BaseTileMaterialLayer {
     }
 
     public override applyMaterial(material: Material) {
+        // A tile that is being redrawn keeps showing its own previous texture
+        if (
+            !material.isReady &&
+            material.textureExists &&
+            material._updateTexture &&
+            material.segment.tileZoom >= this.minNativeZoom
+        ) {
+            !material.isLoading && this.loadMaterial(material);
+            material.texture = material._updateTexture;
+            material.pickingMask = material._updatePickingMask;
+            material.texOffset[0] = 0.0;
+            material.texOffset[1] = 0.0;
+            material.texOffset[2] = 1.0;
+            material.texOffset[3] = 1.0;
+            return material.texOffset;
+        }
         return super.applyMaterial(material);
     }
-    // @deprecated, now it gets algorithm from the parent class.
-    // public override applyMaterial(material: Material): NumberArray4 {
-    //     if (material.isReady) {
-    //         return [0, 0, 1, 1];
-    //     } else {
-    //         !material.isLoading && this.loadMaterial(material);
-    //
-    //         const segment = material.segment;
-    //         let pn = segment.node,
-    //             notEmpty = false;
-    //
-    //         let mId = this.__id;
-    //         let psegm = material;
-    //
-    //         while (pn.parentNode) {
-    //             if (psegm && psegm.isReady) {
-    //                 notEmpty = true;
-    //                 break;
-    //             }
-    //             pn = pn.parentNode;
-    //             psegm = pn.segment.materials[mId];
-    //         }
-    //
-    //         if (notEmpty) {
-    //             material.appliedNodeId = pn.nodeId;
-    //             material.texture = psegm.texture;
-    //             material.pickingMask = psegm.pickingMask;
-    //             const dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
-    //             return [segment.tileX * dZ2 - pn.segment.tileX, segment.tileY * dZ2 - pn.segment.tileY, dZ2, dZ2];
-    //         } else {
-    //             if (material.textureExists && material._updateTexture) {
-    //                 material.texture = material._updateTexture;
-    //                 material.pickingMask = material._updatePickingMask;
-    //             } else {
-    //                 material.texture = segment.planet.transparentTexture;
-    //                 material.pickingMask = segment.planet.transparentTexture;
-    //             }
-    //             material.pickingReady = true;
-    //             return [0, 0, 1, 1];
-    //         }
-    //     }
-    // }
 
     protected override _allowsLoadWithoutPassReady(): boolean {
         return true;
@@ -1070,14 +1067,23 @@ class Vector extends BaseTileMaterialLayer {
             t = material.pickingMask;
             material.pickingMask = null;
             t && !t.default && gl.deleteTexture(t);
+        }
 
-            t = material._updateTexture;
-            material._updateTexture = null;
-            t && !t.default && gl.deleteTexture(t);
-
-            t = material._updatePickingMask;
-            material._updatePickingMask = null;
-            t && !t.default && gl.deleteTexture(t);
+        // A tile that is being redrawn still owns its previous texture and picking mask
+        const updateTexture = material._updateTexture,
+            updatePickingMask = material._updatePickingMask;
+        material._updateTexture = null;
+        material._updatePickingMask = null;
+        if (updateTexture || updatePickingMask) {
+            const gl = material.segment.handler.gl!;
+            if (updateTexture && !updateTexture.default) {
+                material.texture === updateTexture && (material.texture = null);
+                gl.deleteTexture(updateTexture);
+            }
+            if (updatePickingMask && !updatePickingMask.default) {
+                material.pickingMask === updatePickingMask && (material.pickingMask = null);
+                gl.deleteTexture(updatePickingMask);
+            }
         }
 
         this.abortMaterialLoading(material);

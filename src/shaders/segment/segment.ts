@@ -51,8 +51,8 @@ export function segment_screen_deferred(): ShaderProgram {
             specularTexture: "sampler2d",
             lightPosition: "vec3",
             shadeMode: "float",
-            camHeight: "float",
-            nightTextureCoefficient: "float"
+            specularFactor: "float",
+            nightFactor: "float"
         },
         attributes: {
             aVertexPositionHigh: "vec3",
@@ -87,8 +87,8 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4",
-            camHeight: "float",
-            nightTextureCoefficient: "float",
+            specularFactor: "float",
+            nightFactor: "float",
             transitionOpacity: "float",
             shadeMode: "float",
             frameOpacity: "float",
@@ -135,8 +135,8 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             scatteringTexture: "sampler2D",
             atmosFadeDist: "vec2",
             atmosMaxMinOpacity: "vec3",
-            camHeight: "float",
-            nightTextureCoefficient: "float",
+            specularFactor: "float",
+            nightFactor: "float",
             transitionOpacity: "float",
             shadeMode: "float",
             frameOpacity: "float",

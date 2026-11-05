@@ -12,6 +12,8 @@ class SkyBox extends Scene {
 
     constructor(params: Texture3DParams, size: number = 10000) {
         super("skybox");
+
+        this.disableDepthCamera = true;
         this.params = params;
         this.size = size;
         this.vertexPositionBuffer = null;

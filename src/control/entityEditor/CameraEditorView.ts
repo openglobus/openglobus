@@ -1,5 +1,5 @@
 import type { Camera } from "../../camera/Camera";
-import type { DepthCamera } from "../depthCamera/DepthCamera";
+import type { DepthCamera } from "../../renderer/depthCamera/DepthCamera";
 import { Entity } from "../../entity/Entity";
 import { Object3d } from "../../Object3d";
 import { Checkbox } from "../../ui/Checkbox";

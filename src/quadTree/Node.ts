@@ -1,6 +1,7 @@
 import { Extent } from "../Extent";
 import { EPSG3857 } from "../proj/EPSG3857";
 import { binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
+import { getMedian } from "../terrain/terrainUtils";
 import { LonLat } from "../LonLat";
 import { MAX, MIN } from "../math";
 import { Segment } from "../segment/Segment";
@@ -30,6 +31,7 @@ import {
 import { TILEGROUP_COMMON, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "../segment/Segment";
 
 import { PlanetCamera } from "../camera/PlanetCamera";
+import type { Camera } from "../camera/Camera";
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
@@ -60,6 +62,16 @@ let BOUNDS: BoundsType = {
     r2min: 0.0,
     r2max: 0.0
 };
+
+// Squared vertex radii of the cut segment, their median is the LOD radius
+let _r2 = new Float64Array(_vertOrder.length);
+
+function getR2Buffer(count: number): Float64Array {
+    if (_r2.length < count) {
+        _r2 = new Float64Array(count);
+    }
+    return _r2;
+}
 
 let __staticCounter = 0;
 
@@ -94,6 +106,11 @@ class Node {
     public inFrustum: number;
     public _fadingNodes: Node[];
 
+    /**
+     * View camera collection the node was last gone through by, see QuadTreeStrategy._viewWalkFrame.
+     */
+    public _viewWalkFrame: number;
+
     constructor(
         SegmentPrototype: typeof Segment,
         quadTreeStrategy: QuadTreeStrategy,
@@ -123,6 +140,7 @@ class Node {
         this._cameraInside = false;
         this.inFrustum = 0;
         this._fadingNodes = [];
+        this._viewWalkFrame = -1;
         this.createBounds();
     }
 
@@ -183,6 +201,8 @@ class Node {
 
         // Initial relative center is the same as bounding sphere center
         seg._relativeCenter.set(x, y, z);
+
+        seg._createPlainBounds();
     }
 
     public getState(): number | null {
@@ -260,8 +280,6 @@ class Node {
             return;
         }
 
-        let lodCam = this.quadTreeStrategy.lodCamera || cam;
-
         if (!maxZoom || (zoomPassNode && this.segment.tileZoom > zoomPassNode.segment.tileZoom)) {
             this.prevState = this.state;
         }
@@ -269,8 +287,7 @@ class Node {
 
         this.clearNeighbors();
 
-        let seg = this.segment,
-            planet = this.quadTreeStrategy.planet;
+        let seg = this.segment;
 
         this._cameraInside = false;
 
@@ -315,11 +332,9 @@ class Node {
         }
 
         if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
-            let h = Math.abs(lodCam._lonLat.height);
+            let h = Math.abs(cam._lonLat.height);
 
-            let horizonDist = lodCam.eye.length2() - planet.ellipsoid.polarSizeSqr;
-            let maxDist = 106876472875.63281 * planet._heightFactor;
-            horizonDist = horizonDist < maxDist ? maxDist : horizonDist;
+            let horizonDist = this.quadTreeStrategy._horizonDist2;
 
             let altVis =
                 seg.tileZoom < 2 ||
@@ -356,8 +371,7 @@ class Node {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
             } else if (
                 seg.terrainReady &&
-                ((!maxZoom &&
-                    lodCam.projectedSize(seg.bsphere.center, seg._plainRadius) < this.quadTreeStrategy.lodSize) ||
+                ((!maxZoom && cam.projectedSize(seg.lodCenter, seg._plainRadius) < this.quadTreeStrategy.lodSize) ||
                     (maxZoom && (seg.tileZoom === maxZoom || !altVis)))
             ) {
                 if (altVis) {
@@ -369,8 +383,7 @@ class Node {
             } else if (
                 seg.terrainReady &&
                 seg.checkZoom() &&
-                (!maxZoom ||
-                    lodCam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.quadTreeStrategy._maxLodSize)
+                (!maxZoom || cam.projectedSize(seg.lodCenter, seg._plainRadius) > this.quadTreeStrategy._maxLodSize)
             ) {
                 if (seg.tileZoom < this.quadTreeStrategy.maxZoomLimit) {
                     this.traverseNodes(cam, maxZoom, seg, stopLoading, zoomPassNode);
@@ -385,6 +398,119 @@ class Node {
             }
         } else {
             this.state = NOTRENDERING;
+        }
+    }
+
+    /**
+     * Bit mask of the camera frustums the node is in, the same test renderTree makes.
+     * @public
+     * @param {Camera} cam - Camera.
+     * @returns {number} -
+     */
+    public getFrustumMask(cam: Camera): number {
+        const seg = this.segment,
+            frustums = cam.frustums,
+            useBox = seg.tileZoom >= 6 && seg.terrainReady;
+
+        let mask = 0;
+        for (let i = 0, len = frustums.length; i < len; i++) {
+            if (useBox ? frustums[i].containsBox(seg.bbox) : frustums[i].containsSphere(seg.bsphere)) {
+                mask |= 1 << i;
+            }
+        }
+
+        return mask;
+    }
+
+    /**
+     * Tree traversal of a view (depth) camera, after the main camera one. While mainState is true the node state
+     * was set by the main traversal in this frame: it stops at the main rendered nodes (the strategy takes them)
+     * and goes down where the main camera went down. Elsewhere the nodes are chosen by the main camera LOD and the
+     * node state is not read anymore. It never changes the node state.
+     * @public
+     */
+    public renderViewCameraTree(
+        slot: number,
+        cam: Camera,
+        frustumMask: number,
+        mainCamera: PlanetCamera,
+        horizonDist2: number,
+        mainState: boolean,
+        terrainReadySegment: Segment | null
+    ) {
+        const qts = this.quadTreeStrategy;
+
+        const openFrustums = qts._getViewCameraOpenFrustums(slot);
+        if (!openFrustums) {
+            return;
+        }
+
+        const inFrustum = this.getFrustumMask(cam) & frustumMask & openFrustums;
+        if (!inFrustum) {
+            return;
+        }
+
+        const seg = this.segment;
+        let goDown: boolean;
+
+        if (mainState && this.state === RENDERING) {
+            return;
+        } else if (mainState && this.state === WALKTHROUGH) {
+            goDown = true;
+        } else {
+            mainState = false;
+
+            const altVis =
+                seg.tileZoom < 2 ||
+                seg.tileZoom > 19 ||
+                (seg.tileZoom < 6 && !seg.terrainReady) ||
+                cam.eye.distance2(seg._sw) < horizonDist2 ||
+                cam.eye.distance2(seg._nw) < horizonDist2 ||
+                cam.eye.distance2(seg._ne) < horizonDist2 ||
+                cam.eye.distance2(seg._se) < horizonDist2;
+
+            if (!altVis) {
+                return;
+            }
+
+            goDown =
+                seg.tileZoom < 2 ||
+                (seg.terrainReady &&
+                    seg.tileZoom < qts.maxZoomLimit &&
+                    mainCamera.projectedSize(seg.lodCenter, seg._plainRadius) >= qts.lodSize &&
+                    seg.checkZoom());
+        }
+
+        if (goDown) {
+            this._viewWalkFrame = qts._viewWalkFrame;
+
+            if (!this.ready) {
+                this.createChildNodes();
+            }
+
+            const n = this.nodes,
+                trs = seg.terrainReady ? seg : terrainReadySegment;
+
+            for (let i = 0; i < n.length; i++) {
+                n[i].renderViewCameraTree(slot, cam, frustumMask, mainCamera, horizonDist2, mainState, trs);
+            }
+        } else {
+            // Terrain loading part of renderNode. Forced, because the terrain loader drops the requests of the nodes
+            // the main traversal has marked NOTRENDERING, and that is where the view camera own nodes are.
+            if (!seg.terrainReady) {
+                qts._viewCamerasTerrainCompleted = false;
+                if (!seg.initialized) {
+                    seg.initialize();
+                }
+                this.whileTerrainLoading(terrainReadySegment);
+                if (!seg.plainProcessing) {
+                    seg.createPlainSegmentAsync();
+                }
+                if (seg.plainReady) {
+                    seg.loadTerrain(true);
+                }
+            }
+            qts._addViewCameraNode(slot, this, inFrustum);
         }
     }
 
@@ -447,6 +573,26 @@ class Node {
             n[2].prevState === state &&
             n[3].prevState === state
         );
+    }
+
+    /**
+     * Returns true if the node is rendered, or fades in or out after a level of detail change.
+     * @public
+     * @returns {boolean} -
+     */
+    public isRenderedOrFading(): boolean {
+        return this.getState() === RENDERING || this.isInFadingTransition();
+    }
+
+    /**
+     * Returns true if the node is drawn this frame as a fading node of a level of detail change:
+     * a parent fading out after zooming in, or a child fading out after zooming out.
+     * Unlike isFading(), it also covers the fading children, whose state is NOTRENDERING.
+     * @public
+     * @returns {boolean} -
+     */
+    public isInFadingTransition(): boolean {
+        return this.quadTreeStrategy._fadingNodes.has(this.__id);
     }
 
     public isFading(): boolean {
@@ -801,10 +947,7 @@ class Node {
 
         const pseg = pn.segment;
 
-        let renderVertices: Float64Array,
-            renderVerticesHigh: Float32Array,
-            renderVerticesLow: Float32Array,
-            noDataVertices: Uint8Array;
+        let renderVertices: Float64Array, renderVerticesHigh: Float32Array, renderVerticesLow: Float32Array;
 
         this.appliedTerrainNodeId = pn.nodeId;
         this.equalizedSideWithNodeId[N] =
@@ -829,13 +972,8 @@ class Node {
             renderVerticesHigh = new Float32Array(len);
             renderVerticesLow = new Float32Array(len);
 
-            if (pseg.noDataVertices) {
-                noDataVertices = new Uint8Array(len / 3);
-            }
-
             getMatrixSubArrayBoundsExt(
                 pseg.terrainVertices!,
-                pseg.noDataVertices!,
                 pseg.gridSize,
                 gridSize * offsetY,
                 gridSize * offsetX,
@@ -846,7 +984,7 @@ class Node {
                 renderVerticesHigh,
                 renderVerticesLow,
                 BOUNDS,
-                noDataVertices!
+                getR2Buffer(len / 3)
             );
         } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
             seg.gridSize = gridSizeExt;
@@ -856,13 +994,8 @@ class Node {
             renderVerticesHigh = new Float32Array(len);
             renderVerticesLow = new Float32Array(len);
 
-            if (pseg.noDataVertices) {
-                noDataVertices = new Uint8Array(len / 3);
-            }
-
             getMatrixSubArrayBoundsExt(
                 pseg.normalMapVertices!,
-                pseg.noDataVertices!,
                 pn.segment.fileGridSize,
                 gridSizeExt * offsetY,
                 gridSizeExt * offsetX,
@@ -873,7 +1006,7 @@ class Node {
                 renderVerticesHigh,
                 renderVerticesLow,
                 BOUNDS,
-                noDataVertices!
+                getR2Buffer(len / 3)
             );
         } else {
             seg.gridSize = _neGridSize;
@@ -952,6 +1085,7 @@ class Node {
                 let r2 = coords.x * coords.x + coords.y * coords.y + coords.z * coords.z;
                 if (r2 < BOUNDS.r2min) BOUNDS.r2min = r2;
                 if (r2 > BOUNDS.r2max) BOUNDS.r2max = r2;
+                _r2[i] = r2;
             }
         }
 
@@ -965,17 +1099,14 @@ class Node {
         seg.renderVerticesHigh = renderVerticesHigh;
         seg.renderVerticesLow = renderVerticesLow;
 
-        seg.noDataVertices = noDataVertices!;
-
-        seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
+        seg.setTerrainBoundingVolume([BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax]);
         seg.setTerrainRadiusRange(
             BOUNDS.r2max >= BOUNDS.r2min ? [Math.sqrt(BOUNDS.r2min), Math.sqrt(BOUNDS.r2max)] : null
         );
+        seg.setLodRadius(Math.sqrt(getMedian(_r2, renderVertices.length / 3)));
 
         if (seg.tileZoom > seg.planet.terrain!.maxZoom) {
             if (pn.segment.tileZoom >= seg.planet.terrain!.maxZoom) {
-                seg._plainRadius = pn.segment._plainRadius / dZ2;
-
                 seg.terrainReady = true;
                 seg.terrainIsLoading = false;
 
@@ -1043,13 +1174,20 @@ class Node {
         this.segment = null;
     }
 
-    public clearTree() {
+    /**
+     * Destroys the branches the main camera does not render.
+     * @public
+     * @param {boolean} [keepViewCameraBranches=false] - Keeps the branches the last view camera collection has
+     * gone through, they lead to the nodes the depth cameras render.
+     */
+    public clearTree(keepViewCameraBranches: boolean = false) {
         const state = this.getState();
-        if (state === NOTRENDERING || state === RENDERING) {
+        const viewBranch = keepViewCameraBranches && this._viewWalkFrame === this.quadTreeStrategy._viewWalkFrame;
+        if (!viewBranch && (state === NOTRENDERING || state === RENDERING)) {
             this.destroyBranches();
         } else {
             for (let i = 0; i < this.nodes.length; i++) {
-                this.nodes[i] && this.nodes[i].clearTree();
+                this.nodes[i] && this.nodes[i].clearTree(keepViewCameraBranches);
             }
         }
     }

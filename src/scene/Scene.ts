@@ -59,6 +59,13 @@ class Scene {
     protected _isActive: boolean;
 
     /**
+     * Depth cameras skip the scene completely: no planet nodes are collected for them and nothing is drawn.
+     * @public
+     * @type {boolean}
+     */
+    public disableDepthCamera: boolean;
+
+    /**
      * Entity collection array.
      * @public
      * @type {Array.<EntityCollection>}
@@ -85,6 +92,8 @@ class Scene {
         this.drawMode = 0;
 
         this._isActive = true;
+
+        this.disableDepthCamera = false;
 
         this.entityCollections = [];
 

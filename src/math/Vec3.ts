@@ -1,5 +1,6 @@
 import { Quat } from "./Quat";
 import { Vec4 } from "./Vec4";
+import { doubleToTwoFloat32Array, doubleToTwoFloatsV3 } from "./doubleToTwoFloats";
 import type { NumberArray4 } from "./Vec4";
 import type { NumberArray2 } from "./Vec2";
 
@@ -100,39 +101,7 @@ export class Vec3 {
      * @param {Vec3} low - Out vector low values.
      */
     static doubleToTwoFloats(v: Vec3, high: Vec3, low: Vec3) {
-        let x = v.x,
-            y = v.y,
-            z = v.z;
-
-        if (x >= 0.0) {
-            let doubleHigh = Math.floor(x / 65536.0) * 65536.0;
-            high.x = Math.fround(doubleHigh);
-            low.x = Math.fround(x - doubleHigh);
-        } else {
-            let doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
-            high.x = Math.fround(-doubleHigh);
-            low.x = Math.fround(x + doubleHigh);
-        }
-
-        if (y >= 0.0) {
-            let doubleHigh = Math.floor(y / 65536.0) * 65536.0;
-            high.y = Math.fround(doubleHigh);
-            low.y = Math.fround(y - doubleHigh);
-        } else {
-            let doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
-            high.y = Math.fround(-doubleHigh);
-            low.y = Math.fround(y + doubleHigh);
-        }
-
-        if (z >= 0.0) {
-            let doubleHigh = Math.floor(z / 65536.0) * 65536.0;
-            high.z = Math.fround(doubleHigh);
-            low.z = Math.fround(z - doubleHigh);
-        } else {
-            let doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
-            high.z = Math.fround(-doubleHigh);
-            low.z = Math.fround(z + doubleHigh);
-        }
+        doubleToTwoFloatsV3(v, high, low);
     }
 
     /**
@@ -141,42 +110,9 @@ export class Vec3 {
      * @param {Vec3} v - Double type value.
      * @param {Float32Array} high - Out vector high values.
      * @param {Float32Array} low - Out vector low values.
-     * @returns {Array.<number>} Encoded array. (exactly 2 entries)
      */
     static doubleToTwoFloat32Array(v: Vec3, high: Float32Array | NumberArray3, low: Float32Array | NumberArray3) {
-        let x = v.x,
-            y = v.y,
-            z = v.z;
-
-        if (x >= 0.0) {
-            let doubleHigh = Math.floor(x / 65536.0) * 65536.0;
-            high[0] = Math.fround(doubleHigh);
-            low[0] = Math.fround(x - doubleHigh);
-        } else {
-            let doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
-            high[0] = Math.fround(-doubleHigh);
-            low[0] = Math.fround(x + doubleHigh);
-        }
-
-        if (y >= 0.0) {
-            let doubleHigh = Math.floor(y / 65536.0) * 65536.0;
-            high[1] = Math.fround(doubleHigh);
-            low[1] = Math.fround(y - doubleHigh);
-        } else {
-            let doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
-            high[1] = Math.fround(-doubleHigh);
-            low[1] = Math.fround(y + doubleHigh);
-        }
-
-        if (z >= 0.0) {
-            let doubleHigh = Math.floor(z / 65536.0) * 65536.0;
-            high[2] = Math.fround(doubleHigh);
-            low[2] = Math.fround(z - doubleHigh);
-        } else {
-            let doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
-            high[2] = Math.fround(-doubleHigh);
-            low[2] = Math.fround(z + doubleHigh);
-        }
+        doubleToTwoFloat32Array(v, high, low);
     }
 
     /**

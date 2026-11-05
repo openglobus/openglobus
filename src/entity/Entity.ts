@@ -702,6 +702,22 @@ class Entity {
     }
 
     /**
+     * Returns the absolute rotation for the given direct rotation in the scene frame.
+     * For a nested entity pass the product of direct rotations from the root and the frame at the root position.
+     * @public
+     * @param {Quat} directRotation - Direct rotation, as in setDirectQuaternionRotation.
+     * @param {Quat} frame - Frame rotation at the root position, as returned by Scene.getFrameRotation.
+     * @param {Quat} [out] - Output quaternion, may be the same object as an argument.
+     * @returns {Quat} Absolute rotation.
+     */
+    public static computeAbsoluteRotation(directRotation: Quat, frame: Quat, out: Quat = new Quat()): Quat {
+        if (frame.isEqual(Quat.IDENTITY)) {
+            return out.copy(directRotation);
+        }
+        return frame.conjugate().mulRes(directRotation, out);
+    }
+
+    /**
      * Gets the absolute rotation direction of the entity.
      * @public
      * @returns {Quat} The absolute rotation quaternion.
@@ -755,8 +771,11 @@ class Entity {
      * @param {Quat} rot - The new absolute rotation quaternion.
      */
     public setAbsoluteRotation(rot: Quat) {
-        this._absoluteQRot.copy(rot);
-        this._updatePitchYawRoll();
+        if (this.parent && this._relativePosition) {
+            this.setDirectQuaternionRotation(this.parent._absoluteQRot.conjugate().mul(rot));
+        } else {
+            this.setDirectQuaternionRotation(this._qFrame.isEqual(Quat.IDENTITY) ? rot : this._qFrame.mul(rot));
+        }
     }
 
     /**
@@ -1083,11 +1102,7 @@ class Entity {
             }
 
             if (this._useDirectQuaternion) {
-                if (this._qFrame.isEqual(Quat.IDENTITY)) {
-                    this._qRot.copy(this._directQRot);
-                } else {
-                    this._qFrame.conjugate().mulRes(this._directQRot, this._qRot);
-                }
+                Entity.computeAbsoluteRotation(this._directQRot, this._qFrame, this._qRot);
             } else if (parent && this.forceGlobalRotation) {
                 this._qRot.setPitchYawRoll(parent._pitchRad, parent._yawRad, parent._rollRad, this._qFrame);
             } else {

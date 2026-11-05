@@ -919,6 +919,27 @@ export function concatTypedArrays(a: TypedArray, b: TypedArray | number[]): Type
     return c;
 }
 
+/**
+ * Appends `b` to `a` and returns an exact-length view. Grows the backing
+ * buffer by doubling, so repeated appends are amortized O(1).
+ * The caller must own `a.buffer` exclusively, including the unused space
+ * after `a`, which is overwritten. The result may share `a`'s buffer.
+ * @param {Float32Array} a
+ * @param {ArrayLike<number>} b
+ */
+export function appendFloat32Array(a: Float32Array, b: ArrayLike<number>): Float32Array {
+    const length = a.length + b.length;
+    if (a.byteOffset + length * Float32Array.BYTES_PER_ELEMENT <= a.buffer.byteLength) {
+        const c = new Float32Array(a.buffer, a.byteOffset, length);
+        c.set(b, a.length);
+        return c;
+    }
+    const c = new Float32Array(Math.max(length, a.length * 2));
+    c.set(a);
+    c.set(b, a.length);
+    return c.subarray(0, length);
+}
+
 export function insertTypedArray<T extends TypedArray>(arr: T, starting: number, insert: T | number[]): T {
     if (insert.length === 0) return arr;
     if (starting < 0) starting = 0;
@@ -1119,12 +1140,12 @@ export function getMatrixSubArray32(
 }
 
 /**
- * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
+ * Returns two float32 triangle coordinate arrays from inside of the source triangle array,
+ * with their bounds and squared geocentric radii.
  * @TODO: optimization
  */
 export function getMatrixSubArrayBoundsExt(
     srcArr: TypedArray | number[],
-    noDataVertices: TypedArray | number[] | undefined,
     gridSize: number,
     i0: number,
     j0: number,
@@ -1135,15 +1156,14 @@ export function getMatrixSubArrayBoundsExt(
     outArrHigh: TypedArray | number[],
     outArrLow: TypedArray | number[],
     outBounds: any,
-    outNoDataVertices: TypedArray | number[]
+    outR2: TypedArray | number[]
 ) {
     const i0size = i0 + size + 1;
     const j0size = j0 + size + 1;
 
     gridSize += 1;
 
-    let vInd = 0,
-        nInd = 0;
+    let vInd = 0;
 
     let dstPos = new Vec3(),
         dstPosHigh = new Vec3(),
@@ -1151,33 +1171,27 @@ export function getMatrixSubArrayBoundsExt(
 
     for (let i = i0; i < i0size; i++) {
         for (let j = j0; j < j0size; j++) {
-            let indBy3 = i * gridSize + j,
-                ind = 3 * indBy3;
+            let ind = 3 * (i * gridSize + j);
 
             // world coordinates
             let x = srcArr[ind] + srcRelativeCenter.x,
                 y = srcArr[ind + 1] + srcRelativeCenter.y,
                 z = srcArr[ind + 2] + srcRelativeCenter.z;
 
-            if (!noDataVertices || noDataVertices[indBy3] === 0) {
-                if (x < outBounds.xmin) outBounds.xmin = x;
-                if (x > outBounds.xmax) outBounds.xmax = x;
-                if (y < outBounds.ymin) outBounds.ymin = y;
-                if (y > outBounds.ymax) outBounds.ymax = y;
-                if (z < outBounds.zmin) outBounds.zmin = z;
-                if (z > outBounds.zmax) outBounds.zmax = z;
+            if (x < outBounds.xmin) outBounds.xmin = x;
+            if (x > outBounds.xmax) outBounds.xmax = x;
+            if (y < outBounds.ymin) outBounds.ymin = y;
+            if (y > outBounds.ymax) outBounds.ymax = y;
+            if (z < outBounds.zmin) outBounds.zmin = z;
+            if (z > outBounds.zmax) outBounds.zmax = z;
 
-                let r2 = x * x + y * y + z * z;
-                if (r2 < outBounds.r2min) outBounds.r2min = r2;
-                if (r2 > outBounds.r2max) outBounds.r2max = r2;
-            } else {
-                outNoDataVertices[nInd] = 1;
-            }
+            let r2 = x * x + y * y + z * z;
+            if (r2 < outBounds.r2min) outBounds.r2min = r2;
+            if (r2 > outBounds.r2max) outBounds.r2max = r2;
+            outR2[vInd / 3] = r2;
 
             dstPos.set(x - dstRelativeCenter.x, y - dstRelativeCenter.y, z - dstRelativeCenter.z);
             Vec3.doubleToTwoFloats(dstPos, dstPosHigh, dstPosLow);
-
-            nInd++;
 
             outArr[vInd] = dstPos.x;
             outArrLow[vInd] = dstPosLow.x;

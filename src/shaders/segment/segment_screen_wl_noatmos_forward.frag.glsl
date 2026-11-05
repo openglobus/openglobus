@@ -26,11 +26,11 @@ uniform vec3 lightPosition;
 uniform float layerOpacityArr[SLICE_SIZE];
 
 uniform int samplerCount;
-uniform float nightTextureCoefficient;
 
 uniform float transitionOpacity;
 
-uniform float camHeight;
+uniform float nightFactor;
+uniform float specularFactor;
 uniform float shadeMode;
 uniform float frameOpacity;
 uniform vec3 cameraPosition;
@@ -70,14 +70,17 @@ void main(void) {
         return;
     }
 
-    float specularMask = 0.0;
-    vec3 emission = vec3(0.0);
-    if (camHeight >= NIGHT_SPECULAR_MIN_CAM_HEIGHT) {
-        float overGround = 1.0 - step(0.1, v_height);
-        specularMask = texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
+    float overGround = 1.0 - step(0.1, v_height);
 
+    float specularMask = 0.0;
+    if (specularFactor > 0.0) {
+        specularMask = specularFactor * texture(specularTexture, vGlobalTextureCoord.st).r * overGround;
+    }
+
+    vec3 emission = vec3(0.0);
+    if (nightFactor > 0.0) {
         vec4 emissionImageColor = texture(nightTexture, vGlobalTextureCoord.st);
-        emission = overGround * getNightEmission(normal, lightPosition, emissionImageColor, nightTextureCoefficient, camHeight);
+        emission = overGround * getNightEmission(normal, lightPosition, emissionImageColor, nightFactor);
     }
 
     vec4 lightWeighting;

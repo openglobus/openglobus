@@ -1,9 +1,8 @@
 import * as mercator from "../../mercator";
-import * as quadTree from "../../quadTree/quadTree";
 import { Extent } from "../../Extent";
 import { Handler } from "../../webgl/Handler";
 import type { WebGLBufferExt } from "../../webgl/Handler";
-import { doubleToTwoFloatsV2 } from "../../math/coder";
+import { doubleToTwoFloatsV2 } from "../../math/doubleToTwoFloats";
 import { Vector } from "../../layer/Vector";
 import { Vec2 } from "../../math/Vec2";
 import type { NumberArray2 } from "../../math/Vec2";
@@ -22,6 +21,25 @@ import type {
 import { GeometryTypeEnum } from "./Geometry";
 
 import { earcut, flatten } from "../../utils/earcut";
+import { concatArrays } from "../../utils/shared";
+
+type GeometryOffsetKey =
+    | "_polyVerticesHandlerIndex"
+    | "_polyIndexesHandlerIndex"
+    | "_lineVerticesHandlerIndex"
+    | "_lineOrdersHandlerIndex"
+    | "_lineColorsHandlerIndex"
+    | "_lineThicknessHandlerIndex"
+    | "_lineIndexesHandlerIndex";
+
+type GeometryLengthKey =
+    | "_polyVerticesLength"
+    | "_polyIndexesLength"
+    | "_lineVerticesLength"
+    | "_lineOrdersLength"
+    | "_lineColorsLength"
+    | "_lineThicknessLength"
+    | "_lineIndexesLength";
 
 const POLYVERTICES_BUFFER = 0;
 const POLYINDEXES_BUFFER = 1;
@@ -208,14 +226,10 @@ class GeometryHandler {
         outVerticesHigh2: number[],
         outVerticesLow2: number[]
     ) {
-        var index = 0;
-
-        if (outIndexes.length > 0) {
-            index = outIndexes[outIndexes.length - 5] + 9;
-            outIndexes.push(index, index);
-        } else {
-            outIndexes.push(0, 0);
-        }
+        // Index of the first vertex appended below. After bringToFront() the last
+        // index entries belong to another geometry, so they can't be used for this.
+        var index = outVerticesHigh.length * 0.5;
+        outIndexes.push(index, index);
 
         var t = thickness,
             c = [color.x, color.y, color.z, color.w],
@@ -633,8 +647,8 @@ class GeometryHandler {
                     geometry._polyVerticesHighMerc = verticesHigh;
                     geometry._polyVerticesLowMerc = verticesLow;
 
-                    this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
-                    this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
+                    concatArrays(this._polyVerticesHighMerc, verticesHigh);
+                    concatArrays(this._polyVerticesLowMerc, verticesLow);
 
                     geometry._polyVerticesLength = data.vertices.length;
                     geometry._polyIndexesLength = indexes.length;
@@ -701,7 +715,7 @@ class GeometryHandler {
                             indexes.push(dataIndexes[j] + vertices.length * 0.5);
                         }
 
-                        vertices.push.apply(vertices, data.vertices);
+                        concatArrays(vertices, data.vertices);
 
                         GeometryHandler.appendLineData(
                             ci,
@@ -751,8 +765,8 @@ class GeometryHandler {
                     geometry._polyVerticesHighMerc = verticesHigh;
                     geometry._polyVerticesLowMerc = verticesLow;
 
-                    this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
-                    this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
+                    concatArrays(this._polyVerticesHighMerc, verticesHigh);
+                    concatArrays(this._polyVerticesLowMerc, verticesLow);
 
                     geometry._polyVerticesLength = vertices.length;
                     geometry._polyIndexesLength = indexes.length;
@@ -863,91 +877,296 @@ class GeometryHandler {
         }
     }
 
+    /**
+     * Removes one geometry. Works in any array order, including after bringToFront(): every range
+     * after the removed one in an array moves down, and every index past its vertices goes down
+     * by its vertex count. Nothing moves when its ranges are at the ends of the arrays.
+     * @public
+     * @param {Geometry} geometry - Geometry to remove; ignored if it belongs to another handler.
+     */
     public remove(geometry: Geometry) {
         const index = geometry._handlerIndex;
-        if (index !== -1) {
-            this._geometries.splice(index, 1);
-
-            // polygon
-            // this._polyVerticesLonLat.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
-
-            this._polyVerticesHighMerc.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
-            this._polyVerticesLowMerc.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
-
-            this._polyColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
-            this._polyPickingColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
-            this._polyIndexes.splice(geometry._polyIndexesHandlerIndex, geometry._polyIndexesLength);
-
-            let di = geometry._polyVerticesLength * 0.5;
-            for (let i = geometry._polyIndexesHandlerIndex; i < this._polyIndexes.length; i++) {
-                this._polyIndexes[i] -= di;
-            }
-
-            // line
-            // this._lineVerticesLonLat.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
-
-            this._lineVerticesHighMerc.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
-            this._lineVerticesLowMerc.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
-
-            this._lineOrders.splice(geometry._lineOrdersHandlerIndex, geometry._lineOrdersLength);
-            this._lineColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
-            this._linePickingColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
-            this._lineStrokeColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
-            this._lineThickness.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
-            this._lineStrokes.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
-            this._lineIndexes.splice(geometry._lineIndexesHandlerIndex, geometry._lineIndexesLength);
-
-            di = geometry._lineVerticesLength * 0.5;
-            for (let i = geometry._lineIndexesHandlerIndex; i < this._lineIndexes.length; i++) {
-                this._lineIndexes[i] -= di;
-            }
-
-            // reindex
-            let g = this._geometries;
-            for (let i = index; i < g.length; i++) {
-                let gi = g[i];
-
-                gi._handlerIndex = i;
-                gi._polyVerticesHandlerIndex -= geometry._polyVerticesLength;
-                gi._polyIndexesHandlerIndex -= geometry._polyIndexesLength;
-
-                gi._lineVerticesHandlerIndex -= geometry._lineVerticesLength;
-                gi._lineOrdersHandlerIndex -= geometry._lineOrdersLength;
-                gi._lineColorsHandlerIndex -= geometry._lineColorsLength;
-                gi._lineThicknessHandlerIndex -= geometry._lineThicknessLength;
-                gi._lineIndexesHandlerIndex -= geometry._lineIndexesLength;
-            }
-
-            geometry._pickingReady = false;
-
-            geometry._handler = null;
-            geometry._handlerIndex = -1;
-
-            geometry._polyVerticesHighMerc = [];
-            geometry._polyVerticesLowMerc = [];
-            geometry._polyVerticesLength = -1;
-            geometry._polyIndexesLength = -1;
-            geometry._polyVerticesHandlerIndex = -1;
-            geometry._polyIndexesHandlerIndex = -1;
-
-            geometry._lineVerticesHighMerc = [];
-            geometry._lineVerticesLowMerc = [];
-            geometry._lineVerticesLength = -1;
-            geometry._lineOrdersLength = -1;
-            geometry._lineIndexesLength = -1;
-            geometry._lineColorsLength = -1;
-            geometry._lineThicknessLength = -1;
-            geometry._lineVerticesHandlerIndex = -1;
-            geometry._lineOrdersHandlerIndex = -1;
-            geometry._lineIndexesHandlerIndex = -1;
-            geometry._lineThicknessHandlerIndex = -1;
-            geometry._lineColorsHandlerIndex = -1;
-
-            !this._removeGeometryExtents[geometry.__id] && this._removeGeometryExtentArr.push(geometry.getExtent());
-            this._removeGeometryExtents[geometry.__id] = true;
-
-            this.refresh();
+        if (geometry._handler !== this || index === -1) {
+            return;
         }
+
+        const all = this._geometries;
+        all.splice(index, 1);
+        for (let i = index; i < all.length; i++) {
+            all[i]._handlerIndex = i;
+        }
+
+        // A length of -1 means the geometry has no data of that kind, e.g. a line string has no polygon.
+        const pv = geometry._polyVerticesHandlerIndex,
+            pvl = geometry._polyVerticesLength,
+            pi = geometry._polyIndexesHandlerIndex,
+            pil = geometry._polyIndexesLength,
+            lv = geometry._lineVerticesHandlerIndex,
+            lvl = geometry._lineVerticesLength,
+            lo = geometry._lineOrdersHandlerIndex,
+            lol = geometry._lineOrdersLength,
+            lc = geometry._lineColorsHandlerIndex,
+            lcl = geometry._lineColorsLength,
+            lt = geometry._lineThicknessHandlerIndex,
+            ltl = geometry._lineThicknessLength,
+            li = geometry._lineIndexesHandlerIndex,
+            lil = geometry._lineIndexesLength;
+
+        // Whether anything follows the removed range in its arrays
+        let shift = false;
+
+        if (pil > 0) {
+            shift ||= pi + pil < this._polyIndexes.length;
+            this._polyIndexes.splice(pi, pil);
+        }
+        if (pvl > 0) {
+            if (pv + pvl < this._polyVerticesHighMerc.length) {
+                shift = true;
+                const first = pv * 0.5,
+                    n = pvl * 0.5,
+                    a = this._polyIndexes;
+                for (let i = 0; i < a.length; i++) {
+                    if (a[i] >= first) a[i] -= n;
+                }
+            }
+            this._polyVerticesHighMerc.splice(pv, pvl);
+            this._polyVerticesLowMerc.splice(pv, pvl);
+            this._polyColors.splice(pv * 2, pvl * 2);
+            this._polyPickingColors.splice(pv * 2, pvl * 2);
+        }
+
+        if (lil > 0) {
+            shift ||= li + lil < this._lineIndexes.length;
+            this._lineIndexes.splice(li, lil);
+        }
+        if (lvl > 0) {
+            if (lv + lvl < this._lineVerticesHighMerc.length) {
+                shift = true;
+                const first = lv * 0.5,
+                    n = lvl * 0.5,
+                    a = this._lineIndexes;
+                for (let i = 0; i < a.length; i++) {
+                    if (a[i] >= first) a[i] -= n;
+                }
+            }
+            this._lineVerticesHighMerc.splice(lv, lvl);
+            this._lineVerticesLowMerc.splice(lv, lvl);
+        }
+        if (lol > 0) {
+            shift ||= lo + lol < this._lineOrders.length;
+            this._lineOrders.splice(lo, lol);
+        }
+        if (lcl > 0) {
+            shift ||= lc + lcl < this._lineColors.length;
+            this._lineColors.splice(lc, lcl);
+            this._linePickingColors.splice(lc, lcl);
+            this._lineStrokeColors.splice(lc, lcl);
+        }
+        if (ltl > 0) {
+            shift ||= lt + ltl < this._lineThickness.length;
+            this._lineThickness.splice(lt, ltl);
+            this._lineStrokes.splice(lt, ltl);
+        }
+
+        if (shift) {
+            // Offsets of -1 (no data of that kind) are never above a real offset.
+            for (let i = 0; i < all.length; i++) {
+                const g = all[i];
+                if (pvl > 0 && g._polyVerticesHandlerIndex > pv) g._polyVerticesHandlerIndex -= pvl;
+                if (pil > 0 && g._polyIndexesHandlerIndex > pi) g._polyIndexesHandlerIndex -= pil;
+                if (lvl > 0 && g._lineVerticesHandlerIndex > lv) g._lineVerticesHandlerIndex -= lvl;
+                if (lol > 0 && g._lineOrdersHandlerIndex > lo) g._lineOrdersHandlerIndex -= lol;
+                if (lcl > 0 && g._lineColorsHandlerIndex > lc) g._lineColorsHandlerIndex -= lcl;
+                if (ltl > 0 && g._lineThicknessHandlerIndex > lt) g._lineThicknessHandlerIndex -= ltl;
+                if (lil > 0 && g._lineIndexesHandlerIndex > li) g._lineIndexesHandlerIndex -= lil;
+            }
+        }
+
+        this._detachGeometry(geometry);
+
+        this.refresh();
+    }
+
+    /**
+     * Removes geometries with one compaction pass over the shared arrays.
+     * Works in any array order, including after bringToFront().
+     * @public
+     * @param {Geometry[]} geometries - Geometries to remove; others are ignored.
+     */
+    public removeGeometries(geometries: Geometry[]) {
+        const removed = new Set<Geometry>();
+        for (let i = 0; i < geometries.length; i++) {
+            const g = geometries[i];
+            if (g._handler === this && g._handlerIndex !== -1) {
+                removed.add(g);
+            }
+        }
+        if (!removed.size) return;
+
+        const all = this._geometries;
+
+        // Moves each kept geometry's range down to the write position. Ranges are visited in
+        // array order, which differs from the geometry list after bringToFront(). Arrays in one
+        // group share the geometry's offset field; scale is the number of values per offset unit.
+        // Index arrays also subtract how far their geometry's vertices moved.
+        // Returns how far each moved range went.
+        const compact = (
+            arrays: [number[], number][],
+            offsetKey: GeometryOffsetKey,
+            lengthKey: GeometryLengthKey,
+            verticesMoved?: Map<Geometry, number>
+        ) => {
+            const moved = new Map<Geometry, number>();
+
+            const ranges: Geometry[] = [];
+            let sorted = true;
+            for (let k = 0; k < all.length; k++) {
+                const g = all[k];
+
+                // The geometry has no data of this kind
+                if (g[lengthKey] < 0) {
+                    continue;
+                }
+
+                if (ranges.length && g[offsetKey] < ranges[ranges.length - 1][offsetKey]) {
+                    sorted = false;
+                }
+
+                ranges.push(g);
+            }
+
+            if (!ranges.length) {
+                return moved;
+            }
+
+            if (!sorted) {
+                ranges.sort((a, b) => a[offsetKey] - b[offsetKey]);
+            }
+
+            let write = ranges[0][offsetKey];
+            for (let k = 0; k < ranges.length; k++) {
+                const g = ranges[k];
+
+                if (removed.has(g)) continue;
+
+                const offset = g[offsetKey],
+                    length = g[lengthKey],
+                    shift = verticesMoved ? (verticesMoved.get(g) || 0) * 0.5 : 0;
+
+                if (offset !== write || shift) {
+                    for (const [a, scale] of arrays) {
+                        const from = offset * scale,
+                            to = write * scale,
+                            n = length * scale;
+
+                        for (let i = 0; i < n; i++) {
+                            a[to + i] = a[from + i] - shift;
+                        }
+                    }
+                    offset !== write && moved.set(g, offset - write);
+                }
+                g[offsetKey] = write;
+                write += length;
+            }
+
+            for (const [a, scale] of arrays) {
+                a.length = write * scale;
+            }
+
+            return moved;
+        };
+
+        const polyVerticesMoved = compact(
+            [
+                [this._polyVerticesHighMerc, 1],
+                [this._polyVerticesLowMerc, 1],
+                [this._polyColors, 2],
+                [this._polyPickingColors, 2]
+            ],
+            "_polyVerticesHandlerIndex",
+            "_polyVerticesLength"
+        );
+        compact([[this._polyIndexes, 1]], "_polyIndexesHandlerIndex", "_polyIndexesLength", polyVerticesMoved);
+        const lineVerticesMoved = compact(
+            [
+                [this._lineVerticesHighMerc, 1],
+                [this._lineVerticesLowMerc, 1]
+            ],
+            "_lineVerticesHandlerIndex",
+            "_lineVerticesLength"
+        );
+        compact([[this._lineOrders, 1]], "_lineOrdersHandlerIndex", "_lineOrdersLength");
+        compact(
+            [
+                [this._lineColors, 1],
+                [this._linePickingColors, 1],
+                [this._lineStrokeColors, 1]
+            ],
+            "_lineColorsHandlerIndex",
+            "_lineColorsLength"
+        );
+        compact(
+            [
+                [this._lineThickness, 1],
+                [this._lineStrokes, 1]
+            ],
+            "_lineThicknessHandlerIndex",
+            "_lineThicknessLength"
+        );
+        compact([[this._lineIndexes, 1]], "_lineIndexesHandlerIndex", "_lineIndexesLength", lineVerticesMoved);
+
+        // Nothing before the first removed geometry moves in the list.
+        let start = all.length;
+        for (const g of removed) {
+            start = Math.min(start, g._handlerIndex);
+        }
+
+        let j = start;
+        for (let k = start; k < all.length; k++) {
+            const g = all[k];
+            if (!removed.has(g)) {
+                g._handlerIndex = j;
+                all[j++] = g;
+            }
+        }
+
+        all.length = j;
+
+        for (const g of removed) {
+            this._detachGeometry(g);
+        }
+
+        this.refresh();
+    }
+
+    protected _detachGeometry(geometry: Geometry) {
+        geometry._pickingReady = false;
+
+        geometry._handler = null;
+        geometry._handlerIndex = -1;
+
+        geometry._polyVerticesHighMerc = [];
+        geometry._polyVerticesLowMerc = [];
+        geometry._polyVerticesLength = -1;
+        geometry._polyIndexesLength = -1;
+        geometry._polyVerticesHandlerIndex = -1;
+        geometry._polyIndexesHandlerIndex = -1;
+
+        geometry._lineVerticesHighMerc = [];
+        geometry._lineVerticesLowMerc = [];
+        geometry._lineVerticesLength = -1;
+        geometry._lineOrdersLength = -1;
+        geometry._lineIndexesLength = -1;
+        geometry._lineColorsLength = -1;
+        geometry._lineThicknessLength = -1;
+        geometry._lineVerticesHandlerIndex = -1;
+        geometry._lineOrdersHandlerIndex = -1;
+        geometry._lineIndexesHandlerIndex = -1;
+        geometry._lineThicknessHandlerIndex = -1;
+        geometry._lineColorsHandlerIndex = -1;
+
+        !this._removeGeometryExtents[geometry.__id] && this._removeGeometryExtentArr.push(geometry.getExtent());
+        this._removeGeometryExtents[geometry.__id] = true;
     }
 
     protected _refreshRecursevely(geometry: Geometry, treeNode: Node) {
@@ -959,7 +1178,7 @@ class GeometryHandler {
                     this._refreshRecursevely(geometry, ni);
                     let m = ni.segment.materials[lid];
                     if (m && m.isReady) {
-                        if (m.segment.node.getState() !== quadTree.RENDERING) {
+                        if (!m.segment.node.isRenderedOrFading()) {
                             m.layer.clearMaterial(m);
                         } else {
                             m.pickingReady = m.pickingReady && geometry._pickingReady;
@@ -984,11 +1203,14 @@ class GeometryHandler {
                     this._refreshRecursevelyExt(extent, ni);
                     let m = ni.segment.materials[lid];
                     if (m && m.isReady) {
-                        m.layer.clearMaterial(m);
-                        // m.pickingReady = false;
-                        // m.isReady = false;
-                        // m._updateTexture = m.texture;
-                        // m._updatePickingMask = m.pickingMask;
+                        if (!m.textureExists || !m.segment.node.isRenderedOrFading()) {
+                            m.layer.clearMaterial(m);
+                        } else {
+                            m.pickingReady = false;
+                            m.isReady = false;
+                            m._updateTexture = m.texture;
+                            m._updatePickingMask = m.pickingMask;
+                        }
                     }
                 }
             }
@@ -1156,27 +1378,46 @@ class GeometryHandler {
     }
 
     public bringToFront(geometry: Geometry) {
-        let polyIndexes = this._polyIndexes.splice(geometry._polyIndexesHandlerIndex, geometry._polyIndexesLength);
-        let lineIndexes = this._lineIndexes.splice(geometry._lineIndexesHandlerIndex, geometry._lineIndexesLength);
+        // A length of -1 means the geometry has no data of that kind, e.g. a line string has no polygon.
+        const polyLength = geometry._polyIndexesLength,
+            lineLength = geometry._lineIndexesLength;
+
+        let polyIndexes =
+            polyLength >= 0 ? this._polyIndexes.splice(geometry._polyIndexesHandlerIndex, polyLength) : [];
+
+        let lineIndexes =
+            lineLength >= 0 ? this._lineIndexes.splice(geometry._lineIndexesHandlerIndex, lineLength) : [];
 
         this._geometries.splice(geometry._handlerIndex, 1);
 
         let g = this._geometries;
         for (let i = geometry._handlerIndex; i < g.length; i++) {
             let gi = g[i];
+
             gi._handlerIndex = i;
-            gi._polyIndexesHandlerIndex -= geometry._polyIndexesLength;
-            gi._lineIndexesHandlerIndex -= geometry._lineIndexesLength;
+
+            if (polyLength > 0 && gi._polyIndexesLength >= 0) {
+                gi._polyIndexesHandlerIndex -= polyLength;
+            }
+
+            if (lineLength > 0 && gi._lineIndexesLength >= 0) {
+                gi._lineIndexesHandlerIndex -= lineLength;
+            }
         }
 
-        geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
-        geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
+        if (polyLength >= 0) {
+            geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
+        }
+
+        if (lineLength >= 0) {
+            geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
+        }
 
         geometry._handlerIndex = this._geometries.length;
         this._geometries.push(geometry);
 
-        this._polyIndexes.push.apply(this._polyIndexes, polyIndexes);
-        this._lineIndexes.push.apply(this._lineIndexes, lineIndexes);
+        concatArrays(this._polyIndexes, polyIndexes);
+        concatArrays(this._lineIndexes, lineIndexes);
 
         this._setChangedBuffer(POLYINDEXES_BUFFER);
         this._setChangedBuffer(LINEINDEXES_BUFFER);

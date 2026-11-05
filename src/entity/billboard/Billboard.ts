@@ -162,6 +162,22 @@ class Billboard extends BaseBillboard {
         this._handler && this._handler.setSizeArr(this._handlerIndex, width * this._scale, height * this._scale);
     }
 
+    /**
+     * Sets billboard scale. The rendered size is width * scale by height * scale.
+     * @public
+     * @param {number} scale - Billboard scale.
+     */
+    public setScale(scale: number) {
+        this._scale = scale;
+        this._handler &&
+            this._handler.setSizeArr(this._handlerIndex, this._width * scale, this._height * scale);
+    }
+
+    /**
+     * Returns billboard scale.
+     * @public
+     * @returns {number}
+     */
     public getScale(): number {
         return this._scale;
     }

@@ -1,4 +1,4 @@
-import { doubleToTwoFloats2 } from "../math/coder";
+import { doubleToTwoFloats2 } from "../math/doubleToTwoFloats";
 import { Framebuffer } from "../webgl/Framebuffer";
 import { Handler } from "../webgl/Handler";
 import { Material } from "../layer/Material";
@@ -266,7 +266,8 @@ export class VectorTileCreator {
 
             while (this._queue.length && deltaTime < MAX_FRAME_TIME) {
                 let material = this._queue.shift()!;
-                if (material.isLoading && material.segment.node.getState() !== NOTRENDERING) {
+                const node = material.segment.node;
+                if (material.isLoading && (node.getState() !== NOTRENDERING || node.isInFadingTransition())) {
                     let pickingEnabled = material.layer._pickingEnabled;
 
                     if (material.segment.tileZoom < 4) {

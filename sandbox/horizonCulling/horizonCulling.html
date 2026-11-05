@@ -1,0 +1,172 @@
+<html>
+<head>
+    <title>OpenGlobus - Horizon culling of high terrain</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/og.css" type="text/css"/>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        #info {
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            z-index: 100;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.55);
+            color: #e8e4de;
+            font: 12px/1.5 monospace;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+<div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
+<div id="info"></div>
+<script type="module" id="og-sandbox-script">
+
+    'use strict';
+
+    import {
+        Globe,
+        Ellipsoid,
+        LonLat,
+        ProceduralTerrain,
+        CanvasTiles,
+        control,
+        quadTreeStrategyType
+    } from "../../lib/og.es.js";
+
+    //
+    // Big waves over a small planet. The far crests stand over the horizon, they must not
+    // disappear while the camera flies to them. ?maxHeight=8848 culls with the Earth default
+    // and the far crests are cut off.
+    //
+
+    const RADIUS = 1000000;
+
+    // Wave height in meters and the number of waves around the planet, even for the flat poles
+    const AMPLITUDE = 100000,
+        WAVES = 8;
+
+    const GRID_SIZE = 32;
+
+    const maxHeight = Number(new URLSearchParams(location.search).get("maxHeight") || AMPLITUDE);
+
+    const runJob = createWorker();
+
+    const terrain = new ProceduralTerrain("Waves", {
+        geoidSrc: null,
+        minZoom: 0,
+        maxZoom: 14,
+        plainGridSize: GRID_SIZE,
+        maxHeight: maxHeight,
+        getHeights: (segment) => runJob(segment)
+    });
+
+    // Light tiles with their borders and indexes, the waves are seen by the lighting
+    const grid = new CanvasTiles("Grid", {
+        isBaseLayer: true,
+        drawTile: (material, applyCanvas) => {
+            let cnv = document.createElement("canvas"),
+                ctx = cnv.getContext("2d");
+            cnv.width = cnv.height = 256;
+            ctx.fillStyle = "rgb(205, 200, 185)";
+            ctx.fillRect(0, 0, 256, 256);
+            ctx.strokeStyle = "rgba(60, 60, 60, 0.5)";
+            ctx.strokeRect(0, 0, 256, 256);
+            ctx.fillStyle = "rgba(60, 60, 60, 0.8)";
+            ctx.font = "12px Verdana";
+            ctx.textAlign = "center";
+            ctx.fillText(material.segment.tileIndex, 128, 132);
+            applyCanvas(cnv);
+        }
+    });
+
+    window.globe = new Globe({
+        name: "Waves",
+        target: "globus",
+        ellipsoid: new Ellipsoid(RADIUS, RADIUS),
+        quadTreeStrategyPrototype: quadTreeStrategyType.equi,
+        maxAltitude: 3500000,
+        terrain: terrain,
+        layers: [grid],
+        nightTextureSrc: null,
+        specularTextureSrc: null,
+        atmosphereEnabled: false
+    });
+
+    globe.planet.addControl(new control.DebugInfo());
+    globe.planet.addControl(new control.ToggleWireframe());
+
+    globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "rgb(0, 0, 0)";
+    globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "rgb(0, 0, 0)";
+
+    // Low over the flat equator, the crests behind the horizon of the ellipsoid stand over it.
+    // Under 10 km the camera culls the segments behind the horizon.
+    globe.planet.camera.setLonLat(new LonLat(0, 0, 5000), new LonLat(33.75, -11.25, 100000));
+
+    document.getElementById("info").innerHTML =
+        `R = ${RADIUS / 1000} km, waves ${AMPLITUDE / 1000} km, terrain.maxHeight = ${maxHeight} m`;
+
+    //
+    // Worker: (GRID_SIZE + 1)^2 heights evenly spaced in the segment extent in degrees,
+    // rows from north to south. It is made from the function text, so it must be self-contained.
+    //
+    function wavesWorker(AMPLITUDE, WAVES) {
+        const D2R = Math.PI / 180;
+
+        self.onmessage = (e) => {
+            let { id, size, extent: [west, south, east, north] } = e.data,
+                gs = size + 1,
+                heights = new Float32Array(gs * gs);
+
+            for (let i = 0; i < gs; i++) {
+                let lat = north - (i / size) * (north - south);
+                for (let j = 0; j < gs; j++) {
+                    let lon = west + (j / size) * (east - west);
+                    heights[i * gs + j] = AMPLITUDE * Math.sin(WAVES * lon * D2R) * Math.sin(WAVES * lat * D2R);
+                }
+            }
+
+            self.postMessage({ id, heights }, [heights.buffer]);
+        };
+    }
+
+    // Returns runJob(segment), the promise of the segment heights from the worker
+    function createWorker() {
+        const worker = new Worker(URL.createObjectURL(new Blob(
+            [`(${wavesWorker.toString()})(${AMPLITUDE}, ${WAVES});`],
+            { type: "text/javascript" }
+        )));
+
+        const jobs = new Map();
+        let jobCounter = 0;
+
+        worker.onmessage = (e) => {
+            jobs.get(e.data.id)(e.data.heights);
+            jobs.delete(e.data.id);
+        };
+
+        return (segment) => {
+            let e = segment.getExtent(),
+                id = jobCounter++;
+
+            return new Promise((resolve) => {
+                jobs.set(id, resolve);
+                worker.postMessage({
+                    id,
+                    size: GRID_SIZE,
+                    extent: [e.southWest.lon, e.southWest.lat, e.northEast.lon, e.northEast.lat]
+                });
+            });
+        };
+    }
+</script>
+</body>
+</html>
