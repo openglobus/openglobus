@@ -84,6 +84,7 @@
         "@photostructure/tz-lookup": "^11.6.1",
         "geotiff": "^3.0.5",
         "proj4": "^2.22.0",
-        "tz-lookup": "^6.1.25"
+        "tz-lookup": "^6.1.25",
+        "zarrita": "^0.7.5"
     }
 }

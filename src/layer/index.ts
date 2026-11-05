@@ -11,4 +11,5 @@ export * from "./Material";
 export * from "./OpenStreetMap";
 export * from "./Bing";
 export * from "./GeoTIFFLayer";
+export * from "./GeoZarrLayer";
 export * as geotiff from "./geotiff/index";

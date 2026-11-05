@@ -197,6 +197,63 @@ export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams, IGeoT
     useImageCountAsMaximumLevel?: boolean;
 }
 
+/**
+ * Index or coordinate label of an extra GeoZarr dimension, a list of them makes the samples of the variable.
+ */
+export type GeoZarrDimensionValue = number | string | (number | string)[];
+
+/**
+ * Options used by a GeoZarr reader.
+ */
+export interface IGeoZarrReaderParams extends Omit<
+    IGeoTIFFReaderParams,
+    "src" | "sources" | "mosaic" | "requestOptions"
+> {
+    /** URL of the Zarr store, v2 or v3. */
+    url?: string;
+
+    /** Path of the multiscales group inside the store, e.g. "measurements/reflectance". */
+    group?: string;
+
+    /** Names of the band arrays of every pyramid level, e.g. ["b04", "b03", "b02"], every band is a sample. */
+    bands?: string[];
+
+    /** Name of one n-D array of every pyramid level, instead of bands. "" is the level array itself. */
+    variable?: string;
+
+    /**
+     * Index (number) or coordinate label (string) of every extra dimension, such as time, band or depth, the
+     * first index when not set. In the variable mode one dimension may take a list, its entries are the samples.
+     */
+    dimensions?: Record<string, GeoZarrDimensionValue>;
+
+    /** HTTP request options of the Zarr store, such as headers or credentials. */
+    storeOptions?: RequestInit;
+
+    /**
+     * Reads the end of a file, the shard index, by a suffix range request "bytes=-n" instead of a HEAD request
+     * and a range. True by default, some S3 servers do not send CORS headers for HEAD requests. Servers without
+     * suffix ranges, such as Azure Blob Storage, need false.
+     */
+    useSuffixRequest?: boolean;
+
+    /** Bounding box [minX, minY, maxX, maxY] in the CRS units, when the store has no georeference. */
+    bbox?: [number, number, number, number];
+}
+
+/**
+ * Extra (not spatial) dimension of a GeoZarr variable.
+ */
+export interface IGeoZarrDimension {
+    name: string;
+    /** Axis of the dimension in the array. */
+    axisIndex: number;
+    size: number;
+    /** Coordinate labels, ISO dates for a CF time axis. */
+    values?: (number | string)[];
+    units?: string;
+}
+
 export interface IGeoTIFFReader {
     options: IGeoTIFFReaderParams;
     metadata: IGeoTIFFMetadata | null;
@@ -205,7 +262,10 @@ export interface IGeoTIFFReader {
     isReady: boolean;
     workerPool: Pool | null;
 
-    init(src?: GeoTIFFSource | IGeoTIFFSourceItem[]): Promise<IGeoTIFFMetadata>;
+    /**
+     * Opens the source: a GeoTIFF source or sources, or a GeoZarr store, by the reader.
+     */
+    init(src?: unknown): Promise<IGeoTIFFMetadata>;
 
     /**
      * Applies rendering options that affect decoding, such as nodata masking and the resampling method.

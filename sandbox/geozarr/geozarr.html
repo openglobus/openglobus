@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenGlobus - GeoZarr Layer</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+    <style>
+        html, body, #globus { margin: 0; width: 100%; height: 100%; overflow: hidden; font: 13px Arial, sans-serif; }
+        .panel { position: absolute; top: 10px; left: 10px; z-index: 1000; width: 270px;
+                 padding: 10px 14px; background: rgba(0, 0, 0, 0.7); color: #fff; border-radius: 4px; }
+        .panel h4 { margin: 0 0 8px; }
+        .panel label { display: flex; justify-content: space-between; margin-top: 8px; }
+        .panel select, .panel input { width: 100%; box-sizing: border-box; }
+        .status { margin-top: 8px; font-size: 11px; color: #ccc; }
+    </style>
+    <script src="./geozarr.js" type="module"></script>
+</head>
+<body>
+    <div id="globus"></div>
+
+    <div class="panel">
+        <h4>GeoZarr</h4>
+
+        <label>Dataset</label>
+        <select id="datasetSelect">
+            <option value="s2rgb" selected>Sentinel-2 L2A true color (EOPF)</option>
+            <option value="s2ndvi">Sentinel-2 L2A NDVI (EOPF)</option>
+        </select>
+
+        <div id="rangeRows"></div>
+
+        <label>Opacity <span id="opacityVal">100%</span></label>
+        <input type="range" id="opacitySlider" min="0" max="1" step="0.02" value="1">
+
+        <div class="status" id="status"></div>
+    </div>
+</body>
+</html>

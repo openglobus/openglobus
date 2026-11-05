@@ -19,6 +19,8 @@ export interface IWarpParams {
     nodata: number | null;
     /** Valid pixels of the window, if the file has a mask. */
     maskRaster?: TypedArray | null;
+    /** Whether the raster wraps around in x, the window then goes past the image sides. */
+    wrapX?: boolean;
 }
 
 /**
@@ -26,7 +28,7 @@ export interface IWarpParams {
  * the image, of no data or out of the mask are NaN.
  */
 export function warpRasters(p: IWarpParams): Float32Array[] {
-    const { rasters, gridU, gridV, gridSize, imgWidth, imgHeight, tileSize, bilinear, maskRaster } = p;
+    const { rasters, gridU, gridV, gridSize, imgWidth, imgHeight, tileSize, bilinear, maskRaster, wrapX } = p;
     const [winX0, winY0, winX1, winY1] = p.window;
     const winWidth = winX1 - winX0;
     const winHeight = winY1 - winY0;
@@ -66,7 +68,7 @@ export function warpRasters(p: IWarpParams): Float32Array[] {
             const u = gridU[n00] * w00 + gridU[n10] * w10 + gridU[n01] * w01 + gridU[n11] * w11;
             const v = gridV[n00] * w00 + gridV[n10] * w10 + gridV[n01] * w01 + gridV[n11] * w11;
 
-            if (u < 0 || u >= 1 || v < 0 || v >= 1) continue;
+            if ((!wrapX && (u < 0 || u >= 1)) || v < 0 || v >= 1) continue;
 
             // Source position inside the window, in pixel centers
             const sx = u * imgWidth - winX0 - 0.5;

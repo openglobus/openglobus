@@ -74,6 +74,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     protected _readyPromise: Promise<IGeoTIFFMetadata>;
     protected _activeMaterials: Set<Material>;
     protected _renderOptionsVersion: number;
+    /** Version of the source data, a tile read for an older one is not shown */
+    protected _dataVersion: number;
     protected _debounceUpdateTimer: any;
     protected _pendingsQueue: IPendingTile[];
     protected _sourceOptions: IGeoTIFFLayerParams;
@@ -87,12 +89,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         // @ts-ignore
         this.events = this.events.registerNames(GEOTIFF_EVENTS);
 
-        const isMultiSource = Array.isArray(options.sources) && options.sources.length > 0;
-        if (isMultiSource) {
-            this._reader = new MultiGeoTIFFReader(options);
-        } else {
-            this._reader = new GeoTIFFReader(options);
-        }
+        this._reader = this._createReader(options);
 
         const initialNodata =
             options.renderOptions?.nodata !== undefined
@@ -119,6 +116,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._readSamples = [];
         this._activeMaterials = new Set();
         this._renderOptionsVersion = 0;
+        this._dataVersion = 0;
         this._debounceUpdateTimer = null;
         this._pendingsQueue = [];
         this._sourceOptions = options;
@@ -126,6 +124,16 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._updateReadSamples();
 
         this._readyPromise = this._initReader();
+    }
+
+    /**
+     * Creates the reader of the layer source, a subclass may read another raster format.
+     */
+    protected _createReader(options: IGeoTIFFLayerParams): IGeoTIFFReader {
+        if (Array.isArray(options.sources) && options.sources.length > 0) {
+            return new MultiGeoTIFFReader(options);
+        }
+        return new GeoTIFFReader(options);
     }
 
     /**
@@ -278,14 +286,53 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             // Re-render in-memory rasters instantly without reloading tiles or destroying textures.
             this._reapplyRenderOptions(fullUpdate);
         } else {
-            // Sample/band selection changed: cancel pending requests, clear caches, and clear quadtree materials
-            this.abortLoading();
-            this.clearCache();
-            if (this._planet) {
-                this._planet.quadTreeStrategy.clearLayerMaterial(this, false);
-                this._planet.renderer?.requestRedraw();
-            }
+            // Sample/band selection changed
+            this._reloadTiles();
         }
+    }
+
+    /**
+     * Reloads all tiles: cancels pending requests, clears caches, and clears quadtree materials.
+     */
+    protected _reloadTiles(): void {
+        this._dataVersion++;
+        this.abortLoading();
+        this.clearCache();
+        if (this._planet) {
+            this._planet.quadTreeStrategy.clearLayerMaterial(this, false);
+            this._planet.renderer?.requestRedraw();
+        }
+    }
+
+    /**
+     * Reloads all tiles for new source data of the same samples, such as another time of a datacube. The rendered
+     * tiles keep their images until the new ones are read, the other tiles load again when they are rendered.
+     */
+    protected _refreshTiles(): void {
+        this._dataVersion++;
+        this.abortLoading();
+        this.clearCache();
+
+        if (!this._planet) return;
+
+        const qts = this._planet.quadTreeStrategy;
+        qts.clearLayerMaterial(this, true);
+
+        for (const node of qts._renderedNodes) {
+            const seg = node.segment;
+            const mat = seg && seg.materials[this.__id];
+            if (!mat) continue;
+
+            this._activeMaterials.add(mat);
+
+            // A loading material reads the new data when its older read is over, one not ready loads as usual
+            if (mat.isLoading || !mat.isReady) continue;
+
+            mat.isLoading = true;
+            this._enqueueTile(mat, `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`, true);
+        }
+
+        this._planet.renderer?.requestRedraw();
     }
 
     public override createMaterial(segment: Segment): Material {
@@ -690,6 +737,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
 
     private _requestTile(material: Material, cacheKey: string): void {
         const seg = material.segment;
+        const dataVersion = this._dataVersion;
 
         this._activeRequestsCount++;
 
@@ -711,6 +759,11 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                 this._dequeueRequest();
 
                 if (!material.isLoading) return;
+
+                if (dataVersion !== this._dataVersion) {
+                    this._enqueueTile(material, cacheKey, true);
+                    return;
+                }
 
                 if (!tileData || !tileData.rasters || tileData.rasters.length === 0) {
                     material.texture = this._isBaseLayer ? seg.getDefaultTexture() : seg.planet.transparentTexture;
@@ -743,7 +796,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
 
                 this._dequeueRequest();
 
-                if (material.isLoading) {
+                if (material.isLoading && dataVersion !== this._dataVersion) {
+                    this._enqueueTile(material, cacheKey, true);
+                } else if (material.isLoading) {
                     material.texture = this._isBaseLayer ? seg.getDefaultTexture() : seg.planet.transparentTexture;
                     material.textureNotExists();
                     console.error("[GeoTIFFLayer] Error loading tile:", err);
