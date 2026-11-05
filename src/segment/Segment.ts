@@ -639,36 +639,40 @@ class Segment {
             // area, which draw nothing, but the ray test can report a hit on them by rounding.
             const pole = this._extentLonLat.northEast.lat >= 90 || this._extentLonLat.southWest.lat <= -90;
 
-            let d = Ray.OUTSIDE;
-
+            // The triangle that contains the position in the grid is nearly always the one the ray hits,
+            // so it is tested first and the others only when it is missed.
+            let best = first,
+                bestMargin = -Infinity;
             for (let i = first; i < last; i += 3) {
-                this._setTriangle(tri, i);
-                d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
-                if (d === Ray.INSIDE) {
-                    if (!pole || hasArea()) {
+                const m = gridMargin(tri[i], tri[i + 1], tri[i + 2], size + 1, gx, gy);
+                if (m > bestMargin) {
+                    bestMargin = m;
+                    best = i;
+                    if (m >= 0) {
                         break;
-                    }
-                    d = Ray.OUTSIDE;
-                } else if (d === Ray.AWAY) {
-                    // The point is under the terrain
-                    _rayEx.set(_xyzRtc, norm);
-                    if (_rayEx.hitTriangleRes(_v0, _v1, _v2, _resRtc) === Ray.INSIDE && (!pole || hasArea())) {
-                        return this._terrainPointResult(res, -1);
                     }
                 }
             }
 
-            if (d !== Ray.INSIDE) {
-                // The ray follows the ellipsoid normal and can pass just outside of the triangles of the cell:
-                // then the plane of the triangle that contains the position in the grid is used.
-                let best = first,
-                    bestMargin = -Infinity;
+            let sign = this._hitCellTriangle(tri, best, norm, pole);
+            for (let i = first; sign === 0 && i < last; i += 3) {
+                if (i !== best) {
+                    sign = this._hitCellTriangle(tri, i, norm, pole);
+                }
+            }
+
+            if (sign !== 0) {
+                return this._terrainPointResult(res, sign);
+            }
+
+            // The ray follows the ellipsoid normal and can pass just outside of the triangles of the cell:
+            // then the plane of the triangle that contains the position in the grid is used.
+            if (pole) {
+                bestMargin = -Infinity;
                 for (let i = first; i < last; i += 3) {
-                    if (pole) {
-                        this._setTriangle(tri, i);
-                        if (!hasArea()) {
-                            continue;
-                        }
+                    this._setTriangle(tri, i);
+                    if (!hasArea()) {
+                        continue;
                     }
                     const m = gridMargin(tri[i], tri[i + 1], tri[i + 2], size + 1, gx, gy);
                     if (m > bestMargin) {
@@ -676,9 +680,10 @@ class Segment {
                         best = i;
                     }
                 }
-                this._setTriangle(tri, best);
-                d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
             }
+
+            this._setTriangle(tri, best);
+            const d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
 
             return this._terrainPointResult(res, d === Ray.AWAY ? -1 : 1);
         } else {
@@ -690,6 +695,25 @@ class Segment {
             }
             return xyz.distance(hit);
         }
+    }
+
+    /**
+     * Ray test of the cell triangle at tri[i]: 1 when the point is above it, -1 when below it, 0 when missed.
+     */
+    protected _hitCellTriangle(tri: Uint32Array, i: number, norm: Vec3, pole: boolean): number {
+        this._setTriangle(tri, i);
+        const d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
+        if (d === Ray.INSIDE) {
+            return !pole || hasArea() ? 1 : 0;
+        }
+        if (d === Ray.AWAY) {
+            // The point is under the terrain
+            _rayEx.set(_xyzRtc, norm);
+            if (_rayEx.hitTriangleRes(_v0, _v1, _v2, _resRtc) === Ray.INSIDE && (!pole || hasArea())) {
+                return -1;
+            }
+        }
+        return 0;
     }
 
     protected _setTriangle(tri: Uint32Array, i: number) {
