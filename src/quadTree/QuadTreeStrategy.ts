@@ -379,7 +379,6 @@ export class QuadTreeStrategy {
     protected _collectViewCamerasRenderNodes(mainCamera: PlanetCamera) {
         const planet = this.planet;
 
-        // Only the planet own tree, the cascade shadow map still collects with a strategy of its own.
         const depthCameras: DepthCamera[] =
             planet.renderer && !planet.disableDepthCamera && planet.quadTreeStrategy === this
                 ? planet.renderer.depthCameraHandler._depthCameras
