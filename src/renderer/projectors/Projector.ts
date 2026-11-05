@@ -1,4 +1,4 @@
-import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
+import type { DepthCamera } from "../depthCamera/DepthCamera";
 import type { NumberArray3 } from "../../math/Vec3";
 import type { NumberArray4 } from "../../math/Vec4";
 import { linearToSrgbArr, srgbToLinear } from "../../utils/colorSpace";

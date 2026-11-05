@@ -1,4 +1,4 @@
-import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
+import type { DepthCamera } from "../depthCamera/DepthCamera";
 import type { ShadowManager } from "./ShadowManager";
 
 export interface IShadowMapParams {

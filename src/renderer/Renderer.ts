@@ -23,7 +23,7 @@ import { PhongDeferredShading } from "./PhongDeferredShading";
 import { ProjectorManager } from "./projectors/ProjectorManager";
 import { CascadeShadowManager } from "./cascadeShadows/CascadeShadowManager";
 import { ShadowManager } from "./shadows/ShadowManager";
-import { DepthCameraHandler } from "../control/depthCamera/DepthCameraHandler";
+import { DepthCameraHandler } from "./depthCamera/DepthCameraHandler";
 import { TextureResourceManager } from "../utils/TextureResourceManager";
 import type { RendererTextureRequest } from "../utils/TextureResourceManager";
 import { WOITPass } from "./WOITPass";

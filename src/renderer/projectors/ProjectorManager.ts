@@ -1,6 +1,6 @@
 import { cons } from "../../cons";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
-import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
+import type { DepthCamera } from "../depthCamera/DepthCamera";
 import type { Renderer } from "../Renderer";
 import { DEFAULT_PROJECTOR_TEXTURE_UNIT_START } from "../textureUnits";
 import { Projector } from "./Projector";

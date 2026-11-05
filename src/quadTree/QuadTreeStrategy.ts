@@ -11,7 +11,7 @@ import { Extent } from "../Extent";
 import { EntityCollectionsTreeStrategy } from "./EntityCollectionsTreeStrategy";
 import { PlanetCamera } from "../camera";
 import type { Camera } from "../camera/Camera";
-import type { DepthCamera } from "../control/depthCamera/DepthCamera";
+import type { DepthCamera } from "../renderer/depthCamera/DepthCamera";
 import * as math from "../math";
 import { createEvents, EventsHandler } from "../Events";
 

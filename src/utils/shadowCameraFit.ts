@@ -1,4 +1,4 @@
-import type { DepthCamera } from "../control/depthCamera/DepthCamera";
+import type { DepthCamera } from "../renderer/depthCamera/DepthCamera";
 import type { Planet } from "../scene/Planet";
 import type { CameraFootprint } from "./cameraFootprint";
 import { Vec3 } from "../math/Vec3";

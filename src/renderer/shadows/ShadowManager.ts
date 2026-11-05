@@ -1,5 +1,5 @@
 import { cons } from "../../cons";
-import type { DepthCamera } from "../../control/depthCamera/DepthCamera";
+import type { DepthCamera } from "../depthCamera/DepthCamera";
 import { varianceBlur } from "../../shaders/varianceBlur";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { Renderer } from "../Renderer";
