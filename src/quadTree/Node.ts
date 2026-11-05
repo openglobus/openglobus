@@ -500,6 +500,7 @@ class Node {
             // Terrain loading part of renderNode. Forced, because the terrain loader drops the requests of the nodes
             // the main traversal has marked NOTRENDERING, and that is where the view camera own nodes are.
             if (!seg.terrainReady) {
+                qts._viewCamerasTerrainCompleted = false;
                 if (!seg.initialized) {
                     seg.initialize();
                 }

@@ -128,7 +128,8 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
  * Default is the first planet of the renderer. The terrain nodes come from all the planets anyway.
  * @param {number} [options.depthBiasWorld=1] - Occlusion bias of the receivers in meters.
  * @param {number} [options.normalBias=0.45] - Offset of the receiver point along its normal in meters.
- * @param {LonLat|Array.<number>} [options.lonLat] - Start position with a planet, `[lon, lat, height]`.
+ * @param {LonLat|Array.<number>} [options.lonLat] - Start position with a planet, `[lon, lat, height]`. Without
+ * lonLat and eye the camera looks down at lon 0, lat 0 from the focus distance.
  * @param {LonLat|Array.<number>} [options.lookLonLat] - Point to look at with a planet, `[lon, lat, height]`.
  * @param {Vec3|Array.<number>} [options.eye] - Start position in cartesian coordinates, also without a planet.
  * @param {Vec3|Array.<number>} [options.look] - Point to look at in cartesian coordinates.
@@ -766,6 +767,8 @@ export class DepthCamera {
             );
         } else if (p.eye) {
             cam.set(toVec3(p.eye), p.look ? toVec3(p.look) : undefined, p.up ? toVec3(p.up) : undefined);
+        } else if (cam instanceof PlanetCamera) {
+            cam.setLonLat(new LonLat(0, 0, this._focusDistance));
         }
 
         if (p.pitch != null || p.yaw != null || p.roll != null) {

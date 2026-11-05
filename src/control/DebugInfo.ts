@@ -321,6 +321,10 @@ export class DebugInfo extends Control {
                         `${p.quadTreeStrategy._terrainCompleted} / ${p.quadTreeStrategy._terrainCompletedActivated}`
                 },
                 {
+                    label: "_viewCamerasTerrainCompleted",
+                    frame: () => `${p.quadTreeStrategy._viewCamerasTerrainCompleted}`
+                },
+                {
                     label: "PlainWorker",
                     frame: () => p._plainSegmentWorker.pendingQueue.length
                 },

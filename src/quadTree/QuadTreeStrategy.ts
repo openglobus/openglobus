@@ -146,6 +146,13 @@ export class QuadTreeStrategy {
      */
     public _viewWalkFrame: number = 0;
 
+    /**
+     * False while a node only the view cameras render waits for its terrain. Keeps the frames coming in the
+     * idle mode, apart from _terrainCompleted, which stays about the main camera view.
+     * @public
+     */
+    public _viewCamerasTerrainCompleted: boolean = true;
+
     constructor(params: QuadTreeStrategyParams) {
         this.events = createEvents<QuadTreeStrategyEventsList>(QUADTREESTRATEGY_EVENTS);
 
@@ -250,7 +257,7 @@ export class QuadTreeStrategy {
     }
 
     protected _checkRendercompleted() {
-        if (!this.renderReady || !this.terrainReady) {
+        if (!this.renderReady || !this.terrainReady || !this._viewCamerasTerrainCompleted) {
             this.planet.renderer!.requestRedraw();
         }
 
@@ -389,6 +396,7 @@ export class QuadTreeStrategy {
         lists.length = depthCameras.length;
 
         this._viewWalkFrame++;
+        this._viewCamerasTerrainCompleted = true;
 
         for (let slot = 0; slot < depthCameras.length; slot++) {
             const dc = depthCameras[slot];
