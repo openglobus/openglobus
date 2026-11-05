@@ -1,4 +1,5 @@
 import { Projector } from "../../src/renderer/projectors/Projector";
+import { DepthCamera } from "../../src/renderer/depthCamera/DepthCamera";
 import {
     ProjectorManager,
     assignSourceSlots,
@@ -27,25 +28,34 @@ function createManager() {
             idleMode: true,
             createEmptyTexture2DArrayExt: () => ({})
         },
+        depthCameraHandler: {
+            add: (depthCamera) => {
+                depthCamera._handlerIndex = 0;
+            },
+            remove: (depthCamera) => {
+                depthCamera._handlerIndex = -1;
+            }
+        },
         requestRedraw: vi.fn()
     };
     return { gl, renderer, manager: new ProjectorManager(renderer) };
 }
 
 function createDepthCamera() {
-    return {
-        framebuffer: {
-            _fbo: {},
-            width: 256,
-            height: 256,
-            textures: [{}],
-            activate: () => {},
-            deactivate: () => {},
-            bindOutputTextureLayer: () => {},
-            bindOutputTexture: () => {},
-            checkStatus: () => 1
-        }
+    const depthCamera = new DepthCamera();
+    depthCamera._initialized = true;
+    depthCamera.framebuffer = {
+        _fbo: {},
+        width: 256,
+        height: 256,
+        textures: [{}],
+        activate: () => {},
+        deactivate: () => {},
+        bindOutputTextureLayer: () => {},
+        bindOutputTexture: () => {},
+        checkStatus: () => 1
     };
+    return depthCamera;
 }
 
 function createProjector(params = {}) {
