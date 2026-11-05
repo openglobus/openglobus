@@ -1,5 +1,4 @@
 import * as mercator from "../../mercator";
-import * as quadTree from "../../quadTree/quadTree";
 import { Extent } from "../../Extent";
 import { Handler } from "../../webgl/Handler";
 import type { WebGLBufferExt } from "../../webgl/Handler";
@@ -1179,7 +1178,7 @@ class GeometryHandler {
                     this._refreshRecursevely(geometry, ni);
                     let m = ni.segment.materials[lid];
                     if (m && m.isReady) {
-                        if (m.segment.node.getState() !== quadTree.RENDERING) {
+                        if (!m.segment.node.isRenderedOrFading()) {
                             m.layer.clearMaterial(m);
                         } else {
                             m.pickingReady = m.pickingReady && geometry._pickingReady;
@@ -1204,7 +1203,7 @@ class GeometryHandler {
                     this._refreshRecursevelyExt(extent, ni);
                     let m = ni.segment.materials[lid];
                     if (m && m.isReady) {
-                        if (!m.textureExists || m.segment.node.getState() !== quadTree.RENDERING) {
+                        if (!m.textureExists || !m.segment.node.isRenderedOrFading()) {
                             m.layer.clearMaterial(m);
                         } else {
                             m.pickingReady = false;
