@@ -280,8 +280,6 @@ class Node {
             return;
         }
 
-        let lodCam = this.quadTreeStrategy.lodCamera || cam;
-
         if (!maxZoom || (zoomPassNode && this.segment.tileZoom > zoomPassNode.segment.tileZoom)) {
             this.prevState = this.state;
         }
@@ -334,7 +332,7 @@ class Node {
         }
 
         if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
-            let h = Math.abs(lodCam._lonLat.height);
+            let h = Math.abs(cam._lonLat.height);
 
             let horizonDist = this.quadTreeStrategy._horizonDist2;
 
@@ -373,7 +371,7 @@ class Node {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
             } else if (
                 seg.terrainReady &&
-                ((!maxZoom && lodCam.projectedSize(seg.lodCenter, seg._plainRadius) < this.quadTreeStrategy.lodSize) ||
+                ((!maxZoom && cam.projectedSize(seg.lodCenter, seg._plainRadius) < this.quadTreeStrategy.lodSize) ||
                     (maxZoom && (seg.tileZoom === maxZoom || !altVis)))
             ) {
                 if (altVis) {
@@ -385,7 +383,7 @@ class Node {
             } else if (
                 seg.terrainReady &&
                 seg.checkZoom() &&
-                (!maxZoom || lodCam.projectedSize(seg.lodCenter, seg._plainRadius) > this.quadTreeStrategy._maxLodSize)
+                (!maxZoom || cam.projectedSize(seg.lodCenter, seg._plainRadius) > this.quadTreeStrategy._maxLodSize)
             ) {
                 if (seg.tileZoom < this.quadTreeStrategy.maxZoomLimit) {
                     this.traverseNodes(cam, maxZoom, seg, stopLoading, zoomPassNode);

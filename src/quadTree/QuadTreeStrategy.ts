@@ -44,8 +44,6 @@ export class QuadTreeStrategy {
     public projection: Proj;
     public readonly planet: Planet;
 
-    public lodCamera: PlanetCamera | null = null;
-
     public disableNeighbors: boolean = false;
 
     /**
@@ -524,7 +522,7 @@ export class QuadTreeStrategy {
             this._minTerrainRadiusAcc = Infinity;
             this._maxTerrainRadiusAcc = -Infinity;
 
-            this._updateHorizonDist(this.lodCamera || cam);
+            this._updateHorizonDist(cam);
 
             this._collectRenderNodes(cam);
 
