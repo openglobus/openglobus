@@ -320,6 +320,9 @@ export class ProjectorManager {
 
         this._projectors.splice(index, 1);
         this._updateActiveProjectors = true;
+
+        this._renderer.depthCameraHandler.remove(projector.depthCamera);
+
         this.requestRedraw();
         return true;
     }
@@ -331,6 +334,7 @@ export class ProjectorManager {
             this._releaseSource(p);
             p._slot = -1;
             p._manager = null;
+            this._renderer.depthCameraHandler.remove(p.depthCamera);
         }
         this._projectors.length = 0;
         this._activeProjectors.length = 0;

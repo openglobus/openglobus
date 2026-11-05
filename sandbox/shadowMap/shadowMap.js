@@ -10,7 +10,6 @@ import {
     input,
     Object3d,
     ShadowMap,
-    DepthCamera,
     XYZ,
     Vec3,
     CameraFootprint,
@@ -138,25 +137,28 @@ const depthPreviewShader = `void mainImage(out vec4 fragColor, in vec2 fragCoord
                 fragColor = vec4(vec3(clamp(normalized, 0.0, 1.0)), 1.0);
             }`;
 
-const depthCameraHandler = globus.renderer.depthCameraHandler;
-
-const depthCamera = new DepthCamera({
-    enableSegmentSkirts: true,
-    enableSegmentFaceCulling: false,
-    width: 2048,
-    height: 2048,
-    excludeLayers: [footprintDebug],
-    near: 1000,
-    far: 500000,
-    focusDistance: 100000,
-    verticalViewAngle: 45,
-    isOrthographic: true,
-    showFrustum: true,
-    showFootprint: false
+const shadowMap = new ShadowMap({
+    enabled: true,
+    depthCamera: {
+        enableSegmentSkirts: true,
+        enableSegmentFaceCulling: false,
+        width: 2048,
+        height: 2048,
+        excludeLayers: [footprintDebug],
+        near: 1000,
+        far: 500000,
+        focusDistance: 100000,
+        verticalViewAngle: 45,
+        isOrthographic: true,
+        showFrustum: true,
+        showFootprint: false
+    },
+    color: [1.0, 1.0, 1.0, 1.0],
+    priority: 0
 });
+globus.planet.renderer.shadows.add(shadowMap);
 
-depthCameraHandler.add(depthCamera);
-
+const depthCamera = shadowMap.depthCamera;
 const shadowCamera = depthCamera.camera;
 
 const footprint = new CameraFootprint({
@@ -199,14 +201,6 @@ function updateShadowCamera() {
 }
 
 globus.planet.renderer.events.on("predraw", updateShadowCamera, null, -1);
-
-const shadowMap = new ShadowMap({
-    enabled: true,
-    depthCamera,
-    color: [1.0, 1.0, 1.0, 1.0],
-    priority: 0
-});
-globus.planet.renderer.shadows.add(shadowMap);
 
 const depthPreview = new control.FramebufferPreview({
     title: `ShadowMap`,

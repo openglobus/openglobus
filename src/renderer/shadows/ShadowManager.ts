@@ -182,6 +182,9 @@ export class ShadowManager {
 
         this._shadowMaps.splice(index, 1);
         this._updateActiveShadowMaps = true;
+
+        this._renderer.depthCameraHandler.remove(shadowMap.depthCamera);
+
         return true;
     }
 
@@ -194,6 +197,7 @@ export class ShadowManager {
             if (s.depthCamera.shadowMap === s) {
                 s.depthCamera.shadowMap = null;
             }
+            this._renderer.depthCameraHandler.remove(s.depthCamera);
         }
         this._shadowMaps.length = 0;
         this._activeShadowMaps.length = 0;

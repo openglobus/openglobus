@@ -11,8 +11,7 @@ import {
     input,
     Gltf,
     Object3d,
-    Projector,
-    DepthCamera
+    Projector
 } from "../../lib/og.es.js";
 
 let myObjects = new Vector("myObjects", {
@@ -62,43 +61,17 @@ const depthPreviewShader = `float linearizeDepth(float z, float near, float far)
                 fragColor = vec4(vec3(clamp(normalized, 0.0, 1.0)), 1.0);
             }`;
 
-const depthCameraHandler = globus.renderer.depthCameraHandler;
-
-const depthCamera1 = new DepthCamera({
-    showFrustum: true,
-    showFootprint: true,
-    depthBiasWorld: 1, // meters
-    normalBias: 0.45, // 0.2 .. 1.0
-});
-depthCameraHandler.add(depthCamera1);
-
-const depthCamera2 = new DepthCamera({
-    showFrustum: true,
-    showFootprint: true,
-    depthBiasWorld: 1, // meters
-    normalBias: 0.45, // 0.2 .. 1.0
-});
-depthCameraHandler.add(depthCamera2);
-
-const projectorCamera1 = depthCamera1.camera;
-projectorCamera1.setLonLat(new LonLat(10.0814898, 46.4864594, 10000), new LonLat(9.0814898, 46.4864594, 0));
-projectorCamera1.setHorizontalViewAngle(90);
-projectorCamera1.setViewportSize(1024, 1024);
-projectorCamera1.update();
-
-window.depthCamera1 = projectorCamera1;
-
-const projectorCamera2 = depthCamera2.camera;
-projectorCamera2.setLonLat(new LonLat(10.0814898, 46.5864594, 5000), new LonLat(9.0814898, 41.4864594, 0));
-projectorCamera2.setHorizontalViewAngle(60);
-projectorCamera2.setViewportSize(1920, 1080);
-projectorCamera2.update();
-
-window.depthCamera2 = projectorCamera2;
-
 const projector1 = new Projector({
     enabled: true,
-    depthCamera: depthCamera1,
+    depthCamera: {
+        showFrustum: true,
+        showFootprint: true,
+        depthBiasWorld: 1, // meters
+        normalBias: 0.45, // 0.2 .. 1.0
+        horizontalViewAngle: 90,
+        lonLat: [10.0814898, 46.4864594, 10000],
+        lookLonLat: [9.0814898, 46.4864594, 0]
+    },
     color: [1.0, 1.0, 0.0, 0.3],
     renderMode: "light",
     priority: 0
@@ -107,12 +80,32 @@ globus.planet.renderer.projectors.add(projector1);
 
 const projector2 = new Projector({
     enabled: true,
-    depthCamera: depthCamera2,
+    depthCamera: {
+        showFrustum: true,
+        showFootprint: true,
+        depthBiasWorld: 1, // meters
+        normalBias: 0.45, // 0.2 .. 1.0
+        horizontalViewAngle: 60,
+        lonLat: [10.0814898, 46.5864594, 5000],
+        lookLonLat: [9.0814898, 41.4864594, 0]
+    },
     color: [1.0, 1.0, 0.0, 0.3],
     renderMode: "light",
     priority: 0
 });
 globus.planet.renderer.projectors.add(projector2);
+
+const depthCamera1 = projector1.depthCamera;
+const depthCamera2 = projector2.depthCamera;
+
+const projectorCamera1 = depthCamera1.camera;
+window.depthCamera1 = projectorCamera1;
+
+// A 16:9 frustum, the depth framebuffer itself stays square.
+const projectorCamera2 = depthCamera2.camera;
+projectorCamera2.setViewportSize(1920, 1080);
+projectorCamera2.update();
+window.depthCamera2 = projectorCamera2;
 
 const depthPreview1 = new control.FramebufferPreview({
     title: `DepthCamera1`,

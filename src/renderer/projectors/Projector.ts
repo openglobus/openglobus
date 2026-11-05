@@ -1,4 +1,4 @@
-import type { DepthCamera } from "../depthCamera/DepthCamera";
+import { DepthCamera, type IDepthCameraParams } from "../depthCamera/DepthCamera";
 import type { NumberArray3 } from "../../math/Vec3";
 import type { NumberArray4 } from "../../math/Vec4";
 import { linearToSrgbArr, srgbToLinear } from "../../utils/colorSpace";
@@ -14,7 +14,7 @@ export const PROJECTOR_RENDER_MODE_LIGHT = 1;
 
 export interface IProjectorParams {
     enabled?: boolean;
-    depthCamera: DepthCamera;
+    depthCamera?: DepthCamera | IDepthCameraParams;
 
     /**
      * Solid color, or the tint and opacity multiplier applied on top of image/video/texture.
@@ -74,10 +74,11 @@ export class Projector {
      */
     public _manager: ProjectorManager | null = null;
 
-    constructor(params: IProjectorParams) {
+    constructor(params: IProjectorParams = {}) {
         this.id = Projector.__staticCounter__++;
         this._enabled = params.enabled ?? true;
-        this.depthCamera = params.depthCamera;
+        this.depthCamera =
+            params.depthCamera instanceof DepthCamera ? params.depthCamera : new DepthCamera(params.depthCamera);
         this.color = Projector._resolveColor(params.color);
         this._renderMode = Projector._resolveRenderMode(params.renderMode);
         this._priority = params.priority || 0;

@@ -4,7 +4,6 @@ import {
     EntityCollection,
     Object3d,
     Projector,
-    DepthCamera,
     Renderer,
     Scene,
     scene,
@@ -60,34 +59,39 @@ renderer.addScenes([new scene.Axes(), objectsScene]);
 renderer.activeCamera.set(new Vec3(-6, 8, 12), new Vec3(0, 0, 0));
 renderer.activeCamera.update();
 
-const up = new Vec3(0, 1, 0);
-
-const depthCamera1 = new DepthCamera({ near: NEAR, far: FAR, depthBiasWorld: 0.01, showFrustum: true });
-const depthCamera2 = new DepthCamera({ near: NEAR, far: FAR, depthBiasWorld: 0.01, showFrustum: true });
-
 const projector1 = new Projector({
-    enabled: true,
-    depthCamera: depthCamera1,
+    depthCamera: {
+        near: NEAR,
+        far: FAR,
+        depthBiasWorld: 0.01,
+        showFrustum: true,
+        eye: [-6, 5, 4],
+        look: [0, 0, 0],
+        up: [0, 1, 0]
+    },
     color: [1.0, 1.0, 0.0, 0.5],
     renderMode: "light"
 });
 
 const projector2 = new Projector({
-    enabled: true,
-    depthCamera: depthCamera2,
+    depthCamera: {
+        near: NEAR,
+        far: FAR,
+        depthBiasWorld: 0.01,
+        showFrustum: true,
+        eye: [6, 6, -3],
+        look: [0, 0, 1],
+        up: [0, 1, 0]
+    },
     color: [0.0, 1.0, 1.0, 0.5],
     renderMode: "light"
 });
 
-// The projectors add their depth cameras to renderer.depthCameraHandler.
 renderer.projectors.add(projector1);
 renderer.projectors.add(projector2);
 
-depthCamera1.camera.set(new Vec3(-6, 5, 4), new Vec3(0, 0, 0), up);
-depthCamera1.camera.update();
-
-depthCamera2.camera.set(new Vec3(6, 6, -3), new Vec3(0, 0, 1), up);
-depthCamera2.camera.update();
+const depthCamera1 = projector1.depthCamera;
+const depthCamera2 = projector2.depthCamera;
 
 const depthPreviewShader = `float linearizeDepth(float z, float near, float far) {
                 float ndcZ = z * 2.0 - 1.0;

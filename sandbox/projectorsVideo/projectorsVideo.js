@@ -6,7 +6,6 @@ import {
     GlobusRgbTerrain,
     Bing,
     Projector,
-    DepthCamera,
     input,
     Vector,
     Entity,
@@ -46,8 +45,6 @@ const skyCubeEntity = new Entity({
     }
 });
 myObjects.add(skyCubeEntity);
-
-const depthCameraHandler = globus.renderer.depthCameraHandler;
 
 function createVideo(src) {
     const video = document.createElement("video");
@@ -121,29 +118,26 @@ const sources = [
 ];
 
 const projectors = sources.map(({ params, width, height, eye, look }) => {
-    const depthCamera = new DepthCamera({
-        showFrustum: true,
-        // The footprint reads the depth map back to the CPU every frame, too slow on Ultra (Mali).
-        showFootprint: false,
-        depthBiasWorld: 1,
-        normalBias: 0.45
-    });
-    depthCameraHandler.add(depthCamera);
-
-    const camera = depthCamera.camera;
-    camera.setLonLat(new LonLat(eye[0], eye[1], 9000), new LonLat(look[0], look[1], 0));
-    camera.setHorizontalViewAngle(30);
-    // Matches the clip aspect ratio, so the picture is not stretched.
-    camera.setViewportSize(width, height);
-    camera.update();
-
     const projector = new Projector({
-        depthCamera,
+        depthCamera: {
+            showFrustum: true,
+            // The footprint reads the depth map back to the CPU every frame, too slow on Ultra (Mali).
+            showFootprint: false,
+            depthBiasWorld: 1,
+            normalBias: 0.45,
+            horizontalViewAngle: 30,
+            lonLat: [eye[0], eye[1], 9000],
+            lookLonLat: [look[0], look[1], 0]
+        },
         color: [1.0, 1.0, 1.0, 1.0],
         renderMode: "color",
         ...params
     });
     globus.planet.renderer.projectors.add(projector);
+
+    const camera = projector.depthCamera.camera;
+    camera.setViewportSize(width, height);
+    camera.update();
 
     return projector;
 });

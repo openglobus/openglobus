@@ -3,7 +3,7 @@ import { PlanetCamera } from "../../camera/PlanetCamera";
 import { Entity } from "../../entity/Entity";
 import { LonLat } from "../../LonLat";
 import { Vec2 } from "../../math/Vec2";
-import { Vec3 } from "../../math/Vec3";
+import { Vec3, type NumberArray3 } from "../../math/Vec3";
 import { Vec4, type NumberArray4 } from "../../math/Vec4";
 import { RADIANS_HALF } from "../../math";
 import { Object3d } from "../../Object3d";
@@ -39,7 +39,18 @@ interface IPerimeterSegmentsData {
     isClosed: boolean;
 }
 
-export interface IDepthCameraParams {
+export interface CameraPose {
+    lonLat?: LonLat | NumberArray3;
+    lookLonLat?: LonLat | NumberArray3;
+    eye?: Vec3 | NumberArray3;
+    look?: Vec3 | NumberArray3;
+    up?: Vec3 | NumberArray3;
+    pitch?: number;
+    yaw?: number;
+    roll?: number;
+}
+
+export interface IDepthCameraParams extends CameraPose {
     enabled?: boolean;
     width?: number;
     height?: number;
@@ -62,6 +73,9 @@ export interface IDepthCameraParams {
     normalBias?: number; // 0.2 .. 1.0
 }
 
+const toLonLat = (v: LonLat | NumberArray3): LonLat => (v instanceof LonLat ? v : LonLat.createFromArray(v));
+const toVec3 = (v: Vec3 | NumberArray3): Vec3 => (v instanceof Vec3 ? v : Vec3.fromVec(v));
+
 function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer: Framebuffer): number {
     const px = new Vec2(x, y);
     const nx = px.x / framebuffer.width;
@@ -83,6 +97,47 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
     return -(viewPosition.z / viewPosition.w) / dir.dot(camera.getForward());
 }
 
+/**
+ * Camera that renders a depth frame of the renderer scenes for projectors and shadow maps. The planets give it
+ * their terrain nodes, the scenes their 3D objects.
+ * @constructor
+ * @param {Object} [options] - Depth camera options:
+ * @param {boolean} [options.enabled=true] - Renders the depth frame. A disabled camera gets no planet nodes either.
+ * @param {number} [options.width=512] - Depth frame width in pixels. Projectors and shadow maps need a square frame.
+ * @param {number} [options.height=512] - Depth frame height in pixels.
+ * @param {number} [options.near=100] - Near plane distance in meters.
+ * @param {number} [options.far=100000] - Far plane distance in meters.
+ * @param {number} [options.verticalViewAngle=45] - Vertical view angle in degrees.
+ * @param {number} [options.horizontalViewAngle] - Horizontal view angle in degrees. When set, the vertical one is
+ * taken from it and the frame aspect.
+ * @param {boolean} [options.isOrthographic=false] - Orthographic projection.
+ * @param {number} [options.focusDistance] - Distance at which the orthographic frame size is taken from the view
+ * angle. Default is the far distance.
+ * @param {boolean} [options.showFrustum=false] - Shows the camera frustum. Without a planet it is shown too.
+ * @param {number} [options.frustumLength=2.5] - Size of the shown frustum, it is scaled with the distance.
+ * @param {Vec4|Array.<number>|string} [options.frustumColor="rgb(155, 255, 155, 0.2)"] - Shown frustum color.
+ * @param {boolean} [options.showFootprint=false] - Shows the frame border on the ground, only with a planet. The
+ * depth frame is read back every frame for it.
+ * @param {boolean} [options.enableSegmentFaceCulling=true] - Culls the back faces of the terrain segments.
+ * @param {boolean} [options.enableSegmentSkirts=false] - Not used for now: the terrain segments are drawn without
+ * skirts.
+ * @param {Array.<Vector>} [options.excludeLayers] - Vector layers whose 3D objects are not drawn into the frame.
+ * @param {Array.<EntityCollection>} [options.excludeEntityCollections] - Entity collections whose 3D objects are
+ * not drawn into the frame.
+ * @param {Planet} [options.planet] - Planet the camera is bound to: PlanetCamera, lon/lat coordinates, footprint.
+ * Default is the first planet of the renderer. The terrain nodes come from all the planets anyway.
+ * @param {number} [options.depthBiasWorld=1] - Occlusion bias of the receivers in meters.
+ * @param {number} [options.normalBias=0.45] - Offset of the receiver point along its normal in meters.
+ * @param {LonLat|Array.<number>} [options.lonLat] - Start position with a planet, `[lon, lat, height]`.
+ * @param {LonLat|Array.<number>} [options.lookLonLat] - Point to look at with a planet, `[lon, lat, height]`.
+ * @param {Vec3|Array.<number>} [options.eye] - Start position in cartesian coordinates, also without a planet.
+ * @param {Vec3|Array.<number>} [options.look] - Point to look at in cartesian coordinates.
+ * @param {Vec3|Array.<number>} [options.up] - Up direction.
+ * @param {number} [options.pitch] - Start pitch in radians, applied after the position. With a planet the angles
+ * are in the planet local frame at the eye.
+ * @param {number} [options.yaw] - Start yaw in radians.
+ * @param {number} [options.roll] - Start roll in radians.
+ */
 export class DepthCamera {
     protected static __counter__ = 0;
 
@@ -115,6 +170,7 @@ export class DepthCamera {
     protected _planet: Planet | null;
     protected _renderer: Renderer | null;
     protected _initialized: boolean;
+    protected _cameraPose: CameraPose;
     protected _showFrustum: boolean;
     protected _showFootprint: boolean;
     protected _isOrthographic: boolean;
@@ -160,6 +216,16 @@ export class DepthCamera {
         this._planet = params.planet ?? null;
         this._renderer = null;
         this._initialized = false;
+        this._cameraPose = {
+            lonLat: params.lonLat,
+            lookLonLat: params.lookLonLat,
+            eye: params.eye,
+            look: params.look,
+            up: params.up,
+            pitch: params.pitch,
+            yaw: params.yaw,
+            roll: params.roll
+        };
         this._showFrustum = params.showFrustum ?? false;
         this._showFootprint = params.showFootprint ?? false;
         this._isOrthographic = params.isOrthographic ?? false;
@@ -327,6 +393,7 @@ export class DepthCamera {
         this._planet = this._planet || planet;
         this._renderer = renderer;
         this.camera = this._createCamera(this._planet);
+        this._initPose();
         this.framebuffer = this._createFramebuffer(renderer);
         this.framebuffer.init();
 
@@ -335,6 +402,14 @@ export class DepthCamera {
 
     public destroy(): void {
         if (!this._initialized) return;
+
+        const cam = this.camera;
+
+        this._cameraPose = {
+            eye: cam.eye.clone(),
+            look: cam.eye.add(cam.getForward()),
+            up: cam.getUp()
+        };
 
         this.framebuffer.destroy();
 
@@ -677,6 +752,27 @@ export class DepthCamera {
                 depthCamera: this
             }
         });
+    }
+
+    protected _initPose(): void {
+        const cam = this.camera;
+        const p = this._cameraPose;
+
+        if (p.lonLat && cam instanceof PlanetCamera) {
+            cam.setLonLat(
+                toLonLat(p.lonLat),
+                p.lookLonLat ? toLonLat(p.lookLonLat) : undefined,
+                p.up ? toVec3(p.up) : undefined
+            );
+        } else if (p.eye) {
+            cam.set(toVec3(p.eye), p.look ? toVec3(p.look) : undefined, p.up ? toVec3(p.up) : undefined);
+        }
+
+        if (p.pitch != null || p.yaw != null || p.roll != null) {
+            cam.setPitchYawRoll(p.pitch ?? 0, p.yaw ?? 0, p.roll ?? 0);
+        }
+
+        cam.update();
     }
 
     protected _createCamera(planet: Planet | null): Camera {
