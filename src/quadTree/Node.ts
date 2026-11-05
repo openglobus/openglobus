@@ -457,6 +457,26 @@ class Node {
         );
     }
 
+    /**
+     * Returns true if the node is rendered, or fades in or out after a level of detail change.
+     * @public
+     * @returns {boolean} -
+     */
+    public isRenderedOrFading(): boolean {
+        return this.getState() === RENDERING || this.isInFadingTransition();
+    }
+
+    /**
+     * Returns true if the node is drawn this frame as a fading node of a level of detail change:
+     * a parent fading out after zooming in, or a child fading out after zooming out.
+     * Unlike isFading(), it also covers the fading children, whose state is NOTRENDERING.
+     * @public
+     * @returns {boolean} -
+     */
+    public isInFadingTransition(): boolean {
+        return this.quadTreeStrategy._fadingNodes.has(this.__id);
+    }
+
     public isFading(): boolean {
         let n = this.nodes;
         return (
