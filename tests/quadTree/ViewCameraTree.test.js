@@ -366,6 +366,23 @@ describe("QuadTreeStrategy._collectViewCamerasRenderNodes", () => {
         expect(qts.getViewCameraRenderedNodes(1)).toEqual([]);
     });
 
+    test("leaves everything to the view walk when the main list is full", () => {
+        const qts = createScene([depthCamera()]);
+        const node = renderedNode(1.0);
+        qts._renderedNodes = new Array(MAX_RENDERED_NODES).fill(node);
+        qts._fadingNodes.set(1, renderedNode(1.6));
+
+        const root = { renderViewCameraTree: vi.fn() };
+        qts._quadTreeList = [root];
+
+        qts._collectViewCamerasRenderNodes(mainCamera);
+
+        // The walk would find the main nodes again, they are not taken twice
+        expect(qts.getViewCameraRenderedNodes(0)).toEqual([]);
+        // mainState is false: the stale node states are not read
+        expect(root.renderViewCameraTree.mock.calls[0][5]).toBe(false);
+    });
+
     test("collects nothing for a planet with the depth cameras off", () => {
         const qts = createScene([depthCamera()]);
         qts.planet.disableDepthCamera = true;

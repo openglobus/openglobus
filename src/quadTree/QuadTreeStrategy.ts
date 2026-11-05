@@ -396,6 +396,8 @@ export class QuadTreeStrategy {
         this._viewWalkFrame++;
         this._viewCamerasTerrainCompleted = true;
 
+        const mainState = this._renderedNodes.length < MAX_RENDERED_NODES;
+
         for (let slot = 0; slot < depthCameras.length; slot++) {
             const dc = depthCameras[slot];
             const rf = lists[slot] || (lists[slot] = []);
@@ -415,24 +417,26 @@ export class QuadTreeStrategy {
             rf.length = camera.frustums.length;
             this._clearViewCameraRenderedNodes(slot);
 
-            const rn = this._renderedNodes;
+            if (mainState) {
+                const rn = this._renderedNodes;
 
-            for (let i = 0; i < rn.length; i++) {
-                const ri = rn[i];
-                if (!this._transitionOpacityEnabled || ri.segment._transitionOpacity >= 1.0) {
-                    this._addViewCameraOpaqueNode(slot, camera, frustumMask, ri);
+                for (let i = 0; i < rn.length; i++) {
+                    const ri = rn[i];
+                    if (!this._transitionOpacityEnabled || ri.segment._transitionOpacity >= 1.0) {
+                        this._addViewCameraOpaqueNode(slot, camera, frustumMask, ri);
+                    }
+                }
+
+                // The opaque nodes shown instead of the fading in ones, each of them once. Exactly 1 is the frame the
+                // fading in node has become opaque itself and is taken above.
+                for (const fj of this._fadingNodes.values()) {
+                    if (fj.segment && fj.segment._transitionOpacity > 1.0) {
+                        this._addViewCameraOpaqueNode(slot, camera, frustumMask, fj);
+                    }
                 }
             }
 
-            // The opaque nodes shown instead of the fading in ones, each of them once. Exactly 1 is the frame the
-            // fading in node has become opaque itself and is taken above.
-            for (const fj of this._fadingNodes.values()) {
-                if (fj.segment && fj.segment._transitionOpacity > 1.0) {
-                    this._addViewCameraOpaqueNode(slot, camera, frustumMask, fj);
-                }
-            }
-
-            this._collectViewRenderNodes(slot, camera, frustumMask, mainCamera);
+            this._collectViewRenderNodes(slot, camera, frustumMask, mainCamera, mainState);
         }
     }
 
@@ -635,9 +639,14 @@ export class QuadTreeStrategy {
      * The tree traversal of a view camera, it runs after the main camera one.
      * @protected
      */
-    protected _collectViewRenderNodes(slot: number, camera: Camera, frustumMask: number, mainCamera: PlanetCamera) {
+    protected _collectViewRenderNodes(
+        slot: number,
+        camera: Camera,
+        frustumMask: number,
+        mainCamera: PlanetCamera,
+        mainState: boolean
+    ) {
         const horizonDist2 = camera.isOrthographic ? Infinity : this._getHorizonDist2(camera);
-        const mainState = this._renderedNodes.length < MAX_RENDERED_NODES;
 
         for (let i = 0; i < this._quadTreeList.length; i++) {
             this._quadTreeList[i].renderViewCameraTree(
