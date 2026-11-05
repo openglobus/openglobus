@@ -65,11 +65,10 @@ export class ShadowManager {
     public add(shadowMap: ShadowMap): number {
         if (shadowMap._slot !== -1) return shadowMap.id;
 
-        if (shadowMap.depthCamera._handlerIndex === -1) {
-            this._renderer.depthCameraHandler.add(shadowMap.depthCamera);
-        }
+        const depthCameraHandler = this._renderer.depthCameraHandler;
+        const depthCamera = shadowMap.depthCamera;
 
-        if (!shadowMap.depthCamera.initialized) {
+        if (!depthCameraHandler.initialized) {
             console.warn("ShadowManager.add(): the renderer must be initialized before add()");
             return -1;
         }
@@ -79,27 +78,40 @@ export class ShadowManager {
             return -1;
         }
 
-        const framebuffer = shadowMap.depthCamera.framebuffer;
-        const fbW = framebuffer.width;
-        const fbH = framebuffer.height;
-        if (fbW !== fbH) {
-            console.warn(`ShadowManager.add(): shadow map framebuffer must be square (${fbW}x${fbH})`);
+        const size = depthCamera.width;
+        if (size !== depthCamera.height) {
+            console.warn(`ShadowManager.add(): shadow map framebuffer must be square (${size}x${depthCamera.height})`);
             return -1;
         }
 
-        if (!this._ensureDepthArrayTexture(fbW)) return -1;
+        if (!this._ensureDepthArrayTexture(size)) {
+            return -1;
+        }
+
+        const registered = depthCamera._handlerIndex === -1;
+        if (registered) {
+            depthCameraHandler.add(depthCamera);
+        }
 
         shadowMap._slot = this._freeSlots.pop()!;
         shadowMap._manager = this;
 
         if (!this._rebindFramebufferToLayer(shadowMap)) {
             this._restoreFramebufferAttachment(shadowMap);
+
             this._freeSlots.push(shadowMap._slot);
+
             shadowMap._slot = -1;
             shadowMap._manager = null;
-            if (shadowMap.depthCamera.shadowMap === shadowMap) {
-                shadowMap.depthCamera.shadowMap = null;
+
+            if (depthCamera.shadowMap === shadowMap) {
+                depthCamera.shadowMap = null;
             }
+
+            if (registered) {
+                depthCameraHandler.remove(depthCamera);
+            }
+
             return -1;
         }
 

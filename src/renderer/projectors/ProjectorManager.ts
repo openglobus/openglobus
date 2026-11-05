@@ -188,11 +188,10 @@ export class ProjectorManager {
     public add(projector: Projector): number {
         if (projector._slot !== -1) return projector.id;
 
-        if (projector.depthCamera._handlerIndex === -1) {
-            this._renderer.depthCameraHandler.add(projector.depthCamera);
-        }
+        const depthCameraHandler = this._renderer.depthCameraHandler;
+        const depthCamera = projector.depthCamera;
 
-        if (!projector.depthCamera.initialized) {
+        if (!depthCameraHandler.initialized) {
             console.warn("ProjectorManager.add(): the renderer must be initialized before add()");
             return -1;
         }
@@ -202,19 +201,24 @@ export class ProjectorManager {
             return -1;
         }
 
-        const framebuffer = projector.depthCamera.framebuffer;
-        const fbW = framebuffer.width;
-        const fbH = framebuffer.height;
-        if (fbW !== fbH) {
-            console.warn(`ProjectorManager.add(): projector framebuffer must be square (${fbW}x${fbH})`);
+        const size = depthCamera.width;
+        if (size !== depthCamera.height) {
+            console.warn(
+                `ProjectorManager.add(): projector framebuffer must be square (${size}x${depthCamera.height})`
+            );
             return -1;
         }
 
         if (
-            !this._ensureDepthArrayTexture(fbW, this._depthCapacity || INITIAL_PROJECTOR_LAYERS) ||
+            !this._ensureDepthArrayTexture(size, this._depthCapacity || INITIAL_PROJECTOR_LAYERS) ||
             (this._freeSlots.length === 0 && !this._growDepthArrayTexture())
         ) {
             return -1;
+        }
+
+        const registered = depthCamera._handlerIndex === -1;
+        if (registered) {
+            depthCameraHandler.add(depthCamera);
         }
 
         projector._slot = this._freeSlots.pop()!;
@@ -222,9 +226,16 @@ export class ProjectorManager {
 
         if (!this._rebindFramebufferToLayer(projector)) {
             this._restoreFramebufferAttachment(projector);
+
             this._freeSlots.push(projector._slot);
+
             projector._slot = -1;
             projector._manager = null;
+
+            if (registered) {
+                depthCameraHandler.remove(depthCamera);
+            }
+
             return -1;
         }
 

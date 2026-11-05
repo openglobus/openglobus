@@ -49,6 +49,13 @@ export class DepthCameraHandler {
         this._scene.disableDepthCamera = true;
     }
 
+    /**
+     * True after the renderer has initialized the handler: an added camera is initialized at once.
+     */
+    public get initialized(): boolean {
+        return this._initialized;
+    }
+
     public get depthCameras(): DepthCamera[] {
         return [...this._depthCameras];
     }
