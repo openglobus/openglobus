@@ -75,6 +75,8 @@ const WINDOW_TOLERANCE = 1e-3;
  */
 const CONVERTED_PHOTOMETRICS = [5, 6, 8];
 
+const PALETTE_PHOTOMETRIC = 3;
+
 export function parseCrsCode(crs?: number | string): number | undefined {
     if (!crs) return;
     if (typeof crs === "number") return crs;
@@ -320,7 +322,8 @@ export class GeoTIFFReader implements IGeoTIFFReader {
             noData,
             isTiled: baseImage.isTiled,
             overviewCount: this.images.length,
-            bands
+            bands,
+            isImagery: samplesPerPixel >= 3 || photometric === PALETTE_PHOTOMETRIC || baseImage.getBitsPerSample(0) <= 8
         };
 
         this.isReady = true;

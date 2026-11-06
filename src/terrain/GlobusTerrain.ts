@@ -149,6 +149,10 @@ class GlobusTerrain extends EmptyTerrain {
         return this.maxHeight * this._heightFactor;
     }
 
+    public override getExtent(): Extent {
+        return this._extent;
+    }
+
     public get loader(): Loader<GlobusTerrain> {
         return this._loader;
     }

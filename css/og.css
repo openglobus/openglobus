@@ -1893,3 +1893,30 @@ DOCK
     background-clip: padding-box;
     pointer-events: none;
 }
+
+.og-geotiff-type__body {
+    padding: 0 12px 10px 12px;
+    color: var(--grey6);
+}
+
+.og-geotiff-type__file {
+    margin-bottom: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.og-geotiff-type__buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.og-geotiff-type__button {
+    padding: 4px 14px;
+    border: 1px solid var(--grey2);
+    color: var(--grey6);
+}

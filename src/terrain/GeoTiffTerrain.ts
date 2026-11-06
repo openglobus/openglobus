@@ -3,6 +3,7 @@ import type { IProceduralTerrainCommon, ProceduralHeights } from "./ProceduralTe
 import { TERRAIN_GRID_SIZE_BY_ZOOM } from "./terrainUtils";
 import { GeoTIFFReader } from "../layer/geotiff/GeoTIFFReader";
 import type { IGeoTIFFMetadata, IGeoTIFFSourceCommon } from "../layer/geotiff/types";
+import type { Extent } from "../Extent";
 import type { LonLat } from "../LonLat";
 import type { Segment } from "../segment/Segment";
 
@@ -73,6 +74,22 @@ class GeoTiffTerrain extends ProceduralTerrain {
 
     public whenReady(): Promise<void> {
         return this._readyPromise;
+    }
+
+    public override getExtent(): Extent {
+        return this._reader.extentWgs84;
+    }
+
+    /**
+     * Flies over the highest point of the GeoTIFF: the heights of the extent center may be not loaded or no data.
+     * @public
+     */
+    public override flyExtent() {
+        this._readyPromise.then(() => {
+            if (this._reader.isReady) {
+                this._planet?.flyExtent(this.getExtent(), this._reader.metadata?.bands[this._samples[0] + 1]?.max);
+            }
+        });
     }
 
     // The first zoom which tile pixels are not larger than the GeoTIFF ones, a tile is 360 degrees by 2^zoom

@@ -166,7 +166,8 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
                 noData: metas[0].noData,
                 isTiled: metas.every((m) => m.isTiled),
                 overviewCount: Math.max(...metas.map((m) => m.overviewCount)),
-                bands: bandsMeta
+                bands: bandsMeta,
+                isImagery: metas.every((m) => m.isImagery)
             };
         } else {
             // Multi-band mode (default): stack selected bands sequentially across sources
@@ -204,7 +205,8 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
                 noData: metas[0].noData,
                 isTiled: metas.every((m) => m.isTiled),
                 overviewCount: Math.max(...metas.map((m) => m.overviewCount)),
-                bands: bandsMeta
+                bands: bandsMeta,
+                isImagery: metas.every((m) => m.isImagery)
             };
         }
 

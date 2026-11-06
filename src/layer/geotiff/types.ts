@@ -234,6 +234,7 @@ export interface IGeoTIFFMetadata {
     isTiled: boolean;
     overviewCount: number;
     bands: Record<number, IBandStats | undefined>;
+    isImagery: boolean;
 }
 
 export interface DecodedTileData {

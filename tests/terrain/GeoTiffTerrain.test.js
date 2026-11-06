@@ -71,6 +71,96 @@ test("GeoTiffTerrain without the source has no heights", async () => {
     expect(await terrain._readHeights({ getExtentLonLat: () => new Extent(), tileZoom: 3 })).toBe(null);
 });
 
+function stubBands(bands) {
+    return vi.spyOn(GeoTIFFReader.prototype, "init").mockImplementation(function () {
+        this.extentWgs84 = new Extent(new LonLat(10, 40), new LonLat(11, 41));
+        this.isReady = true;
+        this.metadata = { crsResolved: true, width: 256, bands };
+        return Promise.resolve(this.metadata);
+    });
+}
+
+test("GeoTiffTerrain extent is the GeoTIFF one", async () => {
+    stubBands({});
+
+    const terrain = new GeoTiffTerrain(null, { src: "dem.tif" });
+    await terrain.whenReady();
+
+    expect(terrain.getExtent()).toBe(terrain.reader.extentWgs84);
+});
+
+test("GeoTiffTerrain flies over the highest point of its band", async () => {
+    stubBands({ 1: { min: 0, max: 100 }, 2: { min: 1208, max: 2378 } });
+
+    const terrain = new GeoTiffTerrain(null, { src: "dem.tif", band: 2 });
+    const flyExtent = vi.fn();
+    terrain._planet = { flyExtent };
+
+    terrain.flyExtent();
+    await terrain.whenReady();
+    await Promise.resolve();
+
+    expect(flyExtent).toHaveBeenCalledTimes(1);
+    expect(flyExtent).toHaveBeenCalledWith(terrain.reader.extentWgs84, 2378);
+});
+
+test("GeoTiffTerrain without band statistics leaves the height to the camera", async () => {
+    stubBands({});
+
+    const terrain = new GeoTiffTerrain(null, { src: "dem.tif" });
+    const flyExtent = vi.fn();
+    terrain._planet = { flyExtent };
+
+    terrain.flyExtent();
+    await terrain.whenReady();
+    await Promise.resolve();
+
+    expect(flyExtent).toHaveBeenCalledWith(terrain.reader.extentWgs84, undefined);
+});
+
+test("GeoTiffTerrain flies once the source is read", async () => {
+    let openSource;
+    vi.spyOn(GeoTIFFReader.prototype, "init").mockImplementation(function () {
+        return new Promise((resolve) => {
+            openSource = () => {
+                this.extentWgs84 = new Extent(new LonLat(10, 40), new LonLat(11, 41));
+                this.isReady = true;
+                this.metadata = { crsResolved: true, width: 256, bands: { 1: { min: 0, max: 100 } } };
+                resolve(this.metadata);
+            };
+        });
+    });
+
+    const terrain = new GeoTiffTerrain(null, { src: "dem.tif" });
+    const flyExtent = vi.fn();
+    terrain._planet = { flyExtent };
+
+    terrain.flyExtent();
+    await Promise.resolve();
+    expect(flyExtent).not.toHaveBeenCalled();
+
+    openSource();
+    await terrain.whenReady();
+    await Promise.resolve();
+
+    expect(flyExtent).toHaveBeenCalledWith(terrain.reader.extentWgs84, 100);
+});
+
+test("GeoTiffTerrain without the source does not fly", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(GeoTIFFReader.prototype, "init").mockRejectedValue(new Error("not a GeoTIFF"));
+
+    const terrain = new GeoTiffTerrain(null, { src: "broken.tif" });
+    const flyExtent = vi.fn();
+    terrain._planet = { flyExtent };
+
+    terrain.flyExtent();
+    await terrain.whenReady();
+    await Promise.resolve();
+
+    expect(flyExtent).not.toHaveBeenCalled();
+});
+
 test("GeoTiffTerrain reads sampleSize pixels of the band in the segment projection", async () => {
     stubSource(163840, 3.515625);
     const pixels = new Float32Array(64 * 64),
