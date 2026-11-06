@@ -2,8 +2,6 @@ import { BaseBillboard } from "./BaseBillboard";
 import type { IBaseBillboardParams } from "./BaseBillboard";
 import { BillboardHandler } from "./BillboardHandler";
 import type { HTMLImageElementExt } from "../../utils/ImagesCacheManager";
-import { Vec2 } from "../../math/Vec2";
-import { LOCK_FREE, LOCK_UPDATE } from "../label/LabelWorker";
 
 export interface IBillboardParams extends IBaseBillboardParams {
     src?: string;
@@ -180,17 +178,6 @@ class Billboard extends BaseBillboard {
      */
     public getScale(): number {
         return this._scale;
-    }
-
-    public override setOffset(x: number, y: number) {
-        this._offset.x = x;
-        this._offset.y = y;
-
-        if (this._isReady && this._handler) {
-            this._handler.setOffsetArr(this._handlerIndex, new Vec2(x * this._scale, y * this._scale));
-        } else if (this._lockId !== LOCK_FREE) {
-            this._lockId = LOCK_UPDATE;
-        }
     }
 
     /**
