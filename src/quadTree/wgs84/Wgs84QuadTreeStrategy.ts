@@ -11,9 +11,11 @@ export class Wgs84QuadTreeStrategy extends QuadTreeStrategy {
     }
 
     public override init(camera: PlanetCamera) {
-        this._quadTreeList = [
-            new Node(SegmentLonLatEqui, this, 0, null, 0, Extent.createFromArray([-180, -90, 180, 90]))
-        ];
+        const root = new Node(SegmentLonLatEqui, this, 0, null, 0, Extent.createFromArray([-180, -90, 180, 90]));
+
+        root.rootNeighbors = [null, root, null, root];
+
+        this._quadTreeList = [root];
 
         super.init(camera);
     }

@@ -4,7 +4,7 @@ import { Box } from "../bv/Box";
 import { Extent } from "../Extent";
 import { Entity } from "../entity/Entity";
 import { EPSG3857 } from "../proj/EPSG3857";
-import { E, N, OPSIDE, S, W } from "../quadTree/quadTree";
+import { E, N, NW, OPSIDE, S, SE, W } from "../quadTree/quadTree";
 import { getMatrixSubArray64 } from "../utils/shared";
 import type { TypedArray } from "../utils/shared";
 import { Handler } from "../webgl/Handler";
@@ -916,12 +916,13 @@ class Segment {
             this.node.equalizedSideWithNodeId[side] = n.equalizedSideWithNodeId[OPSIDE[side]];
             this.readyToEngage = true;
 
+            // The ends of the side are corners, see _equalizeCorner. A side inside one neighbor cell has no others.
             if (n_gs * dz >= 1) {
                 let inc = Math.max(gs / (n_gs * dz), 1),
                     n_inc = Math.max((n_gs * dz) / gs, 1),
                     n_offset = offset * n_gs;
 
-                for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
+                for (let k = inc, nk = n_offset + n_inc; k < gs; k += inc, nk += n_inc) {
                     let n_index = (nIndexMul * nk + nIndexOffset) * 3;
                     this._setRenderVertex(
                         (indexMul * k + indexOffset) * 3,
@@ -930,26 +931,144 @@ class Segment {
                         nv[n_index + 2] + dzRtc
                     );
                 }
-            } else {
-                // The side is inside one neighbour segment, there are no neighbour vertices to copy,
-                // the side is drawn by its corners, they are put on the segment.
-                for (let k = 0; k < gsOne; k += gs) {
-                    let u = (offset + (k / gs) * dz) * n_gs,
-                        nk = Math.floor(u),
-                        f = u - nk;
-
-                    let n_index0 = (nIndexMul * nk + nIndexOffset) * 3,
-                        n_index1 = f > 0 ? n_index0 + nIndexMul * 3 : n_index0;
-
-                    this._setRenderVertex(
-                        (indexMul * k + indexOffset) * 3,
-                        nv[n_index0] + (nv[n_index1] - nv[n_index0]) * f + dxRtc,
-                        nv[n_index0 + 1] + (nv[n_index1 + 1] - nv[n_index0 + 1]) * f + dyRtc,
-                        nv[n_index0 + 2] + (nv[n_index1 + 2] - nv[n_index0 + 2]) * f + dzRtc
-                    );
-                }
             }
         }
+    }
+
+    /**
+     * Takes the corner vertex from the owner of the point: the segment of the lowest zoom among the ones that have
+     * a corner there. The owner keeps its vertex, so the result doesn't depend on the order the segments go, and
+     * the comparison makes the vertex follow the owner without any labels.
+     * @protected
+     * @param {number} corner - Corner index, NW, NE, SW or SE.
+     */
+    protected _equalizeCorner(corner: number) {
+        const node = this.node,
+            vSide = corner & 2 ? S : N,
+            hSide = corner & 1 ? E : W,
+            v = node.getCornerNeighbor(vSide, corner),
+            h = node.getCornerNeighbor(hSide, corner);
+
+        if (v === undefined) {
+            this._equalizeCornerOnSide(vSide, corner);
+            return;
+        }
+
+        if (h === undefined) {
+            this._equalizeCornerOnSide(hSide, corner);
+            return;
+        }
+
+        const d =
+            (v && v.getCornerNeighbor(hSide, corner ^ 2)) || (h && h.getCornerNeighbor(vSide, corner ^ 1)) || null;
+
+        let owner: Segment = this,
+            ownerCorner = corner;
+
+        if (v && v.segment._isCornerOwnerOver(owner)) {
+            owner = v.segment;
+            ownerCorner = corner ^ 2;
+        }
+
+        if (h && h.segment._isCornerOwnerOver(owner)) {
+            owner = h.segment;
+            ownerCorner = corner ^ 1;
+        }
+
+        if (d && d.segment._isCornerOwnerOver(owner)) {
+            owner = d.segment;
+            ownerCorner = corner ^ 3;
+        }
+
+        if (owner !== this) {
+            const ov = owner.renderVertices!,
+                oi = owner._getCornerVertexIndex(ownerCorner);
+
+            this._setCornerVertex(
+                corner,
+                ov[oi] + owner._relativeCenter.x - this._relativeCenter.x,
+                ov[oi + 1] + owner._relativeCenter.y - this._relativeCenter.y,
+                ov[oi + 2] + owner._relativeCenter.z - this._relativeCenter.z
+            );
+        }
+    }
+
+    /**
+     * Puts the corner on the side of a neighbor of a lower zoom, when the point lies inside that side.
+     */
+    protected _equalizeCornerOnSide(side: number, corner: number) {
+        const n = this.node.neighbors[side][0],
+            ns = n.segment;
+
+        if (ns.tileZoom >= this.tileZoom || !ns.renderVertices || !(ns.gridSize >= 1)) {
+            return;
+        }
+
+        const alongX = side === N || side === S,
+            pos =
+                (alongX ? this.tileX + (corner & 1) : this.tileY + (corner >> 1)) /
+                (1 << (this.tileZoom - ns.tileZoom)),
+            n_gs = ns.gridSize,
+            n_gsOne = n_gs + 1,
+            u = (pos - (alongX ? ns.tileX : ns.tileY)) * n_gs,
+            nk = Math.floor(u),
+            f = u - nk;
+
+        let i0, step;
+
+        if (side === N) {
+            i0 = n_gsOne * n_gs + nk;
+            step = 1;
+        } else if (side === E) {
+            i0 = n_gsOne * nk;
+            step = n_gsOne;
+        } else if (side === S) {
+            i0 = nk;
+            step = 1;
+        } else {
+            i0 = n_gsOne * nk + n_gs;
+            step = n_gsOne;
+        }
+
+        i0 *= 3;
+
+        const nv = ns.renderVertices,
+            i1 = f > 0 ? i0 + step * 3 : i0;
+
+        this._setCornerVertex(
+            corner,
+            nv[i0] + (nv[i1] - nv[i0]) * f + ns._relativeCenter.x - this._relativeCenter.x,
+            nv[i0 + 1] + (nv[i1 + 1] - nv[i0 + 1]) * f + ns._relativeCenter.y - this._relativeCenter.y,
+            nv[i0 + 2] + (nv[i1 + 2] - nv[i0 + 2]) * f + ns._relativeCenter.z - this._relativeCenter.z
+        );
+    }
+
+    protected _setCornerVertex(corner: number, x: number, y: number, z: number) {
+        const v = this.renderVertices!,
+            i = this._getCornerVertexIndex(corner);
+
+        // NaN is never equal to itself, the segment would be uploaded every frame
+        if (Number.isFinite(x + y + z) && (v[i] !== x || v[i + 1] !== y || v[i + 2] !== z)) {
+            this._setRenderVertex(i, x, y, z);
+            this.readyToEngage = true;
+            this.quadTreeStrategy._cornerMoved = true;
+            this.planet.renderer!.requestRedraw();
+        }
+    }
+
+    public _isCornerOwnerOver(segment: Segment): boolean {
+        return (
+            !!this.renderVertices &&
+            Number.isFinite(this.gridSize) &&
+            this.gridSize >= 1 &&
+            (this.tileZoom < segment.tileZoom ||
+                (this.tileZoom === segment.tileZoom && this.node.__id < segment.node.__id))
+        );
+    }
+
+    public _getCornerVertexIndex(corner: number): number {
+        const gs = this.gridSize;
+        return ((corner & 2 ? gs * (gs + 1) : 0) + (corner & 1 ? gs : 0)) * 3;
     }
 
     protected _setRenderVertex(index: number, x: number, y: number, z: number) {
@@ -991,6 +1110,12 @@ class Segment {
             const n = nn[side][0];
             if (n && n.segment.tileZoom < this.tileZoom) {
                 this._equalizeSide(side);
+            }
+        }
+
+        if (this.renderVertices && this.quadTreeStrategy._cornersChanged) {
+            for (let corner = NW; corner <= SE; corner++) {
+                this._equalizeCorner(corner);
             }
         }
     }
@@ -2543,23 +2668,6 @@ class Segment {
 
     public getExtent(): Extent {
         return this._extent;
-    }
-
-    public getNeighborSide(b: Segment) {
-        if (this.tileY === b.tileY) {
-            if (this.tileX === b.tileXE) {
-                return W;
-            } else if (this.tileX === b.tileXW) {
-                return E;
-            }
-        } else if (this.tileX === b.tileX) {
-            if (this.tileY === b.tileYS) {
-                return N;
-            } else if (this.tileY === b.tileYN) {
-                return S;
-            }
-        }
-        return -1;
     }
 }
 

@@ -145,6 +145,26 @@ export class QuadTreeStrategy {
     public _viewWalkFrame: number = 0;
 
     /**
+     * Neighbor search counter, an opaque node of the current frame is marked with it.
+     * @public
+     */
+    public _neighborFrame: number = 0;
+
+    /**
+     * True in a frame the segment corners can have changed in, see Segment._equalizeCorner.
+     * @public
+     */
+    public _cornersChanged: boolean = true;
+
+    /**
+     * Set by a segment that has moved its corner, the others see it in the next frame.
+     * @public
+     */
+    public _cornerMoved: boolean = false;
+
+    protected _opaqueNodesIds: number[] = [];
+
+    /**
      * False while a node only the view cameras render waits for its terrain. Keeps the frames coming in the
      * idle mode, apart from _terrainCompleted, which stays about the main camera view.
      * @public
@@ -545,9 +565,11 @@ export class QuadTreeStrategy {
             // main camera effect
             this._fadingNodes.clear();
 
-            if (this._transitionOpacityEnabled) {
-                let opaqueNodes: Node[] = [];
+            const opaqueNodes: Node[] = [];
 
+            this._neighborFrame++;
+
+            if (this._transitionOpacityEnabled) {
                 for (let i = 0; i < this._renderedNodes.length; i++) {
                     let ri = this._renderedNodes[i];
                     // it's not impossible to move the code into Node.addToRender, because
@@ -556,26 +578,61 @@ export class QuadTreeStrategy {
                     ri._refreshTransitionOpacity();
 
                     if (ri.segment._transitionOpacity >= 1.0) {
-                        ri.clearNeighbors();
-                        ri.getRenderedNodesNeighbors(opaqueNodes);
-                        opaqueNodes.push(ri);
+                        this._addOpaqueNode(opaqueNodes, ri);
                     } else {
                         for (let j = 0; j < ri._fadingNodes.length; j++) {
                             let rij = ri._fadingNodes[j];
                             if (rij.segment && rij.segment._transitionOpacity >= 1.0) {
-                                rij.clearNeighbors();
-                                rij.getRenderedNodesNeighbors(opaqueNodes);
-                                opaqueNodes.push(rij);
+                                this._addOpaqueNode(opaqueNodes, rij);
                             }
                         }
                     }
                 }
+            } else {
+                for (let i = 0; i < this._renderedNodes.length; i++) {
+                    this._addOpaqueNode(opaqueNodes, this._renderedNodes[i]);
+                }
             }
+
+            this._linkOpaqueNodes(opaqueNodes);
 
             this._collectViewCamerasRenderNodes(cam);
         }
 
         this._skipPreRender = true;
+    }
+
+    /**
+     * Takes the node into the opaque nodes of the frame, the neighbors are searched among them. A parent fading
+     * under its children comes here from each of them, it is taken once.
+     * @protected
+     */
+    protected _addOpaqueNode(opaqueNodes: Node[], node: Node) {
+        if (node._neighborFrame !== this._neighborFrame) {
+            node._neighborFrame = this._neighborFrame;
+            node.clearNeighbors();
+            opaqueNodes.push(node);
+        }
+    }
+
+    protected _linkOpaqueNodes(opaqueNodes: Node[]) {
+        if (this.disableNeighbors) return;
+
+        const ids = this._opaqueNodesIds;
+
+        let changed = this._cornerMoved || ids.length !== opaqueNodes.length;
+
+        for (let i = 0; i < opaqueNodes.length; i++) {
+            const ni = opaqueNodes[i];
+            ni.getRenderedNodesNeighbors(this._neighborFrame);
+            changed = changed || ids[i] !== ni.__id || ni.segment.readyToEngage;
+            ids[i] = ni.__id;
+        }
+
+        ids.length = opaqueNodes.length;
+
+        this._cornersChanged = changed;
+        this._cornerMoved = false;
     }
 
     public preRender() {

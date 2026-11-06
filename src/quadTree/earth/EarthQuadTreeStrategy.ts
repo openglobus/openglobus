@@ -63,18 +63,38 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
     }
 
     public override init(camera: PlanetCamera) {
-        this._quadTreeList = [
-            new Node(
-                Segment,
-                this,
-                0,
-                null,
-                0,
-                Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
-            ),
-            new Node(SegmentLonLat, this, 0, null, 0, Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])),
-            new Node(SegmentLonLat, this, 0, null, 0, Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT]))
-        ];
+        const merc = new Node(
+            Segment,
+            this,
+            0,
+            null,
+            0,
+            Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
+        );
+
+        const north = new Node(
+            SegmentLonLat,
+            this,
+            0,
+            null,
+            0,
+            Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])
+        );
+
+        const south = new Node(
+            SegmentLonLat,
+            this,
+            0,
+            null,
+            0,
+            Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
+        );
+
+        merc.rootNeighbors = [north, merc, south, merc];
+        north.rootNeighbors = [null, north, merc, north];
+        south.rootNeighbors = [merc, south, null, south];
+
+        this._quadTreeList = [merc, north, south];
 
         super.init(camera);
     }
