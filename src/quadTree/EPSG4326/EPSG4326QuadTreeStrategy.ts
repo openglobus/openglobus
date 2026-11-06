@@ -11,10 +11,13 @@ export class EPSG4326QuadTreeStrategy extends QuadTreeStrategy {
     }
 
     public override init(camera: PlanetCamera) {
-        this._quadTreeList = [
-            new Node(SegmentLonLatEqui, this, 0, null, 0, Extent.createFromArray([-180, -90, 0, 90])),
-            new Node(SegmentLonLatEqui, this, 0, null, 0, Extent.createFromArray([0, -90, 180, 90]))
-        ];
+        const west = new Node(SegmentLonLatEqui, this, 0, null, 0, Extent.createFromArray([-180, -90, 0, 90]));
+        const east = new Node(SegmentLonLatEqui, this, 0, null, 0, Extent.createFromArray([0, -90, 180, 90]));
+
+        west.rootNeighbors = [null, east, null, east];
+        east.rootNeighbors = [null, west, null, west];
+
+        this._quadTreeList = [west, east];
 
         super.init(camera);
     }
