@@ -16,6 +16,7 @@ export interface IBaseBillboardParams {
     alignedAxis?: NumberArray3 | Vec3;
     offset?: NumberArray2 | Vec2;
     visibility?: boolean;
+    scale?: number | null;
 }
 
 /**
@@ -28,6 +29,7 @@ export interface IBaseBillboardParams {
  * @param {Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
  * @param {Vec2|Array.<number>} [options.offset] - Billboard center screen offset.
  * @param {boolean} [options.visibility] - Visibility.
+ * @param {number} [options.scale] - Screen scale. Doesn't affect the offset.
  */
 class BaseBillboard {
     static __counter__: number = 0;
@@ -71,6 +73,13 @@ class BaseBillboard {
      * @type {Vec2}
      */
     public _offset: Vec2;
+
+    /**
+     * Screen scale.
+     * @protected
+     * @type {number}
+     */
+    protected _scale: number;
 
     /**
      * Billboard visibility.
@@ -128,7 +137,9 @@ class BaseBillboard {
 
         this._offset = utils.createVec2(options.offset);
 
-        this._visibility = options.visibility != undefined ? options.visibility : true;
+        this._scale = options.scale ?? 1.0;
+
+        this._visibility =options.visibility != undefined ? options.visibility : true;
 
         this._entity = null;
 
@@ -407,6 +418,27 @@ class BaseBillboard {
             this._lockId = LOCK_UPDATE;
         }
     }
+
+    /**
+     * Sets screen scale. Size getters and the offset stay the same.
+     * @public
+     * @param {number} scale - Scale.
+     */
+    public setScale(scale: number) {
+        this._scale = scale;
+        this._updateSize();
+    }
+
+    /**
+     * Returns screen scale.
+     * @public
+     * @returns {number}
+     */
+    public getScale(): number {
+        return this._scale;
+    }
+
+    protected _updateSize() {}
 
     public serializeWorkerData(workerId: number): Float32Array | null {
         if (this._handler) {

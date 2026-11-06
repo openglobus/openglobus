@@ -139,6 +139,74 @@ test("selecting an entity opens the dialog and shows every gizmo layer", () => {
     expect(editor._scene._moveLayer.getVisibility()).toBe(false);
 });
 
+test("the scale field drives a selected billboard and label, not the entity", () => {
+    const { editor } = setup();
+    const entity = new Entity({
+        cartesian: new Vec3(0, 0, 0),
+        billboard: { width: 10, height: 20 },
+        label: { size: 10 }
+    });
+    attachEntity(entity);
+    editor.selectEntity(entity);
+
+    editor._dialog._entityView._scaleView.value = 2;
+
+    expect(entity.billboard.getScale()).toBe(2);
+    expect(entity.label.getScale()).toBe(2);
+    expect(entity.billboard.getSize()).toEqual({ width: 10, height: 20 });
+    expect(entity.label.getSize()).toBe(10);
+    expect(entity.getScale().x).toBe(1);
+});
+
+test("the scale field shows the billboard scale and the axis fields are hidden", () => {
+    const { editor } = setup();
+    const entity = new Entity({ cartesian: new Vec3(0, 0, 0), billboard: { width: 10, height: 20, scale: 0.5 } });
+    attachEntity(entity);
+    editor.selectEntity(entity);
+
+    const view = editor._dialog._entityView;
+    expect(parseFloat(view._scaleView.value)).toBe(0.5);
+    expect(view._scaleXView.el.style.display).toBe("none");
+    expect(view._scaleYView.el.style.display).toBe("none");
+    expect(view._scaleZView.el.style.display).toBe("none");
+});
+
+test("the axis fields come back for an entity without a billboard or label", () => {
+    const { editor } = setup();
+    const billboard = new Entity({ cartesian: new Vec3(0, 0, 0), billboard: { width: 10, height: 20 } });
+    const plain = new Entity({ cartesian: new Vec3(0, 0, 0) });
+    attachEntity(billboard);
+    attachEntity(plain);
+
+    editor.selectEntity(billboard);
+    editor.selectEntity(plain);
+
+    const view = editor._dialog._entityView;
+    expect(view._scaleXView.el.style.display).toBe("");
+
+    view._scaleView.value = 2;
+    expect(plain.getScale().x).toBe(2);
+});
+
+test("the scale field drives both the geoObject entity and its billboard", () => {
+    const { editor } = setup();
+    const entity = new Entity({
+        cartesian: new Vec3(0, 0, 0),
+        geoObject: {},
+        billboard: { width: 10, height: 20 }
+    });
+    attachEntity(entity);
+    editor.selectEntity(entity);
+
+    const view = editor._dialog._entityView;
+    expect(view._scaleXView.el.style.display).toBe("");
+
+    view._scaleView.value = 2;
+
+    expect(entity.getScale().x).toBe(2);
+    expect(entity.billboard.getScale()).toBe(2);
+});
+
 test("a click on a map entity still drives the editor selection", () => {
     const { renderer, editor } = setup();
     const entity = new Entity({ cartesian: new Vec3(0, 0, 0) });

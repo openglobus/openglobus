@@ -56,6 +56,7 @@ const ALIGN2STR: Record<number, string> = {
  * @param {string} [options.text] - Text string.
  * @param {string} [options.face] - HTML5 font face.
  * @param {number} [options.size] - Font size in pixels.
+ * @param {number} [options.scale] - Screen scale. Doesn't affect the font size value.
  * @param {string} [options.style] - HTML5 font style. Example 'normal', 'italic'.
  * @param {string} [options.weight] - HTML5 font weight. Example 'normal', 'bold'.
  * @param {number} [options.outline] - Text outline width in pixels. 0 - no outline. Default 0.
@@ -294,11 +295,15 @@ class Label extends BaseBillboard {
     public setSize(size: number) {
         if (size !== this._size) {
             this._size = size;
-            if (this._isReady && this._handler) {
-                this._handler.setSizeArr(this._handlerIndex, size);
-            } else if (this._lockId !== LOCK_FREE) {
-                this._lockId = LOCK_UPDATE;
-            }
+            this._updateSize();
+        }
+    }
+
+    protected override _updateSize() {
+        if (this._isReady && this._handler) {
+            this._handler.setSizeArr(this._handlerIndex, this._size * this._scale);
+        } else if (this._lockId !== LOCK_FREE) {
+            this._lockId = LOCK_UPDATE;
         }
     }
 
@@ -477,7 +482,7 @@ class Label extends BaseBillboard {
                 /*6, 7, 8*/ this._positionLow.x,
                 this._positionLow.y,
                 this._positionLow.z,
-                /*9*/ this._size,
+                /*9*/ this._size * this._scale,
                 /*10, 11*/ this._offset.x,
                 this._offset.y,
                 /*12, 13, 14, 15*/ this._color.x,
