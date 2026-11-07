@@ -355,7 +355,7 @@ class RgbTerrain extends GlobusTerrain {
                     ? this._cacheHeightsLevels(
                           heights,
                           p,
-                          segment._tileGroup,
+                          segment.tileGroup,
                           segment.tileX,
                           segment.tileY,
                           segment.tileZoom,

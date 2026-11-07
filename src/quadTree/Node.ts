@@ -1,5 +1,4 @@
 import { Extent } from "../Extent";
-import { EPSG3857 } from "../proj/EPSG3857";
 import { binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
 import { getMedian } from "../terrain/terrainUtils";
 import { LonLat } from "../LonLat";
@@ -15,14 +14,18 @@ import {
     N,
     NE,
     NEIGHBOUR,
+    NOPSORD,
     NOTRENDERING,
     NW,
     OPPART,
     OPSIDE,
     PARTOFFSET,
     RENDERING,
+    ROOTPART,
     S,
     SE,
+    SIDE_CORNER,
+    SIDEFLIP,
     SW,
     W,
     WALKTHROUGH
@@ -306,14 +309,7 @@ class Node {
 
         // Search a node which the camera is flying over.
         if (!this.parentNode || this.parentNode._cameraInside) {
-            let inside;
-            if (seg._projection.id === EPSG3857.id) {
-                inside = seg._extent.isInside(cam._lonLatMerc);
-            } else {
-                inside = seg._extent.isInside(cam._lonLat);
-            }
-
-            if (inside) {
+            if (seg._extent.isInside(seg.getInsideLonLat(cam))) {
                 cam._insideSegment = seg;
                 this._cameraInside = true;
             }
@@ -765,7 +761,7 @@ class Node {
     }
 
     public applyNeighbor(node: Node, side: number) {
-        const opcs = OPSIDE[side];
+        const opcs = this.segment.opside[side];
 
         if (this.neighbors[side].length === 0 || node.neighbors[opcs].length === 0) {
             const ap = this.segment;
@@ -820,16 +816,18 @@ class Node {
             pn = pn.parentNode;
         }
 
+        let mirror = OPPART[OPSIDE[side]];
+
         if (part === -1) {
             const rootNeighbor = pn.rootNeighbors && pn.rootNeighbors[side];
             if (!rootNeighbor) {
                 return;
             }
             pn = rootNeighbor;
+            mirror = ROOTPART[side][this.segment.opside[side]];
         }
 
-        const mirror = OPPART[OPSIDE[side]],
-            zoom = this.segment.tileZoom;
+        const zoom = this.segment.tileZoom;
 
         // Fading can leave a parent and its child opaque in one frame, so the walk doesn't stop at the first one
         for (let i = depth - 1; i >= 0 && pn.nodes.length; i--) {
@@ -1181,14 +1179,15 @@ class Node {
     public getCornerNeighbor(side: number, corner: number): Node | null | undefined {
         const list = this.neighbors[side],
             seg = this.segment,
-            alongX = side === N || side === S,
-            far = alongX ? corner & 1 : corner >> 1,
-            pos = (alongX ? seg.tileX : seg.tileY) + far;
+            far = NOPSORD[side][corner],
+            pos = seg.getSidePosition(side) + far,
+            opcs = seg.opside[side],
+            flip = SIDEFLIP[side][opcs];
 
         for (let i = 0; i < list.length; i++) {
             const n = list[i],
                 ns = n.segment,
-                nPos = (alongX ? ns.tileX : ns.tileY) + far,
+                nPos = (flip ? ns.powTileZoom - 1 - ns.getSidePosition(opcs) : ns.getSidePosition(opcs)) + far,
                 dz = ns.tileZoom - seg.tileZoom;
 
             if (dz >= 0) {
@@ -1201,6 +1200,20 @@ class Node {
         }
 
         return null;
+    }
+
+    /**
+     * Returns the corner of the neighbors behind the side that lies in the same point as the corner of this node.
+     * @public
+     * @param {number} side - The side that the corner belongs to.
+     * @param {number} corner - Corner index, NW, NE, SW or SE.
+     * @returns {number} -
+     */
+    public getNeighborCorner(side: number, corner: number): number {
+        const far = NOPSORD[side][corner],
+            opcs = this.segment.opside[side];
+
+        return SIDE_CORNER[opcs][SIDEFLIP[side][opcs] ? 1 - far : far];
     }
 
     public getOffsetOppositeNeighbourSide(neighbourNode: Node, side: number): number {
