@@ -192,9 +192,6 @@ export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams, IGeoT
 
     /** Maximum tile cache size (default: 500) */
     cacheSize?: number;
-
-    /** Auto-calculate maximumLevel from COG overview count */
-    useImageCountAsMaximumLevel?: boolean;
 }
 
 export interface IGeoTIFFReader {

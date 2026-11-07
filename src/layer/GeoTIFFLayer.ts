@@ -70,7 +70,6 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     // The native zoom is found from the sources, and the root tile width it was found for
     protected _autoNativeZoom: boolean;
     protected _nativeZoomRootTileWidth: number;
-    protected _useImageCountAsMaximumLevel: boolean;
     protected _tileCache: Map<string, ICachedTile>;
     protected _rasterCache: Map<string, DecodedTileData>;
     protected _maxCacheSize: number;
@@ -119,7 +118,6 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._tileSize = options.tileSize || 256;
         this._autoNativeZoom = options.maxNativeZoom == undefined;
         this._nativeZoomRootTileWidth = NaN;
-        this._useImageCountAsMaximumLevel = !!options.useImageCountAsMaximumLevel;
         this._tileCache = new Map();
         this._rasterCache = new Map();
         this._maxCacheSize = options.cacheSize || 500;
@@ -205,13 +203,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         if (width !== this._nativeZoomRootTileWidth) {
             this._nativeZoomRootTileWidth = width;
 
-            let zoom = this._reader.getNativeZoom(width, this._tileSize);
-
-            if (this._useImageCountAsMaximumLevel && this._reader.metadata) {
-                zoom = Math.min(zoom, this._reader.metadata.overviewCount - 1);
-            }
-
-            this.maxNativeZoom = zoom;
+            this.maxNativeZoom = this._reader.getNativeZoom(width, this._tileSize);
         }
     }
 
@@ -471,10 +463,6 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                 this.setExtent(this._reader.extentWgs84);
             }
 
-            if (options.useImageCountAsMaximumLevel) {
-                this.maxNativeZoom = Math.min(this.maxNativeZoom, meta.overviewCount - 1);
-            }
-
             this._updateNativeZoom();
 
             // Set up default rendering mode if not configured
@@ -497,10 +485,6 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             // Configure layer bounds
             if (this._reader.extentWgs84) {
                 this.setExtent(this._reader.extentWgs84);
-            }
-
-            if (options.useImageCountAsMaximumLevel) {
-                this.maxNativeZoom = Math.min(this.maxNativeZoom, meta.overviewCount - 1);
             }
 
             this._updateNativeZoom();

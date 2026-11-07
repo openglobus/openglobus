@@ -1502,7 +1502,7 @@ describe("GeoTIFFLayer native zoom", () => {
             extentWgs84: EXTENT
         });
 
-    function stubSource(overviewCount = 10) {
+    function stubSource() {
         return vi.spyOn(GeoTIFFReader.prototype, "init").mockImplementation(async function () {
             this.extentWgs84 = EXTENT;
             this.metadata = {
@@ -1513,7 +1513,7 @@ describe("GeoTIFFLayer native zoom", () => {
                 samplesPerPixel: 1,
                 noData: null,
                 isTiled: true,
-                overviewCount,
+                overviewCount: 10,
                 bands: { 1: { min: 0, max: 255 } }
             };
             this.isReady = true;
@@ -1578,19 +1578,6 @@ describe("GeoTIFFLayer native zoom", () => {
             layer._assignPlanet(planet(90));
 
             expect(layer.maxNativeZoom).toBe(7);
-        } finally {
-            init.mockRestore();
-        }
-    });
-
-    it("the image count limits the zoom", async () => {
-        const init = stubSource(6);
-        try {
-            const layer = new GeoTIFFLayer("tif", { src: "a.tif", useImageCountAsMaximumLevel: true });
-            await layer.whenReady();
-            layer._assignPlanet(planet(90));
-
-            expect(layer.maxNativeZoom).toBe(5);
         } finally {
             init.mockRestore();
         }
