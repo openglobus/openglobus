@@ -21,6 +21,7 @@ const FIRST_ROOT_NODE_ID = 5;
 export class CubeQuadTreeStrategy extends QuadTreeStrategy {
     constructor(params: QuadTreeStrategyParams) {
         super({ name: "cube", proj: cube, ...params });
+        this.rootTileWidth = 90;
     }
 
     public override init(camera: PlanetCamera) {

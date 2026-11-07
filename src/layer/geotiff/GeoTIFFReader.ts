@@ -360,6 +360,16 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         this.options.renderOptions = renderOptions;
     }
 
+    public getNativeZoom(rootTileWidth: number, tileSize: number): number {
+        if (!this.isReady || !this.metadata) {
+            return 0;
+        }
+
+        const pixel = this.extentWgs84.getWidth() / this.metadata.width;
+
+        return Math.max(Math.ceil(Math.log2(rootTileWidth / (tileSize * pixel)) - 1e-6), 0);
+    }
+
     /**
      * Reads raster data for a tile and warps it into the tile grid.
      *

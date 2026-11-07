@@ -214,6 +214,13 @@ export interface IGeoTIFFReader {
 
     readTileRasters(segment: Segment, tileSize?: number, readSamples?: number[]): Promise<DecodedTileData | null>;
 
+    /**
+     * Returns the first zoom which tile pixels are not larger than the source ones, the most detailed source gives it.
+     * @param rootTileWidth - Root tile width of the quad tree strategy in degrees, see QuadTreeStrategy.rootTileWidth.
+     * @param tileSize - Tile size in pixels.
+     */
+    getNativeZoom(rootTileWidth: number, tileSize: number): number;
+
     destroy(): void;
 }
 

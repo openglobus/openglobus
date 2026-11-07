@@ -1490,3 +1490,109 @@ describe("GeoTIFFReader failed reads", () => {
         expect(readRasters).toHaveBeenCalledTimes(1);
     });
 });
+
+describe("GeoTIFFLayer native zoom", () => {
+    // 256 tile pixels of a Mercator zoom 16 tile, as for GeoTiffTerrain
+    const EXTENT = new Extent(new LonLat(0, 40), new LonLat(3.515625, 43));
+
+    const reader = (width) =>
+        Object.assign(Object.create(GeoTIFFReader.prototype), {
+            isReady: true,
+            metadata: { width },
+            extentWgs84: EXTENT
+        });
+
+    function stubSource(overviewCount = 10) {
+        return vi.spyOn(GeoTIFFReader.prototype, "init").mockImplementation(async function () {
+            this.extentWgs84 = EXTENT;
+            this.metadata = {
+                bbox: [0, 40, 3.515625, 43],
+                crsCode: 4326,
+                width: 163840,
+                height: 139810,
+                samplesPerPixel: 1,
+                noData: null,
+                isTiled: true,
+                overviewCount,
+                bands: { 1: { min: 0, max: 255 } }
+            };
+            this.isReady = true;
+            return this.metadata;
+        });
+    }
+
+    const planet = (rootTileWidth) => ({
+        _layers: [],
+        renderer: null,
+        quadTreeStrategy: { rootTileWidth, clearLayerMaterial: () => {} }
+    });
+
+    it("the reader finds the zoom by the root tile width", () => {
+        expect(reader(163840).getNativeZoom(360, 256)).toBe(16);
+        expect(reader(163840).getNativeZoom(180, 256)).toBe(15);
+        expect(reader(163840).getNativeZoom(90, 256)).toBe(14);
+        expect(reader(163840).getNativeZoom(90, 512)).toBe(13);
+        expect(new GeoTIFFReader().getNativeZoom(360, 256)).toBe(0);
+    });
+
+    it("the most detailed source of a multi reader gives the zoom", () => {
+        const multi = new MultiGeoTIFFReader();
+        multi.childReaders = [reader(10240), reader(163840)];
+        expect(multi.getNativeZoom(90, 256)).toBe(14);
+    });
+
+    it("the planet after the source", async () => {
+        const init = stubSource();
+        try {
+            const layer = new GeoTIFFLayer("tif", { src: "a.tif" });
+            await layer.whenReady();
+
+            layer._assignPlanet(planet(90));
+            expect(layer.maxNativeZoom).toBe(14);
+
+            layer._assignPlanet(planet(360));
+            expect(layer.maxNativeZoom).toBe(16);
+        } finally {
+            init.mockRestore();
+        }
+    });
+
+    it("the planet before the source", async () => {
+        const init = stubSource();
+        try {
+            const layer = new GeoTIFFLayer("tif", { src: "a.tif" });
+            layer._assignPlanet(planet(180));
+            await layer.whenReady();
+
+            expect(layer.maxNativeZoom).toBe(15);
+        } finally {
+            init.mockRestore();
+        }
+    });
+
+    it("keeps the zoom it is given", async () => {
+        const init = stubSource();
+        try {
+            const layer = new GeoTIFFLayer("tif", { src: "a.tif", maxNativeZoom: 7 });
+            await layer.whenReady();
+            layer._assignPlanet(planet(90));
+
+            expect(layer.maxNativeZoom).toBe(7);
+        } finally {
+            init.mockRestore();
+        }
+    });
+
+    it("the image count limits the zoom", async () => {
+        const init = stubSource(6);
+        try {
+            const layer = new GeoTIFFLayer("tif", { src: "a.tif", useImageCountAsMaximumLevel: true });
+            await layer.whenReady();
+            layer._assignPlanet(planet(90));
+
+            expect(layer.maxNativeZoom).toBe(5);
+        } finally {
+            init.mockRestore();
+        }
+    });
+});

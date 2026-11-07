@@ -1,5 +1,8 @@
 import { GeoTiffTerrain } from "../../src/terrain/GeoTiffTerrain";
 import { GeoTIFFReader } from "../../src/layer/geotiff/GeoTIFFReader";
+import { MultiGeoTIFFReader } from "../../src/layer/geotiff/MultiGeoTIFFReader";
+import { CubeQuadTreeStrategy, EquiangularCubeQuadTreeStrategy } from "../../src/quadTree/cube/CubeQuadTreeStrategy";
+import { STRATEGIES, createStrategy } from "../quadTree/quadTreeScene";
 import { Extent } from "../../src/Extent";
 import { LonLat } from "../../src/LonLat";
 
@@ -7,6 +10,7 @@ import { LonLat } from "../../src/LonLat";
 function stubSource(width, lon) {
     return vi.spyOn(GeoTIFFReader.prototype, "init").mockImplementation(function () {
         this.extentWgs84 = new Extent(new LonLat(0, 40), new LonLat(lon, 43));
+        this.metadata = { width: width };
         this.isReady = true;
         return Promise.resolve({ crsResolved: true, width: width });
     });
@@ -181,4 +185,114 @@ test("GeoTiffTerrain reads sampleSize pixels of the band in the segment projecti
 
     // Out of the GeoTIFF
     expect(await terrain._readHeights(segment)).toBe(null);
+});
+
+// Web Mercator z16 pixels of the 256 tiles, as in the test above
+const onPlanet = (terrain, rootTileWidth) => {
+    terrain._planet = { quadTreeStrategy: { rootTileWidth } };
+    terrain._updateNativeZoom();
+    return terrain.maxNativeZoom;
+};
+
+test("GeoTiffTerrain native zoom takes the root tile of the planet strategy", async () => {
+    stubSource(163840, 3.515625);
+
+    const terrain = new GeoTiffTerrain(null, { src: "dem.tif" });
+    await terrain.whenReady();
+    expect(terrain.maxNativeZoom).toBe(16);
+
+    // A cube face is a quarter of the Mercator world, an equi root tile is a half of it
+    expect(onPlanet(terrain, 90)).toBe(14);
+    expect(onPlanet(terrain, 180)).toBe(15);
+    expect(onPlanet(terrain, 360)).toBe(16);
+});
+
+test("GeoTiffTerrain keeps the native zoom it is given", async () => {
+    stubSource(163840, 3.515625);
+
+    const terrain = new GeoTiffTerrain(null, { src: "dem.tif", maxNativeZoom: 12 });
+    await terrain.whenReady();
+
+    expect(onPlanet(terrain, 90)).toBe(12);
+});
+
+test("GeoTiffTerrain finds the native zoom when it gets the first segment", async () => {
+    stubSource(163840, 3.515625);
+
+    const terrain = new GeoTiffTerrain(null, { src: "dem.tif" });
+    await terrain.whenReady();
+
+    terrain._planet = { quadTreeStrategy: { rootTileWidth: 90 }, terrainLock: { isFree: () => false } };
+    terrain.loadTerrain({ tileZoom: 1, terrainIsLoading: false });
+
+    expect(terrain.maxNativeZoom).toBe(14);
+});
+
+test.each([
+    ...STRATEGIES.map(({ name, Strategy }) => [name, Strategy, name === "Equi" || name === "EPSG4326" ? 180 : 360]),
+    ["cube", CubeQuadTreeStrategy, 90],
+    ["equiangular cube", EquiangularCubeQuadTreeStrategy, 90]
+])("the root tile of the %s strategy is its width", (_, Strategy, width) => {
+    const qts = createStrategy(Strategy);
+    expect(qts.rootTileWidth).toBe(width);
+
+    const root = qts.quadTreeList[0].segment;
+    if (!(qts instanceof CubeQuadTreeStrategy)) {
+        expect(root.getExtentLonLat().getWidth()).toBe(width);
+    }
+});
+
+describe("GeoTiffTerrain mosaic", () => {
+    // Two sources: a coarse one over all the area and a detailed one in its corner
+    function stubMosaic() {
+        return vi.spyOn(MultiGeoTIFFReader.prototype, "init").mockImplementation(function (sources) {
+            this.sources = sources;
+            this.childReaders = [163840, 10240].map((width) =>
+                Object.assign(Object.create(GeoTIFFReader.prototype), {
+                    isReady: true,
+                    metadata: { width },
+                    extentWgs84: new Extent(new LonLat(0, 40), new LonLat(3.515625, 43))
+                })
+            );
+            this.extentWgs84 = new Extent(new LonLat(0, 40), new LonLat(3.515625, 43));
+            this.isReady = true;
+            return Promise.resolve({ crsResolved: true, width: 163840 });
+        });
+    }
+
+    test("reads the sources as one mosaic", async () => {
+        const init = stubMosaic();
+        const sources = [{ src: "fine.tif" }, { src: "coarse.tif" }];
+
+        const terrain = new GeoTiffTerrain(null, { sources });
+        await terrain.whenReady();
+
+        expect(terrain.reader).toBeInstanceOf(MultiGeoTIFFReader);
+        expect(terrain.reader.options.mosaic).toBe(true);
+        expect(init).toHaveBeenCalledWith(sources);
+    });
+
+    test("the most detailed source gives the native zoom", async () => {
+        stubMosaic();
+
+        const terrain = new GeoTiffTerrain(null, { sources: [{ src: "coarse.tif" }, { src: "fine.tif" }] });
+        await terrain.whenReady();
+
+        expect(terrain.maxNativeZoom).toBe(16);
+        expect(onPlanet(terrain, 90)).toBe(14);
+    });
+
+    test("a segment reads the heights through the mosaic reader", async () => {
+        stubMosaic();
+        const pixels = new Float32Array(64 * 64),
+            read = vi.spyOn(MultiGeoTIFFReader.prototype, "readTileRasters").mockResolvedValue({ rasters: [pixels] });
+
+        const terrain = new GeoTiffTerrain(null, { sources: [{ src: "a.tif" }], sampleSize: 64, plainGridSize: 32 }),
+            segment = { getExtentLonLat: () => new Extent(new LonLat(1, 41), new LonLat(2, 42)), tileZoom: 9 };
+
+        await terrain.whenReady();
+
+        expect(await terrain._readHeights(segment)).toBe(pixels);
+        expect(read).toHaveBeenCalledWith(segment, 64, [0]);
+    });
 });

@@ -66,6 +66,11 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     protected _reader: IGeoTIFFReader;
     protected _renderOptions: IGeoTIFFRenderOptions;
     protected _tileSize: number;
+
+    // The native zoom is found from the sources, and the root tile width it was found for
+    protected _autoNativeZoom: boolean;
+    protected _nativeZoomRootTileWidth: number;
+    protected _useImageCountAsMaximumLevel: boolean;
     protected _tileCache: Map<string, ICachedTile>;
     protected _rasterCache: Map<string, DecodedTileData>;
     protected _maxCacheSize: number;
@@ -112,6 +117,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         }
 
         this._tileSize = options.tileSize || 256;
+        this._autoNativeZoom = options.maxNativeZoom == undefined;
+        this._nativeZoomRootTileWidth = NaN;
+        this._useImageCountAsMaximumLevel = !!options.useImageCountAsMaximumLevel;
         this._tileCache = new Map();
         this._rasterCache = new Map();
         this._maxCacheSize = options.cacheSize || 500;
@@ -175,6 +183,36 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         const layer = new GeoTIFFLayer(name, { ...options, sources });
         await layer.whenReady();
         return layer;
+    }
+
+    public override _assignPlanet(planet: Planet) {
+        super._assignPlanet(planet);
+        this._updateNativeZoom();
+    }
+
+    /**
+     * Finds the native zoom of the sources for the tile size of the planet strategy, the sources open before or after
+     * the layer gets to the planet. Deeper tiles take the texture of the native zoom tile.
+     * @protected
+     */
+    protected _updateNativeZoom() {
+        if (!this._autoNativeZoom || !this._planet || !this._reader.isReady) {
+            return;
+        }
+
+        const width = this._planet.quadTreeStrategy.rootTileWidth;
+
+        if (width !== this._nativeZoomRootTileWidth) {
+            this._nativeZoomRootTileWidth = width;
+
+            let zoom = this._reader.getNativeZoom(width, this._tileSize);
+
+            if (this._useImageCountAsMaximumLevel && this._reader.metadata) {
+                zoom = Math.min(zoom, this._reader.metadata.overviewCount - 1);
+            }
+
+            this.maxNativeZoom = zoom;
+        }
     }
 
     public override addTo(planet: Planet) {
@@ -437,6 +475,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                 this.maxNativeZoom = Math.min(this.maxNativeZoom, meta.overviewCount - 1);
             }
 
+            this._updateNativeZoom();
+
             // Set up default rendering mode if not configured
             this._normalizeRenderOptions(meta);
             this._updateReadSamples();
@@ -462,6 +502,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             if (options.useImageCountAsMaximumLevel) {
                 this.maxNativeZoom = Math.min(this.maxNativeZoom, meta.overviewCount - 1);
             }
+
+            this._updateNativeZoom();
 
             // Set up default rendering mode if not configured
             this._normalizeRenderOptions(meta);

@@ -19,6 +19,7 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
 
     constructor(params: QuadTreeStrategyParams) {
         super({ name: "Mars", proj: equi, ...params });
+        this.rootTileWidth = 180;
         this._westExtent = Extent.createFromArray([-180, -90, 0, 90]);
         this._eastExtent = Extent.createFromArray([0, -90, 180, 90]);
 

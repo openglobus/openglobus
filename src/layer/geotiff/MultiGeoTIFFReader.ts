@@ -253,6 +253,16 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
         }
     }
 
+    public getNativeZoom(rootTileWidth: number, tileSize: number): number {
+        let zoom = 0;
+
+        for (const reader of this.childReaders) {
+            zoom = Math.max(zoom, reader.getNativeZoom(rootTileWidth, tileSize));
+        }
+
+        return zoom;
+    }
+
     /**
      * Reads rasters for a tile from the underlying GeoTIFF sources.
      */
