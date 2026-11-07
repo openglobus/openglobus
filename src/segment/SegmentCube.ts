@@ -17,7 +17,7 @@ import { Segment } from "./Segment";
  * @extends {Segment}
  */
 class SegmentCube extends Segment {
-    declare public _projection: CubeProj;
+    public override _projection: CubeProj;
 
     constructor(node: Node, quadTreeStrategy: QuadTreeStrategy, tileZoom: number, extent: Extent) {
         super(node, quadTreeStrategy, tileZoom, extent);
