@@ -1,0 +1,139 @@
+<html>
+    <head>
+        <title>OpenGlobus - Cube waves</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../../lib/og.css" type="text/css" />
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
+        <script type="module" id="og-sandbox-script">
+            import {
+                CanvasTiles,
+                EquiangularCubeQuadTreeStrategy,
+                EmptyTerrain,
+                Globe,
+                ProceduralTerrain,
+                control
+            } from "../../lib/og.es.js";
+
+            const FACE_COLORS = ["#e6e6e6", "#d9534f", "#5cb85c", "#428bca", "#f0ad4e", "#6f5499"];
+
+            const tiles = new CanvasTiles("Cube tiles", {
+                isBaseLayer: false,
+                drawTile: (material, applyCanvas) => {
+                    const { tileGroup, tileX, tileY, tileZoom } = material.segment,
+                        canvas = document.createElement("canvas");
+
+                    canvas.width = canvas.height = 256;
+
+                    const ctx = canvas.getContext("2d");
+
+                    ctx.fillStyle = FACE_COLORS[tileGroup];
+                    ctx.fillRect(0, 0, 256, 256);
+
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+                    if ((tileX + tileY) % 2) {
+                        ctx.fillRect(0, 0, 256, 256);
+                    }
+
+                    ctx.strokeStyle = "black";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(0, 0, 256, 256);
+
+                    ctx.fillStyle = "black";
+                    ctx.font = "bold 28px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText(`face ${tileGroup}`, 128, 110);
+                    ctx.fillText(`${tileZoom} / ${tileX} / ${tileY}`, 128, 150);
+
+                    applyCanvas(canvas);
+                }
+            });
+
+            // The highest crest over the ellipsoid in meters, the troughs lie on it
+            const WAVES_HEIGHT = 500000;
+
+            // The length of a wave on the unit sphere, 0.6 is about 3800 km
+            const WAVE_LENGTH = 0.6;
+
+            // Ripples run from these points and cross each other, as on water
+            const WAVE_SOURCES = [
+                [0.58, 0.58, 0.58],
+                [-0.71, 0.5, -0.5],
+                [0.2, -0.87, 0.45]
+            ];
+
+            const WAVE_NUMBER = (2 * Math.PI) / WAVE_LENGTH;
+
+            // A function of the point in space knows nothing about the faces of the cube
+            function waves(x, y, z) {
+                let sum = 0;
+
+                for (const s of WAVE_SOURCES) {
+                    const dx = x - s[0],
+                        dy = y - s[1],
+                        dz = z - s[2];
+
+                    sum += Math.cos(WAVE_NUMBER * Math.sqrt(dx * dx + dy * dy + dz * dz));
+                }
+
+                return WAVES_HEIGHT * 0.5 * (1 + sum / WAVE_SOURCES.length);
+            }
+
+            const SIZE = 33;
+            const RADIANS = Math.PI / 180;
+
+            const relief = new ProceduralTerrain("Waves", {
+                maxZoom: 12,
+                maxHeight: WAVES_HEIGHT,
+                getHeights: (segment) => {
+                    const e = segment.getExtent(),
+                        west = e.southWest.lon,
+                        north = e.northEast.lat,
+                        step = e.getWidth() / (SIZE - 1),
+                        heights = new Float32Array(SIZE * SIZE);
+
+                    for (let i = 0; i < SIZE; i++) {
+                        for (let j = 0; j < SIZE; j++) {
+                            const p = segment.getLonLat(west + j * step, north - i * step),
+                                lon = p.lon * RADIANS,
+                                lat = p.lat * RADIANS,
+                                c = Math.cos(lat);
+
+                            heights[i * SIZE + j] = waves(c * Math.cos(lon), c * Math.sin(lon), Math.sin(lat));
+                        }
+                    }
+
+                    return heights;
+                }
+            });
+
+            window.globus = new Globe({
+                target: "globus",
+                name: "Cube waves",
+                quadTreeStrategyPrototype: EquiangularCubeQuadTreeStrategy,
+                terrain: [relief, new EmptyTerrain({ name: "Empty" })],
+                layers: [tiles],
+                atmosphereEnabled: false,
+                idleMode: true,
+                nightTextureSrc: null,
+                specularTextureSrc: null
+            });
+
+            // A crack between the tiles shows the background
+            globus.renderer.clearColor.set([1, 1, 1, 1]);
+
+            globus.planet.addControl(new control.LayerSwitcher());
+            globus.planet.addControl(new control.ToggleWireframe());
+            globus.planet.addControl(new control.DebugInfo());
+        </script>
+    </body>
+</html>
