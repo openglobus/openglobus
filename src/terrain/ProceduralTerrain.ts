@@ -235,7 +235,7 @@ class ProceduralTerrain extends EmptyTerrain {
             j = Math.min(Math.max(Math.floor((p.lon - e.southWest.lon) / width), 0), d - 1),
             i = Math.min(Math.max(Math.floor((e.northEast.lat - p.lat) / height), 0), d - 1);
 
-        let tileIndex = Layer.getTileIndex(s.tileX * d + j, s.tileY * d + i, zoom, s._tileGroup),
+        let tileIndex = Layer.getTileIndex(s.tileX * d + j, s.tileY * d + i, zoom, s.tileGroup),
             cache = this._heightsCache[tileIndex] || this._pendingHeights[tileIndex];
 
         if (cache) {

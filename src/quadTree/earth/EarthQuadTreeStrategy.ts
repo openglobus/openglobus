@@ -39,7 +39,7 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
     }
 
     public override collectVisibleNode(node: Node) {
-        let tg = node.segment._tileGroup;
+        let tg = node.segment.tileGroup;
         if (tg === TILEGROUP_NORTH) {
             this._visibleNodesNorth[node.nodeId] = node;
         } else if (tg === TILEGROUP_SOUTH) {

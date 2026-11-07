@@ -309,7 +309,7 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     public isReadyToLoad(segment: Segment): boolean {
-        return segment._tileGroup === TILEGROUP_COMMON && this._extent.overlaps(segment.getExtentLonLat());
+        return segment.tileGroup === TILEGROUP_COMMON && this._extent.overlaps(segment.getExtentLonLat());
     }
 
     /**
@@ -372,7 +372,7 @@ class GlobusTerrain extends EmptyTerrain {
         let heights = this._createHeights(
             data,
             segment,
-            segment._tileGroup,
+            segment.tileGroup,
             segment.tileX,
             segment.tileY,
             segment.tileZoom,
@@ -413,7 +413,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @returns {string} URL string.
      */
     protected _createUrl(segment: Segment): string {
-        return this.buildURL(segment.tileX, segment.tileY, segment.tileZoom, segment._tileGroup);
+        return this.buildURL(segment.tileX, segment.tileY, segment.tileZoom, segment.tileGroup);
     }
 
     /**
@@ -425,7 +425,7 @@ class GlobusTerrain extends EmptyTerrain {
     protected _getHTTPRequestString(segment: Segment): string {
         if (this._urlRewriteCallback) {
             return (
-                this._urlRewriteCallback(segment.tileX, segment.tileY, segment.tileZoom, segment._tileGroup) ||
+                this._urlRewriteCallback(segment.tileX, segment.tileY, segment.tileZoom, segment.tileGroup) ||
                 this._createUrl(segment)
             );
         } else {

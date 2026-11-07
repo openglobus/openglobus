@@ -224,6 +224,7 @@ describe("plain segment bounds", () => {
             const seg = {
                 planet: { ellipsoid: wgs84 },
                 _extentLonLat: ext,
+                _getExtentCorners: Segment.prototype._getExtentCorners,
                 _plainCenter: new Vec3(),
                 lodCenter: new Vec3()
             };

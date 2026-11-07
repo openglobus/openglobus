@@ -390,7 +390,7 @@ class PlanetCamera extends Camera {
 
         for (let i = renderedNodes.length - 1; i >= 0; i--) {
             const seg = renderedNodes[i].segment;
-            if (seg && seg._extentLonLat && seg._extentLonLat.isInside(centerLonLat)) {
+            if (seg && seg.isLonLatInside(centerLonLat)) {
                 if (!bestSegment || seg.tileZoom > bestSegment.tileZoom) {
                     bestSegment = seg;
                 }

@@ -742,7 +742,7 @@ export class QuadTreeStrategy {
      * @returns {Node | null} -
      */
     public getNodeByLonLat(lonLat: LonLat, zoom: number = Infinity): Node | null {
-        let node: Node | undefined = this._quadTreeList.find((root) => root.segment.getExtentLonLat().isInside(lonLat));
+        let node: Node | undefined = this._quadTreeList.find((root) => root.segment.isLonLatInside(lonLat));
 
         if (!node) {
             return null;

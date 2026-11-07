@@ -1,6 +1,7 @@
 // import { QueueArray } from '../QueueArray.js';
 import { EPSG4326 } from "../proj/EPSG4326";
 import { equi } from "../proj/equi";
+import { CUBE_FACES, CubeProj } from "../proj/cube";
 import { BaseWorker } from "./BaseWorker";
 import { Segment } from "../segment/Segment";
 import { Geoid } from "../terrain/Geoid";
@@ -84,12 +85,22 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
 
                 this._source.set(this._sourceId, segment);
 
-                let isLonLat = segment._projection.id === EPSG4326.id || segment._projection.id === equi.id ? 1.0 : 0.0;
+                const proj = segment._projection,
+                    isCube = proj instanceof CubeProj;
+
+                // 0 is the Web Mercator extent, 1 is the degrees one, 2 is the equiangular cube, 3 is the gnomonic one
+                let projType = 0.0;
+
+                if (isCube) {
+                    projType = proj.equiangular ? 2.0 : 3.0;
+                } else if (proj.id === EPSG4326.id || proj.id === equi.id) {
+                    projType = 1.0;
+                }
 
                 let params = new Float64Array([
                     this._sourceId,
 
-                    isLonLat,
+                    projType,
 
                     segment.planet.terrain!.gridSizeByZoom[segment.tileZoom],
                     segment.planet.terrain!.plainGridSize,
@@ -111,7 +122,9 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
 
                     segment._relativeCenter.x,
                     segment._relativeCenter.y,
-                    segment._relativeCenter.z
+                    segment._relativeCenter.z,
+
+                    ...(isCube ? CUBE_FACES[segment.tileGroup] : [])
                 ]);
 
                 this._sourceId++;

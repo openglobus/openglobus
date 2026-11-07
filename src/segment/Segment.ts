@@ -4,7 +4,7 @@ import { Box } from "../bv/Box";
 import { Extent } from "../Extent";
 import { Entity } from "../entity/Entity";
 import { EPSG3857 } from "../proj/EPSG3857";
-import { E, N, NW, OPSIDE, S, SE, W } from "../quadTree/quadTree";
+import { CORNERSIDE, E, N, NOPSORD, NW, OPSIDE, S, SE, SIDEFLIP, W } from "../quadTree/quadTree";
 import { getMatrixSubArray64 } from "../utils/shared";
 import type { TypedArray } from "../utils/shared";
 import { Handler } from "../webgl/Handler";
@@ -138,7 +138,17 @@ class Segment {
 
     public isPole: boolean;
 
-    public _tileGroup: number;
+    /**
+     * Tile group, tiles of different groups can have the same indexes. On a cube it is the face index.
+     * @type {number}
+     */
+    public tileGroup: number;
+
+    /**
+     * The side of the neighbors that faces the N, E, S and W side of the segment.
+     * @type {number[]}
+     */
+    public opside: number[];
 
     public _projection: Proj;
 
@@ -364,7 +374,7 @@ class Segment {
     constructor(node: Node, quadTreeStrategy: QuadTreeStrategy, tileZoom: number, extent: Extent) {
         this.isPole = false;
 
-        this._tileGroup = TILEGROUP_COMMON;
+        this.tileGroup = TILEGROUP_COMMON;
 
         this._projection = EPSG3857;
 
@@ -423,6 +433,8 @@ class Segment {
         this.tileIndex = "";
 
         this.elevationData = null;
+
+        this.opside = OPSIDE;
 
         this._assignTileIndexes();
 
@@ -583,7 +595,17 @@ class Segment {
     }
 
     public isEntityInside(entity: Entity): boolean {
-        return this._extentLonLat!.isInside(entity._lonLat);
+        return this.isLonLatInside(entity._lonLat);
+    }
+
+    /**
+     * Returns true when the segment covers the point.
+     * @public
+     * @param {LonLat} lonLat - Geodetic coordinates.
+     * @returns {boolean} -
+     */
+    public isLonLatInside(lonLat: LonLat): boolean {
+        return this._extentLonLat.isInside(lonLat);
     }
 
     /**
@@ -857,7 +879,7 @@ class Segment {
 
     protected _checkEqualization(neighborSide: number, neigborNode: Node): boolean {
         const ns = neigborNode && neigborNode.segment;
-        const oppositeSide = OPSIDE[neighborSide];
+        const oppositeSide = this.opside[neighborSide];
         const oppositeNeighbors = neigborNode && neigborNode.neighbors && neigborNode.neighbors[oppositeSide];
         const hasReverseNeighbor = !!oppositeNeighbors && oppositeNeighbors.indexOf(this.node) !== -1;
         return (
@@ -868,8 +890,7 @@ class Segment {
             Number.isFinite(ns.gridSize) &&
             ns.gridSize >= 1 &&
             this.tileZoom >= ns.tileZoom &&
-            this.node.equalizedSideWithNodeId[neighborSide] !==
-                neigborNode.equalizedSideWithNodeId[OPSIDE[neighborSide]]
+            this.node.equalizedSideWithNodeId[neighborSide] !== neigborNode.equalizedSideWithNodeId[oppositeSide]
         );
     }
 
@@ -894,26 +915,32 @@ class Segment {
 
             let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
 
+            const opcs = this.opside[side];
+
             let indexMul = 1,
                 indexOffset = 0,
                 nIndexMul = 1,
                 nIndexOffset = 0;
 
-            if (side === N) {
-                nIndexOffset = n_gsOne * n_gs;
-            } else if (side === E) {
+            if (side === E) {
                 indexMul = gsOne;
                 indexOffset = gs;
-                nIndexMul = n_gsOne;
             } else if (side === S) {
                 indexOffset = gsOne * gs;
-            } else {
+            } else if (side === W) {
                 indexMul = gsOne;
-                nIndexMul = n_gsOne;
-                nIndexOffset = n_gs;
             }
 
-            this.node.equalizedSideWithNodeId[side] = n.equalizedSideWithNodeId[OPSIDE[side]];
+            if (opcs === E) {
+                nIndexMul = n_gsOne;
+                nIndexOffset = n_gs;
+            } else if (opcs === S) {
+                nIndexOffset = n_gsOne * n_gs;
+            } else if (opcs === W) {
+                nIndexMul = n_gsOne;
+            }
+
+            this.node.equalizedSideWithNodeId[side] = n.equalizedSideWithNodeId[opcs];
             this.readyToEngage = true;
 
             // The ends of the side are corners, see _equalizeCorner. A side inside one neighbor cell has no others.
@@ -921,6 +948,11 @@ class Segment {
                 let inc = Math.max(gs / (n_gs * dz), 1),
                     n_inc = Math.max((n_gs * dz) / gs, 1),
                     n_offset = offset * n_gs;
+
+                if (SIDEFLIP[side][opcs]) {
+                    n_offset = n_gs - n_offset;
+                    n_inc = -n_inc;
+                }
 
                 for (let k = inc, nk = n_offset + n_inc; k < gs; k += inc, nk += n_inc) {
                     let n_index = (nIndexMul * nk + nIndexOffset) * 3;
@@ -959,25 +991,46 @@ class Segment {
             return;
         }
 
-        const d =
-            (v && v.getCornerNeighbor(hSide, corner ^ 2)) || (h && h.getCornerNeighbor(vSide, corner ^ 1)) || null;
+        const vCorner = node.getNeighborCorner(vSide, corner),
+            hCorner = node.getNeighborCorner(hSide, corner);
 
         let owner: Segment = this,
             ownerCorner = corner;
 
         if (v && v.segment._isCornerOwnerOver(owner)) {
             owner = v.segment;
-            ownerCorner = corner ^ 2;
+            ownerCorner = vCorner;
         }
 
         if (h && h.segment._isCornerOwnerOver(owner)) {
             owner = h.segment;
-            ownerCorner = corner ^ 1;
+            ownerCorner = hCorner;
+        }
+
+        // The tile across the point, round it by v or, when v gives none, by h. The corner of a cube has three
+        // tiles, there it is the other neighbor.
+        let d: Node | null | undefined = null,
+            dCorner = 0;
+
+        if (v) {
+            const next = CORNERSIDE[this.opside[vSide]][vCorner];
+            d = v.getCornerNeighbor(next, vCorner);
+            if (d) {
+                dCorner = v.getNeighborCorner(next, vCorner);
+            }
+        }
+
+        if (!d && h) {
+            const next = CORNERSIDE[this.opside[hSide]][hCorner];
+            d = h.getCornerNeighbor(next, hCorner);
+            if (d) {
+                dCorner = h.getNeighborCorner(next, hCorner);
+            }
         }
 
         if (d && d.segment._isCornerOwnerOver(owner)) {
             owner = d.segment;
-            ownerCorner = corner ^ 3;
+            ownerCorner = dCorner;
         }
 
         if (owner !== this) {
@@ -1004,25 +1057,23 @@ class Segment {
             return;
         }
 
-        const alongX = side === N || side === S,
-            pos =
-                (alongX ? this.tileX + (corner & 1) : this.tileY + (corner >> 1)) /
-                (1 << (this.tileZoom - ns.tileZoom)),
+        const opcs = this.opside[side],
+            pos = ((side & 1 ? this.tileY : this.tileX) + NOPSORD[side][corner]) / (1 << (this.tileZoom - ns.tileZoom)),
             n_gs = ns.gridSize,
             n_gsOne = n_gs + 1,
-            u = (pos - (alongX ? ns.tileX : ns.tileY)) * n_gs,
+            u = ((SIDEFLIP[side][opcs] ? ns.powTileZoom - pos : pos) - (opcs & 1 ? ns.tileY : ns.tileX)) * n_gs,
             nk = Math.floor(u),
             f = u - nk;
 
         let i0, step;
 
-        if (side === N) {
+        if (opcs === S) {
             i0 = n_gsOne * n_gs + nk;
             step = 1;
-        } else if (side === E) {
+        } else if (opcs === W) {
             i0 = n_gsOne * nk;
             step = n_gsOne;
-        } else if (side === S) {
+        } else if (opcs === N) {
             i0 = nk;
             step = 1;
         } else {
@@ -1119,186 +1170,6 @@ class Segment {
             }
         }
     }
-
-    /*
-    public equalize() {
-
-        // Equalization doesn't work correctly for gridSize equals 2
-        if (this.tileZoom < 2 || this.gridSize < 2) {
-            return;
-        }
-
-        this.readyToEngage = true;
-
-        let nn = this.node.neighbors;
-
-        let v = this.renderVertices!,
-            vHigh = this.renderVerticesHigh!,
-            vLow = this.renderVerticesLow!;
-
-        let gs = this.gridSize,
-            gsOne = gs + 1;
-
-        let n = nn[N][0];
-        if (this._checkEqualization(N, n)) {
-
-            this.node.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[S];
-
-            this.readyToEngage = true;
-
-            let offset = this.node.getOffsetOppositeNeighbourSide(n, N);
-
-            let nv = n.segment.renderVertices!,
-                nvHigh = n.segment.renderVerticesHigh!,
-                nvLow = n.segment.renderVerticesLow!;
-
-            let n_gs = n.segment.gridSize,
-                n_gsOne = n_gs + 1;
-
-            let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
-
-            let inc = Math.max(gs / (n_gs * dz), 1),
-                n_inc = Math.max((n_gs * dz) / gs, 1),
-                n_offset = offset * n_gs;
-
-            for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-                const index = k * 3;
-                const n_index = (n_gsOne * n_gs + nk) * 3;
-
-                v[index] = nv[n_index];
-                v[index + 1] = nv[n_index + 1];
-                v[index + 2] = nv[n_index + 2];
-
-                vHigh[index] = nvHigh[n_index];
-                vHigh[index + 1] = nvHigh[n_index + 1];
-                vHigh[index + 2] = nvHigh[n_index + 2];
-
-                vLow[index] = nvLow[n_index];
-                vLow[index + 1] = nvLow[n_index + 1];
-                vLow[index + 2] = nvLow[n_index + 2];
-            }
-        }
-
-        n = nn[E][0];
-        if (this._checkEqualization(E, n)) {
-
-            this.node.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[W];
-
-            this.readyToEngage = true;
-
-            let offset = this.node.getOffsetOppositeNeighbourSide(n, E);
-
-            let nv = n.segment.renderVertices!,
-                nvHigh = n.segment.renderVerticesHigh!,
-                nvLow = n.segment.renderVerticesLow!;
-
-            let n_gs = n.segment.gridSize,
-                n_gsOne = n_gs + 1;
-
-            let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
-
-            let inc = Math.max(gs / (n_gs * dz), 1),
-                n_inc = Math.max((n_gs * dz) / gs, 1),
-                n_offset = offset * n_gs;
-
-            for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-                const index = (gsOne * k + gs) * 3;
-                const n_index = n_gsOne * nk * 3;
-
-                v[index] = nv[n_index];
-                v[index + 1] = nv[n_index + 1];
-                v[index + 2] = nv[n_index + 2];
-
-                vHigh[index] = nvHigh[n_index];
-                vHigh[index + 1] = nvHigh[n_index + 1];
-                vHigh[index + 2] = nvHigh[n_index + 2];
-
-                vLow[index] = nvLow[n_index];
-                vLow[index + 1] = nvLow[n_index + 1];
-                vLow[index + 2] = nvLow[n_index + 2];
-            }
-        }
-
-        n = nn[S][0];
-        if (this._checkEqualization(S, n)) {
-
-            this.node.equalizedSideWithNodeId[S] = n.equalizedSideWithNodeId[N];
-
-            this.readyToEngage = true;
-
-            let offset = this.node.getOffsetOppositeNeighbourSide(n, S);
-
-            let nv = n.segment.renderVertices!,
-                nvHigh = n.segment.renderVerticesHigh!,
-                nvLow = n.segment.renderVerticesLow!;
-
-            let n_gs = n.segment.gridSize; // n_gsOne = n_gs + 1;
-
-            let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
-
-            let inc = Math.max(gs / (n_gs * dz), 1),
-                n_inc = Math.max((n_gs * dz) / gs, 1),
-                n_offset = offset * n_gs;
-
-            for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-                const index = (gsOne * gs + k) * 3;
-                const n_index = nk * 3;
-
-                v[index] = nv[n_index];
-                v[index + 1] = nv[n_index + 1];
-                v[index + 2] = nv[n_index + 2];
-
-                vHigh[index] = nvHigh[n_index];
-                vHigh[index + 1] = nvHigh[n_index + 1];
-                vHigh[index + 2] = nvHigh[n_index + 2];
-
-                vLow[index] = nvLow[n_index];
-                vLow[index + 1] = nvLow[n_index + 1];
-                vLow[index + 2] = nvLow[n_index + 2];
-            }
-        }
-
-        n = nn[W][0];
-        if (this._checkEqualization(W, n)) {
-
-            this.node.equalizedSideWithNodeId[W] = n.equalizedSideWithNodeId[E];
-
-            this.readyToEngage = true;
-
-            let offset = this.node.getOffsetOppositeNeighbourSide(n, W);
-
-            let nv = n.segment.renderVertices!,
-                nvHigh = n.segment.renderVerticesHigh!,
-                nvLow = n.segment.renderVerticesLow!;
-
-            let n_gs = n.segment.gridSize,
-                n_gsOne = n_gs + 1;
-
-            let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
-
-            let inc = Math.max(gs / (n_gs * dz), 1),
-                n_inc = Math.max((n_gs * dz) / gs, 1),
-                n_offset = offset * n_gs;
-
-            for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-                const index = gsOne * k * 3;
-                const n_index = (n_gsOne * nk + n_gs) * 3;
-
-                v[index] = nv[n_index];
-                v[index + 1] = nv[n_index + 1];
-                v[index + 2] = nv[n_index + 2];
-
-                vHigh[index] = nvHigh[n_index];
-                vHigh[index + 1] = nvHigh[n_index + 1];
-                vHigh[index + 2] = nvHigh[n_index + 2];
-
-                vLow[index] = nvLow[n_index];
-                vLow[index + 1] = nvLow[n_index + 1];
-                vLow[index + 2] = nvLow[n_index + 2];
-            }
-        }
-    }
-     */
 
     public engage() {
         this.readyToEngage = false;
@@ -1405,49 +1276,40 @@ class Segment {
             let s_gs = Math.sqrt(seg_a.length / 3),
                 s_gs1 = s_gs - 1;
 
-            const i_a = s_gs1 * _S[side];
-
             let nx, ny, nz, q;
 
             if (s.tileZoom === b.tileZoom) {
-                const i_b = s_gs1 - i_a;
+                const oppositeSide = s.opside[side],
+                    step_a = _V[side] ? s_gs : 1,
+                    start_a = _V[side] ? s_gs1 * _S[side] : s_gs1 * _S[side] * s_gs,
+                    flip = SIDEFLIP[side][oppositeSide];
 
-                if (_V[side]) {
-                    for (let k = 0; k < s_gs; k++) {
-                        let vInd_a = (k * s_gs + i_a) * 3,
-                            vInd_b = (k * s_gs + i_b) * 3;
+                let step_b = _V[oppositeSide] ? s_gs : 1,
+                    start_b = _V[oppositeSide] ? s_gs1 * _S[oppositeSide] : s_gs1 * _S[oppositeSide] * s_gs;
 
-                        nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
-                        ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
-                        nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
+                if (flip) {
+                    start_b += s_gs1 * step_b;
+                    step_b = -step_b;
+                }
 
-                        q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+                for (let k = 0; k < s_gs; k++) {
+                    let vInd_a = (start_a + k * step_a) * 3,
+                        vInd_b = (start_b + k * step_b) * 3;
 
-                        seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
-                        seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
-                        seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
-                    }
-                } else {
-                    for (let k = 0; k < s_gs; k++) {
-                        let vInd_a = (i_a * s_gs + k) * 3,
-                            vInd_b = (i_b * s_gs + k) * 3;
+                    nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
+                    ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
+                    nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
-                        nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
-                        ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
-                        nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
+                    q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
-                        q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-
-                        seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
-                        seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
-                        seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
-                    }
+                    seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
+                    seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
+                    seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
                 }
 
                 s._appliedNeighborsZoom[side] = b.tileZoom;
                 s._appliedNeighborsZoomNodeId[side] = n.nodeId;
 
-                const oppositeSide = OPSIDE[side];
                 if (
                     !b._inTheQueue &&
                     (b._appliedNeighborsZoom[oppositeSide] !== s.tileZoom ||
@@ -1636,21 +1498,28 @@ class Segment {
         this._extentLonLat = this._extent.inverseMercator();
     }
 
-    protected _createExtentNormals() {
+    /**
+     * Returns the SW, NW, NE and SE corners of the segment on the ellipsoid.
+     */
+    protected _getExtentCorners(): [Vec3, Vec3, Vec3, Vec3] {
         const ellipsoid = this.planet.ellipsoid;
         const extent = this._extentLonLat;
 
-        const coord_sw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat);
-        const coord_ne = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
+        return [
+            ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat),
+            ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat),
+            ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat),
+            ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat)
+        ];
+    }
 
-        const coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
+    protected _createExtentNormals() {
+        const [sw, nw, ne, se] = this._getExtentCorners();
 
-        const coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
-
-        this._sw.copy(coord_sw);
-        this._nw.copy(coord_nw);
-        this._ne.copy(coord_ne);
-        this._se.copy(coord_se);
+        this._sw.copy(sw);
+        this._nw.copy(nw);
+        this._ne.copy(ne);
+        this._se.copy(se);
     }
 
     public createBoundsByExtent() {
@@ -1834,14 +1703,8 @@ class Segment {
      * Creates the plain segment box center and half diagonal, the LOD volume without terrain.
      */
     public _createPlainBounds() {
-        const e = this.planet.ellipsoid;
-        const ext = this._extentLonLat;
-
         // Coordinates are monotonic along the tile sides from zoom 2, so the corners span the plain box
-        const sw = e.geodeticToCartesian(ext.southWest.lon, ext.southWest.lat),
-            nw = e.geodeticToCartesian(ext.southWest.lon, ext.northEast.lat),
-            ne = e.geodeticToCartesian(ext.northEast.lon, ext.northEast.lat),
-            se = e.geodeticToCartesian(ext.northEast.lon, ext.southWest.lat);
+        const [sw, nw, ne, se] = this._getExtentCorners();
 
         const xmin = Math.min(sw.x, nw.x, ne.x, se.x),
             ymin = Math.min(sw.y, nw.y, ne.y, se.y),
@@ -1918,7 +1781,7 @@ class Segment {
     }
 
     protected _assignTileIndexes() {
-        this._tileGroup = TILEGROUP_COMMON;
+        this.tileGroup = TILEGROUP_COMMON;
 
         const tileZoom = this.tileZoom;
         const extent = this._extent;
@@ -1937,7 +1800,7 @@ class Segment {
         this.tileYN = this.tileY - 1;
         this.tileYS = this.tileY + 1;
 
-        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom, this._tileGroup);
+        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom, this.tileGroup);
     }
 
     public initialize() {
