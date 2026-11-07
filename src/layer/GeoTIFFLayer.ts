@@ -694,14 +694,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._activeRequestsCount++;
 
         this._reader
-            .readTileRasters(
-                seg.getExtentLonLat(),
-                seg.tileZoom,
-                this._tileSize,
-                this._readSamples.slice(),
-                seg._projection,
-                seg
-            )
+            .readTileRasters(seg, this._tileSize, this._readSamples.slice())
             .then((tileData) => {
                 this._activeRequestsCount--;
 

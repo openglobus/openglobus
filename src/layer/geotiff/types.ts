@@ -1,7 +1,6 @@
 import type { IBaseTileMaterialLayerParams } from "../BaseTileMaterialLayer";
 import type { Pool, TypedArray } from "geotiff";
 import type { Extent } from "../../Extent";
-import type { Proj } from "../../proj/Proj";
 import type { Segment } from "../../segment/Segment";
 
 export type ColorScaleName =
@@ -213,14 +212,7 @@ export interface IGeoTIFFReader {
      */
     setRenderOptions(renderOptions: IGeoTIFFRenderOptions): void;
 
-    readTileRasters(
-        tileExtentLonLat: Extent,
-        zoomLevel: number,
-        tileSize?: number,
-        readSamples?: number[],
-        segmentProj?: Proj,
-        segment?: Segment
-    ): Promise<DecodedTileData | null>;
+    readTileRasters(segment: Segment, tileSize?: number, readSamples?: number[]): Promise<DecodedTileData | null>;
 
     destroy(): void;
 }

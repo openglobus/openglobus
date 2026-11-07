@@ -122,7 +122,7 @@ class GeoTiffTerrain extends ProceduralTerrain {
         }
 
         return this._reader
-            .readTileRasters(extent, segment.tileZoom, this._sampleSize, this._samples, segment._projection, segment)
+            .readTileRasters(segment, this._sampleSize, this._samples)
             .then((data) => data && data.rasters[0]);
     }
 }
