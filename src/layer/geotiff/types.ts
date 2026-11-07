@@ -2,6 +2,7 @@ import type { IBaseTileMaterialLayerParams } from "../BaseTileMaterialLayer";
 import type { Pool, TypedArray } from "geotiff";
 import type { Extent } from "../../Extent";
 import type { Proj } from "../../proj/Proj";
+import type { Segment } from "../../segment/Segment";
 
 export type ColorScaleName =
     | "viridis"
@@ -217,7 +218,8 @@ export interface IGeoTIFFReader {
         zoomLevel: number,
         tileSize?: number,
         readSamples?: number[],
-        segmentProj?: Proj
+        segmentProj?: Proj,
+        segment?: Segment
     ): Promise<DecodedTileData | null>;
 
     destroy(): void;

@@ -1867,7 +1867,14 @@ class Segment {
         this.readyToEngage = true;
     }
 
-    protected _projToDeg(lon: number, lat: number): LonLat {
+    /**
+     * Returns the geodetic coordinates of the native point.
+     * @public
+     * @param {number} lon - Native longitude.
+     * @param {number} lat - Native latitude.
+     * @returns {LonLat} -
+     */
+    public getLonLat(lon: number, lat: number): LonLat {
         return LonLat.inverseMercator(lon, lat);
     }
 
@@ -1913,9 +1920,7 @@ class Segment {
             let j = k % gs,
                 i = ~~(k / gs);
 
-            let v = this.planet.ellipsoid.lonLatToCartesian(
-                this._projToDeg(esw_lon + j * llStep, ene_lat - i * ltStep)
-            );
+            let v = this.planet.ellipsoid.lonLatToCartesian(this.getLonLat(esw_lon + j * llStep, ene_lat - i * ltStep));
 
             let nx = v.x * r2.x,
                 ny = v.y * r2.y,

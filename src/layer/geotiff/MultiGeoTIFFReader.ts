@@ -14,6 +14,7 @@ import type {
     IGeoTIFFRenderOptions,
     IGeoTIFFSourceItem
 } from "./types";
+import type { Segment } from "../../segment/Segment";
 
 /**
  * Maps a global band of the stacked layer onto a band of one source.
@@ -262,7 +263,8 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
         zoomLevel: number,
         tileSize: number = 256,
         readSamples?: number[],
-        segmentProj: Proj = EPSG3857
+        segmentProj: Proj = EPSG3857,
+        segment?: Segment
     ): Promise<DecodedTileData | null> {
         if (this._destroyed || !this.isReady || this.childReaders.length === 0) {
             return null;
@@ -276,8 +278,22 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
 
         try {
             return this.options.mosaic
-                ? await this._readMosaicTileRasters(tileExtentLonLat, zoomLevel, tileSize, readSamples, segmentProj)
-                : await this._readMultiBandTileRasters(tileExtentLonLat, zoomLevel, tileSize, readSamples, segmentProj);
+                ? await this._readMosaicTileRasters(
+                      tileExtentLonLat,
+                      zoomLevel,
+                      tileSize,
+                      readSamples,
+                      segmentProj,
+                      segment
+                  )
+                : await this._readMultiBandTileRasters(
+                      tileExtentLonLat,
+                      zoomLevel,
+                      tileSize,
+                      readSamples,
+                      segmentProj,
+                      segment
+                  );
         } finally {
             this._activeReads--;
             if (this._destroyed && this._activeReads === 0) {
@@ -291,7 +307,8 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
         zoomLevel: number,
         tileSize: number,
         readSamples?: number[],
-        segmentProj: Proj = EPSG3857
+        segmentProj: Proj = EPSG3857,
+        segment?: Segment
     ): Promise<DecodedTileData | null> {
         const samplesToRead =
             readSamples && readSamples.length > 0 ? readSamples : this._bandMappings.map((_, idx) => idx);
@@ -326,7 +343,7 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
 
             readPromises.push(
                 reader
-                    .readTileRasters(tileExtentLonLat, zoomLevel, tileSize, localSamples, segmentProj)
+                    .readTileRasters(tileExtentLonLat, zoomLevel, tileSize, localSamples, segmentProj, segment)
                     .then((tileData) => {
                         sourceResults.set(sourceIndex, { localSamples, tileData });
                     })
@@ -395,7 +412,8 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
         zoomLevel: number,
         tileSize: number,
         readSamples?: number[],
-        segmentProj: Proj = EPSG3857
+        segmentProj: Proj = EPSG3857,
+        segment?: Segment
     ): Promise<DecodedTileData | null> {
         const overlappingIndices: number[] = [];
         for (let i = 0; i < this.childReaders.length; i++) {
@@ -411,7 +429,7 @@ export class MultiGeoTIFFReader implements IGeoTIFFReader {
         const results = await Promise.all(
             overlappingIndices.map((idx) =>
                 this.childReaders[idx]
-                    .readTileRasters(tileExtentLonLat, zoomLevel, tileSize, readSamples, segmentProj)
+                    .readTileRasters(tileExtentLonLat, zoomLevel, tileSize, readSamples, segmentProj, segment)
                     .catch(() => null)
             )
         );

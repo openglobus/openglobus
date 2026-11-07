@@ -177,7 +177,7 @@ test("GeoTiffTerrain reads sampleSize pixels of the band in the segment projecti
     await terrain.whenReady();
 
     expect(await terrain._readHeights(segment)).toBe(pixels);
-    expect(read).toHaveBeenCalledWith(extent, 9, 64, [1], projection);
+    expect(read).toHaveBeenCalledWith(extent, 9, 64, [1], projection, segment);
 
     // Out of the GeoTIFF
     expect(await terrain._readHeights(segment)).toBe(null);

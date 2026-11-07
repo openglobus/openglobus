@@ -24,14 +24,7 @@ class SegmentCube extends Segment {
         this._projection = quadTreeStrategy.projection as CubeProj;
     }
 
-    /**
-     * Returns the geodetic coordinates of the native point.
-     * @public
-     * @param {number} lon - Native longitude.
-     * @param {number} lat - Native latitude.
-     * @returns {LonLat} -
-     */
-    public getLonLat(lon: number, lat: number): LonLat {
+    public override getLonLat(lon: number, lat: number): LonLat {
         return this._projection.toLonLat(lon, lat, this.tileGroup);
     }
 
@@ -122,10 +115,6 @@ class SegmentCube extends Segment {
 
     public override isLonLatInside(lonLat: LonLat): boolean {
         return this._extent.isInside(this._projection.fromLonLat(lonLat));
-    }
-
-    protected override _projToDeg(lon: number, lat: number): LonLat {
-        return this.getLonLat(lon, lat);
     }
 
     protected override _getExtentCorners(): [Vec3, Vec3, Vec3, Vec3] {

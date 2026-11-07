@@ -357,7 +357,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             if (!seg) continue;
 
             const mat = seg.materials[lid];
-            const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
+            const cacheKey = seg.tileIndex;
             renderedKeys.add(cacheKey);
 
             const tileData = this._rasterCache.get(cacheKey);
@@ -395,7 +395,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                     }
                     if (mat.isReady && mat.texture) {
                         const seg = mat.segment;
-                        const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
+                        const cacheKey = seg.tileIndex;
                         if (!renderedKeys.has(cacheKey)) {
                             const cached = this._tileCache.get(cacheKey);
                             if (cached) {
@@ -585,7 +585,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             return;
         }
 
-        const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
+        const cacheKey = seg.tileIndex;
 
         material.isReady = false;
         material.isLoading = true;
@@ -643,7 +643,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             if (!pending) break;
 
             const seg = pending.material.segment;
-            const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
+            const cacheKey = seg.tileIndex;
 
             const image = this._getCachedTileImage(cacheKey);
 
@@ -699,7 +699,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                 seg.tileZoom,
                 this._tileSize,
                 this._readSamples.slice(),
-                seg._projection
+                seg._projection,
+                seg
             )
             .then((tileData) => {
                 this._activeRequestsCount--;

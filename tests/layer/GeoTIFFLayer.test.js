@@ -356,6 +356,7 @@ describe("GeoTIFFLayer", () => {
                 tileZoom: 5,
                 tileX: 10,
                 tileY: 10,
+                tileIndex: "5_10_10",
                 materials: {
                     [layer.__id]: {
                         isReady: true,
@@ -463,13 +464,15 @@ describe("GeoTIFFLayer cached tile material", () => {
         return layer;
     }
 
-    function createSegment(layer, tileZoom, tileX, tileY, parentNode, deleteTexture) {
+    function createSegment(layer, tileZoom, tileX, tileY, parentNode, deleteTexture, tileGroup = 0) {
         const segment = {
             initialized: true,
             passReady: true,
             tileZoom,
             tileX,
             tileY,
+            tileGroup,
+            tileIndex: tileGroup ? `${tileZoom}_${tileX}_${tileY}_${tileGroup}` : `${tileZoom}_${tileX}_${tileY}`,
             materials: {},
             planet: { transparentTexture: { default: true }, renderer: { requestRedraw: () => {} } },
             handler: { gl: { deleteTexture } },
@@ -494,6 +497,28 @@ describe("GeoTIFFLayer cached tile material", () => {
         expect(material.textureExists).toBe(true);
         expect(material.texOffset).toEqual([0, 0, 1, 1]);
         expect(layer.applyMaterial(material)).toEqual([0, 0, 1, 1]);
+    });
+
+    it("doesn't take the cached tile of another tile group with the same indexes", async () => {
+        const layer = createLayer(false);
+        const read = vi.spyOn(layer._reader, "readTileRasters").mockResolvedValue(null);
+        layer._reader.extentWgs84 = new Extent(new LonLat(-180, -90), new LonLat(180, 90));
+        layer._extent = layer._reader.extentWgs84;
+
+        const common = createSegment(layer, 3, 1, 2, null, vi.fn()),
+            pole = createSegment(layer, 3, 1, 2, null, vi.fn(), 20);
+
+        expect(pole.tileIndex).not.toBe(common.tileIndex);
+
+        layer._tileCache.set(common.tileIndex, { image: createImageData(256, 256), renderOptionsVersion: 0 });
+
+        const material = (pole.materials[layer.__id] = new Material(pole, layer));
+        layer.applyMaterial(material);
+        await nextFrame();
+
+        expect(material.textureExists).toBe(false);
+        expect(read).toHaveBeenCalled();
+        expect(read.mock.calls[0][5]).toBe(pole);
     });
 
     it("does not take over the parent texture when the tile is taken from the cache", async () => {
