@@ -609,17 +609,6 @@ class Segment {
     }
 
     /**
-     * Returns the tile index along the side: from west to east along the N and S sides, from north to south along
-     * the E and W ones.
-     * @public
-     * @param {number} side - Side index.
-     * @returns {number} -
-     */
-    public getSidePosition(side: number): number {
-        return side === N || side === S ? this.tileX : this.tileY;
-    }
-
-    /**
      * Returns distance from object to terrain coordinates and terrain point that calculates out in the res parameter.
      * @public
      * @param {Vec3} xyz - Cartesian object position.
@@ -1018,25 +1007,30 @@ class Segment {
             ownerCorner = hCorner;
         }
 
-        // The tile across the point. The corner of a cube has three tiles, there it is the other neighbor.
-        if (v) {
-            const next = CORNERSIDE[this.opside[vSide]][vCorner],
-                d = v.getCornerNeighbor(next, vCorner);
+        // The tile across the point, round it by v or, when v gives none, by h. The corner of a cube has three
+        // tiles, there it is the other neighbor.
+        let d: Node | null | undefined = null,
+            dCorner = 0;
 
-            if (d && d.segment._isCornerOwnerOver(owner)) {
-                owner = d.segment;
-                ownerCorner = v.getNeighborCorner(next, vCorner);
+        if (v) {
+            const next = CORNERSIDE[this.opside[vSide]][vCorner];
+            d = v.getCornerNeighbor(next, vCorner);
+            if (d) {
+                dCorner = v.getNeighborCorner(next, vCorner);
             }
         }
 
-        if (h) {
-            const next = CORNERSIDE[this.opside[hSide]][hCorner],
-                d = h.getCornerNeighbor(next, hCorner);
-
-            if (d && d.segment._isCornerOwnerOver(owner)) {
-                owner = d.segment;
-                ownerCorner = h.getNeighborCorner(next, hCorner);
+        if (!d && h) {
+            const next = CORNERSIDE[this.opside[hSide]][hCorner];
+            d = h.getCornerNeighbor(next, hCorner);
+            if (d) {
+                dCorner = h.getNeighborCorner(next, hCorner);
             }
+        }
+
+        if (d && d.segment._isCornerOwnerOver(owner)) {
+            owner = d.segment;
+            ownerCorner = dCorner;
         }
 
         if (owner !== this) {
@@ -1064,10 +1058,10 @@ class Segment {
         }
 
         const opcs = this.opside[side],
-            pos = (this.getSidePosition(side) + NOPSORD[side][corner]) / (1 << (this.tileZoom - ns.tileZoom)),
+            pos = ((side & 1 ? this.tileY : this.tileX) + NOPSORD[side][corner]) / (1 << (this.tileZoom - ns.tileZoom)),
             n_gs = ns.gridSize,
             n_gsOne = n_gs + 1,
-            u = ((SIDEFLIP[side][opcs] ? ns.powTileZoom - pos : pos) - ns.getSidePosition(opcs)) * n_gs,
+            u = ((SIDEFLIP[side][opcs] ? ns.powTileZoom - pos : pos) - (opcs & 1 ? ns.tileY : ns.tileX)) * n_gs,
             nk = Math.floor(u),
             f = u - nk;
 

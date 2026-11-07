@@ -24,7 +24,6 @@ import {
     ROOTPART,
     S,
     SE,
-    SIDE_CORNER,
     SIDEFLIP,
     SW,
     W,
@@ -1180,14 +1179,16 @@ class Node {
         const list = this.neighbors[side],
             seg = this.segment,
             far = NOPSORD[side][corner],
-            pos = seg.getSidePosition(side) + far,
+            // The tile index along the side: x along the N and S sides, y along the E and W ones
+            pos = (side & 1 ? seg.tileY : seg.tileX) + far,
             opcs = seg.opside[side],
             flip = SIDEFLIP[side][opcs];
 
         for (let i = 0; i < list.length; i++) {
             const n = list[i],
                 ns = n.segment,
-                nPos = (flip ? ns.powTileZoom - 1 - ns.getSidePosition(opcs) : ns.getSidePosition(opcs)) + far,
+                nIndex = opcs & 1 ? ns.tileY : ns.tileX,
+                nPos = (flip ? ns.powTileZoom - 1 - nIndex : nIndex) + far,
                 dz = ns.tileZoom - seg.tileZoom;
 
             if (dz >= 0) {
@@ -1210,10 +1211,7 @@ class Node {
      * @returns {number} -
      */
     public getNeighborCorner(side: number, corner: number): number {
-        const far = NOPSORD[side][corner],
-            opcs = this.segment.opside[side];
-
-        return SIDE_CORNER[opcs][SIDEFLIP[side][opcs] ? 1 - far : far];
+        return ROOTPART[side][this.segment.opside[side]][corner];
     }
 
     public getOffsetOppositeNeighbourSide(neighbourNode: Node, side: number): number {

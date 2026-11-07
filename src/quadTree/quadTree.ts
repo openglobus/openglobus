@@ -87,8 +87,8 @@ export const SIDEFLIP = [
 ];
 
 /**
- * The part of a root behind the part on its side. First index is the side, second is the side of the neighbor root,
- * third is the part.
+ * The part of a root behind the part on its side, and the corner of a neighbor behind the corner on the side, as parts
+ * and corners have the same indexes. First index is the side, second is the side of the neighbor, third is the part.
  */
 export const ROOTPART = [N, E, S, W].map((side) =>
     [N, E, S, W].map((neighborSide) =>
