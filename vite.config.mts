@@ -1,9 +1,7 @@
 import path from "node:path";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import terser from "@rollup/plugin-terser";
 import { viteStaticCopy } from "vite-plugin-static-copy";
-import forceTerserPlugin from "./vite-plugin-force-terser.js";
 import glsl from "vite-plugin-glsl";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,9 +26,16 @@ export default function ({ mode }: { mode: "development" | "production" }) {
         build: {
             minify: !isDev,
             lib: {
-                entry: ["./src/index.ts"],
+                entry: {
+                    index: "./src/index.ts",
+                    core: "./src/core.ts",
+                    terrain: "./src/terrain.ts",
+                    renderer: "./src/renderer.ts",
+                    controls: "./src/controls.ts"
+                },
                 name: "og",
-                fileName: (format) => `og.${format}.js`,
+                fileName: (format: string, entryName: string) =>
+                    entryName === "index" ? "og.es.js" : `${entryName}.js`,
                 formats: ["es"],
                 cssFileName: "og"
             },
@@ -40,20 +45,8 @@ export default function ({ mode }: { mode: "development" | "production" }) {
             rollupOptions: {
                 output: {
                     assetFileNames: `[name][extname]`,
-                    sourcemapExcludeSources: !isDev,
-                    codeSplitting: false
-                },
-                plugins: !isDev
-                    ? [
-                          terser({
-                              compress: true,
-                              mangle: true,
-                              format: {
-                                  comments: false
-                              }
-                          })
-                      ]
-                    : [] // important no plugins for development mode
+                    sourcemapExcludeSources: !isDev
+                }
             }
         },
         plugins: [
@@ -68,8 +61,6 @@ export default function ({ mode }: { mode: "development" | "production" }) {
                 watch: true,
                 root: "/"
             }),
-            // this works for esm modules
-            !isDev && forceTerserPlugin({ filePath: "./lib/og.es.js" }),
             viteStaticCopy({
                 targets: [
                     {
