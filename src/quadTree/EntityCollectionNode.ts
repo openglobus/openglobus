@@ -353,6 +353,11 @@ class EntityCollectionNode {
     }
 
     public alignEntityToTheGround(entity: Entity, segment: Segment) {
+        // A tile with no terrain yet keeps the entity where it is
+        if (!segment.renderVertices || !segment.renderVertices.length) {
+            return;
+        }
+
         let res = new Vec3();
         segment.getEntityTerrainPoint(entity, res);
         let alt = (Number(this.layer.relativeToGround) && entity._altitude) || 0.0;

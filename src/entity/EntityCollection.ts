@@ -20,9 +20,13 @@ import { PolylineHandler } from "./polyline/PolylineHandler";
 import { RayHandler } from "./ray/RayHandler";
 import { Scene } from "../scene/Scene";
 import type { Node } from "../quadTree/Node";
+import type { Segment } from "../segment/Segment";
 import { StripHandler } from "./strip/StripHandler";
 import type { Vector } from "../layer/Vector";
 import { normalizeShadeMode, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "../shadeModeConstants";
+
+// A clamped point that moves less than this, in squared meters, keeps its position and its buffers
+const CLAMP_EPSILON2 = 1e-8;
 
 export type EntityCollectionEvents = EventsHandler<EntityCollectionEventList>;
 
@@ -522,8 +526,25 @@ class EntityCollection {
         }
 
         const rtg = Number(layer.relativeToGround);
+        const ellipsoid = layer._planet.ellipsoid;
         const res = new Vec3();
         const entities = this._entities;
+
+        let proj: Proj = EPSG3857,
+            ll: LonLat | undefined,
+            lonLat: LonLat | number[] | undefined;
+
+        const isInside = (seg: Segment): boolean => {
+            if (seg._projection !== proj) {
+                proj = seg._projection;
+                ll = lonLat
+                    ? seg.projectNative(lonLat instanceof LonLat ? lonLat : new LonLat(lonLat[0], lonLat[1]))
+                    : undefined;
+            }
+            return !!ll && seg._extent.isInside(ll);
+        };
+
+        let lastSeg: Segment | null = null;
         let i = entities.length;
 
         while (i--) {
@@ -541,8 +562,6 @@ class EntityCollection {
             const cartPaths = p.getPath3v() as Vec3[][];
             const alt = (rtg && p.altitude) || entity._altitude || 0.0;
 
-            // A point is taken in the projection of the tile: the Mercator one is ready, the others are found when
-            // a tile of another projection comes, the polar caps of the Earth or the cube faces
             let seg_i = Math.min(mercPaths.length, cartPaths.length);
             while (seg_i--) {
                 const mercSeg = mercPaths[seg_i];
@@ -555,29 +574,35 @@ class EntityCollection {
                     const cart = cartSeg[point_i];
                     if (!cart) continue;
 
-                    let proj: Proj = EPSG3857,
-                        ll: LonLat | undefined = mercSeg[point_i];
+                    proj = EPSG3857;
+                    ll = mercSeg[point_i];
+                    lonLat = lonLatSeg && (lonLatSeg[point_i] as LonLat | number[] | undefined);
+
+                    let seg: Segment | null = lastSeg && isInside(lastSeg) ? lastSeg : null;
 
                     let n_k = nodes.length;
-                    while (n_k--) {
-                        const seg = nodes[n_k].segment;
-                        if (seg._projection !== proj) {
-                            proj = seg._projection;
-                            const point = lonLatSeg && lonLatSeg[point_i];
-                            ll = point
-                                ? seg.projectNative(point instanceof LonLat ? point : new LonLat(point[0], point[1]))
-                                : undefined;
+                    while (!seg && n_k--) {
+                        const s = nodes[n_k].segment;
+                        if (s !== lastSeg && isInside(s)) {
+                            seg = s;
                         }
-                        if (ll && seg._extent.isInside(ll)) {
-                            seg.getTerrainPoint(cart, ll, res);
-                            if (alt) {
-                                const n = layer._planet!.ellipsoid.getSurfaceNormal3v(res);
-                                p.setPoint3v(res.addA(n.scale(alt)), point_i, seg_i, true);
-                            } else {
-                                p.setPoint3v(res, point_i, seg_i, true);
-                            }
-                            break;
-                        }
+                    }
+
+                    if (!seg) continue;
+
+                    lastSeg = seg;
+
+                    // A tile with no terrain yet keeps the point where it is, it goes down when the terrain comes
+                    if (!seg.renderVertices || !seg.renderVertices.length) continue;
+
+                    seg.getTerrainPoint(cart, ll!, res);
+
+                    if (alt) {
+                        res.addA(ellipsoid.getSurfaceNormal3v(res).scale(alt));
+                    }
+
+                    if (res.distance2(cart) > CLAMP_EPSILON2) {
+                        p.setPoint3v(res, point_i, seg_i, true);
                     }
                 }
             }

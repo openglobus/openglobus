@@ -63,6 +63,7 @@ export function getTileGroupByLat(lat: number, maxLat: number = MAX_LAT): number
 }
 
 let _tempHigh = new Vec3();
+const _lonLat = new LonLat();
 let _tempLow = new Vec3();
 
 let _v0 = new Vec3(),
@@ -613,8 +614,9 @@ class Segment {
      * @public
      * @param {Vec3} xyz - Cartesian object position.
      * @param {LonLat} insideSegmentPosition - Geodetic object position.
-     * @param {Vec3} [res] - Result cartesian coordinates on the terrain.
-     * @returns {number} -
+     * @param {Vec3} [res] - Result cartesian coordinates on the terrain, on the ellipsoid when the segment has no
+     * vertices yet.
+     * @returns {number} - Distance along the ellipsoid normal, negative when the object is below the terrain.
      */
     public getTerrainPoint(xyz: Vec3, insideSegmentPosition: LonLat, res: Vec3): number {
         let verts = this.renderVertices;
@@ -710,13 +712,11 @@ class Segment {
 
             return this._terrainPointResult(res, d === Ray.AWAY ? -1 : 1);
         } else {
-            let norm = this.planet.ellipsoid.getSurfaceNormal3v(xyz);
-            _ray.set(xyz, norm.negateTo());
-            const hit = this.planet.ellipsoid.hitRay(_ray.origin, _ray.direction);
-            if (!hit) {
-                return 0;
-            }
-            return xyz.distance(hit);
+            // No terrain yet, the ground is the ellipsoid under the object
+            const ellipsoid = this.planet.ellipsoid,
+                lonLat = ellipsoid.cartesianToLonLatRes(xyz, _lonLat);
+            ellipsoid.geodeticToCartesian(lonLat.lon, lonLat.lat, 0, res);
+            return lonLat.height;
         }
     }
 
