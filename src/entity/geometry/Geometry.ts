@@ -184,6 +184,8 @@ class Geometry {
     // Polygon
     public _polyVerticesHighMerc: number[];
     public _polyVerticesLowMerc: number[];
+    public _polyDirectionsHigh: number[];
+    public _polyDirectionsLow: number[];
     public _polyVerticesLength: number;
     public _polyIndexesLength: number;
     public _polyVerticesHandlerIndex: number;
@@ -192,6 +194,8 @@ class Geometry {
     // Line(Linestring and polygon's stroke(s)
     public _lineVerticesHighMerc: number[];
     public _lineVerticesLowMerc: number[];
+    public _lineDirectionsHigh: number[];
+    public _lineDirectionsLow: number[];
     public _lineVerticesLength: number;
     public _lineOrdersLength: number;
     public _lineIndexesLength: number;
@@ -219,6 +223,8 @@ class Geometry {
 
         this._polyVerticesHighMerc = [];
         this._polyVerticesLowMerc = [];
+        this._polyDirectionsHigh = [];
+        this._polyDirectionsLow = [];
         this._polyVerticesLength = -1;
         this._polyIndexesLength = -1;
         this._polyVerticesHandlerIndex = -1;
@@ -226,6 +232,8 @@ class Geometry {
 
         this._lineVerticesHighMerc = [];
         this._lineVerticesLowMerc = [];
+        this._lineDirectionsHigh = [];
+        this._lineDirectionsLow = [];
         this._lineVerticesLength = -1;
         this._lineOrdersLength = -1;
         this._lineIndexesLength = -1;

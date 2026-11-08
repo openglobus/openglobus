@@ -122,6 +122,16 @@ export class CubeProj extends Proj {
     }
 
     /**
+     * Returns the coordinate on the plane of a face, from -1 to 1, of the position on it, from 0 to 1.
+     * @public
+     * @param {number} position - Position on the face.
+     * @returns {number} -
+     */
+    public toPlane(position: number): number {
+        return this._toPlane(position);
+    }
+
+    /**
      * Returns the geodetic coordinates of the point on the cube. The direction of the cube point is the surface
      * normal of the ellipsoid in it.
      * @public

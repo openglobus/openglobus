@@ -1,0 +1,229 @@
+<html>
+<head>
+    <title>OpenGlobus - Cube geometry</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../../lib/og.css" type="text/css" />
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        #places {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
+<div id="places"></div>
+<script type="module" id="og-sandbox-script">
+    import {
+        CanvasTiles,
+        CubeQuadTreeStrategy,
+        Entity,
+        EquiangularCubeQuadTreeStrategy,
+        Extent,
+        Globe,
+        LonLat,
+        Vector,
+        control
+    } from "../../lib/og.es.js";
+
+    // The equiangular cube, or the common one with ?gnomonic in the url
+    const GNOMONIC = new URLSearchParams(location.search).has("gnomonic");
+
+    const FACE_COLORS = ["#e6e6e6", "#d9534f", "#5cb85c", "#428bca", "#f0ad4e", "#6f5499"];
+
+    const tiles = new CanvasTiles("Cube tiles", {
+        isBaseLayer: true,
+        drawTile: (material, applyCanvas) => {
+            const { tileGroup, tileX, tileY, tileZoom } = material.segment,
+                canvas = document.createElement("canvas");
+
+            canvas.width = canvas.height = 256;
+
+            const ctx = canvas.getContext("2d");
+
+            ctx.fillStyle = FACE_COLORS[tileGroup];
+            ctx.fillRect(0, 0, 256, 256);
+
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, 256, 256);
+
+            ctx.fillStyle = "black";
+            ctx.font = "bold 28px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(`face ${tileGroup}`, 128, 110);
+            ctx.fillText(`${tileZoom} / ${tileX} / ${tileY}`, 128, 150);
+
+            applyCanvas(canvas);
+        }
+    });
+
+    const circle = (lon, lat, r, n = 48) =>
+        Array.from({ length: n }, (_, i) => {
+            const a = (i / n) * 2 * Math.PI;
+            return [lon + r * Math.cos(a), lat + r * Math.sin(a)];
+        });
+
+    const rect = (w, s, e, n) => [
+        [w, s],
+        [e, s],
+        [e, n],
+        [w, n]
+    ];
+
+    const style = (fillColor) => ({ fillColor, lineColor: [0, 0, 0, 1], lineWidth: 3 });
+
+    const grid = (w, s, e, n, step) => {
+        const lines = [];
+        for (let lon = w; lon <= e; lon += step) lines.push([[lon, s], [lon, n]]);
+        for (let lat = s; lat <= n; lat += step) lines.push([[w, lat], [e, lat]]);
+        return lines;
+    };
+
+    // The places where a geometry goes over the edges of the faces, with the extent to look at it
+    const PLACES = [
+        {
+            name: "Over the front and right faces",
+            extent: [36, -8, 54, 8],
+            geometry: {
+                type: "POLYGON",
+                coordinates: [rect(40, -5, 50, 5), rect(43, -2, 47, 2)],
+                style: style("rgba(255,64,64,0.6)")
+            }
+        },
+        {
+            name: "Cube corner of three faces",
+            extent: [37, 28, 53, 42],
+            geometry: {
+                type: "POLYGON",
+                coordinates: [circle(45, 35.26, 4)],
+                style: style("rgba(255,200,0,0.6)")
+            }
+        },
+        {
+            name: "Grid at the cube corner",
+            extent: [33, 23, 57, 47],
+            geometry: {
+                type: "MULTILINESTRING",
+                coordinates: grid(35, 25, 55, 45, 2),
+                style: { lineColor: [1, 1, 1, 1], lineWidth: 2 }
+            }
+        },
+        {
+            name: "Near the north pole",
+            extent: [-40, 75, 40, 89],
+            geometry: {
+                type: "POLYGON",
+                coordinates: [rect(-30, 78, 30, 86)],
+                style: style("rgba(0,200,255,0.6)")
+            }
+        },
+        {
+            name: "Over the antimeridian",
+            extent: [165, 5, 195, 25],
+            geometry: {
+                type: "POLYGON",
+                coordinates: [rect(170, 10, 190, 20)],
+                style: style("rgba(160,255,0,0.6)")
+            }
+        },
+        {
+            name: "A large polygon",
+            extent: [-30, -50, 30, 0],
+            geometry: {
+                type: "POLYGON",
+                coordinates: [rect(-20, -40, 20, -10)],
+                style: style("rgba(255,0,200,0.4)")
+            }
+        },
+        {
+            name: "A line over the faces",
+            extent: [25, -15, 125, 50],
+            geometry: {
+                type: "LINESTRING",
+                coordinates: [
+                    [30, 0],
+                    [45, 10],
+                    [60, -5],
+                    [90, 40],
+                    [120, 30]
+                ],
+                style: { lineColor: [1, 1, 0, 1], lineWidth: 5 }
+            }
+        },
+        {
+            name: "Ten meters on the face edge",
+            extent: [44.9998, -0.0002, 45.0002, 0.0002],
+            geometry: {
+                type: "POLYGON",
+                coordinates: [rect(44.99995, -0.00005, 45.00005, 0.00005)],
+                style: style("rgba(255,255,255,0.8)")
+            }
+        }
+    ];
+
+    const layer = new Vector("Geometries", {
+        pickingEnabled: true,
+        entities: PLACES.map(
+            (place) =>
+                new Entity({
+                    properties: { name: place.name, lineColor: place.geometry.style.lineColor },
+                    geometry: place.geometry
+                })
+        )
+    });
+
+    layer.events.on("mouseenter", (e) => {
+        e.pickingObject.geometry.setLineColor(1, 0.4, 0, 1);
+        e.renderer.handler.canvas.style.cursor = "pointer";
+    });
+
+    layer.events.on("mouseleave", (e) => {
+        e.pickingObject.geometry.setLineColor(...e.pickingObject.properties.lineColor);
+        e.renderer.handler.canvas.style.cursor = "default";
+    });
+
+    window.globus = new Globe({
+        target: "globus",
+        name: "Cube geometry",
+        quadTreeStrategyPrototype: GNOMONIC ? CubeQuadTreeStrategy : EquiangularCubeQuadTreeStrategy,
+        layers: [tiles, layer],
+        atmosphereEnabled: false,
+        nightTextureSrc: null,
+        specularTextureSrc: null
+    });
+
+    const places = document.getElementById("places");
+
+    PLACES.forEach((place) => {
+        const button = document.createElement("button");
+        button.textContent = place.name;
+        button.onclick = () => globus.planet.flyExtent(Extent.createFromArray(place.extent));
+        places.appendChild(button);
+    });
+
+    const hide = document.createElement("button");
+    hide.textContent = "Hide / show the red polygon";
+    hide.onclick = () => {
+        const g = layer.getEntities()[0].geometry;
+        g.setVisibility(!g.getVisibility());
+    };
+    places.appendChild(hide);
+
+    globus.planet.addControl(new control.LayerSwitcher());
+    globus.planet.addControl(new control.ToggleWireframe());
+    globus.planet.addControl(new control.DebugInfo());
+</script>
+</body>
+</html>
