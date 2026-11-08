@@ -10,6 +10,7 @@ import { cube, cubeEquiangular } from "../../src/proj/cube";
 import { CubeQuadTreeStrategy, EquiangularCubeQuadTreeStrategy } from "../../src/quadTree/cube/CubeQuadTreeStrategy";
 import { NE, NW, SE, SW } from "../../src/quadTree/quadTree";
 import { STRATEGIES, createStrategy } from "../quadTree/quadTreeScene";
+import { EPSG4326 } from "../../src/proj/EPSG4326";
 import { tileSegment } from "./tileSegment";
 
 // A whole world raster in degrees, its pixels are a tenth of a degree
@@ -178,4 +179,78 @@ test("the pole row of an Earth cap tile keeps its column longitudes", () => {
     }
 
     expect(checked).toBeGreaterThan(0);
+});
+
+describe("GeoTIFF overview of a tile", () => {
+    // A whole world raster of 921600 x 460800 pixels and its overviews down by 2 to 256 times smaller
+    const OVERVIEWS = 9;
+
+    function createPyramidReader() {
+        const reader = createReader();
+        reader.images = Array.from({ length: OVERVIEWS }, (_, k) => ({
+            getWidth: () => 921600 / 2 ** k,
+            getHeight: () => 460800 / 2 ** k
+        }));
+        return reader;
+    }
+
+    const windowPixels = (reader, grid, index) =>
+        (Math.min(grid.uMax, 1) - Math.max(grid.uMin, 0)) *
+        reader.images[index].getWidth() *
+        (Math.min(grid.vMax, 1) - Math.max(grid.vMin, 0)) *
+        reader.images[index].getHeight();
+
+    const BUDGET = 16 * 256 * 256;
+
+    test.each([
+        ["gnomonic", CubeQuadTreeStrategy],
+        ["equiangular", EquiangularCubeQuadTreeStrategy]
+    ])("a %s cube tile with the pole in its corner takes the resolution of the rows", (_, Strategy) => {
+        const reader = createPyramidReader();
+
+        for (const zoom of [3, 4, 5, 6, 8]) {
+            // Down to the north pole, the center of the top face
+            const segment = getSegment(Strategy, 0, [NW, ...Array(zoom - 1).fill(SE)]),
+                grid = reader._createTileGrid(segment, 256),
+                index = reader._selectOverviewIndex(grid, 256);
+
+            // The columns converge at the pole, by them it would be the coarsest overview
+            expect(index).toBeLessThan(OVERVIEWS - 1);
+            expect(windowPixels(reader, grid, index)).toBeLessThanOrEqual(BUDGET);
+        }
+    });
+
+    test("a window larger than the budget takes a coarser overview", () => {
+        const reader = createPyramidReader();
+
+        // One full resolution pixel per tile pixel over a tenth of the raster by each side
+        const u = 256 / 921600,
+            v = 256 / 460800,
+            grid = {
+                gridU: new Float64Array([0, u, 0, u]),
+                gridV: new Float64Array([0, 0, v, v]),
+                gridSize: 1,
+                uMin: 0,
+                uMax: 0.1,
+                vMin: 0,
+                vMax: 0.1
+            };
+
+        const index = reader._selectOverviewIndex(grid, 256);
+
+        expect(index).toBeGreaterThan(0);
+        expect(windowPixels(reader, grid, index)).toBeLessThanOrEqual(BUDGET);
+        expect(windowPixels(reader, grid, index - 1)).toBeGreaterThan(BUDGET);
+    });
+
+    test("a lon/lat tile on a lon/lat raster takes the overview of its pixel size", () => {
+        const reader = createPyramidReader();
+
+        // A 10 degrees tile: 100 full resolution pixels in a tile pixel, the 128 times smaller overview is the
+        // coarsest one under 1.4 of it
+        const extent = new Extent(new LonLat(10, 60), new LonLat(20, 70)),
+            grid = reader._createTileGrid(tileSegment(extent, EPSG4326), 256);
+
+        expect(reader._selectOverviewIndex(grid, 256)).toBe(7);
+    });
 });

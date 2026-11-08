@@ -60,6 +60,9 @@ const BLOCK_CACHE_BYTES = 64 * Math.pow(1024, 2);
 
 const OVERVIEW_RESOLUTION_TOLERANCE = 1.4;
 
+// The most source pixels a tile reads, in tiles, a coarser overview is taken for a larger window
+const READ_BUDGET_TILES = 16;
+
 /**
  * Reading optimization in source pixels. The projected tile edge on a pixel edge lands a bit off it, so
  * the window takes the next pixel row or column, and the next TIFF tiles are read and decoded too.
@@ -718,44 +721,54 @@ export class GeoTIFFReader implements IGeoTIFFReader {
             return 0;
         }
 
-        const { gridU, gridV, gridSize } = grid;
+        const { gridU, gridV, gridSize, uMin, uMax, vMin, vMax } = grid;
         const baseWidth = this.images[0].getWidth();
         const baseHeight = this.images[0].getHeight();
         const side = gridSize + 1;
         const cellSize = tileSize / gridSize;
 
-        // How many full resolution source pixels fall into one tile pixel
+        // How many full resolution source pixels fall into one tile pixel by the shorter axis of its footprint.
+        // Near a pole of a lon/lat raster the columns converge and a tile pixel crosses many of them, the rows
+        // keep the resolution of the data there.
         let density = 0;
-        for (let j = 0; j < side; j++) {
+        for (let j = 0; j < gridSize; j++) {
             for (let i = 0; i < gridSize; i++) {
                 const n = j * side + i;
-                const du = Math.abs(gridU[n + 1] - gridU[n]) * baseWidth;
-                const dv = Math.abs(gridV[n + 1] - gridV[n]) * baseHeight;
-                density = Math.max(density, Math.hypot(du, dv) / cellSize);
-            }
-        }
-        for (let j = 0; j < gridSize; j++) {
-            for (let i = 0; i < side; i++) {
-                const n = j * side + i;
-                const du = Math.abs(gridU[n + side] - gridU[n]) * baseWidth;
-                const dv = Math.abs(gridV[n + side] - gridV[n]) * baseHeight;
-                density = Math.max(density, Math.hypot(du, dv) / cellSize);
+                const au = (gridU[n + 1] - gridU[n]) * baseWidth;
+                const av = (gridV[n + 1] - gridV[n]) * baseHeight;
+                const bu = (gridU[n + side] - gridU[n]) * baseWidth;
+                const bv = (gridV[n + side] - gridV[n]) * baseHeight;
+                const p = au * au + av * av + bu * bu + bv * bv;
+                const d = 2 * Math.abs(au * bv - av * bu);
+                density = Math.max(density, (Math.sqrt(p + d) - Math.sqrt(Math.max(p - d, 0))) / (2 * cellSize));
             }
         }
 
-        if (!(density > 1)) {
-            return 0;
-        }
+        let index = 0;
 
-        const maxFactor = density * OVERVIEW_RESOLUTION_TOLERANCE;
+        if (density > 1) {
+            const maxFactor = density * OVERVIEW_RESOLUTION_TOLERANCE;
 
-        for (let i = this.images.length - 1; i > 0; i--) {
-            if (baseWidth / this.images[i].getWidth() <= maxFactor) {
-                return i;
+            for (let i = this.images.length - 1; i > 0; i--) {
+                if (baseWidth / this.images[i].getWidth() <= maxFactor) {
+                    index = i;
+                    break;
+                }
             }
         }
 
-        return 0;
+        const windowWidth = Math.min(uMax, 1) - Math.max(uMin, 0);
+        const windowHeight = Math.min(vMax, 1) - Math.max(vMin, 0);
+        const budget = READ_BUDGET_TILES * tileSize * tileSize;
+
+        while (
+            index < this.images.length - 1 &&
+            windowWidth * this.images[index].getWidth() * windowHeight * this.images[index].getHeight() > budget
+        ) {
+            index++;
+        }
+
+        return index;
     }
 
     /**
