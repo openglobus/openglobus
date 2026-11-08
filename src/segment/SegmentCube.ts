@@ -146,8 +146,29 @@ class SegmentCube extends Segment {
         this.setBoundingVolume3v(min, max);
     }
 
+    // A layer over the antimeridian goes on over 180 degrees,
+    // so it is taken around the world to the tile
     public override layerOverlap(layer: Layer): boolean {
-        return this._extentLonLat.overlaps(layer._extent);
+        const segmentExtent = this._extentLonLat,
+            layerExtent = layer._extent;
+
+        if (segmentExtent.overlaps(layerExtent)) {
+            return true;
+        }
+
+        if (
+            segmentExtent.southWest.lat > layerExtent.northEast.lat ||
+            segmentExtent.northEast.lat < layerExtent.southWest.lat
+        ) {
+            return false;
+        }
+
+        const lonShift = this._getCyclicLonShift(layerExtent, segmentExtent, 360.0);
+
+        return (
+            segmentExtent.southWest.lon <= layerExtent.northEast.lon + lonShift &&
+            segmentExtent.northEast.lon >= layerExtent.southWest.lon + lonShift
+        );
     }
 
     // The night and specular textures are in the Web Mercator
