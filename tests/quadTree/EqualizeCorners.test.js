@@ -209,6 +209,47 @@ describe.each(WORLDS)("corners of the equalized segments of $name", (world) => {
         }
     });
 
+    test.each(SEEDS)("a side doesn't keep the old terrain of a tile after its new terrain comes, seed %i", (seed) => {
+        for (const [firstReversed, secondReversed] of [
+            [false, false],
+            [false, true],
+            [true, false],
+            [true, true]
+        ]) {
+            const { qts, nodes, random } = createScene(world, seed);
+
+            settle(qts, nodes);
+
+            // A tile with a neighbour of the same zoom gets terrain whose heights are far above the others
+            link(qts, nodes);
+            const node = nodes.find((n) =>
+                n.neighbors.some((list) => list.length === 1 && list[0].segment.tileZoom === n.segment.tileZoom)
+            );
+            setVertices(node, world, () => 100 + random(), 1);
+            settle(qts, nodes, firstReversed);
+
+            // Then its next terrain comes with ordinary heights
+            setVertices(node, world, random, 2);
+            settle(qts, nodes, secondReversed);
+
+            const high = [];
+            for (let side = N; side <= W; side++) {
+                for (const n of node.neighbors[side]) {
+                    for (const [seg, s] of [
+                        [node, side],
+                        [n, OPPOSITE[side]]
+                    ]) {
+                        for (const { p } of drawnSide(seg, s)) {
+                            if (p.z > 50) high.push({ tile: seg.segment.tileIndex, side: s });
+                        }
+                    }
+                }
+            }
+            expect(high).toEqual([]);
+            expect(collectGaps(nodes)).toEqual([]);
+        }
+    });
+
     test.each(SEEDS)("corners meet while some tiles have a smaller grid, seed %i", (seed) => {
         const { qts, nodes } = createScene(world, seed, { uniformGrid: false });
 
@@ -320,6 +361,18 @@ describe("corner cases of the equalized segments", () => {
 
         return { qts, nodes };
     }
+
+    test("two tiles that each took their side from the parent of the other meet", () => {
+        // Neighbours of the same zoom with different parents, the east side of a is the west side of b
+        const { qts, nodes } = setup((root, at) => [at(NW), at(NE), at(NW, NE), at(NE, NW)]);
+        const [parentA, parentB, a, b] = nodes;
+
+        settle(qts, [a, parentB]);
+        settle(qts, [parentA, b]);
+        settle(qts, [a, b]);
+
+        expect(collectGaps([a, b])).toEqual([]);
+    });
 
     test("a lower zoom diagonal pair around a point of deeper tiles agrees", () => {
         const { qts, nodes } = setup((root, at) => {

@@ -868,8 +868,13 @@ class Segment {
             Number.isFinite(ns.gridSize) &&
             ns.gridSize >= 1 &&
             this.tileZoom >= ns.tileZoom &&
-            this.node.equalizedSideWithNodeId[neighborSide] !==
-                neigborNode.equalizedSideWithNodeId[OPSIDE[neighborSide]]
+            this.node.equalizedSideWithNodeId[neighborSide] !== neigborNode.equalizedSideWithNodeId[oppositeSide] &&
+            // A neighbor of the same zoom gives its side when the side comes from its own current terrain, or when the
+            // side of this segment is taken from another one as well. A side it took from this segment while this one
+            // was on the terrain of a parent is outdated, then it takes the side from this segment instead.
+            (this.tileZoom > ns.tileZoom ||
+                neigborNode.equalizedSideWithNodeId[oppositeSide] === neigborNode.appliedTerrainNodeId ||
+                this.node.equalizedSideWithNodeId[neighborSide] !== this.node.appliedTerrainNodeId)
         );
     }
 
