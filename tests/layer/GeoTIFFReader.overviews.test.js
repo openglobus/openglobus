@@ -33,6 +33,15 @@ test("a large GeoTIFF with no overviews is reported", async () => {
     expect(messages[0]).toContain("gdal_translate -of COG");
 });
 
+test("the warning gives GDAL as one of the ways to make a COG", async () => {
+    const [message] = await initWarnings(4096, 2);
+
+    expect(message).toBe(
+        "[GeoTIFFReader] The GeoTIFF has no overviews, a zoomed out tile reads its whole area in the full resolution. " +
+            "Make it a COG with overviews, e.g. with GDAL: gdal_translate -of COG in.tif out.tif"
+    );
+});
+
 test("a small GeoTIFF needs no overviews", async () => {
     expect(await initWarnings(256, 128)).toEqual([]);
 });

@@ -207,7 +207,8 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         if (this.images.length === 1 && Math.max(baseImage.getWidth(), baseImage.getHeight()) > OVERVIEW_WARNING_SIZE) {
             console.warn(
                 `[GeoTIFFReader] ${typeof src === "string" ? src : "The GeoTIFF"} has no overviews, a zoomed out tile ` +
-                    `reads its whole area in the full resolution. Make it a COG with overviews: gdal_translate -of COG in.tif out.tif`
+                    `reads its whole area in the full resolution. Make it a COG with overviews, e.g. with GDAL: ` +
+                    `gdal_translate -of COG in.tif out.tif`
             );
         }
 
