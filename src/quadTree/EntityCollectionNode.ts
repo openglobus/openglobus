@@ -213,8 +213,9 @@ class EntityCollectionNode {
         const nd = this.childNodes;
         const p = this.layer._planet!;
         const z = this.zoom + 1;
+        const ChildNode = this.constructor as typeof EntityCollectionNode;
 
-        nd[NW] = new EntityCollectionNode(
+        nd[NW] = new ChildNode(
             s,
             NW,
             this,
@@ -222,9 +223,9 @@ class EntityCollectionNode {
             p,
             z
         );
-        nd[NE] = new EntityCollectionNode(s, NE, this, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
-        nd[SW] = new EntityCollectionNode(s, SW, this, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
-        nd[SE] = new EntityCollectionNode(
+        nd[NE] = new ChildNode(s, NE, this, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
+        nd[SW] = new ChildNode(s, SW, this, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
+        nd[SE] = new ChildNode(
             s,
             SE,
             this,

@@ -4,6 +4,9 @@ import type { EventsHandler } from "../Events";
 import type { Entity } from "./Entity";
 import { Ellipsoid } from "../ellipsoid/Ellipsoid";
 import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
+import { EPSG3857 } from "../proj/EPSG3857";
+import type { Proj } from "../proj/Proj";
 import type { EntityCollectionNode } from "../quadTree/EntityCollectionNode";
 import { GeoObjectHandler } from "./geoObject/GeoObjectHandler";
 import { LabelHandler } from "./label/LabelHandler";
@@ -534,27 +537,38 @@ class EntityCollection {
             if (hasValidExtent && !visibleExtent.overlaps(ext)) continue;
 
             const mercPaths = p._pathLonLatMerc;
+            const lonLatPaths = p.getPathLonLat();
             const cartPaths = p.getPath3v() as Vec3[][];
             const alt = (rtg && p.altitude) || entity._altitude || 0.0;
 
-            // TODO: this works only for mercator area.
-            // needs to be working on poles.
+            // A point is taken in the projection of the tile: the Mercator one is ready, the others are found when
+            // a tile of another projection comes, the polar caps of the Earth or the cube faces
             let seg_i = Math.min(mercPaths.length, cartPaths.length);
             while (seg_i--) {
                 const mercSeg = mercPaths[seg_i];
+                const lonLatSeg = lonLatPaths[seg_i];
                 const cartSeg = cartPaths[seg_i];
                 if (!mercSeg || !cartSeg) continue;
 
                 let point_i = Math.min(mercSeg.length, cartSeg.length);
                 while (point_i--) {
-                    const ll = mercSeg[point_i];
                     const cart = cartSeg[point_i];
-                    if (!ll || !cart) continue;
+                    if (!cart) continue;
+
+                    let proj: Proj = EPSG3857,
+                        ll: LonLat | undefined = mercSeg[point_i];
 
                     let n_k = nodes.length;
                     while (n_k--) {
                         const seg = nodes[n_k].segment;
-                        if (seg._extent.isInside(ll)) {
+                        if (seg._projection !== proj) {
+                            proj = seg._projection;
+                            const point = lonLatSeg && lonLatSeg[point_i];
+                            ll = point
+                                ? seg.projectNative(point instanceof LonLat ? point : new LonLat(point[0], point[1]))
+                                : undefined;
+                        }
+                        if (ll && seg._extent.isInside(ll)) {
                             seg.getTerrainPoint(cart, ll, res);
                             if (alt) {
                                 const n = layer._planet!.ellipsoid.getSurfaceNormal3v(res);

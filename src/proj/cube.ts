@@ -85,6 +85,12 @@ export const CUBE_OPSIDE = CUBE_FACE_LINKS.map((links) =>
     )
 );
 
+/**
+ * The root of a face has the node id of the offset plus the face.
+ * So the faces have no common ids.
+ */
+export const CUBE_NODE_ID_OFFSET = 5;
+
 const MAX_POSITION = 1.0 - Math.pow(2, -50);
 
 // A position on a face, from 0 to 1, as a coordinate on the plane of the face, from -1 to 1, and back

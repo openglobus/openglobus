@@ -1,16 +1,15 @@
 import { Extent } from "../../Extent";
 import { LonLat } from "../../LonLat";
 import { PlanetCamera } from "../../camera";
-import { CUBE_FACE_LINKS, cube, cubeEquiangular } from "../../proj/cube";
+import { CUBE_FACE_LINKS, CUBE_NODE_ID_OFFSET, cube, cubeEquiangular } from "../../proj/cube";
 import type { CubeProj } from "../../proj/cube";
 import { SegmentCube } from "../../segment/SegmentCube";
+import type { Vector } from "../../layer/Vector";
+import { CubeEntityCollectionsTreeStrategy } from "./CubeEntityCollectionsTreeStrategy";
 import { Node } from "../Node";
 import { E, N, S, W } from "../quadTree";
 import { QuadTreeStrategy } from "../QuadTreeStrategy";
 import type { QuadTreeStrategyParams } from "../QuadTreeStrategy";
-
-// Node ids go level by level and 5 starts the second level, so the trees of the faces have no common ids
-const FIRST_ROOT_NODE_ID = 5;
 
 /**
  * Quad trees on the six faces of a cube inflated to the ellipsoid: the tiles are close to squares all over the
@@ -27,7 +26,7 @@ export class CubeQuadTreeStrategy extends QuadTreeStrategy {
     public override init(camera: PlanetCamera) {
         const roots = CUBE_FACE_LINKS.map((_, face) => {
             const root = new Node(SegmentCube, this, 0, null, 0, Extent.createFromArray([face, 0, face + 1, 1]));
-            root.nodeId = FIRST_ROOT_NODE_ID + face;
+            root.nodeId = CUBE_NODE_ID_OFFSET + face;
             return root;
         });
 
@@ -39,6 +38,13 @@ export class CubeQuadTreeStrategy extends QuadTreeStrategy {
         this._quadTreeList = roots;
 
         super.init(camera);
+    }
+
+    public override createEntityCollectionsTreeStrategy(
+        layer: Vector,
+        nodeCapacity: number
+    ): CubeEntityCollectionsTreeStrategy {
+        return new CubeEntityCollectionsTreeStrategy(this, layer, nodeCapacity);
     }
 
     public override getTileXY(lonLat: LonLat, zoom: number): [number, number, number, number] {
