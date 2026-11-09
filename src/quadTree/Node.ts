@@ -850,10 +850,16 @@ class Node {
         let pn: Node = this;
         while (pn.parentNode && !pn.segment.normalMapReady) {
             pn = pn.parentNode;
+
+            const ps = pn.segment;
+            if (!ps.normalMapReady && !ps.terrainIsLoading && ps.terrainExists && !ps._inTheQueue) {
+                ps.planet._normalMapCreator.queue(ps);
+            }
         }
 
         const dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
 
+        seg._normalMapSource = pn.segment;
         seg.normalMapTexture = pn.segment.normalMapTexture;
         seg.normalMapTextureBias[0] = seg.tileX - pn.segment.tileX * dZ2;
         seg.normalMapTextureBias[1] = seg.tileY - pn.segment.tileY * dZ2;
