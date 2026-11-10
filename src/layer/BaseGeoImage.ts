@@ -12,7 +12,7 @@ import { Planet } from "../scene/Planet";
 import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 import { SRGB } from "../utils/colorSpace";
 import { RADIANS } from "../math";
-import { CUBE_FACES, CubeProj } from "../proj/cube";
+import { CUBE_FACES, CubeProj, isCubeProj } from "../proj/cube";
 
 export interface IBaseGeoImageParams extends ILayerParams {
     fullExtent?: boolean;
@@ -137,6 +137,9 @@ class BaseGeoImage extends Layer {
     protected _faceExtents: (Extent | null)[];
     protected _faceTextures: (WebGLTextureExt | null)[];
 
+    // The planet of the image is a cube
+    protected _isCube: boolean;
+
     constructor(name: string | null, options: IBaseGeoImageParams = {}) {
         super(name, options);
 
@@ -188,6 +191,8 @@ class BaseGeoImage extends Layer {
         this._faceExtents = [];
         this._faceTextures = [];
 
+        this._isCube = false;
+
         options.corners && this.setCorners(options.corners);
     }
 
@@ -198,15 +203,13 @@ class BaseGeoImage extends Layer {
     public override _assignPlanet(planet: Planet) {
         super._assignPlanet(planet);
 
-        if (this._cornersWgs84.length === 4 && this._isCube()) {
+        this._isCube = isCubeProj(planet.quadTreeStrategy.projection);
+
+        if (this._cornersWgs84.length === 4 && this._isCube) {
             this._projType = 2;
             this.rendering = this._renderingProjTypePlane;
             this._refreshFrame = true;
         }
-    }
-
-    protected _isCube(): boolean {
-        return !!this._planet && this._planet.quadTreeStrategy.projection instanceof CubeProj;
     }
 
     public override addTo(planet: Planet) {
@@ -227,7 +230,11 @@ class BaseGeoImage extends Layer {
         }
         this.events.off("loadend", this._onLoadend_);
         this._onLoadend_ = null;
-        return super.remove();
+        super.remove();
+        if (!this._planet) {
+            this._isCube = false;
+        }
+        return this;
     }
 
     public override get instanceName(): string {
@@ -311,7 +318,7 @@ class BaseGeoImage extends Layer {
             this.rendering = this._renderingProjType1;
         }
 
-        if (this._isCube()) {
+        if (this._isCube) {
             this._projType = 2;
             this.rendering = this._renderingProjTypePlane;
         }

@@ -209,3 +209,12 @@ export const cube = new CubeProj("cube", false);
  * @type {CubeProj}
  */
 export const cubeEquiangular = new CubeProj("cubeEquiangular", true);
+
+/**
+ * Returns true for the cube projections.
+ * @param {Proj} proj - Projection.
+ * @returns {boolean} -
+ */
+export function isCubeProj(proj: Proj): boolean {
+    return proj.equal(cube) || proj.equal(cubeEquiangular);
+}

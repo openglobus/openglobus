@@ -148,6 +148,15 @@
             }
         },
         {
+            name: "A band around the pole",
+            lonLat: [0, 89.9, 9000000],
+            geometry: {
+                type: "POLYGON",
+                coordinates: [rect(-100, 40, 100, 44)],
+                style: style("rgba(255,0,0,0.6)")
+            }
+        },
+        {
             name: "A line over the faces",
             extent: [25, -15, 125, 50],
             geometry: {
@@ -209,7 +218,10 @@
     PLACES.forEach((place) => {
         const button = document.createElement("button");
         button.textContent = place.name;
-        button.onclick = () => globus.planet.flyExtent(Extent.createFromArray(place.extent));
+        button.onclick = () =>
+            place.lonLat
+                ? globus.planet.flyLonLat(new LonLat(...place.lonLat))
+                : globus.planet.flyExtent(Extent.createFromArray(place.extent));
         places.appendChild(button);
     });
 

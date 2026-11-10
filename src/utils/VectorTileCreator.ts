@@ -6,7 +6,7 @@ import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Planet } from "../scene/Planet";
 import { NOTRENDERING } from "../quadTree/quadTree";
 import { Vector } from "../layer/Vector";
-import { CUBE_FACES, CubeProj } from "../proj/cube";
+import { CUBE_FACES, CubeProj, isCubeProj } from "../proj/cube";
 import type { Segment } from "../segment/Segment";
 
 //
@@ -398,7 +398,7 @@ export class VectorTileCreator {
                     let geomHandler = (material.layer as Vector)._geometryHandler;
 
                     // A cube tile draws the directions of the vertices on its plane
-                    const plane = geomHandler._directions ? this._getTilePlane(material.segment) : null;
+                    const plane = geomHandler._isCube ? this._getTilePlane(material.segment) : null;
 
                     let sh = plane ? h.programs.vectorTilePolygonRasterizationPlane : hPoly;
                     sh.activate();
@@ -590,11 +590,11 @@ export class VectorTileCreator {
      * @protected
      */
     protected _getTilePlane(segment: Segment): typeof _plane | null {
-        const proj = segment._projection;
-
-        if (!(proj instanceof CubeProj)) {
+        if (!isCubeProj(segment._projection)) {
             return null;
         }
+
+        const proj = segment._projection as CubeProj;
 
         const face = segment.tileGroup,
             f = CUBE_FACES[face],

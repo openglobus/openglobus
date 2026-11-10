@@ -1,6 +1,6 @@
 import * as mercator from "../../mercator";
 import { RADIANS } from "../../math";
-import { CubeProj } from "../../proj/cube";
+import { isCubeProj } from "../../proj/cube";
 import { Extent } from "../../Extent";
 import { Handler } from "../../webgl/Handler";
 import type { WebGLBufferExt } from "../../webgl/Handler";
@@ -22,8 +22,9 @@ import type {
 
 import { GeometryTypeEnum } from "./Geometry";
 
-import { earcut, flatten } from "../../utils/earcut";
+import earcut, { flatten } from "earcut";
 import { concatArrays } from "../../utils/shared";
+import { triangulateOnGrid } from "./triangulateOnGrid";
 
 type GeometryOffsetKey =
     | "_polyVerticesHandlerIndex"
@@ -115,8 +116,7 @@ const _d0 = [0, 0, 0],
     _d1 = [0, 0, 0];
 
 /**
- * Longest segment of a line or a polygon edge on the cube, in degrees. A tile draws a segment straight on the plane of
- * its face, the planes of the faces differ, so a long segment over a face edge breaks there.
+ * Longest segment of a line or a polygon edge on the cube, in degrees.
  */
 export const DENSIFY_STEP = 1.0;
 
@@ -155,6 +155,40 @@ export function densifyPath(
     }
 
     return out;
+}
+
+/**
+ * Returns the path without the points equal to the point before them, a closed path also without its last points
+ * equal to the first one, as a GeoJSON ring has it. A segment of no length has no direction, so a line can't join
+ * the segments around it.
+ * @param {Array.<CoordinatesType>} path - Geodetic points.
+ * @param {boolean} isClosed - The last point goes back to the first one.
+ * @returns {Array.<CoordinatesType>} -
+ */
+export function removeRepeatedPoints(path: CoordinatesType[], isClosed: boolean): CoordinatesType[] {
+    const out: CoordinatesType[] = [];
+
+    for (const p of path) {
+        const q = out[out.length - 1];
+        if (!q || p[0] !== q[0] || p[1] !== q[1]) {
+            out.push(p);
+        }
+    }
+
+    if (isClosed) {
+        while (out.length > 1 && out[out.length - 1][0] === out[0][0] && out[out.length - 1][1] === out[0][1]) {
+            out.pop();
+        }
+    }
+
+    return out;
+}
+
+// Appends the Web Mercator coordinates of the points from the index
+function pushMercator(points: CoordinatesType[], from: number, out: number[]) {
+    for (let i = from; i < points.length; i++) {
+        out.push(mercator.forward_lon(points[i][0]), mercator.forward_lat(points[i][1]));
+    }
 }
 
 class GeometryHandler {
@@ -222,10 +256,9 @@ class GeometryHandler {
     protected _changedBuffers: boolean[];
 
     /**
-     * The vertices also have the directions of their points from the planet center, three values for a vertex, for
-     * the tiles that are not in the Web Mercator: the cube faces.
+     * The planet is a cube
      */
-    public _directions: boolean;
+    public _isCube: boolean;
 
     constructor(layer: Vector) {
         this.__id = GeometryHandler.__counter__++;
@@ -301,7 +334,7 @@ class GeometryHandler {
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-        this._directions = false;
+        this._isCube = false;
     }
 
     /**
@@ -737,8 +770,7 @@ class GeometryHandler {
 
     public assignHandler(handler: Handler) {
         this._handler = handler;
-        const planet = this._layer._planet;
-        this._directions = !!planet && planet.quadTreeStrategy.projection instanceof CubeProj;
+        this._isCube = isCubeProj(this._layer._planet!.quadTreeStrategy.projection);
         this.refresh();
         if (handler.isInitialized()) {
             this.update();
@@ -769,12 +801,14 @@ class GeometryHandler {
             geometry._lineDirectionsHigh = [];
             geometry._lineDirectionsLow = [];
 
-            const directions = this._directions;
+            const isCube = this._isCube;
 
             if ((geometry._coordinates as IPolygonCoordinates)[0].length) {
                 if (geometry.type === GeometryTypeEnum.POLYGON) {
-                    let coordinates = geometry._coordinates as IPolygonCoordinates;
-                    if (directions) {
+                    let coordinates = (geometry._coordinates as IPolygonCoordinates).map((ring) =>
+                        removeRepeatedPoints(ring, true)
+                    );
+                    if (isCube) {
                         coordinates = coordinates.map((ring) => densifyPath(ring, true));
                     }
                     let ci: IPolygonCoordinates = [];
@@ -789,7 +823,15 @@ class GeometryHandler {
                     }
 
                     let data = flatten(ci);
-                    let indexes: number[] = earcut(data.vertices, data.holes, 2);
+                    let indexes: number[];
+                    let points: CoordinatesType[] = [];
+
+                    if (isCube) {
+                        ({ points, indexes } = triangulateOnGrid(coordinates, DENSIFY_STEP));
+                        pushMercator(points, data.vertices.length * 0.5, data.vertices);
+                    } else {
+                        indexes = earcut(data.vertices, data.holes, 2);
+                    }
 
                     geometry._polyVerticesHandlerIndex = this._polyVerticesHighMerc.length;
                     geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
@@ -820,9 +862,9 @@ class GeometryHandler {
                     concatArrays(this._polyVerticesHighMerc, verticesHigh);
                     concatArrays(this._polyVerticesLowMerc, verticesLow);
 
-                    if (directions) {
+                    if (isCube) {
                         GeometryHandler.appendPolygonDirections(
-                            coordinates,
+                            [points],
                             geometry._polyDirectionsHigh,
                             geometry._polyDirectionsLow
                         );
@@ -840,7 +882,7 @@ class GeometryHandler {
                     geometry._lineColorsHandlerIndex = this._lineColors.length;
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
-                    if (directions) {
+                    if (isCube) {
                         GeometryHandler.appendLineDirections(
                             coordinates,
                             true,
@@ -879,8 +921,10 @@ class GeometryHandler {
                     geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
                     geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
                 } else if (geometry.type === GeometryTypeEnum.MULTIPOLYGON) {
-                    let coordinates = geometry._coordinates as IMultiPolygonCoordinates;
-                    if (directions) {
+                    let coordinates = (geometry._coordinates as IMultiPolygonCoordinates).map((polygon) =>
+                        polygon.map((ring) => removeRepeatedPoints(ring, true))
+                    );
+                    if (isCube) {
                         coordinates = coordinates.map((polygon) => polygon.map((ring) => densifyPath(ring, true)));
                     }
                     let vertices: number[] = [],
@@ -903,7 +947,15 @@ class GeometryHandler {
                             }
                         }
                         let data = flatten(ci);
-                        let dataIndexes: number[] = earcut(data.vertices, data.holes, 2);
+                        let dataIndexes: number[];
+                        let points: CoordinatesType[] = [];
+
+                        if (isCube) {
+                            ({ points, indexes: dataIndexes } = triangulateOnGrid(cci, DENSIFY_STEP));
+                            pushMercator(points, data.vertices.length * 0.5, data.vertices);
+                        } else {
+                            dataIndexes = earcut(data.vertices, data.holes, 2);
+                        }
 
                         for (let j = 0; j < dataIndexes.length; j++) {
                             indexes.push(dataIndexes[j] + vertices.length * 0.5);
@@ -911,7 +963,7 @@ class GeometryHandler {
 
                         concatArrays(vertices, data.vertices);
 
-                        if (directions) {
+                        if (isCube) {
                             GeometryHandler.appendLineDirections(
                                 cci,
                                 true,
@@ -922,9 +974,9 @@ class GeometryHandler {
                             );
                         }
 
-                        if (directions) {
+                        if (isCube) {
                             GeometryHandler.appendPolygonDirections(
-                                cci,
+                                [points],
                                 geometry._polyDirectionsHigh,
                                 geometry._polyDirectionsLow
                             );
@@ -981,7 +1033,7 @@ class GeometryHandler {
                     concatArrays(this._polyVerticesHighMerc, verticesHigh);
                     concatArrays(this._polyVerticesLowMerc, verticesLow);
 
-                    if (directions) {
+                    if (isCube) {
                         concatArrays(this._polyDirectionsHigh, geometry._polyDirectionsHigh);
                         concatArrays(this._polyDirectionsLow, geometry._polyDirectionsLow);
                     }
@@ -996,8 +1048,8 @@ class GeometryHandler {
                     geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
                     geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
                 } else if (geometry.type === GeometryTypeEnum.LINESTRING) {
-                    let coordinates: ILineStringCoordinates = geometry._coordinates as ILineStringCoordinates;
-                    if (directions) {
+                    let coordinates = removeRepeatedPoints(geometry._coordinates as ILineStringCoordinates, false);
+                    if (isCube) {
                         coordinates = densifyPath(coordinates, false);
                     }
                     let ci = new Array(coordinates.length);
@@ -1012,7 +1064,7 @@ class GeometryHandler {
                     geometry._lineColorsHandlerIndex = this._lineColors.length;
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
-                    if (directions) {
+                    if (isCube) {
                         GeometryHandler.appendLineDirections(
                             [coordinates],
                             false,
@@ -1051,8 +1103,10 @@ class GeometryHandler {
                     geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
                     geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
                 } else if (geometry.type === GeometryTypeEnum.MULTILINESTRING) {
-                    let coordinates = geometry._coordinates as IMultiLineStringCoordinates;
-                    if (directions) {
+                    let coordinates = (geometry._coordinates as IMultiLineStringCoordinates).map((line) =>
+                        removeRepeatedPoints(line, false)
+                    );
+                    if (isCube) {
                         coordinates = coordinates.map((line) => densifyPath(line, false));
                     }
                     let ci: IMultiLineStringCoordinates = [];
@@ -1073,7 +1127,7 @@ class GeometryHandler {
                     geometry._lineColorsHandlerIndex = this._lineColors.length;
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
-                    if (directions) {
+                    if (isCube) {
                         GeometryHandler.appendLineDirections(
                             coordinates,
                             false,
@@ -1177,7 +1231,7 @@ class GeometryHandler {
             }
             this._polyVerticesHighMerc.splice(pv, pvl);
             this._polyVerticesLowMerc.splice(pv, pvl);
-            if (this._directions) {
+            if (this._isCube) {
                 this._polyDirectionsHigh.splice(pv * 1.5, pvl * 1.5);
                 this._polyDirectionsLow.splice(pv * 1.5, pvl * 1.5);
             }
@@ -1201,7 +1255,7 @@ class GeometryHandler {
             }
             this._lineVerticesHighMerc.splice(lv, lvl);
             this._lineVerticesLowMerc.splice(lv, lvl);
-            if (this._directions) {
+            if (this._isCube) {
                 this._lineDirectionsHigh.splice(lv * 1.5, lvl * 1.5);
                 this._lineDirectionsLow.splice(lv * 1.5, lvl * 1.5);
             }
@@ -1331,7 +1385,7 @@ class GeometryHandler {
         };
 
         const directions = (high: number[], low: number[]): [number[], number][] =>
-            this._directions
+            this._isCube
                 ? [
                       [high, 1.5],
                       [low, 1.5]
@@ -1569,7 +1623,7 @@ class GeometryHandler {
             b[ind + i] = geometry._lineVerticesLowMerc[i] * v;
         }
 
-        if (this._directions) {
+        if (this._isCube) {
             const hide = (to: number[], from: number[], index: number) => {
                 for (let i = 0; i < from.length; i++) {
                     to[index + i] = from[i] * v;
@@ -1722,7 +1776,7 @@ class GeometryHandler {
             this._polyVerticesLowMerc.length / 2
         );
 
-        if (this._directions) {
+        if (this._isCube) {
             h.gl!.deleteBuffer(this._polyDirectionsHighBuffer!);
             h.gl!.deleteBuffer(this._polyDirectionsLowBuffer!);
             this._polyDirectionsHighBuffer = h.createArrayBuffer(
@@ -1784,7 +1838,7 @@ class GeometryHandler {
             this._lineVerticesLowMerc.length / 2
         );
 
-        if (this._directions) {
+        if (this._isCube) {
             h.gl!.deleteBuffer(this._lineDirectionsHighBuffer!);
             h.gl!.deleteBuffer(this._lineDirectionsLowBuffer!);
             this._lineDirectionsHighBuffer = h.createArrayBuffer(

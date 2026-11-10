@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { GeometryHandler } from "../../src/entity/geometry/GeometryHandler";
 import { CUBE_FACES } from "../../src/proj/cube";
+import { EPSG3857 } from "../../src/proj/EPSG3857";
 import { NE, NW, SE, SW } from "../../src/quadTree/quadTree";
 import { CubeQuadTreeStrategy, EquiangularCubeQuadTreeStrategy } from "../../src/quadTree/cube/CubeQuadTreeStrategy";
 import { VectorTileCreator } from "../../src/utils/VectorTileCreator";
@@ -155,7 +156,7 @@ describe.each([
 
     test("is not made for a tile of another projection", () => {
         const creator = new VectorTileCreator({});
-        expect(creator._getTilePlane({ _projection: {}, tileGroup: 0 })).toBe(null);
+        expect(creator._getTilePlane({ _projection: EPSG3857, tileGroup: 0 })).toBe(null);
     });
 });
 

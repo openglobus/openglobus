@@ -1,7 +1,7 @@
 // import { QueueArray } from '../QueueArray.js';
 import { EPSG4326 } from "../proj/EPSG4326";
 import { equi } from "../proj/equi";
-import { CUBE_FACES, CubeProj } from "../proj/cube";
+import { CUBE_FACES, CubeProj, isCubeProj } from "../proj/cube";
 import { BaseWorker } from "./BaseWorker";
 import { Segment } from "../segment/Segment";
 import { Geoid } from "../terrain/Geoid";
@@ -86,13 +86,13 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
                 this._source.set(this._sourceId, segment);
 
                 const proj = segment._projection,
-                    isCube = proj instanceof CubeProj;
+                    isCube = isCubeProj(proj);
 
                 // 0 is the Web Mercator extent, 1 is the degrees one, 2 is the equiangular cube, 3 is the gnomonic one
                 let projType = 0.0;
 
                 if (isCube) {
-                    projType = proj.equiangular ? 2.0 : 3.0;
+                    projType = (proj as CubeProj).equiangular ? 2.0 : 3.0;
                 } else if (proj.id === EPSG4326.id || proj.id === equi.id) {
                     projType = 1.0;
                 }

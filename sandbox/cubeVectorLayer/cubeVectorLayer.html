@@ -1,0 +1,278 @@
+<html>
+    <head>
+        <title>OpenGlobus - Cube vector layer</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../../lib/og.css" type="text/css" />
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+            }
+
+            #places {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            #info {
+                position: absolute;
+                bottom: 40px;
+                left: 10px;
+                padding: 4px 8px;
+                background: rgba(255, 255, 255, 0.85);
+                font: 14px Arial;
+                pointer-events: none;
+            }
+
+            #info:empty {
+                display: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
+        <div id="places"></div>
+        <div id="info"></div>
+        <script type="module" id="og-sandbox-script">
+            import {
+                CanvasTiles,
+                CubeQuadTreeStrategy,
+                Entity,
+                EquiangularCubeQuadTreeStrategy,
+                GeoVideo,
+                Globe,
+                LonLat,
+                Vector,
+                control
+            } from "../../lib/og.es.js";
+
+            // The ecoregions and the rivers of this folder, the countries of the vectorLayer example and the videos of the
+            // geoVideo one on the equiangular cube, or the common one with ?gnomonic in the url
+            const GNOMONIC = new URLSearchParams(location.search).has("gnomonic");
+
+            const FACE_COLORS = ["#e6e6e6", "#d9534f", "#5cb85c", "#428bca", "#f0ad4e", "#6f5499"];
+
+            const tiles = new CanvasTiles("Cube tiles", {
+                isBaseLayer: true,
+                drawTile: (material, applyCanvas) => {
+                    const { tileGroup, tileX, tileY, tileZoom } = material.segment,
+                        canvas = document.createElement("canvas");
+
+                    canvas.width = canvas.height = 256;
+
+                    const ctx = canvas.getContext("2d");
+
+                    ctx.fillStyle = FACE_COLORS[tileGroup];
+                    ctx.fillRect(0, 0, 256, 256);
+
+                    ctx.strokeStyle = "black";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(0, 0, 256, 256);
+
+                    ctx.fillStyle = "black";
+                    ctx.font = "bold 28px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText(`face ${tileGroup}`, 128, 110);
+                    ctx.fillText(`${tileZoom} / ${tileX} / ${tileY}`, 128, 150);
+
+                    applyCanvas(canvas);
+                }
+            });
+
+            const precipitation = new GeoVideo("USA precipitation 08.05.2016", {
+                src: "../geoVideo/imergac_20160508_NASA.mp4",
+                corners: [
+                    [-134.7904382939764, 55.07955352950936],
+                    [-54.984314759410594, 54.98843914299802],
+                    [-55.041854075913825, 19.820153025849297],
+                    [-134.89882012831265, 19.631495126944017]
+                ],
+                visibility: true,
+                isBaseLayer: false,
+                attribution: "USA precipitation 08.05.2016, nasasearch.nasa.gov",
+                opacity: 0.7
+            });
+
+            const lasVegas = new GeoVideo("Las Vegas", {
+                src: "../geoVideo/SkyBox-LasVegas.mp4",
+                corners: [
+                    [-115.18254616355969, 36.110055739189924],
+                    [-115.16604079376724, 36.10771264333345],
+                    [-115.16801916927308, 36.10038576099672],
+                    [-115.18457379699841, 36.102812078782755]
+                ],
+                visibility: true,
+                isBaseLayer: false,
+                attribution: "SkyBox Imaging Inc.",
+                opacity: 1.0
+            });
+
+            window.globus = new Globe({
+                target: "globus",
+                name: "Cube vector layer",
+                quadTreeStrategyPrototype: GNOMONIC ? CubeQuadTreeStrategy : EquiangularCubeQuadTreeStrategy,
+                layers: [tiles, precipitation, lasVegas],
+                atmosphereEnabled: false,
+                nightTextureSrc: null,
+                specularTextureSrc: null
+            });
+
+            // The countries that go over the antimeridian, the poles and the edges of the faces, with a view of each
+            const PLACES = [
+                { name: "Russia", lonLat: [100, 62, 9000000] },
+                { name: "Antarctica", lonLat: [0, -89.9, 9000000] },
+                { name: "Canada", lonLat: [-95, 65, 7000000] },
+                { name: "Greenland", lonLat: [-40, 72, 5000000] },
+                { name: "Fiji, over the antimeridian", lonLat: [179, -17, 1500000] },
+                { name: "Africa", lonLat: [20, 5, 9000000] },
+                { name: "Video: USA precipitation", layer: precipitation },
+                { name: "Video: Las Vegas", layer: lasVegas },
+                { name: "Amazon", lonLat: [-60, -5, 4000000] },
+                { name: "Siberia", lonLat: [110, 65, 6000000] }
+            ];
+
+            const places = document.getElementById("places");
+
+            PLACES.forEach((place) => {
+                const button = document.createElement("button");
+                button.textContent = place.name;
+                button.onclick = () =>
+                    place.layer
+                        ? globus.planet.flyExtent(place.layer.getExtent())
+                        : globus.planet.flyLonLat(new LonLat(...place.lonLat));
+                places.appendChild(button);
+            });
+
+            const info = document.getElementById("info");
+
+            const BIOME_COLORS = {
+                "Tropical & Subtropical Moist Broadleaf Forests": "#38a800",
+                "Tropical & Subtropical Dry Broadleaf Forests": "#ccc000",
+                "Tropical & Subtropical Coniferous Forests": "#88ce66",
+                "Temperate Broadleaf & Mixed Forests": "#00a884",
+                "Temperate Conifer Forests": "#458970",
+                "Boreal Forests/Taiga": "#7ab6f5",
+                "Tropical & Subtropical Grasslands, Savannas & Shrublands": "#fea802",
+                "Temperate Grasslands, Savannas & Shrublands": "#fefe00",
+                "Flooded Grasslands & Savannas": "#bee8ff",
+                "Montane Grasslands & Shrublands": "#d6c39d",
+                Tundra: "#9ed7c2",
+                "Mediterranean Forests, Woodlands & Scrub": "#fe0000",
+                "Deserts & Xeric Shrublands": "#cc6767",
+                Mangroves: "#fe01c4"
+            };
+
+            const load = (url) => fetch(url).then((r) => r.json());
+
+            // A layer of the features, each with its own style, that shows a feature under the mouse
+            function vectorLayer(name, features, options, style, onHover) {
+                const layer = new Vector(name, {
+                    isBaseLayer: false,
+                    diffuse: [0, 0, 0],
+                    ambient: [1, 1, 1],
+                    ...options
+                });
+
+                layer.addTo(globus.planet);
+
+                layer.addEntities(
+                    features
+                        .filter((f) => f.geometry)
+                        .map(
+                            (f) =>
+                                new Entity({
+                                    properties: f.properties,
+                                    geometry: {
+                                        type: f.geometry.type,
+                                        coordinates: f.geometry.coordinates,
+                                        style: style(f.properties)
+                                    }
+                                })
+                        )
+                );
+
+                layer.events.on("mouseenter", (e) => {
+                    info.textContent = e.pickingObject.properties.name || "";
+                    onHover(e.pickingObject, true);
+                    e.renderer.handler.canvas.style.cursor = "pointer";
+                });
+
+                layer.events.on("mouseleave", (e) => {
+                    onHover(e.pickingObject, false);
+                    info.textContent = "";
+                    e.renderer.handler.canvas.style.cursor = "default";
+                });
+
+                layer.events.on("lclick", (e) => {
+                    globus.planet.flyExtent(e.pickingObject.geometry.getExtent());
+                });
+
+                return layer;
+            }
+
+            load("./ecoregions.geojson").then((data) =>
+                vectorLayer(
+                    "Ecoregions (RESOLVE 2017, CC BY 4.0)",
+                    data.features,
+                    { visibility: true, zIndex: 1, opacity: 0.8 },
+                    (p) => ({
+                        fillColor: BIOME_COLORS[p.biome] || "#999999",
+                        lineColor: [0.2, 0.2, 0.2, 0.6],
+                        lineWidth: 1
+                    }),
+                    (entity, hover) => {
+                        if (hover) {
+                            entity.geometry.bringToFront();
+                            entity.geometry.setLineColor(1, 0, 0, 1);
+                            info.textContent = `${entity.properties.name} — ${entity.properties.biome}`;
+                        } else {
+                            entity.geometry.setLineColor(0.2, 0.2, 0.2, 0.6);
+                        }
+                    }
+                )
+            );
+
+            load("../vectorLayer/countries.json").then((data) =>
+                vectorLayer(
+                    "Countries",
+                    data.features,
+                    { visibility: false, zIndex: 2 },
+                    () => ({ fillColor: "rgba(255,255,255,0.6)" }),
+                    (entity, hover) => {
+                        if (hover) {
+                            entity.geometry.bringToFront();
+                            entity.geometry.setFillColor(1, 0, 0, 0.4);
+                            entity.geometry.setLineColor(1, 0, 0, 1.0);
+                        } else {
+                            entity.geometry.setFillColor(1, 1, 1, 0.6);
+                            entity.geometry.setLineColor(0.2, 0.6, 0.8, 1.0);
+                        }
+                    }
+                )
+            );
+
+            // The bigger rivers, the lower scalerank, are wider
+            const riverWidth = (p) => Math.max(1, 5 - p.scalerank * 0.4);
+
+            load("./rivers.geojson").then((data) =>
+                vectorLayer(
+                    "Rivers (Natural Earth)",
+                    data.features,
+                    { visibility: true, zIndex: 3 },
+                    (p) => ({ lineColor: [0.1, 0.35, 0.9, 1], lineWidth: riverWidth(p) }),
+                    (entity, hover) => entity.geometry.setLineColor(...(hover ? [1, 0, 0, 1] : [0.1, 0.35, 0.9, 1]))
+                )
+            );
+
+            globus.planet.addControl(new control.LayerSwitcher());
+            globus.planet.addControl(new control.ToggleWireframe());
+            globus.planet.addControl(new control.DebugInfo());
+        </script>
+    </body>
+</html>

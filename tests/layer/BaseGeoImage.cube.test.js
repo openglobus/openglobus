@@ -3,6 +3,7 @@ import { Extent } from "../../src/Extent";
 import { LonLat } from "../../src/LonLat";
 import { BaseGeoImage, getCubeFaceExtents } from "../../src/layer/BaseGeoImage";
 import { cube, cubeEquiangular, CUBE_FRONT, CUBE_RIGHT, CUBE_TOP } from "../../src/proj/cube";
+import { EPSG3857 } from "../../src/proj/EPSG3857";
 import { GeoImageCreator } from "../../src/utils/GeoImageCreator";
 
 // The grid of the image with the corners from the north-west one clockwise
@@ -157,7 +158,46 @@ describe("a geo image on the cube", () => {
                 [40, -5]
             ]
         });
-        g._assignPlanet({ _layers: [], renderer: null, quadTreeStrategy: { projection: {} } });
+        g._assignPlanet({ _layers: [], renderer: null, quadTreeStrategy: { projection: EPSG3857 } });
         expect(g._projType).toBe(1);
+    });
+
+    test("an image removed from the cube draws in the Mercator again", () => {
+        const g = new BaseGeoImage("image", {
+                corners: [
+                    [40, 5],
+                    [50, 5],
+                    [50, -5],
+                    [40, -5]
+                ]
+            }),
+            planet = {
+                _layers: [g],
+                renderer: { handler: { gl: null }, clearPickingColor: () => {}, isInitialized: () => false },
+                quadTreeStrategy: { projection: cubeEquiangular },
+                transparentTexture: "transparent",
+                _geoImageCreator: { remove: () => {} },
+                _clearLayerMaterial: () => {},
+                updateVisibleLayers: () => {},
+                events: { dispatch: () => {} }
+            };
+
+        g._assignPlanet(planet);
+        expect(g._projType).toBe(2);
+
+        g.remove();
+        expect(g._planet).toBe(null);
+
+        g.setCorners([
+            [41, 5],
+            [51, 5],
+            [51, -5],
+            [41, -5]
+        ]);
+        expect(g._projType).toBe(1);
+
+        g._assignPlanet({ _layers: [], renderer: null, quadTreeStrategy: { projection: EPSG3857 } });
+        expect(g._projType).toBe(1);
+        expect(g.rendering).toBe(g._renderingProjType1);
     });
 });
