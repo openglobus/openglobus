@@ -857,24 +857,24 @@ class Segment {
 
     protected _checkEqualization(neighborSide: number, neigborNode: Node): boolean {
         const ns = neigborNode && neigborNode.segment;
+        if (!ns) {
+            return false;
+        }
         const oppositeSide = OPSIDE[neighborSide];
-        const oppositeNeighbors = neigborNode && neigborNode.neighbors && neigborNode.neighbors[oppositeSide];
+        const oppositeNeighbors = neigborNode.neighbors && neigborNode.neighbors[oppositeSide];
         const hasReverseNeighbor = !!oppositeNeighbors && oppositeNeighbors.indexOf(this.node) !== -1;
+        const neighborIsCoarser = this.tileZoom > ns.tileZoom;
+        const thisSideIsOwn = this.node.equalizedSideWithNodeId[neighborSide] === this.node.appliedTerrainNodeId;
+        const neighborSideIsOwn =
+            neigborNode.equalizedSideWithNodeId[oppositeSide] === neigborNode.appliedTerrainNodeId;
         return (
-            neigborNode &&
-            ns &&
             hasReverseNeighbor &&
             !!ns.renderVertices &&
             Number.isFinite(ns.gridSize) &&
             ns.gridSize >= 1 &&
             this.tileZoom >= ns.tileZoom &&
             this.node.equalizedSideWithNodeId[neighborSide] !== neigborNode.equalizedSideWithNodeId[oppositeSide] &&
-            // A neighbor of the same zoom gives its side when the side comes from its own current terrain, or when the
-            // side of this segment is taken from another one as well. A side it took from this segment while this one
-            // was on the terrain of a parent is outdated, then it takes the side from this segment instead.
-            (this.tileZoom > ns.tileZoom ||
-                neigborNode.equalizedSideWithNodeId[oppositeSide] === neigborNode.appliedTerrainNodeId ||
-                this.node.equalizedSideWithNodeId[neighborSide] !== this.node.appliedTerrainNodeId)
+            (neighborIsCoarser || neighborSideIsOwn || !thisSideIsOwn)
         );
     }
 
