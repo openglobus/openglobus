@@ -68,7 +68,7 @@ class Billboard extends BaseBillboard {
 
         this._image = options.image || null;
 
-        this._width =options.width ?? (options.size ? options.size[0] : 0);
+        this._width = options.width ?? (options.size ? options.size[0] : 0);
 
         this._height = options.height ?? (options.size ? options.size[1] : 0);
 

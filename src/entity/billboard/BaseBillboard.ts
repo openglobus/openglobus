@@ -139,7 +139,7 @@ class BaseBillboard {
 
         this._scale = options.scale ?? 1.0;
 
-        this._visibility =options.visibility != undefined ? options.visibility : true;
+        this._visibility = options.visibility != undefined ? options.visibility : true;
 
         this._entity = null;
 
