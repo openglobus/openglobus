@@ -1,0 +1,252 @@
+<html>
+    <head>
+        <title>OpenGlobus - Mapbox Vector Tiles</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+            }
+
+            #panel {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                z-index: 10;
+                padding: 10px 12px;
+                border-radius: 6px;
+                background: rgba(20, 24, 30, 0.85);
+                color: #eee;
+                font: 13px/1.5 sans-serif;
+                min-width: 220px;
+            }
+
+            #panel label {
+                display: block;
+                cursor: pointer;
+            }
+
+            #panel button {
+                margin: 6px 4px 0 0;
+            }
+
+            #stats {
+                margin-top: 8px;
+                font-family: monospace;
+                font-size: 12px;
+                white-space: pre;
+                color: #9fd3ff;
+            }
+
+            #picked {
+                margin-top: 6px;
+                max-width: 260px;
+                font-size: 12px;
+                color: #ffd27f;
+                word-break: break-word;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
+
+        <div id="panel">
+            <b>Vector tiles (OpenFreeMap)</b>
+            <label><input type="checkbox" id="visibility" checked /> labels</label>
+            <label><input type="checkbox" id="declutter" checked /> declutter</label>
+            <label><input type="checkbox" id="terrain" checked /> terrain</label>
+            <label>LOD <input type="range" id="lod" min="256" max="1024" step="64" /> <span id="lodValue"></span> px</label>
+            <label
+                >declutter strength <input type="range" id="strength" min="0" max="2" step="0.1" />
+                <span id="strengthValue"></span
+            ></label>
+            <label
+                >label scale <input type="range" id="scale" min="0.5" max="2" step="0.1" /> <span id="scaleValue"></span
+            ></label>
+            <div>
+                <button data-fly="24.105, 56.949, 25000">Riga</button>
+                <button data-fly="8.0, 46.55, 30000">Alps</button>
+                <button data-fly="15.0, 54.0, 2500000">Europe</button>
+                <button data-fly="-74.0, 40.72, 20000">New York</button>
+            </div>
+            <div id="stats"></div>
+            <div id="picked"></div>
+        </div>
+
+        <script type="module" id="og-sandbox-script">
+            import {
+                Globe,
+                Bing,
+                OpenStreetMap,
+                control,
+                LonLat,
+                EmptyTerrain,
+                MapterhornTerrain,
+                MVTLayer
+            } from "../../lib/og.es.js";
+
+            const urlParams = new URLSearchParams(location.search);
+
+            // OpenMapTiles schema, https://openmaptiles.org/schema/
+            const name = (p) => p["name:latin"] || p.name;
+
+            const outline = { outline: 1.5, outlineColor: "rgba(0,0,0,0.85)", align: "center" };
+
+            const placeStyles = {
+                country: { ...outline, size: 18, color: "#ffffff", letterSpacing: 0.06 },
+                state: { ...outline, size: 13, color: "#d9d0ff" },
+                province: { ...outline, size: 13, color: "#d9d0ff" },
+                city: { ...outline, size: 17, color: "#ffffff" },
+                town: { ...outline, size: 14, color: "#f2f2f2" },
+                village: { ...outline, size: 12, color: "#e6e6e6" },
+                other: { ...outline, size: 11, color: "#cccccc" }
+            };
+
+            // Higher wins in declutter
+            const placeWeight = {
+                country: 100,
+                state: 70,
+                province: 70,
+                city: 60,
+                town: 40,
+                island: 25,
+                village: 20,
+                suburb: 15,
+                hamlet: 10,
+                quarter: 8,
+                neighbourhood: 6,
+                isolated_dwelling: 2
+            };
+
+            const labels = [
+                {
+                    layer: "place",
+                    filter: (p) => p.class !== "continent",
+                    text: name,
+                    priority: (p) => (placeWeight[p.class] || 0) - (p.rank || 10) * 0.1 + (p.capital === 2 ? 5 : 0),
+                    label: (p) => placeStyles[p.class] || placeStyles.other
+                },
+                {
+                    layer: "water_name",
+                    text: name,
+                    priority: 30,
+                    label: { ...outline, size: 13, color: "#a9d8ff", outlineColor: "rgba(0,20,60,0.9)" }
+                },
+                {
+                    layer: "aerodrome_label",
+                    minZoom: 9,
+                    text: (p) => (p.icao ? `${name(p)} (${p.icao})` : name(p)),
+                    priority: 25,
+                    label: { ...outline, size: 12, color: "#ffd27f" }
+                },
+                {
+                    layer: "mountain_peak",
+                    minZoom: 10,
+                    text: (p) => name(p) && (p.ele ? `${name(p)} ${p.ele} m` : name(p)),
+                    priority: (p) => 5 - (p.rank || 0) * 0.1,
+                    label: { ...outline, size: 11, color: "#ffe8b0", offset: [0, 4] }
+                }
+            ];
+
+            const mvt = new MVTLayer("OpenFreeMap labels", {
+                tileJson: "https://tiles.openfreemap.org/planet",
+                labels,
+                labelMaxLetters: 32,
+                // ?lod=, ?strength= and ?scale= set the initial values of the panel sliders
+                lodSize: Number(urlParams.get("lod")) || 512,
+                declutterStrength: urlParams.has("strength") ? Number(urlParams.get("strength")) : 1,
+                labelScale: Number(urlParams.get("scale")) || 1,
+                attribution:
+                    '<a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> <a href="https://www.openmaptiles.org/" target="_blank">&copy; OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
+            });
+
+            const osm = new OpenStreetMap("OpenStreetMap", { visibility: false, isBaseLayer: true });
+
+            const terrain = new MapterhornTerrain();
+            const emptyTerrain = new EmptyTerrain();
+
+            // ?atmosphere=0 disables the atmosphere, ?deferred=0 renders with forward shaders only
+            window.globe = new Globe({
+                target: "globus",
+                name: "Earth",
+                atmosphereEnabled: urlParams.get("atmosphere") !== "0",
+                deferredDisabled: urlParams.get("deferred") === "0",
+                terrain,
+                layers: [new Bing(), osm, mvt],
+                maxGridSize: 256,
+                resourcesSrc: "../../res",
+                fontsSrc: "../../res/fonts"
+            });
+
+            window.mvt = mvt;
+
+            globe.planet.addControl(new control.LayerSwitcher());
+
+            const fly = (lon, lat, height) =>
+                globe.planet.camera.flyLonLat(new LonLat(lon, lat, height), { duration: 2500 });
+
+            fly(24.105, 56.949, 25000);
+
+            document.querySelectorAll("[data-fly]").forEach((btn) => {
+                btn.addEventListener("click", () => fly(...btn.dataset.fly.split(",").map(Number)));
+            });
+
+            document.getElementById("visibility").addEventListener("change", (e) => {
+                mvt.setVisibility(e.target.checked);
+            });
+
+            document.getElementById("declutter").addEventListener("change", (e) => {
+                mvt.declutter = e.target.checked;
+            });
+
+            const lodInput = document.getElementById("lod"),
+                lodValue = document.getElementById("lodValue");
+            lodInput.value = lodValue.textContent = mvt.lodSize;
+            lodInput.addEventListener("input", () => {
+                mvt.lodSize = lodValue.textContent = Number(lodInput.value);
+            });
+
+            const bindRange = (id, prop) => {
+                const input = document.getElementById(id),
+                    value = document.getElementById(id + "Value");
+                input.value = value.textContent = mvt[prop];
+                input.addEventListener("input", () => {
+                    mvt[prop] = value.textContent = Number(input.value);
+                });
+            };
+            bindRange("strength", "declutterStrength");
+            bindRange("scale", "labelScale");
+
+            document.getElementById("terrain").addEventListener("change", (e) => {
+                globe.planet.setTerrain(e.target.checked ? terrain : emptyTerrain);
+            });
+
+            mvt.events.on("lclick", (e) => {
+                const p = e.pickingObject && e.pickingObject.properties;
+                document.getElementById("picked").textContent = p ? JSON.stringify(p) : "";
+            });
+
+            // Debug counters, reading the layer internals
+            const statsEl = document.getElementById("stats");
+            setInterval(() => {
+                let labelsTotal = 0,
+                    labelsShown = 0;
+                for (const t of mvt._shownTiles) {
+                    for (const l of t.labels) {
+                        labelsTotal++;
+                        if (l.entity.label.getVisibility()) labelsShown++;
+                    }
+                }
+                const zooms = [...new Set(mvt._shownTiles.map((t) => t.z))].sort((a, b) => a - b);
+                statsEl.textContent =
+                    `tiles cached  ${mvt._tiles.size}\n` +
+                    `tiles shown   ${mvt._shownTiles.length}  z[${zooms.join(",")}]\n` +
+                    `requests      ${globe.planet._tileLoader.getRequestCounter(mvt)}\n` +
+                    `labels shown  ${labelsShown} / ${labelsTotal}`;
+            }, 250);
+        </script>
+    </body>
+</html>
