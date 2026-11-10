@@ -921,25 +921,31 @@ class Segment {
 
     protected _checkEqualization(neighborSide: number, neigborNode: Node): boolean {
         const ns = neigborNode && neigborNode.segment;
-        if (!ns) {
+
+        if (!ns || this.tileZoom < ns.tileZoom) {
             return false;
         }
-        const oppositeSide = OPSIDE[neighborSide];
-        const oppositeNeighbors = neigborNode.neighbors && neigborNode.neighbors[oppositeSide];
-        const hasReverseNeighbor = !!oppositeNeighbors && oppositeNeighbors.indexOf(this.node) !== -1;
-        const neighborIsCoarser = this.tileZoom > ns.tileZoom;
-        const thisSideIsOwn = this.node.equalizedSideWithNodeId[neighborSide] === this.node.appliedTerrainNodeId;
-        const neighborSideIsOwn =
-            neigborNode.equalizedSideWithNodeId[oppositeSide] === neigborNode.appliedTerrainNodeId;
-        return (
-            hasReverseNeighbor &&
-            !!ns.renderVertices &&
-            Number.isFinite(ns.gridSize) &&
-            ns.gridSize >= 1 &&
-            this.tileZoom >= ns.tileZoom &&
-            this.node.equalizedSideWithNodeId[neighborSide] !== neigborNode.equalizedSideWithNodeId[oppositeSide] &&
-            (neighborIsCoarser || neighborSideIsOwn || !thisSideIsOwn)
-        );
+
+        const oppositeSide = OPSIDE[neighborSide],
+            sideId = this.node.equalizedSideWithNodeId[neighborSide],
+            neighborSideId = neigborNode.equalizedSideWithNodeId[oppositeSide];
+
+        if (sideId === neighborSideId) {
+            return false;
+        }
+
+        if (neigborNode._neighborFrame !== this.node._neighborFrame || !ns.renderVertices || !(ns.gridSize >= 1)) {
+            return false;
+        }
+
+        if (this.tileZoom > ns.tileZoom) {
+            return true;
+        }
+
+        const sideIsOwn = sideId === this.node.appliedTerrainNodeId,
+            neighborSideIsOwn = neighborSideId === neigborNode.appliedTerrainNodeId;
+
+        return neighborSideIsOwn || !sideIsOwn;
     }
 
     protected _equalizeSide(side: number): void {
