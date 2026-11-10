@@ -173,6 +173,11 @@ export class QuadTreeStrategy {
     protected _opaqueNodesIds: number[] = [];
 
     /**
+     * Normal map creator version the normal map edges were compared at, see Segment._checkNormalMapEdges.
+     */
+    protected _normalMapEdgesVersion: number = -1;
+
+    /**
      * False while a node only the view cameras render waits for its terrain. Keeps the frames coming in the
      * idle mode, apart from _terrainCompleted, which stays about the main camera view.
      * @public
@@ -638,6 +643,16 @@ export class QuadTreeStrategy {
         }
 
         ids.length = opaqueNodes.length;
+
+        // The edges change only with the nodes on the screen or with a new normal map
+        const terrain = this.planet && this.planet.terrain,
+            nmc = this.planet && this.planet._normalMapCreator;
+        if (terrain && terrain.equalizeNormals && nmc && (changed || nmc.__version__ !== this._normalMapEdgesVersion)) {
+            this._normalMapEdgesVersion = nmc.__version__;
+            for (let i = 0; i < opaqueNodes.length; i++) {
+                opaqueNodes[i].segment._checkNormalMapEdges();
+            }
+        }
 
         this._cornersChanged = changed;
         this._cornerMoved = false;
