@@ -126,6 +126,56 @@ _V[S] = false;
 _V[W] = true;
 
 /**
+ * Grows when a normal map side changes, the finer normal maps that took the side compare it.
+ */
+let __normalMapEdgeVersion__ = 0;
+
+const _normal = new Float32Array(3);
+
+const NORMAL_EPSILON = 1e-5;
+
+function isSameNormal(arr: Float32Array, i: number, x: number, y: number, z: number): boolean {
+    return (
+        Math.abs(arr[i] - x) < NORMAL_EPSILON &&
+        Math.abs(arr[i + 1] - y) < NORMAL_EPSILON &&
+        Math.abs(arr[i + 2] - z) < NORMAL_EPSILON
+    );
+}
+
+/**
+ * Bilinear normal at a fractional row and column of a normal grid, normalized.
+ */
+function sampleNormal(src: Float32Array, gs: number, row: number, col: number, dst: Float32Array) {
+    row = Math.min(Math.max(row, 0), gs);
+    col = Math.min(Math.max(col, 0), gs);
+
+    const r0 = Math.min(Math.floor(row), gs - 1),
+        c0 = Math.min(Math.floor(col), gs - 1),
+        fr = row - r0,
+        fc = col - c0;
+
+    let x = 0,
+        y = 0,
+        z = 0;
+
+    for (let q = 0; q < 4; q++) {
+        const w = (q & 2 ? fr : 1 - fr) * (q & 1 ? fc : 1 - fc);
+        if (w > 0) {
+            const si = ((r0 + (q >> 1)) * (gs + 1) + c0 + (q & 1)) * 3,
+                l = w / Math.sqrt(src[si] * src[si] + src[si + 1] * src[si + 1] + src[si + 2] * src[si + 2]);
+            x += src[si] * l;
+            y += src[si + 1] * l;
+            z += src[si + 2] * l;
+        }
+    }
+
+    const l = 1.0 / Math.sqrt(x * x + y * y + z * z);
+    dst[0] = x * l;
+    dst[1] = y * l;
+    dst[2] = z * l;
+}
+
+/**
  * Planet segment Web Mercator tile class that stored and rendered with a quad-tree.
  * @class
  * @param {Node} node - Segment node.
@@ -338,6 +388,13 @@ class Segment {
     public _inTheQueue: boolean;
     public _appliedNeighborsZoom: [number, number, number, number];
     public _appliedNeighborsZoomNodeId: [number, number, number, number];
+    public _appliedNeighborsVersion: [number, number, number, number];
+    public _normalMapEdgeSource: (Segment | null)[];
+    public _normalMapSource: Segment | null;
+    public _appliedNeighborsInside: [boolean, boolean, boolean, boolean];
+    public _normalMapSideVersion: [number, number, number, number];
+    public _normalMapArraysVersion: number;
+    public _normalMapDrawnNormals: Float32Array | null;
 
     public _slices: Slice[];
 
@@ -478,6 +535,13 @@ class Segment {
         this._inTheQueue = false;
         this._appliedNeighborsZoom = [0, 0, 0, 0];
         this._appliedNeighborsZoomNodeId = [-1, -1, -1, -1];
+        this._appliedNeighborsVersion = [-1, -1, -1, -1];
+        this._normalMapEdgeSource = [null, null, null, null];
+        this._normalMapSource = null;
+        this._appliedNeighborsInside = [false, false, false, false];
+        this._normalMapSideVersion = [0, 0, 0, 0];
+        this._normalMapArraysVersion = 0;
+        this._normalMapDrawnNormals = null;
 
         this._slices = [];
 
@@ -857,19 +921,24 @@ class Segment {
 
     protected _checkEqualization(neighborSide: number, neigborNode: Node): boolean {
         const ns = neigborNode && neigborNode.segment;
+        if (!ns) {
+            return false;
+        }
         const oppositeSide = OPSIDE[neighborSide];
-        const oppositeNeighbors = neigborNode && neigborNode.neighbors && neigborNode.neighbors[oppositeSide];
+        const oppositeNeighbors = neigborNode.neighbors && neigborNode.neighbors[oppositeSide];
         const hasReverseNeighbor = !!oppositeNeighbors && oppositeNeighbors.indexOf(this.node) !== -1;
+        const neighborIsCoarser = this.tileZoom > ns.tileZoom;
+        const thisSideIsOwn = this.node.equalizedSideWithNodeId[neighborSide] === this.node.appliedTerrainNodeId;
+        const neighborSideIsOwn =
+            neigborNode.equalizedSideWithNodeId[oppositeSide] === neigborNode.appliedTerrainNodeId;
         return (
-            neigborNode &&
-            ns &&
             hasReverseNeighbor &&
             !!ns.renderVertices &&
             Number.isFinite(ns.gridSize) &&
             ns.gridSize >= 1 &&
             this.tileZoom >= ns.tileZoom &&
-            this.node.equalizedSideWithNodeId[neighborSide] !==
-                neigborNode.equalizedSideWithNodeId[OPSIDE[neighborSide]]
+            this.node.equalizedSideWithNodeId[neighborSide] !== neigborNode.equalizedSideWithNodeId[oppositeSide] &&
+            (neighborIsCoarser || neighborSideIsOwn || !thisSideIsOwn)
         );
     }
 
@@ -1372,14 +1441,41 @@ class Segment {
     }
 
     public _normalMapEdgeEqualize(side: number) {
+        // The neighbors of a segment off the screen are left from the frame it was on it
+        const linked = this.node._neighborFrame === this.quadTreeStrategy._neighborFrame;
+
         let nn = this.node.neighbors;
         let nns = nn[side];
-        let n: Node | undefined = nns && nns[0];
+        let n: Node | undefined = linked && nns ? nns[0] : undefined;
         let maxZ = this.planet.terrain!.maxZoom;
 
         if (this.tileZoom === maxZ) {
             if (nns && !(nn[0].length || nn[1].length || nn[2].length || nn[3].length)) {
                 n = this.node.getEqualNeighbor(side);
+            }
+        }
+
+        // The normal map a neighbor on the screen is drawn with, see _checkNormalMapEdges
+        const es = this._normalMapEdgeSource[side];
+        if (es) {
+            this._normalMapEdgeSource[side] = null;
+            if (es.normalMapNormals) {
+                if (es.tileZoom < this.tileZoom) {
+                    this._normalMapEdgeCopy(side, es);
+                    return;
+                }
+                n = es.node;
+            }
+        } else if (linked && nns && nns.length === 1) {
+            // A segment on the screen takes the side of a lower zoom neighbor at once, not in one more drawing
+            const y = nns[0].segment,
+                t = y._isNormalMapPending() ? null : y._getNormalMapSource();
+
+            if (t && t.tileZoom < this.tileZoom && t.terrainExists && t.normalMapNormals) {
+                if (!this._isNormalMapEdgeApplied(side, t)) {
+                    this._normalMapEdgeCopy(side, t);
+                }
+                return;
             }
         }
 
@@ -1412,52 +1508,178 @@ class Segment {
             if (s.tileZoom === b.tileZoom) {
                 const i_b = s_gs1 - i_a;
 
-                if (_V[side]) {
-                    for (let k = 0; k < s_gs; k++) {
-                        let vInd_a = (k * s_gs + i_a) * 3,
-                            vInd_b = (k * s_gs + i_b) * 3;
+                let changed = false;
 
-                        nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
-                        ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
-                        nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
+                for (let k = 0; k < s_gs; k++) {
+                    let vInd_a = (_V[side] ? k * s_gs + i_a : i_a * s_gs + k) * 3,
+                        vInd_b = (_V[side] ? k * s_gs + i_b : i_b * s_gs + k) * 3;
 
-                        q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+                    nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
+                    ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
+                    nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
-                        seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
-                        seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
-                        seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
-                    }
-                } else {
-                    for (let k = 0; k < s_gs; k++) {
-                        let vInd_a = (i_a * s_gs + k) * 3,
-                            vInd_b = (i_b * s_gs + k) * 3;
+                    q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+                    nx *= q;
+                    ny *= q;
+                    nz *= q;
 
-                        nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
-                        ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
-                        nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
+                    changed =
+                        changed || !isSameNormal(seg_a, vInd_a, nx, ny, nz) || !isSameNormal(seg_b, vInd_b, nx, ny, nz);
 
-                        q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-
-                        seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
-                        seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
-                        seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
-                    }
+                    seg_b[vInd_b] = seg_a[vInd_a] = nx;
+                    seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny;
+                    seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz;
                 }
+
+                const oppositeSide = OPSIDE[side];
 
                 s._appliedNeighborsZoom[side] = b.tileZoom;
                 s._appliedNeighborsZoomNodeId[side] = n.nodeId;
+                b._appliedNeighborsZoom[oppositeSide] = s.tileZoom;
+                b._appliedNeighborsZoomNodeId[oppositeSide] = s.node.nodeId;
 
-                const oppositeSide = OPSIDE[side];
-                if (
-                    !b._inTheQueue &&
-                    (b._appliedNeighborsZoom[oppositeSide] !== s.tileZoom ||
-                        b._appliedNeighborsZoomNodeId[oppositeSide] !== s.node.nodeId)
-                ) {
-                    b._appliedNeighborsZoom[oppositeSide] = s.tileZoom;
-                    b._appliedNeighborsZoomNodeId[oppositeSide] = s.node.nodeId;
-                    s.planet._normalMapCreator.queue(b);
+                if (changed) {
+                    s._normalMapSideVersion[side] = b._normalMapSideVersion[oppositeSide] = ++__normalMapEdgeVersion__;
+                    if (!b._inTheQueue) {
+                        s.planet._normalMapCreator.queue(b);
+                    }
                 }
             }
+        }
+    }
+
+    /**
+     * The segment the normal map of this one comes from: itself, or the parent whose normal map.
+     */
+    public _getNormalMapSource(): Segment | null {
+        if (this.normalMapReady) {
+            return this;
+        }
+        const s = this._normalMapSource;
+        return s && s.normalMapReady ? s : null;
+    }
+
+    public _isNormalMapPending(): boolean {
+        return this.terrainIsLoading || !this.terrainReady || (this.terrainExists && !this.normalMapReady);
+    }
+
+    protected _isNormalMapEdgeApplied(side: number, t: Segment): boolean {
+        return (
+            this._appliedNeighborsZoom[side] === t.tileZoom &&
+            this._appliedNeighborsZoomNodeId[side] === t.node.nodeId &&
+            (t.tileZoom === this.tileZoom ||
+                this._appliedNeighborsVersion[side] ===
+                    (this._appliedNeighborsInside[side]
+                        ? t._normalMapArraysVersion
+                        : t._normalMapSideVersion[OPSIDE[side]]))
+        );
+    }
+
+    public _checkNormalMapEdges() {
+        const s = this._getNormalMapSource();
+
+        if (!s || !s.normalMapNormals || this._isNormalMapPending()) {
+            return;
+        }
+
+        const nn = this.node.neighbors;
+
+        for (let side = N; side <= W; side++) {
+            const ns = nn[side];
+            for (let i = 0; i < ns.length; i++) {
+                if (ns[i].segment._isNormalMapPending()) {
+                    continue;
+                }
+
+                const t = ns[i].segment._getNormalMapSource();
+
+                if (
+                    !t ||
+                    t === s ||
+                    t.tileZoom > s.tileZoom ||
+                    !t.terrainExists ||
+                    !t.normalMapNormals ||
+                    (t.tileZoom === s.tileZoom && t.normalMapNormals.length !== s.normalMapNormals.length)
+                ) {
+                    continue;
+                }
+
+                if (!s._isNormalMapEdgeApplied(side, t)) {
+                    s._normalMapEdgeSource[side] = t;
+                    if (!s._inTheQueue) {
+                        s.planet._normalMapCreator.queue(s);
+                    }
+                }
+            }
+        }
+    }
+
+    protected _normalMapEdgeCopy(side: number, t: Segment) {
+        const a = this.normalMapNormals!,
+            b = t.normalMapNormals!,
+            gs = Math.sqrt(a.length / 3) - 1,
+            tgs = Math.sqrt(b.length / 3) - 1,
+            size = tgs / (1 << (this.tileZoom - t.tileZoom)),
+            x0 = this.node.getOffsetOppositeNeighbourSide(t.node, N) * tgs,
+            y0 = this.node.getOffsetOppositeNeighbourSide(t.node, W) * tgs;
+
+        let p: Node = this.node;
+        while (p.parentNode && p.segment.tileZoom > t.tileZoom) {
+            p = p.parentNode;
+        }
+        const inside = p === t.node;
+
+        let r = y0,
+            c = x0,
+            dr = 0,
+            dc = 0;
+
+        if (side === N || side === S) {
+            r = inside ? y0 + (side === S ? size : 0) : side === N ? tgs : 0;
+            dc = size / gs;
+        } else {
+            c = inside ? x0 + (side === E ? size : 0) : side === W ? tgs : 0;
+            dr = size / gs;
+        }
+
+        let changed = false;
+
+        for (let k = 0; k <= gs; k++) {
+            const i = side === N ? 0 : side === S ? gs : k,
+                j = side === W ? 0 : side === E ? gs : k;
+
+            sampleNormal(b, tgs, r + dr * k, c + dc * k, _normal);
+
+            const di = (i * (gs + 1) + j) * 3;
+
+            changed = changed || !isSameNormal(a, di, _normal[0], _normal[1], _normal[2]);
+            a[di] = _normal[0];
+            a[di + 1] = _normal[1];
+            a[di + 2] = _normal[2];
+        }
+
+        if (changed) {
+            this._normalMapSideVersion[side] = ++__normalMapEdgeVersion__;
+        }
+
+        // Inside the lower zoom normal map only new normals change the side, on its edge the equalizing does as well
+        this._appliedNeighborsZoom[side] = t.tileZoom;
+        this._appliedNeighborsZoomNodeId[side] = t.node.nodeId;
+        this._appliedNeighborsInside[side] = inside;
+        this._appliedNeighborsVersion[side] = inside
+            ? t._normalMapArraysVersion
+            : t._normalMapSideVersion[OPSIDE[side]];
+    }
+
+    /**
+     * Called when the normal map is drawn. New normals change all the sides for the finer normal maps that took them.
+     */
+    public _normalMapDrawn() {
+        if (this._normalMapDrawnNormals !== this.normalMapNormals) {
+            this._normalMapDrawnNormals = this.normalMapNormals;
+            const v = ++__normalMapEdgeVersion__,
+                sv = this._normalMapSideVersion;
+            this._normalMapArraysVersion = sv[N] = sv[E] = sv[S] = sv[W] = v;
         }
     }
 
@@ -1539,6 +1761,10 @@ class Segment {
 
         this._appliedNeighborsZoom = [0, 0, 0, 0];
         this._appliedNeighborsZoomNodeId = [-1, -1, -1, -1];
+        this._appliedNeighborsVersion = [-1, -1, -1, -1];
+        this._normalMapEdgeSource = [null, null, null, null];
+        this._normalMapSource = null;
+        this._normalMapDrawnNormals = null;
 
         this.normalMapTextureBias[0] = 0;
         this.normalMapTextureBias[1] = 0;
@@ -1625,6 +1851,12 @@ class Segment {
         this._appliedNeighborsZoom = null;
         // @ts-ignore
         this._appliedNeighborsZoomNodeId = null;
+        // @ts-ignore
+        this._appliedNeighborsVersion = null;
+        // @ts-ignore
+        this._normalMapEdgeSource = null;
+        this._normalMapSource = null;
+        this._normalMapDrawnNormals = null;
         // @ts-ignore
         this._globalTextureCoordinates = null;
     }
