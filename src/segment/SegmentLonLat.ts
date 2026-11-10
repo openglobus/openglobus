@@ -66,7 +66,7 @@ class SegmentLonLat extends Segment {
     protected override _assignTileIndexes() {
         this._assignTileXIndexes(this._extent);
         this._assignTileYIndexes(this._extent);
-        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, this.tileZoom, this._tileGroup);
+        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, this.tileZoom, this.tileGroup);
     }
 
     protected _assignTileXIndexes(extent: Extent) {
@@ -79,17 +79,17 @@ class SegmentLonLat extends Segment {
     protected _assignTileYIndexes(extent: Extent) {
         const lat = extent.getCenter().lat; //extent.northEast.lat;
         if (lat > 0) {
-            this._tileGroup = TILEGROUP_NORTH;
+            this.tileGroup = TILEGROUP_NORTH;
             this.tileY = getTileCellIndex(lat, extent.getHeight(), 90.0);
         } else {
-            this._tileGroup = TILEGROUP_SOUTH;
+            this.tileGroup = TILEGROUP_SOUTH;
             this.tileY = getTileCellIndex(lat, extent.getHeight(), mercator.MIN_LAT);
         }
         this.tileYN = this.tileY - 1;
         this.tileYS = this.tileY + 1;
     }
 
-    protected override _projToDeg(lon: number, lat: number): LonLat {
+    public override getLonLat(lon: number, lat: number): LonLat {
         return new LonLat(lon, lat);
     }
 

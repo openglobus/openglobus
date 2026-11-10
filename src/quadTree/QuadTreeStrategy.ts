@@ -47,6 +47,14 @@ export class QuadTreeStrategy {
     public disableNeighbors: boolean = false;
 
     /**
+     * Width of a root tile in degrees of longitude, a tile of the zoom is 2^zoom times narrower. The native zoom of
+     * a raster source is found by it.
+     * @public
+     * @type {number}
+     */
+    public rootTileWidth: number = 360;
+
+    /**
      * grid tree list.
      * @protected
      * @type {Node[]}
@@ -757,7 +765,7 @@ export class QuadTreeStrategy {
      * @returns {Node | null} -
      */
     public getNodeByLonLat(lonLat: LonLat, zoom: number = Infinity): Node | null {
-        let node: Node | undefined = this._quadTreeList.find((root) => root.segment.getExtentLonLat().isInside(lonLat));
+        let node: Node | undefined = this._quadTreeList.find((root) => root.segment.isLonLatInside(lonLat));
 
         if (!node) {
             return null;

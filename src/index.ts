@@ -93,7 +93,9 @@ import { Popup } from "./Popup";
 import { Loader, type IResponse } from "./utils/Loader";
 
 import {
+    CubeQuadTreeStrategy,
     EarthQuadTreeStrategy,
+    EquiangularCubeQuadTreeStrategy,
     EquiQuadTreeStrategy,
     QuadTreeStrategy,
     quadTreeStrategyType,
@@ -188,6 +190,8 @@ export {
     EquiQuadTreeStrategy,
     EarthQuadTreeStrategy,
     Wgs84QuadTreeStrategy,
+    CubeQuadTreeStrategy,
+    EquiangularCubeQuadTreeStrategy,
     Object3d,
     Gltf,
     MoveAxisEntity,

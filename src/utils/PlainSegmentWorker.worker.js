@@ -87,6 +87,10 @@ const Vec3 = function (x, y, z) {
     this.z = z;
 };
 
+// A position on a cube face, from 0 to 1, as a coordinate on the plane of the face, from -1 to 1
+const toEquiangularPlane = (position) => Math.tan(HALF_PI * (position - 0.5));
+const toGnomonicPlane = (position) => 2.0 * position - 1.0;
+
 // Longitude terms of the grid columns, the latitude ones are made once per row
 let _lon = new Float64Array(0),
     _cosLon = new Float64Array(0),
@@ -118,6 +122,11 @@ self.onmessage = function (msg) {
 
         // Mercator extent, its coordinates are converted to degrees
         let isMerc = msg.data.params[1] === 0.0;
+
+        // Cube extent, the longitude is the face index and the position on it, see proj/cube
+        let isCube = msg.data.params[1] >= 2.0,
+            toCubePlane = msg.data.params[1] === 2.0 ? toEquiangularPlane : toGnomonicPlane,
+            face = msg.data.params.subarray(17, 26);
 
         let maxFgs = Math.max(fgs, gridSize);
         let llStep = (msg.data.params[6] - msg.data.params[4]) / maxFgs;
@@ -152,6 +161,10 @@ self.onmessage = function (msg) {
 
         for (let j = 0; j < gs; j++) {
             let lon = esw_lon + j * llStep;
+            if (isCube) {
+                _lon[j] = toCubePlane(lon - Math.floor(esw_lon));
+                continue;
+            }
             if (isMerc) {
                 lon = lon * INV_POLE_BY_180;
             }
@@ -167,19 +180,53 @@ self.onmessage = function (msg) {
                 lat = INV_PI_BY_360 * Math.atan(Math.exp(lat * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI;
             }
 
-            let latrad = RADIANS * lat;
-            let slt = Math.sin(latrad),
+            let b = 0.0,
+                slt = 0.0,
+                clt = 0.0,
+                N = 0.0,
+                Nb = 0.0;
+
+            if (isCube) {
+                b = toCubePlane(lat);
+            } else {
+                let latrad = RADIANS * lat;
+                slt = Math.sin(latrad);
                 clt = Math.cos(latrad);
-            let N = A / Math.sqrt(1.0 - E2 * slt * slt),
+                N = A / Math.sqrt(1.0 - E2 * slt * slt);
                 Nb = N * (1 - E2);
+            }
 
             for (let j = 0; j < gs; j++) {
-                let h = getHeightMSL(_lon[j], lat) * heightFactor;
+                let wx, wy, wz;
 
-                let nc = (N + h) * clt;
-                let wx = nc * _cosLon[j],
-                    wy = nc * _sinLon[j],
+                if (isCube) {
+                    let a = _lon[j],
+                        dx = face[0] + a * face[3] + b * face[6],
+                        dy = face[1] + a * face[4] + b * face[7],
+                        dz = face[2] + a * face[5] + b * face[8],
+                        dl = 1.0 / Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                    dx *= dl;
+                    dy *= dl;
+                    dz *= dl;
+
+                    let h = model
+                        ? getHeightMSL(Math.atan2(dy, dx) * INV_PI_BY_180, Math.asin(dz) * INV_PI_BY_180) * heightFactor
+                        : 0.0;
+
+                    let Nc = A / Math.sqrt(1.0 - E2 * dz * dz);
+
+                    wx = (Nc + h) * dx;
+                    wy = (Nc + h) * dy;
+                    wz = (Nc * (1 - E2) + h) * dz;
+                } else {
+                    let h = getHeightMSL(_lon[j], lat) * heightFactor;
+
+                    let nc = (N + h) * clt;
+                    wx = nc * _cosLon[j];
+                    wy = nc * _sinLon[j];
                     wz = (Nb + h) * slt;
+                }
 
                 let nx = wx * r2_x,
                     ny = wy * r2_y,

@@ -2705,7 +2705,7 @@ export class Planet extends Scene {
         for (let i = nodes.length - 1; i >= 0; i--) {
             let segment = nodes[i].segment;
 
-            if (segment && segment._extentLonLat && segment._extentLonLat.isInside(lonLat)) {
+            if (segment && segment.isLonLatInside(lonLat)) {
                 if (!bestSegment || segment.tileZoom > bestSegment.tileZoom) {
                     bestSegment = segment;
                 }

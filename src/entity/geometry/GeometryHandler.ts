@@ -1,4 +1,6 @@
 import * as mercator from "../../mercator";
+import { RADIANS } from "../../math";
+import { isCubeProj } from "../../proj/cube";
 import { Extent } from "../../Extent";
 import { Handler } from "../../webgl/Handler";
 import type { WebGLBufferExt } from "../../webgl/Handler";
@@ -20,8 +22,9 @@ import type {
 
 import { GeometryTypeEnum } from "./Geometry";
 
-import { earcut, flatten } from "../../utils/earcut";
+import earcut, { flatten } from "earcut";
 import { concatArrays } from "../../utils/shared";
+import { triangulateOnGrid } from "./triangulateOnGrid";
 
 type GeometryOffsetKey =
     | "_polyVerticesHandlerIndex"
@@ -83,6 +86,111 @@ let tempHigh = new Vec2(),
     tempLow = new Vec2(),
     tempHighLow = new Vec2();
 
+// A direction is a unit vector, its high floats are the values and the low ones are what is left of them
+function pushDirection(x: number, y: number, z: number, copies: number, outHigh: number[], outLow: number[]) {
+    const hx = Math.fround(x),
+        hy = Math.fround(y),
+        hz = Math.fround(z),
+        lx = Math.fround(x - hx),
+        ly = Math.fround(y - hy),
+        lz = Math.fround(z - hz);
+
+    for (let i = 0; i < copies; i++) {
+        outHigh.push(hx, hy, hz);
+        outLow.push(lx, ly, lz);
+    }
+}
+
+// The surface normal of the ellipsoid at the geodetic point
+function toDirection(p: CoordinatesType, out: number[]) {
+    const lon = p[0] * RADIANS,
+        lat = p[1] * RADIANS,
+        c = Math.cos(lat);
+    out[0] = c * Math.cos(lon);
+    out[1] = c * Math.sin(lon);
+    out[2] = Math.sin(lat);
+    return out;
+}
+
+const _d0 = [0, 0, 0],
+    _d1 = [0, 0, 0];
+
+/**
+ * Longest segment of a line or a polygon edge on the cube, in degrees.
+ */
+export const DENSIFY_STEP = 1.0;
+
+/**
+ * Returns the path with points between the ones further apart than the step in longitude or latitude, the closed path
+ * gets them on the edge from its last point to the first one too.
+ * @param {Array.<CoordinatesType>} path - Geodetic points.
+ * @param {boolean} isClosed - The last point goes back to the first one.
+ * @param {number} [step] - Longest segment in degrees.
+ * @returns {Array.<CoordinatesType>} -
+ */
+export function densifyPath(
+    path: CoordinatesType[],
+    isClosed: boolean,
+    step: number = DENSIFY_STEP
+): CoordinatesType[] {
+    const out: CoordinatesType[] = [];
+    const n = path.length;
+
+    for (let i = 0; i < n; i++) {
+        const a = path[i];
+        out.push(a);
+
+        const b = i < n - 1 ? path[i + 1] : isClosed && n > 2 ? path[0] : null;
+        if (!b) continue;
+
+        const k = Math.ceil(Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1])) / step);
+
+        for (let j = 1; j < k; j++) {
+            const t = j / k,
+                lon = a[0] + (b[0] - a[0]) * t,
+                lat = a[1] + (b[1] - a[1]) * t;
+
+            out.push(a.length > 2 && b.length > 2 ? [lon, lat, a[2]! + (b[2]! - a[2]!) * t] : [lon, lat]);
+        }
+    }
+
+    return out;
+}
+
+/**
+ * Returns the path without the points equal to the point before them, a closed path also without its last points
+ * equal to the first one, as a GeoJSON ring has it. A segment of no length has no direction, so a line can't join
+ * the segments around it.
+ * @param {Array.<CoordinatesType>} path - Geodetic points.
+ * @param {boolean} isClosed - The last point goes back to the first one.
+ * @returns {Array.<CoordinatesType>} -
+ */
+export function removeRepeatedPoints(path: CoordinatesType[], isClosed: boolean): CoordinatesType[] {
+    const out: CoordinatesType[] = [];
+
+    for (const p of path) {
+        const q = out[out.length - 1];
+        if (!q || p[0] !== q[0] || p[1] !== q[1]) {
+            out.push(p);
+        }
+    }
+
+    if (isClosed) {
+        while (out.length > 1 && out[out.length - 1][0] === out[0][0] && out[out.length - 1][1] === out[0][1]) {
+            out.pop();
+        }
+    }
+
+    return out;
+}
+
+// Appends the Web Mercator coordinates of the points from the index
+function pushMercator(points: CoordinatesType[], from: number, out: number[]) {
+    for (let i = from; i < points.length; i++) {
+        out.push(mercator.forward_lon(points[i][0]), mercator.forward_lat(points[i][1]));
+    }
+}
+
 class GeometryHandler {
     static __counter__: number = 0;
 
@@ -103,6 +211,8 @@ class GeometryHandler {
     // Polygon arrays
     protected _polyVerticesHighMerc: number[];
     protected _polyVerticesLowMerc: number[];
+    protected _polyDirectionsHigh: number[];
+    protected _polyDirectionsLow: number[];
     protected _polyColors: number[];
     protected _polyPickingColors: number[];
     protected _polyIndexes: number[];
@@ -110,6 +220,8 @@ class GeometryHandler {
     // Line arrays
     protected _lineVerticesHighMerc: number[];
     protected _lineVerticesLowMerc: number[];
+    protected _lineDirectionsHigh: number[];
+    protected _lineDirectionsLow: number[];
     protected _lineOrders: number[];
     protected _lineIndexes: number[];
     protected _lineColors: number[];
@@ -121,12 +233,16 @@ class GeometryHandler {
     // Buffers
     public _polyVerticesHighBufferMerc: WebGLBufferExt | null;
     public _polyVerticesLowBufferMerc: WebGLBufferExt | null;
+    public _polyDirectionsHighBuffer: WebGLBufferExt | null;
+    public _polyDirectionsLowBuffer: WebGLBufferExt | null;
     public _polyColorsBuffer: WebGLBufferExt | null;
     public _polyPickingColorsBuffer: WebGLBufferExt | null;
     public _polyIndexesBuffer: WebGLBufferExt | null;
 
     public _lineVerticesHighBufferMerc: WebGLBufferExt | null;
     public _lineVerticesLowBufferMerc: WebGLBufferExt | null;
+    public _lineDirectionsHighBuffer: WebGLBufferExt | null;
+    public _lineDirectionsLowBuffer: WebGLBufferExt | null;
     public _lineColorsBuffer: WebGLBufferExt | null;
     public _linePickingColorsBuffer: WebGLBufferExt | null;
     public _lineThicknessBuffer: WebGLBufferExt | null;
@@ -138,6 +254,11 @@ class GeometryHandler {
     protected _buffersUpdateCallbacks: Function[];
 
     protected _changedBuffers: boolean[];
+
+    /**
+     * The planet is a cube
+     */
+    public _isCube: boolean;
 
     constructor(layer: Vector) {
         this.__id = GeometryHandler.__counter__++;
@@ -157,6 +278,8 @@ class GeometryHandler {
         // Polygon arrays
         this._polyVerticesHighMerc = [];
         this._polyVerticesLowMerc = [];
+        this._polyDirectionsHigh = [];
+        this._polyDirectionsLow = [];
         this._polyColors = [];
         this._polyPickingColors = [];
         this._polyIndexes = [];
@@ -164,6 +287,8 @@ class GeometryHandler {
         // Line arrays
         this._lineVerticesHighMerc = [];
         this._lineVerticesLowMerc = [];
+        this._lineDirectionsHigh = [];
+        this._lineDirectionsLow = [];
         this._lineOrders = [];
         this._lineIndexes = [];
         this._lineColors = [];
@@ -175,12 +300,16 @@ class GeometryHandler {
         // Buffers
         this._polyVerticesHighBufferMerc = null;
         this._polyVerticesLowBufferMerc = null;
+        this._polyDirectionsHighBuffer = null;
+        this._polyDirectionsLowBuffer = null;
         this._polyColorsBuffer = null;
         this._polyPickingColorsBuffer = null;
         this._polyIndexesBuffer = null;
 
         this._lineVerticesHighBufferMerc = null;
         this._lineVerticesLowBufferMerc = null;
+        this._lineDirectionsHighBuffer = null;
+        this._lineDirectionsLowBuffer = null;
         this._lineColorsBuffer = null;
         this._linePickingColorsBuffer = null;
         this._lineThicknessBuffer = null;
@@ -204,6 +333,69 @@ class GeometryHandler {
         this._buffersUpdateCallbacks[LINEPICKINGCOLORS_BUFFER] = this.createLinePickingColorsBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
+
+        this._isCube = false;
+    }
+
+    /**
+     * Appends the directions of the line vertices in the order of appendLineData: each point of a path four times,
+     * after the point before the first one and before the point after the last one.
+     */
+    static appendLineDirections(
+        pathArr: CoordinatesType[][],
+        isClosed: boolean,
+        outHigh: number[],
+        outLow: number[],
+        outHigh2: number[],
+        outLow2: number[]
+    ) {
+        const push = (x: number, y: number, z: number) => {
+            pushDirection(x, y, z, 4, outHigh, outLow);
+            pushDirection(x, y, z, 4, outHigh2, outLow2);
+        };
+
+        for (let j = 0; j < pathArr.length; j++) {
+            const path = pathArr[j];
+
+            if (path.length === 0) {
+                continue;
+            }
+
+            const n = path.length;
+
+            if (isClosed) {
+                toDirection(path[n - 1], _d0);
+                push(_d0[0], _d0[1], _d0[2]);
+            } else {
+                toDirection(path[0], _d0);
+                toDirection(path[1] || path[0], _d1);
+                push(2 * _d0[0] - _d1[0], 2 * _d0[1] - _d1[1], 2 * _d0[2] - _d1[2]);
+            }
+
+            for (let i = 0; i < n; i++) {
+                toDirection(path[i], _d0);
+                push(_d0[0], _d0[1], _d0[2]);
+            }
+
+            if (isClosed) {
+                toDirection(path[0], _d0);
+                push(_d0[0], _d0[1], _d0[2]);
+            } else {
+                toDirection(path[n - 1], _d0);
+                toDirection(path[n - 2] || path[n - 1], _d1);
+                push(2 * _d0[0] - _d1[0], 2 * _d0[1] - _d1[1], 2 * _d0[2] - _d1[2]);
+            }
+        }
+    }
+
+    // The directions of the polygon vertices, the rings one after another as flatten() puts them
+    static appendPolygonDirections(rings: CoordinatesType[][], outHigh: number[], outLow: number[]) {
+        for (let j = 0; j < rings.length; j++) {
+            for (let k = 0; k < rings[j].length; k++) {
+                toDirection(rings[j][k], _d0);
+                pushDirection(_d0[0], _d0[1], _d0[2], 1, outHigh, outLow);
+            }
+        }
     }
 
     static appendLineData(
@@ -578,6 +770,7 @@ class GeometryHandler {
 
     public assignHandler(handler: Handler) {
         this._handler = handler;
+        this._isCube = isCubeProj(this._layer._planet!.quadTreeStrategy.projection);
         this.refresh();
         if (handler.isInitialized()) {
             this.update();
@@ -603,10 +796,21 @@ class GeometryHandler {
             geometry._polyVerticesLowMerc = [];
             geometry._lineVerticesHighMerc = [];
             geometry._lineVerticesLowMerc = [];
+            geometry._polyDirectionsHigh = [];
+            geometry._polyDirectionsLow = [];
+            geometry._lineDirectionsHigh = [];
+            geometry._lineDirectionsLow = [];
+
+            const isCube = this._isCube;
 
             if ((geometry._coordinates as IPolygonCoordinates)[0].length) {
                 if (geometry.type === GeometryTypeEnum.POLYGON) {
-                    let coordinates = geometry._coordinates as IPolygonCoordinates;
+                    let coordinates = (geometry._coordinates as IPolygonCoordinates).map((ring) =>
+                        removeRepeatedPoints(ring, true)
+                    );
+                    if (isCube) {
+                        coordinates = coordinates.map((ring) => densifyPath(ring, true));
+                    }
                     let ci: IPolygonCoordinates = [];
                     for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [];
@@ -619,7 +823,15 @@ class GeometryHandler {
                     }
 
                     let data = flatten(ci);
-                    let indexes: number[] = earcut(data.vertices, data.holes, 2);
+                    let indexes: number[];
+                    let points: CoordinatesType[] = [];
+
+                    if (isCube) {
+                        ({ points, indexes } = triangulateOnGrid(coordinates, DENSIFY_STEP));
+                        pushMercator(points, data.vertices.length * 0.5, data.vertices);
+                    } else {
+                        indexes = earcut(data.vertices, data.holes, 2);
+                    }
 
                     geometry._polyVerticesHandlerIndex = this._polyVerticesHighMerc.length;
                     geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
@@ -650,6 +862,16 @@ class GeometryHandler {
                     concatArrays(this._polyVerticesHighMerc, verticesHigh);
                     concatArrays(this._polyVerticesLowMerc, verticesLow);
 
+                    if (isCube) {
+                        GeometryHandler.appendPolygonDirections(
+                            [points],
+                            geometry._polyDirectionsHigh,
+                            geometry._polyDirectionsLow
+                        );
+                        concatArrays(this._polyDirectionsHigh, geometry._polyDirectionsHigh);
+                        concatArrays(this._polyDirectionsLow, geometry._polyDirectionsLow);
+                    }
+
                     geometry._polyVerticesLength = data.vertices.length;
                     geometry._polyIndexesLength = indexes.length;
 
@@ -659,6 +881,17 @@ class GeometryHandler {
                     geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
                     geometry._lineColorsHandlerIndex = this._lineColors.length;
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
+
+                    if (isCube) {
+                        GeometryHandler.appendLineDirections(
+                            coordinates,
+                            true,
+                            this._lineDirectionsHigh,
+                            this._lineDirectionsLow,
+                            geometry._lineDirectionsHigh,
+                            geometry._lineDirectionsLow
+                        );
+                    }
 
                     GeometryHandler.appendLineData(
                         ci,
@@ -688,7 +921,12 @@ class GeometryHandler {
                     geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
                     geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
                 } else if (geometry.type === GeometryTypeEnum.MULTIPOLYGON) {
-                    let coordinates = geometry._coordinates as IMultiPolygonCoordinates;
+                    let coordinates = (geometry._coordinates as IMultiPolygonCoordinates).map((polygon) =>
+                        polygon.map((ring) => removeRepeatedPoints(ring, true))
+                    );
+                    if (isCube) {
+                        coordinates = coordinates.map((polygon) => polygon.map((ring) => densifyPath(ring, true)));
+                    }
                     let vertices: number[] = [],
                         indexes: number[] = [];
 
@@ -709,13 +947,40 @@ class GeometryHandler {
                             }
                         }
                         let data = flatten(ci);
-                        let dataIndexes: number[] = earcut(data.vertices, data.holes, 2);
+                        let dataIndexes: number[];
+                        let points: CoordinatesType[] = [];
+
+                        if (isCube) {
+                            ({ points, indexes: dataIndexes } = triangulateOnGrid(cci, DENSIFY_STEP));
+                            pushMercator(points, data.vertices.length * 0.5, data.vertices);
+                        } else {
+                            dataIndexes = earcut(data.vertices, data.holes, 2);
+                        }
 
                         for (let j = 0; j < dataIndexes.length; j++) {
                             indexes.push(dataIndexes[j] + vertices.length * 0.5);
                         }
 
                         concatArrays(vertices, data.vertices);
+
+                        if (isCube) {
+                            GeometryHandler.appendLineDirections(
+                                cci,
+                                true,
+                                this._lineDirectionsHigh,
+                                this._lineDirectionsLow,
+                                geometry._lineDirectionsHigh,
+                                geometry._lineDirectionsLow
+                            );
+                        }
+
+                        if (isCube) {
+                            GeometryHandler.appendPolygonDirections(
+                                [points],
+                                geometry._polyDirectionsHigh,
+                                geometry._polyDirectionsLow
+                            );
+                        }
 
                         GeometryHandler.appendLineData(
                             ci,
@@ -768,6 +1033,11 @@ class GeometryHandler {
                     concatArrays(this._polyVerticesHighMerc, verticesHigh);
                     concatArrays(this._polyVerticesLowMerc, verticesLow);
 
+                    if (isCube) {
+                        concatArrays(this._polyDirectionsHigh, geometry._polyDirectionsHigh);
+                        concatArrays(this._polyDirectionsLow, geometry._polyDirectionsLow);
+                    }
+
                     geometry._polyVerticesLength = vertices.length;
                     geometry._polyIndexesLength = indexes.length;
 
@@ -778,7 +1048,10 @@ class GeometryHandler {
                     geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
                     geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
                 } else if (geometry.type === GeometryTypeEnum.LINESTRING) {
-                    let coordinates: ILineStringCoordinates = geometry._coordinates as ILineStringCoordinates;
+                    let coordinates = removeRepeatedPoints(geometry._coordinates as ILineStringCoordinates, false);
+                    if (isCube) {
+                        coordinates = densifyPath(coordinates, false);
+                    }
                     let ci = new Array(coordinates.length);
                     for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [mercator.forward_lon(coordinates[j][0]), mercator.forward_lat(coordinates[j][1])];
@@ -790,6 +1063,17 @@ class GeometryHandler {
                     geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
                     geometry._lineColorsHandlerIndex = this._lineColors.length;
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
+
+                    if (isCube) {
+                        GeometryHandler.appendLineDirections(
+                            [coordinates],
+                            false,
+                            this._lineDirectionsHigh,
+                            this._lineDirectionsLow,
+                            geometry._lineDirectionsHigh,
+                            geometry._lineDirectionsLow
+                        );
+                    }
 
                     GeometryHandler.appendLineData(
                         [ci],
@@ -819,7 +1103,12 @@ class GeometryHandler {
                     geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
                     geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
                 } else if (geometry.type === GeometryTypeEnum.MULTILINESTRING) {
-                    let coordinates = geometry._coordinates as IMultiLineStringCoordinates;
+                    let coordinates = (geometry._coordinates as IMultiLineStringCoordinates).map((line) =>
+                        removeRepeatedPoints(line, false)
+                    );
+                    if (isCube) {
+                        coordinates = coordinates.map((line) => densifyPath(line, false));
+                    }
                     let ci: IMultiLineStringCoordinates = [];
                     for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [];
@@ -837,6 +1126,17 @@ class GeometryHandler {
                     geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
                     geometry._lineColorsHandlerIndex = this._lineColors.length;
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
+
+                    if (isCube) {
+                        GeometryHandler.appendLineDirections(
+                            coordinates,
+                            false,
+                            this._lineDirectionsHigh,
+                            this._lineDirectionsLow,
+                            geometry._lineDirectionsHigh,
+                            geometry._lineDirectionsLow
+                        );
+                    }
 
                     GeometryHandler.appendLineData(
                         ci,
@@ -931,6 +1231,10 @@ class GeometryHandler {
             }
             this._polyVerticesHighMerc.splice(pv, pvl);
             this._polyVerticesLowMerc.splice(pv, pvl);
+            if (this._isCube) {
+                this._polyDirectionsHigh.splice(pv * 1.5, pvl * 1.5);
+                this._polyDirectionsLow.splice(pv * 1.5, pvl * 1.5);
+            }
             this._polyColors.splice(pv * 2, pvl * 2);
             this._polyPickingColors.splice(pv * 2, pvl * 2);
         }
@@ -951,6 +1255,10 @@ class GeometryHandler {
             }
             this._lineVerticesHighMerc.splice(lv, lvl);
             this._lineVerticesLowMerc.splice(lv, lvl);
+            if (this._isCube) {
+                this._lineDirectionsHigh.splice(lv * 1.5, lvl * 1.5);
+                this._lineDirectionsLow.splice(lv * 1.5, lvl * 1.5);
+            }
         }
         if (lol > 0) {
             shift ||= lo + lol < this._lineOrders.length;
@@ -1076,10 +1384,19 @@ class GeometryHandler {
             return moved;
         };
 
+        const directions = (high: number[], low: number[]): [number[], number][] =>
+            this._isCube
+                ? [
+                      [high, 1.5],
+                      [low, 1.5]
+                  ]
+                : [];
+
         const polyVerticesMoved = compact(
             [
                 [this._polyVerticesHighMerc, 1],
                 [this._polyVerticesLowMerc, 1],
+                ...directions(this._polyDirectionsHigh, this._polyDirectionsLow),
                 [this._polyColors, 2],
                 [this._polyPickingColors, 2]
             ],
@@ -1090,7 +1407,8 @@ class GeometryHandler {
         const lineVerticesMoved = compact(
             [
                 [this._lineVerticesHighMerc, 1],
-                [this._lineVerticesLowMerc, 1]
+                [this._lineVerticesLowMerc, 1],
+                ...directions(this._lineDirectionsHigh, this._lineDirectionsLow)
             ],
             "_lineVerticesHandlerIndex",
             "_lineVerticesLength"
@@ -1147,6 +1465,8 @@ class GeometryHandler {
 
         geometry._polyVerticesHighMerc = [];
         geometry._polyVerticesLowMerc = [];
+        geometry._polyDirectionsHigh = [];
+        geometry._polyDirectionsLow = [];
         geometry._polyVerticesLength = -1;
         geometry._polyIndexesLength = -1;
         geometry._polyVerticesHandlerIndex = -1;
@@ -1154,6 +1474,8 @@ class GeometryHandler {
 
         geometry._lineVerticesHighMerc = [];
         geometry._lineVerticesLowMerc = [];
+        geometry._lineDirectionsHigh = [];
+        geometry._lineDirectionsLow = [];
         geometry._lineVerticesLength = -1;
         geometry._lineOrdersLength = -1;
         geometry._lineIndexesLength = -1;
@@ -1301,6 +1623,18 @@ class GeometryHandler {
             b[ind + i] = geometry._lineVerticesLowMerc[i] * v;
         }
 
+        if (this._isCube) {
+            const hide = (to: number[], from: number[], index: number) => {
+                for (let i = 0; i < from.length; i++) {
+                    to[index + i] = from[i] * v;
+                }
+            };
+            hide(this._polyDirectionsHigh, geometry._polyDirectionsHigh, geometry._polyVerticesHandlerIndex * 1.5);
+            hide(this._polyDirectionsLow, geometry._polyDirectionsLow, geometry._polyVerticesHandlerIndex * 1.5);
+            hide(this._lineDirectionsHigh, geometry._lineDirectionsHigh, geometry._lineVerticesHandlerIndex * 1.5);
+            hide(this._lineDirectionsLow, geometry._lineDirectionsLow, geometry._lineVerticesHandlerIndex * 1.5);
+        }
+
         this._setChangedBuffer(POLYVERTICES_BUFFER);
         this._setChangedBuffer(LINEVERTICES_BUFFER);
 
@@ -1441,6 +1775,21 @@ class GeometryHandler {
             2,
             this._polyVerticesLowMerc.length / 2
         );
+
+        if (this._isCube) {
+            h.gl!.deleteBuffer(this._polyDirectionsHighBuffer!);
+            h.gl!.deleteBuffer(this._polyDirectionsLowBuffer!);
+            this._polyDirectionsHighBuffer = h.createArrayBuffer(
+                new Float32Array(this._polyDirectionsHigh),
+                3,
+                this._polyDirectionsHigh.length / 3
+            );
+            this._polyDirectionsLowBuffer = h.createArrayBuffer(
+                new Float32Array(this._polyDirectionsLow),
+                3,
+                this._polyDirectionsLow.length / 3
+            );
+        }
     }
 
     public createPolyIndexesBuffer() {
@@ -1488,6 +1837,21 @@ class GeometryHandler {
             2,
             this._lineVerticesLowMerc.length / 2
         );
+
+        if (this._isCube) {
+            h.gl!.deleteBuffer(this._lineDirectionsHighBuffer!);
+            h.gl!.deleteBuffer(this._lineDirectionsLowBuffer!);
+            this._lineDirectionsHighBuffer = h.createArrayBuffer(
+                new Float32Array(this._lineDirectionsHigh),
+                3,
+                this._lineDirectionsHigh.length / 3
+            );
+            this._lineDirectionsLowBuffer = h.createArrayBuffer(
+                new Float32Array(this._lineDirectionsLow),
+                3,
+                this._lineDirectionsLow.length / 3
+            );
+        }
     }
 
     public createLineIndexesBuffer() {
@@ -1560,12 +1924,16 @@ class GeometryHandler {
         this._geometries = [];
         this._polyVerticesHighMerc = [];
         this._polyVerticesLowMerc = [];
+        this._polyDirectionsHigh = [];
+        this._polyDirectionsLow = [];
         this._polyIndexes = [];
         this._polyColors = [];
         this._polyPickingColors = [];
 
         this._lineVerticesHighMerc = [];
         this._lineVerticesLowMerc = [];
+        this._lineDirectionsHigh = [];
+        this._lineDirectionsLow = [];
         this._lineOrders = [];
         this._lineIndexes = [];
         this._lineColors = [];
@@ -1578,12 +1946,16 @@ class GeometryHandler {
 
         this._polyVerticesHighBufferMerc = null;
         this._polyVerticesLowBufferMerc = null;
+        this._polyDirectionsHighBuffer = null;
+        this._polyDirectionsLowBuffer = null;
         this._polyIndexesBuffer = null;
         this._polyColorsBuffer = null;
         this._polyPickingColorsBuffer = null;
 
         this._lineVerticesHighBufferMerc = null;
         this._lineVerticesLowBufferMerc = null;
+        this._lineDirectionsHighBuffer = null;
+        this._lineDirectionsLowBuffer = null;
         this._lineIndexesBuffer = null;
         this._lineOrdersBuffer = null;
         this._lineColorsBuffer = null;
@@ -1609,12 +1981,16 @@ class GeometryHandler {
             if (gl) {
                 gl.deleteBuffer(this._polyVerticesHighBufferMerc!);
                 gl.deleteBuffer(this._polyVerticesLowBufferMerc!);
+                gl.deleteBuffer(this._polyDirectionsHighBuffer!);
+                gl.deleteBuffer(this._polyDirectionsLowBuffer!);
                 gl.deleteBuffer(this._polyIndexesBuffer!);
                 gl.deleteBuffer(this._polyColorsBuffer!);
                 gl.deleteBuffer(this._polyPickingColorsBuffer!);
 
                 gl.deleteBuffer(this._lineVerticesHighBufferMerc);
                 gl.deleteBuffer(this._lineVerticesLowBufferMerc);
+                gl.deleteBuffer(this._lineDirectionsHighBuffer);
+                gl.deleteBuffer(this._lineDirectionsLowBuffer);
                 gl.deleteBuffer(this._lineIndexesBuffer);
                 gl.deleteBuffer(this._lineOrdersBuffer);
                 gl.deleteBuffer(this._lineColorsBuffer);

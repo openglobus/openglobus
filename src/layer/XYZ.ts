@@ -228,7 +228,8 @@ export class XYZ extends BaseTileMaterialLayer {
             s: this._getSubdomain(),
             x: segment.tileX.toString(),
             y: segment.tileY.toString(),
-            z: segment.tileZoom.toString()
+            z: segment.tileZoom.toString(),
+            f: segment.tileGroup.toString()
         });
     }
 

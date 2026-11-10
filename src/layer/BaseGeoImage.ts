@@ -11,6 +11,8 @@ import type { NumberArray4 } from "../math/Vec4";
 import { Planet } from "../scene/Planet";
 import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 import { SRGB } from "../utils/colorSpace";
+import { RADIANS } from "../math";
+import { CUBE_FACES, CubeProj, isCubeProj } from "../proj/cube";
 
 export interface IBaseGeoImageParams extends ILayerParams {
     fullExtent?: boolean;
@@ -31,6 +33,51 @@ const ANIMATED_MIPMAP_UPDATE_INTERVAL = 4;
 const LON_WRAP = 360.0;
 const LON_HALF_WRAP = 180.0;
 const FULL_WORLD_EDGE_EPS = 1e-6;
+
+/**
+ * Returns the rectangles of the image points on the cube faces, in the native coordinates of the faces, null for a
+ * face the image does not reach. A rectangle is of the points in front of the face plane, on its extension, cut by
+ * the face.
+ * @param {Array.<LonLat>} points - Points of the image grid.
+ * @param {CubeProj} proj - Cube projection.
+ * @returns {Array.<Extent | null>} -
+ */
+export function getCubeFaceExtents(points: LonLat[], proj: CubeProj): (Extent | null)[] {
+    const bounds = CUBE_FACES.map(() => [Infinity, Infinity, -Infinity, -Infinity]);
+
+    for (let i = 0; i < points.length; i++) {
+        const lon = points[i].lon * RADIANS,
+            lat = points[i].lat * RADIANS,
+            x = Math.cos(lat) * Math.cos(lon),
+            y = Math.cos(lat) * Math.sin(lon),
+            z = Math.sin(lat);
+
+        for (let face = 0; face < CUBE_FACES.length; face++) {
+            const f = CUBE_FACES[face],
+                c = x * f[0] + y * f[1] + z * f[2];
+
+            if (c <= 0) continue;
+
+            const s = proj.fromPlane((x * f[3] + y * f[4] + z * f[5]) / c),
+                t = proj.fromPlane((x * f[6] + y * f[7] + z * f[8]) / c),
+                b = bounds[face];
+
+            b[0] = Math.min(b[0], s);
+            b[1] = Math.min(b[1], t);
+            b[2] = Math.max(b[2], s);
+            b[3] = Math.max(b[3], t);
+        }
+    }
+
+    return bounds.map((b, face) => {
+        const s0 = Math.max(b[0], 0),
+            t0 = Math.max(b[1], 0),
+            s1 = Math.min(b[2], 1),
+            t1 = Math.min(b[3], 1);
+
+        return s1 > s0 && t1 > t0 ? Extent.createFromArray([face + s0, t0, face + s1, t1]) : null;
+    });
+}
 
 export type BaseGeoImageEventsType = EventsHandler<BaseGeoImageEventsList> & EventsHandler<LayerEventsList>;
 
@@ -86,6 +133,13 @@ class BaseGeoImage extends Layer {
     protected _onLoadend_: EventCallback | null;
     protected _materialMipmapUpdateCounter: number;
 
+    // On a cube the image is drawn to a texture of each face it reaches, in the native coordinates of the face
+    protected _faceExtents: (Extent | null)[];
+    protected _faceTextures: (WebGLTextureExt | null)[];
+
+    // The planet of the image is a cube
+    protected _isCube: boolean;
+
     constructor(name: string | null, options: IBaseGeoImageParams = {}) {
         super(name, options);
 
@@ -134,11 +188,28 @@ class BaseGeoImage extends Layer {
         this._onLoadend_ = null;
         this._materialMipmapUpdateCounter = 0;
 
+        this._faceExtents = [];
+        this._faceTextures = [];
+
+        this._isCube = false;
+
         options.corners && this.setCorners(options.corners);
     }
 
     public override get isIdle(): boolean {
         return super.isIdle && this._ready;
+    }
+
+    public override _assignPlanet(planet: Planet) {
+        super._assignPlanet(planet);
+
+        this._isCube = isCubeProj(planet.quadTreeStrategy.projection);
+
+        if (this._cornersWgs84.length === 4 && this._isCube) {
+            this._projType = 2;
+            this.rendering = this._renderingProjTypePlane;
+            this._refreshFrame = true;
+        }
     }
 
     public override addTo(planet: Planet) {
@@ -159,7 +230,11 @@ class BaseGeoImage extends Layer {
         }
         this.events.off("loadend", this._onLoadend_);
         this._onLoadend_ = null;
-        return super.remove();
+        super.remove();
+        if (!this._planet) {
+            this._isCube = false;
+        }
+        return this;
     }
 
     public override get instanceName(): string {
@@ -243,6 +318,11 @@ class BaseGeoImage extends Layer {
             this.rendering = this._renderingProjType1;
         }
 
+        if (this._isCube) {
+            this._projType = 2;
+            this.rendering = this._renderingProjTypePlane;
+        }
+
         if (this._ready && !this._creationProceeding) {
             this._planet!._geoImageCreator.add(this);
         }
@@ -309,6 +389,11 @@ class BaseGeoImage extends Layer {
      * @protected
      */
     protected _createFrame() {
+        if (this._projType === 2) {
+            this._createCubeFrame();
+            return;
+        }
+
         this._extentWgs84 = this._extent.clone();
 
         this._cornersMerc = [
@@ -371,6 +456,41 @@ class BaseGeoImage extends Layer {
         }
     }
 
+    protected _createCubeFrame() {
+        const p = this._planet;
+
+        if (!p) return;
+
+        const h = p.renderer!.handler,
+            gl = h.gl!,
+            creator = p._geoImageCreator,
+            points = creator.createGridLonLat(this._cornersWgs84);
+
+        this._faceExtents = getCubeFaceExtents(points, p.quadTreeStrategy.projection as CubeProj);
+
+        gl.deleteBuffer(this._gridBufferHigh as WebGLBuffer);
+        gl.deleteBuffer(this._gridBufferLow as WebGLBuffer);
+        [this._gridBufferHigh, this._gridBufferLow] = creator.createGridDirectionsBuffer(points);
+
+        this._deleteFaceTextures();
+        this._faceTextures = this._faceExtents.map((e) =>
+            e ? h.createEmptyTexture_l(this._frameWidth, this._frameHeight) : null
+        );
+        this._materialMipmapUpdateCounter = 0;
+
+        this._refreshFrame = false;
+    }
+
+    protected _deleteFaceTextures() {
+        const gl = this._planet?.renderer?.handler.gl;
+        if (gl) {
+            for (const t of this._faceTextures) {
+                t && gl.deleteTexture(t);
+            }
+        }
+        this._faceTextures = [];
+    }
+
     /**
      * @public
      * @override
@@ -402,6 +522,9 @@ class BaseGeoImage extends Layer {
                 this._materialTexture && !this._materialTexture.default && gl.deleteTexture(this._materialTexture);
             }
         }
+
+        this._deleteFaceTextures();
+        this._faceExtents = [];
 
         this._sourceTexture = null;
         this._materialTexture = null;
@@ -483,6 +606,10 @@ class BaseGeoImage extends Layer {
      * @returns {NumberArray4}
      */
     public override applyMaterial(material: Material): NumberArray4 {
+        if (this._projType === 2) {
+            return this._applyCubeMaterial(material);
+        }
+
         let segment = material.segment;
 
         if (this._ready) {
@@ -517,6 +644,38 @@ class BaseGeoImage extends Layer {
         let dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
 
         return [dV0s_x, dV0s_y, dSize_x, dSize_y];
+    }
+
+    // The texture of the face of the tile, the face the image does not reach puts the tile out of the texture
+    protected _applyCubeMaterial(material: Material): NumberArray4 {
+        const segment = material.segment,
+            face = segment.tileGroup,
+            e = this._faceExtents[face],
+            texture = this._faceTextures[face] || this._planet!.transparentTexture;
+
+        if (this._ready) {
+            if (!material.isReady || material.texture !== texture) {
+                material.applyTexture(texture);
+            }
+        } else {
+            material.texture = this._planet!.transparentTexture;
+            !this._creationProceeding && this.loadMaterial(material);
+        }
+
+        if (!e) {
+            return [2, 2, 1, 1];
+        }
+
+        const t = segment.getExtent(),
+            width = e.northEast.lon - e.southWest.lon,
+            height = e.northEast.lat - e.southWest.lat;
+
+        return [
+            (t.southWest.lon - e.southWest.lon) / width,
+            (e.northEast.lat - t.northEast.lat) / height,
+            (t.northEast.lon - t.southWest.lon) / width,
+            (t.northEast.lat - t.southWest.lat) / height
+        ];
     }
 
     /**
@@ -614,6 +773,96 @@ class BaseGeoImage extends Layer {
         gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
         f.deactivate();
         this._updateMaterialTextureMipmap();
+
+        gl.enable(gl.CULL_FACE);
+
+        this._ready = true;
+
+        this._creationProceeding = false;
+    }
+
+    // Draws the image grid to the texture of each face it reaches, on the plane of the face
+    public _renderingProjTypePlane() {
+        const p = this._planet!,
+            h = p.renderer!.handler,
+            gl = h.gl!,
+            creator = p._geoImageCreator,
+            proj = p.quadTreeStrategy.projection as CubeProj;
+
+        this._refreshFrame && this._createFrame();
+        this._createSourceTexture();
+
+        const f = creator._framebuffer!;
+        f.setSize(this._frameWidth, this._frameHeight);
+        f.activate();
+
+        const sh = h.programs.geoImageTransformPlane;
+        sh.activate();
+        const sha = sh.attributes,
+            shu = sh.uniforms;
+
+        gl.disable(gl.CULL_FACE);
+
+        gl.uniform1i(shu.isFullExtent, this._isFullExtent || this._crossesAntimeridian ? 1 : 0);
+        gl.uniform1i(shu.decodeSourceSRGB, this._colorSpace === SRGB ? 1 : 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
+        gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferHigh as WebGLBuffer);
+        gl.vertexAttribPointer(sha.cornersHigh, this._gridBufferHigh!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferLow as WebGLBuffer);
+        gl.vertexAttribPointer(sha.cornersLow, this._gridBufferLow!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.uniform1i(shu.sourceTexture, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer as WebGLBuffer);
+
+        const updateMipmaps = !this._animate || this._materialMipmapUpdateCounter <= 0;
+
+        for (let face = 0; face < this._faceTextures.length; face++) {
+            const e = this._faceExtents[face],
+                texture = this._faceTextures[face];
+
+            if (!e || !texture) continue;
+
+            f.bindOutputTexture(texture as WebGLTexture);
+            gl.clearColor(0.0, 0.0, 0.0, 0.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Binding the output texture leaves no texture on the unit, the source goes after it
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture as WebGLTexture);
+
+            creator.setCubePlaneUniforms(
+                shu,
+                proj,
+                face,
+                e.southWest.lon - face,
+                e.northEast.lon - face,
+                e.southWest.lat,
+                e.northEast.lat
+            );
+
+            gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+        }
+
+        f.deactivate();
+
+        for (const texture of this._faceTextures) {
+            if (!texture) continue;
+            gl.bindTexture(gl.TEXTURE_2D, texture as WebGLTexture);
+            updateMipmaps && gl.generateMipmap(gl.TEXTURE_2D);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        }
+        gl.bindTexture(gl.TEXTURE_2D, null);
+
+        if (updateMipmaps) {
+            this._materialMipmapUpdateCounter = this._animate ? ANIMATED_MIPMAP_UPDATE_INTERVAL : 0;
+        } else {
+            this._materialMipmapUpdateCounter--;
+        }
 
         gl.enable(gl.CULL_FACE);
 

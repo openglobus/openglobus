@@ -8,9 +8,7 @@ import { warpRasters } from "./warp";
 import type { IWarpParams } from "./warp";
 import { getProjectionHelper, type IProjectionHelper } from "./utm";
 import { acquireWorkerPool, type IWorkerPoolHandle } from "./workerPool";
-import { Proj } from "../../proj/Proj";
-import { EPSG3857 } from "../../proj/EPSG3857";
-import { EPSG4326 } from "../../proj/EPSG4326";
+import type { Segment } from "../../segment/Segment";
 import { defineProjection } from "../../proj/epsgIo";
 import { getRasterWorker } from "../../utils/RasterWorker";
 import type {
@@ -62,12 +60,32 @@ const BLOCK_CACHE_BYTES = 64 * Math.pow(1024, 2);
 
 const OVERVIEW_RESOLUTION_TOLERANCE = 1.4;
 
+// The most source pixels a tile reads, in tiles, a coarser overview is taken for a larger window
+const READ_BUDGET_TILES = 16;
+
 /**
  * Reading optimization in source pixels. The projected tile edge on a pixel edge lands a bit off it, so
  * the window takes the next pixel row or column, and the next TIFF tiles are read and decoded too.
  * The tolerance keeps the window on the tile pixels, the heights and colors are the same without it.
  */
 const WINDOW_TOLERANCE = 1e-3;
+
+// A raster larger than this by a side and with no overviews is reported, a smaller one needs none
+const OVERVIEW_WARNING_SIZE = 2048;
+
+/**
+ * Writes the lon/lat of the tile point to out: x goes from the west side to the east one, y from the north side to
+ * the south one, both from 0 to 1.
+ */
+type TilePointFunc = (x: number, y: number, out: number[]) => void;
+
+const _point = [0, 0];
+
+// Latitude from which a point is taken for a pole, its longitude means nothing there
+const POLE_LAT = 90 - 1e-9;
+
+// How far inside the tile, along the tile column, the longitude of a pole is taken
+const POLE_STEP = 1e-6;
 
 /**
  * Photometric interpretations that do not store RGB in the samples: CMYK, YCbCr and CIELab.
@@ -185,6 +203,15 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         );
 
         const baseImage = this.images[0];
+
+        if (this.images.length === 1 && Math.max(baseImage.getWidth(), baseImage.getHeight()) > OVERVIEW_WARNING_SIZE) {
+            console.warn(
+                `[GeoTIFFReader] ${typeof src === "string" ? src : "The GeoTIFF"} has no overviews, a zoomed out tile ` +
+                    `reads its whole area in the full resolution. Make it a COG with overviews, e.g. with GDAL: ` +
+                    `gdal_translate -of COG in.tif out.tif`
+            );
+        }
+
         this.reverseY = this._checkIfReversed(baseImage);
 
         // Bounding box in native coordinates [minX, minY, maxX, maxY]
@@ -337,25 +364,31 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         this.options.renderOptions = renderOptions;
     }
 
+    public getNativeZoom(rootTileWidth: number, tileSize: number): number {
+        if (!this.isReady || !this.metadata) {
+            return 0;
+        }
+
+        const pixel = this.extentWgs84.getWidth() / this.metadata.width;
+
+        return Math.max(Math.ceil(Math.log2(rootTileWidth / (tileSize * pixel)) - 1e-6), 0);
+    }
+
     /**
      * Reads raster data for a tile and warps it into the tile grid.
      *
      * Source pixel coordinates are calculated in the nodes of a coarse grid and interpolated in between,
      * so rotated grids (UTM and other projected systems) land on the tile without seams.
      *
-     * @param tileExtentLonLat - Tile extent in degrees.
-     * @param _zoomLevel - Tile zoom level, kept for API compatibility.
+     * @param segment - The segment of the tile, its extent, projection and points.
      * @param tileSize - Output tile size in pixels.
      * @param readSamples - Band indexes to read.
-     * @param segmentProj - Projection of the segment the tile belongs to, EPSG:3857 by default.
      * @returns Tile rasters, null for a tile out of the raster. A failed read rejects.
      */
     public async readTileRasters(
-        tileExtentLonLat: Extent,
-        zoomLevel: number,
+        segment: Segment,
         tileSize: number = 256,
-        readSamples?: number[],
-        segmentProj: Proj = EPSG3857
+        readSamples?: number[]
     ): Promise<DecodedTileData | null> {
         if (this._destroyed) {
             return null;
@@ -364,7 +397,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         this._activeReads++;
 
         try {
-            return await this._readTileRasters(tileExtentLonLat, zoomLevel, tileSize, readSamples, segmentProj);
+            return await this._readTileRasters(segment, tileSize, readSamples);
         } finally {
             this._activeReads--;
             if (this._destroyed && this._activeReads === 0) {
@@ -374,18 +407,16 @@ export class GeoTIFFReader implements IGeoTIFFReader {
     }
 
     private async _readTileRasters(
-        tileExtentLonLat: Extent,
-        _zoomLevel: number,
+        segment: Segment,
         tileSize: number = 256,
-        readSamples?: number[],
-        segmentProj: Proj = EPSG3857
+        readSamples?: number[]
     ): Promise<DecodedTileData | null> {
         if (!this.isReady || !this.source || this.images.length === 0) {
             return null;
         }
 
         // 1. Check spatial intersection with WGS84 extent
-        if (!this.extentWgs84.overlaps(tileExtentLonLat)) {
+        if (!this.extentWgs84.overlaps(segment.getExtentLonLat())) {
             return null;
         }
 
@@ -396,7 +427,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
 
         // 2. Sample the tile with a coarse grid: every node gets its position inside the raster,
         // normalized to 0..1, where u grows to the east and v grows down the raster rows.
-        const grid = this._createTileGrid(tileExtentLonLat, tileSize, segmentProj);
+        const grid = this._createTileGrid(segment, tileSize);
         if (!grid) return null;
 
         const { uMin, uMax, vMin, vMax } = grid;
@@ -560,21 +591,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         return [u, v];
     }
 
-    protected _mercatorLatFunc(north: number, south: number): (t: number) => number {
-        const top = mercator.forward_lat(north);
-        const bottom = mercator.forward_lat(south);
-        return (t: number) => mercator.inverse_lat(top + (bottom - top) * t);
-    }
-
-    protected _lonLatLatFunc(north: number, south: number): (t: number) => number {
-        return (t: number) => north + (south - north) * t;
-    }
-
-    protected _createLatFunc(segmentProj: Proj, north: number, south: number): (t: number) => number {
-        return segmentProj.equal(EPSG4326) ? this._lonLatLatFunc(north, south) : this._mercatorLatFunc(north, south);
-    }
-
-    private _buildGrid(west: number, east: number, latFunc: (t: number) => number, gridSize: number): TileGrid {
+    private _buildGrid(point: TilePointFunc, gridSize: number): TileGrid {
         const side = gridSize + 1;
         const gridU = new Float64Array(side * side);
         const gridV = new Float64Array(side * side);
@@ -585,11 +602,9 @@ export class GeoTIFFReader implements IGeoTIFFReader {
             vMax = -Infinity;
 
         for (let j = 0; j < side; j++) {
-            const lat = latFunc(j / gridSize);
-
             for (let i = 0; i < side; i++) {
-                const lon = west + (east - west) * (i / gridSize);
-                const [u, v] = this._projectToRaster(lon, lat);
+                point(i / gridSize, j / gridSize, _point);
+                const [u, v] = this._projectToRaster(_point[0], _point[1]);
                 const n = j * side + i;
 
                 gridU[n] = u;
@@ -609,13 +624,7 @@ export class GeoTIFFReader implements IGeoTIFFReader {
      * Interpolation error of the grid, measured in tile pixels.
      * In every cell the interpolated center is compared with the exact projection of that center.
      */
-    private _gridError(
-        grid: TileGrid,
-        west: number,
-        east: number,
-        latFunc: (t: number) => number,
-        tileSize: number
-    ): number {
+    private _gridError(grid: TileGrid, point: TilePointFunc, tileSize: number): number {
         const baseWidth = this.images[0].getWidth();
         const baseHeight = this.images[0].getHeight();
         const { gridU, gridV, gridSize } = grid;
@@ -625,11 +634,9 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         let maxError = 0;
 
         for (let j = 0; j < gridSize; j++) {
-            const lat = latFunc((j + 0.5) / gridSize);
-
             for (let i = 0; i < gridSize; i++) {
-                const lon = west + (east - west) * ((i + 0.5) / gridSize);
-                const [u, v] = this._projectToRaster(lon, lat);
+                point((i + 0.5) / gridSize, (j + 0.5) / gridSize, _point);
+                const [u, v] = this._projectToRaster(_point[0], _point[1]);
 
                 const n00 = j * side + i;
                 const n10 = n00 + 1;
@@ -657,20 +664,13 @@ export class GeoTIFFReader implements IGeoTIFFReader {
      * Builds the sampling grid, refining it until the interpolation error becomes small enough.
      * Almost affine cases, such as a UTM raster on a zoomed in tile, stay on the coarsest grid.
      */
-    private _createTileGrid(tileExtentLonLat: Extent, tileSize: number, segmentProj: Proj): TileGrid | null {
-        const west = tileExtentLonLat.southWest.lon;
-        const east = tileExtentLonLat.northEast.lon;
-        const south = tileExtentLonLat.southWest.lat;
-        const north = tileExtentLonLat.northEast.lat;
+    private _createTileGrid(segment: Segment, tileSize: number): TileGrid | null {
+        const point = this._createSegmentPointFunc(segment);
 
-        if (east <= west || north <= south) return null;
+        let grid = this._buildGrid(point, GRID_MIN_SIZE);
 
-        const latFunc = this._createLatFunc(segmentProj, north, south);
-
-        let grid = this._buildGrid(west, east, latFunc, GRID_MIN_SIZE);
-
-        while (grid.gridSize < GRID_MAX_SIZE && this._gridError(grid, west, east, latFunc, tileSize) > GRID_MAX_ERROR) {
-            grid = this._buildGrid(west, east, latFunc, grid.gridSize * 2);
+        while (grid.gridSize < GRID_MAX_SIZE && this._gridError(grid, point, tileSize) > GRID_MAX_ERROR) {
+            grid = this._buildGrid(point, grid.gridSize * 2);
         }
 
         if (!Number.isFinite(grid.uMin) || !Number.isFinite(grid.vMin)) {
@@ -680,49 +680,96 @@ export class GeoTIFFReader implements IGeoTIFFReader {
         return grid;
     }
 
+    /**
+     * Tile points from the segment itself, so any segment projection goes, a cube tile is not a lon/lat rectangle.
+     * The longitudes stay next to the one of the tile center, so a tile on the antimeridian doesn't jump across the
+     * raster. A point on a pole takes the longitude of the point next to it down its tile column: a column of a
+     * lon/lat tile keeps its own, a cube tile corner takes the one of its side.
+     */
+    protected _createSegmentPointFunc(segment: Segment): TilePointFunc {
+        const e = segment.getExtent(),
+            west = e.southWest.lon,
+            north = e.northEast.lat,
+            width = e.getWidth(),
+            height = e.getHeight(),
+            centerLon = segment.getLonLat(west + width * 0.5, north - height * 0.5).lon;
+
+        return (x, y, out) => {
+            const p = segment.getLonLat(west + width * x, north - height * y);
+
+            let lon = p.lon;
+
+            if (Math.abs(p.lat) > POLE_LAT) {
+                lon = segment.getLonLat(
+                    west + width * x,
+                    north - height * (y + (y < 0.5 ? POLE_STEP : -POLE_STEP))
+                ).lon;
+            }
+
+            if (lon - centerLon > 180) {
+                lon -= 360;
+            } else if (lon - centerLon < -180) {
+                lon += 360;
+            }
+
+            out[0] = lon;
+            out[1] = p.lat;
+        };
+    }
+
     private _selectOverviewIndex(grid: TileGrid, tileSize: number): number {
         if (this.images.length <= 1) {
             return 0;
         }
 
-        const { gridU, gridV, gridSize } = grid;
+        const { gridU, gridV, gridSize, uMin, uMax, vMin, vMax } = grid;
         const baseWidth = this.images[0].getWidth();
         const baseHeight = this.images[0].getHeight();
         const side = gridSize + 1;
         const cellSize = tileSize / gridSize;
 
-        // How many full resolution source pixels fall into one tile pixel
+        // How many full resolution source pixels fall into one tile pixel by the shorter axis of its footprint.
+        // Near a pole of a lon/lat raster the columns converge and a tile pixel crosses many of them, the rows
+        // keep the resolution of the data there.
         let density = 0;
-        for (let j = 0; j < side; j++) {
+        for (let j = 0; j < gridSize; j++) {
             for (let i = 0; i < gridSize; i++) {
                 const n = j * side + i;
-                const du = Math.abs(gridU[n + 1] - gridU[n]) * baseWidth;
-                const dv = Math.abs(gridV[n + 1] - gridV[n]) * baseHeight;
-                density = Math.max(density, Math.hypot(du, dv) / cellSize);
-            }
-        }
-        for (let j = 0; j < gridSize; j++) {
-            for (let i = 0; i < side; i++) {
-                const n = j * side + i;
-                const du = Math.abs(gridU[n + side] - gridU[n]) * baseWidth;
-                const dv = Math.abs(gridV[n + side] - gridV[n]) * baseHeight;
-                density = Math.max(density, Math.hypot(du, dv) / cellSize);
+                const au = (gridU[n + 1] - gridU[n]) * baseWidth;
+                const av = (gridV[n + 1] - gridV[n]) * baseHeight;
+                const bu = (gridU[n + side] - gridU[n]) * baseWidth;
+                const bv = (gridV[n + side] - gridV[n]) * baseHeight;
+                const p = au * au + av * av + bu * bu + bv * bv;
+                const d = 2 * Math.abs(au * bv - av * bu);
+                density = Math.max(density, (Math.sqrt(p + d) - Math.sqrt(Math.max(p - d, 0))) / (2 * cellSize));
             }
         }
 
-        if (!(density > 1)) {
-            return 0;
-        }
+        let index = 0;
 
-        const maxFactor = density * OVERVIEW_RESOLUTION_TOLERANCE;
+        if (density > 1) {
+            const maxFactor = density * OVERVIEW_RESOLUTION_TOLERANCE;
 
-        for (let i = this.images.length - 1; i > 0; i--) {
-            if (baseWidth / this.images[i].getWidth() <= maxFactor) {
-                return i;
+            for (let i = this.images.length - 1; i > 0; i--) {
+                if (baseWidth / this.images[i].getWidth() <= maxFactor) {
+                    index = i;
+                    break;
+                }
             }
         }
 
-        return 0;
+        const windowWidth = Math.min(uMax, 1) - Math.max(uMin, 0);
+        const windowHeight = Math.min(vMax, 1) - Math.max(vMin, 0);
+        const budget = READ_BUDGET_TILES * tileSize * tileSize;
+
+        while (
+            index < this.images.length - 1 &&
+            windowWidth * this.images[index].getWidth() * windowHeight * this.images[index].getHeight() > budget
+        ) {
+            index++;
+        }
+
+        return index;
     }
 
     /**

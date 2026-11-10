@@ -1,7 +1,7 @@
 import type { IBaseTileMaterialLayerParams } from "../BaseTileMaterialLayer";
 import type { Pool, TypedArray } from "geotiff";
 import type { Extent } from "../../Extent";
-import type { Proj } from "../../proj/Proj";
+import type { Segment } from "../../segment/Segment";
 
 export type ColorScaleName =
     | "viridis"
@@ -192,9 +192,6 @@ export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams, IGeoT
 
     /** Maximum tile cache size (default: 500) */
     cacheSize?: number;
-
-    /** Auto-calculate maximumLevel from COG overview count */
-    useImageCountAsMaximumLevel?: boolean;
 }
 
 export interface IGeoTIFFReader {
@@ -212,13 +209,14 @@ export interface IGeoTIFFReader {
      */
     setRenderOptions(renderOptions: IGeoTIFFRenderOptions): void;
 
-    readTileRasters(
-        tileExtentLonLat: Extent,
-        zoomLevel: number,
-        tileSize?: number,
-        readSamples?: number[],
-        segmentProj?: Proj
-    ): Promise<DecodedTileData | null>;
+    readTileRasters(segment: Segment, tileSize?: number, readSamples?: number[]): Promise<DecodedTileData | null>;
+
+    /**
+     * Returns the first zoom which tile pixels are not larger than the source ones, the most detailed source gives it.
+     * @param rootTileWidth - Root tile width of the quad tree strategy in degrees, see QuadTreeStrategy.rootTileWidth.
+     * @param tileSize - Tile size in pixels.
+     */
+    getNativeZoom(rootTileWidth: number, tileSize: number): number;
 
     destroy(): void;
 }
