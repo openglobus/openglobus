@@ -17,6 +17,9 @@ let tempArr = new Float32Array(2);
 
 const MAX_FRAME_TIME = 50.0;
 
+// The draw calls take no time here, the GPU does them later. Every tile draws all the vertices of its layer.
+const MAX_FRAME_VERTICES = 5000000;
+
 // The tile is a rectangle of longitudes and latitudes taken in the Web Mercator coordinates, as the vertices are: the
 // Mercator tiles, the polar caps of the Earth and the tiles of the EPSG4326, Equi and Wgs84 strategies
 const EXTENT_PROJ = `uniform vec4 extentParamsHigh;
@@ -271,6 +274,13 @@ export class VectorTileCreator {
     protected _queue: Material[];
     protected _handler: Handler | null;
 
+    /**
+     * Vertices the tiles of one frame draw, all the passes. A frame draws one tile at least.
+     * @public
+     * @type {number}
+     */
+    public maxFrameVertices: number;
+
     constructor(planet: Planet, width: number = 256, height: number = 256) {
         this._width = width;
         this._height = height;
@@ -278,6 +288,7 @@ export class VectorTileCreator {
         this._framebuffer = null;
         this._queue = [];
         this._handler = null;
+        this.maxFrameVertices = MAX_FRAME_VERTICES;
     }
 
     public init() {
@@ -352,13 +363,28 @@ export class VectorTileCreator {
             let f = this._framebuffer!.activate();
 
             let deltaTime = 0,
-                startTime = window.performance.now();
+                startTime = window.performance.now(),
+                vertices = 0;
 
             while (this._queue.length && deltaTime < MAX_FRAME_TIME) {
                 let material = this._queue.shift()!;
                 const node = material.segment.node;
                 if (material.isLoading && (node.getState() !== NOTRENDERING || node.isInFadingTransition())) {
                     let pickingEnabled = material.layer._pickingEnabled;
+
+                    let geomHandler = (material.layer as Vector)._geometryHandler;
+
+                    const picking = pickingEnabled ? 1 : 0,
+                        tileVertices =
+                            geomHandler._polyIndexesBuffer!.numItems * (1 + picking) +
+                            geomHandler._lineIndexesBuffer!.numItems * (4 + picking);
+
+                    if (vertices && vertices + tileVertices > this.maxFrameVertices) {
+                        this._queue.unshift(material);
+                        break;
+                    }
+
+                    vertices += tileVertices;
 
                     if (material.segment.tileZoom < 4) {
                         width = _w2;
@@ -394,8 +420,6 @@ export class VectorTileCreator {
 
                     extentParamsHigh[2] = 2.0 / extent.getWidth();
                     extentParamsHigh[3] = 2.0 / extent.getHeight();
-
-                    let geomHandler = (material.layer as Vector)._geometryHandler;
 
                     // A cube tile draws the directions of the vertices on its plane
                     const plane = geomHandler._isCube ? this._getTilePlane(material.segment) : null;
