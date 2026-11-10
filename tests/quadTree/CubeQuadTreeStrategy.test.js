@@ -598,6 +598,59 @@ describe("normals on the edges of the faces", () => {
             expect(n.distance(before[k])).toBeLessThan(1e-6)
         );
     });
+
+    test.each(
+        ALL_FACES.flatMap((face) => [N, E, S, W].map((side) => ({ face, side, link: CUBE_FACE_LINKS[face][side] })))
+    )("the face $face takes its side $side from a lower zoom tile of the next face", ({ face, side, link }) => {
+        const qts = createStrategy(EquiangularCubeQuadTreeStrategy),
+            [other] = link,
+            size = 5,
+            bSize = 9;
+
+        const root = qts.quadTreeList[face];
+        root.createChildNodes();
+        root.nodes.forEach((n) => n.createChildNodes());
+        qts.quadTreeList[other].createChildNodes();
+
+        // Off the middle of the edge, so a flipped side takes the normals of another place
+        const a = tileOnSide(root, side, 0);
+
+        linkNodes(qts, [a, ...qts.quadTreeList[other].nodes]);
+
+        const b = a.neighbors[side][0];
+
+        expect(b.segment.tileGroup).toBe(other);
+        expect(b.segment.tileZoom).toBe(a.segment.tileZoom - 1);
+
+        // The normals are the directions of the points of the grid
+        const fill = (seg, n) => {
+            seg.normalMapNormals = new Float32Array(n * n * 3);
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    const d = direction(
+                        seg.tileGroup,
+                        (seg.tileX + j / (n - 1)) / seg.powTileZoom,
+                        1 - (seg.tileY + i / (n - 1)) / seg.powTileZoom
+                    );
+                    seg.normalMapNormals.set([d.x, d.y, d.z], (i * n + j) * 3);
+                }
+            }
+        };
+
+        fill(a.segment, size);
+        const expected = a.segment.normalMapNormals.slice();
+        a.segment.normalMapNormals.fill(0);
+        fill(b.segment, bSize);
+
+        a.segment._normalMapEdgeCopy(side, b.segment);
+
+        for (let k = 0; k < size; k++) {
+            const [i, j] = side === N ? [0, k] : side === S ? [size - 1, k] : side === E ? [k, size - 1] : [k, 0],
+                m = (i * size + j) * 3,
+                n = new Vec3(...a.segment.normalMapNormals.slice(m, m + 3));
+            expect(n.distance(new Vec3(...expected.slice(m, m + 3)))).toBeLessThan(1e-6);
+        }
+    });
 });
 
 function tileOnSide(root, side, position) {
