@@ -847,10 +847,19 @@ export class GeoZarrReader extends RasterReader {
         this._wrapLon = this.crsCode === 4326 && maxX > 180.5;
         this._wrapX = false;
 
-        if (!this._wrapLon) return;
-
         // A raster around the globe goes on at its sides, the cell centers of 0..360 leave half a cell at each side
-        this._wrapX = maxX - minX > 360 - 360 / this._levels[0].width / 2;
+        const aroundGlobe = this.crsCode === 4326 && maxX - minX > 360 - 360 / this._levels[0].width / 2;
+
+        if (!this._wrapLon) {
+            // Cell centers from -180 leave the last half cell before the antimeridian, it is read from the west side
+            if (aroundGlobe && (minX < -180 || maxX < 180)) {
+                this._wrapX = true;
+                this.extentWgs84 = new Extent(new LonLat(-180, minY), new LonLat(180, maxY));
+            }
+            return;
+        }
+
+        this._wrapX = aroundGlobe;
 
         this.extentWgs84 =
             minX >= 180
