@@ -80,6 +80,16 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     protected _pendingsQueue: IPendingTile[];
     protected _sourceOptions: IGeoTIFFLayerParams;
     protected _readerDestroyed: boolean;
+    /**
+     * Shown tiles of the last refresh: their new images, null until they are read. The images are held and go to
+     * the textures all at once, so a time step of a datacube does not change tile by tile.
+     */
+    protected _refreshBatch: Map<Material, ImageData | null> | null = null;
+    /**
+     * Rasters of the images the tiles of the refresh still show, by the tile key. The cache holds the new data
+     * only, so the shown images are styled with these until the new ones take their place.
+     */
+    protected _refreshShown: Map<string, { tileData: DecodedTileData; image?: ImageData }> | null = null;
 
     static MAX_REQUESTS: number = 8;
 
@@ -200,7 +210,12 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     }
 
     public override get isIdle(): boolean {
-        return super.isIdle && this._activeRequestsCount === 0 && this._pendingsQueue.length === 0;
+        return (
+            super.isIdle &&
+            this._activeRequestsCount === 0 &&
+            this._pendingsQueue.length === 0 &&
+            this._refreshBatch === null
+        );
     }
 
     public get reader(): IGeoTIFFReader {
@@ -309,6 +324,17 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
      * tiles keep their images until the new ones are read, the other tiles load again when they are rendered.
      */
     protected _refreshTiles(): void {
+        // Held images of the previous refresh are out of date, their tiles are not being read any more
+        if (this._refreshBatch) {
+            for (const [mat, image] of this._refreshBatch) {
+                if (image) mat.isLoading = false;
+            }
+        }
+
+        // Tiles of a refresh that is not over still show the images of its older rasters
+        const prevShown = this._refreshShown;
+        const prevRasters = new Map(this._rasterCache);
+
         this._dataVersion++;
         this.abortLoading();
         this.clearCache();
@@ -318,6 +344,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         const qts = this._planet.quadTreeStrategy;
         qts.clearLayerMaterial(this, true);
 
+        const batch = new Map<Material, ImageData | null>();
+        const shown: NonNullable<typeof this._refreshShown> = new Map();
+
         for (const node of qts._renderedNodes) {
             const seg = node.segment;
             const mat = seg && seg.materials[this.__id];
@@ -325,14 +354,60 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
 
             this._activeMaterials.add(mat);
 
-            // A loading material reads the new data when its older read is over, one not ready loads as usual
-            if (mat.isLoading || !mat.isReady) continue;
+            // A material without an image loads as usual
+            if (!mat.isReady) continue;
+
+            const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
+            const tileData = prevRasters.get(cacheKey);
+            const shownTile = prevShown?.get(cacheKey) ?? (tileData && { tileData });
+
+            batch.set(mat, null);
+            if (shownTile) {
+                shown.set(cacheKey, shownTile);
+            }
+
+            // A loading material reads the new data when its older read is over
+            if (mat.isLoading) continue;
 
             mat.isLoading = true;
-            this._enqueueTile(mat, `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`, true);
+            this._enqueueTile(mat, cacheKey, true);
         }
 
+        this._refreshBatch = batch.size > 0 ? batch : null;
+        this._refreshShown = batch.size > 0 ? shown : null;
         this._planet.renderer?.requestRedraw();
+    }
+
+    /**
+     * Shows the images of the refreshed tiles once all of them are read. Tiles that are not loading any more,
+     * such as removed or failed ones, are not waited for.
+     */
+    protected _flushRefreshBatch(): void {
+        const batch = this._refreshBatch;
+        if (!batch) return;
+
+        let waiting = false;
+
+        for (const [mat, image] of batch) {
+            if (!mat.isLoading || !mat.segment || !mat.segment.node) {
+                batch.delete(mat);
+            } else if (!image) {
+                waiting = true;
+            }
+        }
+
+        if (waiting) return;
+
+        this._refreshBatch = null;
+        this._refreshShown = null;
+
+        const e = this.events.load;
+        for (const [mat, image] of batch) {
+            mat.applyImage(image!);
+            if (e && e.handlers.length) {
+                this.events.dispatch(e, mat);
+            }
+        }
     }
 
     public override createMaterial(segment: Segment): Material {
@@ -344,6 +419,9 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     public override clearMaterial(material: Material): void {
         this._activeMaterials.delete(material);
         super.clearMaterial(material);
+        if (this._refreshBatch?.delete(material)) {
+            this._flushRefreshBatch();
+        }
     }
 
     /**
@@ -357,6 +435,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._tileCache.clear();
         this._rasterCache.clear();
         this._activeMaterials.clear();
+        this._refreshBatch = null;
+        this._refreshShown = null;
     }
 
     public override clear(): void {
@@ -408,7 +488,28 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             renderedKeys.add(cacheKey);
 
             const tileData = this._rasterCache.get(cacheKey);
-            if (tileData) {
+            const batch = this._refreshBatch;
+
+            if (mat && mat.isLoading && batch?.has(mat)) {
+                // A tile of a refresh: the new image stays held, the shown one is styled by its own raster
+                if (tileData) {
+                    const image = this._refreshCachedTile(cacheKey, tileData);
+                    if (image && batch.get(mat)) {
+                        batch.set(mat, image);
+                    }
+                }
+
+                const shown = this._refreshShown?.get(cacheKey);
+                if (shown && mat.texture) {
+                    const image = this._renderTileImage(shown.tileData, shown.image);
+                    if (image) {
+                        shown.image = image;
+                        mat.applyImage(image);
+                        // The new data is still awaited
+                        mat.isLoading = true;
+                    }
+                }
+            } else if (tileData) {
                 const image = this._refreshCachedTile(cacheKey, tileData);
                 if (image && mat && mat.isReady && mat.texture) {
                     mat.applyImage(image);
@@ -780,6 +881,12 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                     return;
                 }
 
+                // A refreshed tile is shown together with the others of its refresh
+                if (this._refreshBatch?.has(material)) {
+                    this._refreshBatch.set(material, image);
+                    return;
+                }
+
                 material.applyImage(image);
 
                 const e = this.events.load;
@@ -803,7 +910,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                     material.textureNotExists();
                     console.error("[GeoTIFFLayer] Error loading tile:", err);
                 }
-            });
+            })
+            .finally(() => this._flushRefreshBatch());
     }
 
     /**
