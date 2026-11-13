@@ -1,29 +1,23 @@
 import { Sphere } from "../../bv/Sphere";
-import { Camera } from "../../camera/Camera";
-import { PlanetCamera } from "../../camera/PlanetCamera";
-import { Vector } from "../../layer/Vector";
+import type { Camera } from "../../camera/Camera";
+import type { Vector } from "../../layer/Vector";
 import { RADIANS_HALF } from "../../math";
 import { Vec3 } from "../../math/Vec3";
-import { QuadTreeStrategy } from "../../quadTree";
-import type { Node } from "../../quadTree/Node";
 import type { Renderer } from "../../renderer/Renderer";
-import type { Planet } from "../../scene/Planet";
-import type { Segment } from "../../segment/Segment";
-import type { EmptyTerrain } from "../../terrain/EmptyTerrain";
-import { Framebuffer } from "../../webgl";
+import type { Framebuffer } from "../../webgl";
 import type { CascadeShadowManager } from "./CascadeShadowManager";
+import { CascadeShadowDepthCamera } from "./CascadeShadowDepthCamera";
 
 const DEFAULT_CASCADE_SHADOW_SIZE = 1024;
 const DEFAULT_CASCADE_COUNT = 4;
 const DEFAULT_CASCADE_MAX_DISTANCE = 10000000;
 const DEFAULT_CASCADE_SPLIT_LAMBDA = 0.65;
 const DEFAULT_VERTICAL_VIEW_ANGLE = 45;
-const DEFAULT_CASCADE_BIAS = 10000;
-const DEFAULT_CASCADE_NORMAL_BIAS = 100;
+const DEFAULT_CASCADE_BIAS = 0;
+const DEFAULT_CASCADE_NORMAL_BIAS = 0;
 const DEFAULT_CASCADE_ORTHOGRAPHIC_MARGIN_FACTOR = 0.02;
 const DEFAULT_CASCADE_CASTER_MARGIN = 0.0;
 const DEFAULT_CASCADE_CASTER_MARGIN_FACTOR = 0.25;
-const RENDER_SKIRTS_SLOPE = 0.3;
 const MIN_CASCADE_SPLIT_DISTANCE = 1e-6;
 const MIN_CASCADE_LIGHT_DISTANCE = 1e-3;
 const MIN_CASCADE_LIGHT_SIZE = 1e-3;
@@ -33,8 +27,8 @@ const MIN_CASCADE_LIGHT_SIZE = 1e-3;
  * @property enabled - Enables the cascade.
  * @property splitNear - Near split distance.
  * @property splitFar - Far split distance.
- * @property depthBiasWorld - Occlusion bias in meters.
- * @property normalBias - Surface normal offset in RTC/world units.
+ * @property depthBiasWorld - Occlusion bias in meters, 0 by default.
+ * @property normalBias - Surface normal offset in RTC/world units, 0 by default.
  */
 export interface CascadeParams {
     enabled: boolean;
@@ -78,21 +72,15 @@ export class CascadeShadowMap {
     public readonly verticalViewAngle: number;
     public readonly casterMargin: number;
     public readonly excludeLayers: Vector[];
-
-    public depthCamera: Camera;
-    public framebuffer: Framebuffer | null;
-    public quadTreeStrategy: QuadTreeStrategy | null;
     public readonly cascades: CascadeParams[];
+    public readonly depthCamera: CascadeShadowDepthCamera;
 
     public _manager: CascadeShadowManager | null;
 
-    protected _planet: Planet | null;
     protected _renderer: Renderer | null;
     protected _initialized: boolean;
     protected _enabled: boolean;
     protected _depthArrayTexture: WebGLTexture | null;
-    protected _lastPlanetHeightFactor: number;
-    protected _lastPlanetTerrain: EmptyTerrain | null;
     protected _cascadeBoundingSpheres: Sphere[];
     protected _depthCameraBoundingSphere: Sphere;
 
@@ -114,20 +102,17 @@ export class CascadeShadowMap {
         this.casterMargin = params.casterMargin ?? DEFAULT_CASCADE_CASTER_MARGIN;
         this.excludeLayers = params.excludeLayers ? [...params.excludeLayers] : [];
         this.cascades = this._createCascadeParams(params, cascadeCount);
-        this.depthCamera = this._createDepthCamera();
-        this.framebuffer = null;
 
         this._cascadeBoundingSpheres = this._createCascadeBoundingSpheres();
         this._depthCameraBoundingSphere = new Sphere();
 
         this._manager = null;
-        this._planet = null;
         this._renderer = null;
         this._initialized = false;
         this._depthArrayTexture = null;
-        this._lastPlanetHeightFactor = 1.0;
-        this._lastPlanetTerrain = null;
-        this.quadTreeStrategy = null;
+
+        this.depthCamera = new CascadeShadowDepthCamera(this);
+        this.depthCamera.enabled = this._enabled;
     }
 
     public get initialized(): boolean {
@@ -142,6 +127,7 @@ export class CascadeShadowMap {
         if (this._enabled === enabled) return;
 
         this._enabled = enabled;
+        this.depthCamera.enabled = enabled;
         this._manager?.update(this);
     }
 
@@ -149,103 +135,53 @@ export class CascadeShadowMap {
         return this._depthArrayTexture;
     }
 
+    public get camera(): Camera {
+        return this.depthCamera.camera;
+    }
+
+    public get framebuffer(): Framebuffer | null {
+        return this.depthCamera.initialized ? this.depthCamera.framebuffer : null;
+    }
+
     public init(renderer: Renderer): void {
         if (this._initialized) return;
 
         this._renderer = renderer;
-        this.depthCamera = this._createDepthCamera(this._planet);
-        this.framebuffer = this._createFramebuffer(renderer);
-        this.framebuffer.init();
+        renderer.depthCameraHandler.add(this.depthCamera);
+
         this._depthArrayTexture = this._createDepthArrayTexture(renderer);
         this._validateFramebufferLayers();
 
-        if (this._planet) {
-            this._initPlanetSource(this._planet);
-        }
-
         this._initialized = true;
-    }
-
-    public bindPlanet(planet: Planet): void {
-        if (this._planet === planet && this.quadTreeStrategy) return;
-
-        if (this._planet && this._planet !== planet) {
-            this.unbindPlanet();
-        }
-
-        this._planet = planet;
-
-        if (this._initialized) {
-            this._initPlanetSource(planet);
-        }
-    }
-
-    public unbindPlanet(): void {
-        if (this.quadTreeStrategy) {
-            this.quadTreeStrategy.clear();
-            this.quadTreeStrategy = null;
-        }
-
-        this._planet = null;
-
-        if (this._initialized) {
-            this.depthCamera = this._createDepthCamera();
-        }
     }
 
     public destroy(): void {
         if (!this._initialized) return;
 
-        const gl = this._renderer?.handler.gl;
+        const renderer = this._renderer!;
+        const gl = renderer.handler.gl;
+        const framebuffer = this.framebuffer;
 
-        if (this._depthArrayTexture && this.framebuffer?._fbo) {
-            this.framebuffer.activate();
-            this.framebuffer.bindOutputTextureLayer(null, 0);
-            this.framebuffer.deactivate();
+        if (this._depthArrayTexture && framebuffer?._fbo) {
+            framebuffer.activate();
+            framebuffer.bindOutputTextureLayer(null, 0);
+            framebuffer.deactivate();
         }
 
-        if (this.quadTreeStrategy) {
-            this.quadTreeStrategy.clear();
-            this.quadTreeStrategy = null;
-        }
-
-        if (this.framebuffer) {
-            this.framebuffer.destroy();
-            this.framebuffer = null;
-        }
+        renderer.depthCameraHandler.remove(this.depthCamera);
 
         if (gl && this._depthArrayTexture) {
             gl.deleteTexture(this._depthArrayTexture);
         }
 
         this._depthArrayTexture = null;
-        this._planet = null;
         this._renderer = null;
         this._initialized = false;
     }
 
-    public frame(): void {
-        if (!this.enabled || !this._initialized) return;
-
-        const r = this._renderer!;
-
-        this._prepareFrame();
-        r.applyDepthForCamera(this.depthCamera);
-
-        this._drawFrame();
-
-        r.applyDepthForCamera(r.activeCamera);
-        this._finishFrame();
-    }
-
-    protected _prepareFrame(): void {
-        this._syncPlanetHeightFactor();
+    public _fitDepthCamera(): void {
         this._updateCascadeBounds();
         this._updateDepthCamera();
-    }
-
-    protected _finishFrame(): void {
-        // Reserved for debug entities and future frame cleanup.
     }
 
     protected _createCascadeParams(params: ICascadeShadowMapParams, cascadeCount: number): CascadeParams[] {
@@ -304,45 +240,6 @@ export class CascadeShadowMap {
         return spheres;
     }
 
-    protected _createDepthCamera(planet?: Planet | null): Camera {
-        const frustums: [number, number][] = [];
-
-        for (let i = 0; i < this.cascades.length; i++) {
-            const cascade = this.cascades[i];
-            frustums.push([cascade.splitNear, cascade.splitFar]);
-        }
-
-        const params = {
-            frustums,
-            width: this.size,
-            height: this.size,
-            viewAngle: this.verticalViewAngle,
-            isOrthographic: true,
-            focusDistance: this.maxDistance,
-            maxAltitude: planet
-                ? Math.max(this.maxDistance * 4.0, planet.ellipsoid.getEquatorialSize() * 8.0)
-                : undefined,
-            reverseDepth: false
-        };
-
-        return planet ? new PlanetCamera(planet, params) : new Camera(params);
-    }
-
-    protected _createFramebuffer(renderer: Renderer): Framebuffer {
-        return new Framebuffer(renderer.handler, {
-            width: this.size,
-            height: this.size,
-            depthComponent: "DEPTH_COMPONENT32F",
-            targets: [
-                {
-                    internalFormat: "R32F",
-                    attachment: "COLOR_ATTACHMENT"
-                }
-            ],
-            useDepth: true
-        });
-    }
-
     protected _createDepthArrayTexture(renderer: Renderer): WebGLTexture | null {
         return renderer.handler.createEmptyTexture2DArrayExt(
             this.size,
@@ -380,52 +277,6 @@ export class CascadeShadowMap {
         framebuffer.deactivate();
     }
 
-    protected _createQuadTreeStrategy(planet: Planet, camera: PlanetCamera): QuadTreeStrategy {
-        const quadTreeStrategy = new planet.quadTreeStrategyPrototype({
-            planet,
-            maxEqualZoomAltitude: planet.quadTreeStrategy.maxEqualZoomAltitude,
-            minEqualZoomAltitude: planet.quadTreeStrategy.minEqualZoomAltitude,
-            minEqualZoomCameraSlope: planet.quadTreeStrategy.minEqualZoomCameraSlope,
-            transitionOpacityEnabled: false
-        });
-
-        quadTreeStrategy.init(camera);
-        quadTreeStrategy.lodCamera = planet.camera;
-        quadTreeStrategy.preRender();
-        quadTreeStrategy.clearRenderedNodes();
-        quadTreeStrategy.preLoad();
-
-        return quadTreeStrategy;
-    }
-
-    protected _initPlanetSource(planet: Planet): void {
-        if (!(this.depthCamera instanceof PlanetCamera) || this.depthCamera.planet !== planet) {
-            this.depthCamera = this._createDepthCamera(planet);
-        }
-
-        this.quadTreeStrategy = this._createQuadTreeStrategy(planet, this.depthCamera as PlanetCamera);
-        this._lastPlanetHeightFactor = planet._heightFactor;
-        this._lastPlanetTerrain = planet.terrain;
-    }
-
-    protected _syncPlanetHeightFactor(): void {
-        const planet = this._planet;
-        if (
-            !planet ||
-            (this._lastPlanetHeightFactor === planet._heightFactor && this._lastPlanetTerrain === planet.terrain)
-        ) {
-            return;
-        }
-
-        this._lastPlanetHeightFactor = planet._heightFactor;
-        this._lastPlanetTerrain = planet.terrain;
-
-        if (this.quadTreeStrategy) {
-            this.quadTreeStrategy.destroyBranches();
-            this.quadTreeStrategy.clearRenderedNodes();
-        }
-    }
-
     protected _updateCascadeBounds(): void {
         for (let i = 0; i < this.cascades.length; i++) {
             this._computeCascadeBoundingSphere(this.cascades[i], this._cascadeBoundingSpheres[i]);
@@ -433,9 +284,10 @@ export class CascadeShadowMap {
     }
 
     protected _updateDepthCamera(): void {
+        const camera = this.depthCamera.camera;
         const maxCascadeRadius = this._computeDepthCameraBoundingSphere(this._depthCameraBoundingSphere);
         if (maxCascadeRadius < 0.0) {
-            this.depthCamera.update();
+            camera.update();
             return;
         }
 
@@ -464,7 +316,7 @@ export class CascadeShadowMap {
         const eye = target.add(lightDirection.scaleTo(lightDistance));
         const up = this._getDepthCameraUp(lightDirection);
 
-        this.depthCamera.set(eye, target, up);
+        camera.set(eye, target, up);
 
         for (let i = 0; i < this.cascades.length; i++) {
             const sphere = this._cascadeBoundingSpheres[i];
@@ -475,24 +327,29 @@ export class CascadeShadowMap {
                 this.casterMargin,
                 MIN_CASCADE_LIGHT_SIZE
             );
-            const rel = sphere.center.sub(this.depthCamera.eye);
-            const centerX = rel.dot(this.depthCamera._r);
-            const centerY = rel.dot(this.depthCamera._u);
-            const centerDistance = -rel.dot(this.depthCamera._b);
+            const halfSize = radius + xyMargin;
+            const rel = sphere.center.sub(camera.eye);
+            const centerDistance = -rel.dot(camera._b);
             const near = Math.max(MIN_CASCADE_SPLIT_DISTANCE, centerDistance - radius - zMargin);
             const far = Math.max(near + MIN_CASCADE_LIGHT_DISTANCE, centerDistance + radius + zMargin);
 
-            this.depthCamera.frustums[i].setOrthoProjection(
-                centerX - radius - xyMargin,
-                centerX + radius + xyMargin,
-                centerY - radius - xyMargin,
-                centerY + radius + xyMargin,
+            const texel = (2.0 * halfSize) / this.size;
+            const eyeX = camera.eye.dot(camera._r);
+            const eyeY = camera.eye.dot(camera._u);
+            const centerX = Math.floor((eyeX + rel.dot(camera._r)) / texel) * texel - eyeX;
+            const centerY = Math.floor((eyeY + rel.dot(camera._u)) / texel) * texel - eyeY;
+
+            camera.frustums[i].setOrthoProjection(
+                centerX - halfSize,
+                centerX + halfSize,
+                centerY - halfSize,
+                centerY + halfSize,
                 near,
                 far
             );
         }
 
-        this.depthCamera.update();
+        camera.update();
     }
 
     protected _computeDepthCameraBoundingSphere(outSphere: Sphere): number {
@@ -554,12 +411,11 @@ export class CascadeShadowMap {
     }
 
     protected _getDepthCameraUp(lightDirection: Vec3): Vec3 {
-        const activeCamera = this._renderer!.activeCamera;
-        const candidates = [activeCamera.getUp(), activeCamera.getRight(), Vec3.NORTH, Vec3.UNIT_Y, Vec3.UNIT_X];
+        const candidates = [Vec3.NORTH, Vec3.UNIT_Y, Vec3.UNIT_X];
 
         for (let i = 0; i < candidates.length; i++) {
             const projected = candidates[i].sub(lightDirection.scaleTo(candidates[i].dot(lightDirection)));
-            if (projected.length2() > 1e-12) {
+            if (projected.length2() > 1e-4) {
                 return projected.normalize();
             }
         }
@@ -610,139 +466,5 @@ export class CascadeShadowMap {
             eye.z + sphereCenterDistance * dirZ
         );
         outSphere.radius = radius;
-    }
-
-    protected _collectRenderNodes(): QuadTreeStrategy | null {
-        const planet = this._planet;
-        const camera = this.depthCamera;
-
-        if (!planet || !this.quadTreeStrategy || !(camera instanceof PlanetCamera)) {
-            return null;
-        }
-
-        camera.updateCameraSlope();
-
-        const quadTreeStrategy = this.quadTreeStrategy;
-        quadTreeStrategy.maxZoomLimit = planet.quadTreeStrategy.maxCurrZoom;
-        quadTreeStrategy.lodCamera = planet.camera;
-        quadTreeStrategy.collectRenderNodes(camera);
-
-        return quadTreeStrategy;
-    }
-
-    protected _drawFrame(): void {
-        const quadTreeStrategy = this._collectRenderNodes();
-
-        for (let i = 0; i < this.cascades.length; i++) {
-            const cascade = this.cascades[i];
-            if (!cascade.enabled) continue;
-
-            let renderedNodes: Node[] = [];
-            let fadingOpaqueSegments: Segment[] = [];
-
-            if (quadTreeStrategy) {
-                renderedNodes = quadTreeStrategy._renderedNodesInFrustum[i] || [];
-                fadingOpaqueSegments = quadTreeStrategy._fadingOpaqueSegments;
-            }
-
-            this.depthCamera.setCurrentFrustum(i);
-            this._renderCascade(cascade, i, renderedNodes, fadingOpaqueSegments);
-        }
-    }
-
-    protected _renderCascade(
-        cascade: CascadeParams,
-        cascadeIndex: number,
-        renderedNodes: Node[],
-        fadingOpaqueSegments: Segment[]
-    ): void {
-        if (!this._depthArrayTexture) return;
-
-        const framebuffer = this.framebuffer;
-        if (!framebuffer) return;
-
-        const gl = framebuffer.handler.gl!;
-
-        framebuffer.activate();
-        framebuffer.bindOutputTextureLayer(this._depthArrayTexture, cascadeIndex);
-
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.disable(gl.BLEND);
-
-        this._segmentsPass(this.depthCamera, renderedNodes, fadingOpaqueSegments);
-        this._geoObjectsPass(this.depthCamera);
-
-        gl.enable(gl.BLEND);
-
-        framebuffer.deactivate();
-    }
-
-    protected _segmentsPass(camera: Camera, renderedNodes: Node[], fadingOpaqueSegments: Segment[]): void {
-        const h = this._renderer!.handler;
-        const gl = h.gl!;
-        const planet = this._planet;
-
-        if (!planet || !(camera instanceof PlanetCamera)) return;
-
-        const checkSlope = camera.isOrthographic && camera.slope < RENDER_SKIRTS_SLOPE;
-
-        h.programs.cascade_shadow_depth.activate();
-        const sh = h.programs.cascade_shadow_depth;
-        const shu = sh.uniforms;
-
-        gl.uniformMatrix4fv(shu.viewMatrix, false, camera.getViewMatrix());
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, camera.getProjectionMatrix());
-
-        gl.enable(gl.CULL_FACE);
-
-        const isEq = planet.terrain!.equalizeVertices;
-        const baseLayerSlice = planet.visibleTileLayers.length ? [planet.visibleTileLayers[0]] : undefined;
-        const renderSkirts = checkSlope;
-
-        let i = renderedNodes.length;
-        while (i--) {
-            const s = renderedNodes[i].segment;
-            if (!s.node) continue;
-            if (s._transitionOpacity >= 1) {
-                isEq && s.equalize();
-                s.readyToEngage && s.engage();
-                s.ensureIndexBuffer();
-                s.updateRTCEyePosition(camera);
-                s.depthRendering(sh, baseLayerSlice, renderSkirts);
-            }
-        }
-
-        for (let j = 0; j < fadingOpaqueSegments.length; ++j) {
-            const s = fadingOpaqueSegments[j];
-            if (!s.node) continue;
-            isEq && s.equalize();
-            s.readyToEngage && s.engage();
-            s.ensureIndexBuffer();
-            s.updateRTCEyePosition(camera);
-            s.depthRendering(sh, baseLayerSlice, renderSkirts);
-        }
-
-        gl.enable(gl.CULL_FACE);
-    }
-
-    protected _geoObjectsPass(camera: Camera): void {
-        const planet = this._planet;
-        if (!planet) return;
-
-        const layers = planet.layers;
-
-        for (let i = 0; i < layers.length; i++) {
-            const layer = layers[i];
-            if (!(layer instanceof Vector) || !layer.getVisibility()) {
-                continue;
-            }
-
-            if (this.excludeLayers.includes(layer)) {
-                continue;
-            }
-
-            layer._geoObjectEntityCollection.geoObjectHandler.drawDepthCameraPass(camera);
-        }
     }
 }

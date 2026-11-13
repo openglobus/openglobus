@@ -4,7 +4,7 @@ import { Box } from "../bv/Box";
 import { Extent } from "../Extent";
 import { Entity } from "../entity/Entity";
 import { EPSG3857 } from "../proj/EPSG3857";
-import { E, N, OPSIDE, S, W } from "../quadTree/quadTree";
+import { CORNERSIDE, E, N, NOPSORD, NW, OPSIDE, S, SE, SIDEFLIP, W } from "../quadTree/quadTree";
 import { getMatrixSubArray64 } from "../utils/shared";
 import type { TypedArray } from "../utils/shared";
 import { Handler } from "../webgl/Handler";
@@ -16,6 +16,7 @@ import { Material } from "../layer/Material";
 import { Node } from "../quadTree/Node";
 import { Planet } from "../scene/Planet";
 import { PlanetCamera } from "../camera/PlanetCamera";
+import type { Camera } from "../camera/Camera";
 import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Proj } from "../proj/Proj";
 import { Sphere } from "../bv/Sphere";
@@ -62,12 +63,49 @@ export function getTileGroupByLat(lat: number, maxLat: number = MAX_LAT): number
 }
 
 let _tempHigh = new Vec3();
+const _lonLat = new LonLat();
 let _tempLow = new Vec3();
 
 let _v0 = new Vec3(),
     _v1 = new Vec3(),
-    _v2 = new Vec3(),
-    _v3 = new Vec3();
+    _v2 = new Vec3();
+
+/**
+ * How far the grid position (x, y) is inside the triangle of grid vertices a, b and c, in barycentric
+ * coordinates: the smallest of the three, negative outside of the triangle.
+ */
+function gridMargin(a: number, b: number, c: number, d: number, x: number, y: number): number {
+    const ay = (a / d) | 0,
+        by = (b / d) | 0,
+        cy = (c / d) | 0,
+        ax = a - ay * d,
+        bx = b - by * d,
+        cx = c - cy * d,
+        det = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy),
+        l1 = ((by - cy) * (x - cx) + (cx - bx) * (y - cy)) / det,
+        l2 = ((cy - ay) * (x - cx) + (ax - cx) * (y - cy)) / det;
+    return Math.min(l1, l2, 1 - l1 - l2);
+}
+
+/**
+ * Whether the triangle _v0, _v1, _v2 has an area: twice the area is at least a millionth of the longest edge squared.
+ */
+function hasArea(): boolean {
+    const ux = _v1.x - _v0.x,
+        uy = _v1.y - _v0.y,
+        uz = _v1.z - _v0.z,
+        vx = _v2.x - _v0.x,
+        vy = _v2.y - _v0.y,
+        vz = _v2.z - _v0.z,
+        nx = uy * vz - uz * vy,
+        ny = uz * vx - ux * vz,
+        nz = ux * vy - uy * vx,
+        wx = vx - ux,
+        wy = vy - uy,
+        wz = vz - uz,
+        longest = Math.max(ux * ux + uy * uy + uz * uz, vx * vx + vy * vy + vz * vz, wx * wx + wy * wy + wz * wz);
+    return nx * nx + ny * ny + nz * nz >= 1e-12 * longest * longest;
+}
 
 let _xyzRtc = new Vec3(),
     _resRtc = new Vec3(),
@@ -89,6 +127,56 @@ _V[S] = false;
 _V[W] = true;
 
 /**
+ * Grows when a normal map side changes, the finer normal maps that took the side compare it.
+ */
+let __normalMapEdgeVersion__ = 0;
+
+const _normal = new Float32Array(3);
+
+const NORMAL_EPSILON = 1e-5;
+
+function isSameNormal(arr: Float32Array, i: number, x: number, y: number, z: number): boolean {
+    return (
+        Math.abs(arr[i] - x) < NORMAL_EPSILON &&
+        Math.abs(arr[i + 1] - y) < NORMAL_EPSILON &&
+        Math.abs(arr[i + 2] - z) < NORMAL_EPSILON
+    );
+}
+
+/**
+ * Bilinear normal at a fractional row and column of a normal grid, normalized.
+ */
+function sampleNormal(src: Float32Array, gs: number, row: number, col: number, dst: Float32Array) {
+    row = Math.min(Math.max(row, 0), gs);
+    col = Math.min(Math.max(col, 0), gs);
+
+    const r0 = Math.min(Math.floor(row), gs - 1),
+        c0 = Math.min(Math.floor(col), gs - 1),
+        fr = row - r0,
+        fc = col - c0;
+
+    let x = 0,
+        y = 0,
+        z = 0;
+
+    for (let q = 0; q < 4; q++) {
+        const w = (q & 2 ? fr : 1 - fr) * (q & 1 ? fc : 1 - fc);
+        if (w > 0) {
+            const si = ((r0 + (q >> 1)) * (gs + 1) + c0 + (q & 1)) * 3,
+                l = w / Math.sqrt(src[si] * src[si] + src[si + 1] * src[si + 1] + src[si + 2] * src[si + 2]);
+            x += src[si] * l;
+            y += src[si + 1] * l;
+            z += src[si + 2] * l;
+        }
+    }
+
+    const l = 1.0 / Math.sqrt(x * x + y * y + z * z);
+    dst[0] = x * l;
+    dst[1] = y * l;
+    dst[2] = z * l;
+}
+
+/**
  * Planet segment Web Mercator tile class that stored and rendered with a quad-tree.
  * @class
  * @param {Node} node - Segment node.
@@ -101,7 +189,17 @@ class Segment {
 
     public isPole: boolean;
 
-    public _tileGroup: number;
+    /**
+     * Tile group, tiles of different groups can have the same indexes. On a cube it is the face index.
+     * @type {number}
+     */
+    public tileGroup: number;
+
+    /**
+     * The side of the neighbors that faces the N, E, S and W side of the segment.
+     * @type {number[]}
+     */
+    public opside: number[];
 
     public _projection: Proj;
 
@@ -140,6 +238,17 @@ class Segment {
     public maxTerrainRadius: number;
 
     public _plainRadius: number;
+
+    /**
+     * Center of the plain segment box raised by the median terrain height, the LOD tests measure the
+     * camera distance from it. Bounding volumes are for the frustum only, terrain spikes inflate them.
+     * @type {Vec3}
+     */
+    public lodCenter: Vec3;
+
+    public _plainCenter: Vec3;
+
+    public _plainSurfaceRadius: number;
 
     /**
      * Segment bounding box.
@@ -266,7 +375,6 @@ class Segment {
     public terrainVertices: Float64Array | null;
     public terrainVerticesHigh: Float32Array | null;
     public terrainVerticesLow: Float32Array | null;
-    public noDataVertices: Uint8Array | null;
 
     public renderVertices: Float64Array | null;
     public renderVerticesHigh: Float32Array | null;
@@ -291,6 +399,13 @@ class Segment {
     public _inTheQueue: boolean;
     public _appliedNeighborsZoom: [number, number, number, number];
     public _appliedNeighborsZoomNodeId: [number, number, number, number];
+    public _appliedNeighborsVersion: [number, number, number, number];
+    public _normalMapEdgeSource: (Segment | null)[];
+    public _normalMapSource: Segment | null;
+    public _appliedNeighborsInside: [boolean, boolean, boolean, boolean];
+    public _normalMapSideVersion: [number, number, number, number];
+    public _normalMapArraysVersion: number;
+    public _normalMapDrawnNormals: Float32Array | null;
 
     public _slices: Slice[];
 
@@ -317,7 +432,7 @@ class Segment {
     constructor(node: Node, quadTreeStrategy: QuadTreeStrategy, tileZoom: number, extent: Extent) {
         this.isPole = false;
 
-        this._tileGroup = TILEGROUP_COMMON;
+        this.tileGroup = TILEGROUP_COMMON;
 
         this._projection = EPSG3857;
 
@@ -335,6 +450,10 @@ class Segment {
         this.maxTerrainRadius = 0;
 
         this._plainRadius = 0;
+
+        this.lodCenter = new Vec3();
+        this._plainCenter = new Vec3();
+        this._plainSurfaceRadius = 0;
 
         this.bbox = new Box();
 
@@ -373,6 +492,8 @@ class Segment {
 
         this.elevationData = null;
 
+        this.opside = OPSIDE;
+
         this._assignTileIndexes();
 
         /**
@@ -403,7 +524,6 @@ class Segment {
         this.terrainVertices = null;
         this.terrainVerticesHigh = null;
         this.terrainVerticesLow = null;
-        this.noDataVertices = null;
 
         this.renderVertices = null;
         this.renderVerticesHigh = null;
@@ -428,6 +548,13 @@ class Segment {
         this._inTheQueue = false;
         this._appliedNeighborsZoom = [0, 0, 0, 0];
         this._appliedNeighborsZoomNodeId = [-1, -1, -1, -1];
+        this._appliedNeighborsVersion = [-1, -1, -1, -1];
+        this._normalMapEdgeSource = [null, null, null, null];
+        this._normalMapSource = null;
+        this._appliedNeighborsInside = [false, false, false, false];
+        this._normalMapSideVersion = [0, 0, 0, 0];
+        this._normalMapArraysVersion = 0;
+        this._normalMapDrawnNormals = null;
 
         this._slices = [];
 
@@ -503,7 +630,7 @@ class Segment {
         // }
     }
 
-    public updateRTCEyePosition(camera: PlanetCamera) {
+    public updateRTCEyePosition(camera: Camera) {
         let rtcEyePosition = camera.eye.sub(this._relativeCenter);
         Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
     }
@@ -533,7 +660,17 @@ class Segment {
     }
 
     public isEntityInside(entity: Entity): boolean {
-        return this._extentLonLat!.isInside(entity._lonLat);
+        return this.isLonLatInside(entity._lonLat);
+    }
+
+    /**
+     * Returns true when the segment covers the point.
+     * @public
+     * @param {LonLat} lonLat - Geodetic coordinates.
+     * @returns {boolean} -
+     */
+    public isLonLatInside(lonLat: LonLat): boolean {
+        return this._extentLonLat.isInside(lonLat);
     }
 
     /**
@@ -541,8 +678,9 @@ class Segment {
      * @public
      * @param {Vec3} xyz - Cartesian object position.
      * @param {LonLat} insideSegmentPosition - Geodetic object position.
-     * @param {Vec3} [res] - Result cartesian coordinates on the terrain.
-     * @returns {number} -
+     * @param {Vec3} [res] - Result cartesian coordinates on the terrain, on the ellipsoid when the segment has no
+     * vertices yet.
+     * @returns {number} - Distance along the ellipsoid normal, negative when the object is below the terrain.
      */
     public getTerrainPoint(xyz: Vec3, insideSegmentPosition: LonLat, res: Vec3): number {
         let verts = this.renderVertices;
@@ -573,75 +711,115 @@ class Segment {
             let xn = x - xmin,
                 yn = y - ymin;
 
-            let indX = Math.floor(xn / qx),
-                indY = Math.floor(size - yn / qy);
+            // Position in the grid: columns from the west edge, rows from the north edge. A point on the edge of the
+            // tile can come out a rounding error outside of it.
+            let gx = Math.min(Math.max(xn / qx, 0), size),
+                gy = Math.min(Math.max(size - yn / qy, 0), size);
 
-            let ind_v0 = ((size + 1) * indY + indX) * 3;
-            let ind_v2 = ((size + 1) * (indY + 1) + indX) * 3;
+            const cell = Math.min(Math.floor(gy), size - 1) * size + Math.min(Math.floor(gx), size - 1);
 
-            _v0.set(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]);
-            _v1.set(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]);
-            _v2.set(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
+            // The triangles drawn in the cell, taken from the index buffer layout of the segment
+            const cells = segmentHelper.getInstance().getCellTriangles(Math.log2(size), this.node.sideSizeLog2),
+                tri = cells.vertices,
+                first = cells.start[cell] * 3,
+                last = cells.start[cell + 1] * 3;
 
-            let d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
+            // A tile that reaches a pole has its pole row collapsed into one point. That gives triangles without
+            // area, which draw nothing, but the ray test can report a hit on them by rounding.
+            const pole = this._extentLonLat.northEast.lat >= 90 || this._extentLonLat.southWest.lat <= -90;
 
-            if (d === Ray.INSIDE) {
-                res.set(
-                    _resRtc.x + this._relativeCenter.x,
-                    _resRtc.y + this._relativeCenter.y,
-                    _resRtc.z + this._relativeCenter.z
-                );
-                return _xyzRtc.distance(_resRtc);
-            } else if (d === Ray.AWAY) {
-                _rayEx.set(_xyzRtc, norm);
-                let d = _rayEx.hitTriangleRes(_v0, _v1, _v2, _resRtc);
-                if (d === Ray.INSIDE) {
-                    res.set(
-                        _resRtc.x + this._relativeCenter.x,
-                        _resRtc.y + this._relativeCenter.y,
-                        _resRtc.z + this._relativeCenter.z
-                    );
-                    return -_xyzRtc.distance(_resRtc);
+            // The triangle that contains the position in the grid is nearly always the one the ray hits,
+            // so it is tested first and the others only when it is missed.
+            let best = first,
+                bestMargin = -Infinity;
+            for (let i = first; i < last; i += 3) {
+                const m = gridMargin(tri[i], tri[i + 1], tri[i + 2], size + 1, gx, gy);
+                if (m > bestMargin) {
+                    bestMargin = m;
+                    best = i;
+                    if (m >= 0) {
+                        break;
+                    }
                 }
             }
 
-            _v3.set(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
-
-            d = _ray.hitTriangleRes(_v1, _v3, _v2, _resRtc);
-            if (d === Ray.INSIDE) {
-                res.set(
-                    _resRtc.x + this._relativeCenter.x,
-                    _resRtc.y + this._relativeCenter.y,
-                    _resRtc.z + this._relativeCenter.z
-                );
-                return _xyzRtc.distance(_resRtc);
-            } else if (d === Ray.AWAY) {
-                _rayEx.set(_xyzRtc, norm);
-                let d = _rayEx.hitTriangleRes(_v1, _v3, _v2, _resRtc);
-                if (d === Ray.INSIDE) {
-                    res.set(
-                        _resRtc.x + this._relativeCenter.x,
-                        _resRtc.y + this._relativeCenter.y,
-                        _resRtc.z + this._relativeCenter.z
-                    );
-                    return -_xyzRtc.distance(_resRtc);
+            let sign = this._hitCellTriangle(tri, best, norm, pole);
+            for (let i = first; sign === 0 && i < last; i += 3) {
+                if (i !== best) {
+                    sign = this._hitCellTriangle(tri, i, norm, pole);
                 }
             }
 
-            if (d === Ray.AWAY) {
-                return -_xyzRtc.distance(_resRtc);
+            if (sign !== 0) {
+                return this._terrainPointResult(res, sign);
             }
 
-            return _xyzRtc.distance(_resRtc);
+            // The ray follows the ellipsoid normal and can pass just outside of the triangles of the cell:
+            // then the plane of the triangle that contains the position in the grid is used.
+            if (pole) {
+                bestMargin = -Infinity;
+                for (let i = first; i < last; i += 3) {
+                    this._setTriangle(tri, i);
+                    if (!hasArea()) {
+                        continue;
+                    }
+                    const m = gridMargin(tri[i], tri[i + 1], tri[i + 2], size + 1, gx, gy);
+                    if (m > bestMargin) {
+                        bestMargin = m;
+                        best = i;
+                    }
+                }
+            }
+
+            this._setTriangle(tri, best);
+            const d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
+
+            return this._terrainPointResult(res, d === Ray.AWAY ? -1 : 1);
         } else {
-            let norm = this.planet.ellipsoid.getSurfaceNormal3v(xyz);
-            _ray.set(xyz, norm.negateTo());
-            const hit = this.planet.ellipsoid.hitRay(_ray.origin, _ray.direction);
-            if (!hit) {
-                return 0;
-            }
-            return xyz.distance(hit);
+            // No terrain yet, the ground is the ellipsoid under the object
+            const ellipsoid = this.planet.ellipsoid,
+                lonLat = ellipsoid.cartesianToLonLatRes(xyz, _lonLat);
+            ellipsoid.geodeticToCartesian(lonLat.lon, lonLat.lat, 0, res);
+            return lonLat.height;
         }
+    }
+
+    /**
+     * Ray test of the cell triangle at tri[i]: 1 when the point is above it, -1 when below it, 0 when missed.
+     */
+    protected _hitCellTriangle(tri: Uint32Array, i: number, norm: Vec3, pole: boolean): number {
+        this._setTriangle(tri, i);
+        const d = _ray.hitTriangleRes(_v0, _v1, _v2, _resRtc);
+        if (d === Ray.INSIDE) {
+            return !pole || hasArea() ? 1 : 0;
+        }
+        if (d === Ray.AWAY) {
+            // The point is under the terrain
+            _rayEx.set(_xyzRtc, norm);
+            if (_rayEx.hitTriangleRes(_v0, _v1, _v2, _resRtc) === Ray.INSIDE && (!pole || hasArea())) {
+                return -1;
+            }
+        }
+        return 0;
+    }
+
+    protected _setTriangle(tri: Uint32Array, i: number) {
+        const verts = this.renderVertices!,
+            i0 = tri[i] * 3,
+            i1 = tri[i + 1] * 3,
+            i2 = tri[i + 2] * 3;
+        _v0.set(verts[i0], verts[i0 + 1], verts[i0 + 2]);
+        _v1.set(verts[i1], verts[i1 + 1], verts[i1 + 2]);
+        _v2.set(verts[i2], verts[i2 + 1], verts[i2 + 2]);
+    }
+
+    protected _terrainPointResult(res: Vec3, sign: number): number {
+        res.set(
+            _resRtc.x + this._relativeCenter.x,
+            _resRtc.y + this._relativeCenter.y,
+            _resRtc.z + this._relativeCenter.z
+        );
+        return sign * _xyzRtc.distance(_resRtc);
     }
 
     /**
@@ -736,7 +914,7 @@ class Segment {
 
             this._deleteSkirtBuffers();
 
-            this.noDataVertices = null;
+            this.lodCenter.copy(this._plainCenter);
 
             this.fileGridSize = Math.sqrt(this.terrainVertices!.length / 3) - 1;
             this.gridSize = this.fileGridSize;
@@ -765,20 +943,31 @@ class Segment {
 
     protected _checkEqualization(neighborSide: number, neigborNode: Node): boolean {
         const ns = neigborNode && neigborNode.segment;
-        const oppositeSide = OPSIDE[neighborSide];
-        const oppositeNeighbors = neigborNode && neigborNode.neighbors && neigborNode.neighbors[oppositeSide];
-        const hasReverseNeighbor = !!oppositeNeighbors && oppositeNeighbors.indexOf(this.node) !== -1;
-        return (
-            neigborNode &&
-            ns &&
-            hasReverseNeighbor &&
-            !!ns.renderVertices &&
-            Number.isFinite(ns.gridSize) &&
-            ns.gridSize >= 1 &&
-            this.tileZoom >= ns.tileZoom &&
-            this.node.equalizedSideWithNodeId[neighborSide] !==
-                neigborNode.equalizedSideWithNodeId[OPSIDE[neighborSide]]
-        );
+
+        if (!ns || this.tileZoom < ns.tileZoom) {
+            return false;
+        }
+
+        const oppositeSide = this.opside[neighborSide],
+            sideId = this.node.equalizedSideWithNodeId[neighborSide],
+            neighborSideId = neigborNode.equalizedSideWithNodeId[oppositeSide];
+
+        if (sideId === neighborSideId) {
+            return false;
+        }
+
+        if (neigborNode._neighborFrame !== this.node._neighborFrame || !ns.renderVertices || !(ns.gridSize >= 1)) {
+            return false;
+        }
+
+        if (this.tileZoom > ns.tileZoom) {
+            return true;
+        }
+
+        const sideIsOwn = sideId === this.node.appliedTerrainNodeId,
+            neighborSideIsOwn = neighborSideId === neigborNode.appliedTerrainNodeId;
+
+        return neighborSideIsOwn || !sideIsOwn;
     }
 
     protected _equalizeSide(side: number): void {
@@ -802,34 +991,46 @@ class Segment {
 
             let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
 
+            const opcs = this.opside[side];
+
             let indexMul = 1,
                 indexOffset = 0,
                 nIndexMul = 1,
                 nIndexOffset = 0;
 
-            if (side === N) {
-                nIndexOffset = n_gsOne * n_gs;
-            } else if (side === E) {
+            if (side === E) {
                 indexMul = gsOne;
                 indexOffset = gs;
-                nIndexMul = n_gsOne;
             } else if (side === S) {
                 indexOffset = gsOne * gs;
-            } else {
+            } else if (side === W) {
                 indexMul = gsOne;
-                nIndexMul = n_gsOne;
-                nIndexOffset = n_gs;
             }
 
-            this.node.equalizedSideWithNodeId[side] = n.equalizedSideWithNodeId[OPSIDE[side]];
+            if (opcs === E) {
+                nIndexMul = n_gsOne;
+                nIndexOffset = n_gs;
+            } else if (opcs === S) {
+                nIndexOffset = n_gsOne * n_gs;
+            } else if (opcs === W) {
+                nIndexMul = n_gsOne;
+            }
+
+            this.node.equalizedSideWithNodeId[side] = n.equalizedSideWithNodeId[opcs];
             this.readyToEngage = true;
 
+            // The ends of the side are corners, see _equalizeCorner. A side inside one neighbor cell has no others.
             if (n_gs * dz >= 1) {
                 let inc = Math.max(gs / (n_gs * dz), 1),
                     n_inc = Math.max((n_gs * dz) / gs, 1),
                     n_offset = offset * n_gs;
 
-                for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
+                if (SIDEFLIP[side][opcs]) {
+                    n_offset = n_gs - n_offset;
+                    n_inc = -n_inc;
+                }
+
+                for (let k = inc, nk = n_offset + n_inc; k < gs; k += inc, nk += n_inc) {
                     let n_index = (nIndexMul * nk + nIndexOffset) * 3;
                     this._setRenderVertex(
                         (indexMul * k + indexOffset) * 3,
@@ -838,26 +1039,163 @@ class Segment {
                         nv[n_index + 2] + dzRtc
                     );
                 }
-            } else {
-                // The side is inside one neighbour segment, there are no neighbour vertices to copy,
-                // the side is drawn by its corners, they are put on the segment.
-                for (let k = 0; k < gsOne; k += gs) {
-                    let u = (offset + (k / gs) * dz) * n_gs,
-                        nk = Math.floor(u),
-                        f = u - nk;
-
-                    let n_index0 = (nIndexMul * nk + nIndexOffset) * 3,
-                        n_index1 = f > 0 ? n_index0 + nIndexMul * 3 : n_index0;
-
-                    this._setRenderVertex(
-                        (indexMul * k + indexOffset) * 3,
-                        nv[n_index0] + (nv[n_index1] - nv[n_index0]) * f + dxRtc,
-                        nv[n_index0 + 1] + (nv[n_index1 + 1] - nv[n_index0 + 1]) * f + dyRtc,
-                        nv[n_index0 + 2] + (nv[n_index1 + 2] - nv[n_index0 + 2]) * f + dzRtc
-                    );
-                }
             }
         }
+    }
+
+    /**
+     * Takes the corner vertex from the owner of the point: the segment of the lowest zoom among the ones that have
+     * a corner there. The owner keeps its vertex, so the result doesn't depend on the order the segments go, and
+     * the comparison makes the vertex follow the owner without any labels.
+     * @protected
+     * @param {number} corner - Corner index, NW, NE, SW or SE.
+     */
+    protected _equalizeCorner(corner: number) {
+        const node = this.node,
+            vSide = corner & 2 ? S : N,
+            hSide = corner & 1 ? E : W,
+            v = node.getCornerNeighbor(vSide, corner),
+            h = node.getCornerNeighbor(hSide, corner);
+
+        if (v === undefined) {
+            this._equalizeCornerOnSide(vSide, corner);
+            return;
+        }
+
+        if (h === undefined) {
+            this._equalizeCornerOnSide(hSide, corner);
+            return;
+        }
+
+        const vCorner = node.getNeighborCorner(vSide, corner),
+            hCorner = node.getNeighborCorner(hSide, corner);
+
+        let owner: Segment = this,
+            ownerCorner = corner;
+
+        if (v && v.segment._isCornerOwnerOver(owner)) {
+            owner = v.segment;
+            ownerCorner = vCorner;
+        }
+
+        if (h && h.segment._isCornerOwnerOver(owner)) {
+            owner = h.segment;
+            ownerCorner = hCorner;
+        }
+
+        // The tile across the point, round it by v or, when v gives none, by h. The corner of a cube has three
+        // tiles, there it is the other neighbor.
+        let d: Node | null | undefined = null,
+            dCorner = 0;
+
+        if (v) {
+            const next = CORNERSIDE[this.opside[vSide]][vCorner];
+            d = v.getCornerNeighbor(next, vCorner);
+            if (d) {
+                dCorner = v.getNeighborCorner(next, vCorner);
+            }
+        }
+
+        if (!d && h) {
+            const next = CORNERSIDE[this.opside[hSide]][hCorner];
+            d = h.getCornerNeighbor(next, hCorner);
+            if (d) {
+                dCorner = h.getNeighborCorner(next, hCorner);
+            }
+        }
+
+        if (d && d.segment._isCornerOwnerOver(owner)) {
+            owner = d.segment;
+            ownerCorner = dCorner;
+        }
+
+        if (owner !== this) {
+            const ov = owner.renderVertices!,
+                oi = owner._getCornerVertexIndex(ownerCorner);
+
+            this._setCornerVertex(
+                corner,
+                ov[oi] + owner._relativeCenter.x - this._relativeCenter.x,
+                ov[oi + 1] + owner._relativeCenter.y - this._relativeCenter.y,
+                ov[oi + 2] + owner._relativeCenter.z - this._relativeCenter.z
+            );
+        }
+    }
+
+    /**
+     * Puts the corner on the side of a neighbor of a lower zoom, when the point lies inside that side.
+     */
+    protected _equalizeCornerOnSide(side: number, corner: number) {
+        const n = this.node.neighbors[side][0],
+            ns = n.segment;
+
+        if (ns.tileZoom >= this.tileZoom || !ns.renderVertices || !(ns.gridSize >= 1)) {
+            return;
+        }
+
+        const opcs = this.opside[side],
+            pos = ((side & 1 ? this.tileY : this.tileX) + NOPSORD[side][corner]) / (1 << (this.tileZoom - ns.tileZoom)),
+            n_gs = ns.gridSize,
+            n_gsOne = n_gs + 1,
+            u = ((SIDEFLIP[side][opcs] ? ns.powTileZoom - pos : pos) - (opcs & 1 ? ns.tileY : ns.tileX)) * n_gs,
+            nk = Math.floor(u),
+            f = u - nk;
+
+        let i0, step;
+
+        if (opcs === S) {
+            i0 = n_gsOne * n_gs + nk;
+            step = 1;
+        } else if (opcs === W) {
+            i0 = n_gsOne * nk;
+            step = n_gsOne;
+        } else if (opcs === N) {
+            i0 = nk;
+            step = 1;
+        } else {
+            i0 = n_gsOne * nk + n_gs;
+            step = n_gsOne;
+        }
+
+        i0 *= 3;
+
+        const nv = ns.renderVertices,
+            i1 = f > 0 ? i0 + step * 3 : i0;
+
+        this._setCornerVertex(
+            corner,
+            nv[i0] + (nv[i1] - nv[i0]) * f + ns._relativeCenter.x - this._relativeCenter.x,
+            nv[i0 + 1] + (nv[i1 + 1] - nv[i0 + 1]) * f + ns._relativeCenter.y - this._relativeCenter.y,
+            nv[i0 + 2] + (nv[i1 + 2] - nv[i0 + 2]) * f + ns._relativeCenter.z - this._relativeCenter.z
+        );
+    }
+
+    protected _setCornerVertex(corner: number, x: number, y: number, z: number) {
+        const v = this.renderVertices!,
+            i = this._getCornerVertexIndex(corner);
+
+        // NaN is never equal to itself, the segment would be uploaded every frame
+        if (Number.isFinite(x + y + z) && (v[i] !== x || v[i + 1] !== y || v[i + 2] !== z)) {
+            this._setRenderVertex(i, x, y, z);
+            this.readyToEngage = true;
+            this.quadTreeStrategy._cornerMoved = true;
+            this.planet.renderer!.requestRedraw();
+        }
+    }
+
+    public _isCornerOwnerOver(segment: Segment): boolean {
+        return (
+            !!this.renderVertices &&
+            Number.isFinite(this.gridSize) &&
+            this.gridSize >= 1 &&
+            (this.tileZoom < segment.tileZoom ||
+                (this.tileZoom === segment.tileZoom && this.node.__id < segment.node.__id))
+        );
+    }
+
+    public _getCornerVertexIndex(corner: number): number {
+        const gs = this.gridSize;
+        return ((corner & 2 ? gs * (gs + 1) : 0) + (corner & 1 ? gs : 0)) * 3;
     }
 
     protected _setRenderVertex(index: number, x: number, y: number, z: number) {
@@ -901,187 +1239,13 @@ class Segment {
                 this._equalizeSide(side);
             }
         }
-    }
 
-    /*
-    public equalize() {
-
-        // Equalization doesn't work correctly for gridSize equals 2
-        if (this.tileZoom < 2 || this.gridSize < 2) {
-            return;
-        }
-
-        this.readyToEngage = true;
-
-        let nn = this.node.neighbors;
-
-        let v = this.renderVertices!,
-            vHigh = this.renderVerticesHigh!,
-            vLow = this.renderVerticesLow!;
-
-        let gs = this.gridSize,
-            gsOne = gs + 1;
-
-        let n = nn[N][0];
-        if (this._checkEqualization(N, n)) {
-
-            this.node.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[S];
-
-            this.readyToEngage = true;
-
-            let offset = this.node.getOffsetOppositeNeighbourSide(n, N);
-
-            let nv = n.segment.renderVertices!,
-                nvHigh = n.segment.renderVerticesHigh!,
-                nvLow = n.segment.renderVerticesLow!;
-
-            let n_gs = n.segment.gridSize,
-                n_gsOne = n_gs + 1;
-
-            let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
-
-            let inc = Math.max(gs / (n_gs * dz), 1),
-                n_inc = Math.max((n_gs * dz) / gs, 1),
-                n_offset = offset * n_gs;
-
-            for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-                const index = k * 3;
-                const n_index = (n_gsOne * n_gs + nk) * 3;
-
-                v[index] = nv[n_index];
-                v[index + 1] = nv[n_index + 1];
-                v[index + 2] = nv[n_index + 2];
-
-                vHigh[index] = nvHigh[n_index];
-                vHigh[index + 1] = nvHigh[n_index + 1];
-                vHigh[index + 2] = nvHigh[n_index + 2];
-
-                vLow[index] = nvLow[n_index];
-                vLow[index + 1] = nvLow[n_index + 1];
-                vLow[index + 2] = nvLow[n_index + 2];
-            }
-        }
-
-        n = nn[E][0];
-        if (this._checkEqualization(E, n)) {
-
-            this.node.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[W];
-
-            this.readyToEngage = true;
-
-            let offset = this.node.getOffsetOppositeNeighbourSide(n, E);
-
-            let nv = n.segment.renderVertices!,
-                nvHigh = n.segment.renderVerticesHigh!,
-                nvLow = n.segment.renderVerticesLow!;
-
-            let n_gs = n.segment.gridSize,
-                n_gsOne = n_gs + 1;
-
-            let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
-
-            let inc = Math.max(gs / (n_gs * dz), 1),
-                n_inc = Math.max((n_gs * dz) / gs, 1),
-                n_offset = offset * n_gs;
-
-            for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-                const index = (gsOne * k + gs) * 3;
-                const n_index = n_gsOne * nk * 3;
-
-                v[index] = nv[n_index];
-                v[index + 1] = nv[n_index + 1];
-                v[index + 2] = nv[n_index + 2];
-
-                vHigh[index] = nvHigh[n_index];
-                vHigh[index + 1] = nvHigh[n_index + 1];
-                vHigh[index + 2] = nvHigh[n_index + 2];
-
-                vLow[index] = nvLow[n_index];
-                vLow[index + 1] = nvLow[n_index + 1];
-                vLow[index + 2] = nvLow[n_index + 2];
-            }
-        }
-
-        n = nn[S][0];
-        if (this._checkEqualization(S, n)) {
-
-            this.node.equalizedSideWithNodeId[S] = n.equalizedSideWithNodeId[N];
-
-            this.readyToEngage = true;
-
-            let offset = this.node.getOffsetOppositeNeighbourSide(n, S);
-
-            let nv = n.segment.renderVertices!,
-                nvHigh = n.segment.renderVerticesHigh!,
-                nvLow = n.segment.renderVerticesLow!;
-
-            let n_gs = n.segment.gridSize; // n_gsOne = n_gs + 1;
-
-            let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
-
-            let inc = Math.max(gs / (n_gs * dz), 1),
-                n_inc = Math.max((n_gs * dz) / gs, 1),
-                n_offset = offset * n_gs;
-
-            for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-                const index = (gsOne * gs + k) * 3;
-                const n_index = nk * 3;
-
-                v[index] = nv[n_index];
-                v[index + 1] = nv[n_index + 1];
-                v[index + 2] = nv[n_index + 2];
-
-                vHigh[index] = nvHigh[n_index];
-                vHigh[index + 1] = nvHigh[n_index + 1];
-                vHigh[index + 2] = nvHigh[n_index + 2];
-
-                vLow[index] = nvLow[n_index];
-                vLow[index + 1] = nvLow[n_index + 1];
-                vLow[index + 2] = nvLow[n_index + 2];
-            }
-        }
-
-        n = nn[W][0];
-        if (this._checkEqualization(W, n)) {
-
-            this.node.equalizedSideWithNodeId[W] = n.equalizedSideWithNodeId[E];
-
-            this.readyToEngage = true;
-
-            let offset = this.node.getOffsetOppositeNeighbourSide(n, W);
-
-            let nv = n.segment.renderVertices!,
-                nvHigh = n.segment.renderVerticesHigh!,
-                nvLow = n.segment.renderVerticesLow!;
-
-            let n_gs = n.segment.gridSize,
-                n_gsOne = n_gs + 1;
-
-            let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
-
-            let inc = Math.max(gs / (n_gs * dz), 1),
-                n_inc = Math.max((n_gs * dz) / gs, 1),
-                n_offset = offset * n_gs;
-
-            for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-                const index = gsOne * k * 3;
-                const n_index = (n_gsOne * nk + n_gs) * 3;
-
-                v[index] = nv[n_index];
-                v[index + 1] = nv[n_index + 1];
-                v[index + 2] = nv[n_index + 2];
-
-                vHigh[index] = nvHigh[n_index];
-                vHigh[index + 1] = nvHigh[n_index + 1];
-                vHigh[index + 2] = nvHigh[n_index + 2];
-
-                vLow[index] = nvLow[n_index];
-                vLow[index + 1] = nvLow[n_index + 1];
-                vLow[index + 2] = nvLow[n_index + 2];
+        if (this.renderVertices && this.quadTreeStrategy._cornersChanged) {
+            for (let corner = NW; corner <= SE; corner++) {
+                this._equalizeCorner(corner);
             }
         }
     }
-     */
 
     public engage() {
         this.readyToEngage = false;
@@ -1109,7 +1273,6 @@ class Segment {
             this.terrainVertices = null;
             this.terrainVerticesHigh = null;
             this.terrainVerticesLow = null;
-            this.noDataVertices = null;
 
             this.renderVertices = null;
             this.renderVerticesHigh = null;
@@ -1122,16 +1285,15 @@ class Segment {
             this.terrainVerticesHigh = data.terrainVerticesHigh;
             this.terrainVerticesLow = data.terrainVerticesLow;
 
-            this.noDataVertices = data.noDataVertices;
-
             this.renderVertices = this.terrainVertices;
             this.renderVerticesHigh = this.terrainVerticesHigh;
             this.renderVerticesLow = this.terrainVerticesLow;
 
             this._deleteSkirtBuffers();
 
-            this.setBoundingVolumeArr(data.bounds);
+            this.setTerrainBoundingVolume(data.bounds);
             this.setTerrainRadiusRange(data.radiusRange);
+            this.setLodRadius(data.lodRadius);
 
             this.gridSize = Math.sqrt(this.terrainVertices!.length / 3) - 1;
 
@@ -1157,14 +1319,41 @@ class Segment {
     }
 
     public _normalMapEdgeEqualize(side: number) {
+        // The neighbors of a segment off the screen are left from the frame it was on it
+        const linked = this.node._neighborFrame === this.quadTreeStrategy._neighborFrame;
+
         let nn = this.node.neighbors;
         let nns = nn[side];
-        let n: Node | undefined = nns && nns[0];
+        let n: Node | undefined = linked && nns ? nns[0] : undefined;
         let maxZ = this.planet.terrain!.maxZoom;
 
         if (this.tileZoom === maxZ) {
             if (nns && !(nn[0].length || nn[1].length || nn[2].length || nn[3].length)) {
                 n = this.node.getEqualNeighbor(side);
+            }
+        }
+
+        // The normal map a neighbor on the screen is drawn with, see _checkNormalMapEdges
+        const es = this._normalMapEdgeSource[side];
+        if (es) {
+            this._normalMapEdgeSource[side] = null;
+            if (es.normalMapNormals) {
+                if (es.tileZoom < this.tileZoom) {
+                    this._normalMapEdgeCopy(side, es);
+                    return;
+                }
+                n = es.node;
+            }
+        } else if (linked && nns && nns.length === 1) {
+            // A segment on the screen takes the side of a lower zoom neighbor at once, not in one more drawing
+            const y = nns[0].segment,
+                t = y._isNormalMapPending() ? null : y._getNormalMapSource();
+
+            if (t && t.tileZoom < this.tileZoom && t.terrainExists && t.normalMapNormals) {
+                if (!this._isNormalMapEdgeApplied(side, t)) {
+                    this._normalMapEdgeCopy(side, t);
+                }
+                return;
             }
         }
 
@@ -1190,59 +1379,211 @@ class Segment {
             let s_gs = Math.sqrt(seg_a.length / 3),
                 s_gs1 = s_gs - 1;
 
-            const i_a = s_gs1 * _S[side];
-
             let nx, ny, nz, q;
 
             if (s.tileZoom === b.tileZoom) {
-                const i_b = s_gs1 - i_a;
+                const oppositeSide = s.opside[side],
+                    step_a = _V[side] ? s_gs : 1,
+                    start_a = _V[side] ? s_gs1 * _S[side] : s_gs1 * _S[side] * s_gs,
+                    flip = SIDEFLIP[side][oppositeSide];
 
-                if (_V[side]) {
-                    for (let k = 0; k < s_gs; k++) {
-                        let vInd_a = (k * s_gs + i_a) * 3,
-                            vInd_b = (k * s_gs + i_b) * 3;
+                let step_b = _V[oppositeSide] ? s_gs : 1,
+                    start_b = _V[oppositeSide] ? s_gs1 * _S[oppositeSide] : s_gs1 * _S[oppositeSide] * s_gs;
 
-                        nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
-                        ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
-                        nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
+                if (flip) {
+                    start_b += s_gs1 * step_b;
+                    step_b = -step_b;
+                }
 
-                        q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+                let changed = false;
 
-                        seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
-                        seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
-                        seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
-                    }
-                } else {
-                    for (let k = 0; k < s_gs; k++) {
-                        let vInd_a = (i_a * s_gs + k) * 3,
-                            vInd_b = (i_b * s_gs + k) * 3;
+                for (let k = 0; k < s_gs; k++) {
+                    let vInd_a = (start_a + k * step_a) * 3,
+                        vInd_b = (start_b + k * step_b) * 3;
 
-                        nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
-                        ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
-                        nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
+                    nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
+                    ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
+                    nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
-                        q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+                    q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+                    nx *= q;
+                    ny *= q;
+                    nz *= q;
 
-                        seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
-                        seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
-                        seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
-                    }
+                    changed =
+                        changed || !isSameNormal(seg_a, vInd_a, nx, ny, nz) || !isSameNormal(seg_b, vInd_b, nx, ny, nz);
+
+                    seg_b[vInd_b] = seg_a[vInd_a] = nx;
+                    seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny;
+                    seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz;
                 }
 
                 s._appliedNeighborsZoom[side] = b.tileZoom;
                 s._appliedNeighborsZoomNodeId[side] = n.nodeId;
+                b._appliedNeighborsZoom[oppositeSide] = s.tileZoom;
+                b._appliedNeighborsZoomNodeId[oppositeSide] = s.node.nodeId;
 
-                const oppositeSide = OPSIDE[side];
-                if (
-                    !b._inTheQueue &&
-                    (b._appliedNeighborsZoom[oppositeSide] !== s.tileZoom ||
-                        b._appliedNeighborsZoomNodeId[oppositeSide] !== s.node.nodeId)
-                ) {
-                    b._appliedNeighborsZoom[oppositeSide] = s.tileZoom;
-                    b._appliedNeighborsZoomNodeId[oppositeSide] = s.node.nodeId;
-                    s.planet._normalMapCreator.queue(b);
+                if (changed) {
+                    s._normalMapSideVersion[side] = b._normalMapSideVersion[oppositeSide] = ++__normalMapEdgeVersion__;
+                    if (!b._inTheQueue) {
+                        s.planet._normalMapCreator.queue(b);
+                    }
                 }
             }
+        }
+    }
+
+    /**
+     * The segment the normal map of this one comes from: itself, or the parent whose normal map.
+     */
+    public _getNormalMapSource(): Segment | null {
+        if (this.normalMapReady) {
+            return this;
+        }
+        const s = this._normalMapSource;
+        return s && s.normalMapReady ? s : null;
+    }
+
+    public _isNormalMapPending(): boolean {
+        return this.terrainIsLoading || !this.terrainReady || (this.terrainExists && !this.normalMapReady);
+    }
+
+    protected _isNormalMapEdgeApplied(side: number, t: Segment): boolean {
+        return (
+            this._appliedNeighborsZoom[side] === t.tileZoom &&
+            this._appliedNeighborsZoomNodeId[side] === t.node.nodeId &&
+            (t.tileZoom === this.tileZoom ||
+                this._appliedNeighborsVersion[side] ===
+                    (this._appliedNeighborsInside[side]
+                        ? t._normalMapArraysVersion
+                        : t._normalMapSideVersion[this.opside[side]]))
+        );
+    }
+
+    public _checkNormalMapEdges() {
+        const s = this._getNormalMapSource();
+
+        if (!s || !s.normalMapNormals || this._isNormalMapPending()) {
+            return;
+        }
+
+        const nn = this.node.neighbors;
+
+        for (let side = N; side <= W; side++) {
+            const ns = nn[side];
+            for (let i = 0; i < ns.length; i++) {
+                if (ns[i].segment._isNormalMapPending()) {
+                    continue;
+                }
+
+                const t = ns[i].segment._getNormalMapSource();
+
+                if (
+                    !t ||
+                    t === s ||
+                    t.tileZoom > s.tileZoom ||
+                    !t.terrainExists ||
+                    !t.normalMapNormals ||
+                    (t.tileZoom === s.tileZoom && t.normalMapNormals.length !== s.normalMapNormals.length)
+                ) {
+                    continue;
+                }
+
+                if (!s._isNormalMapEdgeApplied(side, t)) {
+                    s._normalMapEdgeSource[side] = t;
+                    if (!s._inTheQueue) {
+                        s.planet._normalMapCreator.queue(s);
+                    }
+                }
+            }
+        }
+    }
+
+    protected _normalMapEdgeCopy(side: number, t: Segment) {
+        const a = this.normalMapNormals!,
+            b = t.normalMapNormals!,
+            gs = Math.sqrt(a.length / 3) - 1,
+            tgs = Math.sqrt(b.length / 3) - 1,
+            size = tgs / (1 << (this.tileZoom - t.tileZoom)),
+            x0 = this.node.getOffsetOppositeNeighbourSide(t.node, N) * tgs,
+            y0 = this.node.getOffsetOppositeNeighbourSide(t.node, W) * tgs;
+
+        let p: Node = this.node;
+        while (p.parentNode && p.segment.tileZoom > t.tileZoom) {
+            p = p.parentNode;
+        }
+        const inside = p === t.node;
+
+        let r = y0,
+            c = x0,
+            dr = 0,
+            dc = 0;
+
+        if (inside) {
+            if (side === N || side === S) {
+                r = y0 + (side === S ? size : 0);
+                dc = size / gs;
+            } else {
+                c = x0 + (side === E ? size : 0);
+                dr = size / gs;
+            }
+        } else {
+            // The side of the neighbor, on a cube it can go along the other axis or the other way
+            const opcs = this.opside[side],
+                flip = SIDEFLIP[side][opcs],
+                along = side === N || side === S ? x0 : y0,
+                start = flip ? tgs - along : along,
+                d = (flip ? -size : size) / gs;
+
+            if (opcs === N || opcs === S) {
+                r = opcs === S ? tgs : 0;
+                c = start;
+                dc = d;
+            } else {
+                r = start;
+                c = opcs === E ? tgs : 0;
+                dr = d;
+            }
+        }
+
+        let changed = false;
+
+        for (let k = 0; k <= gs; k++) {
+            const i = side === N ? 0 : side === S ? gs : k,
+                j = side === W ? 0 : side === E ? gs : k;
+
+            sampleNormal(b, tgs, r + dr * k, c + dc * k, _normal);
+
+            const di = (i * (gs + 1) + j) * 3;
+
+            changed = changed || !isSameNormal(a, di, _normal[0], _normal[1], _normal[2]);
+            a[di] = _normal[0];
+            a[di + 1] = _normal[1];
+            a[di + 2] = _normal[2];
+        }
+
+        if (changed) {
+            this._normalMapSideVersion[side] = ++__normalMapEdgeVersion__;
+        }
+
+        // Inside the lower zoom normal map only new normals change the side, on its edge the equalizing does as well
+        this._appliedNeighborsZoom[side] = t.tileZoom;
+        this._appliedNeighborsZoomNodeId[side] = t.node.nodeId;
+        this._appliedNeighborsInside[side] = inside;
+        this._appliedNeighborsVersion[side] = inside
+            ? t._normalMapArraysVersion
+            : t._normalMapSideVersion[this.opside[side]];
+    }
+
+    /**
+     * Called when the normal map is drawn. New normals change all the sides for the finer normal maps that took them.
+     */
+    public _normalMapDrawn() {
+        if (this._normalMapDrawnNormals !== this.normalMapNormals) {
+            this._normalMapDrawnNormals = this.normalMapNormals;
+            const v = ++__normalMapEdgeVersion__,
+                sv = this._normalMapSideVersion;
+            this._normalMapArraysVersion = sv[N] = sv[E] = sv[S] = sv[W] = v;
         }
     }
 
@@ -1311,7 +1652,6 @@ class Segment {
         this.terrainVertices = null;
         this.terrainVerticesHigh = null;
         this.terrainVerticesLow = null;
-        this.noDataVertices = null;
 
         this.plainVertices = null;
         this.plainVerticesHigh = null;
@@ -1325,6 +1665,10 @@ class Segment {
 
         this._appliedNeighborsZoom = [0, 0, 0, 0];
         this._appliedNeighborsZoomNodeId = [-1, -1, -1, -1];
+        this._appliedNeighborsVersion = [-1, -1, -1, -1];
+        this._normalMapEdgeSource = [null, null, null, null];
+        this._normalMapSource = null;
+        this._normalMapDrawnNormals = null;
 
         this.normalMapTextureBias[0] = 0;
         this.normalMapTextureBias[1] = 0;
@@ -1388,7 +1732,6 @@ class Segment {
         this.terrainVertices = null;
         this.terrainVerticesHigh = null;
         this.terrainVerticesLow = null;
-        this.noDataVertices = null;
 
         this.renderVertices = null;
         this.renderVerticesHigh = null;
@@ -1413,6 +1756,12 @@ class Segment {
         // @ts-ignore
         this._appliedNeighborsZoomNodeId = null;
         // @ts-ignore
+        this._appliedNeighborsVersion = null;
+        // @ts-ignore
+        this._normalMapEdgeSource = null;
+        this._normalMapSource = null;
+        this._normalMapDrawnNormals = null;
+        // @ts-ignore
         this._globalTextureCoordinates = null;
     }
 
@@ -1423,21 +1772,28 @@ class Segment {
         this._extentLonLat = this._extent.inverseMercator();
     }
 
-    protected _createExtentNormals() {
+    /**
+     * Returns the SW, NW, NE and SE corners of the segment on the ellipsoid.
+     */
+    protected _getExtentCorners(): [Vec3, Vec3, Vec3, Vec3] {
         const ellipsoid = this.planet.ellipsoid;
         const extent = this._extentLonLat;
 
-        const coord_sw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat);
-        const coord_ne = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
+        return [
+            ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat),
+            ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat),
+            ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat),
+            ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat)
+        ];
+    }
 
-        const coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
+    protected _createExtentNormals() {
+        const [sw, nw, ne, se] = this._getExtentCorners();
 
-        const coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
-
-        this._sw.copy(coord_sw);
-        this._nw.copy(coord_nw);
-        this._ne.copy(coord_ne);
-        this._se.copy(coord_se);
+        this._sw.copy(sw);
+        this._nw.copy(nw);
+        this._ne.copy(ne);
+        this._se.copy(se);
     }
 
     public createBoundsByExtent() {
@@ -1604,6 +1960,53 @@ class Segment {
         this.bsphere.radius = this.bsphere.center.distance(new Vec3(bounds[0], bounds[1], bounds[2]));
     }
 
+    /**
+     * Sets the bounding volume of the terrain vertices, the plain segment volume when there are no
+     * finite vertices.
+     * @param {NumberArray6} bounds - [xmin, ymin, zmin, xmax, ymax, zmax].
+     */
+    public setTerrainBoundingVolume(bounds: NumberArray6) {
+        if (bounds[0] <= bounds[3] && bounds[1] <= bounds[4] && bounds[2] <= bounds[5]) {
+            this.setBoundingVolumeArr(bounds);
+        } else {
+            this.createBoundsByExtent();
+        }
+    }
+
+    /**
+     * Creates the plain segment box center and half diagonal, the LOD volume without terrain.
+     */
+    public _createPlainBounds() {
+        // Coordinates are monotonic along the tile sides from zoom 2, so the corners span the plain box
+        const [sw, nw, ne, se] = this._getExtentCorners();
+
+        const xmin = Math.min(sw.x, nw.x, ne.x, se.x),
+            ymin = Math.min(sw.y, nw.y, ne.y, se.y),
+            zmin = Math.min(sw.z, nw.z, ne.z, se.z),
+            dx = Math.max(sw.x, nw.x, ne.x, se.x) - xmin,
+            dy = Math.max(sw.y, nw.y, ne.y, se.y) - ymin,
+            dz = Math.max(sw.z, nw.z, ne.z, se.z) - zmin;
+
+        this._plainCenter.set(xmin + dx * 0.5, ymin + dy * 0.5, zmin + dz * 0.5);
+        this._plainRadius = 0.5 * Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        // The corners are on the surface
+        this._plainSurfaceRadius = (sw.length() + nw.length() + ne.length() + se.length()) * 0.25;
+
+        this.lodCenter.copy(this._plainCenter);
+    }
+
+    /**
+     * Raises the LOD center over the plain segment center by the height of the median vertex radius
+     * over the surface.
+     * @param {number} radius - Median geocentric radius of the segment vertices.
+     */
+    public setLodRadius(radius: number) {
+        const c = this._plainCenter;
+        const k = 1.0 + (radius - this._plainSurfaceRadius) / c.length();
+        this.lodCenter.set(c.x * k, c.y * k, c.z * k);
+    }
+
     public createCoordsBuffers(verticesHigh: Float32Array, verticesLow: Float32Array, gridSize: number) {
         const gsgs = (gridSize + 1) * (gridSize + 1);
         const h = this.handler;
@@ -1652,7 +2055,7 @@ class Segment {
     }
 
     protected _assignTileIndexes() {
-        this._tileGroup = TILEGROUP_COMMON;
+        this.tileGroup = TILEGROUP_COMMON;
 
         const tileZoom = this.tileZoom;
         const extent = this._extent;
@@ -1671,7 +2074,7 @@ class Segment {
         this.tileYN = this.tileY - 1;
         this.tileYS = this.tileY + 1;
 
-        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom, this._tileGroup);
+        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom, this.tileGroup);
     }
 
     public initialize() {
@@ -1724,7 +2127,6 @@ class Segment {
             this.plainVerticesHigh = data.plainVerticesHigh;
             this.plainVerticesLow = data.plainVerticesLow;
             this.plainNormals = data.plainNormals;
-            this._plainRadius = data.plainRadius;
 
             this.normalMapNormals = data.normalMapNormals;
             this.normalMapVertices = data.normalMapVertices;
@@ -1739,7 +2141,14 @@ class Segment {
         this.readyToEngage = true;
     }
 
-    protected _projToDeg(lon: number, lat: number): LonLat {
+    /**
+     * Returns the geodetic coordinates of the native point.
+     * @public
+     * @param {number} lon - Native longitude.
+     * @param {number} lat - Native latitude.
+     * @returns {LonLat} -
+     */
+    public getLonLat(lon: number, lat: number): LonLat {
         return LonLat.inverseMercator(lon, lat);
     }
 
@@ -1785,9 +2194,7 @@ class Segment {
             let j = k % gs,
                 i = ~~(k / gs);
 
-            let v = this.planet.ellipsoid.lonLatToCartesian(
-                this._projToDeg(esw_lon + j * llStep, ene_lat - i * ltStep)
-            );
+            let v = this.planet.ellipsoid.lonLatToCartesian(this.getLonLat(esw_lon + j * llStep, ene_lat - i * ltStep));
 
             let nx = v.x * r2.x,
                 ny = v.y * r2.y,
@@ -2403,23 +2810,6 @@ class Segment {
 
     public getExtent(): Extent {
         return this._extent;
-    }
-
-    public getNeighborSide(b: Segment) {
-        if (this.tileY === b.tileY) {
-            if (this.tileX === b.tileXE) {
-                return W;
-            } else if (this.tileX === b.tileXW) {
-                return E;
-            }
-        } else if (this.tileX === b.tileX) {
-            if (this.tileY === b.tileYS) {
-                return N;
-            } else if (this.tileY === b.tileYN) {
-                return S;
-            }
-        }
-        return -1;
     }
 }
 

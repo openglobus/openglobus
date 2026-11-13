@@ -47,6 +47,8 @@ class SelectionScene extends Scene {
     ) {
         super(options.name);
 
+        this.disableDepthCamera = true;
+
         this.events = new Events(EVENT_NAMES);
 
         this._ignoreTerrain = options.ignoreTerrain != undefined ? options.ignoreTerrain : true;

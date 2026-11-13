@@ -2,10 +2,29 @@ import { Vector } from "../../src/layer/Vector";
 import { GeometryHandler } from "../../src/entity/geometry/GeometryHandler";
 import { Extent } from "../../src/Extent";
 import { LonLat } from "../../src/LonLat";
-import { NOTRENDERING, RENDERING } from "../../src/quadTree/quadTree";
+import { Node } from "../../src/quadTree/Node";
+import { NOTRENDERING, RENDERING, WALKTHROUGH } from "../../src/quadTree/quadTree";
 
 const texture = { name: "previous texture" };
 const pickingMask = { name: "previous picking mask" };
+const tileExtent = new Extent(new LonLat(0, 0), new LonLat(10, 10));
+const fadingNodes = new Map();
+const quadTreeStrategy = { _fadingNodes: fadingNodes };
+
+let nodeId = 0;
+
+// A tree node with the real visibility checks of Node
+const makeTreeNode = (state, fading = false) => {
+    const node = Object.create(Node.prototype);
+    Object.assign(node, { __id: nodeId++, quadTreeStrategy, ready: false, nodes: [], getState: () => state });
+    node.segment = { getExtentLonLat: () => tileExtent };
+    fading && fadingNodes.set(node.__id, node);
+    return node;
+};
+
+afterEach(() => {
+    fadingNodes.clear();
+});
 
 test("Vector.applyMaterial keeps showing the previous texture while a tile is redrawn", () => {
     const vector = new Vector("name", {});
@@ -33,13 +52,12 @@ test("Vector.applyMaterial keeps showing the previous texture while a tile is re
 test("Removing a geometry keeps the texture of rendered tiles and clears the others", () => {
     const layer = { __id: 7, clearMaterial: vi.fn() };
     const handler = new GeometryHandler(layer);
-    const tileExtent = new Extent(new LonLat(0, 0), new LonLat(10, 10));
 
     const makeNode = (state) => {
-        const node = { ready: false, nodes: [], getState: () => state };
+        const node = makeTreeNode(state);
         const material = { isReady: true, pickingReady: true, textureExists: true, texture, pickingMask, layer };
         material.segment = { node };
-        node.segment = { materials: { 7: material }, getExtentLonLat: () => tileExtent };
+        node.segment.materials = { 7: material };
         return { node, material };
     };
     const rendered = makeNode(RENDERING);
@@ -76,10 +94,9 @@ test("Vector.applyMaterial uses the parent path for a tile without its own textu
 test("Removing a geometry clears a tile that shows a parent texture", () => {
     const layer = { __id: 7, clearMaterial: vi.fn() };
     const handler = new GeometryHandler(layer);
-    const tileExtent = new Extent(new LonLat(0, 0), new LonLat(10, 10));
-    const node = { ready: false, nodes: [], getState: () => RENDERING };
+    const node = makeTreeNode(RENDERING);
     const material = { isReady: true, textureExists: false, texture, layer, segment: { node } };
-    node.segment = { materials: { 7: material }, getExtentLonLat: () => tileExtent };
+    node.segment.materials = { 7: material };
 
     handler._refreshRecursevelyExt(new Extent(new LonLat(1, 1), new LonLat(2, 2)), { ready: true, nodes: [node] });
 
@@ -109,4 +126,40 @@ test("Vector.clearMaterial releases the previous texture of a tile that is being
     expect(material.texture).toBe(null);
     expect(material._updateTexture).toBe(null);
     expect(material.textureExists).toBe(false);
+});
+
+test("Changing a geometry keeps the texture of fading tiles", () => {
+    const layer = { __id: 7, _id: 7, clearMaterial: vi.fn() };
+    const handler = new GeometryHandler(layer);
+
+    const makeNode = (state, fading) => {
+        const node = makeTreeNode(state, fading);
+        const material = { isReady: true, pickingReady: true, textureExists: true, texture, pickingMask, layer };
+        material.segment = { node };
+        node.segment.materials = { 7: material };
+        return { node, material };
+    };
+    // A parent fading out after zooming in, and a child fading out after zooming out
+    const fadingParent = makeNode(WALKTHROUGH, true);
+    const fadingChild = makeNode(NOTRENDERING, true);
+    const hidden = makeNode(NOTRENDERING, false);
+    const root = { ready: true, nodes: [fadingParent.node, fadingChild.node, hidden.node] };
+
+    handler._refreshRecursevelyExt(new Extent(new LonLat(1, 1), new LonLat(2, 2)), root);
+
+    for (const { material } of [fadingParent, fadingChild]) {
+        expect(material.isReady).toBe(false);
+        expect(material._updateTexture).toBe(texture);
+        expect(material._updatePickingMask).toBe(pickingMask);
+    }
+    expect(layer.clearMaterial).toHaveBeenCalledTimes(1);
+    expect(layer.clearMaterial).toHaveBeenCalledWith(hidden.material);
+
+    layer.clearMaterial.mockClear();
+    const geometry = { overlaps: () => true, _pickingReady: true };
+    const updated = makeNode(NOTRENDERING, true);
+    handler._refreshRecursevely(geometry, { ready: true, nodes: [updated.node] });
+
+    expect(layer.clearMaterial).not.toHaveBeenCalled();
+    expect(updated.material._updateTexture).toBe(texture);
 });

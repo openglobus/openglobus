@@ -59,6 +59,8 @@ class PolygonDrawingScene extends Scene {
     constructor(options: IPolygonDrawingSceneParams) {
         super(options.name);
 
+        this.disableDepthCamera = true;
+
         this.events = createEvents(POLYGONDRAWINGSCENE_EVENTS);
 
         this._planet = null;
@@ -442,7 +444,7 @@ class PolygonDrawingScene extends Scene {
         let nodes = this._planet!.quadTreeStrategy._renderedNodes;
         for (let j = 0; j < nodes.length; j++) {
             let seg = nodes[j].segment;
-            if (seg && seg._extentLonLat.isInside(entity.getLonLat())) {
+            if (seg && seg.isLonLatInside(entity.getLonLat())) {
                 seg.getEntityTerrainPoint(entity, _tempTerrPoint);
                 entity.setCartesian3v(_tempTerrPoint);
                 break;

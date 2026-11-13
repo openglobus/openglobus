@@ -2,7 +2,8 @@
 //
 //Terrain worker
 //
-import { getMeshHeights } from "../terrain/terrainUtils";
+import { getMedian, getMeshHeights } from "../terrain/terrainUtils";
+import { doubleToTwoFloatsV3 } from "../math/doubleToTwoFloats";
 
 function binarySearchFast(arr, x) {
     let start = 0,
@@ -26,75 +27,6 @@ var Vec3 = function (x, y, z) {
     this.z = z;
 };
 
-var doubleToTwoFloats = function (v, high, low) {
-    let x = v.x,
-        y = v.y,
-        z = v.z;
-
-    var doubleHigh;
-
-    if (x >= 0.0) {
-        doubleHigh = Math.floor(x / 65536.0) * 65536.0;
-        high.x = Math.fround(doubleHigh);
-        low.x = Math.fround(x - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
-        high.x = Math.fround(-doubleHigh);
-        low.x = Math.fround(x + doubleHigh);
-    }
-
-    if (y >= 0.0) {
-        doubleHigh = Math.floor(y / 65536.0) * 65536.0;
-        high.y = Math.fround(doubleHigh);
-        low.y = Math.fround(y - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
-        high.y = Math.fround(-doubleHigh);
-        low.y = Math.fround(y + doubleHigh);
-    }
-
-    if (z >= 0.0) {
-        doubleHigh = Math.floor(z / 65536.0) * 65536.0;
-        high.z = Math.fround(doubleHigh);
-        low.z = Math.fround(z - doubleHigh);
-    } else {
-        doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
-        high.z = Math.fround(-doubleHigh);
-        low.z = Math.fround(z + doubleHigh);
-    }
-};
-
-Vec3.prototype.sub = function (v) {
-    return new Vec3(this.x - v.x, this.y - v.y, this.z - v.z);
-};
-
-Vec3.prototype.add = function (v) {
-    return new Vec3(this.x + v.x, this.y + v.y, this.z + v.z);
-};
-
-Vec3.prototype.cross = function (v) {
-    return new Vec3(this.y * v.z - this.z * v.y, this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x);
-};
-
-Vec3.prototype.normalize = function () {
-    var x = this.x,
-        y = this.y,
-        z = this.z;
-    var length = 1.0 / Math.sqrt(x * x + y * y + z * z);
-    this.x = x * length;
-    this.y = y * length;
-    this.z = z * length;
-    return this;
-};
-
-Vec3.prototype.distance = function (v) {
-    return this.sub(v).length();
-};
-
-Vec3.prototype.length = function () {
-    return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-};
-
 var blerp = function (x, y, fQ11, fQ21, fQ12, fQ22) {
     return fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y;
 };
@@ -106,6 +38,12 @@ var _tempHigh = new Vec3(0.0, 0.0, 0.0),
     _tempLow = new Vec3(0.0, 0.0, 0.0);
 
 var _meshHeights = new Float32Array(0);
+
+// Squared vertex radii, their median is the LOD radius
+var _r2 = new Float64Array(0);
+
+// Geocentric file grid vertices, the quad normals are made from them
+var _world = new Float64Array(0);
 
 self.onmessage = function (e) {
     var elevations = e.data.elevations,
@@ -144,15 +82,17 @@ self.onmessage = function (e) {
     const gs = tgs + 1;
     const hf = heightFactor;
 
-    var vInd = 0,
-        noDataInd = 0;
+    var vInd = 0;
 
     var gsgs3 = gs * gs * 3;
 
+    if (_r2.length !== gs * gs) {
+        _r2 = new Float64Array(gs * gs);
+    }
+
     var terrainVertices = new Float64Array(gsgs3),
         terrainVerticesHigh = new Float32Array(gsgs3),
-        terrainVerticesLow = new Float32Array(gsgs3),
-        noDataVertices = new Uint8Array(gs * gs);
+        terrainVerticesLow = new Float32Array(gsgs3);
 
     var normalMapNormals, normalMapVertices;
 
@@ -178,183 +118,149 @@ self.onmessage = function (e) {
             );
         }
 
+        if (_world.length < fileGridSize_one_x2 * 3) {
+            _world = new Float64Array(fileGridSize_one_x2 * 3);
+        }
+
+        //
+        // Vertices, each one once
+        //
         for (let k = 0; k < fileGridSize_one_x2; k++) {
             var j = k % fileGridSize_one,
                 i = ~~(k / fileGridSize_one);
 
-            //
-            // V0
-            //
-            var hInd0 = k;
-            var vInd0 = hInd0 * 3;
-            var currElv = elevations[hInd0];
+            var vInd0 = k * 3;
+            var currElv = elevations[k];
             if (checkNoDataValue(noDataValues, currElv)) {
                 currElv = 0.0;
             }
             var h0 = hf * currElv;
-            var v0 = new Vec3(
-                rtc_x + nv[vInd0] + h0 * nn[vInd0],
-                rtc_y + nv[vInd0 + 1] + h0 * nn[vInd0 + 1],
-                rtc_z + nv[vInd0 + 2] + h0 * nn[vInd0 + 2]
-            );
+            var v0x = rtc_x + nv[vInd0] + h0 * nn[vInd0],
+                v0y = rtc_y + nv[vInd0 + 1] + h0 * nn[vInd0 + 1],
+                v0z = rtc_z + nv[vInd0 + 2] + h0 * nn[vInd0 + 2];
 
-            normalMapVertices[vInd0] = v0.x - rtc_x;
-            normalMapVertices[vInd0 + 1] = v0.y - rtc_y;
-            normalMapVertices[vInd0 + 2] = v0.z - rtc_z;
+            _world[vInd0] = v0x;
+            _world[vInd0 + 1] = v0y;
+            _world[vInd0 + 2] = v0z;
+
+            normalMapVertices[vInd0] = v0x - rtc_x;
+            normalMapVertices[vInd0 + 1] = v0y - rtc_y;
+            normalMapVertices[vInd0 + 2] = v0z - rtc_z;
 
             //
             // The vertex goes into screen buffer
             if (i % dg === 0 && j % dg === 0) {
-                let currVert = new Vec3(rtc_x + nv[vInd0], rtc_y + nv[vInd0 + 1], rtc_z + nv[vInd0 + 2]);
-                let nextVert = new Vec3(rtc_x + nv[vInd0 + 3], rtc_y + nv[vInd0 + 4], rtc_z + nv[vInd0 + 5]);
-
-                let nextElv = elevations[hInd0 + 1];
-                if (checkNoDataValue(noDataValues, nextElv)) {
-                    nextElv = 0.0;
-                }
-
-                let eps = false;
-                if (noDataValues.length === 0) {
-                    let step = currVert.distance(nextVert);
-                    let deltaElv = Math.abs(currElv - nextElv);
-                    eps = deltaElv / step > 10.0 || currElv < -5000;
-                }
-
-                let mv = v0;
+                let mx = v0x,
+                    my = v0y,
+                    mz = v0z;
                 if (meshHeights) {
                     let meshElv = meshHeights[(i / dg) * gs + j / dg];
                     // Only the vertices a peak or pit is moved to
-                    if (meshElv !== elevations[hInd0] && !checkNoDataValue(noDataValues, meshElv)) {
+                    if (meshElv !== elevations[k] && !checkNoDataValue(noDataValues, meshElv)) {
                         let mh = hf * meshElv;
-                        mv = new Vec3(
-                            rtc_x + nv[vInd0] + mh * nn[vInd0],
-                            rtc_y + nv[vInd0 + 1] + mh * nn[vInd0 + 1],
-                            rtc_z + nv[vInd0 + 2] + mh * nn[vInd0 + 2]
-                        );
+                        mx = rtc_x + nv[vInd0] + mh * nn[vInd0];
+                        my = rtc_y + nv[vInd0 + 1] + mh * nn[vInd0 + 1];
+                        mz = rtc_z + nv[vInd0 + 2] + mh * nn[vInd0 + 2];
                     }
                 }
 
-                if (eps) {
-                    noDataVertices[noDataInd] = 1;
-                } else {
-                    noDataVertices[noDataInd] = 0;
-                    if (mv.x < xmin) xmin = mv.x;
-                    if (mv.x > xmax) xmax = mv.x;
-                    if (mv.y < ymin) ymin = mv.y;
-                    if (mv.y > ymax) ymax = mv.y;
-                    if (mv.z < zmin) zmin = mv.z;
-                    if (mv.z > zmax) zmax = mv.z;
+                if (mx < xmin) xmin = mx;
+                if (mx > xmax) xmax = mx;
+                if (my < ymin) ymin = my;
+                if (my > ymax) ymax = my;
+                if (mz < zmin) zmin = mz;
+                if (mz > zmax) zmax = mz;
 
-                    let r2_v0 = mv.x * mv.x + mv.y * mv.y + mv.z * mv.z;
-                    if (r2_v0 < r2min) r2min = r2_v0;
-                    if (r2_v0 > r2max) r2max = r2_v0;
-                }
+                let r2_v0 = mx * mx + my * my + mz * mz;
+                if (r2_v0 < r2min) r2min = r2_v0;
+                if (r2_v0 > r2max) r2max = r2_v0;
+                _r2[vInd / 3] = r2_v0;
 
-                let rtc_v0 = new Vec3(mv.x - rtc_x, mv.y - rtc_y, mv.z - rtc_z);
-                doubleToTwoFloats(rtc_v0, _tempHigh, _tempLow);
+                _rtcTempVec.x = mx - rtc_x;
+                _rtcTempVec.y = my - rtc_y;
+                _rtcTempVec.z = mz - rtc_z;
+                doubleToTwoFloatsV3(_rtcTempVec, _tempHigh, _tempLow);
 
                 terrainVerticesHigh[vInd] = _tempHigh.x;
                 terrainVerticesLow[vInd] = _tempLow.x;
-                terrainVertices[vInd++] = rtc_v0.x;
+                terrainVertices[vInd++] = _rtcTempVec.x;
 
                 terrainVerticesHigh[vInd] = _tempHigh.y;
                 terrainVerticesLow[vInd] = _tempLow.y;
-                terrainVertices[vInd++] = rtc_v0.y;
+                terrainVertices[vInd++] = _rtcTempVec.y;
 
                 terrainVerticesHigh[vInd] = _tempHigh.z;
                 terrainVerticesLow[vInd] = _tempLow.z;
-                terrainVertices[vInd++] = rtc_v0.z;
-
-                noDataInd++;
+                terrainVertices[vInd++] = _rtcTempVec.z;
             }
+        }
 
-            if (i !== fileGridSize && j !== fileGridSize) {
-                //
-                //  V1
-                //
-                var hInd1 = k + 1;
-                var vInd1 = hInd1 * 3;
-                var elv = elevations[hInd1];
-                if (checkNoDataValue(noDataValues, elv)) {
-                    elv = 0.0;
-                }
-                var h1 = hf * elv;
-                var v1 = new Vec3(
-                    rtc_x + nv[vInd1] + h1 * nn[vInd1],
-                    rtc_y + nv[vInd1 + 1] + h1 * nn[vInd1 + 1],
-                    rtc_z + nv[vInd1 + 2] + h1 * nn[vInd1 + 2]
-                );
+        //
+        // Normals of the quads V0 V1 / V2 V3, added to their vertices in the quads order
+        //
+        for (let i = 0; i < fileGridSize; i++) {
+            for (let j = 0; j < fileGridSize; j++) {
+                let vInd0 = (i * fileGridSize_one + j) * 3,
+                    vInd1 = vInd0 + 3,
+                    vInd2 = vInd0 + fileGridSize_one * 3,
+                    vInd3 = vInd2 + 3;
 
-                normalMapVertices[vInd1] = v1.x - rtc_x;
-                normalMapVertices[vInd1 + 1] = v1.y - rtc_y;
-                normalMapVertices[vInd1 + 2] = v1.z - rtc_z;
+                let x0 = _world[vInd0],
+                    y0 = _world[vInd0 + 1],
+                    z0 = _world[vInd0 + 2];
 
-                //
-                //  V2
-                //
-                var hInd2 = k + fileGridSize_one;
-                var vInd2 = hInd2 * 3;
-                elv = elevations[hInd2];
-                if (checkNoDataValue(noDataValues, elv)) {
-                    elv = 0.0;
-                }
-                var h2 = hf * elv;
-                var v2 = new Vec3(
-                    rtc_x + nv[vInd2] + h2 * nn[vInd2],
-                    rtc_y + nv[vInd2 + 1] + h2 * nn[vInd2 + 1],
-                    rtc_z + nv[vInd2 + 2] + h2 * nn[vInd2 + 2]
-                );
+                let e10x = _world[vInd1] - x0,
+                    e10y = _world[vInd1 + 1] - y0,
+                    e10z = _world[vInd1 + 2] - z0;
 
-                normalMapVertices[vInd2] = v2.x - rtc_x;
-                normalMapVertices[vInd2 + 1] = v2.y - rtc_y;
-                normalMapVertices[vInd2 + 2] = v2.z - rtc_z;
+                let e20x = _world[vInd2] - x0,
+                    e20y = _world[vInd2 + 1] - y0,
+                    e20z = _world[vInd2 + 2] - z0;
 
-                //
-                //  V3
-                //
-                var hInd3 = k + fileGridSize_one + 1;
-                var vInd3 = hInd3 * 3;
-                elv = elevations[hInd3];
-                if (checkNoDataValue(noDataValues, elv)) {
-                    elv = 0.0;
-                }
-                var h3 = hf * elv;
-                var v3 = new Vec3(
-                    rtc_x + nv[vInd3] + h3 * nn[vInd3],
-                    rtc_y + nv[vInd3 + 1] + h3 * nn[vInd3 + 1],
-                    rtc_z + nv[vInd3 + 2] + h3 * nn[vInd3 + 2]
-                );
+                let e30x = _world[vInd3] - x0,
+                    e30y = _world[vInd3 + 1] - y0,
+                    e30z = _world[vInd3 + 2] - z0;
 
-                normalMapVertices[vInd3] = v3.x - rtc_x;
-                normalMapVertices[vInd3 + 1] = v3.y - rtc_y;
-                normalMapVertices[vInd3 + 2] = v3.z - rtc_z;
+                // sw = e20 x e30, ne = e30 x e10, n0 = ne + sw, normalized
+                let swx = e20y * e30z - e20z * e30y,
+                    swy = e20z * e30x - e20x * e30z,
+                    swz = e20x * e30y - e20y * e30x;
+                let l = 1.0 / Math.sqrt(swx * swx + swy * swy + swz * swz);
+                swx *= l;
+                swy *= l;
+                swz *= l;
 
-                //
-                // Normal
-                //
-                var e10 = v1.sub(v0),
-                    e20 = v2.sub(v0),
-                    e30 = v3.sub(v0);
+                let nex = e30y * e10z - e30z * e10y,
+                    ney = e30z * e10x - e30x * e10z,
+                    nez = e30x * e10y - e30y * e10x;
+                l = 1.0 / Math.sqrt(nex * nex + ney * ney + nez * nez);
+                nex *= l;
+                ney *= l;
+                nez *= l;
 
-                var sw = e20.cross(e30).normalize();
-                var ne = e30.cross(e10).normalize();
-                var n0 = ne.add(sw).normalize();
+                let n0x = nex + swx,
+                    n0y = ney + swy,
+                    n0z = nez + swz;
+                l = 1.0 / Math.sqrt(n0x * n0x + n0y * n0y + n0z * n0z);
+                n0x *= l;
+                n0y *= l;
+                n0z *= l;
 
-                normalMapNormals[vInd0] += n0.x;
-                normalMapNormals[vInd0 + 1] += n0.y;
-                normalMapNormals[vInd0 + 2] += n0.z;
+                normalMapNormals[vInd0] += n0x;
+                normalMapNormals[vInd0 + 1] += n0y;
+                normalMapNormals[vInd0 + 2] += n0z;
 
-                normalMapNormals[vInd1] += ne.x;
-                normalMapNormals[vInd1 + 1] += ne.y;
-                normalMapNormals[vInd1 + 2] += ne.z;
+                normalMapNormals[vInd1] += nex;
+                normalMapNormals[vInd1 + 1] += ney;
+                normalMapNormals[vInd1 + 2] += nez;
 
-                normalMapNormals[vInd2] += sw.x;
-                normalMapNormals[vInd2 + 1] += sw.y;
-                normalMapNormals[vInd2 + 2] += sw.z;
+                normalMapNormals[vInd2] += swx;
+                normalMapNormals[vInd2 + 1] += swy;
+                normalMapNormals[vInd2 + 2] += swz;
 
-                normalMapNormals[vInd3] += n0.x;
-                normalMapNormals[vInd3 + 1] += n0.y;
-                normalMapNormals[vInd3 + 2] += n0.z;
+                normalMapNormals[vInd3] += n0x;
+                normalMapNormals[vInd3 + 1] += n0y;
+                normalMapNormals[vInd3 + 2] += n0z;
             }
         }
     } else {
@@ -417,7 +323,7 @@ self.onmessage = function (e) {
             _rtcTempVec.y = this_plainVertices[i3 + 1] + hi * this_plainNormals[i3 + 1];
             _rtcTempVec.z = this_plainVertices[i3 + 2] + hi * this_plainNormals[i3 + 2];
 
-            doubleToTwoFloats(_rtcTempVec, _tempHigh, _tempLow);
+            doubleToTwoFloatsV3(_rtcTempVec, _tempHigh, _tempLow);
 
             terrainVertices[i3] = _rtcTempVec.x;
             terrainVertices[i3 + 1] = _rtcTempVec.y;
@@ -445,6 +351,7 @@ self.onmessage = function (e) {
             let r2_tmp = _tempVec.x * _tempVec.x + _tempVec.y * _tempVec.y + _tempVec.z * _tempVec.z;
             if (r2_tmp < r2min) r2min = r2_tmp;
             if (r2_tmp > r2max) r2max = r2_tmp;
+            _r2[i] = r2_tmp;
         }
 
         normalMapVertices.set(terrainVertices);
@@ -459,50 +366,75 @@ self.onmessage = function (e) {
                     v2ind = v0ind + gs * 3,
                     v3ind = v2ind + 3;
 
-                let v0 = new Vec3(
-                        terrainVertices[v0ind] + rtc_x,
-                        terrainVertices[v0ind + 1] + rtc_y,
-                        terrainVertices[v0ind + 2] + rtc_z
-                    ),
-                    v1 = new Vec3(
-                        terrainVertices[v1ind] + rtc_x,
-                        terrainVertices[v1ind + 1] + rtc_y,
-                        terrainVertices[v1ind + 2] + rtc_z
-                    ),
-                    v2 = new Vec3(
-                        terrainVertices[v2ind] + rtc_x,
-                        terrainVertices[v2ind + 1] + rtc_y,
-                        terrainVertices[v2ind + 2] + rtc_z
-                    ),
-                    v3 = new Vec3(
-                        terrainVertices[v3ind] + rtc_x,
-                        terrainVertices[v3ind + 1] + rtc_y,
-                        terrainVertices[v3ind + 2] + rtc_z
-                    );
+                let x0 = terrainVertices[v0ind] + rtc_x,
+                    y0 = terrainVertices[v0ind + 1] + rtc_y,
+                    z0 = terrainVertices[v0ind + 2] + rtc_z;
 
-                let e10 = v1.sub(v0).normalize(),
-                    e20 = v2.sub(v0).normalize(),
-                    e30 = v3.sub(v0).normalize();
+                // Edges are normalized here before the cross products
+                let e10x = terrainVertices[v1ind] + rtc_x - x0,
+                    e10y = terrainVertices[v1ind + 1] + rtc_y - y0,
+                    e10z = terrainVertices[v1ind + 2] + rtc_z - z0;
+                let l = 1.0 / Math.sqrt(e10x * e10x + e10y * e10y + e10z * e10z);
+                e10x *= l;
+                e10y *= l;
+                e10z *= l;
 
-                let sw = e20.cross(e30).normalize();
-                let ne = e30.cross(e10).normalize();
-                let n0 = ne.add(sw).normalize();
+                let e20x = terrainVertices[v2ind] + rtc_x - x0,
+                    e20y = terrainVertices[v2ind + 1] + rtc_y - y0,
+                    e20z = terrainVertices[v2ind + 2] + rtc_z - z0;
+                l = 1.0 / Math.sqrt(e20x * e20x + e20y * e20y + e20z * e20z);
+                e20x *= l;
+                e20y *= l;
+                e20z *= l;
 
-                normalMapNormals[v0ind] += n0.x;
-                normalMapNormals[v0ind + 1] += n0.y;
-                normalMapNormals[v0ind + 2] += n0.z;
+                let e30x = terrainVertices[v3ind] + rtc_x - x0,
+                    e30y = terrainVertices[v3ind + 1] + rtc_y - y0,
+                    e30z = terrainVertices[v3ind + 2] + rtc_z - z0;
+                l = 1.0 / Math.sqrt(e30x * e30x + e30y * e30y + e30z * e30z);
+                e30x *= l;
+                e30y *= l;
+                e30z *= l;
 
-                normalMapNormals[v1ind] += ne.x;
-                normalMapNormals[v1ind + 1] += ne.y;
-                normalMapNormals[v1ind + 2] += ne.z;
+                // sw = e20 x e30, ne = e30 x e10, n0 = ne + sw, normalized
+                let swx = e20y * e30z - e20z * e30y,
+                    swy = e20z * e30x - e20x * e30z,
+                    swz = e20x * e30y - e20y * e30x;
+                l = 1.0 / Math.sqrt(swx * swx + swy * swy + swz * swz);
+                swx *= l;
+                swy *= l;
+                swz *= l;
 
-                normalMapNormals[v2ind] += sw.x;
-                normalMapNormals[v2ind + 1] += sw.y;
-                normalMapNormals[v2ind + 2] += sw.z;
+                let nex = e30y * e10z - e30z * e10y,
+                    ney = e30z * e10x - e30x * e10z,
+                    nez = e30x * e10y - e30y * e10x;
+                l = 1.0 / Math.sqrt(nex * nex + ney * ney + nez * nez);
+                nex *= l;
+                ney *= l;
+                nez *= l;
 
-                normalMapNormals[v3ind] += n0.x;
-                normalMapNormals[v3ind + 1] += n0.y;
-                normalMapNormals[v3ind + 2] += n0.z;
+                let n0x = nex + swx,
+                    n0y = ney + swy,
+                    n0z = nez + swz;
+                l = 1.0 / Math.sqrt(n0x * n0x + n0y * n0y + n0z * n0z);
+                n0x *= l;
+                n0y *= l;
+                n0z *= l;
+
+                normalMapNormals[v0ind] += n0x;
+                normalMapNormals[v0ind + 1] += n0y;
+                normalMapNormals[v0ind + 2] += n0z;
+
+                normalMapNormals[v1ind] += nex;
+                normalMapNormals[v1ind + 1] += ney;
+                normalMapNormals[v1ind + 2] += nez;
+
+                normalMapNormals[v2ind] += swx;
+                normalMapNormals[v2ind + 1] += swy;
+                normalMapNormals[v2ind + 2] += swz;
+
+                normalMapNormals[v3ind] += n0x;
+                normalMapNormals[v3ind + 1] += n0y;
+                normalMapNormals[v3ind + 2] += n0z;
             }
         }
     }
@@ -515,9 +447,9 @@ self.onmessage = function (e) {
             terrainVertices: terrainVertices,
             terrainVerticesHigh: terrainVerticesHigh,
             terrainVerticesLow: terrainVerticesLow,
-            noDataVertices: noDataVertices,
             bounds: [xmin, ymin, zmin, xmax, ymax, zmax],
             radiusRange: r2max >= r2min ? [Math.sqrt(r2min), Math.sqrt(r2max)] : null,
+            lodRadius: Math.sqrt(getMedian(_r2, gs * gs)),
             relativeCenter: e.data.relativeCenter
         },
         [
@@ -525,8 +457,7 @@ self.onmessage = function (e) {
             normalMapVertices.buffer,
             terrainVertices.buffer,
             terrainVerticesHigh.buffer,
-            terrainVerticesLow.buffer,
-            noDataVertices.buffer
+            terrainVerticesLow.buffer
         ]
     );
 };

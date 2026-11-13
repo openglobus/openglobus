@@ -9,7 +9,7 @@ function createNode(extent, zoom, depth) {
         segment: {
             tileZoom: zoom,
             _extent: extent,
-            getExtentLonLat: () => extent,
+            isLonLatInside: (lonLat) => extent.isInside(lonLat),
             projectNative: (lonLat) => lonLat
         },
         nodes: []

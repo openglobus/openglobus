@@ -207,6 +207,8 @@ class EntityGizmoScene extends Scene {
     constructor(options: IEntityGizmoSceneParams = {}) {
         super(options.name || "EntityGizmoScene");
 
+        this.disableDepthCamera = true;
+
         this.events = createEvents(ENTITY_GIZMO_SCENE_EVENTS);
 
         this._planet = options.planet || null;

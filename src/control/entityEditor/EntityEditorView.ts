@@ -311,7 +311,10 @@ export class EntityEditorView extends View<EntityGizmoScene> {
 
         this._scaleView.stopPropagation();
         let scl = entity.getScale();
-        if (scl.x === scl.y && scl.y === scl.z) {
+        let screenFeature = entity.billboard || entity.label;
+        if (screenFeature) {
+            this._scaleView.value = screenFeature.getScale();
+        } else if (scl.x === scl.y && scl.y === scl.z) {
             this._scaleView.value = scl.x;
         } else {
             this._scaleView.value = 1;
@@ -323,6 +326,11 @@ export class EntityEditorView extends View<EntityGizmoScene> {
         this._scaleXView.value = scl.x;
         this._scaleYView.value = scl.y;
         this._scaleZView.value = scl.z;
+
+        let hasEntityScale = this._hasEntityScale(entity);
+        this._scaleXView.visibility = hasEntityScale;
+        this._scaleYView.visibility = hasEntityScale;
+        this._scaleZView.visibility = hasEntityScale;
 
         this._opacityView.events.stopPropagation();
         this._opacityView.value = entity.getOpacity();
@@ -520,17 +528,25 @@ export class EntityEditorView extends View<EntityGizmoScene> {
         }
     };
 
+    protected _hasEntityScale(entity: Entity): boolean {
+        return !!entity.geoObject || !(entity.billboard || entity.label);
+    }
+
     protected _onChangeScale = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             let s = parseFloat(val);
-            entity.setScale(s);
-            this._scaleXView.stopPropagation();
-            this._scaleYView.stopPropagation();
-            this._scaleZView.stopPropagation();
-            this._scaleXView.value = s;
-            this._scaleYView.value = s;
-            this._scaleZView.value = s;
+            entity.billboard && entity.billboard.setScale(s);
+            entity.label && entity.label.setScale(s);
+            if (this._hasEntityScale(entity)) {
+                entity.setScale(s);
+                this._scaleXView.stopPropagation();
+                this._scaleYView.stopPropagation();
+                this._scaleZView.stopPropagation();
+                this._scaleXView.value = s;
+                this._scaleYView.value = s;
+                this._scaleZView.value = s;
+            }
         }
     };
 

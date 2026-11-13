@@ -1,5 +1,6 @@
 import { binarySearchFast } from "../utils/shared";
 import type { TypedArray } from "../utils/shared";
+import { Extent } from "../Extent";
 import { Geoid } from "./Geoid";
 import { LonLat } from "../LonLat";
 import { Planet } from "../scene/Planet";
@@ -314,6 +315,23 @@ class EmptyTerrain {
 
     public isReady(): boolean {
         return this._isReady;
+    }
+
+    /**
+     * Returns the terrain extent, the whole globe by default.
+     * @public
+     * @returns {Extent} -
+     */
+    public getExtent(): Extent {
+        return new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0));
+    }
+
+    /**
+     * Flies the camera of the planet the terrain is active on to the terrain extent.
+     * @public
+     */
+    public flyExtent() {
+        this._planet?.flyExtent(this.getExtent());
     }
 
     /**

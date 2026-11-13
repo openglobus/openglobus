@@ -1,4 +1,5 @@
 import { Projector } from "../../src/renderer/projectors/Projector";
+import { DepthCamera } from "../../src/renderer/depthCamera/DepthCamera";
 import {
     ProjectorManager,
     assignSourceSlots,
@@ -27,25 +28,35 @@ function createManager() {
             idleMode: true,
             createEmptyTexture2DArrayExt: () => ({})
         },
+        depthCameraHandler: {
+            initialized: true,
+            add: vi.fn((depthCamera) => {
+                depthCamera._handlerIndex = 0;
+            }),
+            remove: vi.fn((depthCamera) => {
+                depthCamera._handlerIndex = -1;
+            })
+        },
         requestRedraw: vi.fn()
     };
     return { gl, renderer, manager: new ProjectorManager(renderer) };
 }
 
-function createDepthCamera() {
-    return {
-        framebuffer: {
-            _fbo: {},
-            width: 256,
-            height: 256,
-            textures: [{}],
-            activate: () => {},
-            deactivate: () => {},
-            bindOutputTextureLayer: () => {},
-            bindOutputTexture: () => {},
-            checkStatus: () => 1
-        }
+function createDepthCamera(params) {
+    const depthCamera = new DepthCamera(params);
+    depthCamera._initialized = true;
+    depthCamera.framebuffer = {
+        _fbo: {},
+        width: depthCamera.width,
+        height: depthCamera.height,
+        textures: [{}],
+        activate: () => {},
+        deactivate: () => {},
+        bindOutputTextureLayer: () => {},
+        bindOutputTexture: () => {},
+        checkStatus: () => 1
     };
+    return depthCamera;
 }
 
 function createProjector(params = {}) {
@@ -339,5 +350,48 @@ describe("ProjectorManager sources", () => {
         manager.add(high);
 
         expect(manager.active).toEqual([high, sourced, color]);
+    });
+});
+
+describe("ProjectorManager.add failures", () => {
+    test("before the renderer is initialized the camera is not registered", () => {
+        const { renderer, manager } = createManager();
+        renderer.depthCameraHandler.initialized = false;
+        const projector = createProjector();
+
+        expect(manager.add(projector)).toBe(-1);
+        expect(renderer.depthCameraHandler.add).not.toHaveBeenCalled();
+        expect(projector.depthCamera._handlerIndex).toBe(-1);
+    });
+
+    test("a non square frame is refused before the camera is registered", () => {
+        const { renderer, manager } = createManager();
+        const projector = new Projector({ depthCamera: createDepthCamera({ width: 256, height: 128 }) });
+
+        expect(manager.add(projector)).toBe(-1);
+        expect(renderer.depthCameraHandler.add).not.toHaveBeenCalled();
+    });
+
+    test("a failed layer binding takes back the camera the manager has registered", () => {
+        const { renderer, manager } = createManager();
+        const projector = createProjector();
+        projector.depthCamera.framebuffer._fbo = null;
+
+        expect(manager.add(projector)).toBe(-1);
+        expect(renderer.depthCameraHandler.remove).toHaveBeenCalledWith(projector.depthCamera);
+        expect(projector.depthCamera._handlerIndex).toBe(-1);
+        expect(projector._slot).toBe(-1);
+    });
+
+    test("a failed layer binding keeps a camera the caller has registered", () => {
+        const { renderer, manager } = createManager();
+        const projector = createProjector();
+        projector.depthCamera._handlerIndex = 3;
+        projector.depthCamera.framebuffer._fbo = null;
+
+        expect(manager.add(projector)).toBe(-1);
+        expect(renderer.depthCameraHandler.add).not.toHaveBeenCalled();
+        expect(renderer.depthCameraHandler.remove).not.toHaveBeenCalled();
+        expect(projector.depthCamera._handlerIndex).toBe(3);
     });
 });

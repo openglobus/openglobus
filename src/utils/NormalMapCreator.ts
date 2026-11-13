@@ -49,6 +49,11 @@ export class NormalMapCreator {
 
     protected _lock: Lock;
 
+    /**
+     * Grows with every normal map drawn, and when the queue is cleared.
+     */
+    public __version__: number;
+
     constructor(planet: Planet, options: INormalMapCreatorParams = {}) {
         this._minTabelSize = options.minTableSize || 1;
         this._maxTableSize = options.maxTableSize || 8;
@@ -67,6 +72,8 @@ export class NormalMapCreator {
         this._queue = new QueueArray(1024);
 
         this._lock = new Lock();
+
+        this.__version__ = 0;
     }
 
     public get width(): number {
@@ -152,7 +159,7 @@ export class NormalMapCreator {
                         out vec3 v_color;
 
                         void main() {
-                            gl_Position = vec4(a_position, 0.0, 1.0);
+                            gl_Position = vec4(a_position * vec2(${(this._width - 0.98) / this._width}, ${(this._height - 0.98) / this._height}), 0.0, 1.0);
                             v_color = normalize(a_normal) * 0.5 + 0.5;
                         }`,
             fragmentShader: `#version 300 es
@@ -344,6 +351,8 @@ export class NormalMapCreator {
         if (segment.terrainReady && this._drawNormalMap(segment)) {
             segment.normalMapReady = true;
             segment.normalMapTexture = segment.normalMapTexturePtr;
+            ++this.__version__;
+            segment._normalMapDrawn();
             segment.normalMapTextureBias[0] = 0;
             segment.normalMapTextureBias[1] = 0;
             segment.normalMapTextureBias[2] = 1;
@@ -385,9 +394,12 @@ export class NormalMapCreator {
                 if (segment.terrainReady && this._drawNormalMap(segment)) {
                     segment.normalMapReady = true;
                     segment.normalMapTexture = segment.normalMapTexturePtr;
+                    ++this.__version__;
+                    segment._normalMapDrawn();
                     segment.normalMapTextureBias[0] = 0;
                     segment.normalMapTextureBias[1] = 0;
                     segment.normalMapTextureBias[2] = 1;
+                    this._planet.renderer!.requestRedraw();
                 }
                 segment._inTheQueue = false;
                 deltaTime = window.performance.now() - startTime;
@@ -424,6 +436,8 @@ export class NormalMapCreator {
             let s = this._queue.pop()!;
             s._inTheQueue = false;
         }
+        // The edges waiting in the queue are compared again
+        this.__version__++;
     }
 
     /**

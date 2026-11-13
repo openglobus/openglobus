@@ -1,8 +1,8 @@
 const int MAX_CASCADE_COUNT = 4;
 
-// Fraction of the shadow distance at which shadows start fading out.
-#ifndef CASCADE_SHADOW_FADE_START
-#define CASCADE_SHADOW_FADE_START 0.85
+// Tail of a cascade, as a fraction of its depth range, blended into the next one.
+#ifndef CASCADE_SHADOW_BLEND
+#define CASCADE_SHADOW_BLEND 0.15
 #endif
 
 // u_cascadeShadowParams layout:
@@ -71,7 +71,9 @@ float getCascadeShadowReceiverPlaneDepth(
     return receiverDepth + dot(vec2(zDx, zDy), screenDelta);
 }
 
-vec2 getCascadeShadowVisibilityData(int cascadeIndex, vec3 rtcPos, vec3 normal) {
+// dPdx, dPdy are the screen derivatives of rtcPos. A cascade is orthographic, its projection is affine, so the
+// derivatives in it are exact from them, and a pixel quad across a cascade split gets no mixed values.
+vec2 getCascadeShadowVisibilityData(int cascadeIndex, vec3 rtcPos, vec3 normal, vec3 dPdx, vec3 dPdy) {
     vec3 N = normalize(normal);
 
     float depthBiasWorld = u_cascadeShadowParams[cascadeIndex].x;
@@ -99,16 +101,13 @@ vec2 getCascadeShadowVisibilityData(int cascadeIndex, vec3 rtcPos, vec3 normal) 
     vec2 texSize = vec2(textureSize(u_cascadeShadowDepthArray, 0).xy);
     vec2 texelSize = 1.0 / texSize;
 
-    vec2 uvInTexels = uv * texSize;
-    float footprintX = length(dFdx(uvInTexels));
-    float footprintY = length(dFdy(uvInTexels));
-    float footprint = max(footprintX, footprintY);
-
-    float receiverDepthFwidth = fwidth(receiverDepth);
-    vec2 uvDx = dFdx(uv);
-    vec2 uvDy = dFdy(uv);
-    float zDx = dFdx(receiverDepth);
-    float zDy = dFdy(receiverDepth);
+    vec3 clipDx = (u_cascadeShadowViewProjRTE[cascadeIndex] * vec4(dPdx, 0.0)).xyz * 0.5;
+    vec3 clipDy = (u_cascadeShadowViewProjRTE[cascadeIndex] * vec4(dPdy, 0.0)).xyz * 0.5;
+    vec2 uvDx = clipDx.xy;
+    vec2 uvDy = clipDy.xy;
+    float zDx = clipDx.z;
+    float zDy = clipDy.z;
+    float receiverDepthFwidth = abs(zDx) + abs(zDy);
     #endif
 
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
@@ -120,12 +119,9 @@ vec2 getCascadeShadowVisibilityData(int cascadeIndex, vec3 rtcPos, vec3 normal) 
     }
 
     #if SHADOW_MAP_PCF > 0
-    float aliasingBoost = clamp((footprint - 1.0) * 0.75, 0.0, 2.0);
-    float pcfScale = 1.0 + aliasingBoost;
-
     // Stored depth is linear for an orthographic cascade, so meters are one multiply away.
     float transitionWidth = max(
-        receiverDepthFwidth * depthRange * float(SHADOW_MAP_PCF) * pcfScale,
+        receiverDepthFwidth * depthRange * float(SHADOW_MAP_PCF),
         texelWorld * SHADOW_MAP_MIN_TRANSITION_TEXELS
     );
 
@@ -135,7 +131,7 @@ vec2 getCascadeShadowVisibilityData(int cascadeIndex, vec3 rtcPos, vec3 normal) 
 
     for (int y = -1; y <= 1; y++) {
         for (int x = -1; x <= 1; x++) {
-            vec2 tapOffset = vec2(float(x), float(y)) * texelSize * pcfScale;
+            vec2 tapOffset = vec2(float(x), float(y)) * texelSize;
             vec2 uvOffset = uv + tapOffset;
 
             float inside =
@@ -149,7 +145,9 @@ vec2 getCascadeShadowVisibilityData(int cascadeIndex, vec3 rtcPos, vec3 normal) 
             float sampleCoverage = step(1e-8, mapDepth);
             float tapReceiverDepth = getCascadeShadowReceiverPlaneDepth(receiverDepth, tapOffset, uvDx, uvDy, zDx, zDy);
             float compareDelta = (mapDepth - tapReceiverDepth) * depthRange + depthThresholdWorld;
-            float sampleVisibility = smoothstep(-transitionWidth, transitionWidth, compareDelta);
+
+            // The band is all on the occluded side: a receiver at the stored depth plus the bias is fully lit.
+            float sampleVisibility = smoothstep(-2.0 * transitionWidth, 0.0, compareDelta);
             sampleVisibility *= sampleCoverage;
 
             float wx = 2.0 - abs(float(x));
@@ -187,25 +185,33 @@ int getCascadeShadowIndex(float viewDepth) {
     return -1;
 }
 
-float getCascadeShadowDirectVisibility(vec3 rtcPos, vec3 normal, float viewDepth) {
+float getCascadeShadowDirectVisibility(vec3 rtcPos, vec3 normal, float viewDepth, vec3 dPdx, vec3 dPdy) {
     int cascadeIndex = getCascadeShadowIndex(viewDepth);
     if (cascadeIndex < 0) {
         return 1.0;
     }
 
-    vec2 visibilityData = getCascadeShadowVisibilityData(cascadeIndex, rtcPos, normal);
+    vec2 visibilityData = getCascadeShadowVisibilityData(cascadeIndex, rtcPos, normal, dPdx, dPdy);
+
+    float splitNear = u_cascadeShadowSplits[cascadeIndex].x;
+    float splitFar = u_cascadeShadowSplits[cascadeIndex].y;
+    float blendStart = splitFar - (splitFar - splitNear) * CASCADE_SHADOW_BLEND;
+
+    if (cascadeIndex + 1 < u_cascadeShadowCount && viewDepth > blendStart) {
+        vec2 nextVisibilityData = getCascadeShadowVisibilityData(cascadeIndex + 1, rtcPos, normal, dPdx, dPdy);
+        float blend = smoothstep(blendStart, splitFar, viewDepth) * step(0.5, nextVisibilityData.y);
+        visibilityData = mix(visibilityData, nextVisibilityData, blend);
+    }
+
     float visibility = clamp(visibilityData.x, 0.0, 1.0);
     float coverage = clamp(visibilityData.y, 0.0, 1.0);
 
-    // Faded out over the tail of the last cascade; stopping abruptly draws an arc across the ground.
-    float shadowDistance = u_cascadeShadowSplits[u_cascadeShadowCount - 1].y;
-    float fadeStart = shadowDistance * CASCADE_SHADOW_FADE_START;
-    float distanceFade = 1.0 - clamp((viewDepth - fadeStart) / max(shadowDistance - fadeStart, 1e-6), 0.0, 1.0);
-
-    return clamp(mix(1.0, visibility, coverage * SHADOW_MAP_INTENSITY * distanceFade), 0.0, 1.0);
+    return clamp(mix(1.0, visibility, coverage * SHADOW_MAP_INTENSITY), 0.0, 1.0);
 }
 
 float getCascadeShadowDirectVisibility(vec3 rtcPos, vec3 normal) {
+    vec3 dPdx = dFdx(rtcPos);
+    vec3 dPdy = dFdy(rtcPos);
     float viewDepth = dot(rtcPos, normalize(u_cascadeShadowViewForward));
-    return getCascadeShadowDirectVisibility(rtcPos, normal, viewDepth);
+    return getCascadeShadowDirectVisibility(rtcPos, normal, viewDepth, dPdx, dPdy);
 }

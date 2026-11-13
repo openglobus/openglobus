@@ -37,10 +37,13 @@
                 name: "Earth",
                 terrain: terrains,
                 layers: [osm],
-                atmosphereEnabled: true
+                atmosphereEnabled: true,
+                idleMode: true
             });
 
             globe.planet.addControl(new control.LayerSwitcher());
+            globe.planet.addControl(new control.ToggleWireframe());
+            globe.planet.addControl(new control.DebugInfo());
         </script>
     </body>
 </html>

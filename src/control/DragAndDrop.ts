@@ -1,11 +1,14 @@
 import { Control, type IControlParams } from "./Control";
 import { Vector } from "../layer/Vector";
 import { GeoTIFFLayer } from "../layer/GeoTIFFLayer";
+import { GeoTiffTerrain } from "../terrain/GeoTiffTerrain";
+import { GeoTiffTypeDialog, type GeoTiffType } from "./GeoTiffTypeDialog";
 import { Entity } from "../entity/Entity";
 import { Object3d } from "../Object3d";
 import { Gltf } from "../utils/gltf/gltfParser";
 import { Vec2 } from "../math/Vec2";
 import { EntityEditor } from "./entityEditor/EntityEditor";
+import type { EmptyTerrain } from "../terrain/EmptyTerrain";
 import type { LonLat } from "../LonLat";
 
 export interface IDragAndDropParams extends IControlParams {
@@ -14,6 +17,8 @@ export interface IDragAndDropParams extends IControlParams {
 
 const IMAGE_EXT = ["png", "jpg", "jpeg", "gif", "webp", "svg"];
 const TIFF_EXT = ["tif", "tiff"];
+
+const UNSAFE_NAME_CHARS = /[<>&"'`]/g;
 const MAX_BILLBOARD_SIZE = 256;
 
 function getExt(file: File): string {
@@ -37,14 +42,24 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 
 /**
  * Adds dropped files on the globe: glb/obj models and images are placed in the drop point,
- * GeoTIFF rasters are placed by their georeference.
+ * GeoTIFF rasters are placed by their georeference. A GeoTIFF that is not an image for certain may hold
+ * heights, its tags do not tell that, so the control asks whether to add it as a terrain or as a layer.
  */
 export class DragAndDrop extends Control {
     public geoObjectsLayer: Vector;
     public markersLayer: Vector;
     public tiffLayers: GeoTIFFLayer[];
+    public tiffTerrains: GeoTiffTerrain[];
 
     protected _entityEditor: EntityEditor | null;
+
+    /** Terrain to bring back when the control is removed */
+    protected _baseTerrain: EmptyTerrain | null;
+
+    protected _tiffDialog: GeoTiffTypeDialog | null;
+
+    /** Dropped files are added in parallel, their questions go one by one */
+    protected _tiffQuestions: Promise<unknown>;
 
     constructor(options: IDragAndDropParams = {}) {
         super({
@@ -59,7 +74,15 @@ export class DragAndDrop extends Control {
 
         this.tiffLayers = [];
 
+        this.tiffTerrains = [];
+
         this._entityEditor = options.entityEditor || null;
+
+        this._baseTerrain = null;
+
+        this._tiffDialog = null;
+
+        this._tiffQuestions = Promise.resolve();
     }
 
     public override oninit() {
@@ -73,6 +96,31 @@ export class DragAndDrop extends Control {
             this.tiffLayers[i].remove();
         }
         this.tiffLayers = [];
+        this._tiffDialog?.close();
+        this._removeTiffTerrains();
+    }
+
+    protected _removeTiffTerrains() {
+        const planet = this.planet!;
+
+        if (this._baseTerrain && this._isTiffTerrain(planet.terrain)) {
+            planet.setTerrain(this._baseTerrain);
+        }
+
+        this.tiffTerrains = this.tiffTerrains.filter((terrain) => {
+            if (terrain === planet.terrain) {
+                return true;
+            }
+            planet.removeTerrain(terrain);
+            terrain.reader.destroy();
+            return false;
+        });
+
+        this._baseTerrain = null;
+    }
+
+    protected _isTiffTerrain(terrain: EmptyTerrain | null): boolean {
+        return this.tiffTerrains.some((t) => t === terrain);
     }
 
     public override onactivate() {
@@ -201,17 +249,88 @@ export class DragAndDrop extends Control {
         return new GeoTIFFLayer(`__tif__${file.name}`, { src: file });
     }
 
+    protected _createTiffTerrain(file: File): GeoTiffTerrain {
+        return new GeoTiffTerrain(getBaseName(file).replace(UNSAFE_NAME_CHARS, ""), { src: file });
+    }
+
+    protected _askTiffType(file: File): Promise<GeoTiffType | null> {
+        const answer = this._tiffQuestions.then(() => this._showTiffDialog(file));
+        this._tiffQuestions = answer;
+        return answer;
+    }
+
+    protected _showTiffDialog(file: File): Promise<GeoTiffType | null> {
+        return new Promise((resolve) => {
+            if (!this.renderer) {
+                resolve(null);
+                return;
+            }
+
+            const dialog = new GeoTiffTypeDialog({
+                fileName: file.name,
+                onClose: (type) => {
+                    this._tiffDialog = null;
+                    resolve(type);
+                }
+            });
+
+            const container = this.renderer.getUIContainer();
+            dialog.appendTo(container);
+            dialog.setPosition(
+                Math.max(0, (container.clientWidth - dialog.el!.offsetWidth) / 2),
+                Math.max(0, (container.clientHeight - dialog.el!.offsetHeight) / 2)
+            );
+
+            this._tiffDialog = dialog;
+        });
+    }
+
     protected async _addTiff(file: File) {
         const layer = this._createTiffLayer(file);
 
+        let isImagery: boolean;
+
         try {
-            await layer.whenReady();
+            isImagery = (await layer.whenReady()).isImagery;
         } catch (err) {
             layer.remove();
             throw err;
         }
 
-        this.tiffLayers.push(layer);
-        this.planet!.addLayer(layer);
+        const type = isImagery ? "layer" : await this._askTiffType(file);
+
+        if (type === "layer") {
+            this.tiffLayers.push(layer);
+            this.planet!.addLayer(layer);
+            layer.flyExtent();
+            return;
+        }
+
+        layer.remove();
+
+        if (type === "terrain") {
+            await this._addTiffTerrain(file);
+        }
+    }
+
+    protected async _addTiffTerrain(file: File) {
+        const terrain = this._createTiffTerrain(file);
+
+        await terrain.whenReady();
+
+        if (!this.renderer) {
+            terrain.reader.destroy();
+            return;
+        }
+
+        const planet = this.planet!;
+
+        if (!this._isTiffTerrain(planet.terrain)) {
+            this._baseTerrain = planet.terrain;
+        }
+
+        this.tiffTerrains.push(terrain);
+        planet.setTerrain(terrain);
+        terrain.flyExtent();
     }
 }

@@ -1,5 +1,4 @@
-import type { DepthCamera } from "../control/depthCamera/DepthCamera";
-import type { QuadTreeStrategy } from "../quadTree/QuadTreeStrategy";
+import type { DepthCamera } from "../renderer/depthCamera/DepthCamera";
 import type { Planet } from "../scene/Planet";
 import type { CameraFootprint } from "./cameraFootprint";
 import { Vec3 } from "../math/Vec3";
@@ -19,6 +18,12 @@ const MAX_SHADOW_CASTER_HEIGHT = 10000;
  * A value of 1 uses 128, 256, 512 m, etc., preventing small movements every frame.
  */
 const SHADOW_CASTER_HEIGHT_STEPS = 1;
+
+/**
+ * Sun elevation of about 1 degree, the lowest the caster distance toward the Sun is computed for. Under it the
+ * distance grows without bound.
+ */
+const MIN_SUN_ELEVATION_SIN = 0.0175;
 
 /**
  * Minimum far-plane margin for terrain below the fitted receivers.
@@ -63,8 +68,6 @@ export interface IOrthoBounds {
 interface ITerrainRelief {
     up: number;
     down: number;
-    depthUp: number;
-    depthDown: number;
     cornerSpread: number;
 }
 
@@ -77,11 +80,11 @@ export interface IShadowCameraFitParams {
     orthoMarginFactor?: number;
 
     /**
-     * Extends caster coverage toward the Sun:
-     * max(casterClearance, casterHeight * casterClearanceFactor)
+     * Height above the ground up to which anything casts onto the footprint, in meters. The terrain relief
+     * raises it on its own. A caster that high stands height / sin(sun elevation) away toward the Sun, so
+     * the low Sun pushes the shadow camera far back.
      */
-    casterClearance?: number;
-    casterClearanceFactor?: number;
+    minCasterHeight?: number;
 
     /**
      * Minimum view-ray slope used when adjusting the footprint for terrain relief.
@@ -136,13 +139,6 @@ export interface IShadowCameraFitParams {
      */
     depthBiasTexels?: number;
     depthBiasOffset?: number;
-
-    /**
-     * Renders the depth pass from the depth camera's own quad tree traversal rather than from the planet's.
-     * The planet's one covers only the near band of the view and drops tiles while they fade. Above a main
-     * camera height of about 136 km DepthCamera takes the planet's traversal whatever this says.
-     */
-    pinOwnQuadTreeTraversal?: boolean;
 }
 
 /** Last fit measurements, for readouts and debugging. */
@@ -155,9 +151,6 @@ export interface IShadowCameraFitStats {
     /** Terrain relief above and below the footprint corners, as the main camera traversal reports it. */
     reliefUp: number;
     reliefDown: number;
-    /** The same, with the depth camera traversal taken into account. Only the down side is used, by the far plane. */
-    depthReliefUp: number;
-    depthReliefDown: number;
     casterHeight: number;
     /** Main camera displacement since the previous fit, in world units. */
     cameraStep: number;
@@ -205,20 +198,21 @@ function getStableLightUp(footprint: CameraFootprint, lightDirection: Vec3, hori
 
 /**
  * How high the rendered terrain rises above a reference radius, and how deep it drops below it, as two
- * positive heights.
+ * positive heights. A max radius of 0 means no terrain is known.
  */
-function getStrategyRelief(
-    quadTreeStrategy: QuadTreeStrategy | undefined,
+function getRelief(
+    minTerrainRadius: number,
+    maxTerrainRadius: number,
     upFrom: number,
     downFrom: number
 ): { up: number; down: number } {
-    if (!quadTreeStrategy || quadTreeStrategy.maxTerrainRadius <= 0.0) {
+    if (maxTerrainRadius <= 0.0) {
         return { up: 0.0, down: 0.0 };
     }
 
     return {
-        up: Math.max(0.0, quadTreeStrategy.maxTerrainRadius - upFrom),
-        down: Math.max(0.0, downFrom - quadTreeStrategy.minTerrainRadius)
+        up: Math.max(0.0, maxTerrainRadius - upFrom),
+        down: Math.max(0.0, downFrom - minTerrainRadius)
     };
 }
 
@@ -237,17 +231,18 @@ function getRadiusRange(points: Vec3[]): { min: number; max: number } {
 }
 
 /**
- * Light space depth of the closest point of the caster volume, which is the footprint raised by the caster
- * height. Only the near plane has to clear it: a caster whose shadow lands on the footprint shares the
- * light space XY of that shadow, so it is already inside the fitted bounds sideways.
+ * Light space depth of the closest point of the caster volume. A caster whose shadow lands on a footprint point
+ * stands on the light ray through that point, height / sin(sun elevation) away from it. Only the near plane has
+ * to clear it: it shares the light space XY of its shadow, so it is already inside the fitted bounds sideways.
  */
 function getCasterMinZ(footprint: CameraFootprint, forward: Vec3, casterHeight: number): number {
     let minZ = Infinity;
 
     for (let i = 0; i < footprint.points.length; i++) {
-        let casterPoint = footprint.points[i].add(footprint.normals[i].scaleTo(casterHeight));
+        let sinElevation = Math.max(-footprint.normals[i].dot(forward), MIN_SUN_ELEVATION_SIN);
+        let pointZ = footprint.points[i].sub(footprint.center).dot(forward);
 
-        minZ = Math.min(minZ, casterPoint.sub(footprint.center).dot(forward));
+        minZ = Math.min(minZ, pointZ - casterHeight / sinElevation);
     }
 
     return minZ;
@@ -308,8 +303,7 @@ function quantizeUp(value: number, stepsPerOctave: number): number {
  */
 export class ShadowCameraFit {
     public orthoMarginFactor: number;
-    public casterClearance: number;
-    public casterClearanceFactor: number;
+    public minCasterHeight: number;
     public minFootprintRaySlope: number;
     public reliefLateralFactor: number;
     public maxReliefUp: number;
@@ -319,7 +313,6 @@ export class ShadowCameraFit {
     public motionMarginFrames: number;
     public depthBiasTexels: number;
     public depthBiasOffset: number;
-    public pinOwnQuadTreeTraversal: boolean;
 
     public readonly stats: IShadowCameraFitStats;
 
@@ -331,8 +324,7 @@ export class ShadowCameraFit {
 
     constructor(params: IShadowCameraFitParams = {}) {
         this.orthoMarginFactor = params.orthoMarginFactor ?? 0.01;
-        this.casterClearance = params.casterClearance ?? 100000;
-        this.casterClearanceFactor = params.casterClearanceFactor ?? 6.0;
+        this.minCasterHeight = params.minCasterHeight ?? 20000;
         this.minFootprintRaySlope = params.minFootprintRaySlope ?? 0.1;
         this.reliefLateralFactor = params.reliefLateralFactor ?? 0.5;
         this.maxReliefUp = params.maxReliefUp ?? 12000;
@@ -342,7 +334,6 @@ export class ShadowCameraFit {
         this.motionMarginFrames = params.motionMarginFrames ?? 0.0;
         this.depthBiasTexels = params.depthBiasTexels ?? 1.0;
         this.depthBiasOffset = params.depthBiasOffset ?? 100;
-        this.pinOwnQuadTreeTraversal = params.pinOwnQuadTreeTraversal ?? true;
 
         this.stats = {
             texelWorldSize: 0.0,
@@ -350,8 +341,6 @@ export class ShadowCameraFit {
             cornerHeightSpread: 0.0,
             reliefUp: 0.0,
             reliefDown: 0.0,
-            depthReliefUp: 0.0,
-            depthReliefDown: 0.0,
             casterHeight: 0.0,
             cameraStep: 0.0,
             orthoWidth: 0.0,
@@ -408,7 +397,7 @@ export class ShadowCameraFit {
         let up = shadowCamera.getUp();
 
         // 2. Box the ground the view sees, with the terrain relief around it, along the camera axes.
-        let relief = this._getTerrainRelief(depthCamera, footprint);
+        let relief = this._getTerrainRelief(footprint);
         let bounds = getLightSpaceBounds(
             footprint.center,
             right,
@@ -432,20 +421,20 @@ export class ShadowCameraFit {
         }
 
         // 4. Move the eye sunward, until the whole caster volume stands in front of the near plane. Along
-        // forward only, so the box stays exactly as it was fitted. The height comes from the view relief,
-        // not the depth one - that one depends on the bounds this very step places.
-        let casterHeight = this._getCasterHeight(camera.planet, footprint.radius, relief.up);
+        // forward only, so the box stays exactly as it was fitted.
+        let casterHeight = Math.max(
+            this._getCasterHeight(camera.planet, footprint.radius, relief.up),
+            this.minCasterHeight
+        );
         let near = depthCamera.near;
-        let casterMinZ = getCasterMinZ(footprint, forward, casterHeight);
-        let casterClearance = Math.max(this.casterClearance, casterHeight * this.casterClearanceFactor);
-        let eyeOffset = casterMinZ - near - casterClearance;
+        let eyeOffset = getCasterMinZ(footprint, forward, casterHeight) - near;
         let eye = footprint.center.add(forward.scaleTo(eyeOffset));
 
         // 5. Push the far plane past the lowest receiver.
-        let receiverDepthPadding = SHADOW_RECEIVER_DEPTH_PADDING + relief.depthDown;
+        let receiverDepthPadding = SHADOW_RECEIVER_DEPTH_PADDING + relief.down;
         let far = Math.max(near + MIN_SHADOW_ORTHO_SIZE, bounds.maxZ + receiverDepthPadding - eyeOffset);
 
-        // 6. Apply, then hand the depth pass its biases and its own traversal.
+        // 6. Apply, then hand the depth pass its biases.
         shadowCamera.set(eye, eye.add(forward), lightUp);
         shadowCamera.frustum.setOrthoProjection(
             orthoBounds.left,
@@ -459,18 +448,12 @@ export class ShadowCameraFit {
 
         this._updateDepthBiases(depthCamera, orthoBounds, textureWidth);
 
-        if (this.pinOwnQuadTreeTraversal) {
-            depthCamera._forceOwnQuadTreeStrategyPass = true;
-        }
-
         let stats = this.stats;
 
         stats.footprintRadius = footprint.radius;
         stats.cornerHeightSpread = relief.cornerSpread;
         stats.reliefUp = relief.up;
         stats.reliefDown = relief.down;
-        stats.depthReliefUp = relief.depthUp;
-        stats.depthReliefDown = relief.depthDown;
         stats.casterHeight = casterHeight;
         stats.cameraStep = this._cameraStep;
         stats.orthoWidth = orthoBounds.right - orthoBounds.left;
@@ -483,19 +466,16 @@ export class ShadowCameraFit {
     }
 
     /** Returns how much higher and how much lower the terrain goes than the four footprint corners. */
-    protected _getTerrainRelief(depthCamera: DepthCamera, footprint: CameraFootprint): ITerrainRelief {
+    protected _getTerrainRelief(footprint: CameraFootprint): ITerrainRelief {
         let camera = footprint.camera!;
         let corners = getRadiusRange(footprint.points);
 
-        let view = getStrategyRelief(camera.planet.quadTreeStrategy, corners.max, corners.min);
-        let referenceRadius = camera.eye.length() - camera.getHeight() + footprint.ellipsoidHeight;
-        let map = getStrategyRelief(depthCamera.quadTreeStrategy, referenceRadius, referenceRadius);
+        let qts = camera.planet.quadTreeStrategy;
+        let view = getRelief(qts.minTerrainRadius, qts.maxTerrainRadius, corners.max, corners.min);
 
         return {
             up: Math.min(this.maxReliefUp, view.up),
             down: Math.min(this.maxReliefDown, view.down),
-            depthUp: Math.min(this.maxReliefUp, Math.max(view.up, map.up)),
-            depthDown: Math.min(this.maxReliefDown, Math.max(view.down, map.down)),
             cornerSpread: corners.max - corners.min
         };
     }

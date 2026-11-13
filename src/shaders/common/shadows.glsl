@@ -214,10 +214,6 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
     vec2 texSize = vec2(textureSize(u_shadowMapDepthArray, 0).xy);
     vec2 texelSize = 1.0 / texSize;
 
-    vec2 uvInTexels = uv * texSize;
-    float footprintX = length(dFdx(uvInTexels));
-    float footprintY = length(dFdy(uvInTexels));
-    float footprint = max(footprintX, footprintY);
 
     float receiverLinearFwidth = fwidth(receiverLinear);
     vec2 uvDx = dFdx(uv);
@@ -236,10 +232,7 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
 
 
     #if SHADOW_MAP_PCF > 0
-    float aliasingBoost = clamp((footprint - 1.0) * 0.75, 0.0, 2.0);
-    float pcfScale = 1.0 + aliasingBoost;
-
-    float transitionWidth = max(receiverLinearFwidth * float(SHADOW_MAP_PCF) * pcfScale, SHADOW_MAP_MIN_TRANSITION);
+    float transitionWidth = max(receiverLinearFwidth * float(SHADOW_MAP_PCF), SHADOW_MAP_MIN_TRANSITION);
 
     float visibility = 0.0;
     float coverage = 0.0;
@@ -247,7 +240,7 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
 
     for (int y = -1; y <= 1; y++) {
         for (int x = -1; x <= 1; x++) {
-            vec2 tapOffset = vec2(float(x), float(y)) * texelSize * pcfScale;
+            vec2 tapOffset = vec2(float(x), float(y)) * texelSize;
             vec2 uvOffset = uv + tapOffset;
 
             float inside =
@@ -263,7 +256,8 @@ vec2 getShadowMapVisibilityData(int shadowMapIndex, vec3 rtcPos, vec3 normal) {
             float tapReceiverLinear = linearizeShadowMapDepth(shadowMapIndex, tapReceiverDepth);
             float mapLinear = linearizeShadowMapDepth(shadowMapIndex, mapDepth);
             float compareDelta = (mapLinear + depthThresholdWorld) - tapReceiverLinear;
-            float sampleVisibility = mix(1.0, smoothstep(-transitionWidth, transitionWidth, compareDelta), sampleCoverage);
+            // The band is all on the occluded side: a receiver at the stored depth plus the bias is fully lit.
+            float sampleVisibility = mix(1.0, smoothstep(-2.0 * transitionWidth, 0.0, compareDelta), sampleCoverage);
 
             float wx = 2.0 - abs(float(x));
             float wy = 2.0 - abs(float(y));

@@ -217,6 +217,19 @@ export class DebugInfo extends Control {
                     frame: () => p!.quadTreeStrategy._renderedNodes.length
                 },
                 {
+                    label: "View cameras nodes (slot: count per frustum)",
+                    frame: () => {
+                        let lists = p.quadTreeStrategy._viewCamerasRenderedNodes,
+                            res = "";
+                        for (let i = 0; i < lists.length; i++) {
+                            if (p.renderer!.depthCameraHandler._depthCameras[i]?.enabled && lists[i]) {
+                                res += `<div>${i}: ${lists[i].map((l) => l.length).join(" / ")}</div>`;
+                            }
+                        }
+                        return res || "-";
+                    }
+                },
+                {
                     label: "Planet._fadingNodes",
                     frame: () => p.quadTreeStrategy._fadingNodes.size
                 },
@@ -306,6 +319,10 @@ export class DebugInfo extends Control {
                     label: "_terrainCompleted / terrainCompletedActivated",
                     frame: () =>
                         `${p.quadTreeStrategy._terrainCompleted} / ${p.quadTreeStrategy._terrainCompletedActivated}`
+                },
+                {
+                    label: "_viewCamerasTerrainCompleted",
+                    frame: () => `${p.quadTreeStrategy._viewCamerasTerrainCompleted}`
                 },
                 {
                     label: "PlainWorker",

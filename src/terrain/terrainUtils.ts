@@ -807,3 +807,45 @@ export function createHeightsLevels(
 
     return out;
 }
+
+/**
+ * Returns the lower median of the first n values, partially reorders them.
+ * @param {Float64Array | Float32Array | number[]} values - Values, reordered in place.
+ * @param {number} [n] - Number of the values.
+ * @returns {number} - NaN for no values.
+ */
+export function getMedian(values: Float64Array | Float32Array | number[], n: number = values.length): number {
+    if (n <= 0) return NaN;
+
+    let k = (n - 1) >> 1,
+        lo = 0,
+        hi = n - 1;
+
+    while (lo < hi) {
+        let a = values[lo],
+            b = values[(lo + hi) >> 1],
+            c = values[hi];
+        let pivot = a < b ? (b < c ? b : a < c ? c : a) : a < c ? a : b < c ? c : b;
+
+        let i = lo,
+            j = hi;
+        while (i <= j) {
+            while ((a = values[i]) < pivot) i++;
+            while ((b = values[j]) > pivot) j--;
+            if (i <= j) {
+                values[i++] = b;
+                values[j--] = a;
+            }
+        }
+
+        if (k <= j) {
+            hi = j;
+        } else if (k >= i) {
+            lo = i;
+        } else {
+            break;
+        }
+    }
+
+    return values[k];
+}

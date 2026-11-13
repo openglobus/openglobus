@@ -1,6 +1,6 @@
 import { Extent } from "../Extent";
-import { EPSG3857 } from "../proj/EPSG3857";
 import { binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
+import { getMedian } from "../terrain/terrainUtils";
 import { LonLat } from "../LonLat";
 import { MAX, MIN } from "../math";
 import { Segment } from "../segment/Segment";
@@ -14,22 +14,24 @@ import {
     N,
     NE,
     NEIGHBOUR,
+    NOPSORD,
     NOTRENDERING,
     NW,
     OPPART,
     OPSIDE,
     PARTOFFSET,
     RENDERING,
+    ROOTPART,
     S,
     SE,
+    SIDEFLIP,
     SW,
     W,
     WALKTHROUGH
 } from "./quadTree";
 
-import { TILEGROUP_COMMON, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "../segment/Segment";
-
 import { PlanetCamera } from "../camera/PlanetCamera";
+import type { Camera } from "../camera/Camera";
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
@@ -60,6 +62,19 @@ let BOUNDS: BoundsType = {
     r2min: 0.0,
     r2max: 0.0
 };
+
+// Squared vertex radii of the cut segment, their median is the LOD radius
+let _r2 = new Float64Array(_vertOrder.length);
+
+function getR2Buffer(count: number): Float64Array {
+    if (_r2.length < count) {
+        _r2 = new Float64Array(count);
+    }
+    return _r2;
+}
+
+// Node parts on the way up from the node, see Node._linkSideNeighbors
+const _pathId: number[] = [];
 
 let __staticCounter = 0;
 
@@ -94,6 +109,21 @@ class Node {
     public inFrustum: number;
     public _fadingNodes: Node[];
 
+    /**
+     * View camera collection the node was last gone through by, see QuadTreeStrategy._viewWalkFrame.
+     */
+    public _viewWalkFrame: number;
+
+    /**
+     * Neighbor search the node was last taken into as an opaque node, see QuadTreeStrategy._neighborFrame.
+     */
+    public _neighborFrame: number;
+
+    /**
+     * Root nodes behind the N, E, S and W sides of a root node, null on a side with no tree behind it.
+     */
+    public rootNeighbors: [Node | null, Node | null, Node | null, Node | null] | null;
+
     constructor(
         SegmentPrototype: typeof Segment,
         quadTreeStrategy: QuadTreeStrategy,
@@ -123,6 +153,9 @@ class Node {
         this._cameraInside = false;
         this.inFrustum = 0;
         this._fadingNodes = [];
+        this._viewWalkFrame = -1;
+        this._neighborFrame = -1;
+        this.rootNeighbors = null;
         this.createBounds();
     }
 
@@ -183,6 +216,8 @@ class Node {
 
         // Initial relative center is the same as bounding sphere center
         seg._relativeCenter.set(x, y, z);
+
+        seg._createPlainBounds();
     }
 
     public getState(): number | null {
@@ -260,8 +295,6 @@ class Node {
             return;
         }
 
-        let lodCam = this.quadTreeStrategy.lodCamera || cam;
-
         if (!maxZoom || (zoomPassNode && this.segment.tileZoom > zoomPassNode.segment.tileZoom)) {
             this.prevState = this.state;
         }
@@ -275,14 +308,7 @@ class Node {
 
         // Search a node which the camera is flying over.
         if (!this.parentNode || this.parentNode._cameraInside) {
-            let inside;
-            if (seg._projection.id === EPSG3857.id) {
-                inside = seg._extent.isInside(cam._lonLatMerc);
-            } else {
-                inside = seg._extent.isInside(cam._lonLat);
-            }
-
-            if (inside) {
+            if (seg._extent.isInside(seg.getInsideLonLat(cam))) {
                 cam._insideSegment = seg;
                 this._cameraInside = true;
             }
@@ -314,7 +340,7 @@ class Node {
         }
 
         if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
-            let h = Math.abs(lodCam._lonLat.height);
+            let h = Math.abs(cam._lonLat.height);
 
             let horizonDist = this.quadTreeStrategy._horizonDist2;
 
@@ -353,8 +379,7 @@ class Node {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
             } else if (
                 seg.terrainReady &&
-                ((!maxZoom &&
-                    lodCam.projectedSize(seg.bsphere.center, seg._plainRadius) < this.quadTreeStrategy.lodSize) ||
+                ((!maxZoom && cam.projectedSize(seg.lodCenter, seg._plainRadius) < this.quadTreeStrategy.lodSize) ||
                     (maxZoom && (seg.tileZoom === maxZoom || !altVis)))
             ) {
                 if (altVis) {
@@ -366,8 +391,7 @@ class Node {
             } else if (
                 seg.terrainReady &&
                 seg.checkZoom() &&
-                (!maxZoom ||
-                    lodCam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.quadTreeStrategy._maxLodSize)
+                (!maxZoom || cam.projectedSize(seg.lodCenter, seg._plainRadius) > this.quadTreeStrategy._maxLodSize)
             ) {
                 if (seg.tileZoom < this.quadTreeStrategy.maxZoomLimit) {
                     this.traverseNodes(cam, maxZoom, seg, stopLoading, zoomPassNode);
@@ -382,6 +406,119 @@ class Node {
             }
         } else {
             this.state = NOTRENDERING;
+        }
+    }
+
+    /**
+     * Bit mask of the camera frustums the node is in, the same test renderTree makes.
+     * @public
+     * @param {Camera} cam - Camera.
+     * @returns {number} -
+     */
+    public getFrustumMask(cam: Camera): number {
+        const seg = this.segment,
+            frustums = cam.frustums,
+            useBox = seg.tileZoom >= 6 && seg.terrainReady;
+
+        let mask = 0;
+        for (let i = 0, len = frustums.length; i < len; i++) {
+            if (useBox ? frustums[i].containsBox(seg.bbox) : frustums[i].containsSphere(seg.bsphere)) {
+                mask |= 1 << i;
+            }
+        }
+
+        return mask;
+    }
+
+    /**
+     * Tree traversal of a view (depth) camera, after the main camera one. While mainState is true the node state
+     * was set by the main traversal in this frame: it stops at the main rendered nodes (the strategy takes them)
+     * and goes down where the main camera went down. Elsewhere the nodes are chosen by the main camera LOD and the
+     * node state is not read anymore. It never changes the node state.
+     * @public
+     */
+    public renderViewCameraTree(
+        slot: number,
+        cam: Camera,
+        frustumMask: number,
+        mainCamera: PlanetCamera,
+        horizonDist2: number,
+        mainState: boolean,
+        terrainReadySegment: Segment | null
+    ) {
+        const qts = this.quadTreeStrategy;
+
+        const openFrustums = qts._getViewCameraOpenFrustums(slot);
+        if (!openFrustums) {
+            return;
+        }
+
+        const inFrustum = this.getFrustumMask(cam) & frustumMask & openFrustums;
+        if (!inFrustum) {
+            return;
+        }
+
+        const seg = this.segment;
+        let goDown: boolean;
+
+        if (mainState && this.state === RENDERING) {
+            return;
+        } else if (mainState && this.state === WALKTHROUGH) {
+            goDown = true;
+        } else {
+            mainState = false;
+
+            const altVis =
+                seg.tileZoom < 2 ||
+                seg.tileZoom > 19 ||
+                (seg.tileZoom < 6 && !seg.terrainReady) ||
+                cam.eye.distance2(seg._sw) < horizonDist2 ||
+                cam.eye.distance2(seg._nw) < horizonDist2 ||
+                cam.eye.distance2(seg._ne) < horizonDist2 ||
+                cam.eye.distance2(seg._se) < horizonDist2;
+
+            if (!altVis) {
+                return;
+            }
+
+            goDown =
+                seg.tileZoom < 2 ||
+                (seg.terrainReady &&
+                    seg.tileZoom < qts.maxZoomLimit &&
+                    mainCamera.projectedSize(seg.lodCenter, seg._plainRadius) >= qts.lodSize &&
+                    seg.checkZoom());
+        }
+
+        if (goDown) {
+            this._viewWalkFrame = qts._viewWalkFrame;
+
+            if (!this.ready) {
+                this.createChildNodes();
+            }
+
+            const n = this.nodes,
+                trs = seg.terrainReady ? seg : terrainReadySegment;
+
+            for (let i = 0; i < n.length; i++) {
+                n[i].renderViewCameraTree(slot, cam, frustumMask, mainCamera, horizonDist2, mainState, trs);
+            }
+        } else {
+            // Terrain loading part of renderNode. Forced, because the terrain loader drops the requests of the nodes
+            // the main traversal has marked NOTRENDERING, and that is where the view camera own nodes are.
+            if (!seg.terrainReady) {
+                qts._viewCamerasTerrainCompleted = false;
+                if (!seg.initialized) {
+                    seg.initialize();
+                }
+                this.whileTerrainLoading(terrainReadySegment);
+                if (!seg.plainProcessing) {
+                    seg.createPlainSegmentAsync();
+                }
+                if (seg.plainReady) {
+                    seg.loadTerrain(true);
+                }
+            }
+            qts._addViewCameraNode(slot, this, inFrustum);
         }
     }
 
@@ -444,6 +581,26 @@ class Node {
             n[2].prevState === state &&
             n[3].prevState === state
         );
+    }
+
+    /**
+     * Returns true if the node is rendered, or fades in or out after a level of detail change.
+     * @public
+     * @returns {boolean} -
+     */
+    public isRenderedOrFading(): boolean {
+        return this.getState() === RENDERING || this.isInFadingTransition();
+    }
+
+    /**
+     * Returns true if the node is drawn this frame as a fading node of a level of detail change:
+     * a parent fading out after zooming in, or a child fading out after zooming out.
+     * Unlike isFading(), it also covers the fading children, whose state is NOTRENDERING.
+     * @public
+     * @returns {boolean} -
+     */
+    public isInFadingTransition(): boolean {
+        return this.quadTreeStrategy._fadingNodes.has(this.__id);
     }
 
     public isFading(): boolean {
@@ -578,7 +735,6 @@ class Node {
 
         //@ts-ignore
         if (!this.quadTreeStrategy._transitionOpacityEnabled) {
-            this.getRenderedNodesNeighbors(nodes);
             nodes.push(this);
         } else {
             //@todo: check if it's possible to get rid of the sorting when using breadth traverse tree
@@ -604,7 +760,7 @@ class Node {
     }
 
     public applyNeighbor(node: Node, side: number) {
-        const opcs = OPSIDE[side];
+        const opcs = this.segment.opside[side];
 
         if (this.neighbors[side].length === 0 || node.neighbors[opcs].length === 0) {
             const ap = this.segment;
@@ -633,126 +789,52 @@ class Node {
     }
 
     /**
-     * Searching current node for its neighbours.
+     * Links the node with its neighbors of the same or lower zoom among the nodes marked with the frame. The deeper
+     * ones find this node themselves, as both sides of a pair are set by applyNeighbor.
      * @public
+     * @param {number} frame - Neighbor search counter of the strategy.
      */
-    public getRenderedNodesNeighbors(nodes: Node[]) {
-        if (this.quadTreeStrategy.disableNeighbors) return;
-
-        for (let i = nodes.length - 1; i >= 0; --i) {
-            let ni = nodes[i];
-            let cs = this.getCommonSide(ni);
-
-            if (cs !== -1) {
-                this.applyNeighbor(ni, cs);
-            }
+    public getRenderedNodesNeighbors(frame: number) {
+        for (let side = N; side <= W; side++) {
+            this._linkSideNeighbors(side, frame);
         }
     }
 
     /**
-     * Checking if current node has a common side with input node and return side index N, E, S or W. Otherwise returns -1.
-     * @param {Node} node - Input node
-     * @returns {number} - Node side index
+     * Climbs to the node that holds both this node and the tile next to it, or to the neighbor tree when the side
+     * lies on the edge of the tree, and goes down to the tile by the mirrored path.
      */
-    public getCommonSide(node: Node): number {
-        const as = this.segment;
-        const bs = node.segment;
+    protected _linkSideNeighbors(side: number, frame: number) {
+        let pn: Node = this,
+            part = -1,
+            depth = 0;
 
-        if (as.tileZoom === bs.tileZoom && as._tileGroup === bs._tileGroup) {
-            return as.getNeighborSide(bs);
-        } else {
-            const a = as._extentLonLat;
-            const b = bs._extentLonLat;
-
-            let a_ne = a.northEast,
-                a_sw = a.southWest,
-                b_ne = b.northEast,
-                b_sw = b.southWest;
-
-            let a_ne_lon = a_ne.lon,
-                a_ne_lat = a_ne.lat,
-                a_sw_lon = a_sw.lon,
-                a_sw_lat = a_sw.lat,
-                b_ne_lon = b_ne.lon,
-                b_ne_lat = b_ne.lat,
-                b_sw_lon = b_sw.lon,
-                b_sw_lat = b_sw.lat;
-
-            if (as._tileGroup === bs._tileGroup) {
-                if (
-                    a_ne_lon === b_sw_lon &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
-                    return E;
-                } else if (
-                    a_sw_lon === b_ne_lon &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
-                    return W;
-                } else if (
-                    a_ne_lat === b_sw_lat &&
-                    ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-                ) {
-                    return N;
-                } else if (
-                    a_sw_lat === b_ne_lat &&
-                    ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-                ) {
-                    return S;
-                }
-                // World edge 180 to -180
-                else if (
-                    bs.tileX === 0 &&
-                    b_sw_lon === -a_ne_lon &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
-                    return E;
-                } else if (
-                    as.tileX === 0 &&
-                    a_sw_lon === -b_ne_lon &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
-                    return W;
-                }
-            }
-
-            // @todo: replace to the default strategy
-            if (
-                as._tileGroup === TILEGROUP_COMMON &&
-                bs._tileGroup === TILEGROUP_NORTH &&
-                as.tileY === 0 &&
-                bs.tileY === bs.powTileZoom /*Math.pow(2, bs.tileZoom)*/ - 1 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
-                return N;
-            } else if (
-                as._tileGroup === TILEGROUP_COMMON &&
-                bs._tileGroup === TILEGROUP_SOUTH &&
-                as.tileY === as.powTileZoom /*Math.pow(2, as.tileZoom)*/ - 1 &&
-                bs.tileY === 0 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
-                return S;
-            } else if (
-                as._tileGroup === TILEGROUP_SOUTH &&
-                bs._tileGroup === TILEGROUP_COMMON &&
-                as.tileY === 0 &&
-                bs.tileY === bs.powTileZoom /*Math.pow(2, bs.tileZoom)*/ - 1 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
-                return N;
-            } else if (
-                as._tileGroup === TILEGROUP_NORTH &&
-                bs._tileGroup === TILEGROUP_COMMON &&
-                as.tileY === as.powTileZoom /*Math.pow(2, as.tileZoom)*/ - 1 &&
-                bs.tileY === 0 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
-                return S;
-            }
+        while (pn.parentNode && part === -1) {
+            _pathId[depth++] = pn.partId;
+            part = NEIGHBOUR[side][pn.partId];
+            pn = pn.parentNode;
         }
 
-        return -1;
+        let mirror = OPPART[OPSIDE[side]];
+
+        if (part === -1) {
+            const rootNeighbor = pn.rootNeighbors && pn.rootNeighbors[side];
+            if (!rootNeighbor) {
+                return;
+            }
+            pn = rootNeighbor;
+            mirror = ROOTPART[side][this.segment.opside[side]];
+        }
+
+        const zoom = this.segment.tileZoom;
+
+        // Fading can leave a parent and its child opaque in one frame, so the walk doesn't stop at the first one
+        for (let i = depth - 1; i >= 0 && pn.nodes.length; i--) {
+            pn = pn.nodes[mirror[_pathId[i]]];
+            if (pn._neighborFrame === frame && (pn.segment.tileZoom < zoom || pn.__id < this.__id)) {
+                this.applyNeighbor(pn, side);
+            }
+        }
     }
 
     public whileNormalMapCreating() {
@@ -765,10 +847,16 @@ class Node {
         let pn: Node = this;
         while (pn.parentNode && !pn.segment.normalMapReady) {
             pn = pn.parentNode;
+
+            const ps = pn.segment;
+            if (!ps.normalMapReady && !ps.terrainIsLoading && ps.terrainExists && !ps._inTheQueue) {
+                ps.planet._normalMapCreator.queue(ps);
+            }
         }
 
         const dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
 
+        seg._normalMapSource = pn.segment;
         seg.normalMapTexture = pn.segment.normalMapTexture;
         seg.normalMapTextureBias[0] = seg.tileX - pn.segment.tileX * dZ2;
         seg.normalMapTextureBias[1] = seg.tileY - pn.segment.tileY * dZ2;
@@ -798,10 +886,7 @@ class Node {
 
         const pseg = pn.segment;
 
-        let renderVertices: Float64Array,
-            renderVerticesHigh: Float32Array,
-            renderVerticesLow: Float32Array,
-            noDataVertices: Uint8Array;
+        let renderVertices: Float64Array, renderVerticesHigh: Float32Array, renderVerticesLow: Float32Array;
 
         this.appliedTerrainNodeId = pn.nodeId;
         this.equalizedSideWithNodeId[N] =
@@ -826,13 +911,8 @@ class Node {
             renderVerticesHigh = new Float32Array(len);
             renderVerticesLow = new Float32Array(len);
 
-            if (pseg.noDataVertices) {
-                noDataVertices = new Uint8Array(len / 3);
-            }
-
             getMatrixSubArrayBoundsExt(
                 pseg.terrainVertices!,
-                pseg.noDataVertices!,
                 pseg.gridSize,
                 gridSize * offsetY,
                 gridSize * offsetX,
@@ -843,7 +923,7 @@ class Node {
                 renderVerticesHigh,
                 renderVerticesLow,
                 BOUNDS,
-                noDataVertices!
+                getR2Buffer(len / 3)
             );
         } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
             seg.gridSize = gridSizeExt;
@@ -853,13 +933,8 @@ class Node {
             renderVerticesHigh = new Float32Array(len);
             renderVerticesLow = new Float32Array(len);
 
-            if (pseg.noDataVertices) {
-                noDataVertices = new Uint8Array(len / 3);
-            }
-
             getMatrixSubArrayBoundsExt(
                 pseg.normalMapVertices!,
-                pseg.noDataVertices!,
                 pn.segment.fileGridSize,
                 gridSizeExt * offsetY,
                 gridSizeExt * offsetX,
@@ -870,7 +945,7 @@ class Node {
                 renderVerticesHigh,
                 renderVerticesLow,
                 BOUNDS,
-                noDataVertices!
+                getR2Buffer(len / 3)
             );
         } else {
             seg.gridSize = _neGridSize;
@@ -949,6 +1024,7 @@ class Node {
                 let r2 = coords.x * coords.x + coords.y * coords.y + coords.z * coords.z;
                 if (r2 < BOUNDS.r2min) BOUNDS.r2min = r2;
                 if (r2 > BOUNDS.r2max) BOUNDS.r2max = r2;
+                _r2[i] = r2;
             }
         }
 
@@ -962,17 +1038,14 @@ class Node {
         seg.renderVerticesHigh = renderVerticesHigh;
         seg.renderVerticesLow = renderVerticesLow;
 
-        seg.noDataVertices = noDataVertices!;
-
-        seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
+        seg.setTerrainBoundingVolume([BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax]);
         seg.setTerrainRadiusRange(
             BOUNDS.r2max >= BOUNDS.r2min ? [Math.sqrt(BOUNDS.r2min), Math.sqrt(BOUNDS.r2max)] : null
         );
+        seg.setLodRadius(Math.sqrt(getMedian(_r2, renderVertices.length / 3)));
 
         if (seg.tileZoom > seg.planet.terrain!.maxZoom) {
             if (pn.segment.tileZoom >= seg.planet.terrain!.maxZoom) {
-                seg._plainRadius = pn.segment._plainRadius / dZ2;
-
                 seg.terrainReady = true;
                 seg.terrainIsLoading = false;
 
@@ -1040,13 +1113,20 @@ class Node {
         this.segment = null;
     }
 
-    public clearTree() {
+    /**
+     * Destroys the branches the main camera does not render.
+     * @public
+     * @param {boolean} [keepViewCameraBranches=false] - Keeps the branches the last view camera collection has
+     * gone through, they lead to the nodes the depth cameras render.
+     */
+    public clearTree(keepViewCameraBranches: boolean = false) {
         const state = this.getState();
-        if (state === NOTRENDERING || state === RENDERING) {
+        const viewBranch = keepViewCameraBranches && this._viewWalkFrame === this.quadTreeStrategy._viewWalkFrame;
+        if (!viewBranch && (state === NOTRENDERING || state === RENDERING)) {
             this.destroyBranches();
         } else {
             for (let i = 0; i < this.nodes.length; i++) {
-                this.nodes[i] && this.nodes[i].clearTree();
+                this.nodes[i] && this.nodes[i].clearTree(keepViewCameraBranches);
             }
         }
     }
@@ -1091,6 +1171,53 @@ class Node {
                 this.nodes[i]!.traverseTree(callback);
             }
         }
+    }
+
+    /**
+     * Returns the neighbor behind the side that has a corner in the same point as the corner of this node.
+     * @public
+     * @param {number} side - The side that the corner belongs to.
+     * @param {number} corner - Corner index, NW, NE, SW or SE.
+     * @returns {Node | null | undefined} - Neighbor, null when there is none, undefined when the point lies inside
+     * the side of a neighbor of a lower zoom.
+     */
+    public getCornerNeighbor(side: number, corner: number): Node | null | undefined {
+        const list = this.neighbors[side],
+            seg = this.segment,
+            far = NOPSORD[side][corner],
+            // The tile index along the side: x along the N and S sides, y along the E and W ones
+            pos = (side & 1 ? seg.tileY : seg.tileX) + far,
+            opcs = seg.opside[side],
+            flip = SIDEFLIP[side][opcs];
+
+        for (let i = 0; i < list.length; i++) {
+            const n = list[i],
+                ns = n.segment,
+                nIndex = opcs & 1 ? ns.tileY : ns.tileX,
+                nPos = (flip ? ns.powTileZoom - 1 - nIndex : nIndex) + far,
+                dz = ns.tileZoom - seg.tileZoom;
+
+            if (dz >= 0) {
+                if (nPos === pos * (1 << dz)) {
+                    return n;
+                }
+            } else {
+                return pos === nPos * (1 << -dz) ? n : undefined;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the corner of the neighbors behind the side that lies in the same point as the corner of this node.
+     * @public
+     * @param {number} side - The side that the corner belongs to.
+     * @param {number} corner - Corner index, NW, NE, SW or SE.
+     * @returns {number} -
+     */
+    public getNeighborCorner(side: number, corner: number): number {
+        return ROOTPART[side][this.segment.opside[side]][corner];
     }
 
     public getOffsetOppositeNeighbourSide(neighbourNode: Node, side: number): number {

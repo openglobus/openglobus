@@ -1374,8 +1374,6 @@ export class Planet extends Scene {
         this.camera.events.on("frustumschanged", () => {
             this.camera.bindFrustumsPickingColors(this.renderer!);
         });
-
-        this.renderer!.cascadeShadowManager.bindPlanet(this);
     }
 
     /**
@@ -2396,7 +2394,7 @@ export class Planet extends Scene {
         this.terrain!.abortLoading();
         this._tileLoader.abortAll();
 
-        this.quadTreeStrategy.clear();
+        this.quadTreeStrategy.clear(!force);
         this.layerLock.free(this._memKey);
         this.terrainLock.free(this._memKey);
         this._normalMapCreator.free(this._memKey);
@@ -2707,7 +2705,7 @@ export class Planet extends Scene {
         for (let i = nodes.length - 1; i >= 0; i--) {
             let segment = nodes[i].segment;
 
-            if (segment && segment._extentLonLat && segment._extentLonLat.isInside(lonLat)) {
+            if (segment && segment.isLonLatInside(lonLat)) {
                 if (!bestSegment || segment.tileZoom > bestSegment.tileZoom) {
                     bestSegment = segment;
                 }
@@ -2765,7 +2763,6 @@ export class Planet extends Scene {
         if (this.renderer) {
             this.renderer.events.off("draw", this.onDraw);
             this.renderer.events.off("predraw", this.onPreDraw);
-            this.renderer.cascadeShadowManager.unbindPlanet();
         }
         this.memClear(true);
         this.quadTreeStrategy.destroyBranches();

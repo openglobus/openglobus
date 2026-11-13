@@ -2,8 +2,6 @@ import { BaseBillboard } from "./BaseBillboard";
 import type { IBaseBillboardParams } from "./BaseBillboard";
 import { BillboardHandler } from "./BillboardHandler";
 import type { HTMLImageElementExt } from "../../utils/ImagesCacheManager";
-import { Vec2 } from "../../math/Vec2";
-import { LOCK_FREE, LOCK_UPDATE } from "../label/LabelWorker";
 
 export interface IBillboardParams extends IBaseBillboardParams {
     src?: string;
@@ -11,7 +9,6 @@ export interface IBillboardParams extends IBaseBillboardParams {
     size?: [number, number] | null;
     width?: number | null;
     height?: number | null;
-    scale?: number | null;
 }
 
 /**
@@ -48,8 +45,6 @@ class Billboard extends BaseBillboard {
      */
     protected _image: (HTMLImageElement & { __nodeIndex?: number }) | null;
 
-    protected _scale: number;
-
     /**
      * Billboard screen width.
      * @public
@@ -73,8 +68,6 @@ class Billboard extends BaseBillboard {
 
         this._image = options.image || null;
 
-        this._scale = options.scale ?? 1.0;
-
         this._width = options.width ?? (options.size ? options.size[0] : 0);
 
         this._height = options.height ?? (options.size ? options.size[1] : 0);
@@ -95,6 +88,10 @@ class Billboard extends BaseBillboard {
             this._height = image.height;
         }
 
+        this._updateSize();
+    }
+
+    protected override _updateSize() {
         this._handler &&
             this._handler.setSizeArr(this._handlerIndex, this._width * this._scale, this._height * this._scale);
     }
@@ -159,38 +156,7 @@ class Billboard extends BaseBillboard {
     public setSize(width: number, height: number) {
         this._width = width;
         this._height = height;
-        this._handler && this._handler.setSizeArr(this._handlerIndex, width * this._scale, height * this._scale);
-    }
-
-    /**
-     * Sets billboard scale. The rendered size is width * scale by height * scale.
-     * @public
-     * @param {number} scale - Billboard scale.
-     */
-    public setScale(scale: number) {
-        this._scale = scale;
-        this._handler &&
-            this._handler.setSizeArr(this._handlerIndex, this._width * scale, this._height * scale);
-    }
-
-    /**
-     * Returns billboard scale.
-     * @public
-     * @returns {number}
-     */
-    public getScale(): number {
-        return this._scale;
-    }
-
-    public override setOffset(x: number, y: number) {
-        this._offset.x = x;
-        this._offset.y = y;
-
-        if (this._isReady && this._handler) {
-            this._handler.setOffsetArr(this._handlerIndex, new Vec2(x * this._scale, y * this._scale));
-        } else if (this._lockId !== LOCK_FREE) {
-            this._lockId = LOCK_UPDATE;
-        }
+        this._updateSize();
     }
 
     /**

@@ -1,5 +1,3 @@
-import { cascade_shadow_depth } from "./cascade_shadow_depth";
-import type { Planet } from "../../scene/Planet";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { Renderer } from "../Renderer";
 import { DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START } from "../textureUnits";
@@ -10,7 +8,6 @@ const MAX_CASCADE_COUNT = 4;
 
 export class CascadeShadowManager {
     protected _renderer: Renderer;
-    protected _planet: Planet | null;
     protected _cascadeShadowMaps: CascadeShadowMap[];
     protected _activeCascadeShadowMaps: CascadeShadowMap[];
 
@@ -25,7 +22,6 @@ export class CascadeShadowManager {
 
     constructor(renderer: Renderer) {
         this._renderer = renderer;
-        this._planet = null;
         this._cascadeShadowMaps = [];
         this._activeCascadeShadowMaps = [];
 
@@ -50,35 +46,11 @@ export class CascadeShadowManager {
     public init(): void {
         if (this._initialized) return;
 
-        this._renderer.addProgram(cascade_shadow_depth());
-        this._renderer.events.on("predraw", this._onDraw, this, 0);
         this._initialized = true;
 
         for (let i = 0; i < this._cascadeShadowMaps.length; i++) {
             this._initCascadeShadowMap(this._cascadeShadowMaps[i]);
         }
-    }
-
-    public bindPlanet(planet: Planet): void {
-        if (this._planet === planet) return;
-
-        if (this._planet) {
-            this.unbindPlanet();
-        }
-
-        this._planet = planet;
-
-        for (let i = 0; i < this._cascadeShadowMaps.length; i++) {
-            this._initCascadeShadowMap(this._cascadeShadowMaps[i]);
-        }
-    }
-
-    public unbindPlanet(): void {
-        for (let i = 0; i < this._cascadeShadowMaps.length; i++) {
-            this._cascadeShadowMaps[i].unbindPlanet();
-        }
-
-        this._planet = null;
     }
 
     public add(cascadeShadowMap: CascadeShadowMap): number {
@@ -129,12 +101,7 @@ export class CascadeShadowManager {
 
     public destroy(): void {
         this.clear();
-        this._planet = null;
-
-        if (this._initialized) {
-            this._renderer.events.off("predraw", this._onDraw);
-            this._initialized = false;
-        }
+        this._initialized = false;
     }
 
     public bindForward(
@@ -165,7 +132,7 @@ export class CascadeShadowManager {
 
         for (let i = 0; i < size; i++) {
             const cascade = csm.cascades[i];
-            const camera = csm.depthCamera;
+            const camera = csm.camera;
             const frustum = camera.frustums[i];
             const mOffset = i * 16;
             const eOffset = i * 3;
@@ -214,10 +181,6 @@ export class CascadeShadowManager {
         }
 
         cascadeShadowMap.init(this._renderer);
-
-        if (this._planet) {
-            cascadeShadowMap.bindPlanet(this._planet);
-        }
     }
 
     protected _collectActiveCascadeShadowMaps(): CascadeShadowMap[] {
@@ -244,12 +207,4 @@ export class CascadeShadowManager {
 
         return this._activeCascadeShadowMaps;
     }
-
-    protected _onDraw = (): void => {
-        const active = this._getActiveCascadeShadowMaps();
-        const csm = active[0];
-        if (csm) {
-            csm.frame();
-        }
-    };
 }

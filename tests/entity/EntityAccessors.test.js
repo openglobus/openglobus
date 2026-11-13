@@ -2,6 +2,8 @@ import { EntityCollection } from "../../src/entity/EntityCollection";
 import { Entity } from "../../src/entity/Entity";
 import { Billboard } from "../../src/entity/billboard/Billboard";
 import { Label } from "../../src/entity/label/Label";
+import { LOCK_UPDATE } from "../../src/entity/label/LabelWorker";
+import "../../src/entity/label/LabelWorker.worker.js";
 import { Ray } from "../../src/entity/ray/Ray";
 import { Vec4 } from "../../src/math/Vec4";
 
@@ -46,6 +48,114 @@ describe("Billboard.setScale", () => {
         b.setScale(0.5);
         expect(b.getScale()).toBe(0.5);
         expect(b.getSize()).toEqual({ width: 4, height: 4 });
+    });
+});
+
+describe("billboard scale", () => {
+    test("goes to the handler multiplied, getters return what was set", () => {
+        const ec = new EntityCollection();
+        const e = new Entity({ billboard: { width: 2, height: 4, offset: [100, 50] } });
+        ec.add(e);
+        const b = e.billboard;
+
+        b.setScale(10);
+
+        expect(handlerSize(b)).toEqual([20, 40]);
+        expect(b.getScale()).toBe(10);
+        expect(b.getSize()).toEqual({ width: 2, height: 4 });
+        expect(b.getWidth()).toBe(2);
+        expect(b.getHeight()).toBe(4);
+        expect([b.getOffset().x, b.getOffset().y]).toEqual([100, 50]);
+    });
+
+    test("is applied to the first handler write", () => {
+        const ec = new EntityCollection();
+        const e = new Entity({ billboard: { width: 10, height: 20, scale: 2 } });
+        ec.add(e);
+
+        expect(handlerSize(e.billboard)).toEqual([20, 40]);
+    });
+
+    test("keeps an explicit zero", () => {
+        expect(new Billboard({ scale: 0 }).getScale()).toBe(0);
+        expect(new Billboard({ scale: null }).getScale()).toBe(1);
+    });
+
+    test("does not depend on the entity scale", () => {
+        const ec = new EntityCollection();
+        const e = new Entity({ scale: 7, billboard: { width: 10, height: 20 }, label: { size: 10 } });
+        ec.add(e);
+
+        e.setScale(9);
+
+        expect(handlerSize(e.billboard)).toEqual([10, 20]);
+        expect(e.billboard.getScale()).toBe(1);
+        expect(e.label.getScale()).toBe(1);
+    });
+});
+
+describe("label scale", () => {
+    let post;
+
+    beforeEach(() => {
+        post = vi.spyOn(self, "postMessage").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        post.mockRestore();
+    });
+
+    function addThroughWorker(handler, entity) {
+        const label = entity.label;
+        label._handler = handler;
+        post.mockClear();
+        self.onmessage({ data: { labelData: label.serializeWorkerData(1) } });
+        label._lockId = 1;
+        handler.workerCallback(post.mock.calls[0][0], label);
+        return label;
+    }
+
+    function labelSize(label) {
+        const h = label._handler;
+        return h._sizeArr[label._handlerIndex * 6 * h._maxLetters];
+    }
+
+    test("does not change the font size", () => {
+        const l = new Label({ size: 10, scale: 2 });
+        expect(l.getScale()).toBe(2);
+        expect(l.getSize()).toBe(10);
+
+        l.setScale(3);
+        expect(l.getScale()).toBe(3);
+        expect(l.getSize()).toBe(10);
+    });
+
+    test("reaches the handler through the worker", () => {
+        const h = new EntityCollection().labelHandler;
+        const l = addThroughWorker(h, new Entity({ label: { size: 10, scale: 2 } }));
+
+        expect(labelSize(l)).toBe(20);
+    });
+
+    test("setters write the size multiplied by the scale", () => {
+        const h = new EntityCollection().labelHandler;
+        const l = addThroughWorker(h, new Entity({ label: { size: 10 } }));
+
+        l.setScale(2);
+        expect(labelSize(l)).toBe(20);
+
+        l.setSize(5);
+        expect(labelSize(l)).toBe(10);
+        expect(l.getSize()).toBe(5);
+    });
+
+    test("a change during the worker round trip requests the label again", () => {
+        const l = new Label({ size: 10 });
+        l._lockId = 1;
+
+        l.setScale(2);
+
+        expect(l._lockId).toBe(LOCK_UPDATE);
     });
 });
 

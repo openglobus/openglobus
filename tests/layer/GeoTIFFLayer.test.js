@@ -22,6 +22,7 @@ import {
     isNoData
 } from "../../src/layer/geotiff/ColorScale";
 import { Extent } from "../../src/Extent";
+import { tileSegment } from "./tileSegment";
 import { LonLat } from "../../src/LonLat";
 
 describe("ColorScale & Palette", () => {
@@ -95,10 +96,16 @@ describe("ColorScale & Palette", () => {
 
     it("should render single-band raster to ImageData with transparent NoData", () => {
         const data = new Float32Array([0, 50, 100, -9999]);
-        const imgData = renderSingleBandToImageData(data, 2, 2, {
-            domain: [0, 100],
-            colorScale: "viridis"
-        }, -9999);
+        const imgData = renderSingleBandToImageData(
+            data,
+            2,
+            2,
+            {
+                domain: [0, 100],
+                colorScale: "viridis"
+            },
+            -9999
+        );
 
         expect(imgData.width).toBe(2);
         expect(imgData.height).toBe(2);
@@ -115,13 +122,13 @@ describe("ColorScale & Palette", () => {
 
         const imgData = renderMultiBandToImageData(r, g, b, 2, 1);
         expect(imgData.data[0]).toBe(255); // R
-        expect(imgData.data[1]).toBe(0);   // G
-        expect(imgData.data[2]).toBe(0);   // B
+        expect(imgData.data[1]).toBe(0); // G
+        expect(imgData.data[2]).toBe(0); // B
         expect(imgData.data[3]).toBe(255); // A
 
-        expect(imgData.data[4]).toBe(0);   // R
+        expect(imgData.data[4]).toBe(0); // R
         expect(imgData.data[5]).toBe(255); // G
-        expect(imgData.data[6]).toBe(0);   // B
+        expect(imgData.data[6]).toBe(0); // B
         expect(imgData.data[7]).toBe(255); // A
     });
 });
@@ -356,6 +363,7 @@ describe("GeoTIFFLayer", () => {
                 tileZoom: 5,
                 tileX: 10,
                 tileY: 10,
+                tileIndex: "5_10_10",
                 materials: {
                     [layer.__id]: {
                         isReady: true,
@@ -382,8 +390,8 @@ describe("GeoTIFFLayer", () => {
         };
 
         // Cache contains rendered tile (5_10_10) and ancestor/stale tile (2_1_1)
-        layer._tileCache.set("5_10_10", {image: createImageData(2, 1), renderOptionsVersion: 0});
-        layer._tileCache.set("2_1_1", {image: createImageData(2, 1), renderOptionsVersion: 0});
+        layer._tileCache.set("5_10_10", { image: createImageData(2, 1), renderOptionsVersion: 0 });
+        layer._tileCache.set("2_1_1", { image: createImageData(2, 1), renderOptionsVersion: 0 });
         layer._rasterCache.set("5_10_10", {
             rasters: [new Float32Array([10, 20])],
             width: 2,
@@ -433,7 +441,7 @@ describe("GeoTIFFLayer", () => {
 
             // Test tile raster reading for layer's extent
             const extent = layer.getExtent();
-            const tileData = await layer.reader.readTileRasters(extent, 0, 256);
+            const tileData = await layer.reader.readTileRasters(tileSegment(extent), 256);
             expect(tileData).toBeTruthy();
             expect(tileData.rasters.length).toBeGreaterThan(0);
             expect(tileData.width).toBeGreaterThan(0);
@@ -443,12 +451,11 @@ describe("GeoTIFFLayer", () => {
             const { Extent } = await import("../../src/Extent");
             const { LonLat } = await import("../../src/LonLat");
             const oobExtent = new Extent(new LonLat(-170, -80), new LonLat(-160, -70));
-            const oobTileData = await layer.reader.readTileRasters(oobExtent, 0, 256);
+            const oobTileData = await layer.reader.readTileRasters(tileSegment(oobExtent), 256);
             expect(oobTileData).toBeNull();
         }
     });
 });
-
 
 describe("GeoTIFFLayer cached tile material", () => {
     function createLayer(waitForParentMaterial) {
@@ -463,13 +470,15 @@ describe("GeoTIFFLayer cached tile material", () => {
         return layer;
     }
 
-    function createSegment(layer, tileZoom, tileX, tileY, parentNode, deleteTexture) {
+    function createSegment(layer, tileZoom, tileX, tileY, parentNode, deleteTexture, tileGroup = 0) {
         const segment = {
             initialized: true,
             passReady: true,
             tileZoom,
             tileX,
             tileY,
+            tileGroup,
+            tileIndex: tileGroup ? `${tileZoom}_${tileX}_${tileY}_${tileGroup}` : `${tileZoom}_${tileX}_${tileY}`,
             materials: {},
             planet: { transparentTexture: { default: true }, renderer: { requestRedraw: () => {} } },
             handler: { gl: { deleteTexture } },
@@ -485,7 +494,7 @@ describe("GeoTIFFLayer cached tile material", () => {
         const layer = createLayer(true);
         const segment = createSegment(layer, 3, 1, 2, null, vi.fn());
         const material = (segment.materials[layer.__id] = new Material(segment, layer));
-        layer._tileCache.set("3_1_2", {image: createImageData(256, 256), renderOptionsVersion: 0});
+        layer._tileCache.set("3_1_2", { image: createImageData(256, 256), renderOptionsVersion: 0 });
 
         layer.applyMaterial(material);
         await nextFrame();
@@ -494,6 +503,28 @@ describe("GeoTIFFLayer cached tile material", () => {
         expect(material.textureExists).toBe(true);
         expect(material.texOffset).toEqual([0, 0, 1, 1]);
         expect(layer.applyMaterial(material)).toEqual([0, 0, 1, 1]);
+    });
+
+    it("doesn't take the cached tile of another tile group with the same indexes", async () => {
+        const layer = createLayer(false);
+        const read = vi.spyOn(layer._reader, "readTileRasters").mockResolvedValue(null);
+        layer._reader.extentWgs84 = new Extent(new LonLat(-180, -90), new LonLat(180, 90));
+        layer._extent = layer._reader.extentWgs84;
+
+        const common = createSegment(layer, 3, 1, 2, null, vi.fn()),
+            pole = createSegment(layer, 3, 1, 2, null, vi.fn(), 20);
+
+        expect(pole.tileIndex).not.toBe(common.tileIndex);
+
+        layer._tileCache.set(common.tileIndex, { image: createImageData(256, 256), renderOptionsVersion: 0 });
+
+        const material = (pole.materials[layer.__id] = new Material(pole, layer));
+        layer.applyMaterial(material);
+        await nextFrame();
+
+        expect(material.textureExists).toBe(false);
+        expect(read).toHaveBeenCalled();
+        expect(read.mock.calls[0][0]).toBe(pole);
     });
 
     it("does not take over the parent texture when the tile is taken from the cache", async () => {
@@ -507,7 +538,7 @@ describe("GeoTIFFLayer cached tile material", () => {
 
         const segment = createSegment(layer, 4, 2, 4, parentSegment.node, deleteTexture);
         const material = (segment.materials[layer.__id] = new Material(segment, layer));
-        layer._tileCache.set("4_2_4", {image: createImageData(256, 256), renderOptionsVersion: 0});
+        layer._tileCache.set("4_2_4", { image: createImageData(256, 256), renderOptionsVersion: 0 });
 
         layer.applyMaterial(material);
         await nextFrame();
@@ -604,7 +635,7 @@ describe("GeoTIFFReader tile reprojection", () => {
             image.readRasters = vi.fn(image.readRasters);
         }
 
-        const tile = await reader.readTileRasters(tileExtent(tx, ty), ZOOM, TILE_SIZE, [0, 1, 2], EPSG3857);
+        const tile = await reader.readTileRasters(tileSegment(tileExtent(tx, ty), EPSG3857), TILE_SIZE, [0, 1, 2]);
 
         expect(tile).toBeTruthy();
         expect(reader.images.some((image) => image.readRGB.mock.calls.length > 0)).toBe(true);
@@ -627,11 +658,11 @@ describe("GeoTIFFReader tile reprojection", () => {
         });
 
         reader.masks = reader.images.map(() => createMask(1));
-        const visible = await reader.readTileRasters(extent, ZOOM, TILE_SIZE, [0], EPSG3857);
+        const visible = await reader.readTileRasters(tileSegment(extent, EPSG3857), TILE_SIZE, [0]);
         expect(visible.rasters[0].some((value) => !Number.isNaN(value))).toBe(true);
 
         reader.masks = reader.images.map(() => createMask(0));
-        const hidden = await reader.readTileRasters(extent, ZOOM, TILE_SIZE, [0], EPSG3857);
+        const hidden = await reader.readTileRasters(tileSegment(extent, EPSG3857), TILE_SIZE, [0]);
         expect(hidden.rasters[0].every((value) => Number.isNaN(value))).toBe(true);
     });
 
@@ -642,7 +673,7 @@ describe("GeoTIFFReader tile reprojection", () => {
         const ty = Math.floor((mercator.POLE - mercator.forward_lat(center.lat)) / tileSpan);
 
         const extent = tileExtent(tx, ty);
-        const tile = await reader.readTileRasters(extent, ZOOM, TILE_SIZE, [0], EPSG3857);
+        const tile = await reader.readTileRasters(tileSegment(extent, EPSG3857), TILE_SIZE, [0]);
 
         expect(tile).toBeTruthy();
         expect(tile.width).toBe(TILE_SIZE);
@@ -666,7 +697,10 @@ describe("GeoTIFFReader tile reprojection", () => {
     });
 
     it("keeps EPSG:4326 rasters aligned on Mercator tiles", async () => {
-        const west = -10, south = 30, east = 10, north = 60;
+        const west = -10,
+            south = 30,
+            east = 10,
+            north = 60;
         const size = 1024;
         // Every source pixel keeps the latitude of its own center
         const image = {
@@ -710,7 +744,7 @@ describe("GeoTIFFReader tile reprojection", () => {
             )
         );
 
-        const tile = await reader.readTileRasters(extent, zoom, TILE_SIZE, [0], EPSG3857);
+        const tile = await reader.readTileRasters(tileSegment(extent, EPSG3857), TILE_SIZE, [0]);
         expect(tile).toBeTruthy();
 
         const latPerPixel = (extent.northEast.lat - extent.southWest.lat) / TILE_SIZE;
@@ -726,15 +760,13 @@ describe("GeoTIFFReader tile reprojection", () => {
         expect(checked).toBeGreaterThan(0);
 
         // The same tile as an EPSG:4326 segment: rows are linear in latitude
-        const poleTile = await reader.readTileRasters(extent, zoom, TILE_SIZE, [0], EPSG4326);
+        const poleTile = await reader.readTileRasters(tileSegment(extent, EPSG4326), TILE_SIZE, [0]);
         expect(poleTile).toBeTruthy();
 
         for (let y = 8; y < TILE_SIZE; y += 16) {
             const value = poleTile.rasters[0][y * TILE_SIZE + 64];
             if (Number.isNaN(value)) continue;
-            const lat =
-                extent.northEast.lat -
-                ((y + 0.5) / TILE_SIZE) * (extent.northEast.lat - extent.southWest.lat);
+            const lat = extent.northEast.lat - ((y + 0.5) / TILE_SIZE) * (extent.northEast.lat - extent.southWest.lat);
             expect(Math.abs(value - lat)).toBeLessThan(2 * latPerPixel);
         }
     });
@@ -746,12 +778,12 @@ describe("GeoTIFFReader tile reprojection", () => {
         const ty = Math.floor((mercator.POLE - mercator.forward_lat(center.lat)) / tileSpan);
 
         // A UTM scene on a zoomed in tile is almost affine, the coarsest grid is enough
-        const near = reader._createTileGrid(tileExtent(tx, ty), TILE_SIZE, EPSG3857);
+        const near = reader._createTileGrid(tileSegment(tileExtent(tx, ty)), TILE_SIZE);
         expect(near.gridSize).toBe(4);
 
         // The whole world on a single tile needs a finer grid
         const world = new Extent(new LonLat(-180, -85.0511), new LonLat(180, 85.0511));
-        const global = reader._createTileGrid(world, TILE_SIZE, EPSG3857);
+        const global = reader._createTileGrid(tileSegment(world), TILE_SIZE);
         expect(global.gridSize).toBeGreaterThan(4);
     });
     it("allows a slightly coarser overview instead of reading nine times more pixels", () => {
@@ -774,8 +806,8 @@ describe("GeoTIFFReader tile reprojection", () => {
         const tx = Math.floor((mercator.forward_lon(center.lon) + mercator.POLE) / tileSpan);
         const ty = Math.floor((mercator.POLE - mercator.forward_lat(center.lat)) / tileSpan);
 
-        const left = await reader.readTileRasters(tileExtent(tx, ty), ZOOM, TILE_SIZE, [0], EPSG3857);
-        const right = await reader.readTileRasters(tileExtent(tx + 1, ty), ZOOM, TILE_SIZE, [0], EPSG3857);
+        const left = await reader.readTileRasters(tileSegment(tileExtent(tx, ty), EPSG3857), TILE_SIZE, [0]);
+        const right = await reader.readTileRasters(tileSegment(tileExtent(tx + 1, ty), EPSG3857), TILE_SIZE, [0]);
 
         expect(left).toBeTruthy();
         expect(right).toBeTruthy();
@@ -880,7 +912,7 @@ describe("GeoTIFFLayer tile request queue", () => {
             // The tile that left the view is dropped, the visible one is read
             expect(gone.isLoading).toBe(false);
             expect(read).toHaveBeenCalledTimes(2);
-            expect(read.mock.calls[1][0]).toBe(waiting.segment.getExtentLonLat());
+            expect(read.mock.calls[1][0]).toBe(waiting.segment);
         } finally {
             GeoTIFFLayer.MAX_REQUESTS = previous;
         }
@@ -944,7 +976,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
             overviewCount: 2,
             bands: bandsMeta
         };
-        reader.readTileRasters = vi.fn(async (_extent, _zoom, tileSize, readSamples) => {
+        reader.readTileRasters = vi.fn(async (_segment, tileSize, readSamples) => {
             const count = readSamples ? readSamples.length : samplesPerPixel;
             const rasters = [];
             for (let i = 0; i < count; i++) {
@@ -1024,7 +1056,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
         const r1 = createMockReader(ext1, 1, { 1: { min: 0, max: 255 } });
         const r2 = createMockReader(ext2, 1, { 1: { min: 0, max: 255 } });
 
-        r1.readTileRasters = vi.fn(async (_extent, _zoom, tileSize) => ({
+        r1.readTileRasters = vi.fn(async (_segment, tileSize) => ({
             rasters: [new Float32Array(tileSize * tileSize).fill(100)],
             width: tileSize,
             height: tileSize,
@@ -1035,7 +1067,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
             isRGB: false
         }));
 
-        r2.readTileRasters = vi.fn(async (_extent, _zoom, tileSize) => ({
+        r2.readTileRasters = vi.fn(async (_segment, tileSize) => ({
             rasters: [new Float32Array(tileSize * tileSize).fill(200)],
             width: tileSize,
             height: tileSize,
@@ -1054,7 +1086,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
             await multiReader.init(sources);
 
             const tileExtent = new Extent(new LonLat(12, 42), new LonLat(14, 44));
-            const tileData = await multiReader.readTileRasters(tileExtent, 5, 256, [0, 1]);
+            const tileData = await multiReader.readTileRasters(tileSegment(tileExtent), 256, [0, 1]);
 
             expect(tileData).toBeTruthy();
             expect(tileData.rasters.length).toBe(2);
@@ -1074,7 +1106,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
         const rWest = createMockReader(extWest, 1);
         const rEast = createMockReader(extEast, 1);
 
-        rWest.readTileRasters = vi.fn(async (_extent, _zoom, tileSize) => ({
+        rWest.readTileRasters = vi.fn(async (_segment, tileSize) => ({
             rasters: [new Float32Array(tileSize * tileSize).fill(55)],
             width: tileSize,
             height: tileSize,
@@ -1094,7 +1126,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
 
             // Tile only in West
             const tileExtentWest = new Extent(new LonLat(2, 2), new LonLat(4, 4));
-            const tileData = await multiReader.readTileRasters(tileExtentWest, 5, 256, [0, 1]);
+            const tileData = await multiReader.readTileRasters(tileSegment(tileExtentWest), 256, [0, 1]);
 
             expect(tileData).toBeTruthy();
             expect(tileData.rasters.length).toBe(2);
@@ -1114,7 +1146,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
         const rEast = createMockReader(extEast, 1);
 
         // West has values in first half, NaN in second half
-        rWest.readTileRasters = vi.fn(async (_extent, _zoom, tileSize) => {
+        rWest.readTileRasters = vi.fn(async (_segment, tileSize) => {
             const arr = new Float32Array(tileSize * tileSize).fill(NaN);
             arr.fill(111, 0, (tileSize * tileSize) / 2);
             return {
@@ -1130,7 +1162,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
         });
 
         // East has NaN in first half, values in second half
-        rEast.readTileRasters = vi.fn(async (_extent, _zoom, tileSize) => {
+        rEast.readTileRasters = vi.fn(async (_segment, tileSize) => {
             const arr = new Float32Array(tileSize * tileSize).fill(NaN);
             arr.fill(222, (tileSize * tileSize) / 2);
             return {
@@ -1156,7 +1188,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
 
             // Tile straddling both
             const centerTile = new Extent(new LonLat(4, 2), new LonLat(8, 6));
-            const tileData = await multiReader.readTileRasters(centerTile, 5, 16, [0]);
+            const tileData = await multiReader.readTileRasters(tileSegment(centerTile), 16, [0]);
 
             expect(tileData).toBeTruthy();
             expect(tileData.rasters.length).toBe(1);
@@ -1235,10 +1267,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
 
     it("should evaluate band expressions (NDVI) across multiple sources", async () => {
         const layer = new GeoTIFFLayer("ndvi-cog", {
-            sources: [
-                { src: "https://example.com/b4_red.tif" },
-                { src: "https://example.com/b8_nir.tif" }
-            ],
+            sources: [{ src: "https://example.com/b4_red.tif" }, { src: "https://example.com/b8_nir.tif" }],
             renderOptions: {
                 single: {
                     expression: "(b2 - b1) / (b2 + b1)",
@@ -1275,10 +1304,7 @@ describe("MultiGeoTIFFReader & Multi-Source GeoTIFFLayer", () => {
     });
 
     it("should instantiate via GeoTIFFLayer.fromSources static helper", async () => {
-        const sources = [
-            { src: "https://example.com/s1.tif" },
-            { src: "https://example.com/s2.tif" }
-        ];
+        const sources = [{ src: "https://example.com/s1.tif" }, { src: "https://example.com/s2.tif" }];
 
         // Mock init
         const origInit = MultiGeoTIFFReader.prototype.init;
@@ -1335,12 +1361,12 @@ describe("GeoTIFFReader window of a raster on the tile grid", () => {
     const tile = mercator.getTileExtent(32769, 24065, 16).inverseMercator();
 
     it("nearest reads the tile pixels only", async () => {
-        const data = await createReader().readTileRasters(tile, 16, 256, [0]);
+        const data = await createReader().readTileRasters(tileSegment(tile), 256, [0]);
         expect(data.window).toEqual([256, 256, 512, 512]);
     });
 
     it("bilinear reads the next pixels too", async () => {
-        const data = await createReader("bilinear").readTileRasters(tile, 16, 256, [0]);
+        const data = await createReader("bilinear").readTileRasters(tileSegment(tile), 256, [0]);
         expect(data.window).toEqual([255, 255, 513, 513]);
     });
 });
@@ -1368,12 +1394,17 @@ describe("GeoTIFFReader copy of a raster on the tile grid", () => {
         };
         reader.source = {};
         reader.images = [
-            { getWidth: () => SIZE, getHeight: () => SIZE, readRasters: async ({ window }) => readWindow(window, value) }
+            {
+                getWidth: () => SIZE,
+                getHeight: () => SIZE,
+                readRasters: async ({ window }) => readWindow(window, value)
+            }
         ];
         reader.masks = [
             withMask
                 ? {
-                      readRasters: async ({ window }) => readWindow(window, (x, y) => ((x * 3 + y) % 11 === 0 ? 0 : 255))
+                      readRasters: async ({ window }) =>
+                          readWindow(window, (x, y) => ((x * 3 + y) % 11 === 0 ? 0 : 255))
                   }
                 : null
         ];
@@ -1388,12 +1419,12 @@ describe("GeoTIFFReader copy of a raster on the tile grid", () => {
     async function readBoth(reader, x, y) {
         const tile = mercator.getTileExtent(x, y, 16).inverseMercator();
         const copy = vi.spyOn(reader, "_copyRasters");
-        const copied = await reader.readTileRasters(tile, 16, 256, [0]);
+        const copied = await reader.readTileRasters(tileSegment(tile), 256, [0]);
         expect(copy).toHaveBeenCalledTimes(1);
         copy.mockRestore();
 
         reader._getAlignedOrigin = () => null;
-        const warped = await reader.readTileRasters(tile, 16, 256, [0]);
+        const warped = await reader.readTileRasters(tileSegment(tile), 256, [0]);
         delete reader._getAlignedOrigin;
 
         return [copied.rasters[0], warped.rasters[0]];
@@ -1416,7 +1447,7 @@ describe("GeoTIFFReader copy of a raster on the tile grid", () => {
         reader.options.renderOptions = { resampleMethod: "bilinear" };
         const copy = vi.spyOn(reader, "_copyRasters");
 
-        await reader.readTileRasters(mercator.getTileExtent(32769, 24065, 16).inverseMercator(), 16, 256, [0]);
+        await reader.readTileRasters(tileSegment(mercator.getTileExtent(32769, 24065, 16).inverseMercator()), 256, [0]);
 
         expect(copy).not.toHaveBeenCalled();
     });
@@ -1444,7 +1475,7 @@ describe("GeoTIFFReader failed reads", () => {
             .mockRejectedValueOnce(new AggregateError([], "Request failed"))
             .mockResolvedValue([new Float32Array(256 * 256).fill(7)]);
 
-        const data = await createReader(readRasters).readTileRasters(tile, 16, 256, [0]);
+        const data = await createReader(readRasters).readTileRasters(tileSegment(tile), 256, [0]);
 
         expect(readRasters).toHaveBeenCalledTimes(2);
         expect(data.rasters[0][0]).toBe(7);
@@ -1453,9 +1484,102 @@ describe("GeoTIFFReader failed reads", () => {
     it("gives other errors to the caller, the tile is not empty data", async () => {
         const readRasters = vi.fn().mockRejectedValue(new Error("Error fetching data."));
 
-        await expect(createReader(readRasters).readTileRasters(tile, 16, 256, [0])).rejects.toThrow(
+        await expect(createReader(readRasters).readTileRasters(tileSegment(tile), 256, [0])).rejects.toThrow(
             "Error fetching data."
         );
         expect(readRasters).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("GeoTIFFLayer native zoom", () => {
+    // 256 tile pixels of a Mercator zoom 16 tile, as for GeoTiffTerrain
+    const EXTENT = new Extent(new LonLat(0, 40), new LonLat(3.515625, 43));
+
+    const reader = (width) =>
+        Object.assign(Object.create(GeoTIFFReader.prototype), {
+            isReady: true,
+            metadata: { width },
+            extentWgs84: EXTENT
+        });
+
+    function stubSource() {
+        return vi.spyOn(GeoTIFFReader.prototype, "init").mockImplementation(async function () {
+            this.extentWgs84 = EXTENT;
+            this.metadata = {
+                bbox: [0, 40, 3.515625, 43],
+                crsCode: 4326,
+                width: 163840,
+                height: 139810,
+                samplesPerPixel: 1,
+                noData: null,
+                isTiled: true,
+                overviewCount: 10,
+                bands: { 1: { min: 0, max: 255 } }
+            };
+            this.isReady = true;
+            return this.metadata;
+        });
+    }
+
+    const planet = (rootTileWidth) => ({
+        _layers: [],
+        renderer: null,
+        quadTreeStrategy: { rootTileWidth, clearLayerMaterial: () => {} }
+    });
+
+    it("the reader finds the zoom by the root tile width", () => {
+        expect(reader(163840).getNativeZoom(360, 256)).toBe(16);
+        expect(reader(163840).getNativeZoom(180, 256)).toBe(15);
+        expect(reader(163840).getNativeZoom(90, 256)).toBe(14);
+        expect(reader(163840).getNativeZoom(90, 512)).toBe(13);
+        expect(new GeoTIFFReader().getNativeZoom(360, 256)).toBe(0);
+    });
+
+    it("the most detailed source of a multi reader gives the zoom", () => {
+        const multi = new MultiGeoTIFFReader();
+        multi.childReaders = [reader(10240), reader(163840)];
+        expect(multi.getNativeZoom(90, 256)).toBe(14);
+    });
+
+    it("the planet after the source", async () => {
+        const init = stubSource();
+        try {
+            const layer = new GeoTIFFLayer("tif", { src: "a.tif" });
+            await layer.whenReady();
+
+            layer._assignPlanet(planet(90));
+            expect(layer.maxNativeZoom).toBe(14);
+
+            layer._assignPlanet(planet(360));
+            expect(layer.maxNativeZoom).toBe(16);
+        } finally {
+            init.mockRestore();
+        }
+    });
+
+    it("the planet before the source", async () => {
+        const init = stubSource();
+        try {
+            const layer = new GeoTIFFLayer("tif", { src: "a.tif" });
+            layer._assignPlanet(planet(180));
+            await layer.whenReady();
+
+            expect(layer.maxNativeZoom).toBe(15);
+        } finally {
+            init.mockRestore();
+        }
+    });
+
+    it("keeps the zoom it is given", async () => {
+        const init = stubSource();
+        try {
+            const layer = new GeoTIFFLayer("tif", { src: "a.tif", maxNativeZoom: 7 });
+            await layer.whenReady();
+            layer._assignPlanet(planet(90));
+
+            expect(layer.maxNativeZoom).toBe(7);
+        } finally {
+            init.mockRestore();
+        }
     });
 });

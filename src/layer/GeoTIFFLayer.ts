@@ -66,6 +66,10 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     protected _reader: IGeoTIFFReader;
     protected _renderOptions: IGeoTIFFRenderOptions;
     protected _tileSize: number;
+
+    // The native zoom is found from the sources, and the root tile width it was found for
+    protected _autoNativeZoom: boolean;
+    protected _nativeZoomRootTileWidth: number;
     protected _tileCache: Map<string, ICachedTile>;
     protected _rasterCache: Map<string, DecodedTileData>;
     protected _maxCacheSize: number;
@@ -112,6 +116,8 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         }
 
         this._tileSize = options.tileSize || 256;
+        this._autoNativeZoom = options.maxNativeZoom == undefined;
+        this._nativeZoomRootTileWidth = NaN;
         this._tileCache = new Map();
         this._rasterCache = new Map();
         this._maxCacheSize = options.cacheSize || 500;
@@ -175,6 +181,30 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         const layer = new GeoTIFFLayer(name, { ...options, sources });
         await layer.whenReady();
         return layer;
+    }
+
+    public override _assignPlanet(planet: Planet) {
+        super._assignPlanet(planet);
+        this._updateNativeZoom();
+    }
+
+    /**
+     * Finds the native zoom of the sources for the tile size of the planet strategy, the sources open before or after
+     * the layer gets to the planet. Deeper tiles take the texture of the native zoom tile.
+     * @protected
+     */
+    protected _updateNativeZoom() {
+        if (!this._autoNativeZoom || !this._planet || !this._reader.isReady) {
+            return;
+        }
+
+        const width = this._planet.quadTreeStrategy.rootTileWidth;
+
+        if (width !== this._nativeZoomRootTileWidth) {
+            this._nativeZoomRootTileWidth = width;
+
+            this.maxNativeZoom = this._reader.getNativeZoom(width, this._tileSize);
+        }
     }
 
     public override addTo(planet: Planet) {
@@ -357,7 +387,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             if (!seg) continue;
 
             const mat = seg.materials[lid];
-            const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
+            const cacheKey = seg.tileIndex;
             renderedKeys.add(cacheKey);
 
             const tileData = this._rasterCache.get(cacheKey);
@@ -395,7 +425,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                     }
                     if (mat.isReady && mat.texture) {
                         const seg = mat.segment;
-                        const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
+                        const cacheKey = seg.tileIndex;
                         if (!renderedKeys.has(cacheKey)) {
                             const cached = this._tileCache.get(cacheKey);
                             if (cached) {
@@ -433,9 +463,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                 this.setExtent(this._reader.extentWgs84);
             }
 
-            if (options.useImageCountAsMaximumLevel) {
-                this.maxNativeZoom = Math.min(this.maxNativeZoom, meta.overviewCount - 1);
-            }
+            this._updateNativeZoom();
 
             // Set up default rendering mode if not configured
             this._normalizeRenderOptions(meta);
@@ -459,9 +487,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
                 this.setExtent(this._reader.extentWgs84);
             }
 
-            if (options.useImageCountAsMaximumLevel) {
-                this.maxNativeZoom = Math.min(this.maxNativeZoom, meta.overviewCount - 1);
-            }
+            this._updateNativeZoom();
 
             // Set up default rendering mode if not configured
             this._normalizeRenderOptions(meta);
@@ -585,7 +611,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             return;
         }
 
-        const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
+        const cacheKey = seg.tileIndex;
 
         material.isReady = false;
         material.isLoading = true;
@@ -643,7 +669,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
             if (!pending) break;
 
             const seg = pending.material.segment;
-            const cacheKey = `${seg.tileZoom}_${seg.tileX}_${seg.tileY}`;
+            const cacheKey = seg.tileIndex;
 
             const image = this._getCachedTileImage(cacheKey);
 
@@ -694,13 +720,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         this._activeRequestsCount++;
 
         this._reader
-            .readTileRasters(
-                seg.getExtentLonLat(),
-                seg.tileZoom,
-                this._tileSize,
-                this._readSamples.slice(),
-                seg._projection
-            )
+            .readTileRasters(seg, this._tileSize, this._readSamples.slice())
             .then((tileData) => {
                 this._activeRequestsCount--;
 

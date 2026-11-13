@@ -309,7 +309,7 @@ function createLevelTile(x, y, z, native = null) {
         tileX: x,
         tileY: y,
         tileZoom: z,
-        _tileGroup: 0,
+        tileGroup: 0,
         tileIndex: Layer.getTileIndex(x, y, z, 0),
         node: native && { segment: { tileZoom: z }, parentNode: { segment: native } },
         getExtent: () => new Extent(new LonLat(x * w, 8 - (y + 1) * w), new LonLat((x + 1) * w, 8 - y * w))
