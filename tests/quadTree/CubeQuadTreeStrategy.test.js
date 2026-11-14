@@ -696,7 +696,8 @@ describe("plain vertices of the worker", () => {
 
         for (let i = 0; i < seg.plainVertices.length; i++) {
             expect(Math.abs(result.plainVertices[i] - seg.plainVertices[i])).toBeLessThan(1e-6);
-            expect(Math.abs(result.plainNormals[i] - seg.plainNormals[i])).toBeLessThan(1e-6);
+            // The normals are in NormalsArray, a Float16 step apart at most
+            expect(Math.abs(result.plainNormals[i] - seg.plainNormals[i])).toBeLessThan(1e-3);
         }
     });
 });
@@ -809,7 +810,7 @@ describe("the geoid on the cube", () => {
         planet.terrain.plainGridSize = 8;
         planet._heightFactor = HEIGHT_FACTOR;
 
-        self.onmessage({ data: { model, rawfile: model.rawfile } });
+        self.onmessage({ data: { geoidId: geoid.id, model, rawfile: model.rawfile } });
 
         // Geoid takes its first cell for the cached one, the pole is in this cell
         geoid.getHeight(100, 10);
@@ -1223,7 +1224,8 @@ describe("the cube on an ellipsoid flattened twice", () => {
         }
 
         expect(worst).toBeLessThan(1e-12);
-        expect(worstNormal).toBeLessThan(1e-6);
+        // The normals are in NormalsArray, Float16 where there is one
+        expect(worstNormal).toBeLessThan(1e-3);
         expect(worstMain).toBeLessThan(1e-6);
     });
 

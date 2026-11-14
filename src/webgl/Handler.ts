@@ -20,6 +20,7 @@ import { createEvents } from "../Events";
 import type { EventsHandler } from "../Events";
 import { getUrlParam, isEmpty } from "../utils/shared";
 import type { TypedArray } from "../utils/shared";
+import type { NormalsArray } from "../utils/normalsArray";
 import { ImageCanvas } from "../ImageCanvas";
 import { Vec2 } from "../math/Vec2";
 import type { NumberArray2 } from "../math/Vec2";
@@ -28,7 +29,8 @@ import { Stack } from "../Stack";
 import { throttle } from "../utils/shared";
 
 export type WebGLContextExt = { type: string } & WebGL2RenderingContext;
-export type WebGLBufferExt = { numItems: number; itemSize: number } & WebGLBuffer;
+// type - Index type of an element array buffer, gl.UNSIGNED_SHORT or gl.UNSIGNED_INT, see Handler.createElementArrayBuffer.
+export type WebGLBufferExt = { numItems: number; itemSize: number; type?: number } & WebGLBuffer;
 export type WebGLTextureExt = { default?: boolean } & WebGLTexture;
 export type ImageSource = HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement | HTMLVideoElement;
 type CreateTextureFunc = (
@@ -1029,13 +1031,18 @@ class Handler {
     /**
      * Creates and initializes ARRAY_BUFFER from a typed array.
      * @public
-     * @param {TypedArray} array - Source data.
+     * @param {TypedArray | NormalsArray} array - Source data.
      * @param {number} itemSize - Number of scalar components per item.
      * @param {number} [numItems] - Number of items (computed from array length when omitted).
      * @param {number} [usage=STATIC_DRAW] - GL usage hint (STATIC_DRAW, DYNAMIC_DRAW or STREAM_DRAW).
      * @return {WebGLBufferExt} -
      */
-    public createArrayBuffer(array: TypedArray, itemSize: number, numItems?: number, usage?: number): WebGLBufferExt {
+    public createArrayBuffer(
+        array: TypedArray | NormalsArray,
+        itemSize: number,
+        numItems?: number,
+        usage?: number
+    ): WebGLBufferExt {
         let gl = this.gl!;
         let buffer: WebGLBufferExt = gl.createBuffer() as WebGLBufferExt;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -1086,6 +1093,11 @@ class Handler {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null!);
         buffer.itemSize = itemSize;
         buffer.numItems = numItems || array.length;
+        if (array instanceof Uint16Array) {
+            buffer.type = gl.UNSIGNED_SHORT;
+        } else if (array instanceof Uint32Array) {
+            buffer.type = gl.UNSIGNED_INT;
+        }
         return buffer;
     }
 

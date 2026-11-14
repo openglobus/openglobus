@@ -517,6 +517,7 @@ class ElevationProfileScene extends Scene {
     protected _onLClick = (e: IMouseState) => {
         let groundPos = this._planet!.getCartesianFromPixelTerrain(e.pos);
         if (groundPos) {
+            this.renderer!.setRelativeCenter();
             this.addGroundPoint3vAsync(groundPos);
         }
     };
@@ -616,6 +617,7 @@ class ElevationProfileScene extends Scene {
     protected _onGroundPointerLDown = (e: IMouseState) => {
         this._clampToGround = false;
         this.renderer!.controls.navigation.deactivate();
+        this.renderer!.setRelativeCenter();
         this._pickedGroundEntity = e.pickingObject;
         const coords = this._pickedGroundEntity!.getCartesian();
         this._startClickPos.set(e.x, e.y);
@@ -638,6 +640,7 @@ class ElevationProfileScene extends Scene {
 
     protected _onHeadPointerLDown = (e: IMouseState) => {
         this.renderer!.controls.navigation.deactivate();
+        this.renderer!.setRelativeCenter();
         this._pickedHeadEntity = e.pickingObject;
     };
 

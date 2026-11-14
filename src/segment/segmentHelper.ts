@@ -11,8 +11,14 @@ function NewIndexesTypedArray(arr: number[]): IndexTypeArray {
     return new Uint32Array(arr);
 }
 
-function NewIndexesTypedArrayEmpty(size: number): IndexTypeArray {
-    return new Uint32Array(size);
+/**
+ * Index array of the GPU buffer: 16 bit when the indexes fit, 32 bit otherwise.
+ * Index 0xFFFF restarts a primitive in WebGL2, so the 16 bit indexes stay below it.
+ * @param length - Index count.
+ * @param vertexCount - Vertex count, the indexes are less than it.
+ */
+export function createIndexesArray(length: number, vertexCount: number): Uint16Array | Uint32Array {
+    return vertexCount <= 0xffff ? new Uint16Array(length) : new Uint32Array(length);
 }
 
 function createCenterBodyIndexes(size: number): IndexTypeArray {
@@ -273,7 +279,7 @@ class SegmentHelper {
         this.init();
     }
 
-    public createSegmentIndexes(size: number, sidesSizes: [number, number, number, number]) {
+    public createSegmentIndexes(size: number, sidesSizes: [number, number, number, number]): Uint16Array | Uint32Array {
         if (size) {
             let c = this.centerIndexesTable[size],
                 w = this.skirtsIndexesTable[W][size][sidesSizes[W]],
@@ -281,7 +287,9 @@ class SegmentHelper {
                 e = this.skirtsIndexesTable[E][size][sidesSizes[E]],
                 s = this.skirtsIndexesTable[S][size][sidesSizes[S]];
 
-            let indexes = NewIndexesTypedArrayEmpty(c.length + w.length + n.length + e.length + s.length);
+            const d = (1 << size) + 1;
+
+            let indexes = createIndexesArray(c.length + w.length + n.length + e.length + s.length, d * d);
 
             indexes.set(c, 0);
             indexes.set(w, c.length);
@@ -291,7 +299,7 @@ class SegmentHelper {
 
             return indexes;
         } else {
-            return NewIndexesTypedArray([0, 2, 1, 3]);
+            return new Uint16Array([0, 2, 1, 3]);
         }
     }
 

@@ -1,0 +1,345 @@
+<html>
+<head>
+    <title>Centimeter Cubes Terrain | OpenGlobus Example</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="OpenGlobus example: a procedural terrain of 5 cm or 1 cm cubes over the whole globe, to look at the terrain at the centimeter scale." />
+    <meta name="keywords" content="Planet, ProceduralTerrain, terrain, worker, CanvasTiles" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/og.css" type="text/css"/>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        #panel {
+            position: absolute;
+            /* Down, the profile and ruler buttons are on the top */
+            left: 10px;
+            bottom: 30px;
+            z-index: 10;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: rgba(20, 24, 30, 0.82);
+            color: #eee;
+            font: 13px/1.5 sans-serif;
+        }
+
+        #panel button {
+            margin: 2px 4px 2px 0;
+            padding: 3px 9px;
+            border: 1px solid #889;
+            border-radius: 4px;
+            background: #334;
+            color: #eee;
+            cursor: pointer;
+        }
+
+        #panel button.active {
+            background: #c8762f;
+            border-color: #c8762f;
+        }
+    </style>
+</head>
+
+<body>
+<div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
+<div id="panel">
+    <div>
+        Cubes:
+        <button id="cubes5" class="active">5 cm</button>
+        <button id="cubes1">1 cm</button>
+    </div>
+    <div>
+        <button id="close">Fly to the cubes</button>
+    </div>
+    <div id="info"></div>
+</div>
+<script type="module" id="og-sandbox-script">
+
+    'use strict';
+
+    import { Globe, ProceduralTerrain, CanvasTiles, OpenStreetMap, LonLat, control } from "../../lib/og.es.js";
+
+    //
+    // A checkerboard of cubes over the whole globe: a cell is raised by its size, the next one is not.
+    // The cells are squares in Web Mercator, 1 / 2^n of the world width, so the elevation grid of a tile
+    // has a whole number of steps in a cell and the walls are on the grid vertices. A Mercator square is
+    // smaller on the ground to the poles: the cube is its size at the latitude it is made for.
+    //
+    const PLAIN_GRID_SIZE = 256;
+
+    const MERC_WORLD = 2 * 20037508.342789244;
+
+    // Elevation grid step of the zoom, in Web Mercator meters
+    const gridStep = (zoom) => MERC_WORLD / (1 << zoom) / PLAIN_GRID_SIZE;
+
+    // The first zoom with this many grid steps in a cell
+    const zoomWithSteps = (cell, steps) => {
+        let z = 0;
+        while (gridStep(z) > cell / steps) z++;
+        return z;
+    };
+
+    const runJob = createWorker();
+
+    // size: the cube on the ground, meters; n: the cell is 1 / 2^n of the world width in Web Mercator
+    function createCubesTerrain(size, n) {
+        const cell = MERC_WORLD / 2 ** n;
+
+        // The cubes are on the tiles with 2 elevation steps in a cell at least, smaller ones look like noise;
+        // the heights are made up to the zoom with 8 steps in a cell, the walls are 1/8 of the cell
+        const minZoom = zoomWithSteps(cell, 2),
+            maxZoom = zoomWithSteps(cell, 8);
+
+        // Mesh grid sizes by zoom. The quad tree goes as deep as this array, two zooms over maxZoom.
+        const gridSizeByZoom = [];
+        for (let z = 0; z <= maxZoom + 2; z++) {
+            gridSizeByZoom[z] = z < minZoom ? (z < 3 ? 64 >> z : 32) : z === minZoom ? 64 : 128;
+        }
+
+        const terrain = new ProceduralTerrain(`Cubes ${size * 100} cm`, {
+            geoidSrc: null,
+            minZoom,
+            maxZoom,
+            plainGridSize: PLAIN_GRID_SIZE,
+            gridSizeByZoom,
+            maxHeight: size,
+            // The polar segments are in degrees, they are flat
+            getHeights: (segment) => (segment.isPole ? null : runJob(segment, cell, size))
+        });
+
+        terrain.cell = cell;
+        terrain.size = size;
+        // Where the Mercator cell is the size on the ground
+        terrain.lat = (Math.acos(size / cell) * 180) / Math.PI;
+
+        return terrain;
+    }
+
+    // 7.46 cm and 1.87 cm Mercator cells: 5 cm at 47.9°, 1 cm at 57.6°
+    const terrains = {
+        5: createCubesTerrain(0.05, 29),
+        1: createCubesTerrain(0.01, 31)
+    };
+
+    let current = terrains[5];
+
+    //
+    // The cells colored as the cubes: the raised ones orange, the others blue
+    //
+    const cnv = document.createElement("canvas"),
+        ctx = cnv.getContext("2d");
+    cnv.width = cnv.height = 256;
+    // The pattern pixels stay sharp cells when they are scaled
+    ctx.imageSmoothingEnabled = false;
+
+    const RAISED = "rgb(226, 138, 62)",
+        LOW = "rgb(72, 94, 128)";
+
+    // A 2 x 2 pixels checkerboard, a pixel is a cell; patterns[p]: the first cell is raised when p is 1
+    const patterns = [0, 1].map((p) => {
+        const c = document.createElement("canvas"),
+            cx = c.getContext("2d");
+        c.width = c.height = 2;
+        cx.fillStyle = p ? RAISED : LOW;
+        cx.fillRect(0, 0, 1, 1);
+        cx.fillRect(1, 1, 1, 1);
+        cx.fillStyle = p ? LOW : RAISED;
+        cx.fillRect(1, 0, 1, 1);
+        cx.fillRect(0, 1, 1, 1);
+        return ctx.createPattern(c, "repeat");
+    });
+
+    // An overlay, the switcher turns it off and the cubes are seen by the light only
+    const grid = new CanvasTiles("Cubes", {
+        isBaseLayer: false,
+        drawTile: (material, applyCanvas) => {
+            const e = material.segment.getExtent(),
+                west = e.southWest.lon,
+                north = e.northEast.lat,
+                size = e.getWidth(),
+                cell = current.cell,
+                px = (256 * cell) / size;
+
+            if (px < 2 || material.segment.isPole) {
+                // Smaller than the pixels: the mean color and the tile border
+                ctx.fillStyle = "rgb(150, 116, 92)";
+                ctx.fillRect(0, 0, 256, 256);
+                ctx.strokeStyle = "rgba(40, 40, 40, 0.35)";
+                ctx.strokeRect(0, 0, 256, 256);
+            } else {
+                // One fill: the pattern starts at the cell of the north-west corner, a pattern pixel is a cell.
+                // The cell in the row i (from the south) and the column j is raised when i + j is odd.
+                const j0 = Math.floor(west / cell),
+                    i0 = Math.floor(north / cell),
+                    pattern = patterns[(((i0 + j0) % 2) + 2) % 2];
+                pattern.setTransform(
+                    new DOMMatrix()
+                        .translate(((j0 * cell - west) / size) * 256, ((north - (i0 + 1) * cell) / size) * 256)
+                        .scale(px)
+                );
+                ctx.fillStyle = pattern;
+                ctx.fillRect(0, 0, 256, 256);
+            }
+            applyCanvas(cnv);
+        }
+    });
+
+    // Base layers under the cubes: one color, or the map
+    const plainCanvas = document.createElement("canvas");
+    plainCanvas.width = plainCanvas.height = 256;
+    const plainCtx = plainCanvas.getContext("2d");
+    plainCtx.fillStyle = "rgb(205, 202, 194)";
+    plainCtx.fillRect(0, 0, 256, 256);
+
+    const plain = new CanvasTiles("Plain", {
+        isBaseLayer: true,
+        visibility: true,
+        drawTile: (material, applyCanvas) => applyCanvas(plainCanvas)
+    });
+
+    const osm = new OpenStreetMap(null, { visibility: false });
+
+    const globe = new Globe({
+        name: "Cubes",
+        target: "globus",
+        terrain: current,
+        layers: [plain, osm, grid],
+        // The normal maps of the 256 elevation grid need it
+        maxGridSize: 256,
+        // A few millimeters over the cubes
+        minAltitude: 0.002,
+        atmosphereEnabled: true
+    });
+
+    window.globe = globe;
+
+    const planet = globe.planet;
+
+    // The distances and the heights over the cubes
+    planet.addControl(new control.RulerSwitcher({ ignoreTerrain: false }));
+    planet.addControl(new control.ElevationProfileControl());
+    planet.addControl(new control.LayerSwitcher());
+    planet.addControl(new control.DebugInfo());
+
+    // The near plane follows the altitude down to half a millimeter, the cubes are not cut by it
+    planet.nearPlaneStrategy = {
+        applyNear(camera) {
+            if (camera.frustums.length !== 1) return;
+            const near = Math.min(3500, Math.max(0.0005, Math.max(0, camera.getAltitude()) * 0.05));
+            if (camera.frustums[0].near !== near) {
+                camera.setNearFar(near);
+            }
+        }
+    };
+
+    // At the latitude where the cubes are their size
+    const lookAt = (height, distance) => {
+        const el = planet.ellipsoid,
+            lon = 10.0,
+            lat = current.lat,
+            eye = el.lonLatToCartesian(new LonLat(lon, lat, height)),
+            // distance meters to the north, on the ground
+            look = el.lonLatToCartesian(new LonLat(lon, lat + (distance / 6378137) * (180 / Math.PI), 0));
+        return { eye, look, up: eye.getNormal() };
+    };
+
+    const start = lookAt(1500, 2500);
+    planet.camera.set(start.eye, start.look, start.up);
+    planet.camera.update();
+
+    const setCubes = (k) => {
+        current = terrains[k];
+        planet.setTerrain(current);
+        grid.clear();
+        document.getElementById("cubes5").classList.toggle("active", k === 5);
+        document.getElementById("cubes1").classList.toggle("active", k === 1);
+    };
+
+    document.getElementById("cubes5").onclick = () => setCubes(5);
+    document.getElementById("cubes1").onclick = () => setCubes(1);
+
+    // Twelve cubes over the ground, looking at the cubes ahead
+    document.getElementById("close").onclick = () => {
+        const c = current.size,
+            v = lookAt(12 * c, 30 * c);
+        planet.camera.flyCartesian(v.eye, { look: v.look, up: v.up, duration: 6000 });
+    };
+
+    const info = document.getElementById("info"),
+        length = (m) => (m < 1 ? `${(m * 100).toFixed(m < 0.1 ? 2 : 1)} cm` : m < 1000 ? `${m.toFixed(1)} m` : `${(m / 1000).toFixed(1)} km`);
+
+    globe.renderer.events.on("draw", () => {
+        const cam = planet.camera,
+            lat = cam.getLonLat().lat,
+            cube = current.cell * Math.cos((lat * Math.PI) / 180);
+        let zoom = 0;
+        for (const n of planet.quadTreeStrategy._renderedNodes) {
+            zoom = Math.max(zoom, n.segment.tileZoom);
+        }
+        info.innerHTML =
+            `altitude ${length(cam.getAltitude())}<br>` +
+            `a cube here ${length(cube)}, ${length(current.size)} at ${current.lat.toFixed(1)}°<br>` +
+            `cubes from zoom ${current.minZoom}, heights to ${current.maxZoom}, tiles now to ${zoom}`;
+    });
+
+    //
+    // Worker: (size + 1)^2 heights evenly spaced in the Web Mercator extent of the segment,
+    // rows from north to south. It is made from the function text, so it must be self-contained.
+    //
+    function cubesWorker() {
+        self.onmessage = (e) => {
+            // cell: Web Mercator meters; height: the cube on the ground, meters
+            let { id, size, cell, height, extent: [west, south, east, north] } = e.data,
+                gs = size + 1,
+                dx = (east - west) / size,
+                dy = (north - south) / size,
+                heights = new Float32Array(gs * gs);
+
+            for (let i = 0; i < gs; i++) {
+                const row = Math.floor((north - i * dy) / cell);
+                for (let j = 0; j < gs; j++) {
+                    const col = Math.floor((west + j * dx) / cell);
+                    heights[i * gs + j] = (row + col) % 2 !== 0 ? height : 0;
+                }
+            }
+
+            self.postMessage({ id, heights }, [heights.buffer]);
+        };
+    }
+
+    // Returns runJob(segment, cell, height), the promise of the segment heights from the worker
+    function createWorker() {
+        const worker = new Worker(URL.createObjectURL(new Blob(
+            [`(${cubesWorker.toString()})();`],
+            { type: "text/javascript" }
+        )));
+
+        const jobs = new Map();
+        let jobCounter = 0;
+
+        worker.onmessage = (e) => {
+            jobs.get(e.data.id)(e.data.heights);
+            jobs.delete(e.data.id);
+        };
+
+        return (segment, cell, height) => {
+            let e = segment.getExtent(),
+                id = jobCounter++;
+
+            return new Promise((resolve) => {
+                jobs.set(id, resolve);
+                worker.postMessage({
+                    id,
+                    size: PLAIN_GRID_SIZE,
+                    cell,
+                    height,
+                    extent: [e.southWest.lon, e.southWest.lat, e.northEast.lon, e.northEast.lat]
+                });
+            });
+        };
+    }
+</script>
+</body>
+</html>
