@@ -1059,6 +1059,8 @@ export class Planet extends Scene {
         this.terrain = terrain;
         this.terrain._planet = this;
 
+        this._normalMapCreator.setGridSize(terrain.plainGridSize);
+
         this.addTerrain(terrain);
 
         this.quadTreeStrategy.destroyBranches();

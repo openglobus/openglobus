@@ -30,6 +30,8 @@ interface INormalMapCreatorParams {
     height?: number;
 }
 
+const MIN_NORMAL_MAP_SIZE = 128;
+
 export class NormalMapCreator {
     protected _minTabelSize: number;
     protected _maxTableSize: number;
@@ -84,6 +86,23 @@ export class NormalMapCreator {
         return this._height;
     }
 
+    public setGridSize(gridSize: number) {
+        const size = Math.max(MIN_NORMAL_MAP_SIZE, 2 ** Math.ceil(Math.log2(gridSize)));
+
+        if (size === this._width && size === this._height) {
+            return;
+        }
+
+        this._width = this._height = size;
+
+        // The segments make their textures again, see Segment._createNormalMapTexture
+        if (this._handler) {
+            this._framebuffer!.setSize(size, size);
+            this._handler.gl!.deleteTexture(this._normalMapVerticesTexture!);
+            this._normalMapVerticesTexture = this._handler.createEmptyTexture_l(size, size);
+        }
+    }
+
     public init() {
         this._maxTableSize = this._planet.maxGridSize || 8;
 
@@ -96,9 +115,12 @@ export class NormalMapCreator {
                 a_position: "vec2"
             },
             uniforms: {
-                s_texture: "sampler2d"
+                s_texture: "sampler2d",
+                // A texel of the normal map, 1 / size
+                u_texel: "vec2"
             },
             vertexShader: `#version 300 es
+                        uniform vec2 u_texel;
                         in vec2 a_position;
 
                         out vec2 blurCoordinates[5];
@@ -108,14 +130,15 @@ export class NormalMapCreator {
                             ${isWebkit ? "vt.y = 1.0 - vt.y; " : " "}
                             gl_Position = vec4(a_position, 0.0, 1.0);
                             blurCoordinates[0] = vt;
-                            blurCoordinates[1] = vt + vec2(${(1.0 / this._width) * 1.407333}, 0.0);
-                            blurCoordinates[2] = vt - vec2(${(1.0 / this._width) * 1.407333}, 0.0);
-                            blurCoordinates[3] = vt + vec2(0.0, ${(1.0 / this._height) * 3.294215});
-                            blurCoordinates[4] = vt - vec2(0.0, ${(1.0 / this._height) * 3.294215});
+                            blurCoordinates[1] = vt + vec2(u_texel.x * 1.407333, 0.0);
+                            blurCoordinates[2] = vt - vec2(u_texel.x * 1.407333, 0.0);
+                            blurCoordinates[3] = vt + vec2(0.0, u_texel.y * 3.294215);
+                            blurCoordinates[4] = vt - vec2(0.0, u_texel.y * 3.294215);
                         }`,
             fragmentShader: `#version 300 es
                         precision highp float;
                         uniform sampler2D s_texture;
+                        uniform vec2 u_texel;
                         in vec2 blurCoordinates[5];
                         out vec4 fragColor;
 
@@ -128,8 +151,9 @@ export class NormalMapCreator {
                             vec4 center = texture(s_texture, uv);
 
                             // Keep border intact to avoid seams between adjacent tiles.
-                            if(uv.x <= ${3.294215 / this._width} || uv.x >= ${1.0 - 3.294215 / this._width} ||
-                               uv.y <= ${3.294215 / this._height} || uv.y >= ${1.0 - 3.294215 / this._height}) {
+                            vec2 border = u_texel * 3.294215;
+                            if(uv.x <= border.x || uv.x >= 1.0 - border.x ||
+                               uv.y <= border.y || uv.y >= 1.0 - border.y) {
                                 fragColor = center;
                                 return;
                             }
@@ -151,15 +175,19 @@ export class NormalMapCreator {
                 a_position: "vec2",
                 a_normal: "vec3"
             },
-            uniforms: {},
+            uniforms: {
+                // (size - 0.98) / size of the normal map
+                u_scale: "vec2"
+            },
             vertexShader: `#version 300 es
+                        uniform vec2 u_scale;
                         in vec2 a_position;
                         in vec3 a_normal;
 
                         out vec3 v_color;
 
                         void main() {
-                            gl_Position = vec4(a_position * vec2(${(this._width - 0.98) / this._width}, ${(this._height - 0.98) / this._height}), 0.0, 1.0);
+                            gl_Position = vec4(a_position * u_scale, 0.0, 1.0);
                             v_color = normalize(a_normal) * 0.5 + 0.5;
                         }`,
             fragmentShader: `#version 300 es
@@ -232,6 +260,10 @@ export class NormalMapCreator {
                     segment._normalMapEdgeEqualize(quadTree.E);
                 }
 
+                if (segment._normalMapTextureSize !== this._width) {
+                    segment._createNormalMapTexture();
+                }
+
                 let outTexture = segment.normalMapTexturePtr;
 
                 const h = this._handler!;
@@ -246,6 +278,11 @@ export class NormalMapCreator {
                 f.bindOutputTexture(this._normalMapVerticesTexture!);
 
                 p.activate();
+                gl.uniform2f(
+                    p.uniforms.u_scale,
+                    (this._width - 0.98) / this._width,
+                    (this._height - 0.98) / this._height
+                );
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, indBuf);
                 gl.vertexAttribPointer(sha.a_position, indBuf.itemSize, gl.FLOAT, false, 0, 0);
@@ -274,6 +311,7 @@ export class NormalMapCreator {
                 p = h.programs.normalMapBlur;
 
                 p.activate();
+                gl.uniform2f(p.uniforms.u_texel, 1 / this._width, 1 / this._height);
                 gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer!);
                 gl.vertexAttribPointer(p.attributes.a_position, this._positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
                 gl.activeTexture(gl.TEXTURE0);
@@ -304,6 +342,10 @@ export class NormalMapCreator {
                     segment._normalMapEdgeEqualize(quadTree.E);
                 }
 
+                if (segment._normalMapTextureSize !== this._width) {
+                    segment._createNormalMapTexture();
+                }
+
                 let outTexture = segment.normalMapTexturePtr;
 
                 const h = this._handler!;
@@ -318,6 +360,11 @@ export class NormalMapCreator {
                 f.bindOutputTexture(outTexture!);
 
                 p.activate();
+                gl.uniform2f(
+                    p.uniforms.u_scale,
+                    (this._width - 0.98) / this._width,
+                    (this._height - 0.98) / this._height
+                );
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, indBuf);
                 gl.vertexAttribPointer(sha.a_position, indBuf.itemSize, gl.FLOAT, false, 0, 0);

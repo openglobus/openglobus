@@ -29,13 +29,19 @@
                 new MapterhornTerrain("Mapterhorn 128", {
                     plainGridSize: 128
                 }),
-                new MapterhornTerrain("Mapterhorn 256")
+                new MapterhornTerrain("Mapterhorn 256"),
+                // The full 512 px tile, the normal maps are 512 x 512
+                new MapterhornTerrain("Mapterhorn 512", {
+                    plainGridSize: 512
+                })
             ];
 
             window.globe = new Globe({
                 target: "globus",
                 name: "Earth",
                 terrain: terrains,
+                // The 512 elevation grid
+                maxGridSize: 512,
                 layers: [osm],
                 atmosphereEnabled: true,
                 idleMode: true
