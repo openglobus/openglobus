@@ -56,7 +56,7 @@ type TileHeights = {
  * to them keeping peaks and pits. Segments of the height requests are not in the quad tree, their node is null.
  * The function runs in the main thread. Returned heights are reduced in the main thread too and applied right away,
  * promised heights are reduced in a worker when the promise is resolved.
- * @param {number} [options.plainGridSize=32] - Elevation grid size.
+ * @param {number} [options.plainGridSize=128] - Elevation grid size, the normal maps are of this size too.
  * @param {number} [options.maxNativeZoom=maxZoom] - Last zoom of the height requests. Deeper segments are the
  * subdivision levels of the maxNativeZoom segment heights, as RgbTerrain ones, its pixels keep their heights there.
  * @param {number} [options.nativeCacheSize=50] - Number of maxNativeZoom segments which pixels are kept to make
@@ -70,7 +70,7 @@ type TileHeights = {
  * @example
  * // Heights made right away are reduced in the main thread
  * new ProceduralTerrain("Flat", {
- *     getHeights: (segment) => new Float32Array(129 * 129).fill(100)
+ *     getHeights: (segment) => new Float32Array(128 * 128).fill(100)
  * });
  *
  * // Promised heights are reduced in a worker
@@ -108,7 +108,7 @@ class ProceduralTerrain extends EmptyTerrain {
         this.events = createEvents(TERRAIN_EVENTS, this);
         this.isEmpty = false;
         this.equalizeNormals = true;
-        this.plainGridSize = options.plainGridSize || 32;
+        this.plainGridSize = options.plainGridSize || 128;
         this.noDataValues = options.noDataValues || [];
         this._loading = 0;
         this._getHeights = options.getHeights;

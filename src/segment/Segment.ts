@@ -419,6 +419,9 @@ class Segment {
 
     public normalMapTexturePtr: WebGLTextureExt | null;
 
+    /** Size of normalMapTexturePtr, see NormalMapCreator.setGridSize. */
+    public _normalMapTextureSize: number;
+
     public _transitionOpacity: number;
 
     public _transitionTimestamp: number;
@@ -567,6 +570,7 @@ class Segment {
         this.plainProcessing = false;
 
         this.normalMapTexturePtr = null;
+        this._normalMapTextureSize = 0;
 
         this._transitionOpacity = 1.0;
 
@@ -1344,8 +1348,7 @@ class Segment {
             this.terrainExists = true;
 
             if (!this.normalMapTexturePtr) {
-                const nmc = this.planet._normalMapCreator;
-                this.normalMapTexturePtr = this.planet.renderer!.handler.createEmptyTexture_l(nmc.width, nmc.height);
+                this._createNormalMapTexture();
             }
 
             this.planet._normalMapCreator.queue(this);
@@ -2111,6 +2114,19 @@ class Segment {
         this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom, this.tileGroup);
     }
 
+    /**
+     * Makes the normal map texture of the NormalMapCreator size, the previous one is deleted.
+     */
+    public _createNormalMapTexture() {
+        const nmc = this.planet._normalMapCreator,
+            h = this.planet.renderer!.handler;
+        if (this.normalMapTexturePtr) {
+            h.gl!.deleteTexture(this.normalMapTexturePtr);
+        }
+        this.normalMapTexturePtr = h.createEmptyTexture_l(nmc.width, nmc.height);
+        this._normalMapTextureSize = nmc.width;
+    }
+
     public initialize() {
         const p = this.planet;
         const n = this.node;
@@ -2120,8 +2136,7 @@ class Segment {
         n.sideSizeLog2[0] = n.sideSizeLog2[1] = n.sideSizeLog2[2] = n.sideSizeLog2[3] = Math.log2(this.gridSize);
 
         if (this.tileZoom <= p.terrain!.maxZoom) {
-            const nmc = this.planet._normalMapCreator;
-            this.normalMapTexturePtr = p.renderer!.handler.createEmptyTexture_l(nmc.width, nmc.height);
+            this._createNormalMapTexture();
         }
 
         this.normalMapTexture = this.planet.transparentTexture;
