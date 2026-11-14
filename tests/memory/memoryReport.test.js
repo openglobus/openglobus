@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { collectMemoryReport } from "../../sandbox/memoryReport/memoryReport.js";
+import { collectMemoryReport } from "./memoryReport.js";
 
 const FILE_VERTICES = 257 * 257,
     MESH_VERTICES = 65 * 65;
