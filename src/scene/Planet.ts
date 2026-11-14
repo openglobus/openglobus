@@ -1064,18 +1064,23 @@ export class Planet extends Scene {
         this.quadTreeStrategy.destroyBranches();
         this.quadTreeStrategy.clearRenderedNodes();
 
+        this._terrainWorker.clearPendingQueue();
+        this._plainSegmentWorker.clearPendingQueue();
+
         this.events.dispatch(this.events.terrainchange, terrain);
 
         this.updateAttributionsList();
 
         if (terrain._geoid.model) {
             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+            this._terrainWorker.setGeoid(terrain.getGeoid());
             terrain._isReady = true;
         } else {
             Geoid.loadModel(terrain.geoid.src)
                 .then((m: GeoidModel | null) => {
                     terrain.geoid.setModel(m);
                     this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+                    this._terrainWorker.setGeoid(terrain.getGeoid());
                     terrain._isReady = true;
                 })
                 .catch((err) => {

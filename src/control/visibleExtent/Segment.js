@@ -741,6 +741,7 @@ class Segment {
             this.terrainExists = false;
         }
     }
+
     _normalMapEdgeEqualize(side) {
         let nn = this.node.neighbors;
         let n = nn[side][0];
@@ -1525,7 +1526,7 @@ class Segment {
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
+            gl.drawElements(p.drawMode, this._indexBuffer.numItems, this._indexBuffer.type, 0);
         }
     }
 
@@ -1594,7 +1595,7 @@ class Segment {
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
+            gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, this._indexBuffer.type, 0);
         }
     }
 
@@ -1670,7 +1671,7 @@ class Segment {
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
+            gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, this._indexBuffer.type, 0);
         }
     }
 
@@ -1739,7 +1740,7 @@ class Segment {
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
+            gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, this._indexBuffer.type, 0);
         }
     }
 
@@ -1804,4 +1805,5 @@ class Segment {
         return -1;
     }
 }
+
 export { Segment };

@@ -4,6 +4,7 @@
 //
 import { getMedian, getMeshHeights } from "../terrain/terrainUtils";
 import { doubleToTwoFloatsV3 } from "../math/doubleToTwoFloats";
+import { createPlainGrid, setGeoidModel } from "./plainGrid";
 
 function binarySearchFast(arr, x) {
     let start = 0,
@@ -45,20 +46,35 @@ var _r2 = new Float64Array(0);
 // Geocentric file grid vertices, the quad normals are made from them
 var _world = new Float64Array(0);
 
+// Plain grid the elevations are added to, see utils/plainGrid
+var _plainVertices = new Float64Array(0),
+    _plainNormals = new Float32Array(0);
+
+// A tile with a mesh grid less than that gives its file grid vertices to the children, see Node.whileTerrainLoading
+const MIN_GRID_SIZE_WITHOUT_FILE_VERTICES = 4;
+
+// Geoid the data are made with, see Geoid.id
+var _geoidId = -1;
+
 self.onmessage = function (e) {
+    if (e.data.geoidId !== undefined) {
+        _geoidId = e.data.geoidId;
+        if (e.data.model) {
+            setGeoidModel(e.data.model, e.data.rawfile);
+        }
+        return;
+    }
+
     var elevations = e.data.elevations,
-        this_plainVertices = e.data.this_plainVertices,
-        this_plainNormals = e.data.this_plainNormals,
-        this_normalMapVertices = e.data.this_normalMapVertices,
-        this_normalMapNormals = e.data.this_normalMapNormals,
+        params = e.data.params,
         heightFactor = e.data.heightFactor,
         gridSize = e.data.gridSize,
         noDataValues = e.data.noDataValues,
         id = e.data.id;
 
-    let rtc_x = e.data.relativeCenter[0],
-        rtc_y = e.data.relativeCenter[1],
-        rtc_z = e.data.relativeCenter[2];
+    let rtc_x = params[14],
+        rtc_y = params[15],
+        rtc_z = params[16];
 
     var xmin = 549755748352.0,
         xmax = -549755748352.0,
@@ -94,14 +110,30 @@ self.onmessage = function (e) {
         terrainVerticesHigh = new Float32Array(gsgs3),
         terrainVerticesLow = new Float32Array(gsgs3);
 
-    var normalMapNormals, normalMapVertices;
+    var normalMapNormals,
+        normalMapVertices = null;
 
-    var nv = this_normalMapVertices,
-        nn = this_normalMapNormals;
+    const plainGridSize = Math.max(fileGridSize, tgs),
+        plainLength = (plainGridSize + 1) * (plainGridSize + 1) * 3;
+
+    if (_plainVertices.length < plainLength) {
+        _plainVertices = new Float64Array(plainLength);
+        _plainNormals = new Float32Array(plainLength);
+    }
+
+    createPlainGrid(params, plainGridSize, _plainVertices, _plainNormals);
+
+    var nv = _plainVertices,
+        nn = _plainNormals,
+        this_plainVertices = _plainVertices,
+        this_plainNormals = _plainNormals;
 
     if (fileGridSize >= tgs) {
-        normalMapNormals = new Float32Array(fileGridSize_one_x2 * 3);
-        normalMapVertices = new Float64Array(fileGridSize_one_x2 * 3);
+        normalMapNormals = new Float32Array(plainLength);
+
+        if (tgs < MIN_GRID_SIZE_WITHOUT_FILE_VERTICES) {
+            normalMapVertices = new Float64Array(plainLength);
+        }
 
         // Mesh heights keep the elevations peaks and pits, moved to the nearest mesh vertices
         let meshHeights = null;
@@ -143,9 +175,11 @@ self.onmessage = function (e) {
             _world[vInd0 + 1] = v0y;
             _world[vInd0 + 2] = v0z;
 
-            normalMapVertices[vInd0] = v0x - rtc_x;
-            normalMapVertices[vInd0 + 1] = v0y - rtc_y;
-            normalMapVertices[vInd0 + 2] = v0z - rtc_z;
+            if (normalMapVertices) {
+                normalMapVertices[vInd0] = v0x - rtc_x;
+                normalMapVertices[vInd0 + 1] = v0y - rtc_y;
+                normalMapVertices[vInd0 + 2] = v0z - rtc_z;
+            }
 
             //
             // The vertex goes into screen buffer
@@ -265,7 +299,6 @@ self.onmessage = function (e) {
         }
     } else {
         normalMapNormals = new Float32Array(gsgs3);
-        normalMapVertices = new Float64Array(gsgs3);
 
         var oneSize = tgs / fileGridSize;
         var gsgs = gsgs3 / 3;
@@ -354,8 +387,6 @@ self.onmessage = function (e) {
             _r2[i] = r2_tmp;
         }
 
-        normalMapVertices.set(terrainVertices);
-
         for (let k = 0; k < gsgs; k++) {
             let j = k % gs,
                 i = ~~(k / gs);
@@ -439,9 +470,21 @@ self.onmessage = function (e) {
         }
     }
 
+    const transfer = [
+        normalMapNormals.buffer,
+        terrainVertices.buffer,
+        terrainVerticesHigh.buffer,
+        terrainVerticesLow.buffer
+    ];
+
+    if (normalMapVertices) {
+        transfer.push(normalMapVertices.buffer);
+    }
+
     self.postMessage(
         {
             id: id,
+            geoidId: _geoidId,
             normalMapNormals: normalMapNormals,
             normalMapVertices: normalMapVertices,
             terrainVertices: terrainVertices,
@@ -450,14 +493,8 @@ self.onmessage = function (e) {
             bounds: [xmin, ymin, zmin, xmax, ymax, zmax],
             radiusRange: r2max >= r2min ? [Math.sqrt(r2min), Math.sqrt(r2max)] : null,
             lodRadius: Math.sqrt(getMedian(_r2, gs * gs)),
-            relativeCenter: e.data.relativeCenter
+            relativeCenter: [rtc_x, rtc_y, rtc_z]
         },
-        [
-            normalMapNormals.buffer,
-            normalMapVertices.buffer,
-            terrainVertices.buffer,
-            terrainVerticesHigh.buffer,
-            terrainVerticesLow.buffer
-        ]
+        transfer
     );
 };

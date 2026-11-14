@@ -809,7 +809,7 @@ describe("the geoid on the cube", () => {
         planet.terrain.plainGridSize = 8;
         planet._heightFactor = HEIGHT_FACTOR;
 
-        self.onmessage({ data: { model, rawfile: model.rawfile } });
+        self.onmessage({ data: { geoidId: geoid.id, model, rawfile: model.rawfile } });
 
         // Geoid takes its first cell for the cached one, the pole is in this cell
         geoid.getHeight(100, 10);

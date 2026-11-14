@@ -52,7 +52,14 @@ export type GeoidModel = {
     rawfile: Uint8Array;
 };
 
+let __geoidCounter__ = 0;
+
 class Geoid {
+    /**
+     * Geoid identifier, the workers return it with the data they have made.
+     */
+    public readonly id: number;
+
     public model: GeoidModel | null;
     public src: string | null;
 
@@ -65,6 +72,7 @@ class Geoid {
     protected _t: number;
 
     constructor(options: IGeoidParams = {}) {
+        this.id = __geoidCounter__++;
         this.model = options.model || null;
         this.src = options.src || null;
 

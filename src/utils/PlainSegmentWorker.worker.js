@@ -1,85 +1,7 @@
 "use strict";
 
 import { doubleToTwoFloatsV3 } from "../math/doubleToTwoFloats";
-
-let model = null;
-
-let cached_ix = null;
-let cached_iy = null;
-let v00 = null;
-let v01 = null;
-let v10 = null;
-let v11 = null;
-//let t = null;
-
-function rawval(ix, iy) {
-    if (iy < 0) {
-        iy = -iy;
-        ix += model.width / 2;
-    } else if (iy >= model.height) {
-        iy = 2 * (model.height - 1) - iy;
-        ix += model.width / 2;
-    }
-
-    if (ix < 0) {
-        ix += model.width;
-    } else if (ix >= model.width) {
-        ix -= model.width;
-    }
-
-    var k = (iy * model.width + ix) * 2 + model.i;
-
-    return (model.rawfile[k] << 8) | model.rawfile[k + 1];
-}
-
-function getHeightMSL(lon, lat) {
-    if (!model) return 0;
-
-    if (lon < 0) lon += 360.0;
-
-    var fy = (90 - lat) * model.rlatres;
-    var fx = lon * model.rlonres;
-    var iy = Math.floor(fy);
-    var ix = Math.floor(fx);
-
-    fx -= ix;
-    fy -= iy;
-
-    if (iy === model.height - 1) {
-        iy--;
-    }
-
-    if (cached_ix !== ix || cached_iy !== iy) {
-        cached_ix = ix;
-        cached_iy = iy;
-
-        v00 = rawval(ix, iy);
-        v01 = rawval(ix + 1, iy);
-        v10 = rawval(ix, iy + 1);
-        v11 = rawval(ix + 1, iy + 1);
-    }
-
-    let h = null;
-
-    var a = (1 - fx) * v00 + fx * v01;
-    var b = (1 - fx) * v10 + fx * v11;
-
-    h = (1 - fy) * a + fy * b;
-
-    return model.offset + model.scale * h;
-}
-
-const HALF_PI = Math.PI * 0.5;
-const POLE = 20037508.34;
-const PI_BY_POLE = Math.PI / POLE;
-const INV_POLE_BY_180 = 180.0 / POLE;
-const INV_PI_BY_180 = 180.0 / Math.PI;
-const INV_PI_BY_180_HALF_PI = INV_PI_BY_180 * HALF_PI;
-const RADIANS = Math.PI / 180.0;
-const INV_PI_BY_360 = INV_PI_BY_180 * 2.0;
-
-let E2 = 0.0,
-    A = 0.0;
+import { createPlainGrid, setGeoidModel } from "./plainGrid";
 
 const Vec3 = function (x, y, z) {
     this.x = x;
@@ -87,208 +9,79 @@ const Vec3 = function (x, y, z) {
     this.z = z;
 };
 
-// A position on a cube face, from 0 to 1, as a coordinate on the plane of the face, from -1 to 1
-const toEquiangularPlane = (position) => Math.tan(HALF_PI * (position - 0.5));
-const toGnomonicPlane = (position) => 2.0 * position - 1.0;
+// Geoid the data are made with, see Geoid.id
+var _geoidId = -1;
 
-// Longitude terms of the grid columns, the latitude ones are made once per row
-let _lon = new Float64Array(0),
-    _cosLon = new Float64Array(0),
-    _sinLon = new Float64Array(0);
+// Vertices of the normals task, only the normals are sent
+var _vertices = new Float64Array(0);
 
 var rtcPos = new Vec3(0.0, 0.0, 0.0);
 var _tempHigh = new Vec3(0.0, 0.0, 0.0);
 var _tempLow = new Vec3(0.0, 0.0, 0.0);
 
 self.onmessage = function (msg) {
-    if (msg.data.model) {
-        model = msg.data.model;
-        model.rawfile = msg.data.rawfile;
+    if (msg.data.geoidId !== undefined) {
+        _geoidId = msg.data.geoidId;
+        if (msg.data.model) {
+            setGeoidModel(msg.data.model, msg.data.rawfile);
+        }
+    } else if (msg.data.normalsGridSize) {
+        // Normals for the normal map of a segment with no elevations, in the grid the elevations would have
+        const gridSize = msg.data.normalsGridSize,
+            length = (gridSize + 1) * (gridSize + 1) * 3;
+
+        if (_vertices.length < length) {
+            _vertices = new Float64Array(length);
+        }
+
+        let normalMapNormals = new Float32Array(length);
+
+        createPlainGrid(msg.data.params, gridSize, _vertices, normalMapNormals);
+
+        self.postMessage({ id: msg.data.params[0], geoidId: _geoidId, normalMapNormals: normalMapNormals }, [
+            normalMapNormals.buffer
+        ]);
     } else if (msg.data.params) {
-        let rtc_x = msg.data.params[14];
-        let rtc_y = msg.data.params[15];
-        let rtc_z = msg.data.params[16];
-
-        E2 = msg.data.params[8];
-        A = msg.data.params[9];
-
-        let gridSize = msg.data.params[2],
-            fgs = msg.data.params[3],
-            r2_x = msg.data.params[10],
-            r2_y = msg.data.params[11],
-            r2_z = msg.data.params[12];
-
-        let heightFactor = msg.data.params[13];
-
-        // Mercator extent, its coordinates are converted to degrees
-        let isMerc = msg.data.params[1] === 0.0;
-
-        // Cube extent, the longitude is the face index and the position on it, see proj/cube
-        let isCube = msg.data.params[1] >= 2.0,
-            toCubePlane = msg.data.params[1] === 2.0 ? toEquiangularPlane : toGnomonicPlane,
-            face = msg.data.params.subarray(17, 26);
-
-        let maxFgs = Math.max(fgs, gridSize);
-        let llStep = (msg.data.params[6] - msg.data.params[4]) / maxFgs;
-        let ltStep = (msg.data.params[7] - msg.data.params[5]) / maxFgs;
-
-        let esw_lon = msg.data.params[4],
-            ene_lat = msg.data.params[7];
-
-        let dg = Math.max(fgs / gridSize, 1.0),
-            gs = maxFgs + 1;
-
-        const gsgs = gs * gs;
-
-        const gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
+        const params = msg.data.params,
+            gridSize = params[2],
+            gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
 
         let plainNormals = new Float32Array(gridSize3);
 
         let plainVertices = new Float64Array(gridSize3);
         let plainVerticesHigh = new Float32Array(gridSize3);
         let plainVerticesLow = new Float32Array(gridSize3);
-        let normalMapNormals = new Float32Array(gsgs * 3);
-        let normalMapVertices = new Float64Array(gsgs * 3);
 
-        let ind = 0,
-            nmInd = 0;
+        createPlainGrid(params, gridSize, plainVertices, plainNormals);
 
-        if (_lon.length < gs) {
-            _lon = new Float64Array(gs);
-            _cosLon = new Float64Array(gs);
-            _sinLon = new Float64Array(gs);
-        }
+        for (let ind = 0; ind < gridSize3; ind += 3) {
+            rtcPos.x = plainVertices[ind];
+            rtcPos.y = plainVertices[ind + 1];
+            rtcPos.z = plainVertices[ind + 2];
 
-        for (let j = 0; j < gs; j++) {
-            let lon = esw_lon + j * llStep;
-            if (isCube) {
-                _lon[j] = toCubePlane(lon - Math.floor(esw_lon));
-                continue;
-            }
-            if (isMerc) {
-                lon = lon * INV_POLE_BY_180;
-            }
-            let lonrad = RADIANS * lon;
-            _lon[j] = lon;
-            _cosLon[j] = Math.cos(lonrad);
-            _sinLon[j] = Math.sin(lonrad);
-        }
+            doubleToTwoFloatsV3(rtcPos, _tempHigh, _tempLow);
 
-        for (let i = 0; i < gs; i++) {
-            let lat = ene_lat - i * ltStep;
-            if (isMerc) {
-                lat = INV_PI_BY_360 * Math.atan(Math.exp(lat * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI;
-            }
+            plainVerticesHigh[ind] = _tempHigh.x;
+            plainVerticesLow[ind] = _tempLow.x;
 
-            let b = 0.0,
-                slt = 0.0,
-                clt = 0.0,
-                N = 0.0,
-                Nb = 0.0;
+            plainVerticesHigh[ind + 1] = _tempHigh.y;
+            plainVerticesLow[ind + 1] = _tempLow.y;
 
-            if (isCube) {
-                b = toCubePlane(lat);
-            } else {
-                let latrad = RADIANS * lat;
-                slt = Math.sin(latrad);
-                clt = Math.cos(latrad);
-                N = A / Math.sqrt(1.0 - E2 * slt * slt);
-                Nb = N * (1 - E2);
-            }
-
-            for (let j = 0; j < gs; j++) {
-                let wx, wy, wz;
-
-                if (isCube) {
-                    let a = _lon[j],
-                        dx = face[0] + a * face[3] + b * face[6],
-                        dy = face[1] + a * face[4] + b * face[7],
-                        dz = face[2] + a * face[5] + b * face[8],
-                        dl = 1.0 / Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-                    dx *= dl;
-                    dy *= dl;
-                    dz *= dl;
-
-                    let h = model
-                        ? getHeightMSL(Math.atan2(dy, dx) * INV_PI_BY_180, Math.asin(dz) * INV_PI_BY_180) * heightFactor
-                        : 0.0;
-
-                    let Nc = A / Math.sqrt(1.0 - E2 * dz * dz);
-
-                    wx = (Nc + h) * dx;
-                    wy = (Nc + h) * dy;
-                    wz = (Nc * (1 - E2) + h) * dz;
-                } else {
-                    let h = getHeightMSL(_lon[j], lat) * heightFactor;
-
-                    let nc = (N + h) * clt;
-                    wx = nc * _cosLon[j];
-                    wy = nc * _sinLon[j];
-                    wz = (Nb + h) * slt;
-                }
-
-                let nx = wx * r2_x,
-                    ny = wy * r2_y,
-                    nz = wz * r2_z;
-                let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-                let nxl = nx * l,
-                    nyl = ny * l,
-                    nzl = nz * l;
-
-                rtcPos.x = wx - rtc_x;
-                rtcPos.y = wy - rtc_y;
-                rtcPos.z = wz - rtc_z;
-
-                normalMapVertices[nmInd] = rtcPos.x;
-                normalMapNormals[nmInd++] = nxl;
-
-                normalMapVertices[nmInd] = rtcPos.y;
-                normalMapNormals[nmInd++] = nyl;
-
-                normalMapVertices[nmInd] = rtcPos.z;
-                normalMapNormals[nmInd++] = nzl;
-
-                if (i % dg === 0 && j % dg === 0) {
-                    doubleToTwoFloatsV3(rtcPos, _tempHigh, _tempLow);
-
-                    plainVertices[ind] = rtcPos.x;
-                    plainVerticesHigh[ind] = _tempHigh.x;
-                    plainVerticesLow[ind] = _tempLow.x;
-                    plainNormals[ind++] = nxl;
-
-                    plainVertices[ind] = rtcPos.y;
-                    plainVerticesHigh[ind] = _tempHigh.y;
-                    plainVerticesLow[ind] = _tempLow.y;
-                    plainNormals[ind++] = nyl;
-
-                    plainVertices[ind] = rtcPos.z;
-                    plainVerticesHigh[ind] = _tempHigh.z;
-                    plainVerticesLow[ind] = _tempLow.z;
-                    plainNormals[ind++] = nzl;
-                }
-            }
+            plainVerticesHigh[ind + 2] = _tempHigh.z;
+            plainVerticesLow[ind + 2] = _tempLow.z;
         }
 
         self.postMessage(
             {
-                id: msg.data.params[0],
+                id: params[0],
+                geoidId: _geoidId,
                 plainVertices: plainVertices,
                 plainVerticesHigh: plainVerticesHigh,
                 plainVerticesLow: plainVerticesLow,
                 plainNormals: plainNormals,
-                normalMapNormals: normalMapNormals,
-                normalMapVertices: normalMapVertices,
-                relativeCenter: [rtc_x, rtc_y, rtc_z]
+                relativeCenter: [params[14], params[15], params[16]]
             },
-            [
-                plainVertices.buffer,
-                plainVerticesHigh.buffer,
-                plainVerticesLow.buffer,
-                plainNormals.buffer,
-                normalMapNormals.buffer,
-                normalMapVertices.buffer
-            ]
+            [plainVertices.buffer, plainVerticesHigh.buffer, plainVerticesLow.buffer, plainNormals.buffer]
         );
     }
 };

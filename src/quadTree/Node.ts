@@ -925,7 +925,7 @@ class Node {
                 BOUNDS,
                 getR2Buffer(len / 3)
             );
-        } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
+        } else if (gridSizeExt >= 1 && pn.segment.terrainExists && pseg.normalMapVertices) {
             seg.gridSize = gridSizeExt;
 
             let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;

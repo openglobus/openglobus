@@ -37,21 +37,20 @@ function createPatch() {
     return { vertices, normals };
 }
 
+// The worker makes the plain grid itself, the same patch
 function runWorker(elevations) {
-    const patch = createPatch();
+    const deg = (STEP * 180) / Math.PI,
+        r2 = 1 / (R * R);
     post.mockClear();
     self.onmessage({
         data: {
             elevations: new Float32Array(elevations),
-            this_plainVertices: patch.vertices,
-            this_plainNormals: patch.normals,
-            this_normalMapVertices: patch.vertices,
-            this_normalMapNormals: patch.normals,
+            // See createPlainSegmentParams: id, degrees extent, grid sizes, extent, e2, radius, 1 / radii^2, height factor, center
+            params: new Float64Array([3, 1, 2, 2, -deg, -deg, deg, deg, 0, R, r2, r2, r2, 1, R, 0, 0]),
             heightFactor: 1,
             gridSize: 2,
             noDataValues: [],
-            id: 3,
-            relativeCenter: [R, 0, 0]
+            id: 3
         }
     });
     return post.mock.calls[0][0];

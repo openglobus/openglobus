@@ -912,6 +912,16 @@ class Segment {
             this.renderVerticesHigh = this.terrainVerticesHigh;
             this.renderVerticesLow = this.terrainVerticesLow;
 
+            // Normals for the normal map in the elevation grid, as the neighbors with elevations have them.
+            // A grid finer than the mesh comes from the plain segment worker.
+            if (!this.normalMapNormals && this.plainNormals) {
+                if (this.planet.terrain!.plainGridSize > Math.sqrt(this.plainNormals.length / 3) - 1) {
+                    this.planet._plainSegmentWorker.make(this);
+                } else {
+                    this.normalMapNormals = this.plainNormals;
+                }
+            }
+
             this._deleteSkirtBuffers();
 
             this.lodCenter.copy(this._plainCenter);
@@ -938,6 +948,20 @@ class Segment {
 
                 this.terrainExists = false;
             }
+        }
+    }
+
+    /**
+     * Normals of the plain surface in the elevation grid, made by the plain segment worker for a segment with
+     * no elevations.
+     */
+    public _plainNormalsWorkerCallback(normals: Float32Array) {
+        if (this.initialized && this.terrainReady && !this.terrainExists && !this.normalMapNormals) {
+            this.normalMapNormals = normals;
+            if (!this._inTheQueue) {
+                this.planet._normalMapCreator.queue(this);
+            }
+            this.planet.renderer!.requestRedraw();
         }
     }
 
@@ -1279,7 +1303,15 @@ class Segment {
             this.renderVerticesLow = null;
 
             this.normalMapNormals = data.normalMapNormals;
+
+            // Only a tile with a mesh too coarse to cut its children from gets the file grid vertices
             this.normalMapVertices = data.normalMapVertices;
+            if (data.normalMapVertices) {
+                this.fileGridSize = Math.sqrt(data.normalMapVertices.length / 3) - 1;
+            }
+
+            this.plainVertices = null;
+            this.plainNormals = null;
 
             this.terrainVertices = data.terrainVertices;
             this.terrainVerticesHigh = data.terrainVerticesHigh;
@@ -2128,10 +2160,8 @@ class Segment {
             this.plainVerticesLow = data.plainVerticesLow;
             this.plainNormals = data.plainNormals;
 
-            this.normalMapNormals = data.normalMapNormals;
-            this.normalMapVertices = data.normalMapVertices;
-
-            this.fileGridSize = Math.sqrt(data.normalMapVertices!.length / 3) - 1;
+            const t = this.planet.terrain!;
+            this.fileGridSize = Math.max(t.plainGridSize, t.gridSizeByZoom[this.tileZoom]);
         }
     }
 
@@ -2154,8 +2184,7 @@ class Segment {
 
     protected _createPlainVertices() {
         const gridSize = this.planet.terrain!.gridSizeByZoom[this.tileZoom];
-        const fgs = this.planet.terrain!.plainGridSize;
-        const currGridSize = Math.max(fgs, gridSize);
+        const currGridSize = gridSize;
         const e = this._extent;
         const lonSize = e.getWidth();
         const latSize = e.getHeight();
@@ -2163,7 +2192,6 @@ class Segment {
         const ltStep = latSize / currGridSize;
         const esw_lon = e.southWest.lon;
         const ene_lat = e.northEast.lat;
-        const dg = Math.max(fgs / gridSize, 1);
         const gs = currGridSize + 1;
         const r2 = this.planet.ellipsoid._invRadii2;
         const gsgs = gs * gs;
@@ -2172,23 +2200,17 @@ class Segment {
         const rcy = this._relativeCenter.y;
         const rcz = this._relativeCenter.z;
 
-        let ind = 0,
-            nmInd = 0;
+        let ind = 0;
 
         this.plainNormals = new Float32Array(gridSize3);
         this.plainVertices = new Float64Array(gridSize3);
         this.plainVerticesHigh = new Float32Array(gridSize3);
         this.plainVerticesLow = new Float32Array(gridSize3);
 
-        this.normalMapNormals = new Float32Array(gsgs * 3);
-        this.normalMapVertices = new Float64Array(gsgs * 3);
-
         let verts = this.plainVertices,
             vertsHigh = this.plainVerticesHigh,
             vertsLow = this.plainVerticesLow,
-            norms = this.plainNormals,
-            nmVerts = this.normalMapVertices,
-            nmNorms = this.normalMapNormals;
+            norms = this.plainNormals;
 
         for (let k = 0; k < gsgs; k++) {
             let j = k % gs,
@@ -2208,33 +2230,22 @@ class Segment {
 
             _vrtRtc.set(v.x - rcx, v.y - rcy, v.z - rcz);
 
-            nmVerts[nmInd] = _vrtRtc.x;
-            nmNorms[nmInd++] = nxl;
+            Vec3.doubleToTwoFloats(_vrtRtc, _tempHigh, _tempLow);
 
-            nmVerts[nmInd] = _vrtRtc.y;
-            nmNorms[nmInd++] = nyl;
+            verts[ind] = _vrtRtc.x;
+            vertsHigh[ind] = _tempHigh.x;
+            vertsLow[ind] = _tempLow.x;
+            norms[ind++] = nxl;
 
-            nmVerts[nmInd] = _vrtRtc.z;
-            nmNorms[nmInd++] = nzl;
+            verts[ind] = _vrtRtc.y;
+            vertsHigh[ind] = _tempHigh.y;
+            vertsLow[ind] = _tempLow.y;
+            norms[ind++] = nyl;
 
-            if (i % dg === 0 && j % dg === 0) {
-                Vec3.doubleToTwoFloats(_vrtRtc, _tempHigh, _tempLow);
-
-                verts[ind] = _vrtRtc.x;
-                vertsHigh[ind] = _tempHigh.x;
-                vertsLow[ind] = _tempLow.x;
-                norms[ind++] = nxl;
-
-                verts[ind] = _vrtRtc.y;
-                vertsHigh[ind] = _tempHigh.y;
-                vertsLow[ind] = _tempLow.y;
-                norms[ind++] = nyl;
-
-                verts[ind] = _vrtRtc.z;
-                vertsHigh[ind] = _tempHigh.z;
-                vertsLow[ind] = _tempLow.z;
-                norms[ind++] = nzl;
-            }
+            verts[ind] = _vrtRtc.z;
+            vertsHigh[ind] = _tempHigh.z;
+            vertsLow[ind] = _tempLow.z;
+            norms[ind++] = nzl;
         }
 
         this.terrainVertices = verts;
@@ -2449,7 +2460,7 @@ class Segment {
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            gl.drawElements(p.drawMode, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+            gl.drawElements(p.drawMode, this._indexBuffer!.numItems, this._indexBuffer!.type!, 0);
         }
     }
 
@@ -2590,7 +2601,7 @@ class Segment {
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer!);
-            gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+            gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, this._indexBuffer!.type!, 0);
         }
     }
 
@@ -2659,7 +2670,7 @@ class Segment {
         const vertices = this.renderVertices;
         const verticesHigh = new Float32Array(vertexCount * 3);
         const verticesLow = new Float32Array(vertexCount * 3);
-        const indexes = new Uint32Array(indexCount);
+        const indexes = segmentHelper.createIndexesArray(indexCount, vertexCount);
 
         let out = 0;
 
@@ -2725,7 +2736,7 @@ class Segment {
         );
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.skirtIndexBuffer!);
-        gl.drawElements(gl.TRIANGLE_STRIP, this.skirtIndexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+        gl.drawElements(gl.TRIANGLE_STRIP, this.skirtIndexBuffer!.numItems, this.skirtIndexBuffer!.type!, 0);
     }
 
     public depthRendering(sh: ShaderProgram, layerSlice?: Layer[], renderSkirts: boolean = false) {
@@ -2754,7 +2765,7 @@ class Segment {
         gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer!);
-        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, this._indexBuffer!.type!, 0);
     }
 
     public ensureIndexBuffer() {

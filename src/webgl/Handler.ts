@@ -28,7 +28,8 @@ import { Stack } from "../Stack";
 import { throttle } from "../utils/shared";
 
 export type WebGLContextExt = { type: string } & WebGL2RenderingContext;
-export type WebGLBufferExt = { numItems: number; itemSize: number } & WebGLBuffer;
+// type - Index type of an element array buffer, gl.UNSIGNED_SHORT or gl.UNSIGNED_INT, see Handler.createElementArrayBuffer.
+export type WebGLBufferExt = { numItems: number; itemSize: number; type?: number } & WebGLBuffer;
 export type WebGLTextureExt = { default?: boolean } & WebGLTexture;
 export type ImageSource = HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement | HTMLVideoElement;
 type CreateTextureFunc = (
@@ -1086,6 +1087,11 @@ class Handler {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null!);
         buffer.itemSize = itemSize;
         buffer.numItems = numItems || array.length;
+        if (array instanceof Uint16Array) {
+            buffer.type = gl.UNSIGNED_SHORT;
+        } else if (array instanceof Uint32Array) {
+            buffer.type = gl.UNSIGNED_INT;
+        }
         return buffer;
     }
 
