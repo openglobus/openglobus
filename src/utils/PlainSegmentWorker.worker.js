@@ -2,6 +2,7 @@
 
 import { doubleToTwoFloatsV3 } from "../math/doubleToTwoFloats";
 import { createPlainGrid, setGeoidModel } from "./plainGrid";
+import { NormalsArray } from "./normalsArray";
 
 const Vec3 = function (x, y, z) {
     this.x = x;
@@ -12,8 +13,8 @@ const Vec3 = function (x, y, z) {
 // Geoid the data are made with, see Geoid.id
 var _geoidId = -1;
 
-// Vertices of the normals task, only the normals are sent
-var _vertices = new Float64Array(0);
+var _vertices = new Float64Array(0),
+    _normals = new Float32Array(0);
 
 var rtcPos = new Vec3(0.0, 0.0, 0.0);
 var _tempHigh = new Vec3(0.0, 0.0, 0.0);
@@ -32,11 +33,12 @@ self.onmessage = function (msg) {
 
         if (_vertices.length < length) {
             _vertices = new Float64Array(length);
+            _normals = new Float32Array(length);
         }
 
-        let normalMapNormals = new Float32Array(length);
+        createPlainGrid(msg.data.params, gridSize, _vertices, _normals);
 
-        createPlainGrid(msg.data.params, gridSize, _vertices, normalMapNormals);
+        let normalMapNormals = new NormalsArray(_normals.subarray(0, length));
 
         self.postMessage({ id: msg.data.params[0], geoidId: _geoidId, normalMapNormals: normalMapNormals }, [
             normalMapNormals.buffer
@@ -46,7 +48,8 @@ self.onmessage = function (msg) {
             gridSize = params[2],
             gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
 
-        let plainNormals = new Float32Array(gridSize3);
+        // Only the normal map takes them
+        let plainNormals = new NormalsArray(gridSize3);
 
         let plainVertices = new Float64Array(gridSize3);
         let plainVerticesHigh = new Float32Array(gridSize3);

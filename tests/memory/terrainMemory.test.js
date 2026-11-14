@@ -10,6 +10,7 @@ import { getTileExtent } from "../../src/mercator";
 import { LonLat } from "../../src/LonLat";
 import { wgs84 } from "../../src/ellipsoid/wgs84";
 import { Handler } from "../../src/webgl/Handler";
+import { NormalsArray } from "../../src/utils/normalsArray";
 
 //
 // Memory budget of the terrain, measured on the arrays the real code makes. The expectations fix the numbers
@@ -139,16 +140,17 @@ describe("segment arrays in the main thread", () => {
         expect(Object.keys(s.plain).sort()).toEqual(
             ["plainNormals", "plainVertices", "plainVerticesHigh", "plainVerticesLow"].sort()
         );
-        expect(s.plainTotal).toBe(meshVertices * 3 * (8 + 4 + 4 + 4));
+        expect(s.plainTotal).toBe(meshVertices * 3 * (8 + 4 + 4 + NormalsArray.BYTES_PER_ELEMENT));
 
-        // No elevation grid vertices, the normals of the normal map are in the elevation grid
+        // No elevation grid vertices, the normals of the normal map are in the elevation grid, 16 bit
         expect(t.normalMapVertices).toBe(null);
-        expect(t.normalMapNormals.byteLength).toBe(257 * 257 * 3 * 4);
+        expect(t.normalMapNormals.byteLength).toBe(257 * 257 * 3 * 2);
         expect(t.terrainVertices.byteLength).toBe(meshVertices * 3 * 8);
         expect(s.elevationData.byteLength).toBe(257 * 257 * 4);
 
-        // It was 2.71 MB with terrain and 2.51 MB without, before the elevation grid arrays were dropped
-        expect(mb(s.terrainTotal)).toBeLessThan(1.25);
+        // It was 2.71 MB with terrain and 2.51 MB without, before the elevation grid arrays were dropped,
+        // and 1.2 MB with terrain with 32 bit normals
+        expect(mb(s.terrainTotal)).toBeLessThan(0.85);
         expect(mb(s.plainTotal)).toBeLessThan(0.25);
     });
 });

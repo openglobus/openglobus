@@ -1,5 +1,5 @@
 import { Extent } from "../Extent";
-import { binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
+import { binaryInsert, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
 import { getMedian } from "../terrain/terrainUtils";
 import { LonLat } from "../LonLat";
 import { MAX, MIN } from "../math";
@@ -1062,25 +1062,10 @@ class Node {
                     this.equalizedSideWithNodeId[W] =
                         this.appliedTerrainNodeId;
 
+                // The normal map is the parent one, see whileNormalMapCreating
                 if (pn.segment.terrainExists) {
                     seg.normalMapVertices = renderVertices;
                     seg.fileGridSize = Math.sqrt(renderVertices.length / 3) - 1;
-
-                    let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1,
-                        fgsZ = fgs / dZ2;
-
-                    if (fgs > 1) {
-                        seg.normalMapNormals = getMatrixSubArray32(
-                            pseg.normalMapNormals!,
-                            fgs,
-                            fgsZ * offsetY,
-                            fgsZ * offsetX,
-                            fgsZ
-                        );
-                    } else {
-                        // TODO: interpolation
-                        seg.normalMapNormals = pseg.normalMapNormals;
-                    }
                 }
             }
         }

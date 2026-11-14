@@ -5,6 +5,7 @@
 import { getMedian, getMeshHeights } from "../terrain/terrainUtils";
 import { doubleToTwoFloatsV3 } from "../math/doubleToTwoFloats";
 import { createPlainGrid, setGeoidModel } from "./plainGrid";
+import { NormalsArray } from "./normalsArray";
 
 function binarySearchFast(arr, x) {
     let start = 0,
@@ -49,6 +50,18 @@ var _world = new Float64Array(0);
 // Plain grid the elevations are added to, see utils/plainGrid
 var _plainVertices = new Float64Array(0),
     _plainNormals = new Float32Array(0);
+
+// Sums of the quad normals at the vertices, they are sent in NormalsArray
+var _normalSums = new Float32Array(0);
+
+function getNormalSums(length) {
+    if (_normalSums.length < length) {
+        _normalSums = new Float32Array(length);
+    } else {
+        _normalSums.fill(0, 0, length);
+    }
+    return _normalSums;
+}
 
 // A tile with a mesh grid less than that gives its file grid vertices to the children, see Node.whileTerrainLoading
 const MIN_GRID_SIZE_WITHOUT_FILE_VERTICES = 4;
@@ -110,7 +123,8 @@ self.onmessage = function (e) {
         terrainVerticesHigh = new Float32Array(gsgs3),
         terrainVerticesLow = new Float32Array(gsgs3);
 
-    var normalMapNormals,
+    var normalSums,
+        normalsLength,
         normalMapVertices = null;
 
     const plainGridSize = Math.max(fileGridSize, tgs),
@@ -129,7 +143,8 @@ self.onmessage = function (e) {
         this_plainNormals = _plainNormals;
 
     if (fileGridSize >= tgs) {
-        normalMapNormals = new Float32Array(plainLength);
+        normalsLength = plainLength;
+        normalSums = getNormalSums(normalsLength);
 
         if (tgs < MIN_GRID_SIZE_WITHOUT_FILE_VERTICES) {
             normalMapVertices = new Float64Array(plainLength);
@@ -280,25 +295,26 @@ self.onmessage = function (e) {
                 n0y *= l;
                 n0z *= l;
 
-                normalMapNormals[vInd0] += n0x;
-                normalMapNormals[vInd0 + 1] += n0y;
-                normalMapNormals[vInd0 + 2] += n0z;
+                normalSums[vInd0] += n0x;
+                normalSums[vInd0 + 1] += n0y;
+                normalSums[vInd0 + 2] += n0z;
 
-                normalMapNormals[vInd1] += nex;
-                normalMapNormals[vInd1 + 1] += ney;
-                normalMapNormals[vInd1 + 2] += nez;
+                normalSums[vInd1] += nex;
+                normalSums[vInd1 + 1] += ney;
+                normalSums[vInd1 + 2] += nez;
 
-                normalMapNormals[vInd2] += swx;
-                normalMapNormals[vInd2 + 1] += swy;
-                normalMapNormals[vInd2 + 2] += swz;
+                normalSums[vInd2] += swx;
+                normalSums[vInd2 + 1] += swy;
+                normalSums[vInd2 + 2] += swz;
 
-                normalMapNormals[vInd3] += n0x;
-                normalMapNormals[vInd3 + 1] += n0y;
-                normalMapNormals[vInd3 + 2] += n0z;
+                normalSums[vInd3] += n0x;
+                normalSums[vInd3 + 1] += n0y;
+                normalSums[vInd3 + 2] += n0z;
             }
         }
     } else {
-        normalMapNormals = new Float32Array(gsgs3);
+        normalsLength = gsgs3;
+        normalSums = getNormalSums(normalsLength);
 
         var oneSize = tgs / fileGridSize;
         var gsgs = gsgs3 / 3;
@@ -451,24 +467,26 @@ self.onmessage = function (e) {
                 n0y *= l;
                 n0z *= l;
 
-                normalMapNormals[v0ind] += n0x;
-                normalMapNormals[v0ind + 1] += n0y;
-                normalMapNormals[v0ind + 2] += n0z;
+                normalSums[v0ind] += n0x;
+                normalSums[v0ind + 1] += n0y;
+                normalSums[v0ind + 2] += n0z;
 
-                normalMapNormals[v1ind] += nex;
-                normalMapNormals[v1ind + 1] += ney;
-                normalMapNormals[v1ind + 2] += nez;
+                normalSums[v1ind] += nex;
+                normalSums[v1ind + 1] += ney;
+                normalSums[v1ind + 2] += nez;
 
-                normalMapNormals[v2ind] += swx;
-                normalMapNormals[v2ind + 1] += swy;
-                normalMapNormals[v2ind + 2] += swz;
+                normalSums[v2ind] += swx;
+                normalSums[v2ind + 1] += swy;
+                normalSums[v2ind + 2] += swz;
 
-                normalMapNormals[v3ind] += n0x;
-                normalMapNormals[v3ind + 1] += n0y;
-                normalMapNormals[v3ind + 2] += n0z;
+                normalSums[v3ind] += n0x;
+                normalSums[v3ind + 1] += n0y;
+                normalSums[v3ind + 2] += n0z;
             }
         }
     }
+
+    const normalMapNormals = new NormalsArray(normalSums.subarray(0, normalsLength));
 
     const transfer = [
         normalMapNormals.buffer,

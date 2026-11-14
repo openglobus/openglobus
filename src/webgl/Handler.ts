@@ -20,6 +20,7 @@ import { createEvents } from "../Events";
 import type { EventsHandler } from "../Events";
 import { getUrlParam, isEmpty } from "../utils/shared";
 import type { TypedArray } from "../utils/shared";
+import type { NormalsArray } from "../utils/normalsArray";
 import { ImageCanvas } from "../ImageCanvas";
 import { Vec2 } from "../math/Vec2";
 import type { NumberArray2 } from "../math/Vec2";
@@ -1030,13 +1031,18 @@ class Handler {
     /**
      * Creates and initializes ARRAY_BUFFER from a typed array.
      * @public
-     * @param {TypedArray} array - Source data.
+     * @param {TypedArray | NormalsArray} array - Source data.
      * @param {number} itemSize - Number of scalar components per item.
      * @param {number} [numItems] - Number of items (computed from array length when omitted).
      * @param {number} [usage=STATIC_DRAW] - GL usage hint (STATIC_DRAW, DYNAMIC_DRAW or STREAM_DRAW).
      * @return {WebGLBufferExt} -
      */
-    public createArrayBuffer(array: TypedArray, itemSize: number, numItems?: number, usage?: number): WebGLBufferExt {
+    public createArrayBuffer(
+        array: TypedArray | NormalsArray,
+        itemSize: number,
+        numItems?: number,
+        usage?: number
+    ): WebGLBufferExt {
         let gl = this.gl!;
         let buffer: WebGLBufferExt = gl.createBuffer() as WebGLBufferExt;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);

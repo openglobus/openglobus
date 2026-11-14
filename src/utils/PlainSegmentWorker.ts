@@ -8,13 +8,14 @@ import { Geoid } from "../terrain/Geoid";
 //@ts-ignore
 import PlainSegmentWorkerImpl from "./PlainSegmentWorker.worker.js?worker&inline";
 import type { NumberArray3 } from "../math/Vec3";
+import type { NormalsArray } from "./normalsArray";
 
 export interface IPlainSegmentWorkerData {
     plainVertices: Float64Array | null;
     plainVerticesHigh: Float32Array | null;
     plainVerticesLow: Float32Array | null;
-    plainNormals: Float32Array | null;
-    normalMapNormals?: Float32Array | null;
+    plainNormals: NormalsArray | null;
+    normalMapNormals?: NormalsArray | null;
     geoidId: number;
     relativeCenter: NumberArray3;
 }

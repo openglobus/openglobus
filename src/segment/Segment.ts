@@ -7,6 +7,7 @@ import { EPSG3857 } from "../proj/EPSG3857";
 import { CORNERSIDE, E, N, NOPSORD, NW, OPSIDE, S, SE, SIDEFLIP, W } from "../quadTree/quadTree";
 import { getMatrixSubArray64 } from "../utils/shared";
 import type { TypedArray } from "../utils/shared";
+import { NormalsArray } from "../utils/normalsArray";
 import { Handler } from "../webgl/Handler";
 import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
 import type { ITerrainWorkerData } from "../utils/TerrainWorker";
@@ -133,9 +134,10 @@ let __normalMapEdgeVersion__ = 0;
 
 const _normal = new Float32Array(3);
 
-const NORMAL_EPSILON = 1e-5;
+// More than the rounding of a Float16 normal, see NormalsArray
+const NORMAL_EPSILON = 1e-3;
 
-function isSameNormal(arr: Float32Array, i: number, x: number, y: number, z: number): boolean {
+function isSameNormal(arr: NormalsArray, i: number, x: number, y: number, z: number): boolean {
     return (
         Math.abs(arr[i] - x) < NORMAL_EPSILON &&
         Math.abs(arr[i + 1] - y) < NORMAL_EPSILON &&
@@ -146,7 +148,7 @@ function isSameNormal(arr: Float32Array, i: number, x: number, y: number, z: num
 /**
  * Bilinear normal at a fractional row and column of a normal grid, normalized.
  */
-function sampleNormal(src: Float32Array, gs: number, row: number, col: number, dst: Float32Array) {
+function sampleNormal(src: NormalsArray, gs: number, row: number, col: number, dst: Float32Array) {
     row = Math.min(Math.max(row, 0), gs);
     col = Math.min(Math.max(col, 0), gs);
 
@@ -370,7 +372,7 @@ class Segment {
     public plainVerticesHigh: Float32Array | null;
     public plainVerticesLow: Float32Array | null;
 
-    public plainNormals: Float32Array | null;
+    public plainNormals: NormalsArray | null;
 
     public terrainVertices: Float64Array | null;
     public terrainVerticesHigh: Float32Array | null;
@@ -383,7 +385,7 @@ class Segment {
     public normalMapTexture: WebGLTextureExt | null;
     public normalMapTextureBias: Float32Array;
     public normalMapVertices: Float64Array | null;
-    public normalMapNormals: Float32Array | null;
+    public normalMapNormals: NormalsArray | null;
 
     public vertexNormalBuffer: WebGLBufferExt | null;
     public vertexPositionBuffer: WebGLBufferExt | null;
@@ -405,7 +407,7 @@ class Segment {
     public _appliedNeighborsInside: [boolean, boolean, boolean, boolean];
     public _normalMapSideVersion: [number, number, number, number];
     public _normalMapArraysVersion: number;
-    public _normalMapDrawnNormals: Float32Array | null;
+    public _normalMapDrawnNormals: NormalsArray | null;
 
     public _slices: Slice[];
 
@@ -955,7 +957,7 @@ class Segment {
      * Normals of the plain surface in the elevation grid, made by the plain segment worker for a segment with
      * no elevations.
      */
-    public _plainNormalsWorkerCallback(normals: Float32Array) {
+    public _plainNormalsWorkerCallback(normals: NormalsArray) {
         if (this.initialized && this.terrainReady && !this.terrainExists && !this.normalMapNormals) {
             this.normalMapNormals = normals;
             if (!this._inTheQueue) {
@@ -2202,7 +2204,7 @@ class Segment {
 
         let ind = 0;
 
-        this.plainNormals = new Float32Array(gridSize3);
+        this.plainNormals = new NormalsArray(gridSize3);
         this.plainVertices = new Float64Array(gridSize3);
         this.plainVerticesHigh = new Float32Array(gridSize3);
         this.plainVerticesLow = new Float32Array(gridSize3);

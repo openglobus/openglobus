@@ -5,6 +5,7 @@ import { createPlainSegmentParams, isGeoidOf, postGeoidModel } from "./PlainSegm
 import { Geoid } from "../terrain/Geoid";
 import { Segment } from "../segment/Segment";
 import type { NumberArray6 } from "../bv/Sphere";
+import type { NormalsArray } from "./normalsArray";
 
 //@ts-ignore
 import TerrainWorkerImpl from "./TerrainWorker.worker.js?worker&inline";
@@ -17,7 +18,7 @@ interface TerrainInfo {
 
 export interface ITerrainWorkerData {
     id: number;
-    normalMapNormals: Float32Array | null;
+    normalMapNormals: NormalsArray | null;
     normalMapVertices: Float64Array | null;
     terrainVertices: Float64Array | null;
     terrainVerticesHigh: Float32Array | null;

@@ -251,7 +251,14 @@ export class NormalMapCreator {
                 gl.vertexAttribPointer(sha.a_position, indBuf.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
-                gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                gl.vertexAttribPointer(
+                    sha.a_normal,
+                    _normalsBuffer.itemSize,
+                    normals.BYTES_PER_ELEMENT === 2 ? gl.HALF_FLOAT : gl.FLOAT,
+                    false,
+                    0,
+                    0
+                );
 
                 const indexBuffer = this._indexBufferArray[gridSize];
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -316,7 +323,14 @@ export class NormalMapCreator {
                 gl.vertexAttribPointer(sha.a_position, indBuf.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
-                gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                gl.vertexAttribPointer(
+                    sha.a_normal,
+                    _normalsBuffer.itemSize,
+                    normals.BYTES_PER_ELEMENT === 2 ? gl.HALF_FLOAT : gl.FLOAT,
+                    false,
+                    0,
+                    0
+                );
 
                 const indexBuffer = this._indexBufferArray[gridSize];
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);

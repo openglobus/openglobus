@@ -4,6 +4,7 @@ import { getTileExtent } from "../../src/mercator";
 import { LonLat } from "../../src/LonLat";
 import { wgs84 } from "../../src/ellipsoid/wgs84";
 import { Segment } from "../../src/segment/Segment";
+import { NormalsArray } from "../../src/utils/normalsArray";
 
 //
 // The mesh the segments are drawn and intersected with (Segment.getTerrainPoint reads renderVertices only)
@@ -144,7 +145,8 @@ describe("plain segment mesh", () => {
         }
 
         expect(worst).toBeLessThan(1e-6);
-        expect(worstNormal).toBeLessThan(1e-6);
+        // The normals are in NormalsArray, Float16 where there is one
+        expect(worstNormal).toBeLessThan(1e-3);
         expect(worstSplit).toBeLessThan(1e-2);
     });
 });
@@ -205,6 +207,12 @@ describe("terrain mesh", () => {
 describe("normals of the normal map", () => {
     test("are in the elevation grid, finer than the mesh", () => {
         expect(terrain(createElevations()).normalMapNormals.length).toBe((FILE + 1) * (FILE + 1) * 3);
+    });
+
+    test("are in Float16Array where there is one", () => {
+        const normals = terrain(createElevations()).normalMapNormals;
+        expect(normals).toBeInstanceOf(NormalsArray);
+        expect(normals.BYTES_PER_ELEMENT).toBe(typeof Float16Array === "function" ? 2 : 4);
     });
 
     test("point up from the surface", () => {
@@ -311,7 +319,8 @@ describe("normals of a tile with no elevations", () => {
                 );
             }
         }
-        expect(worst).toBeLessThan(1e-6);
+        // The Float16 rounding
+        expect(worst).toBeLessThan(2e-3);
 
         seg._inTheQueue = false;
         seg._plainNormalsWorkerCallback(normalMapNormals);
