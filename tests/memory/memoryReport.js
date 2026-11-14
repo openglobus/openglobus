@@ -226,8 +226,8 @@ export function collectMemoryReport(planet) {
     let lazyBytes = 0;
 
     if (terrain._elevationCache) {
-        for (const key in terrain._elevationCache) {
-            const h = terrain._elevationCache[key].heights;
+        for (const tileData of terrain._elevationCache.values()) {
+            const h = tileData.heights;
             elevationCache.tiles++;
             if (h && h.buffer && !cacheBuffers.has(h.buffer)) {
                 cacheBuffers.add(h.buffer);
@@ -267,51 +267,6 @@ export function collectMemoryReport(planet) {
         whatIf,
         jsHeap: performance.memory ? performance.memory.usedJSHeapSize : 0
     };
-}
-
-/**
- * Emulations of the proposals without the engine changes, to compare on the device:
- *   ecache=MB   - P4 (bound only): oldest loaded tiles leave the elevation cache above the limit.
- *                 A level tile asked after that is loaded by its own url, as after memClear.
- * @returns {string[]} - Active experiments.
- */
-export function applyExperiments(planet, params = new URLSearchParams(location.search)) {
-    const active = [];
-
-    const ecache = Number(params.get("ecache"));
-    if (ecache > 0) {
-        active.push(`ecache=${ecache}`);
-
-        setInterval(() => {
-            const cache = planet.terrain && planet.terrain._elevationCache;
-            if (!cache) return;
-
-            // Loaded tiles in the order they came, with the level tiles cut from them
-            const groups = new Map();
-            let bytes = 0;
-            for (const key in cache) {
-                const h = cache[key].heights;
-                if (h && h.buffer) {
-                    let g = groups.get(h.buffer);
-                    if (!g) {
-                        groups.set(h.buffer, (g = []));
-                        bytes += h.buffer.byteLength;
-                    }
-                    g.push(key);
-                }
-            }
-
-            for (const [buffer, keys] of groups) {
-                if (bytes <= ecache * MB) break;
-                for (let i = 0; i < keys.length; i++) {
-                    delete cache[keys[i]];
-                }
-                bytes -= buffer.byteLength;
-            }
-        }, 500);
-    }
-
-    return active;
 }
 
 const STORAGE_KEY = "og_memory_report";

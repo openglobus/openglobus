@@ -1,5 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { collectMemoryReport } from "./memoryReport.js";
+import { LRUCache } from "../../src/utils/LRUCache";
 
 const FILE_VERTICES = 257 * 257,
     MESH_VERTICES = 65 * 65;
@@ -54,9 +55,9 @@ function createPlanet() {
 
     // A loaded tile with its 4 level tiles in one buffer
     const heights = new Float32Array(FILE_VERTICES * 5),
-        cache = {};
+        cache = new LRUCache(700);
     for (let k = 0; k < 5; k++) {
-        cache[`tile${k}`] = { heights: heights.subarray(k * FILE_VERTICES, (k + 1) * FILE_VERTICES) };
+        cache.set(`tile${k}`, { heights: heights.subarray(k * FILE_VERTICES, (k + 1) * FILE_VERTICES) });
     }
 
     return {
