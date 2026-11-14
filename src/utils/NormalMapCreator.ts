@@ -31,13 +31,9 @@ interface INormalMapCreatorParams {
 
 const MIN_NORMAL_MAP_SIZE = 128;
 
-/**
- * The normals of a grid size as a texture, a texel a vertex.
- */
-interface INormalsTexture {
-    texture: WebGLTexture;
-    half: boolean;
-}
+// Texels in a row of the normals texture, see _bindNormals
+const NORMALS_TEXTURE_WIDTH_LOG2 = 10,
+    NORMALS_TEXTURE_WIDTH = 1 << NORMALS_TEXTURE_WIDTH_LOG2;
 
 export class NormalMapCreator {
     protected _planet: Planet;
@@ -45,7 +41,11 @@ export class NormalMapCreator {
     protected _positionBuffer: WebGLBufferExt | null;
     protected _framebuffer: Framebuffer | null;
     protected _normalMapVerticesTexture: WebGLTextureExt | null;
-    protected _normalsTextures: Record<number, INormalsTexture>;
+
+    /**
+     * The normals of the drawn segment by its grid size, see _bindNormals.
+     */
+    protected _normalsTextures: Record<number, WebGLTexture>;
 
     protected _width: number;
     protected _height: number;
@@ -173,7 +173,7 @@ export class NormalMapCreator {
             },
             uniforms: {
                 u_normals: "sampler2d",
-                u_gridSize: "float",
+                u_gridSize: "int",
                 u_size: "vec2"
             },
             vertexShader: `#version 300 es
@@ -186,23 +186,30 @@ export class NormalMapCreator {
                         precision highp float;
                         precision highp sampler2D;
 
-                        // The normals of the (gridSize + 1)² grid vertices, the rows from the north
+                        // The normals of the (gridSize + 1)² grid vertices, the rows from the north, as the array
+                        // is: a component a texel, NORMALS_TEXTURE_WIDTH texels a row
                         uniform sampler2D u_normals;
-                        uniform float u_gridSize;
+                        uniform int u_gridSize;
 
                         // The normal map size
                         uniform vec2 u_size;
 
                         out vec4 fragColor;
 
+                        // The width is a power of two, a mask and a shift are cheaper than % and /
+                        float component(int k) {
+                            return texelFetch(u_normals, ivec2(k & ${NORMALS_TEXTURE_WIDTH - 1}, k >> ${NORMALS_TEXTURE_WIDTH_LOG2}), 0).r;
+                        }
+
                         vec3 vertexNormal(ivec2 i) {
-                            return normalize(texelFetch(u_normals, i, 0).xyz);
+                            int k = (i.y * (u_gridSize + 1) + i.x) * 3;
+                            return normalize(vec3(component(k), component(k + 1), component(k + 2)));
                         }
 
                         void main() {
                             // From the first grid vertex at the first texel center to the last one at the last
-                            vec2 g = (gl_FragCoord.xy - 0.5) * u_gridSize / (u_size - 1.0);
-                            ivec2 i = clamp(ivec2(floor(g)), ivec2(0), ivec2(int(u_gridSize) - 1));
+                            vec2 g = (gl_FragCoord.xy - 0.5) * float(u_gridSize) / (u_size - 1.0);
+                            ivec2 i = clamp(ivec2(floor(g)), ivec2(0), ivec2(u_gridSize - 1));
                             vec2 f = g - vec2(i);
                             vec3 n = mix(
                                 mix(vertexNormal(i), vertexNormal(i + ivec2(1, 0)), f.x),
@@ -238,33 +245,39 @@ export class NormalMapCreator {
      */
     protected _bindNormals(normals: NormalsArray, gridSize: number) {
         const gl = this._handler!.gl!,
-            size = gridSize + 1,
             half = normals.BYTES_PER_ELEMENT === 2,
             type = half ? gl.HALF_FLOAT : gl.FLOAT,
+
+            // The half floats go to WebGL as their bits
             data = half ? new Uint16Array(normals.buffer, normals.byteOffset, normals.length) : normals;
 
-        let t = this._normalsTextures[gridSize];
+        // The array as it is, a component a texel: the one channel formats are native on every GPU,
+        // RGB ones are converted on upload
+        const W = NORMALS_TEXTURE_WIDTH,
+            rows = data.length >> NORMALS_TEXTURE_WIDTH_LOG2,
+            rest = data.length - rows * W;
 
-        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        let texture = this._normalsTextures[gridSize];
 
-        if (t && t.half === half) {
-            gl.bindTexture(gl.TEXTURE_2D, t.texture);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, size, size, gl.RGB, type, data);
+        if (texture) {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
         } else {
-            if (t) {
-                gl.deleteTexture(t.texture);
-            }
-            const texture = gl.createTexture()!;
+            texture = this._normalsTextures[gridSize] = gl.createTexture()!;
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texImage2D(gl.TEXTURE_2D, 0, half ? gl.RGB16F : gl.RGB32F, size, size, 0, gl.RGB, type, data);
-            this._normalsTextures[gridSize] = { texture, half };
+            gl.texStorage2D(gl.TEXTURE_2D, 1, half ? gl.R16F : gl.R32F, W, rows + 1);
         }
 
-        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+        // The full rows and the rest of the last one
+        if (rows) {
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, rows, gl.RED, type, data, 0);
+        }
+        if (rest) {
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, rows, rest, 1, gl.RED, type, data, rows * W);
+        }
     }
 
     /**
@@ -283,7 +296,7 @@ export class NormalMapCreator {
         gl.activeTexture(gl.TEXTURE0);
         this._bindNormals(normals, gridSize);
         gl.uniform1i(p.uniforms.u_normals, 0);
-        gl.uniform1f(p.uniforms.u_gridSize, gridSize);
+        gl.uniform1i(p.uniforms.u_gridSize, gridSize);
         gl.uniform2f(p.uniforms.u_size, this._width, this._height);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer!);
