@@ -78,22 +78,6 @@ export class Atmosphere extends Control {
     public aerialPerspectiveFadeEnd: number;
 
     /**
-     * Air density multiplier for the aerial perspective only, the sky is not affected.
-     * 1 keeps the distant haze consistent with the sky at the horizon, other values give a visible edge there.
-     * @public
-     * @type {number}
-     */
-    public aerialPerspectiveStrength: number;
-
-    /**
-     * Additional aerosol (Mie) density multiplier for the aerial perspective, on top of the strength.
-     * Aerosols give whitish haze, Rayleigh scattering alone tints far haze blue or purple at sunset.
-     * @public
-     * @type {number}
-     */
-    public aerialPerspectiveAerosol: number;
-
-    /**
      * Haze start distance as a multiple of the camera altitude: closer to the camera haze grows
      * smoothly from zero, farther it accumulates at the full rate.
      * @public
@@ -102,6 +86,9 @@ export class Atmosphere extends Control {
     public aerialPerspectiveStartFactor: number;
 
     protected _parameters: AtmosphereParameters;
+
+    protected _aerialPerspectiveStrength: number;
+    protected _aerialPerspectiveAerosol: number;
 
     protected _isReady: boolean = false;
 
@@ -112,8 +99,6 @@ export class Atmosphere extends Control {
     protected _aerialPerspectiveDirty: boolean;
     protected _aerialPerspectiveBuiltRadius: number;
     protected _aerialPerspectiveBuiltSunCosZenith: number;
-    protected _aerialPerspectiveBuiltStrength: number;
-    protected _aerialPerspectiveBuiltAerosol: number;
     protected _aerialPerspectiveStartDistance: number;
 
     constructor(options: IAtmosphereParams = {}) {
@@ -137,8 +122,8 @@ export class Atmosphere extends Control {
         this.aerialPerspective = options.aerialPerspective ?? true;
         this.aerialPerspectiveFadeStart = options.aerialPerspectiveFadeStart ?? this._parameters.ATMOS_HEIGHT;
         this.aerialPerspectiveFadeEnd = options.aerialPerspectiveFadeEnd ?? this._parameters.ATMOS_HEIGHT * 3.0;
-        this.aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 1.0;
-        this.aerialPerspectiveAerosol = options.aerialPerspectiveAerosol ?? 1.0;
+        this._aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 1.0;
+        this._aerialPerspectiveAerosol = options.aerialPerspectiveAerosol ?? 1.0;
         this.aerialPerspectiveStartFactor = options.aerialPerspectiveStartFactor ?? 3.0;
 
         this._aerialPerspectiveFramebuffer = null;
@@ -148,35 +133,101 @@ export class Atmosphere extends Control {
         this._aerialPerspectiveDirty = true;
         this._aerialPerspectiveBuiltRadius = 0.0;
         this._aerialPerspectiveBuiltSunCosZenith = 0.0;
-        this._aerialPerspectiveBuiltStrength = 0.0;
-        this._aerialPerspectiveBuiltAerosol = 0.0;
         this._aerialPerspectiveStartDistance = 0.0;
     }
 
+    /**
+     * Air density multiplier (Rayleigh and aerosols) of the whole atmosphere: the distant haze gets thicker
+     * and the sky changes with it, so they meet at the horizon without an edge. Ozone is not scaled.
+     * Changing it rebuilds the lookup textures and the atmosphere shaders.
+     * @public
+     * @type {number}
+     */
+    public get aerialPerspectiveStrength(): number {
+        return this._aerialPerspectiveStrength;
+    }
+
+    public set aerialPerspectiveStrength(strength: number) {
+        if (strength !== this._aerialPerspectiveStrength) {
+            this._aerialPerspectiveStrength = strength;
+            this._applyParameters();
+        }
+    }
+
+    /**
+     * Additional aerosol (Mie) density multiplier on top of the strength, for the sky and the haze alike.
+     * Aerosols give whitish haze, Rayleigh scattering alone tints far haze blue or purple at sunset.
+     * Changing it rebuilds the lookup textures and the atmosphere shaders.
+     * @public
+     * @type {number}
+     */
+    public get aerialPerspectiveAerosol(): number {
+        return this._aerialPerspectiveAerosol;
+    }
+
+    public set aerialPerspectiveAerosol(aerosol: number) {
+        if (aerosol !== this._aerialPerspectiveAerosol) {
+            this._aerialPerspectiveAerosol = aerosol;
+            this._applyParameters();
+        }
+    }
+
     public setParameters(parameters: AtmosphereParameters) {
-        this._isReady = false;
         this._parameters = JSON.parse(JSON.stringify(parameters));
+        this._applyParameters();
+    }
+
+    protected _applyParameters() {
+        if (!this.renderer) return;
+
+        this._isReady = false;
 
         this.removeAerialPerspectiveShader();
         this.initLookupTexturesShaders();
         this.drawLookupTextures();
         this.removeLookupTexturesShaders();
 
+        // Atmosphere constants are compiled into the sky shader
+        this.removeBackgroundShader();
+        this.initBackgroundShader();
+
         this.initPlanetAtmosphereShader();
 
-        this.renderer && this.renderer.requestRedraw();
+        this.renderer.requestRedraw();
     }
 
     public get isReady(): boolean {
         return this._isReady;
     }
 
+    /**
+     * Base atmosphere parameters, without the aerial perspective strength and aerosol multipliers.
+     * @public
+     * @type {AtmosphereParameters}
+     */
     public get parameters(): AtmosphereParameters {
         return JSON.parse(JSON.stringify(this._parameters));
     }
 
+    /**
+     * Parameters the shaders use: the base ones with the air density multiplied by the strength and aerosol.
+     */
+    protected _getEffectiveParameters(): AtmosphereParameters {
+        let p = JSON.parse(JSON.stringify(this._parameters)) as AtmosphereParameters,
+            s = this._aerialPerspectiveStrength,
+            m = s * this._aerialPerspectiveAerosol;
+
+        p.rayleighScatteringCoefficient_0 *= s;
+        p.rayleighScatteringCoefficient_1 *= s;
+        p.rayleighScatteringCoefficient_2 *= s;
+        p.mieScatteringCoefficient *= m;
+        p.mieExtinctionCoefficient *= m;
+
+        return p;
+    }
+
     public initPlanetAtmosphereShader() {
-        this.planet?.initAtmosphereShader(this._parameters);
+        this.planet?.initAtmosphereShader(this._getEffectiveParameters());
     }
 
     public override oninit() {
@@ -199,15 +250,16 @@ export class Atmosphere extends Control {
     public initLookupTexturesShaders() {
         if (this.renderer) {
             let h = this.renderer.handler;
-            h.addProgram(transmittance(this._parameters));
-            h.addProgram(scattering(this._parameters));
-            h.addProgram(aerialPerspective(this._parameters));
+            let p = this._getEffectiveParameters();
+            h.addProgram(transmittance(p));
+            h.addProgram(scattering(p));
+            h.addProgram(aerialPerspective(p));
         }
     }
 
     public initBackgroundShader() {
         if (this.renderer) {
-            this.renderer.handler.addProgram(atmosphereBackgroundShader(this._parameters));
+            this.renderer.handler.addProgram(atmosphereBackgroundShader(this._getEffectiveParameters()));
         }
     }
 
@@ -456,9 +508,7 @@ export class Atmosphere extends Control {
         if (
             !this._aerialPerspectiveDirty &&
             Math.abs(r - this._aerialPerspectiveBuiltRadius) <= Math.max(1.0, altitude * 0.01) &&
-            Math.abs(sunCosZenith - this._aerialPerspectiveBuiltSunCosZenith) <= 1e-3 &&
-            this.aerialPerspectiveStrength === this._aerialPerspectiveBuiltStrength &&
-            this.aerialPerspectiveAerosol === this._aerialPerspectiveBuiltAerosol
+            Math.abs(sunCosZenith - this._aerialPerspectiveBuiltSunCosZenith) <= 1e-3
         ) {
             return;
         }
@@ -466,8 +516,6 @@ export class Atmosphere extends Control {
         this._aerialPerspectiveDirty = false;
         this._aerialPerspectiveBuiltRadius = r;
         this._aerialPerspectiveBuiltSunCosZenith = sunCosZenith;
-        this._aerialPerspectiveBuiltStrength = this.aerialPerspectiveStrength;
-        this._aerialPerspectiveBuiltAerosol = this.aerialPerspectiveAerosol;
 
         let rb = p.BOTTOM_RADIUS,
             rObj = rb + AERIAL_PERSPECTIVE_MAX_OBJECT_HEIGHT,
@@ -502,11 +550,8 @@ export class Atmosphere extends Control {
 
         gl.uniform2f(shu.cameraParams, r, sunCosZenith);
         gl.uniform2f(shu.depthParams, near, depthRange);
-        gl.uniform2f(
-            shu.densityScale,
-            this.aerialPerspectiveStrength,
-            this.aerialPerspectiveStrength * this.aerialPerspectiveAerosol
-        );
+        // The strength and aerosol are already in the atmosphere parameters, shared with the sky
+        gl.uniform2f(shu.densityScale, 1.0, 1.0);
 
         for (let i = 0; i < AERIAL_PERSPECTIVE_LUT_SIZE.depth; i++) {
             fb.bindOutputTextureLayer(this._aerialPerspectiveTexture, i);
