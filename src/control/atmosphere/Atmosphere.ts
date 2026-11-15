@@ -94,7 +94,8 @@ export class Atmosphere extends Control {
     public aerialPerspectiveAerosol: number;
 
     /**
-     * Haze starts at this multiple of the camera altitude, the air is clear closer to the camera.
+     * Haze start distance as a multiple of the camera altitude: closer to the camera haze grows
+     * smoothly from zero, farther it accumulates at the full rate.
      * @public
      * @type {number}
      */

@@ -4,7 +4,7 @@
 uniform highp sampler3D aerialPerspectiveTexture;
 uniform mat3 aerialPerspectiveFrame;  // camera local frame in the scaled space, columns: towards the sun, up, side
 uniform vec4 aerialPerspectiveParams; // x - near distance, y - 1 / distance range, z - weight, w - camera distance from the center
-uniform float aerialPerspectiveStartDistance; // the air is clear closer than this
+uniform float aerialPerspectiveStartDistance; // haze grows smoothly from the camera and reaches full rate past this distance
 
 void getAerialPerspective(in vec3 worldVertex, in vec3 rtcPos, out vec3 inscatter, out vec3 transmittance)
 {
@@ -40,7 +40,9 @@ void getAerialPerspective(in vec3 worldVertex, in vec3 rtcPos, out vec3 inscatte
     coord.x += 0.5;
     vec3 extinction = texture(aerialPerspectiveTexture, coord).rgb * 1e-3;
 
-    transmittance = exp(-extinction * max(dist - aerialPerspectiveStartDistance, 0.0));
+    // Smooth start: ~dist^2 / start close to the camera, ~(dist - start) far away, no visible edge
+    float hazeDistance = dist * dist / (dist + aerialPerspectiveStartDistance + 1e-3);
+    transmittance = exp(-extinction * hazeDistance);
     inscatter = hazeColor * (1.0 - transmittance);
 }
 
