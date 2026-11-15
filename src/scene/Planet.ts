@@ -1903,15 +1903,9 @@ export class Planet extends Scene {
         gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
         //
-        // atmos precomputed textures
+        // atmos precomputed textures and aerial perspective volume
         //
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 4);
-        gl.bindTexture(gl.TEXTURE_2D, atmosphereControl._transmittanceBuffer!.textures[0]);
-        gl.uniform1i(shu.transmittanceTexture, this.SLICE_SIZE + 4);
-
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 5);
-        gl.bindTexture(gl.TEXTURE_2D, atmosphereControl._scatteringBuffer!.textures[0]);
-        gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
+        atmosphereControl.bindForward(sh, this.SLICE_SIZE + 4, this.SLICE_SIZE + 5);
 
         gl.uniform2fv(shu.atmosFadeDist, this.atmosphereFadeDist);
         gl.uniform3fv(shu.atmosMaxMinOpacity, this._atmosphereCurrentMaxMinOpacity);

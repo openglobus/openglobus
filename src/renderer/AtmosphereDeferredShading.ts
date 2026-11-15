@@ -76,14 +76,8 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer!.textures[3]);
         gl.uniform1i(p.uniforms.viewPositionTexture, 3);
 
-        // Atmosphere LUT textures
-        gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_2D, this._atmosphere._transmittanceBuffer!.textures[0]);
-        gl.uniform1i(p.uniforms.transmittanceTexture, 4);
-
-        gl.activeTexture(gl.TEXTURE5);
-        gl.bindTexture(gl.TEXTURE_2D, this._atmosphere._scatteringBuffer!.textures[0]);
-        gl.uniform1i(p.uniforms.scatteringTexture, 5);
+        // Atmosphere LUT and aerial perspective volume
+        this._atmosphere.bindForward(p, 4, 5);
 
         r.shadows.bindForward(p, DEFAULT_SHADOW_TEXTURE_UNIT_START);
         r.cascadeShadowManager.bindForward(p, DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START);

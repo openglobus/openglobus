@@ -1,12 +1,27 @@
-import { DEFAULT_PARAMS, type AtmosphereParameters, transmittance, scattering } from "../../shaders/atmos/atmos";
+import {
+    DEFAULT_PARAMS,
+    type AtmosphereParameters,
+    transmittance,
+    scattering,
+    aerialPerspective,
+    AERIAL_PERSPECTIVE_LUT_SIZE
+} from "../../shaders/atmos/atmos";
 import { Framebuffer } from "../../webgl/Framebuffer";
 import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { Control, type IControlParams } from "../Control";
+import type { PlanetCamera } from "../../camera/PlanetCamera";
+import { clamp } from "../../math";
 
 import atmosphere_vert from "./atmosphere.vert.glsl";
 import atmosphere_frag from "./atmosphere.frag.glsl";
 
 import { stringTemplate2 } from "../../utils/shared";
+
+// Must match ATMOS_LUT_SIZE in lut_helpers.glsl
+const ATMOS_LUT_SIZE = 1024;
+
+// Terrain above this height is still covered by the aerial perspective volume beyond the horizon.
+const AERIAL_PERSPECTIVE_MAX_OBJECT_HEIGHT = 20000.0;
 
 export interface IAtmosphereParams extends IControlParams {
     ATMOS_HEIGHT?: number;
@@ -28,16 +43,77 @@ export interface IAtmosphereParams extends IControlParams {
     ozoneDensityHeight?: number;
     ozoneDensityWide?: number;
     disableSunDisk?: boolean;
+    aerialPerspective?: boolean;
+    aerialPerspectiveFadeStart?: number;
+    aerialPerspectiveFadeEnd?: number;
+    aerialPerspectiveStrength?: number;
+    aerialPerspectiveAerosol?: number;
+    aerialPerspectiveStartFactor?: number;
 }
 
 export class Atmosphere extends Control {
-    public _transmittanceBuffer: Framebuffer | null;
-    public _scatteringBuffer: Framebuffer | null;
+    /** Transmittance LUT in the left half, multiple scattering LUT in the right half. */
+    public _lutBuffer: Framebuffer | null;
     public opacity: number;
+
+    /**
+     * Applies the aerial perspective volume to the surface when the camera is low.
+     * @public
+     * @type {boolean}
+     */
+    public aerialPerspective: boolean;
+
+    /**
+     * Camera altitude in meters where the aerial perspective starts fading to the space view shading.
+     * @public
+     * @type {number}
+     */
+    public aerialPerspectiveFadeStart: number;
+
+    /**
+     * Camera altitude in meters where only the space view shading remains.
+     * @public
+     * @type {number}
+     */
+    public aerialPerspectiveFadeEnd: number;
+
+    /**
+     * Air density multiplier for the aerial perspective only, the sky is not affected.
+     * Distant haze gets thicker, its color tends to the same horizon color.
+     * @public
+     * @type {number}
+     */
+    public aerialPerspectiveStrength: number;
+
+    /**
+     * Additional aerosol (Mie) density multiplier for the aerial perspective, on top of the strength.
+     * Aerosols give whitish haze, Rayleigh scattering alone tints far haze blue or purple at sunset.
+     * @public
+     * @type {number}
+     */
+    public aerialPerspectiveAerosol: number;
+
+    /**
+     * Haze starts at this multiple of the camera altitude, the air is clear closer to the camera.
+     * @public
+     * @type {number}
+     */
+    public aerialPerspectiveStartFactor: number;
 
     protected _parameters: AtmosphereParameters;
 
     protected _isReady: boolean = false;
+
+    protected _aerialPerspectiveFramebuffer: Framebuffer | null;
+    protected _aerialPerspectiveTexture: WebGLTexture | null;
+    protected _aerialPerspectiveFrame: Float32Array;
+    protected _aerialPerspectiveParams: Float32Array;
+    protected _aerialPerspectiveDirty: boolean;
+    protected _aerialPerspectiveBuiltRadius: number;
+    protected _aerialPerspectiveBuiltSunCosZenith: number;
+    protected _aerialPerspectiveBuiltStrength: number;
+    protected _aerialPerspectiveBuiltAerosol: number;
+    protected _aerialPerspectiveStartDistance: number;
 
     constructor(options: IAtmosphereParams = {}) {
         super({
@@ -45,8 +121,7 @@ export class Atmosphere extends Control {
             ...options
         });
 
-        this._transmittanceBuffer = null;
-        this._scatteringBuffer = null;
+        this._lutBuffer = null;
 
         this.opacity = 1.0;
 
@@ -57,12 +132,31 @@ export class Atmosphere extends Control {
                 ...o
             })
         );
+
+        this.aerialPerspective = options.aerialPerspective ?? true;
+        this.aerialPerspectiveFadeStart = options.aerialPerspectiveFadeStart ?? this._parameters.ATMOS_HEIGHT;
+        this.aerialPerspectiveFadeEnd = options.aerialPerspectiveFadeEnd ?? this._parameters.ATMOS_HEIGHT * 3.0;
+        this.aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 3.0;
+        this.aerialPerspectiveAerosol = options.aerialPerspectiveAerosol ?? 1.0;
+        this.aerialPerspectiveStartFactor = options.aerialPerspectiveStartFactor ?? 3.0;
+
+        this._aerialPerspectiveFramebuffer = null;
+        this._aerialPerspectiveTexture = null;
+        this._aerialPerspectiveFrame = new Float32Array(9);
+        this._aerialPerspectiveParams = new Float32Array(4);
+        this._aerialPerspectiveDirty = true;
+        this._aerialPerspectiveBuiltRadius = 0.0;
+        this._aerialPerspectiveBuiltSunCosZenith = 0.0;
+        this._aerialPerspectiveBuiltStrength = 0.0;
+        this._aerialPerspectiveBuiltAerosol = 0.0;
+        this._aerialPerspectiveStartDistance = 0.0;
     }
 
     public setParameters(parameters: AtmosphereParameters) {
         this._isReady = false;
         this._parameters = JSON.parse(JSON.stringify(parameters));
 
+        this.removeAerialPerspectiveShader();
         this.initLookupTexturesShaders();
         this.drawLookupTextures();
         this.removeLookupTexturesShaders();
@@ -103,8 +197,10 @@ export class Atmosphere extends Control {
 
     public initLookupTexturesShaders() {
         if (this.renderer) {
-            this.renderer.handler.addProgram(transmittance(this._parameters));
-            this.renderer.handler.addProgram(scattering(this._parameters));
+            let h = this.renderer.handler;
+            h.addProgram(transmittance(this._parameters));
+            h.addProgram(scattering(this._parameters));
+            h.addProgram(aerialPerspective(this._parameters));
         }
     }
 
@@ -120,15 +216,19 @@ export class Atmosphere extends Control {
         }
     }
 
+    // Aerial perspective volume is redrawn every frame, so its program outlives the other LUT programs.
+    public removeAerialPerspectiveShader() {
+        if (this.renderer) {
+            this.renderer.handler.removeProgram("aerialPerspective");
+        }
+    }
+
     public removeLookupTexturesShaders() {
         if (this.renderer) {
             let h = this.renderer.handler;
 
-            if (this._scatteringBuffer?.isComplete()) {
+            if (this._lutBuffer?.isComplete()) {
                 h.removeProgram("scattering");
-            }
-
-            if (this._transmittanceBuffer?.isComplete()) {
                 h.removeProgram("transmittance");
             }
         }
@@ -145,12 +245,9 @@ export class Atmosphere extends Control {
     }
 
     protected _initLookupTextures() {
-        let width = 1024,
-            height = 1024;
-
-        this._transmittanceBuffer = new Framebuffer(this.renderer!.handler, {
-            width: width,
-            height: height,
+        this._lutBuffer = new Framebuffer(this.renderer!.handler, {
+            width: ATMOS_LUT_SIZE * 2,
+            height: ATMOS_LUT_SIZE,
             useDepth: false,
             targets: [
                 {
@@ -160,82 +257,288 @@ export class Atmosphere extends Control {
             ]
         });
 
-        this._transmittanceBuffer.init();
+        this._lutBuffer.init();
 
-        this._scatteringBuffer = new Framebuffer(this.renderer!.handler, {
-            width: width,
-            height: height,
+        this._initAerialPerspective();
+    }
+
+    protected _initAerialPerspective() {
+        let h = this.renderer!.handler,
+            gl = h.gl!,
+            s = AERIAL_PERSPECTIVE_LUT_SIZE;
+
+        // In-scattering in the left half, transmittance in the right half of every slice.
+        this._aerialPerspectiveTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_3D, this._aerialPerspectiveTexture);
+        gl.texStorage3D(gl.TEXTURE_3D, 1, gl.RGBA16F, s.width * 2, s.height, s.depth);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_3D, null);
+
+        this._aerialPerspectiveFramebuffer = new Framebuffer(h, {
+            width: s.width * 2,
+            height: s.height,
             useDepth: false,
             targets: [
                 {
-                    filter: "LINEAR",
+                    filter: "NEAREST",
                     internalFormat: "RGBA16F"
                 }
             ]
         });
 
-        this._scatteringBuffer.init();
+        this._aerialPerspectiveFramebuffer.init();
     }
 
     protected _renderLookupTextures() {
-        if (!this.renderer) return;
+        if (!this.renderer || !this._lutBuffer) return;
 
-        let positionBuffer = this.renderer.screenFramePositionBuffer;
+        let positionBuffer = this.renderer.screenFramePositionBuffer!;
 
         let h = this.renderer.handler;
         let gl = h.gl!;
 
+        // The scattering pass samples transmittance, so it reads from a separate buffer.
+        let transmittanceBuffer = new Framebuffer(h, {
+            width: ATMOS_LUT_SIZE,
+            height: ATMOS_LUT_SIZE,
+            useDepth: false,
+            targets: [
+                {
+                    filter: "LINEAR",
+                    internalFormat: "RGBA16F"
+                }
+            ]
+        });
+
+        transmittanceBuffer.init();
+
+        let tp = h.programs.transmittance;
+
+        const drawTransmittance = () => {
+            tp.activate();
+            gl.uniform2fv(tp.uniforms.iResolution, [ATMOS_LUT_SIZE, ATMOS_LUT_SIZE]);
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.vertexAttribPointer(tp.attributes.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
+        };
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+        transmittanceBuffer.activate();
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        drawTransmittance();
+        transmittanceBuffer.deactivate();
+
+        this._lutBuffer.activate();
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
         //
-        // Draw transmittance texture
+        // Transmittance, left half
         //
-        if (this._transmittanceBuffer) {
-            this._transmittanceBuffer.activate();
+        gl.viewport(0, 0, ATMOS_LUT_SIZE, ATMOS_LUT_SIZE);
+        drawTransmittance();
 
-            let p = h.programs.transmittance;
-            let sha = p.attributes;
-            let shu = p.uniforms;
-            p.activate();
+        //
+        // Multiple scattering, right half
+        //
+        gl.viewport(ATMOS_LUT_SIZE, 0, ATMOS_LUT_SIZE, ATMOS_LUT_SIZE);
 
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        let sp = h.programs.scattering;
+        sp.activate();
 
-            gl.uniform2fv(shu.iResolution, [this._transmittanceBuffer.width, this._transmittanceBuffer.height]);
+        gl.uniform2fv(sp.uniforms.iResolution, [ATMOS_LUT_SIZE, ATMOS_LUT_SIZE]);
+        gl.uniform2fv(sp.uniforms.fragCoordOffset, [ATMOS_LUT_SIZE, 0]);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer!);
-            gl.vertexAttribPointer(sha.a_position, positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer!.numItems);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, transmittanceBuffer.textures[0]);
+        gl.uniform1i(sp.uniforms.transmittanceTexture, 0);
 
-            this._transmittanceBuffer.deactivate();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.vertexAttribPointer(sp.attributes.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
+
+        this._lutBuffer.deactivate();
+
+        transmittanceBuffer.destroy();
+
+        this._aerialPerspectiveDirty = true;
+        this._isReady = true;
+    }
+
+    /**
+     * Updates the aerial perspective volume: in-scattering and transmittance from the camera
+     * along view directions given relative to the local up and the sun, slices spread quadratically
+     * from the atmosphere entry to the farthest visible terrain. The volume depends only on the camera
+     * altitude and the sun angle, so it is rebuilt only when they change noticeably.
+     */
+    protected _drawAerialPerspective(cam: PlanetCamera) {
+        let p = this._parameters,
+            apParams = this._aerialPerspectiveParams;
+
+        let scale = p.BOTTOM_RADIUS / p.EQUATORIAL_RADIUS,
+            eye = cam.eye,
+            ex = eye.x * scale,
+            ey = eye.y * scale,
+            ez = eye.z,
+            c = Math.sqrt(ex * ex + ey * ey + ez * ez),
+            altitude = c - p.BOTTOM_RADIUS;
+
+        let weight = 0.0;
+        if (this.aerialPerspective && !cam.isOrthographic) {
+            let range = Math.max(this.aerialPerspectiveFadeEnd - this.aerialPerspectiveFadeStart, 1.0);
+            let t = clamp((altitude - this.aerialPerspectiveFadeStart) / range, 0.0, 1.0);
+            weight = 1.0 - t * t * (3.0 - 2.0 * t);
         }
 
+        apParams[2] = weight;
+
+        if (weight === 0.0) return;
+
+        this._aerialPerspectiveStartDistance = Math.max(altitude, 0.0) * this.aerialPerspectiveStartFactor;
+
         //
-        // Draw scattering texture
+        // Camera local frame in the scaled space: towards the sun, up, side
         //
-        if (this._scatteringBuffer && this._transmittanceBuffer) {
-            this._scatteringBuffer.activate();
+        let ux = ex / c,
+            uy = ey / c,
+            uz = ez / c;
 
-            let p = h.programs.scattering;
-            let sha = p.attributes;
-            let shu = p.uniforms;
-            p.activate();
+        let sunPos = this.planet!.sunPos,
+            sx = sunPos.x * scale,
+            sy = sunPos.y * scale,
+            sz = sunPos.z,
+            sl = Math.sqrt(sx * sx + sy * sy + sz * sz);
 
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        sx /= sl;
+        sy /= sl;
+        sz /= sl;
 
-            gl.uniform2fv(shu.iResolution, [this._scatteringBuffer.width, this._scatteringBuffer.height]);
+        let sunCosZenith = ux * sx + uy * sy + uz * sz;
 
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this._transmittanceBuffer.textures[0]);
-            gl.uniform1i(shu.transmittanceTexture, 0);
+        let tx = sx - ux * sunCosZenith,
+            ty = sy - uy * sunCosZenith,
+            tz = sz - uz * sunCosZenith,
+            tl = Math.sqrt(tx * tx + ty * ty + tz * tz);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer!);
-            gl.vertexAttribPointer(sha.a_position, positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer!.numItems);
-
-            this._scatteringBuffer.deactivate();
-
-            this._isReady = true;
+        if (tl < 1e-6) {
+            // The sun is at the zenith, any horizontal direction will do
+            let ax = Math.abs(ux) < 0.9 ? 1.0 : 0.0,
+                ay = 1.0 - ax,
+                d = ax * ux + ay * uy;
+            tx = ax - ux * d;
+            ty = ay - uy * d;
+            tz = -uz * d;
+            tl = Math.sqrt(tx * tx + ty * ty + tz * tz);
         }
+
+        tx /= tl;
+        ty /= tl;
+        tz /= tl;
+
+        let f = this._aerialPerspectiveFrame;
+        f[0] = tx;
+        f[1] = ty;
+        f[2] = tz;
+        f[3] = ux;
+        f[4] = uy;
+        f[5] = uz;
+        f[6] = uy * tz - uz * ty;
+        f[7] = uz * tx - ux * tz;
+        f[8] = ux * ty - uy * tx;
+
+        let r = Math.max(c, p.BOTTOM_RADIUS + 1.0);
+
+        if (
+            !this._aerialPerspectiveDirty &&
+            Math.abs(r - this._aerialPerspectiveBuiltRadius) <= Math.max(1.0, altitude * 0.01) &&
+            Math.abs(sunCosZenith - this._aerialPerspectiveBuiltSunCosZenith) <= 1e-3 &&
+            this.aerialPerspectiveStrength === this._aerialPerspectiveBuiltStrength &&
+            this.aerialPerspectiveAerosol === this._aerialPerspectiveBuiltAerosol
+        ) {
+            return;
+        }
+
+        this._aerialPerspectiveDirty = false;
+        this._aerialPerspectiveBuiltRadius = r;
+        this._aerialPerspectiveBuiltSunCosZenith = sunCosZenith;
+        this._aerialPerspectiveBuiltStrength = this.aerialPerspectiveStrength;
+        this._aerialPerspectiveBuiltAerosol = this.aerialPerspectiveAerosol;
+
+        let rb = p.BOTTOM_RADIUS,
+            rObj = rb + AERIAL_PERSPECTIVE_MAX_OBJECT_HEIGHT,
+            near = Math.max(r - rb - p.ATMOS_HEIGHT, 0.0),
+            far = Math.sqrt(Math.max(r * r - rb * rb, 0.0)) + Math.sqrt(rObj * rObj - rb * rb),
+            depthRange = Math.max(far - near, 1.0);
+
+        apParams[0] = near;
+        apParams[1] = 1.0 / depthRange;
+        apParams[3] = r;
+
+        let rn = this.renderer!,
+            h = rn.handler,
+            gl = h.gl!,
+            sh = h.programs.aerialPerspective,
+            shu = sh.uniforms,
+            fb = this._aerialPerspectiveFramebuffer!;
+
+        fb.activate();
+
+        gl.disable(gl.BLEND);
+        gl.disable(gl.DEPTH_TEST);
+
+        sh.activate();
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, rn.screenFramePositionBuffer!);
+        gl.vertexAttribPointer(sh.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._lutBuffer!.textures[0]);
+        gl.uniform1i(shu.atmosLutTexture, 0);
+
+        gl.uniform2f(shu.cameraParams, r, sunCosZenith);
+        gl.uniform2f(shu.depthParams, near, depthRange);
+        gl.uniform2f(
+            shu.densityScale,
+            this.aerialPerspectiveStrength,
+            this.aerialPerspectiveStrength * this.aerialPerspectiveAerosol
+        );
+
+        for (let i = 0; i < AERIAL_PERSPECTIVE_LUT_SIZE.depth; i++) {
+            fb.bindOutputTextureLayer(this._aerialPerspectiveTexture, i);
+            gl.uniform1f(shu.slice, i);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+
+        fb.deactivate();
+    }
+
+    /**
+     * Binds the atmosphere LUT and aerial perspective uniforms to a program
+     * that includes atmos/aerialPerspective.glsl.
+     * @public
+     * @param {ShaderProgram} p - Active program.
+     * @param {number} lutTextureUnit - Texture unit for the transmittance/scattering LUT.
+     * @param {number} aerialPerspectiveTextureUnit - Texture unit for the aerial perspective volume.
+     */
+    public bindForward(p: ShaderProgram, lutTextureUnit: number, aerialPerspectiveTextureUnit: number) {
+        let gl = this.renderer!.handler.gl!,
+            u = p.uniforms;
+
+        gl.activeTexture(gl.TEXTURE0 + lutTextureUnit);
+        gl.bindTexture(gl.TEXTURE_2D, this._lutBuffer!.textures[0]);
+        gl.uniform1i(u.atmosLutTexture, lutTextureUnit);
+
+        gl.activeTexture(gl.TEXTURE0 + aerialPerspectiveTextureUnit);
+        gl.bindTexture(gl.TEXTURE_3D, this._aerialPerspectiveTexture);
+        gl.uniform1i(u.aerialPerspectiveTexture, aerialPerspectiveTextureUnit);
+
+        gl.uniformMatrix3fv(u.aerialPerspectiveFrame, false, this._aerialPerspectiveFrame);
+        gl.uniform4fv(u.aerialPerspectiveParams, this._aerialPerspectiveParams);
+        gl.uniform1f(u.aerialPerspectiveStartDistance, this._aerialPerspectiveStartDistance);
     }
 
     public drawLookupTextures() {
@@ -253,6 +556,9 @@ export class Atmosphere extends Control {
         let r = this.renderer!;
         let cam = this.planet!.camera;
 
+        // Surface passes of this frame sample the volume, they run after the planet draw event.
+        this._drawAerialPerspective(cam);
+
         gl.disable(gl.DEPTH_TEST);
 
         r.enableBlendOneSrcAlpha();
@@ -263,12 +569,8 @@ export class Atmosphere extends Control {
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._transmittanceBuffer!.textures[0]);
-        gl.uniform1i(shu.transmittanceTexture, 0);
-
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this._scatteringBuffer!.textures[0]);
-        gl.uniform1i(shu.scatteringTexture, 1);
+        gl.bindTexture(gl.TEXTURE_2D, this._lutBuffer!.textures[0]);
+        gl.uniform1i(shu.atmosLutTexture, 0);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
 
@@ -298,8 +600,7 @@ function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): ShaderP
             fov: "float",
             camPos: "vec3",
             viewMatrix: "mat4",
-            transmittanceTexture: "sampler2D",
-            scatteringTexture: "sampler2D",
+            atmosLutTexture: "sampler2D",
             sunPos: "vec3",
             opacity: "float",
             isOrthographic: "float",

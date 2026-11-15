@@ -15,8 +15,7 @@ uniform float opacity;
 uniform float isOrthographic;
 uniform vec4 frustumParams;// x=left-right, y=top-bottom, z=right, w=top
 
-uniform sampler2D transmittanceTexture;
-uniform sampler2D scatteringTexture;
+uniform sampler2D atmosLutTexture;
 
 #include "../../shaders/atmos/lut_helpers.glsl"
 
