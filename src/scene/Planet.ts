@@ -1137,9 +1137,9 @@ export class Planet extends Scene {
             this._atmosphere.activate();
             this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
-            h.addProgram(shaders.segment_screen_wl_forward_atmos(this._atmosphere.parameters));
+            h.addProgram(shaders.segment_screen_wl_forward_atmos(this._atmosphere.effectiveParameters));
             if (!this.renderer.deferredDisabled) {
-                this._swapDeferredShadingPass(this._atmosphere.parameters);
+                this._swapDeferredShadingPass(this._atmosphere.effectiveParameters);
             }
 
             if (!this._transparentBackground) {

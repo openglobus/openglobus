@@ -194,7 +194,7 @@ export class GeoObjectHandler {
 
                 const atmosphereControl = (this._scene as Planet).atmosphereControl;
                 if (atmosphereControl) {
-                    programs.push(shaders.geo_object_woit_atmos(atmosphereControl.parameters));
+                    programs.push(shaders.geo_object_woit_atmos(atmosphereControl.effectiveParameters));
                 }
             }
             this._renderer.addPrograms(programs);

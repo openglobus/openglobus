@@ -122,9 +122,9 @@ export class Atmosphere extends Control {
         this.aerialPerspective = options.aerialPerspective ?? true;
         this.aerialPerspectiveFadeStart = options.aerialPerspectiveFadeStart ?? this._parameters.ATMOS_HEIGHT;
         this.aerialPerspectiveFadeEnd = options.aerialPerspectiveFadeEnd ?? this._parameters.ATMOS_HEIGHT * 3.0;
-        this._aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 1.0;
+        this._aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 3.5;
         this._aerialPerspectiveAerosol = options.aerialPerspectiveAerosol ?? 1.0;
-        this.aerialPerspectiveStartFactor = options.aerialPerspectiveStartFactor ?? 3.0;
+        this.aerialPerspectiveStartFactor = options.aerialPerspectiveStartFactor ?? 20.0;
 
         this._aerialPerspectiveFramebuffer = null;
         this._aerialPerspectiveTexture = null;
@@ -211,8 +211,10 @@ export class Atmosphere extends Control {
 
     /**
      * Parameters the shaders use: the base ones with the air density multiplied by the strength and aerosol.
+     * @public
+     * @type {AtmosphereParameters}
      */
-    protected _getEffectiveParameters(): AtmosphereParameters {
+    public get effectiveParameters(): AtmosphereParameters {
         let p = JSON.parse(JSON.stringify(this._parameters)) as AtmosphereParameters,
             s = this._aerialPerspectiveStrength,
             m = s * this._aerialPerspectiveAerosol;
@@ -227,7 +229,7 @@ export class Atmosphere extends Control {
     }
 
     public initPlanetAtmosphereShader() {
-        this.planet?.initAtmosphereShader(this._getEffectiveParameters());
+        this.planet?.initAtmosphereShader(this.effectiveParameters);
     }
 
     public override oninit() {
@@ -250,7 +252,7 @@ export class Atmosphere extends Control {
     public initLookupTexturesShaders() {
         if (this.renderer) {
             let h = this.renderer.handler;
-            let p = this._getEffectiveParameters();
+            let p = this.effectiveParameters;
             h.addProgram(transmittance(p));
             h.addProgram(scattering(p));
             h.addProgram(aerialPerspective(p));
@@ -259,7 +261,7 @@ export class Atmosphere extends Control {
 
     public initBackgroundShader() {
         if (this.renderer) {
-            this.renderer.handler.addProgram(atmosphereBackgroundShader(this._getEffectiveParameters()));
+            this.renderer.handler.addProgram(atmosphereBackgroundShader(this.effectiveParameters));
         }
     }
 
