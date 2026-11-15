@@ -122,9 +122,9 @@ export class Atmosphere extends Control {
         this.aerialPerspective = options.aerialPerspective ?? true;
         this.aerialPerspectiveFadeStart = options.aerialPerspectiveFadeStart ?? this._parameters.ATMOS_HEIGHT;
         this.aerialPerspectiveFadeEnd = options.aerialPerspectiveFadeEnd ?? this._parameters.ATMOS_HEIGHT * 3.0;
-        this._aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 3.5;
+        this._aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 1;
         this._aerialPerspectiveAerosol = options.aerialPerspectiveAerosol ?? 1.0;
-        this.aerialPerspectiveStartFactor = options.aerialPerspectiveStartFactor ?? 20.0;
+        this.aerialPerspectiveStartFactor = options.aerialPerspectiveStartFactor ?? 1.0;
 
         this._aerialPerspectiveFramebuffer = null;
         this._aerialPerspectiveTexture = null;
