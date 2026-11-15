@@ -79,7 +79,7 @@ export class Atmosphere extends Control {
 
     /**
      * Air density multiplier for the aerial perspective only, the sky is not affected.
-     * Distant haze gets thicker, its color tends to the same horizon color.
+     * 1 keeps the distant haze consistent with the sky at the horizon, other values give a visible edge there.
      * @public
      * @type {number}
      */
@@ -137,7 +137,7 @@ export class Atmosphere extends Control {
         this.aerialPerspective = options.aerialPerspective ?? true;
         this.aerialPerspectiveFadeStart = options.aerialPerspectiveFadeStart ?? this._parameters.ATMOS_HEIGHT;
         this.aerialPerspectiveFadeEnd = options.aerialPerspectiveFadeEnd ?? this._parameters.ATMOS_HEIGHT * 3.0;
-        this.aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 3.0;
+        this.aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 1.0;
         this.aerialPerspectiveAerosol = options.aerialPerspectiveAerosol ?? 1.0;
         this.aerialPerspectiveStartFactor = options.aerialPerspectiveStartFactor ?? 3.0;
 
