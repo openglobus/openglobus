@@ -49,6 +49,7 @@ export interface IAtmosphereParams extends IControlParams {
     aerialPerspectiveStrength?: number;
     aerialPerspectiveAerosol?: number;
     aerialPerspectiveStartFactor?: number;
+    aerialPerspectiveSlope?: number;
 }
 
 export class Atmosphere extends Control {
@@ -85,6 +86,14 @@ export class Atmosphere extends Control {
      */
     public aerialPerspectiveStartFactor: number;
 
+    /**
+     * Camera slope where the aerial perspective reaches full intensity. Looking straight down
+     * (slope 1) there is no haze, between 1 and this value it fades in smoothly.
+     * @public
+     * @type {number}
+     */
+    public aerialPerspectiveSlope: number;
+
     protected _parameters: AtmosphereParameters;
 
     protected _aerialPerspectiveStrength: number;
@@ -100,6 +109,7 @@ export class Atmosphere extends Control {
     protected _aerialPerspectiveBuiltRadius: number;
     protected _aerialPerspectiveBuiltSunCosZenith: number;
     protected _aerialPerspectiveStartDistance: number;
+    protected _aerialPerspectiveIntensity: number;
 
     constructor(options: IAtmosphereParams = {}) {
         super({
@@ -120,11 +130,12 @@ export class Atmosphere extends Control {
         );
 
         this.aerialPerspective = options.aerialPerspective ?? true;
-        this.aerialPerspectiveFadeStart = options.aerialPerspectiveFadeStart ?? this._parameters.ATMOS_HEIGHT;
-        this.aerialPerspectiveFadeEnd = options.aerialPerspectiveFadeEnd ?? this._parameters.ATMOS_HEIGHT * 3.0;
-        this._aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 1;
+        this.aerialPerspectiveFadeStart = options.aerialPerspectiveFadeStart ?? this._parameters.ATMOS_HEIGHT * 0.2;
+        this.aerialPerspectiveFadeEnd = options.aerialPerspectiveFadeEnd ?? this._parameters.ATMOS_HEIGHT;
+        this._aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 3.0;
         this._aerialPerspectiveAerosol = options.aerialPerspectiveAerosol ?? 1.0;
-        this.aerialPerspectiveStartFactor = options.aerialPerspectiveStartFactor ?? 1.0;
+        this.aerialPerspectiveStartFactor = options.aerialPerspectiveStartFactor ?? 2.0;
+        this.aerialPerspectiveSlope = options.aerialPerspectiveSlope ?? 0.4;
 
         this._aerialPerspectiveFramebuffer = null;
         this._aerialPerspectiveTexture = null;
@@ -134,6 +145,7 @@ export class Atmosphere extends Control {
         this._aerialPerspectiveBuiltRadius = 0.0;
         this._aerialPerspectiveBuiltSunCosZenith = 0.0;
         this._aerialPerspectiveStartDistance = 0.0;
+        this._aerialPerspectiveIntensity = 1.0;
     }
 
     /**
@@ -455,6 +467,15 @@ export class Atmosphere extends Control {
 
         this._aerialPerspectiveStartDistance = Math.max(altitude, 0.0) * this.aerialPerspectiveStartFactor;
 
+        let s = clamp((1.0 - cam.slope) / Math.max(1.0 - this.aerialPerspectiveSlope, 1e-6), 0.0, 1.0);
+        this._aerialPerspectiveIntensity = s * s * (3.0 - 2.0 * s);
+
+        // Looking straight down the volume is not sampled, it is rebuilt when the camera tilts
+        if (this._aerialPerspectiveIntensity < 1e-3) {
+            this._aerialPerspectiveIntensity = 0.0;
+            return;
+        }
+
         //
         // Camera local frame in the scaled space: towards the sun, up, side
         //
@@ -587,6 +608,7 @@ export class Atmosphere extends Control {
         gl.uniformMatrix3fv(u.aerialPerspectiveFrame, false, this._aerialPerspectiveFrame);
         gl.uniform4fv(u.aerialPerspectiveParams, this._aerialPerspectiveParams);
         gl.uniform1f(u.aerialPerspectiveStartDistance, this._aerialPerspectiveStartDistance);
+        gl.uniform1f(u.aerialPerspectiveIntensity, this._aerialPerspectiveIntensity);
     }
 
     public drawLookupTextures() {

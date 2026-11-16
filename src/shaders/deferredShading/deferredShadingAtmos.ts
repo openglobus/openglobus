@@ -20,6 +20,7 @@ export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT
             aerialPerspectiveFrame: "mat3",
             aerialPerspectiveParams: "vec4",
             aerialPerspectiveStartDistance: "float",
+            aerialPerspectiveIntensity: "float",
             lightPosition: "vec3",
             lightAmbient: "vec3",
             lightDiffuse: "vec3",

@@ -17,8 +17,8 @@ import { createEvents, EventsHandler } from "../Events";
 
 export type QuadTreeStrategyEventsList = ["rendercompleted", "terraincompleted"];
 
-const CUR_LOD_SIZE = 220; //px
-const MIN_LOD_SIZE = 300; //px
+const CUR_LOD_SIZE = 256; //px
+const MIN_LOD_SIZE = 512; //px
 const MAX_LOD_SIZE = 256; //px
 
 const HORIZON_TANGENT = 0.81;

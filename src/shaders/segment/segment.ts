@@ -136,6 +136,7 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             aerialPerspectiveFrame: "mat3",
             aerialPerspectiveParams: "vec4",
             aerialPerspectiveStartDistance: "float",
+            aerialPerspectiveIntensity: "float",
             atmosFadeDist: "vec2",
             atmosMaxMinOpacity: "vec3",
             specularFactor: "float",

@@ -133,28 +133,40 @@ void mainImage(out vec4 outColor)
 //            return;
         }
 
-        float segmentLength = abs(((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(SAMPLE_COUNT));
+        float rayLength = abs((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0));
 
-        float t = segmentLength * 0.5;
-
-        vec3 transmittanceCamera;
-        vec3 transmittanceLight;
+        // Transmittance is accumulated along the ray: the ratio of LUT values underflows
+        // for long rays in a dense atmosphere. Same integration as the aerial perspective volume.
+        vec3 transmittanceCamera = vec3(1.0);
+        vec3 transmittanceLight = vec3(1.0);
+        float tPrev = 0.0;
 
         for (int i = 0; i < SAMPLE_COUNT; i++)
         {
-            vec3 position = rayOrigin + t * rayDirection;
+            // Inside the atmosphere the samples are denser near the camera
+            float f = float(i + 1) / float(SAMPLE_COUNT);
+            float tNext = rayLength * (offset > 0.0 ? f : f * f);
+            float segmentLength = tNext - tPrev;
+            vec3 position = rayOrigin + (tPrev + 0.5 * segmentLength) * rayDirection;
+            tPrev = tNext;
+
             float height = length(position) - BOTTOM_RADIUS;
             vec3 up = position / length(position);
-            float rayAngle = dot(up, rayDirection);
             float lightAngle = dot(up, lightDirection);
-            vec3 transmittanceToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
-            transmittanceCamera = cameraBelow ? (transmittanceToSpace / transmittanceFromCameraToSpace) : (transmittanceFromCameraToSpace / transmittanceToSpace);
             transmittanceLight = transmittanceFromTexture(height, lightAngle);
+
             vec2 opticalDensity = exp(-height / rayleighMieHeights);
-            vec3 scatteredLight = transmittanceLight * (rayleighScatteringCoefficient * opticalDensity.x * rayleighPhase + mieScatteringCoefficient * opticalDensity.y * miePhase);
-            scatteredLight += multipleScatteringContributionFromTexture(height, lightAngle) * (rayleighScatteringCoefficient * opticalDensity.x + mieScatteringCoefficient * opticalDensity.y);
-            light += transmittanceCamera * scatteredLight * segmentLength;
-            t += segmentLength;
+            float ozoneDensity = 1.0 - min(abs(height - ozoneDensityHeight) / ozoneDensityWide, 1.0);
+            vec3 rayleighScattering = rayleighScatteringCoefficient * opticalDensity.x;
+            float mieScattering = mieScatteringCoefficient * opticalDensity.y;
+            vec3 extinction = rayleighScattering + mieExtinctionCoefficient * opticalDensity.y + ozoneAbsorptionCoefficient * ozoneDensity;
+
+            vec3 scatteredLight = transmittanceLight * (rayleighScattering * rayleighPhase + mieScattering * miePhase);
+            scatteredLight += multipleScatteringContributionFromTexture(height, lightAngle) * (rayleighScattering + mieScattering);
+
+            vec3 segmentTransmittance = exp(-extinction * segmentLength);
+            light += transmittanceCamera * (scatteredLight - scatteredLight * segmentTransmittance) / extinction;
+            transmittanceCamera *= segmentTransmittance;
         }
 
         light *= SUN_INTENSITY;

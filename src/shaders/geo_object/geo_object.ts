@@ -192,6 +192,7 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             aerialPerspectiveFrame: "mat3",
             aerialPerspectiveParams: "vec4",
             aerialPerspectiveStartDistance: "float",
+            aerialPerspectiveIntensity: "float",
             atmosFadeDist: "vec2",
             atmosMaxMinOpacity: "vec3",
             cameraForward: "vec3",

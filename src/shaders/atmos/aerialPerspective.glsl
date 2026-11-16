@@ -5,6 +5,7 @@ uniform highp sampler3D aerialPerspectiveTexture;
 uniform mat3 aerialPerspectiveFrame;  // camera local frame in the scaled space, columns: towards the sun, up, side
 uniform vec4 aerialPerspectiveParams; // x - near distance, y - 1 / distance range, z - weight, w - camera distance from the center
 uniform float aerialPerspectiveStartDistance; // haze grows smoothly from the camera and reaches full rate past this distance
+uniform float aerialPerspectiveIntensity; // 0 when the camera looks straight down
 
 void getAerialPerspective(in vec3 worldVertex, in vec3 rtcPos, out vec3 inscatter, out vec3 transmittance)
 {
@@ -75,9 +76,14 @@ vec3 applyAtmosphereToSurface(
     }
 
     if (apWeight > 0.0) {
-        vec3 inscatter, transmittance;
-        getAerialPerspective(worldVertex, rtcPos, inscatter, transmittance);
-        color = mix(color, (litColor + specular) * transmittance + inscatter, apWeight);
+        vec3 surfaceColor = litColor + specular;
+        vec3 hazeColor = surfaceColor;
+        if (aerialPerspectiveIntensity > 0.0) {
+            vec3 inscatter, transmittance;
+            getAerialPerspective(worldVertex, rtcPos, inscatter, transmittance);
+            hazeColor = mix(surfaceColor, surfaceColor * transmittance + inscatter, aerialPerspectiveIntensity);
+        }
+        color = mix(color, hazeColor, apWeight);
     }
 
     return color;
