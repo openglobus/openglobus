@@ -3,6 +3,8 @@ import { deferredShading } from "../shaders/deferredShading/deferredShading";
 import { applyDeferredDepth } from "../shaders/applyDeferredDepth";
 import { ProjectorsPass } from "./projectors/ProjectorsPass";
 import { DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START, DEFAULT_SHADOW_TEXTURE_UNIT_START } from "./textureUnits";
+import { getShaderFeatureVariant, removeShaderFeatureVariants } from "./shaderFeatureVariants";
+import { SHADER_FEATURES_SHADOWS } from "../shaders/common/uniforms";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { Renderer } from "./Renderer";
 
@@ -80,7 +82,7 @@ export class PhongDeferredShading implements IDeferredShadingPass {
             this._framebuffer = null;
         }
         this._projectorPass.dispose();
-        this._renderer.handler.removeProgram("deferredShading");
+        removeShaderFeatureVariants(this._renderer.handler, "deferredShading");
         this._renderer.handler.removeProgram("applyDeferredDepth");
     }
 
@@ -118,7 +120,13 @@ export class PhongDeferredShading implements IDeferredShadingPass {
     protected _deferredShadingPASS() {
         let r = this._renderer;
         let h = r.handler;
-        let sh = h.programs.deferredShading,
+        let sh = getShaderFeatureVariant(
+                h,
+                "deferredShading",
+                r.activeShaderFeatures,
+                deferredShading,
+                SHADER_FEATURES_SHADOWS
+            ),
             p = sh,
             gl = h.gl!;
 
@@ -154,8 +162,12 @@ export class PhongDeferredShading implements IDeferredShadingPass {
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer!.textures[3]);
         gl.uniform1i(p.uniforms.viewPositionTexture, 3);
 
-        r.shadows.bindForward(p, DEFAULT_SHADOW_TEXTURE_UNIT_START);
-        r.cascadeShadowManager.bindForward(p, DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START);
+        r.bindShaderFeatures(
+            p,
+            undefined,
+            DEFAULT_SHADOW_TEXTURE_UNIT_START,
+            DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START
+        );
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 

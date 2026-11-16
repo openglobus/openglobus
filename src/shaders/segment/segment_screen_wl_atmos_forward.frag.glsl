@@ -8,9 +8,7 @@ precision highp float;
 #include "../atmos/common.glsl"
 #include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
-#include "../common/projectors.glsl"
-#include "../common/shadows.glsl"
-#include "../common/cascadeShadows.glsl"
+#include "../common/lightingFeatures.glsl"
 
 uniform vec4 specular;
 uniform vec3 diffuse;
@@ -69,10 +67,8 @@ void main(void) {
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
     vec4 projectorDecal;
     vec3 projectorLight;
-    applyProjectors(v_rtcPos, normal, projectorDecal, projectorLight);
-    float shadowVisibility =
-        getShadowMapsDirectVisibility(v_rtcPos, normal) *
-        getCascadeShadowDirectVisibility(v_rtcPos, normal);
+    applyLightingFeatureProjectors(v_rtcPos, normal, projectorDecal, projectorLight);
+    float shadowVisibility = getLightingFeatureShadowVisibility(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
         diffuseColor.rgb = applyProjectorDecal(diffuseColor.rgb, projectorDecal);

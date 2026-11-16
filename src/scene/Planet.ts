@@ -63,6 +63,7 @@ import {
     TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET,
     TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET
 } from "../renderer/textureUnits";
+import { getShaderFeatureVariant, removeShaderFeatureVariants } from "../renderer/shaderFeatureVariants";
 import { normalizeShadeMode, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "../shadeModeConstants";
 
 export interface IPlanetParams {
@@ -407,6 +408,9 @@ export class Planet extends Scene {
     public atmosphereFadeDist: Float32Array;
     protected _atmosphereBottomRadius: number;
 
+    /** Atmosphere parameters the forward terrain programs are built with. */
+    protected _terrainAtmosParams: AtmosphereParameters | undefined;
+
     public solidTextureOne: WebGLTextureExt | null;
     public solidTextureTwo: WebGLTextureExt | null;
 
@@ -555,6 +559,7 @@ export class Planet extends Scene {
         this._atmosphereCurrentMaxMinOpacity = new Float32Array(this._atmosphereMaxMinOpacity);
         this.atmosphereFadeDist = new Float32Array(2);
         this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
+        this._terrainAtmosParams = undefined;
 
         this.solidTextureOne = null;
         this.solidTextureTwo = null;
@@ -1092,9 +1097,8 @@ export class Planet extends Scene {
     public initAtmosphereShader(atmosParams?: AtmosphereParameters) {
         if (this.renderer && this.renderer.handler && this._atmosphereEnabled) {
             this._atmosphereBottomRadius = atmosParams?.BOTTOM_RADIUS ?? this._atmosphere.parameters.BOTTOM_RADIUS;
-            let h = this.renderer.handler;
-            h.removeProgram("segment_screen_wl_forward");
-            h.addProgram(shaders.segment_screen_wl_forward_atmos(atmosParams));
+            this._removeTerrainForwardPrograms();
+            this._addTerrainForwardProgram(atmosParams);
 
             if (!this.renderer.deferredDisabled) {
                 this._swapDeferredShadingPass(atmosParams);
@@ -1114,9 +1118,7 @@ export class Planet extends Scene {
     protected _initializeAtmosphere() {
         if (!this.renderer) return;
 
-        let h = this.renderer.handler;
-
-        h.removeProgram("segment_screen_wl_forward");
+        this._removeTerrainForwardPrograms();
 
         if (this._atmosphereEnabled) {
             //this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSAtmos;
@@ -1130,7 +1132,7 @@ export class Planet extends Scene {
             this._atmosphere.activate();
             this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
-            h.addProgram(shaders.segment_screen_wl_forward_atmos(this._atmosphere.parameters));
+            this._addTerrainForwardProgram(this._atmosphere.parameters);
             if (!this.renderer.deferredDisabled) {
                 this._swapDeferredShadingPass(this._atmosphere.parameters);
             }
@@ -1159,7 +1161,7 @@ export class Planet extends Scene {
                 }
             }
 
-            h.addProgram(shaders.segment_screen_wl_forward_noatmos());
+            this._addTerrainForwardProgram();
         }
     }
 
@@ -1594,7 +1596,7 @@ export class Planet extends Scene {
         this._renderingOpaqueScreenNodes(
             cam,
             this.quadTreeStrategy,
-            this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.segment_screen_wl_forward, true),
+            this._setUniformsNoAtmos(cam, this._terrainForwardProgram(), true),
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
     }
@@ -1606,7 +1608,7 @@ export class Planet extends Scene {
         this._renderingOpaqueScreenNodes(
             cam,
             this.quadTreeStrategy,
-            this._setUniformsAtmos(cam, this.renderer!.handler.programs.segment_screen_wl_forward, true),
+            this._setUniformsAtmos(cam, this._terrainForwardProgram(), true),
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
     }
@@ -1616,7 +1618,7 @@ export class Planet extends Scene {
         this._renderingTransparentScreenNodes(
             this.camera,
             this.quadTreeStrategy,
-            this._setUniformsNoAtmos(this.camera, this.renderer!.handler.programs.segment_screen_wl_forward, false)
+            this._setUniformsNoAtmos(this.camera, this._terrainForwardProgram(), false)
         );
     }
 
@@ -1627,7 +1629,7 @@ export class Planet extends Scene {
         this._renderingScreenNodesWithHeight(
             cam,
             this.quadTreeStrategy,
-            this._setUniformsNoAtmos(cam, this.renderer!.handler.programs.segment_screen_wl_forward, false),
+            this._setUniformsNoAtmos(cam, this._terrainForwardProgram(), false),
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
     }
@@ -1637,7 +1639,7 @@ export class Planet extends Scene {
         this._renderingTransparentScreenNodes(
             this.camera,
             this.quadTreeStrategy,
-            this._setUniformsAtmos(this.camera, this.renderer!.handler.programs.segment_screen_wl_forward, false)
+            this._setUniformsAtmos(this.camera, this._terrainForwardProgram(), false)
         );
     }
 
@@ -1648,7 +1650,7 @@ export class Planet extends Scene {
         this._renderingScreenNodesWithHeight(
             cam,
             this.quadTreeStrategy,
-            this._setUniformsAtmos(cam, this.renderer!.handler.programs.segment_screen_wl_forward, false),
+            this._setUniformsAtmos(cam, this._terrainForwardProgram(), false),
             this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]
         );
     }
@@ -1754,6 +1756,49 @@ export class Planet extends Scene {
         this.camera.setTerrainCollisionActivity(true);
     }
 
+    /**
+     * Forward terrain program with the lighting features active now (Renderer.activeShaderFeatures),
+     * built the first time that variant is drawn with.
+     * @protected
+     */
+    protected _terrainForwardProgram(): ShaderProgram {
+        const r = this.renderer!;
+        return getShaderFeatureVariant(
+            r.handler,
+            "segment_screen_wl_forward",
+            r.activeShaderFeatures,
+            this._createTerrainForwardProgram
+        );
+    }
+
+    protected _createTerrainForwardProgram = (features: number): ShaderProgram =>
+        this._atmosphereEnabled
+            ? shaders.segment_screen_wl_forward_atmos(this._terrainAtmosParams, features)
+            : shaders.segment_screen_wl_forward_noatmos(features);
+
+    /**
+     * Builds the forward terrain program with every feature up front, under its plain name
+     * "segment_screen_wl_forward", for code that looks it up by name.
+     * @protected
+     */
+    protected _addTerrainForwardProgram(atmosParams?: AtmosphereParameters) {
+        this._terrainAtmosParams = atmosParams;
+        this.renderer!.handler.addProgram(
+            this._atmosphereEnabled
+                ? shaders.segment_screen_wl_forward_atmos(atmosParams)
+                : shaders.segment_screen_wl_forward_noatmos()
+        );
+    }
+
+    /**
+     * Removes the forward terrain program and its variants, before they are rebuilt for other
+     * atmosphere settings.
+     * @protected
+     */
+    protected _removeTerrainForwardPrograms() {
+        removeShaderFeatureVariants(this.renderer!.handler, "segment_screen_wl_forward");
+    }
+
     protected _setUniformsDeferred(cam: PlanetCamera, program: ShaderProgram): ShaderProgram {
         let sh, shu;
         let renderer = this.renderer!;
@@ -1840,9 +1885,12 @@ export class Planet extends Scene {
         this._setSurfaceEffectFactors(gl, shu, cam.getHeight());
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
 
-        renderer.projectors.bindForward(sh, this.SLICE_SIZE + TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET);
-        renderer.shadows.bindForward(sh, this.SLICE_SIZE + TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET);
-        renderer.cascadeShadowManager.bindForward(sh, this.SLICE_SIZE + TERRAIN_CASCADE_SHADOW_TEXTURE_UNIT_OFFSET);
+        renderer.bindShaderFeatures(
+            sh,
+            this.SLICE_SIZE + TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET,
+            this.SLICE_SIZE + TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET,
+            this.SLICE_SIZE + TERRAIN_CASCADE_SHADOW_TEXTURE_UNIT_OFFSET
+        );
 
         return sh;
     }
@@ -1914,9 +1962,12 @@ export class Planet extends Scene {
         gl.uniform3fv(shu.cameraForward, cam.getForward().toArray());
         gl.uniform1f(shu.isOrthographic, cam.isOrthographic ? 1.0 : 0.0);
 
-        renderer.projectors.bindForward(sh, this.SLICE_SIZE + TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET);
-        renderer.shadows.bindForward(sh, this.SLICE_SIZE + TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET);
-        renderer.cascadeShadowManager.bindForward(sh, this.SLICE_SIZE + TERRAIN_CASCADE_SHADOW_TEXTURE_UNIT_OFFSET);
+        renderer.bindShaderFeatures(
+            sh,
+            this.SLICE_SIZE + TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET,
+            this.SLICE_SIZE + TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET,
+            this.SLICE_SIZE + TERRAIN_CASCADE_SHADOW_TEXTURE_UNIT_OFFSET
+        );
 
         return sh;
     }

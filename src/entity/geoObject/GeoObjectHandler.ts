@@ -15,6 +15,8 @@ import type { Scene } from "../../scene/Scene";
 import type { Camera } from "../../camera/Camera";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import { srgbToLinear } from "../../utils/colorSpace";
+import { getShaderFeatureVariant } from "../../renderer/shaderFeatureVariants";
+import { SHADER_FEATURES_SHADOWS } from "../../shaders/common/uniforms";
 
 export const VERTEX_BUFFER = 0;
 export const RTC_POSITION_BUFFER = 1;
@@ -180,6 +182,10 @@ export class GeoObjectHandler {
 
         return true;
     }
+
+    /** Builds geo_object_woit_atmos variants with the planet's atmosphere parameters, like initProgram. */
+    protected _createWoitAtmos = (features: number): ShaderProgram =>
+        shaders.geo_object_woit_atmos((this._scene as Planet).atmosphereControl?.parameters, features);
 
     public initProgram() {
         if (this._renderer && this._scene) {
@@ -566,7 +572,19 @@ export class GeoObjectHandler {
             rn = this._scene,
             //@ts-ignore
             useAtmos = rn.atmosphereEnabled,
-            sh = useAtmos ? r.handler.programs.geo_object_woit_atmos : r.handler.programs.geo_object_woit,
+            sh = useAtmos
+                ? getShaderFeatureVariant(
+                      r.handler,
+                      "geo_object_woit_atmos",
+                      r.activeShaderFeatures,
+                      this._createWoitAtmos
+                  )
+                : getShaderFeatureVariant(
+                      r.handler,
+                      "geo_object_woit",
+                      r.activeShaderFeatures,
+                      shaders.geo_object_woit
+                  ),
             p = sh,
             gl = r.handler.gl!,
             disableCull = this._entityCollection.disableCullFace;
@@ -582,9 +600,7 @@ export class GeoObjectHandler {
         if (useAtmos) {
             this._bindAtmosphereParams(p);
         }
-        r.projectors.bindForward(p);
-        r.shadows.bindForward(p);
-        r.cascadeShadowManager.bindForward(p);
+        r.bindShaderFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -595,15 +611,20 @@ export class GeoObjectHandler {
 
     public _displayTransparentForwardPASS() {
         let r = this._renderer!,
-            sh = r.handler.programs.geo_object_forward,
+            sh = getShaderFeatureVariant(
+                r.handler,
+                "geo_object_forward",
+                r.activeShaderFeatures,
+                shaders.geo_object_forward,
+                SHADER_FEATURES_SHADOWS
+            ),
             p = sh;
 
         sh.activate();
 
         this._bindCommon(p);
         this._bindForwardParams(p);
-        r.shadows.bindForward(p);
-        r.cascadeShadowManager.bindForward(p);
+        r.bindShaderFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -612,15 +633,20 @@ export class GeoObjectHandler {
 
     public _displayForwardPASS() {
         let r = this._renderer!,
-            sh = r.handler.programs.geo_object_forward,
+            sh = getShaderFeatureVariant(
+                r.handler,
+                "geo_object_forward",
+                r.activeShaderFeatures,
+                shaders.geo_object_forward,
+                SHADER_FEATURES_SHADOWS
+            ),
             p = sh;
 
         sh.activate();
 
         this._bindCommon(p);
         this._bindForwardParams(p);
-        r.shadows.bindForward(p);
-        r.cascadeShadowManager.bindForward(p);
+        r.bindShaderFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawForwardAll(p);

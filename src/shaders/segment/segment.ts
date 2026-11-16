@@ -14,7 +14,12 @@ import segment_colorPicking_frag from "./segment_colorPicking.frag.glsl";
 import segment_depth_vert from "./segment_depth.vert.glsl";
 import segment_depth_frag from "./segment_depth.frag.glsl";
 import { stringTemplate2 } from "../../utils/shared";
-import { cascadeShadowUniforms, projectorShaderParams, projectorUniforms, shadowMapUniforms } from "../common/uniforms";
+import {
+    SHADER_FEATURES_ALL,
+    shaderFeatureParams,
+    shaderFeatureProgramName,
+    shaderFeatureUniforms
+} from "../common/uniforms";
 
 // REMEMBER!
 // src*(1)+dest*(1-src.alpha)
@@ -64,8 +69,12 @@ export function segment_screen_deferred(): ShaderProgram {
     });
 }
 
-export function segment_screen_wl_forward_noatmos(): ShaderProgram {
-    return new ShaderProgram("segment_screen_wl_forward", {
+/**
+ * Forward terrain program without the atmosphere.
+ * @param {number} [features] - Lighting features to compile in, a SHADER_FEATURE_* mask.
+ */
+export function segment_screen_wl_forward_noatmos(features: number = SHADER_FEATURES_ALL): ShaderProgram {
+    return new ShaderProgram(shaderFeatureProgramName("segment_screen_wl_forward", features), {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -92,9 +101,7 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             transitionOpacity: "float",
             shadeMode: "float",
             frameOpacity: "float",
-            ...projectorUniforms,
-            ...shadowMapUniforms,
-            ...cascadeShadowUniforms
+            ...shaderFeatureUniforms(features)
         },
         attributes: {
             aVertexPositionHigh: "vec3",
@@ -102,12 +109,20 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             aTextureCoord: "vec2"
         },
         vertexShader: segment_screen_wl,
-        fragmentShader: stringTemplate2(segment_screen_wl_noatmos_forward_frag, projectorShaderParams)
+        fragmentShader: stringTemplate2(segment_screen_wl_noatmos_forward_frag, shaderFeatureParams(features))
     });
 }
 
-export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): ShaderProgram {
-    return new ShaderProgram("segment_screen_wl_forward", {
+/**
+ * Forward terrain program with the atmosphere.
+ * @param {AtmosphereParameters} [atmosParams] - Atmosphere parameters.
+ * @param {number} [features] - Lighting features to compile in, a SHADER_FEATURE_* mask.
+ */
+export function segment_screen_wl_forward_atmos(
+    atmosParams: AtmosphereParameters = DEFAULT_PARAMS,
+    features: number = SHADER_FEATURES_ALL
+): ShaderProgram {
+    return new ShaderProgram(shaderFeatureProgramName("segment_screen_wl_forward", features), {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -140,9 +155,7 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             transitionOpacity: "float",
             shadeMode: "float",
             frameOpacity: "float",
-            ...projectorUniforms,
-            ...shadowMapUniforms,
-            ...cascadeShadowUniforms
+            ...shaderFeatureUniforms(features)
         },
         attributes: {
             aVertexPositionHigh: "vec3",
@@ -152,7 +165,7 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
         vertexShader: segment_screen_wl,
         fragmentShader: stringTemplate2(segment_screen_wl_atmos_forward_frag, {
             ...atmosParams,
-            ...projectorShaderParams
+            ...shaderFeatureParams(features)
         })
     });
 }

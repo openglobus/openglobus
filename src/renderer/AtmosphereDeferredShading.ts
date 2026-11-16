@@ -1,6 +1,9 @@
 import { deferredShadingAtmos } from "../shaders/deferredShading/deferredShadingAtmos";
 import { PhongDeferredShading } from "./PhongDeferredShading";
 import { DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START, DEFAULT_SHADOW_TEXTURE_UNIT_START } from "./textureUnits";
+import { getShaderFeatureVariant, removeShaderFeatureVariants } from "./shaderFeatureVariants";
+import { SHADER_FEATURES_SHADOWS } from "../shaders/common/uniforms";
+import type { ShaderProgram } from "../webgl/ShaderProgram";
 import type { Renderer } from "./Renderer";
 import type { Atmosphere } from "../control/atmosphere/Atmosphere";
 import type { AtmosphereParameters } from "../shaders/atmos/atmos";
@@ -15,13 +18,15 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         this._atmosParams = atmosParams;
     }
 
+    protected _createProgram = (features: number): ShaderProgram => deferredShadingAtmos(this._atmosParams, features);
+
     public override init() {
         super.init();
         this._renderer.handler.addProgram(deferredShadingAtmos(this._atmosParams));
     }
 
     public override dispose() {
-        this._renderer.handler.removeProgram("deferredShadingAtmos");
+        removeShaderFeatureVariants(this._renderer.handler, "deferredShadingAtmos");
         super.dispose();
     }
 
@@ -33,7 +38,13 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
 
         let r = this._renderer;
         let h = r.handler;
-        let sh = h.programs.deferredShadingAtmos,
+        let sh = getShaderFeatureVariant(
+                h,
+                "deferredShadingAtmos",
+                r.activeShaderFeatures,
+                this._createProgram,
+                SHADER_FEATURES_SHADOWS
+            ),
             p = sh,
             gl = h.gl!;
 
@@ -85,8 +96,12 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         gl.bindTexture(gl.TEXTURE_2D, this._atmosphere._scatteringBuffer!.textures[0]);
         gl.uniform1i(p.uniforms.scatteringTexture, 5);
 
-        r.shadows.bindForward(p, DEFAULT_SHADOW_TEXTURE_UNIT_START);
-        r.cascadeShadowManager.bindForward(p, DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START);
+        r.bindShaderFeatures(
+            p,
+            undefined,
+            DEFAULT_SHADOW_TEXTURE_UNIT_START,
+            DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START
+        );
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
