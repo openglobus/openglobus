@@ -63,7 +63,7 @@ import {
     TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET,
     TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET
 } from "../renderer/textureUnits";
-import { getShaderFeatureVariant, removeShaderFeatureVariants } from "../renderer/shaderFeatureVariants";
+import { getLightingFeatureVariant, removeLightingFeatureVariants } from "../renderer/lightingFeatureVariants";
 import { normalizeShadeMode, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "../shadeModeConstants";
 
 export interface IPlanetParams {
@@ -1764,16 +1764,16 @@ export class Planet extends Scene {
     }
 
     /**
-     * Forward terrain program with the lighting features active now (Renderer.activeShaderFeatures),
+     * Forward terrain program with the lighting features active now (Renderer.activeLightingFeatures),
      * built the first time that variant is drawn with.
      * @protected
      */
     protected _terrainForwardProgram(): ShaderProgram {
         const r = this.renderer!;
-        return getShaderFeatureVariant(
+        return getLightingFeatureVariant(
             r.handler,
             "segment_screen_wl_forward",
-            r.activeShaderFeatures,
+            r.activeLightingFeatures,
             this._createTerrainForwardProgram
         );
     }
@@ -1803,7 +1803,7 @@ export class Planet extends Scene {
      * @protected
      */
     protected _removeTerrainForwardPrograms() {
-        removeShaderFeatureVariants(this.renderer!.handler, "segment_screen_wl_forward");
+        removeLightingFeatureVariants(this.renderer!.handler, "segment_screen_wl_forward");
     }
 
     protected _setUniformsDeferred(cam: PlanetCamera, program: ShaderProgram): ShaderProgram {
@@ -1892,7 +1892,7 @@ export class Planet extends Scene {
         this._setSurfaceEffectFactors(gl, shu, cam.getHeight());
         gl.uniform3f(shu.cameraPosition, cam.eye.x, cam.eye.y, cam.eye.z);
 
-        renderer.bindShaderFeatures(
+        renderer.bindLightingFeatures(
             sh,
             this.SLICE_SIZE + TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET,
             this.SLICE_SIZE + TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET,
@@ -1963,7 +1963,7 @@ export class Planet extends Scene {
         gl.uniform3fv(shu.cameraForward, cam.getForward().toArray());
         gl.uniform1f(shu.isOrthographic, cam.isOrthographic ? 1.0 : 0.0);
 
-        renderer.bindShaderFeatures(
+        renderer.bindLightingFeatures(
             sh,
             this.SLICE_SIZE + TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET,
             this.SLICE_SIZE + TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET,

@@ -46,29 +46,29 @@ export const cascadeShadowUniforms = {
  * nothing active (Mali-G57: +3.5 ms a frame for the terrain at 1920x1150), so programs
  * are built per mask of what is actually active.
  */
-export const SHADER_FEATURE_PROJECTORS = 1;
-export const SHADER_FEATURE_SHADOW_MAPS = 2;
-export const SHADER_FEATURE_CASCADE_SHADOWS = 4;
-export const SHADER_FEATURES_ALL =
-    SHADER_FEATURE_PROJECTORS | SHADER_FEATURE_SHADOW_MAPS | SHADER_FEATURE_CASCADE_SHADOWS;
+export const LIGHTING_FEATURE_PROJECTORS = 1;
+export const LIGHTING_FEATURE_SHADOW_MAPS = 2;
+export const LIGHTING_FEATURE_CASCADE_SHADOWS = 4;
+export const LIGHTING_FEATURES_ALL =
+    LIGHTING_FEATURE_PROJECTORS | LIGHTING_FEATURE_SHADOW_MAPS | LIGHTING_FEATURE_CASCADE_SHADOWS;
 /** Features of programs that receive shadows but no projectors. */
-export const SHADER_FEATURES_SHADOWS = SHADER_FEATURE_SHADOW_MAPS | SHADER_FEATURE_CASCADE_SHADOWS;
+export const LIGHTING_FEATURES_SHADOWS = LIGHTING_FEATURE_SHADOW_MAPS | LIGHTING_FEATURE_CASCADE_SHADOWS;
 
 /** Uniforms of the features in `mask`. */
-export function shaderFeatureUniforms(mask: number): Record<string, string> {
+export function lightingFeatureUniforms(mask: number): Record<string, string> {
     return {
-        ...(mask & SHADER_FEATURE_PROJECTORS ? projectorUniforms : {}),
-        ...(mask & SHADER_FEATURE_SHADOW_MAPS ? shadowMapUniforms : {}),
-        ...(mask & SHADER_FEATURE_CASCADE_SHADOWS ? cascadeShadowUniforms : {})
+        ...(mask & LIGHTING_FEATURE_PROJECTORS ? projectorUniforms : {}),
+        ...(mask & LIGHTING_FEATURE_SHADOW_MAPS ? shadowMapUniforms : {}),
+        ...(mask & LIGHTING_FEATURE_CASCADE_SHADOWS ? cascadeShadowUniforms : {})
     };
 }
 
 /** stringTemplate2() parameters for lightingFeatures.glsl. */
-export function shaderFeatureParams(mask: number): Record<string, number> {
+export function lightingFeatureParams(mask: number): Record<string, number> {
     return {
-        USE_PROJECTORS: mask & SHADER_FEATURE_PROJECTORS ? 1 : 0,
-        USE_SHADOW_MAPS: mask & SHADER_FEATURE_SHADOW_MAPS ? 1 : 0,
-        USE_CASCADE_SHADOWS: mask & SHADER_FEATURE_CASCADE_SHADOWS ? 1 : 0,
+        USE_PROJECTORS: mask & LIGHTING_FEATURE_PROJECTORS ? 1 : 0,
+        USE_SHADOW_MAPS: mask & LIGHTING_FEATURE_SHADOW_MAPS ? 1 : 0,
+        USE_CASCADE_SHADOWS: mask & LIGHTING_FEATURE_CASCADE_SHADOWS ? 1 : 0,
         ...projectorShaderParams
     };
 }
@@ -80,7 +80,11 @@ export function shaderFeatureParams(mask: number): Record<string, number> {
  * @param {number} mask - Features to compile in.
  * @param {number} [supported] - Features the program has at all.
  */
-export function shaderFeatureProgramName(name: string, mask: number, supported: number = SHADER_FEATURES_ALL): string {
+export function lightingFeatureProgramName(
+    name: string,
+    mask: number,
+    supported: number = LIGHTING_FEATURES_ALL
+): string {
     const features = mask & supported;
     return features === supported ? name : `${name}_f${features}`;
 }

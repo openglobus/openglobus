@@ -15,8 +15,8 @@ import type { Scene } from "../../scene/Scene";
 import type { Camera } from "../../camera/Camera";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import { srgbToLinear } from "../../utils/colorSpace";
-import { getShaderFeatureVariant } from "../../renderer/shaderFeatureVariants";
-import { SHADER_FEATURES_SHADOWS } from "../../shaders/common/uniforms";
+import { getLightingFeatureVariant } from "../../renderer/lightingFeatureVariants";
+import { LIGHTING_FEATURES_SHADOWS } from "../../shaders/common/uniforms";
 
 export const VERTEX_BUFFER = 0;
 export const RTC_POSITION_BUFFER = 1;
@@ -567,16 +567,16 @@ export class GeoObjectHandler {
             //@ts-ignore
             useAtmos = rn.atmosphereEnabled,
             sh = useAtmos
-                ? getShaderFeatureVariant(
+                ? getLightingFeatureVariant(
                       r.handler,
                       "geo_object_woit_atmos",
-                      r.activeShaderFeatures,
+                      r.activeLightingFeatures,
                       this._createWoitAtmos
                   )
-                : getShaderFeatureVariant(
+                : getLightingFeatureVariant(
                       r.handler,
                       "geo_object_woit",
-                      r.activeShaderFeatures,
+                      r.activeLightingFeatures,
                       shaders.geo_object_woit
                   ),
             p = sh,
@@ -594,7 +594,7 @@ export class GeoObjectHandler {
         if (useAtmos) {
             this._bindAtmosphereParams(p);
         }
-        r.bindShaderFeatures(p);
+        r.bindLightingFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -605,12 +605,12 @@ export class GeoObjectHandler {
 
     public _displayTransparentForwardPASS() {
         let r = this._renderer!,
-            sh = getShaderFeatureVariant(
+            sh = getLightingFeatureVariant(
                 r.handler,
                 "geo_object_forward",
-                r.activeShaderFeatures,
+                r.activeLightingFeatures,
                 shaders.geo_object_forward,
-                SHADER_FEATURES_SHADOWS
+                LIGHTING_FEATURES_SHADOWS
             ),
             p = sh;
 
@@ -618,7 +618,7 @@ export class GeoObjectHandler {
 
         this._bindCommon(p);
         this._bindForwardParams(p);
-        r.bindShaderFeatures(p);
+        r.bindLightingFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -627,12 +627,12 @@ export class GeoObjectHandler {
 
     public _displayForwardPASS() {
         let r = this._renderer!,
-            sh = getShaderFeatureVariant(
+            sh = getLightingFeatureVariant(
                 r.handler,
                 "geo_object_forward",
-                r.activeShaderFeatures,
+                r.activeLightingFeatures,
                 shaders.geo_object_forward,
-                SHADER_FEATURES_SHADOWS
+                LIGHTING_FEATURES_SHADOWS
             ),
             p = sh;
 
@@ -640,7 +640,7 @@ export class GeoObjectHandler {
 
         this._bindCommon(p);
         this._bindForwardParams(p);
-        r.bindShaderFeatures(p);
+        r.bindLightingFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawForwardAll(p);

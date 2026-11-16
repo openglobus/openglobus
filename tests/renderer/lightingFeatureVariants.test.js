@@ -1,12 +1,12 @@
-import { getShaderFeatureVariant, removeShaderFeatureVariants } from "../../src/renderer/shaderFeatureVariants";
+import { getLightingFeatureVariant, removeLightingFeatureVariants } from "../../src/renderer/lightingFeatureVariants";
 import { Renderer } from "../../src/renderer/Renderer";
 import {
-    SHADER_FEATURE_CASCADE_SHADOWS,
-    SHADER_FEATURE_PROJECTORS,
-    SHADER_FEATURE_SHADOW_MAPS,
-    SHADER_FEATURES_ALL,
-    SHADER_FEATURES_SHADOWS,
-    shaderFeatureProgramName
+    LIGHTING_FEATURE_CASCADE_SHADOWS,
+    LIGHTING_FEATURE_PROJECTORS,
+    LIGHTING_FEATURE_SHADOW_MAPS,
+    LIGHTING_FEATURES_ALL,
+    LIGHTING_FEATURES_SHADOWS,
+    lightingFeatureProgramName
 } from "../../src/shaders/common/uniforms";
 import * as geoShaders from "../../src/shaders/geo_object/geo_object";
 import { deferredShading } from "../../src/shaders/deferredShading/deferredShading";
@@ -29,38 +29,39 @@ function createHandler() {
     };
 }
 
-describe("shader feature variants", () => {
+describe("lighting feature variants", () => {
     test("a variant is built once and then shared through the handler", () => {
         const handler = createHandler();
-        const create = vi.fn((features) => ({ name: shaderFeatureProgramName("prog", features), features }));
+        const create = vi.fn((features) => ({ name: lightingFeatureProgramName("prog", features), features }));
 
-        const a = getShaderFeatureVariant(handler, "prog", 0, create);
-        const b = getShaderFeatureVariant(handler, "prog", 0, create);
+        const a = getLightingFeatureVariant(handler, "prog", 0, create);
+        const b = getLightingFeatureVariant(handler, "prog", 0, create);
         expect(a).toBe(b);
         expect(a.name).toBe("prog_f0");
         expect(create).toHaveBeenCalledTimes(1);
 
-        expect(getShaderFeatureVariant(handler, "prog", SHADER_FEATURES_ALL, create).name).toBe("prog");
+        expect(getLightingFeatureVariant(handler, "prog", LIGHTING_FEATURES_ALL, create).name).toBe("prog");
     });
 
     test("a program without projectors ignores the projector bit", () => {
         const handler = createHandler();
         const create = vi.fn((features) => ({
-            name: shaderFeatureProgramName("shadowsOnly", features, SHADER_FEATURES_SHADOWS),
+            name: lightingFeatureProgramName("shadowsOnly", features, LIGHTING_FEATURES_SHADOWS),
             features
         }));
-        const program = getShaderFeatureVariant(
+        const program = getLightingFeatureVariant(
             handler,
             "shadowsOnly",
-            SHADER_FEATURE_PROJECTORS | SHADER_FEATURE_SHADOW_MAPS,
+            LIGHTING_FEATURE_PROJECTORS | LIGHTING_FEATURE_SHADOW_MAPS,
             create,
-            SHADER_FEATURES_SHADOWS
+            LIGHTING_FEATURES_SHADOWS
         );
-        expect(program.features).toBe(SHADER_FEATURE_SHADOW_MAPS);
+        expect(program.features).toBe(LIGHTING_FEATURE_SHADOW_MAPS);
         expect(program.name).toBe("shadowsOnly_f2");
         // projectors on, both shadows on: the plain, full program
         expect(
-            getShaderFeatureVariant(handler, "shadowsOnly", SHADER_FEATURES_ALL, create, SHADER_FEATURES_SHADOWS).name
+            getLightingFeatureVariant(handler, "shadowsOnly", LIGHTING_FEATURES_ALL, create, LIGHTING_FEATURES_SHADOWS)
+                .name
         ).toBe("shadowsOnly");
     });
 
@@ -75,7 +76,7 @@ describe("shader feature variants", () => {
         ]) {
             handler.programs[name] = {};
         }
-        removeShaderFeatureVariants(handler, "deferredShading");
+        removeLightingFeatureVariants(handler, "deferredShading");
         expect(Object.keys(handler.programs).sort()).toEqual(["deferredShadingAtmos", "deferredShadingAtmos_f0"]);
     });
 });
@@ -83,8 +84,8 @@ describe("shader feature variants", () => {
 describe("feature-aware factories", () => {
     test("shadow-only programs keep their plain name with both shadow kinds", () => {
         expect(geoShaders.geo_object_forward().name).toBe("geo_object_forward");
-        expect(geoShaders.geo_object_forward(SHADER_FEATURES_SHADOWS).name).toBe("geo_object_forward");
-        expect(deferredShading(SHADER_FEATURE_CASCADE_SHADOWS).name).toBe("deferredShading_f4");
+        expect(geoShaders.geo_object_forward(LIGHTING_FEATURES_SHADOWS).name).toBe("geo_object_forward");
+        expect(deferredShading(LIGHTING_FEATURE_CASCADE_SHADOWS).name).toBe("deferredShading_f4");
         expect(deferredShadingAtmos(undefined, 0).name).toBe("deferredShadingAtmos_f0");
     });
 
@@ -99,8 +100,8 @@ describe("feature-aware factories", () => {
     });
 });
 
-describe("Renderer.bindShaderFeatures", () => {
-    const bind = Renderer.prototype.bindShaderFeatures;
+describe("Renderer.bindLightingFeatures", () => {
+    const bind = Renderer.prototype.bindLightingFeatures;
     const createRenderer = () => ({
         projectors: { bindForward: vi.fn() },
         shadows: { bindForward: vi.fn() },

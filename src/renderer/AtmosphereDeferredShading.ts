@@ -1,8 +1,8 @@
 import { deferredShadingAtmos } from "../shaders/deferredShading/deferredShadingAtmos";
 import { PhongDeferredShading } from "./PhongDeferredShading";
 import { DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START, DEFAULT_SHADOW_TEXTURE_UNIT_START } from "./textureUnits";
-import { getShaderFeatureVariant, removeShaderFeatureVariants } from "./shaderFeatureVariants";
-import { SHADER_FEATURES_SHADOWS } from "../shaders/common/uniforms";
+import { getLightingFeatureVariant, removeLightingFeatureVariants } from "./lightingFeatureVariants";
+import { LIGHTING_FEATURES_SHADOWS } from "../shaders/common/uniforms";
 import type { ShaderProgram } from "../webgl/ShaderProgram";
 import type { Renderer } from "./Renderer";
 import type { Atmosphere } from "../control/atmosphere/Atmosphere";
@@ -26,7 +26,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
     }
 
     public override dispose() {
-        removeShaderFeatureVariants(this._renderer.handler, "deferredShadingAtmos");
+        removeLightingFeatureVariants(this._renderer.handler, "deferredShadingAtmos");
         super.dispose();
     }
 
@@ -38,12 +38,12 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
 
         let r = this._renderer;
         let h = r.handler;
-        let sh = getShaderFeatureVariant(
+        let sh = getLightingFeatureVariant(
                 h,
                 "deferredShadingAtmos",
-                r.activeShaderFeatures,
+                r.activeLightingFeatures,
                 this._createProgram,
-                SHADER_FEATURES_SHADOWS
+                LIGHTING_FEATURES_SHADOWS
             ),
             p = sh,
             gl = h.gl!;
@@ -90,7 +90,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         // Atmosphere LUT and aerial perspective volume
         this._atmosphere.bindForward(p, 4, 5);
 
-        r.bindShaderFeatures(
+        r.bindLightingFeatures(
             p,
             undefined,
             DEFAULT_SHADOW_TEXTURE_UNIT_START,

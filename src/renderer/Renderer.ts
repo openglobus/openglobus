@@ -18,9 +18,9 @@ import { Scene } from "../scene/Scene";
 import { screenFrame } from "../shaders/screenFrame";
 import { toneMappingProgram } from "../shaders/tone_mapping/toneMapping";
 import {
-    SHADER_FEATURE_CASCADE_SHADOWS,
-    SHADER_FEATURE_PROJECTORS,
-    SHADER_FEATURE_SHADOW_MAPS
+    LIGHTING_FEATURE_CASCADE_SHADOWS,
+    LIGHTING_FEATURE_PROJECTORS,
+    LIGHTING_FEATURE_SHADOW_MAPS
 } from "../shaders/common/uniforms";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { ITransparencyPass } from "./ITransparencyPass";
@@ -61,12 +61,6 @@ export function normalizeHdrFormat(format?: string): HdrFormat {
 export interface IRendererParams {
     controls?: Control[];
     msaa?: number;
-    /**
-     * Format of the forward and HDR render targets, RGBA16F by default. "SRGB8_ALPHA8" and "RGBA8"
-     * halve their memory traffic, but clip colors above 1.0 (atmosphere, emission, strong specular
-     * highlights), so they suit scenes without the atmosphere. SRGB8_ALPHA8 keeps dark gradients
-     * smoother than RGBA8.
-     */
     hdrFormat?: HdrFormat;
     autoActivate?: boolean;
     deferredDisabled?: boolean;
@@ -835,29 +829,29 @@ class Renderer {
     }
 
     /**
-     * Lighting features with something active, a SHADER_FEATURE_* mask: programs that support
+     * Lighting features with something active, a LIGHTING_FEATURE_* mask: programs that support
      * feature variants (lightingFeatures.glsl) draw with the variant of this mask.
      * @public
      * @returns {number}
      */
-    public get activeShaderFeatures(): number {
+    public get activeLightingFeatures(): number {
         return (
-            (this.projectors.activeCount > 0 ? SHADER_FEATURE_PROJECTORS : 0) |
-            (this.shadows.activeCount > 0 ? SHADER_FEATURE_SHADOW_MAPS : 0) |
-            (this.cascadeShadowManager.activeCount > 0 ? SHADER_FEATURE_CASCADE_SHADOWS : 0)
+            (this.projectors.activeCount > 0 ? LIGHTING_FEATURE_PROJECTORS : 0) |
+            (this.shadows.activeCount > 0 ? LIGHTING_FEATURE_SHADOW_MAPS : 0) |
+            (this.cascadeShadowManager.activeCount > 0 ? LIGHTING_FEATURE_CASCADE_SHADOWS : 0)
         );
     }
 
     /**
-     * Binds projectors and shadows to a program, the ones its feature variant has. Texture units
-     * left undefined take each manager's default.
+     * Binds the lighting features (projectors, shadows) to a program, the ones its feature variant
+     * has. Texture units left undefined take each manager's default.
      * @public
      * @param {ShaderProgram} program - Activated program.
      * @param {number} [projectorUnit] - First texture unit for projectors.
      * @param {number} [shadowUnit] - Texture unit for shadow maps.
      * @param {number} [cascadeUnit] - Texture unit for cascade shadows.
      */
-    public bindShaderFeatures(
+    public bindLightingFeatures(
         program: ShaderProgram,
         projectorUnit?: number,
         shadowUnit?: number,
@@ -1867,73 +1861,106 @@ class Renderer {
     // }
 
     /**
-     * Tone maps the forward image onto the canvas. The tone mapping reads the image texel by
-     * texel (texelFetch at gl_FragCoord), so when the screen output is shown and the image is
-     * the canvas size it writes straight to the canvas; otherwise it goes through
-     * toneMappingFramebuffer and the screen pass, which can show another output texture.
+     * Tone maps the forward image onto the canvas.
      * @protected
      */
     protected _screenFrame() {
-        let h = this.handler,
-            gl = h.gl!,
-            cnv = h.canvas!,
-            forward = this.forwardFramebuffer!;
-
-        let hdrTexture: WebGLTexture;
-        if (this.hdrFramebuffer) {
-            (forward as Multisample).blitTo(this.hdrFramebuffer);
-            hdrTexture = this.hdrFramebuffer.textures[0];
+        const f = this.forwardFramebuffer!,
+            cnv = this.handler.canvas!;
+        if (this._currentOutput === "screen" && f.width === cnv.width && f.height === cnv.height) {
+            this._screenFrameDirect();
         } else {
-            hdrTexture = (forward as Framebuffer).textures[0];
+            this._screenFrameOutput();
         }
+    }
 
-        const direct = this._currentOutput === "screen" && forward.width === cnv.width && forward.height === cnv.height;
+    /**
+     * Tone maps the forward image straight into the canvas. The tone mapping reads the image
+     * texel by texel (texelFetch at gl_FragCoord), so the image must be the canvas size.
+     * toneMappingFramebuffer (screenTexture.screen) is not written.
+     * @protected
+     */
+    protected _screenFrameDirect() {
+        const gl = this.handler.gl!,
+            cnv = this.handler.canvas!;
 
-        let sh = h.programs.toneMapping,
-            p = sh;
+        const hdrTexture = this._resolveForwardTexture();
 
         gl.disable(gl.DEPTH_TEST);
         gl.disable(gl.BLEND);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
-        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-
-        if (direct) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            gl.viewport(0, 0, cnv.width, cnv.height);
-        } else {
-            this.toneMappingFramebuffer!.activate();
-            gl.clearColor(0.0, 0.0, 0.0, 0.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-        }
-
-        sh.activate();
-
-        // screen texture
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, hdrTexture);
-        gl.uniform1i(p.uniforms.hdrBuffer, 0);
-
-        gl.uniform1f(p.uniforms.gamma, this.gamma);
-        gl.uniform1f(p.uniforms.exposure, this.exposure);
-        p.uniforms.whitepoint && gl.uniform1f(p.uniforms.whitepoint, this.whitepoint);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-        if (!direct) {
-            this.toneMappingFramebuffer!.deactivate();
-
-            // SCREEN PASS
-            sh = h.programs.screenFrame;
-            p = sh;
-            sh.activate();
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
-            gl.uniform1i(p.uniforms.texture, 0);
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, cnv.width, cnv.height);
+        this._drawToneMapping(hdrTexture);
 
         gl.enable(gl.BLEND);
         gl.enable(gl.DEPTH_TEST);
+    }
+
+    /**
+     * Tone maps the forward image into toneMappingFramebuffer, then draws the current output
+     * texture (screen, picking, depth, frustum) on the canvas.
+     * @protected
+     */
+    protected _screenFrameOutput() {
+        const gl = this.handler.gl!;
+
+        const hdrTexture = this._resolveForwardTexture();
+
+        gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.BLEND);
+
+        this.toneMappingFramebuffer!.activate();
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        this._drawToneMapping(hdrTexture);
+        this.toneMappingFramebuffer!.deactivate();
+
+        // SCREEN PASS
+        const sh = this.handler.programs.screenFrame;
+        sh.activate();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
+        gl.uniform1i(sh.uniforms.texture, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        gl.enable(gl.BLEND);
+        gl.enable(gl.DEPTH_TEST);
+    }
+
+    /**
+     * Returns the texture holding the forward image; with MSAA it resolves it into hdrFramebuffer first.
+     * @protected
+     */
+    protected _resolveForwardTexture(): WebGLTexture {
+        if (this.hdrFramebuffer) {
+            (this.forwardFramebuffer as Multisample).blitTo(this.hdrFramebuffer);
+            return this.hdrFramebuffer.textures[0];
+        }
+        return (this.forwardFramebuffer as Framebuffer).textures[0];
+    }
+
+    /**
+     * Draws the tone mapped image into the bound framebuffer. Leaves the screen quad bound for the next pass.
+     * @protected
+     */
+    protected _drawToneMapping(hdrTexture: WebGLTexture) {
+        const gl = this.handler.gl!,
+            sh = this.handler.programs.toneMapping;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
+        gl.vertexAttribPointer(sh.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+        sh.activate();
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, hdrTexture);
+        gl.uniform1i(sh.uniforms.hdrBuffer, 0);
+
+        gl.uniform1f(sh.uniforms.gamma, this.gamma);
+        gl.uniform1f(sh.uniforms.exposure, this.exposure);
+        sh.uniforms.whitepoint && gl.uniform1f(sh.uniforms.whitepoint, this.whitepoint);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
     /**

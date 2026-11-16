@@ -1,11 +1,11 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { stringTemplate2 } from "../../utils/shared";
 import {
-    SHADER_FEATURES_ALL,
-    SHADER_FEATURES_SHADOWS,
-    shaderFeatureParams,
-    shaderFeatureProgramName,
-    shaderFeatureUniforms
+    LIGHTING_FEATURES_ALL,
+    LIGHTING_FEATURES_SHADOWS,
+    lightingFeatureParams,
+    lightingFeatureProgramName,
+    lightingFeatureUniforms
 } from "../common/uniforms";
 import type { AtmosphereParameters } from "../atmos/atmos";
 import { DEFAULT_PARAMS } from "../atmos/atmos";
@@ -62,8 +62,8 @@ export const geo_object_deferred = (): ShaderProgram =>
     });
 
 /** @param {number} [features] - Lighting features to compile in; this program takes shadows only. */
-export const geo_object_forward = (features: number = SHADER_FEATURES_ALL): ShaderProgram =>
-    new ShaderProgram(shaderFeatureProgramName("geo_object_forward", features, SHADER_FEATURES_SHADOWS), {
+export const geo_object_forward = (features: number = LIGHTING_FEATURES_ALL): ShaderProgram =>
+    new ShaderProgram(lightingFeatureProgramName("geo_object_forward", features, LIGHTING_FEATURES_SHADOWS), {
         uniforms: {
             viewMatrix: "mat4",
             normalMatrix: "mat3",
@@ -91,7 +91,7 @@ export const geo_object_forward = (features: number = SHADER_FEATURES_ALL): Shad
             uFrameTransparencyMask: "float",
             uShadowMask: "float",
             frameOpacity: "float",
-            ...shaderFeatureUniforms(features & SHADER_FEATURES_SHADOWS)
+            ...lightingFeatureUniforms(features & LIGHTING_FEATURES_SHADOWS)
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -109,13 +109,13 @@ export const geo_object_forward = (features: number = SHADER_FEATURES_ALL): Shad
         vertexShader: geo_object_vert,
         fragmentShader: stringTemplate2(
             geo_object_forward_frag,
-            shaderFeatureParams(features & SHADER_FEATURES_SHADOWS)
+            lightingFeatureParams(features & LIGHTING_FEATURES_SHADOWS)
         )
     });
 
 /** @param {number} [features] - Lighting features to compile in. */
-export const geo_object_woit = (features: number = SHADER_FEATURES_ALL): ShaderProgram =>
-    new ShaderProgram(shaderFeatureProgramName("geo_object_woit", features), {
+export const geo_object_woit = (features: number = LIGHTING_FEATURES_ALL): ShaderProgram =>
+    new ShaderProgram(lightingFeatureProgramName("geo_object_woit", features), {
         uniforms: {
             viewMatrix: "mat4",
             normalMatrix: "mat3",
@@ -145,7 +145,7 @@ export const geo_object_woit = (features: number = SHADER_FEATURES_ALL): ShaderP
             frameOpacity: "float",
             uShadowMask: "float",
             useReverseDepth: "float",
-            ...shaderFeatureUniforms(features)
+            ...lightingFeatureUniforms(features)
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -161,7 +161,7 @@ export const geo_object_woit = (features: number = SHADER_FEATURES_ALL): ShaderP
             qRot: { type: "vec4", divisor: 1 }
         },
         vertexShader: geo_object_vert,
-        fragmentShader: stringTemplate2(geo_object_woit_frag, shaderFeatureParams(features))
+        fragmentShader: stringTemplate2(geo_object_woit_frag, lightingFeatureParams(features))
     });
 
 /**
@@ -170,9 +170,9 @@ export const geo_object_woit = (features: number = SHADER_FEATURES_ALL): ShaderP
  */
 export function geo_object_woit_atmos(
     atmosParams: AtmosphereParameters = DEFAULT_PARAMS,
-    features: number = SHADER_FEATURES_ALL
+    features: number = LIGHTING_FEATURES_ALL
 ): ShaderProgram {
-    return new ShaderProgram(shaderFeatureProgramName("geo_object_woit_atmos", features), {
+    return new ShaderProgram(lightingFeatureProgramName("geo_object_woit_atmos", features), {
         uniforms: {
             viewMatrix: "mat4",
             normalMatrix: "mat3",
@@ -212,7 +212,7 @@ export function geo_object_woit_atmos(
             atmosMaxMinOpacity: "vec3",
             cameraForward: "vec3",
             isOrthographic: "float",
-            ...shaderFeatureUniforms(features)
+            ...lightingFeatureUniforms(features)
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -230,7 +230,7 @@ export function geo_object_woit_atmos(
         vertexShader: geo_object_vert,
         fragmentShader: stringTemplate2(geo_object_woit_atmos_frag, {
             ...atmosParams,
-            ...shaderFeatureParams(features)
+            ...lightingFeatureParams(features)
         })
     });
 }

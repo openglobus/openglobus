@@ -1,13 +1,13 @@
 import { Planet } from "../../src/scene/Planet";
 import { Renderer } from "../../src/renderer/Renderer";
 import {
-    SHADER_FEATURE_CASCADE_SHADOWS,
-    SHADER_FEATURE_PROJECTORS,
-    SHADER_FEATURE_SHADOW_MAPS,
-    SHADER_FEATURES_ALL,
-    shaderFeatureParams,
-    shaderFeatureProgramName,
-    shaderFeatureUniforms
+    LIGHTING_FEATURE_CASCADE_SHADOWS,
+    LIGHTING_FEATURE_PROJECTORS,
+    LIGHTING_FEATURE_SHADOW_MAPS,
+    LIGHTING_FEATURES_ALL,
+    lightingFeatureParams,
+    lightingFeatureProgramName,
+    lightingFeatureUniforms
 } from "../../src/shaders/common/uniforms";
 import * as shaders from "../../src/shaders/segment/segment";
 
@@ -33,7 +33,7 @@ function createPlanet(mask = 0) {
     };
     const renderer = {
         handler,
-        activeShaderFeatures: mask,
+        activeLightingFeatures: mask,
         projectors: { bindForward: vi.fn() },
         shadows: { bindForward: vi.fn() },
         cascadeShadowManager: { bindForward: vi.fn() }
@@ -42,37 +42,37 @@ function createPlanet(mask = 0) {
     return { planet, renderer, handler };
 }
 
-describe("shader feature helpers", () => {
+describe("lighting feature helpers", () => {
     test("uniforms come only with their feature", () => {
-        expect(featureUniformNames(shaderFeatureUniforms(0))).toEqual([]);
+        expect(featureUniformNames(lightingFeatureUniforms(0))).toEqual([]);
         expect(
-            featureUniformNames(shaderFeatureUniforms(SHADER_FEATURE_PROJECTORS)).every((n) =>
+            featureUniformNames(lightingFeatureUniforms(LIGHTING_FEATURE_PROJECTORS)).every((n) =>
                 n.startsWith("u_projector")
             )
         ).toBe(true);
-        expect(shaderFeatureUniforms(SHADER_FEATURE_SHADOW_MAPS)).toHaveProperty("u_shadowMapCount");
-        expect(shaderFeatureUniforms(SHADER_FEATURE_SHADOW_MAPS)).not.toHaveProperty("u_cascadeShadowCount");
-        const all = shaderFeatureUniforms(SHADER_FEATURES_ALL);
+        expect(lightingFeatureUniforms(LIGHTING_FEATURE_SHADOW_MAPS)).toHaveProperty("u_shadowMapCount");
+        expect(lightingFeatureUniforms(LIGHTING_FEATURE_SHADOW_MAPS)).not.toHaveProperty("u_cascadeShadowCount");
+        const all = lightingFeatureUniforms(LIGHTING_FEATURES_ALL);
         expect(all).toHaveProperty("u_projectorCount");
         expect(all).toHaveProperty("u_shadowMapCount");
         expect(all).toHaveProperty("u_cascadeShadowCount");
     });
 
     test("template parameters switch the glsl features", () => {
-        expect(shaderFeatureParams(SHADER_FEATURE_CASCADE_SHADOWS)).toMatchObject({
+        expect(lightingFeatureParams(LIGHTING_FEATURE_CASCADE_SHADOWS)).toMatchObject({
             USE_PROJECTORS: 0,
             USE_SHADOW_MAPS: 0,
             USE_CASCADE_SHADOWS: 1
         });
         // projectors.glsl array sizes are always there
-        expect(shaderFeatureParams(0)).toHaveProperty("MAX_PROJECTORS");
+        expect(lightingFeatureParams(0)).toHaveProperty("MAX_PROJECTORS");
     });
 
     test("the full variant keeps the plain program name", () => {
-        expect(shaderFeatureProgramName("segment_screen_wl_forward", SHADER_FEATURES_ALL)).toBe(
+        expect(lightingFeatureProgramName("segment_screen_wl_forward", LIGHTING_FEATURES_ALL)).toBe(
             "segment_screen_wl_forward"
         );
-        expect(shaderFeatureProgramName("segment_screen_wl_forward", 0)).toBe("segment_screen_wl_forward_f0");
+        expect(lightingFeatureProgramName("segment_screen_wl_forward", 0)).toBe("segment_screen_wl_forward_f0");
     });
 
     test("terrain forward factories default to every feature", () => {
@@ -87,8 +87,8 @@ describe("shader feature helpers", () => {
     });
 });
 
-describe("Renderer.activeShaderFeatures", () => {
-    const activeShaderFeatures = Object.getOwnPropertyDescriptor(Renderer.prototype, "activeShaderFeatures").get;
+describe("Renderer.activeLightingFeatures", () => {
+    const activeLightingFeatures = Object.getOwnPropertyDescriptor(Renderer.prototype, "activeLightingFeatures").get;
 
     test("has a bit for each manager with something active", () => {
         const counts = (p, s, c) => ({
@@ -96,11 +96,11 @@ describe("Renderer.activeShaderFeatures", () => {
             shadows: { activeCount: s },
             cascadeShadowManager: { activeCount: c }
         });
-        expect(activeShaderFeatures.call(counts(0, 0, 0))).toBe(0);
-        expect(activeShaderFeatures.call(counts(2, 0, 1))).toBe(
-            SHADER_FEATURE_PROJECTORS | SHADER_FEATURE_CASCADE_SHADOWS
+        expect(activeLightingFeatures.call(counts(0, 0, 0))).toBe(0);
+        expect(activeLightingFeatures.call(counts(2, 0, 1))).toBe(
+            LIGHTING_FEATURE_PROJECTORS | LIGHTING_FEATURE_CASCADE_SHADOWS
         );
-        expect(activeShaderFeatures.call(counts(1, 4, 1))).toBe(SHADER_FEATURES_ALL);
+        expect(activeLightingFeatures.call(counts(1, 4, 1))).toBe(LIGHTING_FEATURES_ALL);
     });
 });
 
@@ -116,11 +116,11 @@ describe("Planet forward terrain program variants", () => {
         expect(planet._terrainForwardProgram()).toBe(none);
         expect(handler.addProgram).toHaveBeenCalledTimes(2);
 
-        renderer.activeShaderFeatures = SHADER_FEATURES_ALL;
+        renderer.activeLightingFeatures = LIGHTING_FEATURES_ALL;
         expect(planet._terrainForwardProgram()).toBe(handler.programs.segment_screen_wl_forward);
         expect(handler.addProgram).toHaveBeenCalledTimes(2);
 
-        renderer.activeShaderFeatures = SHADER_FEATURE_PROJECTORS;
+        renderer.activeLightingFeatures = LIGHTING_FEATURE_PROJECTORS;
         expect(planet._terrainForwardProgram().name).toBe("segment_screen_wl_forward_f1");
     });
 
@@ -136,14 +136,14 @@ describe("Planet forward terrain program variants", () => {
         const { planet, renderer, handler } = createPlanet(0);
         planet._addTerrainForwardProgram();
         planet._terrainForwardProgram();
-        renderer.activeShaderFeatures = SHADER_FEATURE_SHADOW_MAPS;
+        renderer.activeLightingFeatures = LIGHTING_FEATURE_SHADOW_MAPS;
         planet._terrainForwardProgram();
 
         planet._removeTerrainForwardPrograms();
         expect(Object.keys(handler.programs)).toEqual([]);
 
         // rebuilt on the next draw
-        renderer.activeShaderFeatures = 0;
+        renderer.activeLightingFeatures = 0;
         expect(planet._terrainForwardProgram().name).toBe("segment_screen_wl_forward_f0");
     });
 

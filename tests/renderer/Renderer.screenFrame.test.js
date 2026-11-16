@@ -47,7 +47,9 @@ function createRenderer({ msaa = 0, output = "screen", width = 800, height = 600
         exposure: 1,
         whitepoint: 1
     };
-    Renderer.prototype._screenFrame.call(renderer);
+    // own fields shadow the prototype's accessors (gamma, exposure, whitepoint)
+    Object.setPrototypeOf(renderer, Renderer.prototype);
+    renderer._screenFrame();
     return { calls, forwardTexture, hdrTexture };
 }
 

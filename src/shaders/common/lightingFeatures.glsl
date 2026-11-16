@@ -1,5 +1,5 @@
 // Projectors and shadows compiled in only when a program variant asks for them
-// (shaderFeatureParams() in uniforms.ts fills these in). Code that is compiled in
+// (lightingFeatureParams() in uniforms.ts fills these in). Code that is compiled in
 // costs fragment throughput on some GPUs even when no projector or shadow is active,
 // so programs without them use a variant that leaves it out.
 #define USE_PROJECTORS ${ USE_PROJECTORS }

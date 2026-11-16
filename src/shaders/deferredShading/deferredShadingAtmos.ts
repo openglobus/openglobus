@@ -1,11 +1,11 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { stringTemplate2 } from "../../utils/shared";
 import {
-    SHADER_FEATURES_ALL,
-    SHADER_FEATURES_SHADOWS,
-    shaderFeatureParams,
-    shaderFeatureProgramName,
-    shaderFeatureUniforms
+    LIGHTING_FEATURES_ALL,
+    LIGHTING_FEATURES_SHADOWS,
+    lightingFeatureParams,
+    lightingFeatureProgramName,
+    lightingFeatureUniforms
 } from "../common/uniforms";
 import type { AtmosphereParameters } from "../atmos/atmos";
 import { DEFAULT_PARAMS } from "../atmos/atmos";
@@ -19,9 +19,9 @@ import deferred_atmos_frag from "./deferredShadingAtmos.frag.glsl";
  */
 export function deferredShadingAtmos(
     atmosParams: AtmosphereParameters = DEFAULT_PARAMS,
-    features: number = SHADER_FEATURES_ALL
+    features: number = LIGHTING_FEATURES_ALL
 ): ShaderProgram {
-    return new ShaderProgram(shaderFeatureProgramName("deferredShadingAtmos", features, SHADER_FEATURES_SHADOWS), {
+    return new ShaderProgram(lightingFeatureProgramName("deferredShadingAtmos", features, LIGHTING_FEATURES_SHADOWS), {
         uniforms: {
             normalMatrix: "mat3",
             baseTexture: "sampler2d",
@@ -44,7 +44,7 @@ export function deferredShadingAtmos(
             atmosFadeDist: "vec2",
             atmosMaxMinOpacity: "vec3",
             frameOpacity: "float",
-            ...shaderFeatureUniforms(features & SHADER_FEATURES_SHADOWS)
+            ...lightingFeatureUniforms(features & LIGHTING_FEATURES_SHADOWS)
         },
         attributes: {
             corners: "vec3"
@@ -52,7 +52,7 @@ export function deferredShadingAtmos(
         vertexShader: deferred_vert,
         fragmentShader: stringTemplate2(deferred_atmos_frag, {
             ...atmosParams,
-            ...shaderFeatureParams(features & SHADER_FEATURES_SHADOWS)
+            ...lightingFeatureParams(features & LIGHTING_FEATURES_SHADOWS)
         })
     });
 }
