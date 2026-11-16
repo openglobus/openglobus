@@ -745,7 +745,7 @@ class BaseGeoImage extends Layer {
 
         gl.disable(gl.CULL_FACE);
 
-        f.bindOutputTexture(this._materialTexture as WebGLTexture);
+        f.bindOutputTexture(this._materialTexture!);
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -753,24 +753,29 @@ class BaseGeoImage extends Layer {
         gl.uniform1i(shu.isFullExtent, this._isFullExtent || this._crossesAntimeridian ? 1 : 0);
         gl.uniform1i(shu.decodeSourceSRGB, this._colorSpace === SRGB ? 1 : 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer!);
 
         gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferHigh as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferHigh!);
         gl.vertexAttribPointer(sha.cornersHigh, this._gridBufferHigh!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferLow as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferLow!);
         gl.vertexAttribPointer(sha.cornersLow, this._gridBufferLow!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.uniform4fv(shu.extentParamsHigh, this._extentMercParamsHigh);
         gl.uniform4fv(shu.extentParamsLow, this._extentMercParamsLow);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture as WebGLTexture);
+        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture!);
         gl.uniform1i(shu.sourceTexture, 0);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer as WebGLBuffer);
-        gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer!);
+        gl.drawElements(
+            gl.TRIANGLE_STRIP,
+            creator._indexBuffer!.numItems,
+            creator._indexBuffer!.type || gl.UNSIGNED_INT,
+            0
+        );
         f.deactivate();
         this._updateMaterialTextureMipmap();
 
@@ -844,7 +849,12 @@ class BaseGeoImage extends Layer {
                 e.northEast.lat
             );
 
-            gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+            gl.drawElements(
+                gl.TRIANGLE_STRIP,
+                creator._indexBuffer!.numItems,
+                creator._indexBuffer!.type || gl.UNSIGNED_INT,
+                0
+            );
         }
 
         f.deactivate();
@@ -891,30 +901,35 @@ class BaseGeoImage extends Layer {
 
         gl.disable(gl.CULL_FACE);
 
-        f.bindOutputTexture(this._materialTexture as WebGLTexture);
+        f.bindOutputTexture(this._materialTexture!);
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer!);
         gl.uniform1i(shu.isFullExtent, this._isFullExtent || this._crossesAntimeridian ? 1 : 0);
         gl.uniform1i(shu.decodeSourceSRGB, this._colorSpace === SRGB ? 1 : 0);
 
         gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferHigh as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferHigh!);
         gl.vertexAttribPointer(sha.cornersHigh, this._gridBufferHigh!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferLow as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferLow!);
         gl.vertexAttribPointer(sha.cornersLow, this._gridBufferLow!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.uniform4fv(shu.extentParamsHigh, this._extentWgs84ParamsHigh);
         gl.uniform4fv(shu.extentParamsLow, this._extentWgs84ParamsLow);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture as WebGLTexture);
+        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture!);
         gl.uniform1i(shu.sourceTexture, 0);
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer as WebGLBuffer);
-        gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer!);
+        gl.drawElements(
+            gl.TRIANGLE_STRIP,
+            creator._indexBuffer!.numItems,
+            creator._indexBuffer!.type || gl.UNSIGNED_INT,
+            0
+        );
         f.deactivate();
         this._updateMaterialTextureMipmap();
 

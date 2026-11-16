@@ -74,6 +74,8 @@
             const SIZE = 33;
 
             const relief = new ProceduralTerrain("Relief", {
+                // The SIZE x SIZE heights
+                plainGridSize: SIZE - 1,
                 maxZoom: 12,
                 maxHeight: 10000,
                 getHeights: (segment) => {

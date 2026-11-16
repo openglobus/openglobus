@@ -185,7 +185,7 @@ export class GeoObjectHandler {
 
     /** Builds geo_object_woit_atmos variants with the planet's atmosphere parameters, like initProgram. */
     protected _createWoitAtmos = (features: number): ShaderProgram =>
-        shaders.geo_object_woit_atmos((this._scene as Planet).atmosphereControl?.parameters, features);
+        shaders.geo_object_woit_atmos((this._scene as Planet).atmosphereControl?.effectiveParameters, features);
 
     public initProgram() {
         if (this._renderer && this._scene) {
@@ -200,7 +200,7 @@ export class GeoObjectHandler {
 
                 const atmosphereControl = (this._scene as Planet).atmosphereControl;
                 if (atmosphereControl) {
-                    programs.push(shaders.geo_object_woit_atmos(atmosphereControl.parameters));
+                    programs.push(shaders.geo_object_woit_atmos(atmosphereControl.effectiveParameters));
                 }
             }
             this._renderer.addPrograms(programs);
@@ -532,13 +532,7 @@ export class GeoObjectHandler {
             planet = this._scene as Planet;
 
         // Texture units 0..3 are rebound to GeoObject material textures before every draw.
-        gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_2D, atmosphere._transmittanceBuffer!.textures[0]);
-        gl.uniform1i(u.transmittanceTexture, 4);
-
-        gl.activeTexture(gl.TEXTURE5);
-        gl.bindTexture(gl.TEXTURE_2D, atmosphere._scatteringBuffer!.textures[0]);
-        gl.uniform1i(u.scatteringTexture, 5);
+        atmosphere.bindForward(p, 4, 5);
         gl.uniform2fv(u.atmosFadeDist, planet.atmosphereFadeDist);
         gl.uniform3fv(u.atmosMaxMinOpacity, planet._atmosphereCurrentMaxMinOpacity);
         gl.uniform3fv(u.cameraForward, r.activeCamera.getForward().toArray());

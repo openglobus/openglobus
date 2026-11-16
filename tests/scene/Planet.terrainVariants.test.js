@@ -83,7 +83,7 @@ describe("shader feature helpers", () => {
         const none = shaders.segment_screen_wl_forward_atmos(undefined, 0);
         expect(none.name).toBe("segment_screen_wl_forward_f0");
         expect(featureUniformNames(none._uniforms)).toEqual([]);
-        expect(none._uniforms).toHaveProperty("transmittanceTexture");
+        expect(none._uniforms).toHaveProperty("atmosLutTexture");
     });
 });
 
@@ -129,7 +129,7 @@ describe("Planet forward terrain program variants", () => {
         planet._atmosphereEnabled = true;
         planet._addTerrainForwardProgram({ BOTTOM_RADIUS: 6356752.3142451793 });
         const none = planet._terrainForwardProgram();
-        expect(none._uniforms).toHaveProperty("transmittanceTexture");
+        expect(none._uniforms).toHaveProperty("atmosLutTexture");
     });
 
     test("removing drops every variant, the plain one too", () => {

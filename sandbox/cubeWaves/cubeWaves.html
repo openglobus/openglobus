@@ -92,6 +92,8 @@
             const RADIANS = Math.PI / 180;
 
             const relief = new ProceduralTerrain("Waves", {
+                // The SIZE x SIZE heights
+                plainGridSize: SIZE - 1,
                 maxZoom: 12,
                 maxHeight: WAVES_HEIGHT,
                 getHeights: (segment) => {

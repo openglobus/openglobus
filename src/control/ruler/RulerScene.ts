@@ -251,6 +251,7 @@ class RulerScene extends Scene {
     protected _onCornerLdown = (e: IMouseState) => {
         if (!this._startLonLat) {
             this.renderer?.controls.navigation?.deactivate();
+            this.renderer?.setRelativeCenter();
             this._startClick.set(e.x, e.y);
             let coords = e.pickingObject.getCartesian();
             this._startPos = this._planet!.getPixelFromCartesian(coords);
@@ -298,6 +299,7 @@ class RulerScene extends Scene {
         if (!startLonLat) return;
         this._timeout = setTimeout(() => {
             if (!this._preventClick) {
+                this.renderer?.setRelativeCenter();
                 if (!this._startLonLat) {
                     this.setVisibility(true);
                     this._stopDrawing = false;

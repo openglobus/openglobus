@@ -5,19 +5,19 @@
 
 #define PI 3.1415926538
 
-#define ATMOS_HEIGHT float(${ATMOS_HEIGHT})
-#define RAYLEIGH_SCALE float(${RAYLEIGH_SCALE})
-#define MIE_SCALE float(${MIE_SCALE})
+#define ATMOS_HEIGHT float(${ ATMOS_HEIGHT })
+#define RAYLEIGH_SCALE float(${ RAYLEIGH_SCALE })
+#define MIE_SCALE float(${ MIE_SCALE })
 
 #define SAMPLE_COUNT 16
 #define SQRT_SAMPLE_COUNT 4
 
-const float GROUND_ALBEDO = float(${GROUND_ALBEDO}) / PI;
+const float GROUND_ALBEDO = float(${ GROUND_ALBEDO}) / PI;
 
 // Sphere
-const float BOTTOM_RADIUS = float(${BOTTOM_RADIUS});
+const float BOTTOM_RADIUS = float(${ BOTTOM_RADIUS});
 const float TOP_RADIUS = BOTTOM_RADIUS + ATMOS_HEIGHT;
-const float EQUATORIAL_RADIUS = float(${EQUATORIAL_RADIUS});
+const float EQUATORIAL_RADIUS = float(${ EQUATORIAL_RADIUS});
 const float ATMOSPHERE_SPHERE_INTERSECTION_EPSILON_SCALE = 1e-7;
 
 // Ellipsoid
@@ -57,17 +57,17 @@ bool intersectAtmosphereSphere(vec3 rayOrigin, vec3 rayDirection, float radius, 
     );
 }
 
-const vec3 rayleighScatteringCoefficient = vec3(float(${rayleighScatteringCoefficient_0}), float(${rayleighScatteringCoefficient_1}), float(${rayleighScatteringCoefficient_2})) * 1e-6;
+const vec3 rayleighScatteringCoefficient = vec3(float(${ rayleighScatteringCoefficient_0}), float(${ rayleighScatteringCoefficient_1}), float(${ rayleighScatteringCoefficient_2})) * 1e-6;
 
-const float mieScatteringCoefficient = float(${mieScatteringCoefficient}) * 1e-6;
-const float mieExtinctionCoefficient = float(${mieExtinctionCoefficient}) * 1e-6;
-const vec3 ozoneAbsorptionCoefficient = vec3(float(${ozoneAbsorptionCoefficient_0}), float(${ozoneAbsorptionCoefficient_1}), float(${ozoneAbsorptionCoefficient_2})) * 1e-6;
+const float mieScatteringCoefficient = float(${ mieScatteringCoefficient}) * 1e-6;
+const float mieExtinctionCoefficient = float(${ mieExtinctionCoefficient}) * 1e-6;
+const vec3 ozoneAbsorptionCoefficient = vec3(float(${ ozoneAbsorptionCoefficient_0}), float(${ ozoneAbsorptionCoefficient_1}), float(${ ozoneAbsorptionCoefficient_2})) * 1e-6;
 
-const float SUN_ANGULAR_RADIUS = float(${SUN_ANGULAR_RADIUS});
-const float SUN_INTENSITY = float(${SUN_INTENSITY});
+const float SUN_ANGULAR_RADIUS = float(${ SUN_ANGULAR_RADIUS});
+const float SUN_INTENSITY = float(${ SUN_INTENSITY});
 
-const float ozoneDensityHeight = float(${ozoneDensityHeight}); //25e3;
-const float ozoneDensityWide = float(${ozoneDensityWide}); //15e3;
+const float ozoneDensityHeight = float(${ ozoneDensityHeight}); //25e3;
+const float ozoneDensityWide = float(${ ozoneDensityWide}); //15e3;
 
 vec3 sunWithBloom(vec3 rayDir, vec3 sunDir)
 {
@@ -75,10 +75,10 @@ vec3 sunWithBloom(vec3 rayDir, vec3 sunDir)
     float cosTheta = dot(rayDir, sunDir);
 
     if (cosTheta >= minSunCosTheta)
-        return vec3(1.0);
+    return vec3(1.0);
 
     float offset = minSunCosTheta - cosTheta;
-    float gaussianBloom = exp(- offset * 15000.0) * 0.7;
+    float gaussianBloom = exp(-offset * 15000.0) * 0.7;
     float invBloom = 1.0 / (0.09 + offset * 200.0) * 0.01;
 
     return vec3(gaussianBloom + invBloom);
@@ -93,7 +93,7 @@ vec3 sunWithBloomScaled(vec3 rayDir, vec3 sunDir, float angularScale)
     return vec3(1.0);
 
     float offset = minSunCosTheta - cosTheta;
-    float gaussianBloom = exp(- offset * 15000.0) * 0.7;
+    float gaussianBloom = exp(-offset * 15000.0) * 0.7;
     float invBloom = 1.0 / (0.09 + offset * 200.0) * 0.01;
 
     return vec3(gaussianBloom + invBloom);
@@ -170,6 +170,50 @@ void getAtmosFadingOpacity(
     float t = clamp((vertDist - atmosFadeDist.x) * atmosFadeDist.y, 0.0, 1.0);
     t = pow(t, exp2(atmosMaxMinOpacity.z));
     opacity = mix(atmosMaxMinOpacity.y, atmosMaxMinOpacity.x, t);
+}
+
+// Aerial perspective volume zenith mapping: half of the texels above the horizon, half below,
+// both concentrated near the horizon (Hillaire 2020, sky-view LUT).
+void getAerialPerspectiveHorizon(in float r, out float zenithHorizonAngle, out float beta)
+{
+    float horizonDistance = sqrt(max(r * r - BOTTOM_RADIUS * BOTTOM_RADIUS, 0.0));
+    beta = max(acos(clamp(horizonDistance / r, 0.0, 1.0)), 1e-4);
+    zenithHorizonAngle = PI - beta;
+}
+
+float aerialPerspectiveZenithToV(float zenith, float zenithHorizonAngle, float beta)
+{
+    if (zenith < zenithHorizonAngle) {
+        return 0.5 * (1.0 - sqrt(max(1.0 - zenith / zenithHorizonAngle, 0.0)));
+    }
+    return 0.5 + 0.5 * sqrt(min((zenith - zenithHorizonAngle) / beta, 1.0));
+}
+
+float aerialPerspectiveVToZenith(float v, float zenithHorizonAngle, float beta)
+{
+    if (v < 0.5) {
+        float c = 1.0 - 2.0 * v;
+        return zenithHorizonAngle * (1.0 - c * c);
+    }
+    float c = 2.0 * v - 1.0;
+    return zenithHorizonAngle + beta * c * c;
+}
+
+float aerialPerspectiveTopDensity(float r)
+{
+    return exp(-min(r - BOTTOM_RADIUS, ATMOS_HEIGHT) / rayleighMieHeights.x);
+}
+
+float aerialPerspectiveAltitudeToW(float height, float r)
+{
+    float topDensity = aerialPerspectiveTopDensity(r);
+    return clamp((exp(-height / rayleighMieHeights.x) - topDensity) / (1.0 - topDensity), 0.0, 1.0);
+}
+
+float aerialPerspectiveWToAltitude(float w, float r)
+{
+    float topDensity = aerialPerspectiveTopDensity(r);
+    return -rayleighMieHeights.x * log(topDensity + w * (1.0 - topDensity));
 }
 
 #endif

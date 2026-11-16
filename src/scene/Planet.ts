@@ -1064,10 +1064,15 @@ export class Planet extends Scene {
         this.terrain = terrain;
         this.terrain._planet = this;
 
+        this._normalMapCreator.setGridSize(terrain.plainGridSize);
+
         this.addTerrain(terrain);
 
         this.quadTreeStrategy.destroyBranches();
         this.quadTreeStrategy.clearRenderedNodes();
+
+        this._terrainWorker.clearPendingQueue();
+        this._plainSegmentWorker.clearPendingQueue();
 
         this.events.dispatch(this.events.terrainchange, terrain);
 
@@ -1075,12 +1080,14 @@ export class Planet extends Scene {
 
         if (terrain._geoid.model) {
             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+            this._terrainWorker.setGeoid(terrain.getGeoid());
             terrain._isReady = true;
         } else {
             Geoid.loadModel(terrain.geoid.src)
                 .then((m: GeoidModel | null) => {
                     terrain.geoid.setModel(m);
                     this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+                    this._terrainWorker.setGeoid(terrain.getGeoid());
                     terrain._isReady = true;
                 })
                 .catch((err) => {
@@ -1132,9 +1139,9 @@ export class Planet extends Scene {
             this._atmosphere.activate();
             this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
-            this._addTerrainForwardProgram(this._atmosphere.parameters);
+            this._addTerrainForwardProgram(this._atmosphere.effectiveParameters);
             if (!this.renderer.deferredDisabled) {
-                this._swapDeferredShadingPass(this._atmosphere.parameters);
+                this._swapDeferredShadingPass(this._atmosphere.effectiveParameters);
             }
 
             if (!this._transparentBackground) {
@@ -1944,15 +1951,9 @@ export class Planet extends Scene {
         gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
         //
-        // atmos precomputed textures
+        // atmos precomputed textures and aerial perspective volume
         //
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 4);
-        gl.bindTexture(gl.TEXTURE_2D, atmosphereControl._transmittanceBuffer!.textures[0]);
-        gl.uniform1i(shu.transmittanceTexture, this.SLICE_SIZE + 4);
-
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 5);
-        gl.bindTexture(gl.TEXTURE_2D, atmosphereControl._scatteringBuffer!.textures[0]);
-        gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
+        atmosphereControl.bindForward(sh, this.SLICE_SIZE + 4, this.SLICE_SIZE + 5);
 
         gl.uniform2fv(shu.atmosFadeDist, this.atmosphereFadeDist);
         gl.uniform3fv(shu.atmosMaxMinOpacity, this._atmosphereCurrentMaxMinOpacity);

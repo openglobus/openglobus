@@ -15,11 +15,7 @@ uniform sampler2D materialsTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D viewPositionTexture;
 
-uniform sampler2D transmittanceTexture;
-uniform sampler2D scatteringTexture;
-
-#include "../atmos/lut_helpers.glsl"
-#include "../atmos/atmosGroundColor.glsl"
+uniform sampler2D atmosLutTexture;
 
 uniform mat3 normalMatrix;
 uniform vec3 lightPosition;
@@ -32,6 +28,10 @@ uniform float isOrthographic;
 uniform vec2 atmosFadeDist;
 uniform vec3 atmosMaxMinOpacity;
 uniform float frameOpacity;
+
+#include "../atmos/lut_helpers.glsl"
+#include "../atmos/atmosGroundColor.glsl"
+#include "../atmos/aerialPerspective.glsl"
 
 layout (location = 0) out vec4 fragColor;
 
@@ -96,7 +96,6 @@ void main(void) {
         vec3 rayOrigin;
         vec3 rayDirection;
         getAtmosViewRay(worldVertex, cameraPosition, cameraForward, isOrthographic, rayOrigin, rayDirection);
-        vec3 viewDir = normalize(-rayDirection);
         vec3 sunIlluminance;
         getSunIlluminance(worldVertex, lightDir, sunIlluminance);
 
@@ -118,18 +117,18 @@ void main(void) {
         lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
         specularWeighting *= shadowVisibility;
 
-        vec4 atmosColor;
-        atmosGroundColor(worldVertex, normal, rayOrigin, rayDirection, sunPos, atmosColor);
-
-        getSunIlluminance(cameraPosition, viewDir, sunIlluminance);
-        specularWeighting *= mix(vec3(1.0), sunIlluminance, atmosColor.a);
-
-        float fadingOpacity;
-        getAtmosFadingOpacity(worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
-        fadingOpacity *= atmosColor.a;
-
         fragColor = vec4(
-        mix(baseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) + specularWeighting,
+        applyAtmosphereToSurface(
+            worldVertex,
+            rtcPos,
+            normal,
+            cameraPosition,
+            rayOrigin,
+            rayDirection,
+            sunPos,
+            baseColor.rgb * lightWeighting.rgb + emission,
+            specularWeighting
+        ),
         outAlpha
         );
     }
