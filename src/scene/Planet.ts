@@ -1137,9 +1137,9 @@ export class Planet extends Scene {
             this._atmosphere.activate();
             this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
-            h.addProgram(shaders.segment_screen_wl_forward_atmos(this._atmosphere.parameters));
+            h.addProgram(shaders.segment_screen_wl_forward_atmos(this._atmosphere.effectiveParameters));
             if (!this.renderer.deferredDisabled) {
-                this._swapDeferredShadingPass(this._atmosphere.parameters);
+                this._swapDeferredShadingPass(this._atmosphere.effectiveParameters);
             }
 
             if (!this._transparentBackground) {
@@ -1903,15 +1903,9 @@ export class Planet extends Scene {
         gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
         //
-        // atmos precomputed textures
+        // atmos precomputed textures and aerial perspective volume
         //
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 4);
-        gl.bindTexture(gl.TEXTURE_2D, atmosphereControl._transmittanceBuffer!.textures[0]);
-        gl.uniform1i(shu.transmittanceTexture, this.SLICE_SIZE + 4);
-
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 5);
-        gl.bindTexture(gl.TEXTURE_2D, atmosphereControl._scatteringBuffer!.textures[0]);
-        gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
+        atmosphereControl.bindForward(sh, this.SLICE_SIZE + 4, this.SLICE_SIZE + 5);
 
         gl.uniform2fv(shu.atmosFadeDist, this.atmosphereFadeDist);
         gl.uniform3fv(shu.atmosMaxMinOpacity, this._atmosphereCurrentMaxMinOpacity);

@@ -6,6 +6,9 @@ import transmittance_frag from "./transmittance.frag.glsl";
 import scattering_vert from "./scattering.vert.glsl";
 import scattering_frag from "./scattering.frag.glsl";
 
+import aerial_perspective_vert from "./aerialPerspective.vert.glsl";
+import aerial_perspective_frag from "./aerialPerspective.frag.glsl";
+
 import { stringTemplate2 } from "../../utils/shared";
 
 export interface AtmosphereParameters {
@@ -113,6 +116,7 @@ export function scattering(atmosParams?: AtmosphereParameters): ShaderProgram {
     return new ShaderProgram("scattering", {
         uniforms: {
             iResolution: "vec2",
+            fragCoordOffset: "vec2",
             transmittanceTexture: "sampler2d"
         },
         attributes: {
@@ -120,6 +124,31 @@ export function scattering(atmosParams?: AtmosphereParameters): ShaderProgram {
         },
         vertexShader: scattering_vert,
         fragmentShader: stringTemplate2(scattering_frag, atmosParams || DEFAULT_PARAMS)
+    });
+}
+
+// width - view azimuth from the sun, height - view zenith angle, depth - distance
+export const AERIAL_PERSPECTIVE_LUT_SIZE = { width: 64, height: 64, depth: 32 };
+
+export function aerialPerspective(atmosParams?: AtmosphereParameters): ShaderProgram {
+    return new ShaderProgram("aerialPerspective", {
+        uniforms: {
+            atmosLutTexture: "sampler2d",
+            cameraParams: "vec2",
+            depthParams: "vec2",
+            densityScale: "vec2",
+            slice: "float"
+        },
+        attributes: {
+            corners: "vec2"
+        },
+        vertexShader: aerial_perspective_vert,
+        fragmentShader: stringTemplate2(aerial_perspective_frag, {
+            ...(atmosParams || DEFAULT_PARAMS),
+            AP_WIDTH: AERIAL_PERSPECTIVE_LUT_SIZE.width,
+            AP_HEIGHT: AERIAL_PERSPECTIVE_LUT_SIZE.height,
+            AP_DEPTH: AERIAL_PERSPECTIVE_LUT_SIZE.depth
+        })
     });
 }
 

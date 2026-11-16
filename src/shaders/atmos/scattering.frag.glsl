@@ -4,6 +4,7 @@ precision highp float;
 
 uniform sampler2D transmittanceTexture;
 uniform vec2 iResolution;
+uniform vec2 fragCoordOffset;
 
 vec3 transmittanceFromTexture(float height, float angle)
 {
@@ -14,7 +15,7 @@ vec3 transmittanceFromTexture(float height, float angle)
 
 void main(void)
 {
-    vec2 uv = gl_FragCoord.xy / iResolution.xy;
+    vec2 uv = (gl_FragCoord.xy - fragCoordOffset) / iResolution.xy;
 
     float height = uv.y * ATMOS_HEIGHT;
     float angle = uv.x * 2.0 - 1.0;

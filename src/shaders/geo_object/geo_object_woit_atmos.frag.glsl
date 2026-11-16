@@ -31,8 +31,7 @@ uniform float frameOpacity;
 uniform float uShadowMask;
 uniform mat3 normalMatrix;
 
-uniform sampler2D transmittanceTexture;
-uniform sampler2D scatteringTexture;
+uniform sampler2D atmosLutTexture;
 uniform vec2 atmosFadeDist;
 uniform vec3 atmosMaxMinOpacity;
 uniform vec3 cameraForward;
@@ -40,6 +39,7 @@ uniform float isOrthographic;
 
 #include "../atmos/lut_helpers.glsl"
 #include "../atmos/atmosGroundColor.glsl"
+#include "../atmos/aerialPerspective.glsl"
 
 in vec3 cameraPosition;
 in vec3 v_vertex;
@@ -152,7 +152,6 @@ void main(void) {
         vec3 rayOrigin;
         vec3 rayDirection;
         getAtmosViewRay(worldVertex, cameraPosition, cameraForward, isOrthographic, rayOrigin, rayDirection);
-        vec3 viewDir = normalize(-rayDirection);
         vec3 sunIlluminance;
         vec4 lightWeighting;
         vec3 specularWeighting;
@@ -176,20 +175,19 @@ void main(void) {
         lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, lightAmbient, ao, shadowVisibility);
         specularWeighting *= shadowVisibility;
 
-        vec4 atmosColor;
-        atmosGroundColor(worldVertex, normal, rayOrigin, rayDirection, sunPos, atmosColor);
-
-        getSunIlluminance(cameraPosition, viewDir, sunIlluminance);
-        specularWeighting *= mix(vec3(1.0), sunIlluminance, atmosColor.a);
-
-        float fadingOpacity;
-        getAtmosFadingOpacity(worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
-        fadingOpacity *= atmosColor.a;
-
         color = vec4(
             applyProjectorDecal(
-                mix(baseColor.rgb * (lightWeighting.rgb + projectorLight), atmosColor.rgb, fadingOpacity) +
-                    specularWeighting,
+                applyAtmosphereToSurface(
+                    worldVertex,
+                    rtcPos,
+                    normal,
+                    cameraPosition,
+                    rayOrigin,
+                    rayDirection,
+                    sunPos,
+                    baseColor.rgb * (lightWeighting.rgb + projectorLight),
+                    specularWeighting
+                ),
                 projectorDecal
             ),
             baseColor.a
