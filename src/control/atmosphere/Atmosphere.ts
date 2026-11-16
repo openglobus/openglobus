@@ -57,45 +57,13 @@ export class Atmosphere extends Control {
     public _lutBuffer: Framebuffer | null;
     public opacity: number;
 
-    /**
-     * Applies the aerial perspective volume to the surface when the camera is low.
-     * @public
-     * @type {boolean}
-     */
-    public aerialPerspective: boolean;
-
-    /**
-     * Camera altitude in meters where the aerial perspective starts fading to the space view shading.
-     * @public
-     * @type {number}
-     */
-    public aerialPerspectiveFadeStart: number;
-
-    /**
-     * Camera altitude in meters where only the space view shading remains.
-     * @public
-     * @type {number}
-     */
-    public aerialPerspectiveFadeEnd: number;
-
-    /**
-     * Haze start distance as a multiple of the camera altitude: closer to the camera haze grows
-     * smoothly from zero, farther it accumulates at the full rate.
-     * @public
-     * @type {number}
-     */
-    public aerialPerspectiveStartFactor: number;
-
-    /**
-     * Camera slope where the aerial perspective reaches full intensity. Looking straight down
-     * (slope 1) there is no haze, between 1 and this value it fades in smoothly.
-     * @public
-     * @type {number}
-     */
-    public aerialPerspectiveSlope: number;
-
     protected _parameters: AtmosphereParameters;
 
+    protected _aerialPerspective: boolean;
+    protected _aerialPerspectiveFadeStart: number;
+    protected _aerialPerspectiveFadeEnd: number;
+    protected _aerialPerspectiveStartFactor: number;
+    protected _aerialPerspectiveSlope: number;
     protected _aerialPerspectiveStrength: number;
     protected _aerialPerspectiveAerosol: number;
 
@@ -129,13 +97,13 @@ export class Atmosphere extends Control {
             })
         );
 
-        this.aerialPerspective = options.aerialPerspective ?? true;
-        this.aerialPerspectiveFadeStart = options.aerialPerspectiveFadeStart ?? this._parameters.ATMOS_HEIGHT * 0.2;
-        this.aerialPerspectiveFadeEnd = options.aerialPerspectiveFadeEnd ?? this._parameters.ATMOS_HEIGHT;
+        this._aerialPerspective = options.aerialPerspective ?? true;
+        this._aerialPerspectiveFadeStart = options.aerialPerspectiveFadeStart ?? this._parameters.ATMOS_HEIGHT * 0.2;
+        this._aerialPerspectiveFadeEnd = options.aerialPerspectiveFadeEnd ?? this._parameters.ATMOS_HEIGHT;
         this._aerialPerspectiveStrength = options.aerialPerspectiveStrength ?? 3.0;
         this._aerialPerspectiveAerosol = options.aerialPerspectiveAerosol ?? 1.0;
-        this.aerialPerspectiveStartFactor = options.aerialPerspectiveStartFactor ?? 2.0;
-        this.aerialPerspectiveSlope = options.aerialPerspectiveSlope ?? 0.4;
+        this._aerialPerspectiveStartFactor = options.aerialPerspectiveStartFactor ?? 2.0;
+        this._aerialPerspectiveSlope = options.aerialPerspectiveSlope ?? 0.4;
 
         this._aerialPerspectiveFramebuffer = null;
         this._aerialPerspectiveTexture = null;
@@ -146,6 +114,88 @@ export class Atmosphere extends Control {
         this._aerialPerspectiveBuiltSunCosZenith = 0.0;
         this._aerialPerspectiveStartDistance = 0.0;
         this._aerialPerspectiveIntensity = 1.0;
+    }
+
+    /**
+     * Applies the aerial perspective volume to the surface when the camera is low.
+     * @public
+     * @type {boolean}
+     */
+    public get aerialPerspective(): boolean {
+        return this._aerialPerspective;
+    }
+
+    public set aerialPerspective(isEnabled: boolean) {
+        if (isEnabled !== this._aerialPerspective) {
+            this._aerialPerspective = isEnabled;
+            this.renderer?.requestRedraw();
+        }
+    }
+
+    /**
+     * Camera altitude in meters where the aerial perspective starts fading to the space view shading.
+     * @public
+     * @type {number}
+     */
+    public get aerialPerspectiveFadeStart(): number {
+        return this._aerialPerspectiveFadeStart;
+    }
+
+    public set aerialPerspectiveFadeStart(altitude: number) {
+        if (altitude !== this._aerialPerspectiveFadeStart) {
+            this._aerialPerspectiveFadeStart = altitude;
+            this.renderer?.requestRedraw();
+        }
+    }
+
+    /**
+     * Camera altitude in meters where only the space view shading remains.
+     * @public
+     * @type {number}
+     */
+    public get aerialPerspectiveFadeEnd(): number {
+        return this._aerialPerspectiveFadeEnd;
+    }
+
+    public set aerialPerspectiveFadeEnd(altitude: number) {
+        if (altitude !== this._aerialPerspectiveFadeEnd) {
+            this._aerialPerspectiveFadeEnd = altitude;
+            this.renderer?.requestRedraw();
+        }
+    }
+
+    /**
+     * Haze start distance as a multiple of the camera altitude: closer to the camera haze grows
+     * smoothly from zero, farther it accumulates at the full rate.
+     * @public
+     * @type {number}
+     */
+    public get aerialPerspectiveStartFactor(): number {
+        return this._aerialPerspectiveStartFactor;
+    }
+
+    public set aerialPerspectiveStartFactor(factor: number) {
+        if (factor !== this._aerialPerspectiveStartFactor) {
+            this._aerialPerspectiveStartFactor = factor;
+            this.renderer?.requestRedraw();
+        }
+    }
+
+    /**
+     * Camera slope where the aerial perspective reaches full intensity. Looking straight down
+     * (slope 1) there is no haze, between 1 and this value it fades in smoothly.
+     * @public
+     * @type {number}
+     */
+    public get aerialPerspectiveSlope(): number {
+        return this._aerialPerspectiveSlope;
+    }
+
+    public set aerialPerspectiveSlope(slope: number) {
+        if (slope !== this._aerialPerspectiveSlope) {
+            this._aerialPerspectiveSlope = slope;
+            this.renderer?.requestRedraw();
+        }
     }
 
     /**
