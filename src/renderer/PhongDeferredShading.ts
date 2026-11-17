@@ -118,7 +118,7 @@ export class PhongDeferredShading implements IDeferredShadingPass {
     protected _deferredShadingPASS() {
         let r = this._renderer;
         let h = r.handler;
-        let sh = h.programs.deferredShading,
+        let sh = h.programs.deferredShading.variant(r.activeLightingFeatures),
             p = sh,
             gl = h.gl!;
 
@@ -154,8 +154,12 @@ export class PhongDeferredShading implements IDeferredShadingPass {
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer!.textures[3]);
         gl.uniform1i(p.uniforms.viewPositionTexture, 3);
 
-        r.shadows.bindForward(p, DEFAULT_SHADOW_TEXTURE_UNIT_START);
-        r.cascadeShadowManager.bindForward(p, DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START);
+        r.bindLightingFeatures(
+            p,
+            undefined,
+            DEFAULT_SHADOW_TEXTURE_UNIT_START,
+            DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START
+        );
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 

@@ -2535,6 +2535,11 @@ class PolylineBatchRenderer {
         }
     }
 
+    protected _equalPathPoint(ellipsoid: Ellipsoid, lonLat: LonLat, replaced: Vec3, onTheGround: boolean): Vec3 {
+        const p = ellipsoid.lonLatToCartesian(lonLat);
+        return onTheGround ? p.scale(replaced.length() / p.length()) : p;
+    }
+
     protected _setSegmentEqualLonLat(
         pathLonLat: SegmentPathLonLatExt,
         segmentIndex: number,
@@ -2583,10 +2588,13 @@ class PolylineBatchRenderer {
             : undefined;
         const segmentClosed = this._isSegmentClosed(segmentIndex);
 
-        const p0 = ellipsoid.lonLatToCartesian(path[0]);
-        const p1 = ellipsoid.lonLatToCartesian(path[1] || path[0]);
+        const layer = this._handler && this._handler._entityCollection && this._handler._entityCollection._layer;
+        const onTheGround = !!layer && (layer.clampToGround || layer.relativeToGround);
+
+        const p0 = this._equalPathPoint(ellipsoid, path[0], targetPath3v[0], onTheGround);
+        const p1 = path[1] ? this._equalPathPoint(ellipsoid, path[1], targetPath3v[1], onTheGround) : p0;
         const last = segmentClosed
-            ? ellipsoid.lonLatToCartesian(path[path.length - 1])
+            ? this._equalPathPoint(ellipsoid, path[path.length - 1], targetPath3v[path.length - 1], onTheGround)
             : new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
 
         this.__doubleToTwoFloats(last, v_high, v_low);
@@ -2631,7 +2639,7 @@ class PolylineBatchRenderer {
 
         for (let i = 0, len = path.length; i < len; i++) {
             const cur = path[i] as LonLat;
-            const cartesian = ellipsoid.lonLatToCartesian(cur);
+            const cartesian = this._equalPathPoint(ellipsoid, cur, targetPath3v[i], onTheGround);
 
             l[segmentIndex][i] = cur;
             m[segmentIndex][i] = cur.forwardMercator();
@@ -2679,10 +2687,10 @@ class PolylineBatchRenderer {
             vl[k++] = v_low.z;
         }
 
-        const lp0 = ellipsoid.lonLatToCartesian(path[path.length - 1]);
-        const lp1 = ellipsoid.lonLatToCartesian(path[path.length - 2] || path[path.length - 1]);
+        const lp0 = targetPath3v[path.length - 1];
+        const lp1 = targetPath3v[path.length - 2] || lp0;
         const first = segmentClosed
-            ? ellipsoid.lonLatToCartesian(path[0])
+            ? targetPath3v[0]
             : new Vec3(lp0.x + lp0.x - lp1.x, lp0.y + lp0.y - lp1.y, lp0.z + lp0.z - lp1.z);
 
         this.__doubleToTwoFloats(first, v_high, v_low);

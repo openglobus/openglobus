@@ -89,7 +89,7 @@ void atmosGroundColor(
         t += segmentLength;
     }
 
-    light *= SUN_INTENSITY;
+    light *= SUN_INTENSITY * SCATTERING_COLOR;
 
     vec3 hitPoint = camPos + rayDirection * distanceToGround;
     vec3 up = normalize(hitPoint);

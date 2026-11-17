@@ -8,6 +8,7 @@ import { SegmentLonLat } from "../src/segment/SegmentLonLat";
 import { QuadTreeStrategy } from "../src/quadTree/QuadTreeStrategy";
 import { Node } from "../src/quadTree/Node";
 import * as segmentHelper from "../src/segment/segmentHelper";
+import { wgs84 } from "../src/ellipsoid/wgs84";
 
 const MAX_LOG2 = 6;
 
@@ -498,4 +499,36 @@ describe("Segment.getTerrainPoint on the globe", () => {
             expect(misses).toBeLessThan(12); // rays that slip through a seam at the tile edge
         }
     }, 120000);
+});
+
+describe("Segment.getTerrainPoint of a segment with no vertices", () => {
+    const segment = { renderVertices: null, planet: { ellipsoid: wgs84 } };
+
+    test.each([
+        ["above", 1500],
+        ["below", -420],
+        ["at", 0]
+    ])("a point %s the ellipsoid goes down its normal to it", (_, height) => {
+        const lonLat = new LonLat(37.3, 61.8, height),
+            res = new Vec3();
+
+        const d = Segment.prototype.getTerrainPoint.call(segment, wgs84.lonLatToCartesian(lonLat), lonLat, res);
+
+        expect(d).toBeCloseTo(height, 6);
+        expect(res.distance(wgs84.lonLatToCartesian(new LonLat(lonLat.lon, lonLat.lat, 0)))).toBeLessThan(1e-6);
+    });
+
+    test("an empty vertex array is the same", () => {
+        const lonLat = new LonLat(-120, -30, 250),
+            res = new Vec3();
+
+        Segment.prototype.getTerrainPoint.call(
+            { ...segment, renderVertices: [] },
+            wgs84.lonLatToCartesian(lonLat),
+            lonLat,
+            res
+        );
+
+        expect(wgs84.cartesianToLonLat(res).height).toBeCloseTo(0, 6);
+    });
 });

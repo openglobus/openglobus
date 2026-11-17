@@ -1,6 +1,5 @@
 import { Extent } from "../Extent";
-import { EPSG3857 } from "../proj/EPSG3857";
-import { binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
+import { binaryInsert, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
 import { getMedian } from "../terrain/terrainUtils";
 import { LonLat } from "../LonLat";
 import { MAX, MIN } from "../math";
@@ -15,20 +14,21 @@ import {
     N,
     NE,
     NEIGHBOUR,
+    NOPSORD,
     NOTRENDERING,
     NW,
     OPPART,
     OPSIDE,
     PARTOFFSET,
     RENDERING,
+    ROOTPART,
     S,
     SE,
+    SIDEFLIP,
     SW,
     W,
     WALKTHROUGH
 } from "./quadTree";
-
-import { TILEGROUP_COMMON, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "../segment/Segment";
 
 import { PlanetCamera } from "../camera/PlanetCamera";
 import type { Camera } from "../camera/Camera";
@@ -73,6 +73,9 @@ function getR2Buffer(count: number): Float64Array {
     return _r2;
 }
 
+// Node parts on the way up from the node, see Node._linkSideNeighbors
+const _pathId: number[] = [];
+
 let __staticCounter = 0;
 
 /**
@@ -111,6 +114,16 @@ class Node {
      */
     public _viewWalkFrame: number;
 
+    /**
+     * Neighbor search the node was last taken into as an opaque node, see QuadTreeStrategy._neighborFrame.
+     */
+    public _neighborFrame: number;
+
+    /**
+     * Root nodes behind the N, E, S and W sides of a root node, null on a side with no tree behind it.
+     */
+    public rootNeighbors: [Node | null, Node | null, Node | null, Node | null] | null;
+
     constructor(
         SegmentPrototype: typeof Segment,
         quadTreeStrategy: QuadTreeStrategy,
@@ -141,6 +154,8 @@ class Node {
         this.inFrustum = 0;
         this._fadingNodes = [];
         this._viewWalkFrame = -1;
+        this._neighborFrame = -1;
+        this.rootNeighbors = null;
         this.createBounds();
     }
 
@@ -293,14 +308,7 @@ class Node {
 
         // Search a node which the camera is flying over.
         if (!this.parentNode || this.parentNode._cameraInside) {
-            let inside;
-            if (seg._projection.id === EPSG3857.id) {
-                inside = seg._extent.isInside(cam._lonLatMerc);
-            } else {
-                inside = seg._extent.isInside(cam._lonLat);
-            }
-
-            if (inside) {
+            if (seg._extent.isInside(seg.getInsideLonLat(cam))) {
                 cam._insideSegment = seg;
                 this._cameraInside = true;
             }
@@ -727,7 +735,6 @@ class Node {
 
         //@ts-ignore
         if (!this.quadTreeStrategy._transitionOpacityEnabled) {
-            this.getRenderedNodesNeighbors(nodes);
             nodes.push(this);
         } else {
             //@todo: check if it's possible to get rid of the sorting when using breadth traverse tree
@@ -753,7 +760,7 @@ class Node {
     }
 
     public applyNeighbor(node: Node, side: number) {
-        const opcs = OPSIDE[side];
+        const opcs = this.segment.opside[side];
 
         if (this.neighbors[side].length === 0 || node.neighbors[opcs].length === 0) {
             const ap = this.segment;
@@ -782,126 +789,52 @@ class Node {
     }
 
     /**
-     * Searching current node for its neighbours.
+     * Links the node with its neighbors of the same or lower zoom among the nodes marked with the frame. The deeper
+     * ones find this node themselves, as both sides of a pair are set by applyNeighbor.
      * @public
+     * @param {number} frame - Neighbor search counter of the strategy.
      */
-    public getRenderedNodesNeighbors(nodes: Node[]) {
-        if (this.quadTreeStrategy.disableNeighbors) return;
-
-        for (let i = nodes.length - 1; i >= 0; --i) {
-            let ni = nodes[i];
-            let cs = this.getCommonSide(ni);
-
-            if (cs !== -1) {
-                this.applyNeighbor(ni, cs);
-            }
+    public getRenderedNodesNeighbors(frame: number) {
+        for (let side = N; side <= W; side++) {
+            this._linkSideNeighbors(side, frame);
         }
     }
 
     /**
-     * Checking if current node has a common side with input node and return side index N, E, S or W. Otherwise returns -1.
-     * @param {Node} node - Input node
-     * @returns {number} - Node side index
+     * Climbs to the node that holds both this node and the tile next to it, or to the neighbor tree when the side
+     * lies on the edge of the tree, and goes down to the tile by the mirrored path.
      */
-    public getCommonSide(node: Node): number {
-        const as = this.segment;
-        const bs = node.segment;
+    protected _linkSideNeighbors(side: number, frame: number) {
+        let pn: Node = this,
+            part = -1,
+            depth = 0;
 
-        if (as.tileZoom === bs.tileZoom && as._tileGroup === bs._tileGroup) {
-            return as.getNeighborSide(bs);
-        } else {
-            const a = as._extentLonLat;
-            const b = bs._extentLonLat;
-
-            let a_ne = a.northEast,
-                a_sw = a.southWest,
-                b_ne = b.northEast,
-                b_sw = b.southWest;
-
-            let a_ne_lon = a_ne.lon,
-                a_ne_lat = a_ne.lat,
-                a_sw_lon = a_sw.lon,
-                a_sw_lat = a_sw.lat,
-                b_ne_lon = b_ne.lon,
-                b_ne_lat = b_ne.lat,
-                b_sw_lon = b_sw.lon,
-                b_sw_lat = b_sw.lat;
-
-            if (as._tileGroup === bs._tileGroup) {
-                if (
-                    a_ne_lon === b_sw_lon &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
-                    return E;
-                } else if (
-                    a_sw_lon === b_ne_lon &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
-                    return W;
-                } else if (
-                    a_ne_lat === b_sw_lat &&
-                    ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-                ) {
-                    return N;
-                } else if (
-                    a_sw_lat === b_ne_lat &&
-                    ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-                ) {
-                    return S;
-                }
-                // World edge 180 to -180
-                else if (
-                    bs.tileX === 0 &&
-                    b_sw_lon === -a_ne_lon &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
-                    return E;
-                } else if (
-                    as.tileX === 0 &&
-                    a_sw_lon === -b_ne_lon &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
-                    return W;
-                }
-            }
-
-            // @todo: replace to the default strategy
-            if (
-                as._tileGroup === TILEGROUP_COMMON &&
-                bs._tileGroup === TILEGROUP_NORTH &&
-                as.tileY === 0 &&
-                bs.tileY === bs.powTileZoom /*Math.pow(2, bs.tileZoom)*/ - 1 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
-                return N;
-            } else if (
-                as._tileGroup === TILEGROUP_COMMON &&
-                bs._tileGroup === TILEGROUP_SOUTH &&
-                as.tileY === as.powTileZoom /*Math.pow(2, as.tileZoom)*/ - 1 &&
-                bs.tileY === 0 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
-                return S;
-            } else if (
-                as._tileGroup === TILEGROUP_SOUTH &&
-                bs._tileGroup === TILEGROUP_COMMON &&
-                as.tileY === 0 &&
-                bs.tileY === bs.powTileZoom /*Math.pow(2, bs.tileZoom)*/ - 1 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
-                return N;
-            } else if (
-                as._tileGroup === TILEGROUP_NORTH &&
-                bs._tileGroup === TILEGROUP_COMMON &&
-                as.tileY === as.powTileZoom /*Math.pow(2, as.tileZoom)*/ - 1 &&
-                bs.tileY === 0 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
-                return S;
-            }
+        while (pn.parentNode && part === -1) {
+            _pathId[depth++] = pn.partId;
+            part = NEIGHBOUR[side][pn.partId];
+            pn = pn.parentNode;
         }
 
-        return -1;
+        let mirror = OPPART[OPSIDE[side]];
+
+        if (part === -1) {
+            const rootNeighbor = pn.rootNeighbors && pn.rootNeighbors[side];
+            if (!rootNeighbor) {
+                return;
+            }
+            pn = rootNeighbor;
+            mirror = ROOTPART[side][this.segment.opside[side]];
+        }
+
+        const zoom = this.segment.tileZoom;
+
+        // Fading can leave a parent and its child opaque in one frame, so the walk doesn't stop at the first one
+        for (let i = depth - 1; i >= 0 && pn.nodes.length; i--) {
+            pn = pn.nodes[mirror[_pathId[i]]];
+            if (pn._neighborFrame === frame && (pn.segment.tileZoom < zoom || pn.__id < this.__id)) {
+                this.applyNeighbor(pn, side);
+            }
+        }
     }
 
     public whileNormalMapCreating() {
@@ -914,10 +847,16 @@ class Node {
         let pn: Node = this;
         while (pn.parentNode && !pn.segment.normalMapReady) {
             pn = pn.parentNode;
+
+            const ps = pn.segment;
+            if (!ps.normalMapReady && !ps.terrainIsLoading && ps.terrainExists && !ps._inTheQueue) {
+                ps.planet._normalMapCreator.queue(ps);
+            }
         }
 
         const dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
 
+        seg._normalMapSource = pn.segment;
         seg.normalMapTexture = pn.segment.normalMapTexture;
         seg.normalMapTextureBias[0] = seg.tileX - pn.segment.tileX * dZ2;
         seg.normalMapTextureBias[1] = seg.tileY - pn.segment.tileY * dZ2;
@@ -986,7 +925,7 @@ class Node {
                 BOUNDS,
                 getR2Buffer(len / 3)
             );
-        } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
+        } else if (gridSizeExt >= 1 && pn.segment.terrainExists && pseg.normalMapVertices) {
             seg.gridSize = gridSizeExt;
 
             let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
@@ -1123,25 +1062,10 @@ class Node {
                     this.equalizedSideWithNodeId[W] =
                         this.appliedTerrainNodeId;
 
+                // The normal map is the parent one, see whileNormalMapCreating
                 if (pn.segment.terrainExists) {
                     seg.normalMapVertices = renderVertices;
                     seg.fileGridSize = Math.sqrt(renderVertices.length / 3) - 1;
-
-                    let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1,
-                        fgsZ = fgs / dZ2;
-
-                    if (fgs > 1) {
-                        seg.normalMapNormals = getMatrixSubArray32(
-                            pseg.normalMapNormals!,
-                            fgs,
-                            fgsZ * offsetY,
-                            fgsZ * offsetX,
-                            fgsZ
-                        );
-                    } else {
-                        // TODO: interpolation
-                        seg.normalMapNormals = pseg.normalMapNormals;
-                    }
                 }
             }
         }
@@ -1232,6 +1156,53 @@ class Node {
                 this.nodes[i]!.traverseTree(callback);
             }
         }
+    }
+
+    /**
+     * Returns the neighbor behind the side that has a corner in the same point as the corner of this node.
+     * @public
+     * @param {number} side - The side that the corner belongs to.
+     * @param {number} corner - Corner index, NW, NE, SW or SE.
+     * @returns {Node | null | undefined} - Neighbor, null when there is none, undefined when the point lies inside
+     * the side of a neighbor of a lower zoom.
+     */
+    public getCornerNeighbor(side: number, corner: number): Node | null | undefined {
+        const list = this.neighbors[side],
+            seg = this.segment,
+            far = NOPSORD[side][corner],
+            // The tile index along the side: x along the N and S sides, y along the E and W ones
+            pos = (side & 1 ? seg.tileY : seg.tileX) + far,
+            opcs = seg.opside[side],
+            flip = SIDEFLIP[side][opcs];
+
+        for (let i = 0; i < list.length; i++) {
+            const n = list[i],
+                ns = n.segment,
+                nIndex = opcs & 1 ? ns.tileY : ns.tileX,
+                nPos = (flip ? ns.powTileZoom - 1 - nIndex : nIndex) + far,
+                dz = ns.tileZoom - seg.tileZoom;
+
+            if (dz >= 0) {
+                if (nPos === pos * (1 << dz)) {
+                    return n;
+                }
+            } else {
+                return pos === nPos * (1 << -dz) ? n : undefined;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the corner of the neighbors behind the side that lies in the same point as the corner of this node.
+     * @public
+     * @param {number} side - The side that the corner belongs to.
+     * @param {number} corner - Corner index, NW, NE, SW or SE.
+     * @returns {number} -
+     */
+    public getNeighborCorner(side: number, corner: number): number {
+        return ROOTPART[side][this.segment.opside[side]][corner];
     }
 
     public getOffsetOppositeNeighbourSide(neighbourNode: Node, side: number): number {

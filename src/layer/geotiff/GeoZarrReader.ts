@@ -147,10 +147,7 @@ class ChunkCache {
             this.get(`${id}:${coords.join(",")}`, () => getChunk(coords, options, opts))) as typeof array.getChunk;
     }
 
-    public get(
-        key: string,
-        load: () => Promise<Zarr.Chunk<Zarr.DataType>>
-    ): Promise<Zarr.Chunk<Zarr.DataType>> {
+    public get(key: string, load: () => Promise<Zarr.Chunk<Zarr.DataType>>): Promise<Zarr.Chunk<Zarr.DataType>> {
         const chunk = this._map.get(key);
         if (chunk) {
             this._map.delete(key);
@@ -360,7 +357,9 @@ export class GeoZarrReader extends RasterReader {
             noData,
             isTiled: true,
             overviewCount: this._levels.length,
-            bands: {}
+            bands: {},
+            // As a GeoTIFF: color bands or 8 bit values are an image, other values are data
+            isImagery: this._samples.length >= 3 || firstArray.dtype === "uint8" || firstArray.dtype === "int8"
         };
 
         this.metadata.bands = await this._readBandStats();
@@ -490,7 +489,7 @@ export class GeoZarrReader extends RasterReader {
         const parts: { x: number; read: Promise<IRasterWindow> }[] = [];
 
         // Columns of the window in runs that do not cross the image sides
-        for (let x = x0; x < x1; ) {
+        for (let x = x0; x < x1;) {
             const col = ((x % width) + width) % width;
             const run = Math.min(x1 - x, width - col);
             parts.push({ x: x - x0, read: this._readWindow(level, [col, y0, col + run, y1], samples) });

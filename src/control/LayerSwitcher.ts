@@ -105,6 +105,7 @@ class TerrainButtonView extends View<EmptyTerrain> {
     public override render(params?: any): this {
         super.render(params);
         this.el!.addEventListener("click", this._onClick);
+        this.el!.addEventListener("dblclick", this._onDblClick);
         return this;
     }
 
@@ -120,6 +121,10 @@ class TerrainButtonView extends View<EmptyTerrain> {
 
     protected _onClick = () => {
         this._onClickCallback(this.model);
+    };
+
+    protected _onDblClick = () => {
+        this.model.flyExtent();
     };
 }
 

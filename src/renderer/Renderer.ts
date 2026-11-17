@@ -17,6 +17,11 @@ import { MAX_FLOAT, randomi } from "../math";
 import { Scene } from "../scene/Scene";
 import { screenFrame } from "../shaders/screenFrame";
 import { toneMappingProgram } from "../shaders/tone_mapping/toneMapping";
+import {
+    LIGHTING_FEATURE_CASCADE_SHADOWS,
+    LIGHTING_FEATURE_PROJECTORS,
+    LIGHTING_FEATURE_SHADOW_MAPS
+} from "../shaders/common/uniforms";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { ITransparencyPass } from "./ITransparencyPass";
 import { PhongDeferredShading } from "./PhongDeferredShading";
@@ -35,9 +40,28 @@ import { Vec4 } from "../math/Vec4";
 import type { NumberArray4 } from "../math/Vec4";
 import type { Mat4 } from "../math/Mat4";
 
+/** Formats of the forward and HDR render targets, see IRendererParams.hdrFormat. */
+export type HdrFormat = "RGBA16F" | "RGBA8" | "SRGB8_ALPHA8";
+
+const HDR_FORMATS: HdrFormat[] = ["RGBA16F", "RGBA8", "SRGB8_ALPHA8"];
+
+/**
+ * The hdrFormat option as a supported format, RGBA16F when it is missing or unknown.
+ * @param {string} [format] - Requested format.
+ * @returns {HdrFormat}
+ */
+export function normalizeHdrFormat(format?: string): HdrFormat {
+    if (!format) return "RGBA16F";
+    const upper = format.toUpperCase() as HdrFormat;
+    if (HDR_FORMATS.includes(upper)) return upper;
+    cons.logWrn(`Renderer: hdrFormat "${format}" is not supported, using RGBA16F`);
+    return "RGBA16F";
+}
+
 export interface IRendererParams {
     controls?: Control[];
     msaa?: number;
+    hdrFormat?: HdrFormat;
     autoActivate?: boolean;
     deferredDisabled?: boolean;
     fontsSrc?: string;
@@ -233,6 +257,8 @@ class Renderer {
     protected _msaa: number;
 
     protected _internalFormat: string;
+
+    protected _hdrFormat: HdrFormat;
     protected _depthComponent: string;
 
     protected _depthRefreshRequired: boolean;
@@ -243,7 +269,11 @@ class Renderer {
     // The pointer has moved since the last picking readback, it is made when the interval passes
     protected _pickingReadPending: boolean;
 
-    public forwardFramebuffer: Multisample | null;
+    /**
+     * Forward render target. Without MSAA it is a texture the tone mapping reads directly;
+     * with MSAA it is multisampled renderbuffers resolved into hdrFramebuffer every frame.
+     */
+    public forwardFramebuffer: Multisample | Framebuffer | null;
     protected hdrFramebuffer: Framebuffer | null;
 
     public deferredDisabled: boolean;
@@ -404,6 +434,7 @@ class Renderer {
         }
 
         this._internalFormat = "RGBA16F";
+        this._hdrFormat = normalizeHdrFormat(params.hdrFormat);
         this._depthComponent = "DEPTH_COMPONENT24";
 
         this.forwardFramebuffer = null;
@@ -789,6 +820,56 @@ class Renderer {
     }
 
     /**
+     * Format of the forward and HDR render targets (IRendererParams.hdrFormat).
+     * @public
+     * @returns {HdrFormat}
+     */
+    public get hdrFormat(): HdrFormat {
+        return this._hdrFormat;
+    }
+
+    /**
+     * Lighting features with something active, a variant mask of LIGHTING_FEATURE_* bits: programs
+     * with lighting feature switches draw with program.variant(renderer.activeLightingFeatures).
+     * @public
+     * @returns {number}
+     */
+    public get activeLightingFeatures(): number {
+        return (
+            (this.projectors.activeCount > 0 ? LIGHTING_FEATURE_PROJECTORS : 0) |
+            (this.shadows.activeCount > 0 ? LIGHTING_FEATURE_SHADOW_MAPS : 0) |
+            (this.cascadeShadowManager.activeCount > 0 ? LIGHTING_FEATURE_CASCADE_SHADOWS : 0)
+        );
+    }
+
+    /**
+     * Binds the lighting features (projectors, shadows) to a program, the ones its feature variant
+     * has. Texture units left undefined take each manager's default.
+     * @public
+     * @param {ShaderProgram} program - Activated program.
+     * @param {number} [projectorUnit] - First texture unit for projectors.
+     * @param {number} [shadowUnit] - Texture unit for shadow maps.
+     * @param {number} [cascadeUnit] - Texture unit for cascade shadows.
+     */
+    public bindLightingFeatures(
+        program: ShaderProgram,
+        projectorUnit?: number,
+        shadowUnit?: number,
+        cascadeUnit?: number
+    ) {
+        const u = program.uniforms;
+        if (u.u_projectorCount) {
+            this.projectors.bindForward(program, projectorUnit);
+        }
+        if (u.u_shadowMapCount) {
+            this.shadows.bindForward(program, shadowUnit);
+        }
+        if (u.u_cascadeShadowCount) {
+            this.cascadeShadowManager.bindForward(program, cascadeUnit);
+        }
+    }
+
+    /**
      * Returns the canvas client width.
      * @public
      * @returns {number}
@@ -966,7 +1047,7 @@ class Renderer {
         });
         this.screenDepthFramebuffer.init();
 
-        let _maxMSAA = this.getMaxMSAA(this._internalFormat);
+        let _maxMSAA = this.getMaxMSAA(this._hdrFormat);
 
         if (this._msaa > _maxMSAA) {
             this._msaa = _maxMSAA;
@@ -979,15 +1060,31 @@ class Renderer {
 
         this.activeCamera.setViewportSize(initWidth, initHeight);
 
-        this.forwardFramebuffer = new Multisample(this.handler, {
-            width: initWidth,
-            height: initHeight,
-            size: 1,
-            msaa: this._msaa,
-            internalFormat: this._internalFormat,
-            filter: "NEAREST",
-            depthComponent: this._depthComponent
-        });
+        if (this._msaa > 0) {
+            this.forwardFramebuffer = new Multisample(this.handler, {
+                width: initWidth,
+                height: initHeight,
+                size: 1,
+                msaa: this._msaa,
+                internalFormat: this._hdrFormat,
+                filter: "NEAREST",
+                depthComponent: this._depthComponent
+            });
+        } else {
+            // Rendered straight into a texture, so the frame needs no resolve blit into hdrFramebuffer.
+            this.forwardFramebuffer = new Framebuffer(this.handler, {
+                width: initWidth,
+                height: initHeight,
+                useDepth: true,
+                depthComponent: this._depthComponent,
+                targets: [
+                    {
+                        internalFormat: this._hdrFormat,
+                        filter: "NEAREST"
+                    }
+                ]
+            });
+        }
 
         this.forwardFramebuffer.init();
 
@@ -996,19 +1093,23 @@ class Renderer {
             this.transparencyPass.init();
         }
 
-        this.hdrFramebuffer = new Framebuffer(this.handler, {
-            width: initWidth,
-            height: initHeight,
-            useDepth: false,
-            targets: [
-                {
-                    internalFormat: this._internalFormat,
-                    filter: "NEAREST"
-                }
-            ]
-        });
+        if (this._msaa > 0) {
+            this.hdrFramebuffer = new Framebuffer(this.handler, {
+                width: initWidth,
+                height: initHeight,
+                useDepth: false,
+                targets: [
+                    {
+                        internalFormat: this._hdrFormat,
+                        filter: "NEAREST"
+                    }
+                ]
+            });
 
-        this.hdrFramebuffer.init();
+            this.hdrFramebuffer.init();
+        } else {
+            this.hdrFramebuffer = null;
+        }
 
         this.toneMappingFramebuffer = new Framebuffer(this.handler, {
             width: initWidth,
@@ -1759,51 +1860,107 @@ class Renderer {
     //     return this.handler.canvas ? this.handler.canvas.toDataURL(type, quality) : "";
     // }
 
+    /**
+     * Tone maps the forward image onto the canvas.
+     * @protected
+     */
     protected _screenFrame() {
-        let h = this.handler;
+        const f = this.forwardFramebuffer!,
+            cnv = this.handler.canvas!;
+        if (this._currentOutput === "screen" && f.width === cnv.width && f.height === cnv.height) {
+            this._screenFrameDirect();
+        } else {
+            this._screenFrameOutput();
+        }
+    }
 
-        let sh = h.programs.toneMapping,
-            p = sh,
-            gl = h.gl!;
+    /**
+     * Tone maps the forward image straight into the canvas. The tone mapping reads the image
+     * texel by texel (texelFetch at gl_FragCoord), so the image must be the canvas size.
+     * toneMappingFramebuffer (screenTexture.screen) is not written.
+     * @protected
+     */
+    protected _screenFrameDirect() {
+        const gl = this.handler.gl!,
+            cnv = this.handler.canvas!;
 
-        this.forwardFramebuffer!.blitTo(this.hdrFramebuffer!);
+        const hdrTexture = this._resolveForwardTexture();
 
         gl.disable(gl.DEPTH_TEST);
         gl.disable(gl.BLEND);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
-        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, cnv.width, cnv.height);
+        this._drawToneMapping(hdrTexture);
+
+        gl.enable(gl.BLEND);
+        gl.enable(gl.DEPTH_TEST);
+    }
+
+    /**
+     * Tone maps the forward image into toneMappingFramebuffer, then draws the current output
+     * texture (screen, picking, depth, frustum) on the canvas.
+     * @protected
+     */
+    protected _screenFrameOutput() {
+        const gl = this.handler.gl!;
+
+        const hdrTexture = this._resolveForwardTexture();
+
+        gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.BLEND);
 
         this.toneMappingFramebuffer!.activate();
-
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
-
-        sh.activate();
-
-        // screen texture
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.hdrFramebuffer!.textures[0]);
-        gl.uniform1i(p.uniforms.hdrBuffer, 0);
-
-        gl.uniform1f(p.uniforms.gamma, this.gamma);
-        gl.uniform1f(p.uniforms.exposure, this.exposure);
-        p.uniforms.whitepoint && gl.uniform1f(p.uniforms.whitepoint, this.whitepoint);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
+        this._drawToneMapping(hdrTexture);
         this.toneMappingFramebuffer!.deactivate();
 
         // SCREEN PASS
-        sh = h.programs.screenFrame;
-        p = sh;
+        const sh = this.handler.programs.screenFrame;
         sh.activate();
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
-        gl.uniform1i(p.uniforms.texture, 0);
+        gl.uniform1i(sh.uniforms.texture, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.enable(gl.BLEND);
         gl.enable(gl.DEPTH_TEST);
+    }
+
+    /**
+     * Returns the texture holding the forward image; with MSAA it resolves it into hdrFramebuffer first.
+     * @protected
+     */
+    protected _resolveForwardTexture(): WebGLTexture {
+        if (this.hdrFramebuffer) {
+            (this.forwardFramebuffer as Multisample).blitTo(this.hdrFramebuffer);
+            return this.hdrFramebuffer.textures[0];
+        }
+        return (this.forwardFramebuffer as Framebuffer).textures[0];
+    }
+
+    /**
+     * Draws the tone mapped image into the bound framebuffer. Leaves the screen quad bound for the next pass.
+     * @protected
+     */
+    protected _drawToneMapping(hdrTexture: WebGLTexture) {
+        const gl = this.handler.gl!,
+            sh = this.handler.programs.toneMapping;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
+        gl.vertexAttribPointer(sh.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+        sh.activate();
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, hdrTexture);
+        gl.uniform1i(sh.uniforms.hdrBuffer, 0);
+
+        gl.uniform1f(sh.uniforms.gamma, this.gamma);
+        gl.uniform1f(sh.uniforms.exposure, this.exposure);
+        sh.uniforms.whitepoint && gl.uniform1f(sh.uniforms.whitepoint, this.whitepoint);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
     /**

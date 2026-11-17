@@ -11,3 +11,15 @@ test("Testing Billboard", () => {
     billboard.setWidth(200);
     expect(billboard.getSize()).toStrictEqual({ width: 200, height: 200 });
 });
+
+test("Billboard scale does not affect screen offset", () => {
+    let billboard = new Billboard({ scale: 2 });
+    let setOffsetArr = vi.fn();
+    billboard._handler = { setOffsetArr };
+    billboard._isReady = true;
+
+    billboard.setOffset(100, 50);
+
+    let offset = setOffsetArr.mock.calls[0][1];
+    expect([offset.x, offset.y]).toStrictEqual([100, 50]);
+});

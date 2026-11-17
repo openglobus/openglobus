@@ -1,4 +1,5 @@
 import { MAX_FORWARD_PROJECTOR_SOURCES, MAX_FORWARD_PROJECTORS } from "../../renderer/projectors/ProjectorManager";
+import { variantBit } from "../../webgl/ShaderProgram";
 
 /** Array sizes for projectors.glsl, filled in with stringTemplate2() by every program that includes it. */
 export const projectorShaderParams = {
@@ -39,3 +40,38 @@ export const cascadeShadowUniforms = {
     u_cascadeShadowViewForward: "vec3",
     u_cascadeShadowDepthArray: "sampler2darray"
 };
+
+/** Uniforms of lightingFeatures.glsl; the ones of a feature switched off are inactive in that variant. */
+export const lightingFeatureUniforms = {
+    ...projectorUniforms,
+    ...shadowMapUniforms,
+    ...cascadeShadowUniforms
+};
+
+/** Uniforms of programs that receive shadows but no projectors. */
+export const shadowFeatureUniforms = {
+    ...shadowMapUniforms,
+    ...cascadeShadowUniforms
+};
+
+/**
+ * Switch defines of lightingFeatures.glsl. Compiled-in projector and shadow code slows the fragment
+ * stage on some GPUs even with nothing active (Mali-G57: +3.5 ms a frame for the terrain at
+ * 1920x1150), so programs that include it draw with program.variant(renderer.activeLightingFeatures).
+ */
+export const lightingFeatureDefines = {
+    USE_PROJECTORS: false,
+    USE_SHADOW_MAPS: false,
+    USE_CASCADE_SHADOWS: false
+};
+
+/** Switch defines of programs that receive shadows but no projectors. */
+export const shadowFeatureDefines = {
+    USE_SHADOW_MAPS: false,
+    USE_CASCADE_SHADOWS: false
+};
+
+/** Bits of the lighting feature switches in variant masks. */
+export const LIGHTING_FEATURE_PROJECTORS = variantBit("USE_PROJECTORS");
+export const LIGHTING_FEATURE_SHADOW_MAPS = variantBit("USE_SHADOW_MAPS");
+export const LIGHTING_FEATURE_CASCADE_SHADOWS = variantBit("USE_CASCADE_SHADOWS");

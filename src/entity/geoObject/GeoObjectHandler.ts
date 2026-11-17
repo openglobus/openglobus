@@ -194,7 +194,7 @@ export class GeoObjectHandler {
 
                 const atmosphereControl = (this._scene as Planet).atmosphereControl;
                 if (atmosphereControl) {
-                    programs.push(shaders.geo_object_woit_atmos(atmosphereControl.parameters));
+                    programs.push(shaders.geo_object_woit_atmos(atmosphereControl.effectiveParameters));
                 }
             }
             this._renderer.addPrograms(programs);
@@ -526,13 +526,7 @@ export class GeoObjectHandler {
             planet = this._scene as Planet;
 
         // Texture units 0..3 are rebound to GeoObject material textures before every draw.
-        gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_2D, atmosphere._transmittanceBuffer!.textures[0]);
-        gl.uniform1i(u.transmittanceTexture, 4);
-
-        gl.activeTexture(gl.TEXTURE5);
-        gl.bindTexture(gl.TEXTURE_2D, atmosphere._scatteringBuffer!.textures[0]);
-        gl.uniform1i(u.scatteringTexture, 5);
+        atmosphere.bindForward(p, 4, 5);
         gl.uniform2fv(u.atmosFadeDist, planet.atmosphereFadeDist);
         gl.uniform3fv(u.atmosMaxMinOpacity, planet._atmosphereCurrentMaxMinOpacity);
         gl.uniform3fv(u.cameraForward, r.activeCamera.getForward().toArray());
@@ -566,7 +560,9 @@ export class GeoObjectHandler {
             rn = this._scene,
             //@ts-ignore
             useAtmos = rn.atmosphereEnabled,
-            sh = useAtmos ? r.handler.programs.geo_object_woit_atmos : r.handler.programs.geo_object_woit,
+            sh = (useAtmos ? r.handler.programs.geo_object_woit_atmos : r.handler.programs.geo_object_woit).variant(
+                r.activeLightingFeatures
+            ),
             p = sh,
             gl = r.handler.gl!,
             disableCull = this._entityCollection.disableCullFace;
@@ -582,9 +578,7 @@ export class GeoObjectHandler {
         if (useAtmos) {
             this._bindAtmosphereParams(p);
         }
-        r.projectors.bindForward(p);
-        r.shadows.bindForward(p);
-        r.cascadeShadowManager.bindForward(p);
+        r.bindLightingFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -595,15 +589,14 @@ export class GeoObjectHandler {
 
     public _displayTransparentForwardPASS() {
         let r = this._renderer!,
-            sh = r.handler.programs.geo_object_forward,
+            sh = r.handler.programs.geo_object_forward.variant(r.activeLightingFeatures),
             p = sh;
 
         sh.activate();
 
         this._bindCommon(p);
         this._bindForwardParams(p);
-        r.shadows.bindForward(p);
-        r.cascadeShadowManager.bindForward(p);
+        r.bindLightingFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -612,15 +605,14 @@ export class GeoObjectHandler {
 
     public _displayForwardPASS() {
         let r = this._renderer!,
-            sh = r.handler.programs.geo_object_forward,
+            sh = r.handler.programs.geo_object_forward.variant(r.activeLightingFeatures),
             p = sh;
 
         sh.activate();
 
         this._bindCommon(p);
         this._bindForwardParams(p);
-        r.shadows.bindForward(p);
-        r.cascadeShadowManager.bindForward(p);
+        r.bindLightingFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawForwardAll(p);
