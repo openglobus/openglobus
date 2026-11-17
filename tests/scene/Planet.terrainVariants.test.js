@@ -1,162 +1,65 @@
 import { Planet } from "../../src/scene/Planet";
-import { Renderer } from "../../src/renderer/Renderer";
 import {
     LIGHTING_FEATURE_CASCADE_SHADOWS,
     LIGHTING_FEATURE_PROJECTORS,
-    LIGHTING_FEATURE_SHADOW_MAPS,
-    LIGHTING_FEATURES_ALL,
-    lightingFeatureParams,
-    lightingFeatureProgramName,
-    lightingFeatureUniforms
+    LIGHTING_FEATURE_SHADOW_MAPS
 } from "../../src/shaders/common/uniforms";
 import * as shaders from "../../src/shaders/segment/segment";
 
-const featureUniformNames = (uniforms) =>
-    Object.keys(uniforms).filter((name) => /^u_(projector|shadowMap|cascadeShadow)/.test(name));
-
 /**
- * jsdom has no webgl2 context: the planet gets a stub renderer whose active features are set
- * by the test, and a handler that only records programs.
+ * jsdom has no WebGL: the planet gets a stub renderer whose active features are set by the test.
+ * Without a context the programs are never compiled, only built.
  */
-function createPlanet(mask = 0) {
+function createPlanet(terrainProgram) {
     const planet = new Planet();
-    const programs = {};
-    const handler = {
-        programs,
-        addProgram: vi.fn((program) => {
-            programs[program.name] = program;
-            return program;
-        }),
-        removeProgram: vi.fn((name) => {
-            delete programs[name];
-        })
-    };
     const renderer = {
-        handler,
-        activeLightingFeatures: mask,
-        projectors: { bindForward: vi.fn() },
-        shadows: { bindForward: vi.fn() },
-        cascadeShadowManager: { bindForward: vi.fn() }
+        handler: { programs: { segment_screen_wl_forward: terrainProgram } },
+        activeLightingFeatures: 0
     };
     planet.renderer = renderer;
-    return { planet, renderer, handler };
+    return { planet, renderer };
 }
 
-describe("lighting feature helpers", () => {
-    test("uniforms come only with their feature", () => {
-        expect(featureUniformNames(lightingFeatureUniforms(0))).toEqual([]);
-        expect(
-            featureUniformNames(lightingFeatureUniforms(LIGHTING_FEATURE_PROJECTORS)).every((n) =>
-                n.startsWith("u_projector")
-            )
-        ).toBe(true);
-        expect(lightingFeatureUniforms(LIGHTING_FEATURE_SHADOW_MAPS)).toHaveProperty("u_shadowMapCount");
-        expect(lightingFeatureUniforms(LIGHTING_FEATURE_SHADOW_MAPS)).not.toHaveProperty("u_cascadeShadowCount");
-        const all = lightingFeatureUniforms(LIGHTING_FEATURES_ALL);
-        expect(all).toHaveProperty("u_projectorCount");
-        expect(all).toHaveProperty("u_shadowMapCount");
-        expect(all).toHaveProperty("u_cascadeShadowCount");
+describe("Planet forward terrain program", () => {
+    test("is the terrain program itself while no lighting feature is active", () => {
+        const terrain = shaders.segment_screen_wl_forward_noatmos();
+        const { planet } = createPlanet(terrain);
+
+        expect(planet._terrainForwardProgram()).toBe(terrain);
     });
 
-    test("template parameters switch the glsl features", () => {
-        expect(lightingFeatureParams(LIGHTING_FEATURE_CASCADE_SHADOWS)).toMatchObject({
-            USE_PROJECTORS: 0,
-            USE_SHADOW_MAPS: 0,
-            USE_CASCADE_SHADOWS: 1
-        });
-        // projectors.glsl array sizes are always there
-        expect(lightingFeatureParams(0)).toHaveProperty("MAX_PROJECTORS");
-    });
-
-    test("the full variant keeps the plain program name", () => {
-        expect(lightingFeatureProgramName("segment_screen_wl_forward", LIGHTING_FEATURES_ALL)).toBe(
-            "segment_screen_wl_forward"
-        );
-        expect(lightingFeatureProgramName("segment_screen_wl_forward", 0)).toBe("segment_screen_wl_forward_f0");
-    });
-
-    test("terrain forward factories default to every feature", () => {
-        const full = shaders.segment_screen_wl_forward_noatmos();
-        expect(full.name).toBe("segment_screen_wl_forward");
-        expect(full._uniforms).toHaveProperty("u_projectorCount");
-
-        const none = shaders.segment_screen_wl_forward_atmos(undefined, 0);
-        expect(none.name).toBe("segment_screen_wl_forward_f0");
-        expect(featureUniformNames(none._uniforms)).toEqual([]);
-        expect(none._uniforms).toHaveProperty("atmosLutTexture");
-    });
-});
-
-describe("Renderer.activeLightingFeatures", () => {
-    const activeLightingFeatures = Object.getOwnPropertyDescriptor(Renderer.prototype, "activeLightingFeatures").get;
-
-    test("has a bit for each manager with something active", () => {
-        const counts = (p, s, c) => ({
-            projectors: { activeCount: p },
-            shadows: { activeCount: s },
-            cascadeShadowManager: { activeCount: c }
-        });
-        expect(activeLightingFeatures.call(counts(0, 0, 0))).toBe(0);
-        expect(activeLightingFeatures.call(counts(2, 0, 1))).toBe(
-            LIGHTING_FEATURE_PROJECTORS | LIGHTING_FEATURE_CASCADE_SHADOWS
-        );
-        expect(activeLightingFeatures.call(counts(1, 4, 1))).toBe(LIGHTING_FEATURES_ALL);
-    });
-});
-
-describe("Planet forward terrain program variants", () => {
-    test("draws with the variant of the active features, built once", () => {
-        const { planet, renderer, handler } = createPlanet(0);
-        planet._addTerrainForwardProgram();
-        expect(handler.programs).toHaveProperty("segment_screen_wl_forward");
-
-        const none = planet._terrainForwardProgram();
-        expect(none.name).toBe("segment_screen_wl_forward_f0");
-        expect(featureUniformNames(none._uniforms)).toEqual([]);
-        expect(planet._terrainForwardProgram()).toBe(none);
-        expect(handler.addProgram).toHaveBeenCalledTimes(2);
-
-        renderer.activeLightingFeatures = LIGHTING_FEATURES_ALL;
-        expect(planet._terrainForwardProgram()).toBe(handler.programs.segment_screen_wl_forward);
-        expect(handler.addProgram).toHaveBeenCalledTimes(2);
+    test("is the variant of the active features, the same one every frame", () => {
+        const terrain = shaders.segment_screen_wl_forward_noatmos();
+        const { planet, renderer } = createPlanet(terrain);
 
         renderer.activeLightingFeatures = LIGHTING_FEATURE_PROJECTORS;
-        expect(planet._terrainForwardProgram().name).toBe("segment_screen_wl_forward_f1");
-    });
+        const projectors = planet._terrainForwardProgram();
+        expect(projectors).not.toBe(terrain);
+        expect(projectors._defines).toMatchObject({
+            USE_PROJECTORS: true,
+            USE_SHADOW_MAPS: false,
+            USE_CASCADE_SHADOWS: false
+        });
+        expect(planet._terrainForwardProgram()).toBe(projectors);
 
-    test("variants follow the atmosphere setting", () => {
-        const { planet } = createPlanet(0);
-        planet._atmosphereEnabled = true;
-        planet._addTerrainForwardProgram({ BOTTOM_RADIUS: 6356752.3142451793 });
-        const none = planet._terrainForwardProgram();
-        expect(none._uniforms).toHaveProperty("atmosLutTexture");
-    });
+        renderer.activeLightingFeatures = LIGHTING_FEATURE_SHADOW_MAPS | LIGHTING_FEATURE_CASCADE_SHADOWS;
+        expect(planet._terrainForwardProgram()._defines).toMatchObject({
+            USE_PROJECTORS: false,
+            USE_SHADOW_MAPS: true,
+            USE_CASCADE_SHADOWS: true
+        });
 
-    test("removing drops every variant, the plain one too", () => {
-        const { planet, renderer, handler } = createPlanet(0);
-        planet._addTerrainForwardProgram();
-        planet._terrainForwardProgram();
-        renderer.activeLightingFeatures = LIGHTING_FEATURE_SHADOW_MAPS;
-        planet._terrainForwardProgram();
-
-        planet._removeTerrainForwardPrograms();
-        expect(Object.keys(handler.programs)).toEqual([]);
-
-        // rebuilt on the next draw
         renderer.activeLightingFeatures = 0;
-        expect(planet._terrainForwardProgram().name).toBe("segment_screen_wl_forward_f0");
+        expect(planet._terrainForwardProgram()).toBe(terrain);
     });
 
-    test("leaves other programs alone when removing", () => {
-        const { planet, handler } = createPlanet(0);
-        handler.programs.segment_screen_wl_forward_extra = {};
-        handler.programs.segment_screen_deferred = {};
-        planet._addTerrainForwardProgram();
-        planet._terrainForwardProgram();
-        planet._removeTerrainForwardPrograms();
-        expect(Object.keys(handler.programs).sort()).toEqual([
-            "segment_screen_deferred",
-            "segment_screen_wl_forward_extra"
-        ]);
+    test("variants of the atmosphere program keep its atmosphere", () => {
+        const terrain = shaders.segment_screen_wl_forward_atmos();
+        const { planet, renderer } = createPlanet(terrain);
+
+        renderer.activeLightingFeatures = LIGHTING_FEATURE_PROJECTORS;
+        const projectors = planet._terrainForwardProgram();
+
+        expect(projectors._uniforms).toHaveProperty("atmosLutTexture");
     });
 });

@@ -829,8 +829,8 @@ class Renderer {
     }
 
     /**
-     * Lighting features with something active, a LIGHTING_FEATURE_* mask: programs that support
-     * feature variants (lightingFeatures.glsl) draw with the variant of this mask.
+     * Lighting features with something active, a variant mask of LIGHTING_FEATURE_* bits: programs
+     * with lighting feature switches draw with program.variant(renderer.activeLightingFeatures).
      * @public
      * @returns {number}
      */

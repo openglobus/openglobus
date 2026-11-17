@@ -1,12 +1,7 @@
-// Projectors and shadows compiled in only when a program variant asks for them
-// (lightingFeatureParams() in uniforms.ts fills these in). Code that is compiled in
-// costs fragment throughput on some GPUs even when no projector or shadow is active,
-// so programs without them use a variant that leaves it out.
-#define USE_PROJECTORS ${ USE_PROJECTORS }
-#define USE_SHADOW_MAPS ${ USE_SHADOW_MAPS }
-#define USE_CASCADE_SHADOWS ${ USE_CASCADE_SHADOWS }
+// Projectors and shadows compiled in only when the program variant has their switch on
+// (lightingFeatureDefines in uniforms.ts).
 
-#if USE_PROJECTORS
+#ifdef USE_PROJECTORS
 #include "./projectors.glsl"
 #else
 vec3 applyProjectorDecal(vec3 surfaceColor, vec4 projectorDecal) {
@@ -15,30 +10,30 @@ vec3 applyProjectorDecal(vec3 surfaceColor, vec4 projectorDecal) {
 #endif
 
 // cascadeShadows.glsl takes its defines from shadows.glsl
-#if USE_SHADOW_MAPS || USE_CASCADE_SHADOWS
+#if defined(USE_SHADOW_MAPS) || defined(USE_CASCADE_SHADOWS)
 #include "./shadows.glsl"
 #endif
 
-#if USE_CASCADE_SHADOWS
+#ifdef USE_CASCADE_SHADOWS
 #include "./cascadeShadows.glsl"
 #endif
 
 void applyLightingFeatureProjectors(vec3 rtcPos, vec3 normal, out vec4 projectorDecal, out vec3 projectorLight) {
-#if USE_PROJECTORS
+    #ifdef USE_PROJECTORS
     applyProjectors(rtcPos, normal, projectorDecal, projectorLight);
-#else
+    #else
     projectorDecal = vec4(0.0);
     projectorLight = vec3(0.0);
-#endif
+    #endif
 }
 
 float getLightingFeatureShadowVisibility(vec3 rtcPos, vec3 normal) {
     float visibility = 1.0;
-#if USE_SHADOW_MAPS
+    #ifdef USE_SHADOW_MAPS
     visibility *= getShadowMapsDirectVisibility(rtcPos, normal);
-#endif
-#if USE_CASCADE_SHADOWS
+    #endif
+    #ifdef USE_CASCADE_SHADOWS
     visibility *= getCascadeShadowDirectVisibility(rtcPos, normal);
-#endif
+    #endif
     return visibility;
 }

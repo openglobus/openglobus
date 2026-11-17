@@ -3,8 +3,6 @@ import { deferredShading } from "../shaders/deferredShading/deferredShading";
 import { applyDeferredDepth } from "../shaders/applyDeferredDepth";
 import { ProjectorsPass } from "./projectors/ProjectorsPass";
 import { DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START, DEFAULT_SHADOW_TEXTURE_UNIT_START } from "./textureUnits";
-import { getLightingFeatureVariant, removeLightingFeatureVariants } from "./lightingFeatureVariants";
-import { LIGHTING_FEATURES_SHADOWS } from "../shaders/common/uniforms";
 import type { IDeferredShadingPass } from "./IDeferredShadingPass";
 import type { Renderer } from "./Renderer";
 
@@ -82,7 +80,7 @@ export class PhongDeferredShading implements IDeferredShadingPass {
             this._framebuffer = null;
         }
         this._projectorPass.dispose();
-        removeLightingFeatureVariants(this._renderer.handler, "deferredShading");
+        this._renderer.handler.removeProgram("deferredShading");
         this._renderer.handler.removeProgram("applyDeferredDepth");
     }
 
@@ -120,13 +118,7 @@ export class PhongDeferredShading implements IDeferredShadingPass {
     protected _deferredShadingPASS() {
         let r = this._renderer;
         let h = r.handler;
-        let sh = getLightingFeatureVariant(
-                h,
-                "deferredShading",
-                r.activeLightingFeatures,
-                deferredShading,
-                LIGHTING_FEATURES_SHADOWS
-            ),
+        let sh = h.programs.deferredShading.variant(r.activeLightingFeatures),
             p = sh,
             gl = h.gl!;
 

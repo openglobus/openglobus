@@ -15,8 +15,6 @@ import type { Scene } from "../../scene/Scene";
 import type { Camera } from "../../camera/Camera";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import { srgbToLinear } from "../../utils/colorSpace";
-import { getLightingFeatureVariant } from "../../renderer/lightingFeatureVariants";
-import { LIGHTING_FEATURES_SHADOWS } from "../../shaders/common/uniforms";
 
 export const VERTEX_BUFFER = 0;
 export const RTC_POSITION_BUFFER = 1;
@@ -182,10 +180,6 @@ export class GeoObjectHandler {
 
         return true;
     }
-
-    /** Builds geo_object_woit_atmos variants with the planet's atmosphere parameters, like initProgram. */
-    protected _createWoitAtmos = (features: number): ShaderProgram =>
-        shaders.geo_object_woit_atmos((this._scene as Planet).atmosphereControl?.effectiveParameters, features);
 
     public initProgram() {
         if (this._renderer && this._scene) {
@@ -566,19 +560,9 @@ export class GeoObjectHandler {
             rn = this._scene,
             //@ts-ignore
             useAtmos = rn.atmosphereEnabled,
-            sh = useAtmos
-                ? getLightingFeatureVariant(
-                      r.handler,
-                      "geo_object_woit_atmos",
-                      r.activeLightingFeatures,
-                      this._createWoitAtmos
-                  )
-                : getLightingFeatureVariant(
-                      r.handler,
-                      "geo_object_woit",
-                      r.activeLightingFeatures,
-                      shaders.geo_object_woit
-                  ),
+            sh = (useAtmos ? r.handler.programs.geo_object_woit_atmos : r.handler.programs.geo_object_woit).variant(
+                r.activeLightingFeatures
+            ),
             p = sh,
             gl = r.handler.gl!,
             disableCull = this._entityCollection.disableCullFace;
@@ -605,13 +589,7 @@ export class GeoObjectHandler {
 
     public _displayTransparentForwardPASS() {
         let r = this._renderer!,
-            sh = getLightingFeatureVariant(
-                r.handler,
-                "geo_object_forward",
-                r.activeLightingFeatures,
-                shaders.geo_object_forward,
-                LIGHTING_FEATURES_SHADOWS
-            ),
+            sh = r.handler.programs.geo_object_forward.variant(r.activeLightingFeatures),
             p = sh;
 
         sh.activate();
@@ -627,13 +605,7 @@ export class GeoObjectHandler {
 
     public _displayForwardPASS() {
         let r = this._renderer!,
-            sh = getLightingFeatureVariant(
-                r.handler,
-                "geo_object_forward",
-                r.activeLightingFeatures,
-                shaders.geo_object_forward,
-                LIGHTING_FEATURES_SHADOWS
-            ),
+            sh = r.handler.programs.geo_object_forward.variant(r.activeLightingFeatures),
             p = sh;
 
         sh.activate();

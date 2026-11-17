@@ -1,27 +1,15 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { stringTemplate2 } from "../../utils/shared";
-import {
-    LIGHTING_FEATURES_ALL,
-    LIGHTING_FEATURES_SHADOWS,
-    lightingFeatureParams,
-    lightingFeatureProgramName,
-    lightingFeatureUniforms
-} from "../common/uniforms";
+import { projectorShaderParams, shadowFeatureDefines, shadowFeatureUniforms } from "../common/uniforms";
 import type { AtmosphereParameters } from "../atmos/atmos";
 import { DEFAULT_PARAMS } from "../atmos/atmos";
 
 import deferred_vert from "./deferredShading.vert.glsl";
 import deferred_atmos_frag from "./deferredShadingAtmos.frag.glsl";
 
-/**
- * @param {AtmosphereParameters} [atmosParams] - Atmosphere parameters.
- * @param {number} [features] - Lighting features to compile in; this program takes shadows only.
- */
-export function deferredShadingAtmos(
-    atmosParams: AtmosphereParameters = DEFAULT_PARAMS,
-    features: number = LIGHTING_FEATURES_ALL
-): ShaderProgram {
-    return new ShaderProgram(lightingFeatureProgramName("deferredShadingAtmos", features, LIGHTING_FEATURES_SHADOWS), {
+export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): ShaderProgram {
+    return new ShaderProgram("deferredShadingAtmos", {
+        defines: shadowFeatureDefines,
         uniforms: {
             normalMatrix: "mat3",
             baseTexture: "sampler2d",
@@ -44,7 +32,7 @@ export function deferredShadingAtmos(
             atmosFadeDist: "vec2",
             atmosMaxMinOpacity: "vec3",
             frameOpacity: "float",
-            ...lightingFeatureUniforms(features & LIGHTING_FEATURES_SHADOWS)
+            ...shadowFeatureUniforms
         },
         attributes: {
             corners: "vec3"
@@ -52,7 +40,7 @@ export function deferredShadingAtmos(
         vertexShader: deferred_vert,
         fragmentShader: stringTemplate2(deferred_atmos_frag, {
             ...atmosParams,
-            ...lightingFeatureParams(features & LIGHTING_FEATURES_SHADOWS)
+            ...projectorShaderParams
         })
     });
 }
