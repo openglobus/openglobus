@@ -169,7 +169,7 @@ void mainImage(out vec4 outColor)
             transmittanceCamera *= segmentTransmittance;
         }
 
-        light *= SUN_INTENSITY;
+        light *= SUN_INTENSITY * SCATTERING_COLOR;
 
         if (hitGround)
         {
@@ -177,7 +177,7 @@ void mainImage(out vec4 outColor)
             vec3 up = hitPoint / length(hitPoint);
             float diffuseAngle = max(dot(up, lightDirection), 0.0);
             float lightAngle = dot(up, lightDirection);
-            light += transmittanceCamera * GROUND_ALBEDO * multipleScatteringContributionFromTexture(height, lightAngle) * SUN_INTENSITY;
+            light += transmittanceCamera * GROUND_ALBEDO * multipleScatteringContributionFromTexture(height, lightAngle) * SUN_INTENSITY * SCATTERING_COLOR;
             light += transmittanceCamera * transmittanceLight * GROUND_ALBEDO * diffuseAngle * SUN_INTENSITY;
         }
     }

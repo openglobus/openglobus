@@ -121,6 +121,6 @@ if (isTransmittance) {
 } else {
     // 1 - exp(-x) loses precision for small x, use the series there
     vec3 opacity = mix(opticalDepth * (1.0 - 0.5 * opticalDepth), 1.0 - transmittance, step(1e-3, opticalDepth));
-    fragColor = vec4(light * SUN_INTENSITY * 8.0 / max(opacity, 1e-7), 1.0);
+    fragColor = vec4(light * SUN_INTENSITY * SCATTERING_COLOR * 8.0 / max(opacity, 1e-7), 1.0);
 }
 }

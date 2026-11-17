@@ -44,6 +44,9 @@ const TEMPLATE = `<div class="og-atmosphere og-options-container">
 
          <div class="og-option og-atmosphere-sunAngularRadius"></div>
          <div class="og-option og-atmosphere-sunIntensity"></div>
+         <div class="og-option og-atmosphere-scatteringColorR"></div>
+         <div class="og-option og-atmosphere-scatteringColorG"></div>
+         <div class="og-option og-atmosphere-scatteringColorB"></div>
          <div class="og-option og-atmosphere-groundAlbedo"></div>
 
        <div class="og-emptyline-2"></div>
@@ -82,6 +85,9 @@ export class AtmosphereConfig extends Control {
     public $ozoneAbsorptionCoefficientC: HTMLElement | null;
     public $sunAngularRadius: HTMLElement | null;
     public $sunIntensity: HTMLElement | null;
+    public $scatteringColorR: HTMLElement | null;
+    public $scatteringColorG: HTMLElement | null;
+    public $scatteringColorB: HTMLElement | null;
     public $groundAlbedo: HTMLElement | null;
     public $ozoneDensityHeight: HTMLElement | null;
     public $ozoneDensityWide: HTMLElement | null;
@@ -106,6 +112,9 @@ export class AtmosphereConfig extends Control {
     protected _ozoneAbsorptionCoefficientC: Slider;
     protected _sunAngularRadius: Slider;
     protected _sunIntensity: Slider;
+    protected _scatteringColorR: Slider;
+    protected _scatteringColorG: Slider;
+    protected _scatteringColorB: Slider;
     protected _groundAlbedo: Slider;
     protected _equatorialRadius: Slider;
     protected _ozoneDensityHeight: Slider;
@@ -137,6 +146,9 @@ export class AtmosphereConfig extends Control {
         this.$ozoneAbsorptionCoefficientC = null;
         this.$sunAngularRadius = null;
         this.$sunIntensity = null;
+        this.$scatteringColorR = null;
+        this.$scatteringColorG = null;
+        this.$scatteringColorB = null;
         this.$groundAlbedo = null;
         this.$ozoneDensityHeight = null;
         this.$ozoneDensityWide = null;
@@ -267,6 +279,21 @@ export class AtmosphereConfig extends Control {
             max: 10
         });
 
+        this._scatteringColorR = new Slider({
+            label: "Scattering Color R",
+            max: 2
+        });
+
+        this._scatteringColorG = new Slider({
+            label: "Scattering Color G",
+            max: 2
+        });
+
+        this._scatteringColorB = new Slider({
+            label: "Scattering Color B",
+            max: 2
+        });
+
         this._groundAlbedo = new Slider({
             label: "Ground Albedo (GROUND_ALBEDO)",
             max: 10 * 0.05
@@ -323,6 +350,7 @@ export class AtmosphereConfig extends Control {
             ozoneAbsorptionCoefficient_2: 0,
             SUN_ANGULAR_RADIUS: 0,
             SUN_INTENSITY: 0,
+            scatteringColor: [0, 0, 0],
             ozoneDensityHeight: 0,
             ozoneDensityWide: 0,
             disableSunDisk: false
@@ -370,6 +398,9 @@ export class AtmosphereConfig extends Control {
             );
             this.$sunAngularRadius = this._panel.el.querySelector(".og-option.og-atmosphere-sunAngularRadius");
             this.$sunIntensity = this._panel.el.querySelector(".og-option.og-atmosphere-sunIntensity");
+            this.$scatteringColorR = this._panel.el.querySelector(".og-option.og-atmosphere-scatteringColorR");
+            this.$scatteringColorG = this._panel.el.querySelector(".og-option.og-atmosphere-scatteringColorG");
+            this.$scatteringColorB = this._panel.el.querySelector(".og-option.og-atmosphere-scatteringColorB");
             this.$groundAlbedo = this._panel.el.querySelector(".og-option.og-atmosphere-groundAlbedo");
             this.$ozoneDensityHeight = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneDensityHeight");
             this.$ozoneDensityWide = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneDensityWide");
@@ -410,6 +441,9 @@ export class AtmosphereConfig extends Control {
         this._ozoneAbsorptionCoefficientC.appendTo(this.$ozoneAbsorptionCoefficientC!);
         this._sunAngularRadius.appendTo(this.$sunAngularRadius!);
         this._sunIntensity.appendTo(this.$sunIntensity!);
+        this._scatteringColorR.appendTo(this.$scatteringColorR!);
+        this._scatteringColorG.appendTo(this.$scatteringColorG!);
+        this._scatteringColorB.appendTo(this.$scatteringColorB!);
         this._groundAlbedo.appendTo(this.$groundAlbedo!);
         this._ozoneDensityHeight.appendTo(this.$ozoneDensityHeight!);
         this._ozoneDensityWide.appendTo(this.$ozoneDensityWide!);
@@ -443,6 +477,10 @@ export class AtmosphereConfig extends Control {
             this._ozoneAbsorptionCoefficientC.value = this._parameters.ozoneAbsorptionCoefficient_2;
             this._sunAngularRadius.value = this._parameters.SUN_ANGULAR_RADIUS;
             this._sunIntensity.value = this._parameters.SUN_INTENSITY;
+            this._parameters.scatteringColor ??= [1.0, 1.0, 1.0];
+            this._scatteringColorR.value = this._parameters.scatteringColor[0];
+            this._scatteringColorG.value = this._parameters.scatteringColor[1];
+            this._scatteringColorB.value = this._parameters.scatteringColor[2];
             this._groundAlbedo.value = this._parameters.GROUND_ALBEDO;
             this._ozoneDensityHeight.value = this._parameters.ozoneDensityHeight;
             this._ozoneDensityWide.value = this._parameters.ozoneDensityWide;
@@ -529,6 +567,21 @@ export class AtmosphereConfig extends Control {
 
         this._sunIntensity.events.on("change", (val: number) => {
             this._parameters.SUN_INTENSITY = val;
+            this._update();
+        });
+
+        this._scatteringColorR.events.on("change", (val: number) => {
+            this._parameters.scatteringColor![0] = val;
+            this._update();
+        });
+
+        this._scatteringColorG.events.on("change", (val: number) => {
+            this._parameters.scatteringColor![1] = val;
+            this._update();
+        });
+
+        this._scatteringColorB.events.on("change", (val: number) => {
+            this._parameters.scatteringColor![2] = val;
             this._update();
         });
 

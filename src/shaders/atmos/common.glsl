@@ -65,6 +65,7 @@ const vec3 ozoneAbsorptionCoefficient = vec3(float(${ ozoneAbsorptionCoefficient
 
 const float SUN_ANGULAR_RADIUS = float(${ SUN_ANGULAR_RADIUS});
 const float SUN_INTENSITY = float(${ SUN_INTENSITY});
+const vec3 SCATTERING_COLOR = vec3(${ scatteringColor });
 
 const float ozoneDensityHeight = float(${ ozoneDensityHeight}); //25e3;
 const float ozoneDensityWide = float(${ ozoneDensityWide}); //15e3;

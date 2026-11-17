@@ -10,6 +10,7 @@ import aerial_perspective_vert from "./aerialPerspective.vert.glsl";
 import aerial_perspective_frag from "./aerialPerspective.frag.glsl";
 
 import { stringTemplate2 } from "../../utils/shared";
+import type { NumberArray3 } from "../../math/Vec3";
 
 export interface AtmosphereParameters {
     ATMOS_HEIGHT: number;
@@ -28,6 +29,7 @@ export interface AtmosphereParameters {
     ozoneAbsorptionCoefficient_2: number;
     SUN_ANGULAR_RADIUS: number;
     SUN_INTENSITY: number;
+    scatteringColor?: NumberArray3;
     ozoneDensityHeight: number;
     ozoneDensityWide: number;
     disableSunDisk?: boolean;
@@ -51,6 +53,7 @@ export interface AtmosphereParameters {
  * ozoneAbsorptionCoefficient_2: 0.085
  * SUN_ANGULAR_RADIUS: 0.004685
  * SUN_INTENSITY: 1.0
+ * scatteringColor: [0.5, 0.8, 1.2]
  * ozoneDensityHeight: 25e3
  * ozoneDensityWide: 15e3
  * disableSunDisk: false
@@ -72,6 +75,7 @@ export const DEFAULT_PARAMS: AtmosphereParameters = {
     ozoneAbsorptionCoefficient_2: 0.09,
     SUN_ANGULAR_RADIUS: 0.004685,
     SUN_INTENSITY: 0.78, //1.0
+    scatteringColor: [0.5, 0.8, 1.2],
     ozoneDensityHeight: 25e3,
     ozoneDensityWide: 15e3,
     disableSunDisk: false
@@ -94,6 +98,7 @@ export const MARS_PARAMS: AtmosphereParameters = {
     ozoneAbsorptionCoefficient_2: 0.8,
     SUN_ANGULAR_RADIUS: 0.004685,
     SUN_INTENSITY: 1.0,
+    scatteringColor: [1.0, 1.0, 1.0],
     ozoneDensityHeight: 10e3,
     ozoneDensityWide: 30e3,
     disableSunDisk: false
