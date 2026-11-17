@@ -211,7 +211,11 @@ function fetchMissingAsNotFound(request: Request): Promise<Response> {
 
 function joinPath(base: string, path?: string): string {
     if (!path) return base;
-    return base.replace(/\/+$/, "") + "/" + path.replace(/^\/+/, "");
+    let end = base.length;
+    while (end > 0 && base[end - 1] === "/") end--;
+    let start = 0;
+    while (start < path.length && path[start] === "/") start++;
+    return base.slice(0, end) + "/" + path.slice(start);
 }
 
 function toNumbers(data: any): number[] | null {
