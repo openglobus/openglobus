@@ -1,4 +1,4 @@
-import type { TypedArray } from "geotiff";
+import type { TypedArray } from "../../utils/shared";
 import { getFastNoDataChecker } from "./ColorScale";
 
 /**
