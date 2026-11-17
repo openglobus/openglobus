@@ -9,25 +9,80 @@ const itemTypes: string[] = ["BYTE", "SHORT", "UNSIGNED_BYTE", "UNSIGNED_SHORT",
 type WebGLProgramExt = WebGLProgram & { [id: string]: WebGLUniformLocation | number | null };
 type ProgramBinding = WebGLUniformLocation | number;
 
+/**
+ * Shader defines. A boolean is a switch for ShaderProgram.variant, a number or string is a constant.
+ * @example
+ * defines: { USE_FOG: true, MAX_LIGHTS: 4 } // #define USE_FOG, #define MAX_LIGHTS 4
+ */
+export type ProgramDefines = Record<string, boolean | number | string>;
+
 type ProgramMaterial = {
+    defines?: ProgramDefines;
     attributes: Record<string, any>;
     uniforms: Record<string, any>;
     vertexShader: string;
     fragmentShader: string;
 };
 
-function injectWebGL2Define(src: string, isWebGL2: boolean): string {
-    if (!isWebGL2) return src;
+const MAX_VARIANT_BITS = 31;
+const variantBits: Record<string, number> = {};
+let variantBitCount = 0;
 
-    const lines = src.split("\n");
-    const versionIndex = lines.findIndex((line) => line.startsWith("#version"));
-
-    if (versionIndex !== -1) {
-        lines.splice(versionIndex + 1, 0, "#define WEBGL2");
-        return lines.join("\n");
-    } else {
-        return src;
+/**
+ * Bit of a switch define, the same in every program.
+ * @example
+ * const USE_FOG = variantBit("USE_FOG");
+ * program.variant(USE_FOG); // the program with #define USE_FOG
+ * @param {string} name - Define name.
+ * @returns {number}
+ */
+export function variantBit(name: string): number {
+    let bit = variantBits[name];
+    if (bit === undefined) {
+        if (variantBitCount === MAX_VARIANT_BITS) {
+            throw new Error(`ShaderProgram: more than ${MAX_VARIANT_BITS} switch defines, can't add "${name}".`);
+        }
+        bit = variantBits[name] = 1 << variantBitCount++;
     }
+    return bit;
+}
+
+/**
+ * Variant mask of the switches that are true in `flags`.
+ * @param {Record<string, boolean>} flags - Switch values by define name.
+ * @returns {number}
+ */
+export function variantMask(flags: Record<string, boolean>): number {
+    let mask = 0;
+    for (const name in flags) {
+        if (flags[name]) {
+            mask |= variantBit(name);
+        }
+    }
+    return mask;
+}
+
+function defineHeader(defines: ProgramDefines): string {
+    let header = "";
+    for (const name in defines) {
+        const value = defines[name];
+        if (value === false) {
+            continue;
+        }
+        header += value === true ? `#define ${name}\n` : `#define ${name} ${value}\n`;
+    }
+    return header;
+}
+
+// WEBGL2 marks GLSL ES 3.00 sources (segment/common.glsl); GLSL ES 1.00 ones without #version don't get it.
+function injectDefines(src: string, header: string): string {
+    if (!src.startsWith("#version")) {
+        return header + src;
+    }
+
+    const i = src.indexOf("\n") + 1;
+
+    return src.slice(0, i) + "#define WEBGL2\n" + header + src.slice(i);
 }
 
 /**
@@ -37,6 +92,8 @@ function injectWebGL2Define(src: string, isWebGL2: boolean): string {
  * @param {ProgramMaterial} material - Object stores uniforms, attributes and program codes:
  * @param {Record<string, any>} material.uniforms - Uniforms definition section.
  * @param {Record<string, any>} material.attributes - Attributes definition section.
+ * @param {ProgramDefines} [material.defines] - Preprocessor defines. Boolean ones are switches: such a
+ * program compiles lazily, and variant() gives it built with other switch values.
  * @param {string} material.vertexShader - Vertex glsl code.
  * @param {string} material.fragmentShader - Fragment glsl code.
  */
@@ -111,18 +168,41 @@ class ShaderProgram {
 
     protected _dynamicBindingNames: Set<string>;
 
+    protected _material: ProgramMaterial;
+
+    protected _defines: ProgramDefines;
+
+    protected _defineHeader: string;
+
+    /**
+     * Switch defines of the program, their bits (variantBit) and the ones that are on.
+     * @protected
+     */
+    protected _switches: string[];
+    protected _switchMask: number;
+    protected _variantMask: number;
+
+    /**
+     * The program a variant was built from, null for the program itself. The program owns its
+     * variants: they are not in the handler's programs and are removed with it.
+     * @protected
+     */
+    protected _base: ShaderProgram | null;
+    protected _variants: Map<number, ShaderProgram>;
+
     constructor(name: string, material: ProgramMaterial) {
         this.name = name;
 
         this._handler = null;
         this._activated = false;
 
+        // Declarations are copied: compiling writes into them, and variants share the material.
         this._attributes = {};
         for (let t in material.attributes) {
             if (typeof material.attributes[t] === "string" || typeof material.attributes[t] === "number") {
                 this._attributes[t] = { type: material.attributes[t] } as ProgramVariable;
             } else {
-                this._attributes[t] = material.attributes[t];
+                this._attributes[t] = { ...material.attributes[t] };
             }
         }
 
@@ -131,9 +211,32 @@ class ShaderProgram {
             if (typeof material.uniforms[t] === "string" || typeof material.uniforms[t] === "number") {
                 this._uniforms[t] = { type: material.uniforms[t] } as ProgramVariable;
             } else {
-                this._uniforms[t] = material.uniforms[t];
+                this._uniforms[t] = { ...material.uniforms[t] };
             }
         }
+
+        this._material = material;
+        this._defines = material.defines || {};
+        this._defineHeader = defineHeader(this._defines);
+        this._switches = [];
+        this._switchMask = 0;
+        this._variantMask = 0;
+
+        for (const define in this._defines) {
+            const value = this._defines[define];
+
+            if (typeof value === "boolean") {
+                const bit = variantBit(define);
+                this._switches.push(define);
+                this._switchMask |= bit;
+                if (value) {
+                    this._variantMask |= bit;
+                }
+            }
+        }
+
+        this._base = null;
+        this._variants = new Map();
 
         this.vertexShader = material.vertexShader;
 
@@ -169,6 +272,7 @@ class ShaderProgram {
      */
     public attach(handler: Handler): this {
         this._handler = handler;
+        this._variants.forEach((variant) => variant.attach(handler));
         return this;
     }
 
@@ -177,10 +281,75 @@ class ShaderProgram {
      * @returns {ShaderProgram}
      */
     public initialize(): this {
-        if (this._handler?.gl) {
+        // A program with switches compiles on first use, so a variant nobody draws with costs nothing.
+        if (this._handler?.gl && !this._switchMask) {
             this.createProgram(this._handler.gl);
         }
         return this;
+    }
+
+    /**
+     * Returns the program with the given switches on and the rest off. Unknown switches are ignored.
+     * Each variant is compiled once, on first use, and cached.
+     * @example
+     * program.variant(USE_FOG);           // by bit mask
+     * program.variant({ USE_FOG: true }); // by name, the same program
+     * @param {number | Record<string, boolean>} switches - Bit mask or switch values by name.
+     * @returns {ShaderProgram}
+     */
+    public variant(switches: number | Record<string, boolean>): ShaderProgram {
+        const base = this._base || this;
+
+        let mask = 0;
+        if (typeof switches === "number") {
+            mask = switches & base._switchMask;
+        } else {
+            for (let i = 0; i < base._switches.length; i++) {
+                if (switches[base._switches[i]]) {
+                    mask |= variantBit(base._switches[i]);
+                }
+            }
+        }
+
+        let program = mask === base._variantMask ? base : base._variants.get(mask);
+        if (!program) {
+            program = base._createVariant(mask);
+        }
+        program._compile();
+        return program;
+    }
+
+    protected _createVariant(mask: number): ShaderProgram {
+        const defines: ProgramDefines = { ...this._defines };
+
+        for (let i = 0; i < this._switches.length; i++) {
+            defines[this._switches[i]] = (mask & variantBit(this._switches[i])) !== 0;
+        }
+
+        // The name only tells variants apart in logs, they are not added to the handler's programs.
+        const program = new ShaderProgram(`${this.name}#${mask}`, { ...this._material, defines });
+        program._base = this;
+
+        if (this._handler) {
+            program.attach(this._handler);
+        }
+
+        this._variants.set(mask, program);
+
+        return program;
+    }
+
+    protected _compile() {
+        if (this._p || !this._handler?.gl) return;
+
+        this.createProgram(this._handler.gl);
+
+        const activeProgram = this._handler.activeProgram;
+        if (activeProgram && activeProgram !== this) {
+            this.deactivate();
+            activeProgram.enableAttribArrays();
+            activeProgram.use();
+        }
     }
 
     protected _bindVariable(name: string, location: ProgramBinding) {
@@ -248,10 +417,13 @@ class ShaderProgram {
      */
     public activate(): this {
         if (!this._activated) {
+            this._compile();
+
             const activeProgram = this._handler?.activeProgram;
             if (activeProgram && activeProgram !== this) {
                 activeProgram.deactivate();
             }
+
             if (this._handler) {
                 this._handler.activeProgram = this;
             }
@@ -287,16 +459,24 @@ class ShaderProgram {
         const handler = this._handler;
         if (!handler) return;
 
+        this._variants.forEach((variant) => variant._release());
+        this._variants.clear();
+
         if (handler.programs[this.name]) {
-            const isActiveProgram = handler.activeProgram === this;
-            if (this._activated) {
-                this.deactivate();
-            }
-            this.delete();
+            this._release();
             delete handler.programs[this.name];
-            if (isActiveProgram) {
-                handler.activeProgram = null;
-            }
+        }
+    }
+
+    protected _release() {
+        if (this._activated) {
+            this.deactivate();
+        }
+
+        this.delete();
+
+        if (this._handler && this._handler.activeProgram === this) {
+            this._handler.activeProgram = null;
         }
     }
 
@@ -361,8 +541,7 @@ class ShaderProgram {
     protected _getShaderCompileStatus(shader: WebGLShader, src: string): boolean {
         if (!this.gl) return false;
 
-        const isWebGL2 = this.gl instanceof WebGL2RenderingContext;
-        this.gl.shaderSource(shader, injectWebGL2Define(src, isWebGL2));
+        this.gl.shaderSource(shader, injectDefines(src, this._defineHeader));
         this.gl.compileShader(shader);
         if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
             cons.logErr(`Shader program "${this.name}":${this.gl.getShaderInfoLog(shader)}.`);
@@ -557,7 +736,10 @@ class ShaderProgram {
             this._p[u] = gl.getUniformLocation(this._p, u)!;
 
             if (this._p[u] == undefined) {
-                cons.logWrn(`Shader program "${this.name}": uniform '${u}' is inactive (optimized out by driver).`);
+                // With a switch off, the uniforms of its code are inactive by design.
+                if (!this._switchMask) {
+                    cons.logWrn(`Shader program "${this.name}": uniform '${u}' is inactive (optimized out by driver).`);
+                }
                 continue;
             }
 

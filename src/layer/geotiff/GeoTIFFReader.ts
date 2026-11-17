@@ -18,11 +18,16 @@ const BLOCK_SIZE = 65536 * 4;
  */
 const BLOCK_CACHE_BYTES = 64 * Math.pow(1024, 2);
 
+// A raster larger than this by a side and with no overviews is reported, a smaller one needs none
+const OVERVIEW_WARNING_SIZE = 2048;
+
 /**
  * Photometric interpretations that do not store RGB in the samples: CMYK, YCbCr and CIELab.
  * JPEG compressed imagery is usually YCbCr.
  */
 const CONVERTED_PHOTOMETRICS = [5, 6, 8];
+
+const PALETTE_PHOTOMETRIC = 3;
 
 export class GeoTIFFReader extends RasterReader {
     public source: GeoTIFF | null = null;
@@ -108,6 +113,15 @@ export class GeoTIFFReader extends RasterReader {
         );
 
         const baseImage = this.images[0];
+
+        if (this.images.length === 1 && Math.max(baseImage.getWidth(), baseImage.getHeight()) > OVERVIEW_WARNING_SIZE) {
+            console.warn(
+                `[GeoTIFFReader] ${typeof src === "string" ? src : "The GeoTIFF"} has no overviews, a zoomed out tile ` +
+                    `reads its whole area in the full resolution. Make it a COG with overviews, e.g. with GDAL: ` +
+                    `gdal_translate -of COG in.tif out.tif`
+            );
+        }
+
         this.reverseY = this._checkIfReversed(baseImage);
 
         // Bounding box in native coordinates [minX, minY, maxX, maxY]
@@ -201,7 +215,8 @@ export class GeoTIFFReader extends RasterReader {
             noData,
             isTiled: baseImage.isTiled,
             overviewCount: this.images.length,
-            bands
+            bands,
+            isImagery: samplesPerPixel >= 3 || photometric === PALETTE_PHOTOMETRIC || baseImage.getBitsPerSample(0) <= 8
         };
 
         this.isReady = true;
@@ -209,7 +224,7 @@ export class GeoTIFFReader extends RasterReader {
     }
 
     protected _levelCount(): number {
-        return this.source ? this.images.length : 0;
+        return this.images.length;
     }
 
     protected _levelSize(level: number): [number, number] {

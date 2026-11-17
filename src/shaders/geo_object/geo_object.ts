@@ -1,6 +1,12 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { stringTemplate2 } from "../../utils/shared";
-import { cascadeShadowUniforms, projectorShaderParams, projectorUniforms, shadowMapUniforms } from "../common/uniforms";
+import {
+    lightingFeatureDefines,
+    lightingFeatureUniforms,
+    projectorShaderParams,
+    shadowFeatureDefines,
+    shadowFeatureUniforms
+} from "../common/uniforms";
 import type { AtmosphereParameters } from "../atmos/atmos";
 import { DEFAULT_PARAMS } from "../atmos/atmos";
 import geo_object_vert from "./geo_object.vert.glsl";
@@ -57,6 +63,7 @@ export const geo_object_deferred = (): ShaderProgram =>
 
 export const geo_object_forward = (): ShaderProgram =>
     new ShaderProgram("geo_object_forward", {
+        defines: shadowFeatureDefines,
         uniforms: {
             viewMatrix: "mat4",
             normalMatrix: "mat3",
@@ -84,8 +91,7 @@ export const geo_object_forward = (): ShaderProgram =>
             uFrameTransparencyMask: "float",
             uShadowMask: "float",
             frameOpacity: "float",
-            ...shadowMapUniforms,
-            ...cascadeShadowUniforms
+            ...shadowFeatureUniforms
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -101,11 +107,12 @@ export const geo_object_forward = (): ShaderProgram =>
             qRot: { type: "vec4", divisor: 1 }
         },
         vertexShader: geo_object_vert,
-        fragmentShader: geo_object_forward_frag
+        fragmentShader: stringTemplate2(geo_object_forward_frag, projectorShaderParams)
     });
 
 export const geo_object_woit = (): ShaderProgram =>
     new ShaderProgram("geo_object_woit", {
+        defines: lightingFeatureDefines,
         uniforms: {
             viewMatrix: "mat4",
             normalMatrix: "mat3",
@@ -135,9 +142,7 @@ export const geo_object_woit = (): ShaderProgram =>
             frameOpacity: "float",
             uShadowMask: "float",
             useReverseDepth: "float",
-            ...projectorUniforms,
-            ...shadowMapUniforms,
-            ...cascadeShadowUniforms
+            ...lightingFeatureUniforms
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -158,6 +163,7 @@ export const geo_object_woit = (): ShaderProgram =>
 
 export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): ShaderProgram {
     return new ShaderProgram("geo_object_woit_atmos", {
+        defines: lightingFeatureDefines,
         uniforms: {
             viewMatrix: "mat4",
             normalMatrix: "mat3",
@@ -187,15 +193,17 @@ export function geo_object_woit_atmos(atmosParams: AtmosphereParameters = DEFAUL
             frameOpacity: "float",
             uShadowMask: "float",
             useReverseDepth: "float",
-            transmittanceTexture: "sampler2D",
-            scatteringTexture: "sampler2D",
+            atmosLutTexture: "sampler2d",
+            aerialPerspectiveTexture: "sampler3d",
+            aerialPerspectiveFrame: "mat3",
+            aerialPerspectiveParams: "vec4",
+            aerialPerspectiveStartDistance: "float",
+            aerialPerspectiveIntensity: "float",
             atmosFadeDist: "vec2",
             atmosMaxMinOpacity: "vec3",
             cameraForward: "vec3",
             isOrthographic: "float",
-            ...projectorUniforms,
-            ...shadowMapUniforms,
-            ...cascadeShadowUniforms
+            ...lightingFeatureUniforms
         },
         attributes: {
             aVertexPosition: "vec3",

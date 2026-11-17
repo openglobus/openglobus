@@ -22,25 +22,30 @@ import { QueueArray } from "../QueueArray";
 import { Segment } from "../segment/Segment";
 import { Handler } from "../webgl/Handler";
 import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
+import type { NormalsArray } from "./normalsArray";
 
 interface INormalMapCreatorParams {
-    minTableSize?: number;
-    maxTableSize?: number;
     width?: number;
     height?: number;
 }
 
-export class NormalMapCreator {
-    protected _minTabelSize: number;
-    protected _maxTableSize: number;
+const MIN_NORMAL_MAP_SIZE = 128;
 
+// Texels in a row of the normals texture, see _bindNormals
+const NORMALS_TEXTURE_WIDTH_LOG2 = 10,
+    NORMALS_TEXTURE_WIDTH = 1 << NORMALS_TEXTURE_WIDTH_LOG2;
+
+export class NormalMapCreator {
     protected _planet: Planet;
     protected _handler: Handler | null;
-    protected _verticesBufferArray: WebGLBufferExt[];
-    protected _indexBufferArray: WebGLBufferExt[];
     protected _positionBuffer: WebGLBufferExt | null;
     protected _framebuffer: Framebuffer | null;
     protected _normalMapVerticesTexture: WebGLTextureExt | null;
+
+    /**
+     * The normals of the drawn segment by its grid size, see _bindNormals.
+     */
+    protected _normalsTextures: Record<number, WebGLTexture>;
 
     protected _width: number;
     protected _height: number;
@@ -49,17 +54,18 @@ export class NormalMapCreator {
 
     protected _lock: Lock;
 
-    constructor(planet: Planet, options: INormalMapCreatorParams = {}) {
-        this._minTabelSize = options.minTableSize || 1;
-        this._maxTableSize = options.maxTableSize || 8;
+    /**
+     * Grows with every normal map drawn, and when the queue is cleared.
+     */
+    public __version__: number;
 
+    constructor(planet: Planet, options: INormalMapCreatorParams = {}) {
         this._planet = planet;
         this._handler = null;
-        this._verticesBufferArray = [];
-        this._indexBufferArray = [];
         this._positionBuffer = null;
         this._framebuffer = null;
         this._normalMapVerticesTexture = null;
+        this._normalsTextures = {};
 
         this._width = options.width || 128;
         this._height = options.height || 128;
@@ -67,6 +73,8 @@ export class NormalMapCreator {
         this._queue = new QueueArray(1024);
 
         this._lock = new Lock();
+
+        this.__version__ = 0;
     }
 
     public get width(): number {
@@ -77,9 +85,24 @@ export class NormalMapCreator {
         return this._height;
     }
 
-    public init() {
-        this._maxTableSize = this._planet.maxGridSize || 8;
+    public setGridSize(gridSize: number) {
+        const size = Math.max(MIN_NORMAL_MAP_SIZE, 2 ** Math.ceil(Math.log2(gridSize)));
 
+        if (size === this._width && size === this._height) {
+            return;
+        }
+
+        this._width = this._height = size;
+
+        // The segments make their textures again, see Segment._createNormalMapTexture
+        if (this._handler) {
+            this._framebuffer!.setSize(size, size);
+            this._handler.gl!.deleteTexture(this._normalMapVerticesTexture!);
+            this._normalMapVerticesTexture = this._handler.createEmptyTexture_l(size, size);
+        }
+    }
+
+    public init() {
         this._handler = this._planet.renderer!.handler;
 
         let isWebkit = false; //('WebkitAppearance' in document.documentElement.style) && !/^((?!chrome).)*safari/i.test(navigator.userAgent);
@@ -89,9 +112,12 @@ export class NormalMapCreator {
                 a_position: "vec2"
             },
             uniforms: {
-                s_texture: "sampler2d"
+                s_texture: "sampler2d",
+                // A texel of the normal map, 1 / size
+                u_texel: "vec2"
             },
             vertexShader: `#version 300 es
+                        uniform vec2 u_texel;
                         in vec2 a_position;
 
                         out vec2 blurCoordinates[5];
@@ -101,14 +127,15 @@ export class NormalMapCreator {
                             ${isWebkit ? "vt.y = 1.0 - vt.y; " : " "}
                             gl_Position = vec4(a_position, 0.0, 1.0);
                             blurCoordinates[0] = vt;
-                            blurCoordinates[1] = vt + vec2(${(1.0 / this._width) * 1.407333}, 0.0);
-                            blurCoordinates[2] = vt - vec2(${(1.0 / this._width) * 1.407333}, 0.0);
-                            blurCoordinates[3] = vt + vec2(0.0, ${(1.0 / this._height) * 3.294215});
-                            blurCoordinates[4] = vt - vec2(0.0, ${(1.0 / this._height) * 3.294215});
+                            blurCoordinates[1] = vt + vec2(u_texel.x * 1.407333, 0.0);
+                            blurCoordinates[2] = vt - vec2(u_texel.x * 1.407333, 0.0);
+                            blurCoordinates[3] = vt + vec2(0.0, u_texel.y * 3.294215);
+                            blurCoordinates[4] = vt - vec2(0.0, u_texel.y * 3.294215);
                         }`,
             fragmentShader: `#version 300 es
                         precision highp float;
                         uniform sampler2D s_texture;
+                        uniform vec2 u_texel;
                         in vec2 blurCoordinates[5];
                         out vec4 fragColor;
 
@@ -121,8 +148,9 @@ export class NormalMapCreator {
                             vec4 center = texture(s_texture, uv);
 
                             // Keep border intact to avoid seams between adjacent tiles.
-                            if(uv.x <= ${3.294215 / this._width} || uv.x >= ${1.0 - 3.294215 / this._width} ||
-                               uv.y <= ${3.294215 / this._height} || uv.y >= ${1.0 - 3.294215 / this._height}) {
+                            vec2 border = u_texel * 3.294215;
+                            if(uv.x <= border.x || uv.x >= 1.0 - border.x ||
+                               uv.y <= border.y || uv.y >= 1.0 - border.y) {
                                 fragColor = center;
                                 return;
                             }
@@ -141,28 +169,54 @@ export class NormalMapCreator {
 
         const normalMap = new ShaderProgram("normalMap", {
             attributes: {
-                a_position: "vec2",
-                a_normal: "vec3"
+                a_position: "vec2"
             },
-            uniforms: {},
+            uniforms: {
+                u_normals: "sampler2d",
+                u_gridSize: "int",
+                u_size: "vec2"
+            },
             vertexShader: `#version 300 es
                         in vec2 a_position;
-                        in vec3 a_normal;
-
-                        out vec3 v_color;
 
                         void main() {
                             gl_Position = vec4(a_position, 0.0, 1.0);
-                            v_color = normalize(a_normal) * 0.5 + 0.5;
                         }`,
             fragmentShader: `#version 300 es
                         precision highp float;
+                        precision highp sampler2D;
 
-                        in vec3 v_color;
+                        // The normals of the (gridSize + 1)² grid vertices, the rows from the north, as the array
+                        // is: a component a texel, NORMALS_TEXTURE_WIDTH texels a row
+                        uniform sampler2D u_normals;
+                        uniform int u_gridSize;
+
+                        // The normal map size
+                        uniform vec2 u_size;
+
                         out vec4 fragColor;
 
-                        void main () {
-                            fragColor = vec4(v_color, 1.0);
+                        // The width is a power of two, a mask and a shift are cheaper than % and /
+                        float component(int k) {
+                            return texelFetch(u_normals, ivec2(k & ${NORMALS_TEXTURE_WIDTH - 1}, k >> ${NORMALS_TEXTURE_WIDTH_LOG2}), 0).r;
+                        }
+
+                        vec3 vertexNormal(ivec2 i) {
+                            int k = (i.y * (u_gridSize + 1) + i.x) * 3;
+                            return normalize(vec3(component(k), component(k + 1), component(k + 2)));
+                        }
+
+                        void main() {
+                            // From the first grid vertex at the first texel center to the last one at the last
+                            vec2 g = (gl_FragCoord.xy - 0.5) * float(u_gridSize) / (u_size - 1.0);
+                            ivec2 i = clamp(ivec2(floor(g)), ivec2(0), ivec2(u_gridSize - 1));
+                            vec2 f = g - vec2(i);
+                            vec3 n = mix(
+                                mix(vertexNormal(i), vertexNormal(i + ivec2(1, 0)), f.x),
+                                mix(vertexNormal(i + ivec2(0, 1)), vertexNormal(i + ivec2(1, 1)), f.x),
+                                f.y
+                            );
+                            fragColor = vec4(n * 0.5 + 0.5, 1.0);
                         }`
         });
 
@@ -180,95 +234,118 @@ export class NormalMapCreator {
 
         this._normalMapVerticesTexture = this._handler.createEmptyTexture_l(this._width, this._height);
 
-        //create vertices hasharray for different grid size segments from 2^4(16) to 2^7(128)
-        for (let p = this._minTabelSize; p <= this._maxTableSize; p++) {
-            const gs = 1 << p; //Math.pow(2, p);
-            const gs2 = gs / 2;
-
-            let vertices = new Float32Array((gs + 1) * (gs + 1) * 2);
-
-            for (let i = 0; i <= gs; i++) {
-                for (let j = 0; j <= gs; j++) {
-                    let ind = (i * (gs + 1) + j) * 2;
-                    vertices[ind] = -1 + j / gs2;
-                    vertices[ind + 1] = -1 + i / gs2;
-                }
-            }
-
-            this._verticesBufferArray[gs] = this._handler.createArrayBuffer(vertices, 2, vertices.length / 2);
-
-            this._indexBufferArray[gs] =
-                this._planet._indexesCache[Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][
-                    Math.log2(gs)
-                ].buffer!;
-        }
-
         //create 2d screen square buffer
         const positions = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
 
         this._positionBuffer = this._handler.createArrayBuffer(positions, 2, positions.length / 2);
     }
 
+    /**
+     * Loads the normals into the texture of their grid size and binds it, the texture is made once for the size.
+     */
+    protected _bindNormals(normals: NormalsArray, gridSize: number) {
+        const gl = this._handler!.gl!,
+            half = normals.BYTES_PER_ELEMENT === 2,
+            type = half ? gl.HALF_FLOAT : gl.FLOAT,
+
+            // The half floats go to WebGL as their bits
+            data = half ? new Uint16Array(normals.buffer, normals.byteOffset, normals.length) : normals;
+
+        // The array as it is, a component a texel: the one channel formats are native on every GPU,
+        // RGB ones are converted on upload
+        const W = NORMALS_TEXTURE_WIDTH,
+            rows = data.length >> NORMALS_TEXTURE_WIDTH_LOG2,
+            rest = data.length - rows * W;
+
+        let texture = this._normalsTextures[gridSize];
+
+        if (texture) {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+        } else {
+            texture = this._normalsTextures[gridSize] = gl.createTexture()!;
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texStorage2D(gl.TEXTURE_2D, 1, half ? gl.R16F : gl.R32F, W, rows + 1);
+        }
+
+        // The full rows and the rest of the last one
+        if (rows) {
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, rows, gl.RED, type, data, 0);
+        }
+        if (rest) {
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, rows, rest, 1, gl.RED, type, data, rows * W);
+        }
+    }
+
+    /**
+     * Draws the normal map of the normals into the texture.
+     */
+    protected _drawNormals(normals: NormalsArray, outTexture: WebGLTextureExt) {
+        const h = this._handler!,
+            gl = h.gl!,
+            gridSize = Math.sqrt(normals.length / 3) - 1,
+            p = h.programs.normalMap;
+
+        this._framebuffer!.bindOutputTexture(outTexture);
+
+        p.activate();
+
+        gl.activeTexture(gl.TEXTURE0);
+        this._bindNormals(normals, gridSize);
+        gl.uniform1i(p.uniforms.u_normals, 0);
+        gl.uniform1i(p.uniforms.u_gridSize, gridSize);
+        gl.uniform2f(p.uniforms.u_size, this._width, this._height);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer!);
+        gl.vertexAttribPointer(p.attributes.a_position, this._positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer!.numItems);
+    }
+
+    /**
+     * Equalizes the normals with the neighbors and makes the texture of the normal map size.
+     */
+    protected _prepareSegment(segment: Segment) {
+        if (segment.planet.terrain!.equalizeNormals) {
+            segment._normalMapEdgeEqualize(quadTree.N);
+            segment._normalMapEdgeEqualize(quadTree.S);
+            segment._normalMapEdgeEqualize(quadTree.W);
+            segment._normalMapEdgeEqualize(quadTree.E);
+        }
+
+        if (segment._normalMapTextureSize !== this._width) {
+            segment._createNormalMapTexture();
+        }
+    }
+
     protected _drawNormalMapBlur(segment: Segment): boolean {
         let normals = segment.normalMapNormals;
         if (segment.node && segment.node.getState() !== quadTree.NOTRENDERING && normals && normals.length) {
-            const size = normals.length / 3;
-            const gridSize = Math.sqrt(size) - 1;
+            this._prepareSegment(segment);
 
-            let indBuf = this._verticesBufferArray[gridSize];
+            const h = this._handler!;
+            const gl = h.gl!;
 
-            if (indBuf) {
-                if (segment.planet.terrain!.equalizeNormals) {
-                    segment._normalMapEdgeEqualize(quadTree.N);
-                    segment._normalMapEdgeEqualize(quadTree.S);
-                    segment._normalMapEdgeEqualize(quadTree.W);
-                    segment._normalMapEdgeEqualize(quadTree.E);
-                }
+            this._drawNormals(normals, this._normalMapVerticesTexture!);
 
-                let outTexture = segment.normalMapTexturePtr;
+            //
+            // blur pass
+            //
+            this._framebuffer!.bindOutputTexture(segment.normalMapTexturePtr!);
 
-                const h = this._handler!;
-                const gl = h.gl!;
+            const p = h.programs.normalMapBlur;
 
-                let _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
-
-                const f = this._framebuffer!;
-                let p = h.programs.normalMap;
-                let sha = p.attributes;
-
-                f.bindOutputTexture(this._normalMapVerticesTexture!);
-
-                p.activate();
-
-                gl.bindBuffer(gl.ARRAY_BUFFER, indBuf);
-                gl.vertexAttribPointer(sha.a_position, indBuf.itemSize, gl.FLOAT, false, 0, 0);
-
-                gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
-                gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-                gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_INT, 0);
-
-                gl.deleteBuffer(_normalsBuffer);
-
-                //
-                // blur pass
-                //
-                f.bindOutputTexture(outTexture!);
-
-                p = h.programs.normalMapBlur;
-
-                p.activate();
-                gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer!);
-                gl.vertexAttribPointer(p.attributes.a_position, this._positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture!);
-                gl.uniform1i(p.uniforms.s_texture, 0);
-                gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer!.numItems);
-                return true;
-            } else {
-                return true;
-            }
+            p.activate();
+            gl.uniform2f(p.uniforms.u_texel, 1 / this._width, 1 / this._height);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer!);
+            gl.vertexAttribPointer(p.attributes.a_position, this._positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture!);
+            gl.uniform1i(p.uniforms.s_texture, 0);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer!.numItems);
+            return true;
         }
         return false;
     }
@@ -276,49 +353,9 @@ export class NormalMapCreator {
     protected _drawNormalMapNoBlur(segment: Segment): boolean {
         let normals = segment.normalMapNormals;
         if (segment.node && segment.node.getState() !== quadTree.NOTRENDERING && normals && normals.length) {
-            const size = normals.length / 3;
-            const gridSize = Math.sqrt(size) - 1;
-
-            let indBuf = this._verticesBufferArray[gridSize];
-
-            if (indBuf) {
-                if (segment.planet.terrain!.equalizeNormals) {
-                    segment._normalMapEdgeEqualize(quadTree.N);
-                    segment._normalMapEdgeEqualize(quadTree.S);
-                    segment._normalMapEdgeEqualize(quadTree.W);
-                    segment._normalMapEdgeEqualize(quadTree.E);
-                }
-
-                let outTexture = segment.normalMapTexturePtr;
-
-                const h = this._handler!;
-                const gl = h.gl!;
-
-                let _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
-
-                const f = this._framebuffer!;
-                const p = h.programs.normalMap;
-                const sha = p.attributes;
-
-                f.bindOutputTexture(outTexture!);
-
-                p.activate();
-
-                gl.bindBuffer(gl.ARRAY_BUFFER, indBuf);
-                gl.vertexAttribPointer(sha.a_position, indBuf.itemSize, gl.FLOAT, false, 0, 0);
-
-                gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
-                gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-                gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_INT, 0);
-
-                gl.deleteBuffer(_normalsBuffer);
-
-                return true;
-            } else {
-                return true;
-            }
+            this._prepareSegment(segment);
+            this._drawNormals(normals, segment.normalMapTexturePtr!);
+            return true;
         }
         return false;
     }
@@ -344,6 +381,8 @@ export class NormalMapCreator {
         if (segment.terrainReady && this._drawNormalMap(segment)) {
             segment.normalMapReady = true;
             segment.normalMapTexture = segment.normalMapTexturePtr;
+            ++this.__version__;
+            segment._normalMapDrawn();
             segment.normalMapTextureBias[0] = 0;
             segment.normalMapTextureBias[1] = 0;
             segment.normalMapTextureBias[2] = 1;
@@ -385,9 +424,12 @@ export class NormalMapCreator {
                 if (segment.terrainReady && this._drawNormalMap(segment)) {
                     segment.normalMapReady = true;
                     segment.normalMapTexture = segment.normalMapTexturePtr;
+                    ++this.__version__;
+                    segment._normalMapDrawn();
                     segment.normalMapTextureBias[0] = 0;
                     segment.normalMapTextureBias[1] = 0;
                     segment.normalMapTextureBias[2] = 1;
+                    this._planet.renderer!.requestRedraw();
                 }
                 segment._inTheQueue = false;
                 deltaTime = window.performance.now() - startTime;
@@ -424,6 +466,8 @@ export class NormalMapCreator {
             let s = this._queue.pop()!;
             s._inTheQueue = false;
         }
+        // The edges waiting in the queue are compared again
+        this.__version__++;
     }
 
     /**

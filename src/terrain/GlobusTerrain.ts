@@ -13,6 +13,7 @@ import { LonLat } from "../LonLat";
 import { NOTRENDERING } from "../quadTree/quadTree";
 import { Segment, TILEGROUP_COMMON } from "../segment/Segment";
 import { getGroundHeight } from "./terrainUtils";
+import { LRUCache } from "../utils/LRUCache";
 // import { QueueArray } from '../QueueArray';
 
 export interface IGlobusTerrainParams extends IEmptyTerrainParams {
@@ -23,6 +24,7 @@ export interface IGlobusTerrainParams extends IEmptyTerrainParams {
     noDataValues?: number[];
     plainGridSize?: number;
     heightFactor?: number;
+    elevationCacheSize?: number;
     /**
      * Fetch RequestCache value
      * https://developer.mozilla.org/en-US/docs/Web/API/Request/cache
@@ -49,6 +51,7 @@ type TileData = {
  * @param {Array.<number>} [options.gridSizeByZoom] - Segment triangulation grid sizes where array index matches segment zoom index.
  * @param {number} [options.plainGridSize=32] - Elevation grid size. Default is 32x32. Must be power of two.
  * @param {number} [options.heightFactor=1] - Elevation height multiplier.
+ * @param {number} [options.elevationCacheSize=700] - Number of tiles which heights are kept in the cache.
  * @param {FetchCache} [options.cache="default"] - Fetch cache mode.
  *
  * @fires load
@@ -74,7 +77,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     protected _dataType: string;
 
-    protected _elevationCache: Record<string, TileData>;
+    protected _elevationCache: LRUCache<string, TileData>;
 
     protected _fetchCache: Record<string, Promise<any>>;
 
@@ -134,7 +137,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 
-        this._elevationCache = {};
+        this._elevationCache = new LRUCache(options.elevationCacheSize || 700);
 
         this._fetchCache = {};
 
@@ -149,19 +152,16 @@ class GlobusTerrain extends EmptyTerrain {
         return this.maxHeight * this._heightFactor;
     }
 
+    public override getExtent(): Extent {
+        return this._extent;
+    }
+
     public get loader(): Loader<GlobusTerrain> {
         return this._loader;
     }
 
     public override clearCache() {
-        for (let c in this._elevationCache) {
-            this._elevationCache[c].heights = null;
-            this._elevationCache[c].extent = null;
-            delete this._elevationCache[c];
-        }
-        //@ts-ignore
-        this._elevationCache = null;
-        this._elevationCache = {};
+        this._elevationCache.clear();
 
         for (let c in this._fetchCache) {
             //@ts-ignore
@@ -178,15 +178,15 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     public override getCacheInfo(): ITerrainCacheInfo {
-        return { tiles: Object.keys(this._elevationCache).length };
+        return { tiles: this._elevationCache.size };
     }
 
     public setElevationCache(tileIndex: string, tileData: TileData) {
-        this._elevationCache[tileIndex] = tileData;
+        this._elevationCache.set(tileIndex, tileData);
     }
 
     public getElevationCache(tileIndex: string): TileData | undefined {
-        return this._elevationCache[tileIndex];
+        return this._elevationCache.get(tileIndex);
     }
 
     public override getHeightAsync(
@@ -305,7 +305,7 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     public isReadyToLoad(segment: Segment): boolean {
-        return segment._tileGroup === TILEGROUP_COMMON && this._extent.overlaps(segment.getExtentLonLat());
+        return segment.tileGroup === TILEGROUP_COMMON && this._extent.overlaps(segment.getExtentLonLat());
     }
 
     /**
@@ -368,7 +368,7 @@ class GlobusTerrain extends EmptyTerrain {
         let heights = this._createHeights(
             data,
             segment,
-            segment._tileGroup,
+            segment.tileGroup,
             segment.tileX,
             segment.tileY,
             segment.tileZoom,
@@ -409,7 +409,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @returns {string} URL string.
      */
     protected _createUrl(segment: Segment): string {
-        return this.buildURL(segment.tileX, segment.tileY, segment.tileZoom, segment._tileGroup);
+        return this.buildURL(segment.tileX, segment.tileY, segment.tileZoom, segment.tileGroup);
     }
 
     /**
@@ -421,7 +421,7 @@ class GlobusTerrain extends EmptyTerrain {
     protected _getHTTPRequestString(segment: Segment): string {
         if (this._urlRewriteCallback) {
             return (
-                this._urlRewriteCallback(segment.tileX, segment.tileY, segment.tileZoom, segment._tileGroup) ||
+                this._urlRewriteCallback(segment.tileX, segment.tileY, segment.tileZoom, segment.tileGroup) ||
                 this._createUrl(segment)
             );
         } else {

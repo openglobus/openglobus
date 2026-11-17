@@ -8,6 +8,7 @@ import { GeoZarrLayer } from "../../src/layer/GeoZarrLayer";
 import { Extent } from "../../src/Extent";
 import { LonLat } from "../../src/LonLat";
 import { EPSG4326 } from "../../src/proj/EPSG4326";
+import { tileSegment } from "./tileSegment";
 
 function strides(shape) {
     const s = new Array(shape.length).fill(1);
@@ -115,7 +116,7 @@ describe("GeoZarrReader multiscales", () => {
         await reader.init(rec);
         rec.keys.length = 0;
 
-        const tile = await reader.readTileRasters(tileExtent(0, 48, 16, 64), 4, 16, [0, 1], EPSG4326);
+        const tile = await reader.readTileRasters(tileSegment(tileExtent(0, 48, 16, 64), EPSG4326), 16, [0, 1]);
 
         expect(tile.rasters).toHaveLength(2);
         for (let j = 0; j < 16; j++) {
@@ -138,7 +139,7 @@ describe("GeoZarrReader multiscales", () => {
         // The band statistics decoded the coarse chunk already
         reader._chunkCache.clear();
 
-        const tile = await reader.readTileRasters(tileExtent(0, 0, 64, 64), 1, 16, [0], EPSG4326);
+        const tile = await reader.readTileRasters(tileSegment(tileExtent(0, 0, 64, 64), EPSG4326), 16, [0]);
 
         expect(tile.rasters).toHaveLength(1);
         expect(rec.keys.some((k) => k.startsWith("/1/b1/c/"))).toBe(true);
@@ -150,9 +151,9 @@ describe("GeoZarrReader multiscales", () => {
         const reader = new GeoZarrReader({ bands: ["b1", "b2"] });
         await reader.init(rec);
 
-        const first = await reader.readTileRasters(tileExtent(0, 48, 16, 64), 4, 16, [0, 1], EPSG4326);
+        const first = await reader.readTileRasters(tileSegment(tileExtent(0, 48, 16, 64), EPSG4326), 16, [0, 1]);
         rec.keys.length = 0;
-        const second = await reader.readTileRasters(tileExtent(0, 48, 16, 64), 4, 16, [0, 1], EPSG4326);
+        const second = await reader.readTileRasters(tileSegment(tileExtent(0, 48, 16, 64), EPSG4326), 16, [0, 1]);
 
         expect(rec.keys).toEqual([]);
         expect(second.rasters).toEqual(first.rasters);
@@ -162,9 +163,10 @@ describe("GeoZarrReader multiscales", () => {
         const reader = new GeoZarrReader({ bands: ["b1", "b2"] });
         await reader.init(await createMultiscalesStore());
 
-        expect(await reader.readTileRasters(tileExtent(100, 0, 110, 10), 4, 16, [0], EPSG4326)).toBeNull();
+        expect(await reader.readTileRasters(tileSegment(tileExtent(100, 0, 110, 10), EPSG4326), 16, [0])).toBeNull();
 
-        const tile = await reader.readTileRasters(tileExtent(-16, 48, 16, 64), 4, 16, [0], EPSG4326);
+        // A square tile, two pixels of level 0 a tile pixel by both axes, reads the coarse level
+        const tile = await reader.readTileRasters(tileSegment(tileExtent(-16, 32, 16, 64), EPSG4326), 16, [0]);
         expect(tile.rasters[0][0]).toBeNaN();
         expect(tile.rasters[0][15]).toBe(14);
     });
@@ -241,7 +243,7 @@ describe("GeoZarrReader Zarr v2", () => {
         expect(meta.noData).toBeNaN();
         expect(reader.reverseY).toBe(true);
 
-        const tile = await reader.readTileRasters(tileExtent(0, 0, 8, 8), 4, 8, [0], EPSG4326);
+        const tile = await reader.readTileRasters(tileSegment(tileExtent(0, 0, 8, 8), EPSG4326), 8, [0]);
         const raster = tile.rasters[0];
 
         // The tile goes from the north, its last row is the first source row
@@ -258,7 +260,7 @@ describe("GeoZarrReader Zarr v2", () => {
         const reader = new GeoZarrReader({ variable: "data" });
         await reader.init(createV2Store(0.5, -1));
 
-        const tile = await reader.readTileRasters(tileExtent(0, 0, 8, 8), 4, 8, [0], EPSG4326);
+        const tile = await reader.readTileRasters(tileSegment(tileExtent(0, 0, 8, 8), EPSG4326), 8, [0]);
         const lastRow = tile.rasters[0].subarray(7 * 8);
 
         // Raw 0 is the fill, raw 2 is 2 * 0.5 - 1 = 0
@@ -296,7 +298,7 @@ describe("GeoZarrReader Zarr v2", () => {
             const metadataUrls = Object.keys(metadata).map((k) => `https://example.com/store.zarr/${k}`);
             expect(urls.filter((u) => metadataUrls.includes(u))).toEqual([]);
 
-            const tile = await reader.readTileRasters(tileExtent(0, 0, 8, 8), 4, 8, [0], EPSG4326);
+            const tile = await reader.readTileRasters(tileSegment(tileExtent(0, 0, 8, 8), EPSG4326), 8, [0]);
             expect(tile.rasters[0][7 * 8 + 1]).toBe(1.5);
         } finally {
             vi.unstubAllGlobals();
@@ -327,7 +329,7 @@ describe("GeoZarrReader bounding box", () => {
         await reader.init(store);
         expect(reader.reverseY).toBe(true);
 
-        const tile = await reader.readTileRasters(tileExtent(0, 0, 4, 4), 4, 4, [0], EPSG4326);
+        const tile = await reader.readTileRasters(tileSegment(tileExtent(0, 0, 4, 4), EPSG4326), 4, [0]);
         // The north tile row is the last source row
         expect(Array.from(tile.rasters[0].subarray(0, 4))).toEqual([12, 13, 14, 15]);
     });
@@ -339,14 +341,14 @@ describe("GeoZarrReader destroy", () => {
         await reader.init(await createMultiscalesStore());
         reader._chunkCache.clear();
 
-        const reading = reader.readTileRasters(tileExtent(0, 48, 16, 64), 4, 16, [0, 1], EPSG4326);
+        const reading = reader.readTileRasters(tileSegment(tileExtent(0, 48, 16, 64), EPSG4326), 16, [0, 1]);
         reader.destroy();
 
         expect(reader._levels).not.toHaveLength(0);
         const tile = await reading;
         expect(tile.rasters).toHaveLength(2);
         expect(reader._levels).toHaveLength(0);
-        expect(await reader.readTileRasters(tileExtent(0, 48, 16, 64), 4, 16, [0, 1], EPSG4326)).toBeNull();
+        expect(await reader.readTileRasters(tileSegment(tileExtent(0, 48, 16, 64), EPSG4326), 16, [0, 1])).toBeNull();
     });
 });
 
@@ -473,11 +475,11 @@ describe("GeoZarr 0..360 longitudes", () => {
         expect(reader.extentWgs84.northEast.lon).toBe(180);
 
         // lon -90..0 is 270..360, the last column
-        const tile = await reader.readTileRasters(tileExtent(-90, 0, 0, 90), 2, 4, [0], EPSG4326);
+        const tile = await reader.readTileRasters(tileSegment(tileExtent(-90, 0, 0, 90), EPSG4326), 4, [0]);
         expect(Array.from(tile.rasters[0]).every((v) => v === 3)).toBe(true);
 
         // lon 0..90 is the first column
-        const east = await reader.readTileRasters(tileExtent(0, 0, 90, 90), 2, 4, [0], EPSG4326);
+        const east = await reader.readTileRasters(tileSegment(tileExtent(0, 0, 90, 90), EPSG4326), 4, [0]);
         expect(Array.from(east.rasters[0]).every((v) => v === 0)).toBe(true);
     });
 
@@ -492,10 +494,16 @@ describe("GeoZarr 0..360 longitudes", () => {
             [4, 128],
             { dimensionNames: ["lat", "lon"] }
         );
-        await createArray(store, "lon", Float64Array.from({ length: 128 }, (_, i) => i * 2.8125), [128], {
-            dtype: "float64",
-            dimensionNames: ["lon"]
-        });
+        await createArray(
+            store,
+            "lon",
+            Float64Array.from({ length: 128 }, (_, i) => i * 2.8125),
+            [128],
+            {
+                dtype: "float64",
+                dimensionNames: ["lon"]
+            }
+        );
         await createArray(store, "lat", new Float64Array([-60, -20, 20, 60]), [4], {
             dtype: "float64",
             dimensionNames: ["lat"]
@@ -505,7 +513,7 @@ describe("GeoZarr 0..360 longitudes", () => {
         await reader.init(store);
 
         // lon -5.625..0 is 354.375..360, the last two columns and the half of the first one past the east edge
-        const tile = await reader.readTileRasters(tileExtent(-5.625, -10, 0, 10), 3, 16, [0], EPSG4326);
+        const tile = await reader.readTileRasters(tileSegment(tileExtent(-5.625, -10, 0, 10), EPSG4326), 16, [0]);
         const row = Array.from(tile.rasters[0].subarray(8 * 16, 9 * 16));
 
         expect(row.slice(0, 4)).toEqual([126, 126, 126, 126]);
@@ -513,7 +521,7 @@ describe("GeoZarr 0..360 longitudes", () => {
         expect(row.slice(12)).toEqual([0, 0, 0, 0]);
 
         // The projection gives the zero meridian a bit east of 0, the east edge of a western tile still goes to 360
-        const west = await reader.readTileRasters(tileExtent(-11.25, -10, 1e-14, 10), 5, 256, [0], EPSG4326);
+        const west = await reader.readTileRasters(tileSegment(tileExtent(-11.25, -10, 1e-14, 10), EPSG4326), 256, [0]);
         const westRow = Array.from(west.rasters[0].subarray(128 * 256, 129 * 256));
 
         expect(westRow[0]).toBe(124);

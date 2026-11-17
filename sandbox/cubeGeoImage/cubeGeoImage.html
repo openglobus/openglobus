@@ -1,0 +1,192 @@
+<html>
+<head>
+    <title>OpenGlobus - Cube geo images</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../../lib/og.css" type="text/css" />
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        #places {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
+<div id="places"></div>
+<script type="module" id="og-sandbox-script">
+    import {
+        CanvasTiles,
+        CubeQuadTreeStrategy,
+        EquiangularCubeQuadTreeStrategy,
+        Extent,
+        GeoImage,
+        GeoTexture2d,
+        GeoVideo,
+        Globe,
+        control
+    } from "../../lib/og.es.js";
+
+    // The equiangular cube, or the common one with ?gnomonic in the url
+    const GNOMONIC = new URLSearchParams(location.search).has("gnomonic");
+
+    const GRID = "../projectorsVideo/grid.jpg";
+    const VIDEO = "../projectorsVideo/smpte_360p.mp4";
+
+    const FACE_COLORS = ["#e6e6e6", "#d9534f", "#5cb85c", "#428bca", "#f0ad4e", "#6f5499"];
+
+    const tiles = new CanvasTiles("Cube tiles", {
+        isBaseLayer: true,
+        drawTile: (material, applyCanvas) => {
+            const { tileGroup, tileX, tileY, tileZoom } = material.segment,
+                canvas = document.createElement("canvas");
+
+            canvas.width = canvas.height = 256;
+
+            const ctx = canvas.getContext("2d");
+
+            ctx.fillStyle = FACE_COLORS[tileGroup];
+            ctx.fillRect(0, 0, 256, 256);
+
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, 256, 256);
+
+            ctx.fillStyle = "black";
+            ctx.font = "bold 28px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(`face ${tileGroup}`, 128, 110);
+            ctx.fillText(`${tileZoom} / ${tileX} / ${tileY}`, 128, 150);
+
+            applyCanvas(canvas);
+        }
+    });
+
+    // Corners from the north-west one clockwise
+    const corners = (w, s, e, n) => [
+        [w, n],
+        [e, n],
+        [e, s],
+        [w, s]
+    ];
+
+    const PLACES = [
+        {
+            extent: [36, -10, 54, 10],
+            layer: new GeoImage("Image over the front and right faces", {
+                src: GRID,
+                corners: corners(38, -8, 52, 8),
+                opacity: 0.9
+            })
+        },
+        {
+            extent: [35, 26, 55, 44],
+            layer: new GeoImage("Image over the cube corner", {
+                src: GRID,
+                corners: corners(37, 28, 53, 42),
+                opacity: 0.9
+            })
+        },
+        {
+            extent: [-40, 70, 40, 89],
+            layer: new GeoImage("Image near the north pole", {
+                src: GRID,
+                corners: corners(-30, 75, 30, 86),
+                opacity: 0.9
+            })
+        },
+        {
+            extent: [160, -15, 200, 15],
+            layer: new GeoVideo("Video over the antimeridian", {
+                src: VIDEO,
+                corners: corners(165, -10, 195, 10)
+            })
+        }
+    ];
+
+    // A texture drawn every frame, rings going out from the center
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 512;
+    const ctx = canvas.getContext("2d");
+
+    const drawRings = (time) => {
+        ctx.clearRect(0, 0, 512, 512);
+        for (let r = (time * 0.05) % 40; r < 362; r += 40) {
+            ctx.strokeStyle = `hsl(${(r + time * 0.05) % 360}, 90%, 55%)`;
+            ctx.lineWidth = 12;
+            ctx.beginPath();
+            ctx.arc(256, 256, r, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+    };
+
+    const rings = new GeoTexture2d("Texture drawn every frame", {
+        corners: corners(-20, -40, 20, -10),
+        frameWidth: 512,
+        frameHeight: 512
+    });
+
+    PLACES.push({ extent: [-30, -50, 30, 0], layer: rings });
+
+    const world = new GeoImage("Image of the whole world", {
+        src: GRID,
+        corners: corners(-180, -90, 180, 90),
+        fullExtent: true,
+        opacity: 0.5,
+        visibility: false
+    });
+
+    PLACES.push({ extent: [-180, -60, 180, 60], layer: world });
+
+    window.globus = new Globe({
+        target: "globus",
+        name: "Cube geo images",
+        quadTreeStrategyPrototype: GNOMONIC ? CubeQuadTreeStrategy : EquiangularCubeQuadTreeStrategy,
+        layers: [tiles, ...PLACES.map((place) => place.layer)],
+        atmosphereEnabled: false,
+        nightTextureSrc: null,
+        specularTextureSrc: null
+    });
+
+    const gl = globus.renderer.handler.gl;
+    drawRings(0);
+    const ringsTexture = globus.renderer.handler.createTexture_l(canvas);
+    rings.bindTexture(ringsTexture);
+
+    globus.renderer.events.on("draw", () => {
+        drawRings(performance.now());
+        gl.bindTexture(gl.TEXTURE_2D, ringsTexture);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    });
+
+    const places = document.getElementById("places");
+
+    for (const place of PLACES) {
+        const button = document.createElement("button");
+        button.textContent = place.layer.name;
+        button.onclick = () => {
+            place.layer.setVisibility(true);
+            globus.planet.flyExtent(Extent.createFromArray(place.extent));
+        };
+        places.appendChild(button);
+    }
+
+    // Drags the corners of the images with the button on the right turned on
+    globus.planet.addControl(new control.GeoImageDragControl());
+    globus.planet.addControl(new control.LayerSwitcher());
+    globus.planet.addControl(new control.ToggleWireframe());
+    globus.planet.addControl(new control.DebugInfo());
+</script>
+</body>
+</html>

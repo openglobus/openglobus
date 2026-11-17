@@ -19,6 +19,7 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
 
     constructor(params: QuadTreeStrategyParams) {
         super({ name: "Mars", proj: equi, ...params });
+        this.rootTileWidth = 180;
         this._westExtent = Extent.createFromArray([-180, -90, 0, 90]);
         this._eastExtent = Extent.createFromArray([0, -90, 180, 90]);
 
@@ -27,10 +28,13 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
     }
 
     public override init(camera: PlanetCamera) {
-        this._quadTreeList = [
-            new Node(SegmentLonLatEqui, this, 0, null, 0, this._westExtent),
-            new Node(SegmentLonLatEqui, this, 0, null, 0, this._eastExtent)
-        ];
+        const west = new Node(SegmentLonLatEqui, this, 0, null, 0, this._westExtent);
+        const east = new Node(SegmentLonLatEqui, this, 0, null, 0, this._eastExtent);
+
+        west.rootNeighbors = [null, east, null, east];
+        east.rootNeighbors = [null, west, null, west];
+
+        this._quadTreeList = [west, east];
 
         super.init(camera);
     }

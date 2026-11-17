@@ -14,7 +14,7 @@ export class SegmentLonLatEqui extends SegmentLonLat {
         super(node, quadTreeStrategy, tileZoom, extent);
         this._projection = equi;
         this.isPole = false;
-        this._tileGroup = TILEGROUP_COMMON;
+        this.tileGroup = TILEGROUP_COMMON;
     }
 
     protected override _getMaxZoom(): number {

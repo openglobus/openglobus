@@ -90,8 +90,8 @@ class BillboardHandler extends BaseBillboardHandler {
             z
         ]);
 
-        x = billboard._width;
-        y = billboard._height;
+        x = billboard._width * billboard.getScale();
+        y = billboard._height * billboard.getScale();
         this._sizeArr = appendFloat32Array(this._sizeArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
         x = billboard._offset.x;

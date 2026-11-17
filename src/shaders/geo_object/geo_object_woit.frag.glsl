@@ -5,9 +5,7 @@ precision highp float;
 #include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
-#include "../common/projectors.glsl"
-#include "../common/shadows.glsl"
-#include "../common/cascadeShadows.glsl"
+#include "../common/lightingFeatures.glsl"
 #include "../common/materialFlags.glsl"
 
 uniform vec3 lightPosition;
@@ -76,14 +74,13 @@ void main(void) {
 
     vec4 projectorDecal;
     vec3 projectorLight;
-    applyProjectors(v_rtcPos, normal, projectorDecal, projectorLight);
+    applyLightingFeatureProjectors(v_rtcPos, normal, projectorDecal, projectorLight);
     float receiveProjectors = materialReceivesProjectorsMask(materialFlags);
     float receiveShadows = materialReceivesShadowsMask(materialFlags);
     projectorDecal *= receiveProjectors;
     projectorLight *= receiveProjectors;
     float directShadowVisibility =
-        getShadowMapsDirectVisibility(v_rtcPos, normal) *
-        getCascadeShadowDirectVisibility(v_rtcPos, normal);
+        getLightingFeatureShadowVisibility(v_rtcPos, normal);
     float shadowVisibility = mix(1.0, directShadowVisibility, receiveShadows);
 
     if (shade == SHADE_UNLIT) {
