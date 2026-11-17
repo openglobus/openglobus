@@ -1,5 +1,5 @@
 import type * as Zarr from "zarrita";
-import type { TypedArray } from "geotiff";
+import type { TypedArray } from "../../utils/shared";
 import { Extent } from "../../Extent";
 import { LonLat } from "../../LonLat";
 import { getRasterMinMax } from "./ColorScale";
@@ -235,9 +235,7 @@ function toNumbers(data: any): number[] | null {
  * const reader = new GeoZarrReader({ bands: ["b04", "b03", "b02"] });
  * await reader.init("https://example.com/S2.zarr/measurements/reflectance");
  */
-export class GeoZarrReader extends RasterReader {
-    declare public options: IGeoZarrReaderParams;
-
+export class GeoZarrReader extends RasterReader<IGeoZarrReaderParams> {
     protected _store: ZarrStore | null = null;
     protected _levels: IZarrLevel[] = [];
     protected _axes: IGeoZarrAxes = { x: 1, y: 0 };

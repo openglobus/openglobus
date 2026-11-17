@@ -1,4 +1,3 @@
-import type { Pool, TypedArray } from "geotiff";
 import { Extent } from "../../Extent";
 import { LonLat } from "../../LonLat";
 import * as mercator from "../../mercator";
@@ -9,12 +8,13 @@ import { getProjectionHelper, type IProjectionHelper } from "./utm";
 import type { Segment } from "../../segment/Segment";
 import { defineProjection } from "../../proj/epsgIo";
 import { getRasterWorker } from "../../utils/RasterWorker";
+import type { TypedArray } from "../../utils/shared";
 import type {
     DecodedTileData,
     IGeoTIFFMetadata,
-    IGeoTIFFReader,
-    IGeoTIFFReaderParams,
     IGeoTIFFRenderOptions,
+    IRasterReader,
+    IRasterReaderParams,
     ProjFunc
 } from "./types";
 
@@ -107,8 +107,7 @@ export function isLonLatBBox(bbox: [number, number, number, number]): boolean {
  * The base class projects the tile into the raster, selects the pyramid level and the source window, and
  * resamples the window into the tile. A subclass opens the source and reads the window of a level.
  */
-export abstract class RasterReader implements IGeoTIFFReader {
-    public workerPool: Pool | null = null;
+export abstract class RasterReader<P extends IRasterReaderParams = IRasterReaderParams> implements IRasterReader<P> {
     public metadata: IGeoTIFFMetadata | null = null;
     public extentWgs84: Extent = new Extent();
     public nativeBBox: [number, number, number, number] = [0, 0, 0, 0];
@@ -134,7 +133,7 @@ export abstract class RasterReader implements IGeoTIFFReader {
     /** Reader name in the log messages */
     protected _logName: string = "RasterReader";
 
-    constructor(public options: IGeoTIFFReaderParams = {}) {
+    constructor(public options: P = {} as P) {
         this.projFunc = options.projFunc;
     }
 

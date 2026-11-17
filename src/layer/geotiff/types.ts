@@ -1,7 +1,8 @@
 import type { IBaseTileMaterialLayerParams } from "../BaseTileMaterialLayer";
-import type { Pool, TypedArray } from "geotiff";
+import type { Pool } from "geotiff";
 import type { Extent } from "../../Extent";
 import type { Segment } from "../../segment/Segment";
+import type { TypedArray } from "../../utils/shared";
 
 export type ColorScaleName =
     | "viridis"
@@ -133,6 +134,26 @@ export type ProjFunc = (code: number) =>
     | undefined;
 
 /**
+ * Options shared by raster readers.
+ */
+export interface IRasterReaderParams {
+    /** Custom NoData value. Set to null or NaN to disable nodata masking. */
+    nodata?: NoDataValue;
+
+    /** Alias for nodata */
+    noData?: NoDataValue;
+
+    /** Optional CRS code or definition, e.g. 2193 or "EPSG:2193" */
+    crs?: number | string;
+
+    /** Rendering and band options */
+    renderOptions?: IGeoTIFFRenderOptions;
+
+    /** Custom projection mapping function for non-standard CRS */
+    projFunc?: ProjFunc;
+}
+
+/**
  * Options shared by a single GeoTIFF source and by the reader that opens it.
  */
 export interface IGeoTIFFSourceCommon {
@@ -166,33 +187,29 @@ export interface IGeoTIFFSourceItem extends IGeoTIFFSourceCommon {
 /**
  * Options used by a GeoTIFF reader.
  */
-export interface IGeoTIFFReaderParams extends IGeoTIFFSourceCommon {
+export interface IGeoTIFFReaderParams extends IRasterReaderParams, IGeoTIFFSourceCommon {
     /** Multiple GeoTIFF/COG sources (like OpenLayers) */
     sources?: IGeoTIFFSourceItem[];
 
     /** When true, merges multiple sources spatially as a mosaic instead of stacking bands */
     mosaic?: boolean;
 
-    /** Rendering and band options */
-    renderOptions?: IGeoTIFFRenderOptions;
-
     /** Custom geotiff Worker Pool instance. It belongs to the caller and is never destroyed by a reader. */
     geotiffWorkerPool?: Pool;
 
     /** Number of decompression workers. Uses a shared pool if not set. */
     workerPoolSize?: number;
-
-    /** Custom projection mapping function for non-standard CRS */
-    projFunc?: ProjFunc;
 }
 
-export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams, IGeoTIFFReaderParams {
+export interface IRasterLayerParams extends IBaseTileMaterialLayerParams, IRasterReaderParams {
     /** Output tile size (default: 256) */
     tileSize?: number;
 
     /** Maximum tile cache size (default: 500) */
     cacheSize?: number;
 }
+
+export interface IGeoTIFFLayerParams extends IRasterLayerParams, IGeoTIFFReaderParams {}
 
 /**
  * Index or coordinate label of an extra GeoZarr dimension, a list of them makes the samples of the variable.
@@ -202,10 +219,7 @@ export type GeoZarrDimensionValue = number | string | (number | string)[];
 /**
  * Options used by a GeoZarr reader.
  */
-export interface IGeoZarrReaderParams extends Omit<
-    IGeoTIFFReaderParams,
-    "src" | "sources" | "mosaic" | "requestOptions"
-> {
+export interface IGeoZarrReaderParams extends IRasterReaderParams {
     /** URL of the Zarr store, v2 or v3. */
     url?: string;
 
@@ -251,13 +265,12 @@ export interface IGeoZarrDimension {
     units?: string;
 }
 
-export interface IGeoTIFFReader {
-    options: IGeoTIFFReaderParams;
+export interface IRasterReader<P extends IRasterReaderParams = IRasterReaderParams> {
+    options: P;
     metadata: IGeoTIFFMetadata | null;
     extentWgs84: Extent;
     crsCode: number;
     isReady: boolean;
-    workerPool: Pool | null;
 
     /**
      * Opens the source: a GeoTIFF source or sources, or a GeoZarr store, by the reader.
@@ -279,6 +292,11 @@ export interface IGeoTIFFReader {
     getNativeZoom(rootTileWidth: number, tileSize: number): number;
 
     destroy(): void;
+}
+
+export interface IGeoTIFFReader extends IRasterReader<IGeoTIFFReaderParams> {
+    workerPool: Pool | null;
+    init(src?: GeoTIFFSource | IGeoTIFFSourceItem[]): Promise<IGeoTIFFMetadata>;
 }
 
 export interface IGeoTIFFMetadata {

@@ -4,7 +4,7 @@ import { BaseTileMaterialLayer } from "./BaseTileMaterialLayer";
 import type { BaseTileMaterialLayerEventsType } from "./BaseTileMaterialLayer";
 import type { Planet } from "../scene/Planet";
 import type { Segment } from "../segment/Segment";
-import type { TypedArray } from "geotiff";
+import type { TypedArray } from "../utils/shared";
 import { RENDERING } from "../quadTree/quadTree";
 import {
     createImageData,
@@ -20,9 +20,9 @@ import {
     type IBandStats,
     type IGeoTIFFLayerParams,
     type IGeoTIFFMetadata,
-    type IGeoTIFFReader,
     type IGeoTIFFRenderOptions,
     type IGeoTIFFSourceItem,
+    type IRasterReader,
     type DecodedTileData
 } from "./geotiff";
 
@@ -63,7 +63,7 @@ function stretchChannel(channel: IBandChannelOptions | undefined, bandStats: IBa
 export class GeoTIFFLayer extends BaseTileMaterialLayer {
     public override events: GeoTIFFEventsType;
 
-    protected _reader: IGeoTIFFReader;
+    protected _reader: IRasterReader;
     protected _renderOptions: IGeoTIFFRenderOptions;
     protected _tileSize: number;
 
@@ -145,7 +145,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
     /**
      * Creates the reader of the layer source, a subclass may read another raster format.
      */
-    protected _createReader(options: IGeoTIFFLayerParams): IGeoTIFFReader {
+    protected _createReader(options: IGeoTIFFLayerParams): IRasterReader {
         if (Array.isArray(options.sources) && options.sources.length > 0) {
             return new MultiGeoTIFFReader(options);
         }
@@ -248,7 +248,7 @@ export class GeoTIFFLayer extends BaseTileMaterialLayer {
         );
     }
 
-    public get reader(): IGeoTIFFReader {
+    public get reader(): IRasterReader {
         return this._reader;
     }
 

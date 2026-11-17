@@ -1,10 +1,10 @@
 import { fromArrayBuffer, fromBlob, fromUrl, GeoTIFF, GeoTIFFImage } from "geotiff";
-import type { ReadRastersOptions } from "geotiff";
+import type { Pool, ReadRastersOptions } from "geotiff";
 import { getRasterMinMax, parseNoDataValue } from "./ColorScale";
 import { isLonLatBBox, parseCrsCode, RasterReader } from "./RasterReader";
 import type { IRasterWindow } from "./RasterReader";
 import { acquireWorkerPool, type IWorkerPoolHandle } from "./workerPool";
-import type { GeoTIFFSource, IBandStats, IGeoTIFFMetadata, IGeoTIFFReaderParams } from "./types";
+import type { GeoTIFFSource, IBandStats, IGeoTIFFMetadata, IGeoTIFFReader, IGeoTIFFReaderParams } from "./types";
 
 export { parseCrsCode } from "./RasterReader";
 
@@ -29,12 +29,14 @@ const CONVERTED_PHOTOMETRICS = [5, 6, 8];
 
 const PALETTE_PHOTOMETRIC = 3;
 
-export class GeoTIFFReader extends RasterReader {
+export class GeoTIFFReader extends RasterReader<IGeoTIFFReaderParams> implements IGeoTIFFReader {
     public source: GeoTIFF | null = null;
     public images: GeoTIFFImage[] = [];
 
     /** Internal transparency mask of every entry of images, null when the file has none */
     public masks: (GeoTIFFImage | null)[] = [];
+
+    public workerPool: Pool | null = null;
 
     private _poolHandle: IWorkerPoolHandle | null = null;
     private _convertPhotometric: boolean = false;

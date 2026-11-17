@@ -3,13 +3,13 @@ import {
     GeoZarrReader,
     type GeoZarrDimensionValue,
     type IGeoTIFFLayerParams,
-    type IGeoTIFFReader,
     type IGeoZarrDimension,
-    type IGeoZarrReaderParams
+    type IGeoZarrReaderParams,
+    type IRasterLayerParams,
+    type IRasterReader
 } from "./geotiff";
 
-export interface IGeoZarrLayerParams
-    extends Omit<IGeoTIFFLayerParams, "src" | "sources" | "mosaic" | "requestOptions">, IGeoZarrReaderParams {
+export interface IGeoZarrLayerParams extends IRasterLayerParams, IGeoZarrReaderParams {
     /** URL of the GeoZarr multiscales group, or of the store with the group option. */
     url: string;
 }
@@ -40,7 +40,7 @@ export class GeoZarrLayer extends GeoTIFFLayer {
         return this._reader as GeoZarrReader;
     }
 
-    protected override _createReader(options: IGeoTIFFLayerParams): IGeoTIFFReader {
+    protected override _createReader(options: IGeoTIFFLayerParams): IRasterReader {
         return new GeoZarrReader(options as IGeoZarrReaderParams);
     }
 
