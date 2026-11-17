@@ -560,7 +560,9 @@ export class GeoObjectHandler {
             rn = this._scene,
             //@ts-ignore
             useAtmos = rn.atmosphereEnabled,
-            sh = useAtmos ? r.handler.programs.geo_object_woit_atmos : r.handler.programs.geo_object_woit,
+            sh = (useAtmos ? r.handler.programs.geo_object_woit_atmos : r.handler.programs.geo_object_woit).variant(
+                r.activeLightingFeatures
+            ),
             p = sh,
             gl = r.handler.gl!,
             disableCull = this._entityCollection.disableCullFace;
@@ -576,9 +578,7 @@ export class GeoObjectHandler {
         if (useAtmos) {
             this._bindAtmosphereParams(p);
         }
-        r.projectors.bindForward(p);
-        r.shadows.bindForward(p);
-        r.cascadeShadowManager.bindForward(p);
+        r.bindLightingFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -589,15 +589,14 @@ export class GeoObjectHandler {
 
     public _displayTransparentForwardPASS() {
         let r = this._renderer!,
-            sh = r.handler.programs.geo_object_forward,
+            sh = r.handler.programs.geo_object_forward.variant(r.activeLightingFeatures),
             p = sh;
 
         sh.activate();
 
         this._bindCommon(p);
         this._bindForwardParams(p);
-        r.shadows.bindForward(p);
-        r.cascadeShadowManager.bindForward(p);
+        r.bindLightingFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
@@ -606,15 +605,14 @@ export class GeoObjectHandler {
 
     public _displayForwardPASS() {
         let r = this._renderer!,
-            sh = r.handler.programs.geo_object_forward,
+            sh = r.handler.programs.geo_object_forward.variant(r.activeLightingFeatures),
             p = sh;
 
         sh.activate();
 
         this._bindCommon(p);
         this._bindForwardParams(p);
-        r.shadows.bindForward(p);
-        r.cascadeShadowManager.bindForward(p);
+        r.bindLightingFeatures(p);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawForwardAll(p);

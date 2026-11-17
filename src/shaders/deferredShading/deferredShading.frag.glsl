@@ -6,8 +6,7 @@ precision highp sampler2DArray;
 
 #include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
-#include "../common/shadows.glsl"
-#include "../common/cascadeShadows.glsl"
+#include "../common/lightingFeatures.glsl"
 #include "../common/materialFlags.glsl"
 
 uniform sampler2D baseTexture;
@@ -53,8 +52,7 @@ void main(void) {
     float specularMask = materials.b;
     float receiveShadows = materialReceivesShadowsMask(materialFlags);
     float directShadowVisibility =
-        getShadowMapsDirectVisibility(rtcPos, normal) *
-        getCascadeShadowDirectVisibility(rtcPos, normal);
+        getLightingFeatureShadowVisibility(rtcPos, normal);
     float shadowVisibility = mix(1.0, directShadowVisibility, receiveShadows);
 
     vec4 lightWeighting;

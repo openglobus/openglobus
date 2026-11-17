@@ -33,7 +33,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
 
         let r = this._renderer;
         let h = r.handler;
-        let sh = h.programs.deferredShadingAtmos,
+        let sh = h.programs.deferredShadingAtmos.variant(r.activeLightingFeatures),
             p = sh,
             gl = h.gl!;
 
@@ -79,8 +79,12 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         // Atmosphere LUT and aerial perspective volume
         this._atmosphere.bindForward(p, 4, 5);
 
-        r.shadows.bindForward(p, DEFAULT_SHADOW_TEXTURE_UNIT_START);
-        r.cascadeShadowManager.bindForward(p, DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START);
+        r.bindLightingFeatures(
+            p,
+            undefined,
+            DEFAULT_SHADOW_TEXTURE_UNIT_START,
+            DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START
+        );
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 

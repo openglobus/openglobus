@@ -4,8 +4,7 @@ precision highp float;
 #include "../common/shadeMode.glsl"
 #include "../common/lighting.glsl"
 #include "../common/normals.glsl"
-#include "../common/shadows.glsl"
-#include "../common/cascadeShadows.glsl"
+#include "../common/lightingFeatures.glsl"
 #include "../common/materialFlags.glsl"
 
 uniform vec3 lightPosition;
@@ -76,8 +75,7 @@ void main(void) {
 
     float receiveShadows = materialReceivesShadowsMask(materialFlags);
     float directShadowVisibility =
-        getShadowMapsDirectVisibility(v_rtcPos, normal) *
-        getCascadeShadowDirectVisibility(v_rtcPos, normal);
+        getLightingFeatureShadowVisibility(v_rtcPos, normal);
     float shadowVisibility = mix(1.0, directShadowVisibility, receiveShadows);
 
     vec3 material = materialProperties;

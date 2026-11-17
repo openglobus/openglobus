@@ -1,6 +1,6 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
 import { stringTemplate2 } from "../../utils/shared";
-import { cascadeShadowUniforms, shadowMapUniforms } from "../common/uniforms";
+import { projectorShaderParams, shadowFeatureDefines, shadowFeatureUniforms } from "../common/uniforms";
 import type { AtmosphereParameters } from "../atmos/atmos";
 import { DEFAULT_PARAMS } from "../atmos/atmos";
 
@@ -9,6 +9,7 @@ import deferred_atmos_frag from "./deferredShadingAtmos.frag.glsl";
 
 export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): ShaderProgram {
     return new ShaderProgram("deferredShadingAtmos", {
+        defines: shadowFeatureDefines,
         uniforms: {
             normalMatrix: "mat3",
             baseTexture: "sampler2d",
@@ -31,15 +32,15 @@ export function deferredShadingAtmos(atmosParams: AtmosphereParameters = DEFAULT
             atmosFadeDist: "vec2",
             atmosMaxMinOpacity: "vec3",
             frameOpacity: "float",
-            ...shadowMapUniforms,
-            ...cascadeShadowUniforms
+            ...shadowFeatureUniforms
         },
         attributes: {
             corners: "vec3"
         },
         vertexShader: deferred_vert,
         fragmentShader: stringTemplate2(deferred_atmos_frag, {
-            ...atmosParams
+            ...atmosParams,
+            ...projectorShaderParams
         })
     });
 }
