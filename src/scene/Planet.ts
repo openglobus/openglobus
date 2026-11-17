@@ -63,7 +63,6 @@ import {
     TERRAIN_PROJECTOR_TEXTURE_UNIT_OFFSET,
     TERRAIN_SHADOW_TEXTURE_UNIT_OFFSET
 } from "../renderer/textureUnits";
-import { getLightingFeatureVariant, removeLightingFeatureVariants } from "../renderer/lightingFeatureVariants";
 import { normalizeShadeMode, SHADE_PHONG, SHADE_PBR, type ShadeMode, type ShadeModeInput } from "../shadeModeConstants";
 
 export interface IPlanetParams {
@@ -408,9 +407,6 @@ export class Planet extends Scene {
     public atmosphereFadeDist: Float32Array;
     protected _atmosphereBottomRadius: number;
 
-    /** Atmosphere parameters the forward terrain programs are built with. */
-    protected _terrainAtmosParams: AtmosphereParameters | undefined;
-
     public solidTextureOne: WebGLTextureExt | null;
     public solidTextureTwo: WebGLTextureExt | null;
 
@@ -559,7 +555,6 @@ export class Planet extends Scene {
         this._atmosphereCurrentMaxMinOpacity = new Float32Array(this._atmosphereMaxMinOpacity);
         this.atmosphereFadeDist = new Float32Array(2);
         this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
-        this._terrainAtmosParams = undefined;
 
         this.solidTextureOne = null;
         this.solidTextureTwo = null;
@@ -1104,8 +1099,9 @@ export class Planet extends Scene {
     public initAtmosphereShader(atmosParams?: AtmosphereParameters) {
         if (this.renderer && this.renderer.handler && this._atmosphereEnabled) {
             this._atmosphereBottomRadius = atmosParams?.BOTTOM_RADIUS ?? this._atmosphere.parameters.BOTTOM_RADIUS;
-            this._removeTerrainForwardPrograms();
-            this._addTerrainForwardProgram(atmosParams);
+            let h = this.renderer.handler;
+            h.removeProgram("segment_screen_wl_forward");
+            h.addProgram(shaders.segment_screen_wl_forward_atmos(atmosParams));
 
             if (!this.renderer.deferredDisabled) {
                 this._swapDeferredShadingPass(atmosParams);
@@ -1125,7 +1121,9 @@ export class Planet extends Scene {
     protected _initializeAtmosphere() {
         if (!this.renderer) return;
 
-        this._removeTerrainForwardPrograms();
+        let h = this.renderer.handler;
+
+        h.removeProgram("segment_screen_wl_forward");
 
         if (this._atmosphereEnabled) {
             //this._renderOpaqueScreenNodesPASS = this._renderOpaqueScreenNodesPASSAtmos;
@@ -1139,7 +1137,7 @@ export class Planet extends Scene {
             this._atmosphere.activate();
             this._atmosphereBottomRadius = this._atmosphere.parameters.BOTTOM_RADIUS;
 
-            this._addTerrainForwardProgram(this._atmosphere.effectiveParameters);
+            h.addProgram(shaders.segment_screen_wl_forward_atmos(this._atmosphere.effectiveParameters));
             if (!this.renderer.deferredDisabled) {
                 this._swapDeferredShadingPass(this._atmosphere.effectiveParameters);
             }
@@ -1168,7 +1166,7 @@ export class Planet extends Scene {
                 }
             }
 
-            this._addTerrainForwardProgram();
+            h.addProgram(shaders.segment_screen_wl_forward_noatmos());
         }
     }
 
@@ -1763,47 +1761,9 @@ export class Planet extends Scene {
         this.camera.setTerrainCollisionActivity(true);
     }
 
-    /**
-     * Forward terrain program with the lighting features active now (Renderer.activeLightingFeatures),
-     * built the first time that variant is drawn with.
-     * @protected
-     */
     protected _terrainForwardProgram(): ShaderProgram {
         const r = this.renderer!;
-        return getLightingFeatureVariant(
-            r.handler,
-            "segment_screen_wl_forward",
-            r.activeLightingFeatures,
-            this._createTerrainForwardProgram
-        );
-    }
-
-    protected _createTerrainForwardProgram = (features: number): ShaderProgram =>
-        this._atmosphereEnabled
-            ? shaders.segment_screen_wl_forward_atmos(this._terrainAtmosParams, features)
-            : shaders.segment_screen_wl_forward_noatmos(features);
-
-    /**
-     * Builds the forward terrain program with every feature up front, under its plain name
-     * "segment_screen_wl_forward", for code that looks it up by name.
-     * @protected
-     */
-    protected _addTerrainForwardProgram(atmosParams?: AtmosphereParameters) {
-        this._terrainAtmosParams = atmosParams;
-        this.renderer!.handler.addProgram(
-            this._atmosphereEnabled
-                ? shaders.segment_screen_wl_forward_atmos(atmosParams)
-                : shaders.segment_screen_wl_forward_noatmos()
-        );
-    }
-
-    /**
-     * Removes the forward terrain program and its variants, before they are rebuilt for other
-     * atmosphere settings.
-     * @protected
-     */
-    protected _removeTerrainForwardPrograms() {
-        removeLightingFeatureVariants(this.renderer!.handler, "segment_screen_wl_forward");
+        return r.handler.programs.segment_screen_wl_forward.variant(r.activeLightingFeatures);
     }
 
     protected _setUniformsDeferred(cam: PlanetCamera, program: ShaderProgram): ShaderProgram {

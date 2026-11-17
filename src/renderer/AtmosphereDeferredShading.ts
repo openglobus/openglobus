@@ -1,9 +1,6 @@
 import { deferredShadingAtmos } from "../shaders/deferredShading/deferredShadingAtmos";
 import { PhongDeferredShading } from "./PhongDeferredShading";
 import { DEFAULT_CASCADE_SHADOW_TEXTURE_UNIT_START, DEFAULT_SHADOW_TEXTURE_UNIT_START } from "./textureUnits";
-import { getLightingFeatureVariant, removeLightingFeatureVariants } from "./lightingFeatureVariants";
-import { LIGHTING_FEATURES_SHADOWS } from "../shaders/common/uniforms";
-import type { ShaderProgram } from "../webgl/ShaderProgram";
 import type { Renderer } from "./Renderer";
 import type { Atmosphere } from "../control/atmosphere/Atmosphere";
 import type { AtmosphereParameters } from "../shaders/atmos/atmos";
@@ -18,15 +15,13 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
         this._atmosParams = atmosParams;
     }
 
-    protected _createProgram = (features: number): ShaderProgram => deferredShadingAtmos(this._atmosParams, features);
-
     public override init() {
         super.init();
         this._renderer.handler.addProgram(deferredShadingAtmos(this._atmosParams));
     }
 
     public override dispose() {
-        removeLightingFeatureVariants(this._renderer.handler, "deferredShadingAtmos");
+        this._renderer.handler.removeProgram("deferredShadingAtmos");
         super.dispose();
     }
 
@@ -38,13 +33,7 @@ export class AtmosphereDeferredShading extends PhongDeferredShading {
 
         let r = this._renderer;
         let h = r.handler;
-        let sh = getLightingFeatureVariant(
-                h,
-                "deferredShadingAtmos",
-                r.activeLightingFeatures,
-                this._createProgram,
-                LIGHTING_FEATURES_SHADOWS
-            ),
+        let sh = h.programs.deferredShadingAtmos.variant(r.activeLightingFeatures),
             p = sh,
             gl = h.gl!;
 
