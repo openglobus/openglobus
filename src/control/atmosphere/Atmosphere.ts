@@ -43,6 +43,7 @@ export interface IAtmosphereParams extends IControlParams {
     ozoneDensityHeight?: number;
     ozoneDensityWide?: number;
     disableSunDisk?: boolean;
+    scatteringColor?: [number, number, number];
     aerialPerspective?: boolean;
     aerialPerspectiveFadeStart?: number;
     aerialPerspectiveFadeEnd?: number;

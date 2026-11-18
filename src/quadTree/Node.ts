@@ -1,13 +1,13 @@
-import { Extent } from "../Extent";
-import { binaryInsert, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
-import { getMedian } from "../terrain/terrainUtils";
-import { LonLat } from "../LonLat";
-import { MAX, MIN } from "../math";
-import { Segment } from "../segment/Segment";
-import { QuadTreeStrategy } from "./QuadTreeStrategy";
+import {Extent} from "../Extent";
+import {binaryInsert, getMatrixSubArray64, getMatrixSubArrayBoundsExt} from "../utils/shared";
+import {getMedian} from "../terrain/terrainUtils";
+import {LonLat} from "../LonLat";
+import {MAX, MIN} from "../math";
+import {Segment} from "../segment/Segment";
+import {QuadTreeStrategy} from "./QuadTreeStrategy";
 
-import { Vec2 } from "../math/Vec2";
-import { Vec3 } from "../math/Vec3";
+import {Vec2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
 import {
     E,
     MAX_RENDERED_NODES,
@@ -30,8 +30,8 @@ import {
     WALKTHROUGH
 } from "./quadTree";
 
-import { PlanetCamera } from "../camera/PlanetCamera";
-import type { Camera } from "../camera/Camera";
+import {PlanetCamera} from "../camera/PlanetCamera";
+import type {Camera} from "../camera/Camera";
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
@@ -140,7 +140,9 @@ class Node {
         this.quadTreeStrategy = quadTreeStrategy;
         this.parentNode = parent;
         this.partId = partId;
-        this.nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
+        const nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
+        this.nodeId =
+            parent && (parent.nodeId < 0 || nodeId > Number.MAX_SAFE_INTEGER) ? -2 - this.__id : nodeId;
         this.state = null;
         this.prevState = null;
         this.appliedTerrainNodeId = -1;
@@ -891,9 +893,8 @@ class Node {
         this.appliedTerrainNodeId = pn.nodeId;
         this.equalizedSideWithNodeId[N] =
             this.equalizedSideWithNodeId[E] =
-            this.equalizedSideWithNodeId[S] =
-            this.equalizedSideWithNodeId[W] =
-                this.appliedTerrainNodeId;
+                this.equalizedSideWithNodeId[S] =
+                    this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
 
         let gridSize = pn.segment.gridSize / dZ2,
             gridSizeExt = pn.segment.fileGridSize / dZ2;
@@ -953,12 +954,29 @@ class Node {
             let i0 = Math.floor(gridSize * offsetY),
                 j0 = Math.floor(gridSize * offsetX);
 
-            let bigOne;
-            if (pseg.gridSize === 1) {
-                bigOne = pseg.terrainVertices!;
-            } else {
-                bigOne = getMatrixSubArray64(pseg.terrainVertices!, pseg.gridSize, i0, j0, 1);
+            let bigOne = getMatrixSubArray64(pseg.terrainVertices!, pseg.gridSize, i0, j0, 1);
+
+            const el = seg.planet.ellipsoid,
+                prtc = pseg._relativeCenter,
+                pe = pseg.getExtent(),
+                cellWidth = pe.getWidth() / pseg.gridSize,
+                cellHeight = pe.getHeight() / pseg.gridSize,
+                cellWest = pe.southWest.lon + j0 * cellWidth,
+                cellNorth = pe.northEast.lat - i0 * cellHeight;
+
+            for (let k = 0; k < 4; k++) {
+                const s = el.lonLatToCartesian(
+                        pseg.getLonLat(cellWest + (k & 1) * cellWidth, cellNorth - (k >> 1) * cellHeight)
+                    ),
+                    k3 = k * 3;
+                bigOne[k3] += prtc.x - s.x;
+                bigOne[k3 + 1] += prtc.y - s.y;
+                bigOne[k3 + 2] += prtc.z - s.z;
             }
+
+            const se = seg.getExtent(),
+                segWidth = se.getWidth(),
+                segHeight = se.getHeight();
 
             let insideSize = 1.0 / gridSize;
 
@@ -995,7 +1013,15 @@ class Node {
                         .addA(v_rb);
                 }
 
-                coords.addA(pseg._relativeCenter);
+                // The height over the vertex surface point
+                coords.addA(
+                    el.lonLatToCartesian(
+                        seg.getLonLat(
+                            se.southWest.lon + _vertOrder[i].x * segWidth,
+                            se.northEast.lat - _vertOrder[i].y * segHeight
+                        )
+                    )
+                );
                 let dstCoords = coords.sub(seg._relativeCenter);
 
                 Vec3.doubleToTwoFloats(dstCoords, _tempHigh, _tempLow);
@@ -1058,9 +1084,8 @@ class Node {
                 this.appliedTerrainNodeId = this.nodeId;
                 this.equalizedSideWithNodeId[N] =
                     this.equalizedSideWithNodeId[E] =
-                    this.equalizedSideWithNodeId[S] =
-                    this.equalizedSideWithNodeId[W] =
-                        this.appliedTerrainNodeId;
+                        this.equalizedSideWithNodeId[S] =
+                            this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
 
                 // The normal map is the parent one, see whileNormalMapCreating
                 if (pn.segment.terrainExists) {
@@ -1219,4 +1244,4 @@ class Node {
     }
 }
 
-export { Node };
+export {Node};

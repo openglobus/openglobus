@@ -63,6 +63,7 @@ export interface IGlobeParams {
     quadTreeStrategyPrototype?: typeof QuadTreeStrategy;
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
+    aerialPerspectiveEnabled?: boolean;
     transitionOpacityEnabled?: boolean;
     terrain?: EmptyTerrain | EmptyTerrain[];
     controls?: Control[];
@@ -178,6 +179,8 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.deferredDisabled=false] - Disables deferred and WOIT pipelines and renders objects with forward shaders.
  * @param {number} [options.pixelRatio] - Device pixel ratio. Default is current screen DPI.
  * @param {boolean} [options.atmosphereEnabled] - Enables atmosphere effect.
+ * @param {boolean} [options.aerialPerspectiveEnabled=true] - Enables the atmosphere aerial perspective on the surface
+ * when the camera is low.
  * @param {boolean} [options.transtitionOpacityEnabled] - Enables terrain smooth opacity transition effect.
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
  * @param {number} [options.gamma] - Gamma
@@ -329,6 +332,7 @@ class Globe {
             quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
             maxLoadingRequests: options.maxLoadingRequests,
             atmosphereEnabled: options.atmosphereEnabled != undefined ? options.atmosphereEnabled : true,
+            aerialPerspectiveEnabled: options.aerialPerspectiveEnabled,
             transitionOpacityEnabled: options.transitionOpacityEnabled,
             atmosphereParameters: options.atmosphereParameters,
             minDistanceBeforeMemClear: options.minDistanceBeforeMemClear,
