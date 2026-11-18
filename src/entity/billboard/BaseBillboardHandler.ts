@@ -1,17 +1,17 @@
 import * as shaders from "../../shaders/billboard/billboard";
-import {spliceTypedArray} from "../../utils/shared";
-import type {TypedArray} from "../../utils/shared";
-import {EntityCollection} from "../EntityCollection";
-import type {Planet} from "../../scene/Planet";
-import {Renderer} from "../../renderer/Renderer";
-import {LOCK_FREE} from "../label/LabelWorker";
-import {Vec2} from "../../math/Vec2";
-import {Vec3} from "../../math/Vec3";
-import {Vec4} from "../../math/Vec4";
-import type {WebGLBufferExt} from "../../webgl/Handler";
-import type {ShaderProgram} from "../../webgl/ShaderProgram";
-import {BaseBillboard} from "./BaseBillboard";
-import {srgbToLinear} from "../../utils/colorSpace";
+import { spliceTypedArray } from "../../utils/shared";
+import type { TypedArray } from "../../utils/shared";
+import { EntityCollection } from "../EntityCollection";
+import type { Planet } from "../../scene/Planet";
+import { Renderer } from "../../renderer/Renderer";
+import { LOCK_FREE } from "../label/LabelWorker";
+import { Vec2 } from "../../math/Vec2";
+import { Vec3 } from "../../math/Vec3";
+import { Vec4 } from "../../math/Vec4";
+import type { WebGLBufferExt } from "../../webgl/Handler";
+import type { ShaderProgram } from "../../webgl/ShaderProgram";
+import { BaseBillboard } from "./BaseBillboard";
+import { srgbToLinear } from "../../utils/colorSpace";
 
 const _rtcPosition = new Vec3();
 
@@ -1046,8 +1046,7 @@ class BaseBillboardHandler {
         this._pickingColorBuffer = h.createArrayBuffer(this._pickingColorArr, 3, this._pickingColorArr.length / 3);
     }
 
-    public refreshTexCoordsArr() {
-    }
+    public refreshTexCoordsArr() {}
 }
 
-export {BaseBillboardHandler};
+export { BaseBillboardHandler };

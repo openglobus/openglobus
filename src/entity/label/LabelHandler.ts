@@ -1,17 +1,17 @@
 import * as shaders from "../../shaders/label/label";
-import {ALIGN, Label} from "./Label";
-import {BaseBillboardHandler} from "../billboard/BaseBillboardHandler";
-import {concatTypedArrays, spliceTypedArray} from "../../utils/shared";
-import {EntityCollection} from "../EntityCollection";
-import {LOCK_FREE} from "./LabelWorker";
-import type {Planet} from "../../scene/Planet";
-import type {WebGLBufferExt} from "../../webgl/Handler";
-import type {ShaderProgram} from "../../webgl/ShaderProgram";
-import {Vec2} from "../../math/Vec2";
-import {Vec3} from "../../math/Vec3";
-import {Vec4} from "../../math/Vec4";
-import {BaseBillboard} from "../billboard/BaseBillboard";
-import {srgbToLinear} from "../../utils/colorSpace";
+import { ALIGN, Label } from "./Label";
+import { BaseBillboardHandler } from "../billboard/BaseBillboardHandler";
+import { concatTypedArrays, spliceTypedArray } from "../../utils/shared";
+import { EntityCollection } from "../EntityCollection";
+import { LOCK_FREE } from "./LabelWorker";
+import type { Planet } from "../../scene/Planet";
+import type { WebGLBufferExt } from "../../webgl/Handler";
+import type { ShaderProgram } from "../../webgl/ShaderProgram";
+import { Vec2 } from "../../math/Vec2";
+import { Vec3 } from "../../math/Vec3";
+import { Vec4 } from "../../math/Vec4";
+import { BaseBillboard } from "../billboard/BaseBillboard";
+import { srgbToLinear } from "../../utils/colorSpace";
 
 type LabelWorkerCallbackData = {
     vertexArr: Float32Array;
@@ -143,7 +143,7 @@ class LabelHandler extends BaseBillboardHandler {
     }
 
     protected _addLabelToArrays(label: Label) {
-        this._renderer && this._renderer.labelWorker.make({handler: this, label: label});
+        this._renderer && this._renderer.labelWorker.make({ handler: this, label: label });
     }
 
     public assignFontAtlas(label: Label) {
@@ -1141,4 +1141,4 @@ class LabelHandler extends BaseBillboardHandler {
     }
 }
 
-export {LabelHandler};
+export { LabelHandler };

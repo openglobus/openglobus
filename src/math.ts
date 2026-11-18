@@ -1,4 +1,4 @@
-import {Vec3} from "./math/Vec3";
+import { Vec3 } from "./math/Vec3";
 
 /** @const */
 export const TWO_PI = 2.0 * Math.PI;
