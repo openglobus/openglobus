@@ -846,6 +846,8 @@ class EntityCollection {
     }
 
     protected _onChangeRelativeCenter = (c: Vec3) => {
+        this.billboardHandler.setRelativeCenter(c);
+        this.labelHandler.setRelativeCenter(c);
         this.geoObjectHandler.setRelativeCenter(c);
         this.polylineHandler.setRelativeCenter(c);
         this.stripHandler.setRelativeCenter(c);

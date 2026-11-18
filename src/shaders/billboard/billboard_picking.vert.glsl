@@ -18,6 +18,7 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 uniform vec3 eyePositionHigh;
 uniform vec3 eyePositionLow;
+uniform vec3 relativeCenter;
 uniform vec4 uScaleByDistance;
 uniform float uFocusDistance;
 uniform float opacity;
@@ -31,8 +32,8 @@ const vec3 ZERO3 = vec3(0.0);
 
 void main() {
 
-    vec3 a_positions = a_positionsHigh + a_positionsLow;
-    vec3 cameraPos = eyePositionHigh + eyePositionLow;
+    vec3 a_positions = a_positionsHigh + a_positionsLow + relativeCenter;
+    vec3 cameraPos = eyePositionHigh + eyePositionLow + relativeCenter;
 
     vec3 look = a_positions - cameraPos;
     float lookDist = length(look);
