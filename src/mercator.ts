@@ -1,3 +1,4 @@
+import { pow2i } from "./math";
 import { Extent } from "./Extent";
 import { LonLat } from "./LonLat";
 
@@ -131,7 +132,7 @@ export function forwardArray(lonlatArr: LonLat[]): LonLat[] {
 }
 
 export function getTileExtent(x: number, y: number, z: number): Extent {
-    let size = POLE2 / (1 << z), //Math.pow(2, z),
+    let size = POLE2 / pow2i(z),
         sw = new LonLat(-POLE + x * size, POLE - y * size - size);
     return new Extent(sw, new LonLat(sw.lon + size, sw.lat + size));
 }

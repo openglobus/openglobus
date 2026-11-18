@@ -10,10 +10,19 @@ import {
     random,
     randomi,
     step,
-    getAngleBetweenAzimuths
+    getAngleBetweenAzimuths,
+    pow2i
 } from "../src/math.ts";
 
 describe('math module', () => {
+    describe('pow2i', () => {
+        test('is the exact power of two on the deep zooms past the int32 shift', () => {
+            for (let n = 0; n <= 53; n++) {
+                expect(pow2i(n)).toBe(2 ** n);
+            }
+        });
+    });
+
     describe('log', () => {
         test('returns correct result for log base 2', () => {
             expect(log(8, 2)).toBe(3);

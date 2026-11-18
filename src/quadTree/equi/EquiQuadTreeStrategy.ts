@@ -1,3 +1,4 @@
+import { pow2i } from "../../math";
 import { Extent } from "../../Extent";
 import { equi } from "../../proj/equi";
 import { Node } from "../Node";
@@ -43,7 +44,7 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
         let z = zoom,
             x: number,
             y: number,
-            pz = 1 << z;
+            pz = pow2i(z);
 
         if (lonLat.lon > 0) {
             x = getTileCellIndex(lonLat.lon, 180 / pz, 0) + pz;
@@ -66,7 +67,7 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
         let extent: Extent;
 
         if (lonLat.lon > 0) {
-            extent = getTileCellExtent(x - (1 << z), y, z, this._eastExtent);
+            extent = getTileCellExtent(x - pow2i(z), y, z, this._eastExtent);
         } else {
             extent = getTileCellExtent(x, y, z, this._westExtent);
         }

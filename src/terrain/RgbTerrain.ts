@@ -2,7 +2,7 @@ import { Extent } from "../Extent";
 import { getTileExtent } from "../mercator";
 import type { IGlobusTerrainParams } from "./GlobusTerrain";
 import { GlobusTerrain } from "./GlobusTerrain";
-import { isPowerOfTwo } from "../math";
+import { isPowerOfTwo, pow2i } from "../math";
 import { Layer } from "../layer/Layer";
 import { LonLat } from "../LonLat";
 import { Segment } from "../segment/Segment";
@@ -532,7 +532,7 @@ function getTileOffset(
     parentTileY: number,
     parentTileZoom: number
 ): [number, number, number] {
-    let dz2 = 2 << (currentTileZoom - parentTileZoom - 1);
+    let dz2 = pow2i(currentTileZoom - parentTileZoom);
     return [currentTileX - dz2 * parentTileX, currentTileY - dz2 * parentTileY, 1.0 / dz2];
 }
 

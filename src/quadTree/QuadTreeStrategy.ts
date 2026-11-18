@@ -787,7 +787,7 @@ export class QuadTreeStrategy {
         let z = zoom,
             x: number,
             y: number,
-            pz = 1 << z;
+            pz = math.pow2i(z);
 
         x = getTileCellIndex(lonLat.lon, 360 / pz, -180);
         y = getTileCellIndex(lonLat.lat, 180 / pz, 90);

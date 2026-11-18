@@ -1,3 +1,4 @@
+import { pow2i } from "../math";
 import * as mercator from "../mercator";
 import * as segmentHelper from "../segment/segmentHelper";
 import { Box } from "../bv/Box";
@@ -33,7 +34,7 @@ export function getTileCellIndex(coordinate: number, tileSize: number, worldEdge
 }
 
 export function getTileCellExtent(x: number, y: number, z: number, worldExtent: Extent): Extent {
-    let pz = 1.0 / (1 << z);
+    let pz = 1.0 / pow2i(z);
 
     let worldWidth = worldExtent.getWidth(),
         worldHeight = worldExtent.getHeight();
@@ -478,7 +479,7 @@ class Segment {
 
         this.tileZoom = tileZoom;
 
-        this.powTileZoom = 1 << tileZoom; //Math.pow(2, tileZoom);
+        this.powTileZoom = pow2i(tileZoom);
 
         this.tileX = 0;
 
@@ -1018,7 +1019,7 @@ class Segment {
                 dyRtc = ns._relativeCenter.y - this._relativeCenter.y,
                 dzRtc = ns._relativeCenter.z - this._relativeCenter.z;
 
-            let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
+            let dz = 1 / pow2i(this.tileZoom - n.segment.tileZoom);
 
             const opcs = this.opside[side];
 
@@ -1163,7 +1164,7 @@ class Segment {
         }
 
         const opcs = this.opside[side],
-            pos = ((side & 1 ? this.tileY : this.tileX) + NOPSORD[side][corner]) / (1 << (this.tileZoom - ns.tileZoom)),
+            pos = ((side & 1 ? this.tileY : this.tileX) + NOPSORD[side][corner]) / pow2i(this.tileZoom - ns.tileZoom),
             n_gs = ns.gridSize,
             n_gsOne = n_gs + 1,
             u = ((SIDEFLIP[side][opcs] ? ns.powTileZoom - pos : pos) - (opcs & 1 ? ns.tileY : ns.tileX)) * n_gs,
@@ -1540,7 +1541,7 @@ class Segment {
             b = t.normalMapNormals!,
             gs = Math.sqrt(a.length / 3) - 1,
             tgs = Math.sqrt(b.length / 3) - 1,
-            size = tgs / (1 << (this.tileZoom - t.tileZoom)),
+            size = tgs / pow2i(this.tileZoom - t.tileZoom),
             x0 = this.node.getOffsetOppositeNeighbourSide(t.node, N) * tgs,
             y0 = this.node.getOffsetOppositeNeighbourSide(t.node, W) * tgs;
 
@@ -1845,7 +1846,7 @@ class Segment {
         }
 
         const pseg = pn.segment,
-            dZ2 = 1 << (this.tileZoom - pseg.tileZoom),
+            dZ2 = pow2i(this.tileZoom - pseg.tileZoom),
             gridSize = pseg.gridSize / dZ2;
 
         this.minTerrainRadius = pseg.minTerrainRadius;

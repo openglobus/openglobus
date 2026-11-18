@@ -16,7 +16,7 @@ import type { IHeightsLevelsSource } from "./terrainUtils";
 import { Extent } from "../Extent";
 import { Layer } from "../layer/Layer";
 import { LonLat } from "../LonLat";
-import { isPowerOfTwo } from "../math";
+import { isPowerOfTwo, pow2i } from "../math";
 import { Vec3 } from "../math/Vec3";
 import type { Segment } from "../segment/Segment";
 import { LRUCache } from "../utils/LRUCache";
@@ -228,7 +228,7 @@ class ProceduralTerrain extends EmptyTerrain {
             return this._getSegmentHeights(s);
         }
 
-        let d = 1 << (zoom - s.tileZoom),
+        let d = pow2i(zoom - s.tileZoom),
             e = s.getExtent(),
             width = e.getWidth() / d,
             height = e.getHeight() / d,
@@ -350,7 +350,7 @@ class ProceduralTerrain extends EmptyTerrain {
             return n.segment;
         }
 
-        let d = 1 << (segment.tileZoom - this.maxNativeZoom),
+        let d = pow2i(segment.tileZoom - this.maxNativeZoom),
             e = segment.getExtent(),
             width = e.getWidth(),
             height = e.getHeight(),
