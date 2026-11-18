@@ -1,13 +1,13 @@
-import {Extent} from "../Extent";
-import {binaryInsert, getMatrixSubArray64, getMatrixSubArrayBoundsExt} from "../utils/shared";
-import {getMedian} from "../terrain/terrainUtils";
-import {LonLat} from "../LonLat";
-import {MAX, MIN} from "../math";
-import {Segment} from "../segment/Segment";
-import {QuadTreeStrategy} from "./QuadTreeStrategy";
+import { Extent } from "../Extent";
+import { binaryInsert, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
+import { getMedian } from "../terrain/terrainUtils";
+import { LonLat } from "../LonLat";
+import { MAX, MIN } from "../math";
+import { Segment } from "../segment/Segment";
+import { QuadTreeStrategy } from "./QuadTreeStrategy";
 
-import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
+import { Vec2 } from "../math/Vec2";
+import { Vec3 } from "../math/Vec3";
 import {
     E,
     MAX_RENDERED_NODES,
@@ -30,8 +30,8 @@ import {
     WALKTHROUGH
 } from "./quadTree";
 
-import {PlanetCamera} from "../camera/PlanetCamera";
-import type {Camera} from "../camera/Camera";
+import { PlanetCamera } from "../camera/PlanetCamera";
+import type { Camera } from "../camera/Camera";
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
@@ -141,8 +141,7 @@ class Node {
         this.parentNode = parent;
         this.partId = partId;
         const nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
-        this.nodeId =
-            parent && (parent.nodeId < 0 || nodeId > Number.MAX_SAFE_INTEGER) ? -2 - this.__id : nodeId;
+        this.nodeId = parent && (parent.nodeId < 0 || nodeId > Number.MAX_SAFE_INTEGER) ? -2 - this.__id : nodeId;
         this.state = null;
         this.prevState = null;
         this.appliedTerrainNodeId = -1;
@@ -893,8 +892,9 @@ class Node {
         this.appliedTerrainNodeId = pn.nodeId;
         this.equalizedSideWithNodeId[N] =
             this.equalizedSideWithNodeId[E] =
-                this.equalizedSideWithNodeId[S] =
-                    this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+            this.equalizedSideWithNodeId[S] =
+            this.equalizedSideWithNodeId[W] =
+                this.appliedTerrainNodeId;
 
         let gridSize = pn.segment.gridSize / dZ2,
             gridSizeExt = pn.segment.fileGridSize / dZ2;
@@ -1084,8 +1084,9 @@ class Node {
                 this.appliedTerrainNodeId = this.nodeId;
                 this.equalizedSideWithNodeId[N] =
                     this.equalizedSideWithNodeId[E] =
-                        this.equalizedSideWithNodeId[S] =
-                            this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+                    this.equalizedSideWithNodeId[S] =
+                    this.equalizedSideWithNodeId[W] =
+                        this.appliedTerrainNodeId;
 
                 // The normal map is the parent one, see whileNormalMapCreating
                 if (pn.segment.terrainExists) {
@@ -1244,4 +1245,4 @@ class Node {
     }
 }
 
-export {Node};
+export { Node };

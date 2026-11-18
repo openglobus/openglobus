@@ -1,32 +1,32 @@
 import * as mercator from "../mercator";
 import * as segmentHelper from "../segment/segmentHelper";
-import {Box} from "../bv/Box";
-import {Extent} from "../Extent";
-import {Entity} from "../entity/Entity";
-import {EPSG3857} from "../proj/EPSG3857";
-import {CORNERSIDE, E, N, NOPSORD, NW, OPSIDE, S, SE, SIDEFLIP, W} from "../quadTree/quadTree";
-import type {TypedArray} from "../utils/shared";
-import {NormalsArray} from "../utils/normalsArray";
-import {Handler} from "../webgl/Handler";
-import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
-import type {ITerrainWorkerData} from "../utils/TerrainWorker";
-import {Layer} from "../layer/Layer";
-import {LonLat} from "../LonLat";
-import {Material} from "../layer/Material";
-import {Node} from "../quadTree/Node";
-import {Planet} from "../scene/Planet";
-import {PlanetCamera} from "../camera/PlanetCamera";
-import type {Camera} from "../camera/Camera";
-import {ShaderProgram} from "../webgl/ShaderProgram";
-import {Proj} from "../proj/Proj";
-import {Sphere} from "../bv/Sphere";
-import type {NumberArray6} from "../bv/Sphere";
-import {Slice} from "./Slice";
-import {Ray} from "../math/Ray";
-import {Vec3} from "../math/Vec3";
-import type {IPlainSegmentWorkerData} from "../utils/PlainSegmentWorker";
-import {MAX_LAT} from "../mercator";
-import {QuadTreeStrategy} from "../quadTree";
+import { Box } from "../bv/Box";
+import { Extent } from "../Extent";
+import { Entity } from "../entity/Entity";
+import { EPSG3857 } from "../proj/EPSG3857";
+import { CORNERSIDE, E, N, NOPSORD, NW, OPSIDE, S, SE, SIDEFLIP, W } from "../quadTree/quadTree";
+import type { TypedArray } from "../utils/shared";
+import { NormalsArray } from "../utils/normalsArray";
+import { Handler } from "../webgl/Handler";
+import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
+import type { ITerrainWorkerData } from "../utils/TerrainWorker";
+import { Layer } from "../layer/Layer";
+import { LonLat } from "../LonLat";
+import { Material } from "../layer/Material";
+import { Node } from "../quadTree/Node";
+import { Planet } from "../scene/Planet";
+import { PlanetCamera } from "../camera/PlanetCamera";
+import type { Camera } from "../camera/Camera";
+import { ShaderProgram } from "../webgl/ShaderProgram";
+import { Proj } from "../proj/Proj";
+import { Sphere } from "../bv/Sphere";
+import type { NumberArray6 } from "../bv/Sphere";
+import { Slice } from "./Slice";
+import { Ray } from "../math/Ray";
+import { Vec3 } from "../math/Vec3";
+import type { IPlainSegmentWorkerData } from "../utils/PlainSegmentWorker";
+import { MAX_LAT } from "../mercator";
+import { QuadTreeStrategy } from "../quadTree";
 
 export function getTileCellIndex(coordinate: number, tileSize: number, worldEdge: number): number {
     return Math.floor(Math.abs(worldEdge - coordinate) / tileSize);
@@ -870,7 +870,7 @@ class Segment {
             this.elevationData = new Float32Array(elevations.length);
             this.elevationData.set(elevations);
 
-            this.planet._terrainWorker.make({segment: this, elevations: _elevations});
+            this.planet._terrainWorker.make({ segment: this, elevations: _elevations });
 
             this.plainVerticesHigh = null;
             this.plainVerticesLow = null;
@@ -897,9 +897,9 @@ class Segment {
                 n.appliedTerrainNodeId = this.node.nodeId;
                 n.equalizedSideWithNodeId[N] =
                     n.equalizedSideWithNodeId[E] =
-                        n.equalizedSideWithNodeId[S] =
-                            n.equalizedSideWithNodeId[W] =
-                                n.appliedTerrainNodeId;
+                    n.equalizedSideWithNodeId[S] =
+                    n.equalizedSideWithNodeId[W] =
+                        n.appliedTerrainNodeId;
 
                 if (!this._inTheQueue) {
                     this.planet._normalMapCreator.queue(this);
@@ -943,9 +943,9 @@ class Segment {
                 n.appliedTerrainNodeId = this.node.nodeId;
                 n.equalizedSideWithNodeId[N] =
                     n.equalizedSideWithNodeId[E] =
-                        n.equalizedSideWithNodeId[S] =
-                            n.equalizedSideWithNodeId[W] =
-                                n.appliedTerrainNodeId;
+                    n.equalizedSideWithNodeId[S] =
+                    n.equalizedSideWithNodeId[W] =
+                        n.appliedTerrainNodeId;
 
                 this.readyToEngage = true;
                 this.terrainReady = true;
@@ -1338,9 +1338,9 @@ class Segment {
             n.appliedTerrainNodeId = n.nodeId;
             n.equalizedSideWithNodeId[N] =
                 n.equalizedSideWithNodeId[E] =
-                    n.equalizedSideWithNodeId[S] =
-                        n.equalizedSideWithNodeId[W] =
-                            n.appliedTerrainNodeId;
+                n.equalizedSideWithNodeId[S] =
+                n.equalizedSideWithNodeId[W] =
+                    n.appliedTerrainNodeId;
 
             this.terrainReady = true;
             this.terrainIsLoading = false;
@@ -1490,9 +1490,9 @@ class Segment {
             this._appliedNeighborsZoomNodeId[side] === t.node.nodeId &&
             (t.tileZoom === this.tileZoom ||
                 this._appliedNeighborsVersion[side] ===
-                (this._appliedNeighborsInside[side]
-                    ? t._normalMapArraysVersion
-                    : t._normalMapSideVersion[this.opside[side]]))
+                    (this._appliedNeighborsInside[side]
+                        ? t._normalMapArraysVersion
+                        : t._normalMapSideVersion[this.opside[side]]))
         );
     }
 
@@ -2832,4 +2832,4 @@ class Segment {
     }
 }
 
-export {Segment};
+export { Segment };

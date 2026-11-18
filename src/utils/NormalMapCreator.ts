@@ -247,7 +247,6 @@ export class NormalMapCreator {
         const gl = this._handler!.gl!,
             half = normals.BYTES_PER_ELEMENT === 2,
             type = half ? gl.HALF_FLOAT : gl.FLOAT,
-
             // The half floats go to WebGL as their bits
             data = half ? new Uint16Array(normals.buffer, normals.byteOffset, normals.length) : normals;
 

@@ -1,15 +1,15 @@
-import {Entity} from "../entity/Entity";
-import {Extent} from "../Extent";
-import {Layer} from "../layer/Layer";
-import {LonLat} from "../LonLat";
-import {CUBE_BOTTOM, CUBE_OPSIDE, CUBE_TOP} from "../proj/cube";
-import type {CubeProj} from "../proj/cube";
-import {Vec3} from "../math/Vec3";
-import {PlanetCamera} from "../camera/PlanetCamera";
-import {Node} from "../quadTree/Node";
-import {E, N, S, W} from "../quadTree/quadTree";
-import {QuadTreeStrategy} from "../quadTree";
-import {Segment} from "./Segment";
+import { Entity } from "../entity/Entity";
+import { Extent } from "../Extent";
+import { Layer } from "../layer/Layer";
+import { LonLat } from "../LonLat";
+import { CUBE_BOTTOM, CUBE_OPSIDE, CUBE_TOP } from "../proj/cube";
+import type { CubeProj } from "../proj/cube";
+import { Vec3 } from "../math/Vec3";
+import { PlanetCamera } from "../camera/PlanetCamera";
+import { Node } from "../quadTree/Node";
+import { E, N, S, W } from "../quadTree/quadTree";
+import { QuadTreeStrategy } from "../quadTree";
+import { Segment } from "./Segment";
 
 /**
  * Planet segment of a cube face. Its extent is in the native coordinates of the cube, see proj/cube.
@@ -42,7 +42,9 @@ class SegmentCube extends Segment {
             last = this.powTileZoom - 1;
 
         this.opside =
-            CUBE_OPSIDE[face][(y === 0 ? 1 << N : 0) | (x === last ? 1 << E : 0) | (y === last ? 1 << S : 0) | (x === 0 ? 1 << W : 0)];
+            CUBE_OPSIDE[face][
+                (y === 0 ? 1 << N : 0) | (x === last ? 1 << E : 0) | (y === last ? 1 << S : 0) | (x === 0 ? 1 << W : 0)
+            ];
     }
 
     /**
@@ -175,8 +177,7 @@ class SegmentCube extends Segment {
     }
 
     // The night and specular textures are in the Web Mercator
-    protected override _assignGlobalTextureCoordinates() {
-    }
+    protected override _assignGlobalTextureCoordinates() {}
 }
 
-export {SegmentCube};
+export { SegmentCube };
