@@ -7,16 +7,16 @@ import {
     type IFlyCartesianParams,
     type ICameraParams
 } from "./Camera";
-import {Key} from "../Lock";
-import {LonLat} from "../LonLat";
-import {Mat4} from "../math/Mat4";
-import {Planet} from "../scene/Planet";
-import {Quat} from "../math/Quat";
-import {Ray} from "../math/Ray";
-import {Vec3} from "../math/Vec3";
-import {Extent} from "../Extent";
-import {Segment} from "../segment/Segment";
-import {EPS12, RADIANS} from "../math";
+import { Key } from "../Lock";
+import { LonLat } from "../LonLat";
+import { Mat4 } from "../math/Mat4";
+import { Planet } from "../scene/Planet";
+import { Quat } from "../math/Quat";
+import { Ray } from "../math/Ray";
+import { Vec3 } from "../math/Vec3";
+import { Extent } from "../Extent";
+import { Segment } from "../segment/Segment";
+import { EPS12, RADIANS } from "../math";
 
 /**
  * Distance between the flight ends in meters, where the flight goes straight without linearPath too.
@@ -163,11 +163,11 @@ class PlanetCamera extends Camera {
             (useSingleReverseFrustum
                 ? [[150, 1e12]]
                 : [
-                    [1, 100.075],
-                    [100, 1000.075],
-                    [1000, 1e6 + 10000],
-                    [1e6, 1e9]
-                ]);
+                      [1, 100.075],
+                      [100, 1000.075],
+                      [1000, 1e6 + 10000],
+                      [1e6, 1e9]
+                  ]);
 
         super({
             ...options,
@@ -385,7 +385,7 @@ class PlanetCamera extends Camera {
     protected _getExtentCenterHeightInfo(extent: Extent): { height: number; segmentZoom: number } {
         const renderedNodes = this.planet.quadTreeStrategy._renderedNodes;
         if (!renderedNodes || !renderedNodes.length) {
-            return {height: NaN, segmentZoom: -1};
+            return { height: NaN, segmentZoom: -1 };
         }
 
         const centerLonLat = extent.getCenter();
@@ -403,11 +403,11 @@ class PlanetCamera extends Camera {
         }
 
         if (!bestSegment) {
-            return {height: NaN, segmentZoom: -1};
+            return { height: NaN, segmentZoom: -1 };
         }
 
         if (!bestSegment.terrainReady || !bestSegment.renderVertices || !bestSegment.renderVertices.length) {
-            return {height: NaN, segmentZoom: bestSegment.tileZoom};
+            return { height: NaN, segmentZoom: bestSegment.tileZoom };
         }
 
         const nativeCenter = bestSegment.projectNative(centerLonLat);
@@ -416,7 +416,7 @@ class PlanetCamera extends Camera {
             nativeCenter,
             this._terrainPoint
         );
-        return {height: -centerAltitudeFromTerrain, segmentZoom: bestSegment.tileZoom};
+        return { height: -centerAltitudeFromTerrain, segmentZoom: bestSegment.tileZoom };
     }
 
     protected _isSegmentHeightAccurate(extentHeight: number, segmentZoom: number): boolean {
@@ -611,11 +611,9 @@ class PlanetCamera extends Camera {
         params.duration = params.duration || DEFAULT_FLIGHT_DURATION;
         const ease = params.ease || DEFAULT_EASING;
 
-        this._completeCallback = params.completeCallback || (() => {
-        });
+        this._completeCallback = params.completeCallback || (() => {});
 
-        this._frameCallback = params.frameCallback || (() => {
-        });
+        this._frameCallback = params.frameCallback || (() => {});
 
         if (params.startCallback) {
             params.startCallback.call(this);
@@ -740,7 +738,7 @@ class PlanetCamera extends Camera {
             if (t >= 1) {
                 let n = n_b.clone().normalize(),
                     v = getAlignedUp(n.negateTo(), v_b);
-                return {n: n, u: v.cross(n), v: v};
+                return { n: n, u: v.cross(n), v: v };
             }
 
             let pitch = pitch_a + (pitch_b - pitch_a) * t;
@@ -763,7 +761,7 @@ class PlanetCamera extends Camera {
             let n = east.scaleTo(n_l.x).addA(up.scaleTo(n_l.y)).subA(north.scaleTo(n_l.z)),
                 v = east.scaleTo(v_l.x).addA(up.scaleTo(v_l.y)).subA(north.scaleTo(v_l.z));
 
-            return {n: n, u: v.cross(n), v: v};
+            return { n: n, u: v.cross(n), v: v };
         };
     }
 
@@ -964,8 +962,7 @@ class PlanetCamera extends Camera {
     protected _isFlightVisible(poi: Vec3): boolean {
         let h = this.planet.ellipsoid.cartesianToLonLat(poi).height;
         return (
-            this.eye.distance(poi) <
-            getHorizon(this._lonLat.height, this.eye.length()) + getHorizon(h, poi.length())
+            this.eye.distance(poi) < getHorizon(this._lonLat.height, this.eye.length()) + getHorizon(h, poi.length())
         );
     }
 
@@ -1051,4 +1048,4 @@ class PlanetCamera extends Camera {
     }
 }
 
-export {PlanetCamera};
+export { PlanetCamera };
