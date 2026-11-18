@@ -20,6 +20,7 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 uniform vec3 eyePositionHigh;
 uniform vec3 eyePositionLow;
+uniform vec3 relativeCenter;
 uniform float planetRadius;
 uniform vec4 scaleByDistance;
 uniform float uFocusDistance;
@@ -30,8 +31,8 @@ uniform float depthOffsetNear;
 const vec3 ZERO3 = vec3(0.0);
 
 void main() {
-    vec3 a_positions = a_positionsHigh + a_positionsLow;
-    vec3 cameraPos = eyePositionHigh + eyePositionLow;
+    vec3 a_positions = a_positionsHigh + a_positionsLow + relativeCenter;
+    vec3 cameraPos = eyePositionHigh + eyePositionLow + relativeCenter;
     v_rgba = a_rgba;
 
     if (a_texCoord.w == EMPTY) {
@@ -47,8 +48,8 @@ void main() {
 
     float distMetric = uFocusDistance > 0.0 ? uFocusDistance : lookDist;
     float scd = scaleByDistance[2] > scaleByDistance[1]
-        ? 1.0 - smoothstep(scaleByDistance[1], scaleByDistance[2], distMetric)
-        : 1.0;
+    ? 1.0 - smoothstep(scaleByDistance[1], scaleByDistance[2], distMetric)
+    : 1.0;
     scd *= scaleByDistance[3];
 
     v_rgba.a *= opacity * visibilityMask;

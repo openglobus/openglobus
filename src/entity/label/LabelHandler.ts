@@ -1,17 +1,17 @@
 import * as shaders from "../../shaders/label/label";
-import { ALIGN, Label } from "./Label";
-import { BaseBillboardHandler } from "../billboard/BaseBillboardHandler";
-import { concatTypedArrays, spliceTypedArray } from "../../utils/shared";
-import { EntityCollection } from "../EntityCollection";
-import { LOCK_FREE } from "./LabelWorker";
-import type { Planet } from "../../scene/Planet";
-import type { WebGLBufferExt } from "../../webgl/Handler";
-import type { ShaderProgram } from "../../webgl/ShaderProgram";
-import { Vec2 } from "../../math/Vec2";
-import { Vec3 } from "../../math/Vec3";
-import { Vec4 } from "../../math/Vec4";
-import { BaseBillboard } from "../billboard/BaseBillboard";
-import { srgbToLinear } from "../../utils/colorSpace";
+import {ALIGN, Label} from "./Label";
+import {BaseBillboardHandler} from "../billboard/BaseBillboardHandler";
+import {concatTypedArrays, spliceTypedArray} from "../../utils/shared";
+import {EntityCollection} from "../EntityCollection";
+import {LOCK_FREE} from "./LabelWorker";
+import type {Planet} from "../../scene/Planet";
+import type {WebGLBufferExt} from "../../webgl/Handler";
+import type {ShaderProgram} from "../../webgl/ShaderProgram";
+import {Vec2} from "../../math/Vec2";
+import {Vec3} from "../../math/Vec3";
+import {Vec4} from "../../math/Vec4";
+import {BaseBillboard} from "../billboard/BaseBillboard";
+import {srgbToLinear} from "../../utils/colorSpace";
 
 type LabelWorkerCallbackData = {
     vertexArr: Float32Array;
@@ -128,6 +128,7 @@ class LabelHandler extends BaseBillboardHandler {
     public override add(label: Label) {
         if (!label._handler) {
             label._handler = this;
+            label._setRTCPosition();
             this.assignFontAtlas(label);
             this.refresh();
         }
@@ -142,7 +143,7 @@ class LabelHandler extends BaseBillboardHandler {
     }
 
     protected _addLabelToArrays(label: Label) {
-        this._renderer && this._renderer.labelWorker.make({ handler: this, label: label });
+        this._renderer && this._renderer.labelWorker.make({handler: this, label: label});
     }
 
     public assignFontAtlas(label: Label) {
@@ -178,6 +179,7 @@ class LabelHandler extends BaseBillboardHandler {
 
             this._insertBillboardByOpacity(label._handlerIndex, this._isBillboardOpaque(label));
 
+            label.updateRTCPosition();
             label.update();
 
             this.refresh();
@@ -395,8 +397,10 @@ class LabelHandler extends BaseBillboardHandler {
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
-        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+        this._updateRTCEyePosition();
+        gl.uniform3fv(shu.eyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(shu.eyePositionLow, this._rtcEyePositionLow);
+        gl.uniform3fv(shu.relativeCenter, this._relativeCenterArr);
         gl.uniform4f(
             shu.scaleByDistance,
             ec.scaleByDistance[0],
@@ -510,8 +514,10 @@ class LabelHandler extends BaseBillboardHandler {
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
-        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+        this._updateRTCEyePosition();
+        gl.uniform3fv(shu.eyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(shu.eyePositionLow, this._rtcEyePositionLow);
+        gl.uniform3fv(shu.relativeCenter, this._relativeCenterArr);
         gl.uniform4f(
             shu.scaleByDistance,
             ec.scaleByDistance[0],
@@ -1135,4 +1141,4 @@ class LabelHandler extends BaseBillboardHandler {
     }
 }
 
-export { LabelHandler };
+export {LabelHandler};

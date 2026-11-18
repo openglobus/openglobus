@@ -166,7 +166,7 @@ class BaseBillboard {
         this._position.x = x;
         this._position.y = y;
         this._position.z = z;
-        Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
+        this._setRTCPosition();
         if (this._isReady && this._handler) {
             this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
         } else if (this._lockId !== LOCK_FREE) {
@@ -186,11 +186,34 @@ class BaseBillboard {
         this._position.x = position.x;
         this._position.y = position.y;
         this._position.z = position.z;
-        Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
+        this._setRTCPosition();
         if (this._isReady && this._handler) {
             this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;
+        }
+    }
+
+    /**
+     * Splits the position relative to the handler center into the high and low parts.
+     * @public
+     */
+    public _setRTCPosition() {
+        if (this._handler) {
+            this._handler.getRTCPosition(this._position, this._positionHigh, this._positionLow);
+        } else {
+            Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
+        }
+    }
+
+    /**
+     * Updates the position relative to the handler center, when the center is changed.
+     * @public
+     */
+    public updateRTCPosition() {
+        this._setRTCPosition();
+        if (this._isReady && this._handler) {
+            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
         }
     }
 
