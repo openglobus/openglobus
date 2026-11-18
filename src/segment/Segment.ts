@@ -1,33 +1,32 @@
 import * as mercator from "../mercator";
 import * as segmentHelper from "../segment/segmentHelper";
-import { Box } from "../bv/Box";
-import { Extent } from "../Extent";
-import { Entity } from "../entity/Entity";
-import { EPSG3857 } from "../proj/EPSG3857";
-import { CORNERSIDE, E, N, NOPSORD, NW, OPSIDE, S, SE, SIDEFLIP, W } from "../quadTree/quadTree";
-import { getMatrixSubArray64 } from "../utils/shared";
-import type { TypedArray } from "../utils/shared";
-import { NormalsArray } from "../utils/normalsArray";
-import { Handler } from "../webgl/Handler";
-import type { WebGLBufferExt, WebGLTextureExt } from "../webgl/Handler";
-import type { ITerrainWorkerData } from "../utils/TerrainWorker";
-import { Layer } from "../layer/Layer";
-import { LonLat } from "../LonLat";
-import { Material } from "../layer/Material";
-import { Node } from "../quadTree/Node";
-import { Planet } from "../scene/Planet";
-import { PlanetCamera } from "../camera/PlanetCamera";
-import type { Camera } from "../camera/Camera";
-import { ShaderProgram } from "../webgl/ShaderProgram";
-import { Proj } from "../proj/Proj";
-import { Sphere } from "../bv/Sphere";
-import type { NumberArray6 } from "../bv/Sphere";
-import { Slice } from "./Slice";
-import { Ray } from "../math/Ray";
-import { Vec3 } from "../math/Vec3";
-import type { IPlainSegmentWorkerData } from "../utils/PlainSegmentWorker";
-import { MAX_LAT } from "../mercator";
-import { QuadTreeStrategy } from "../quadTree";
+import {Box} from "../bv/Box";
+import {Extent} from "../Extent";
+import {Entity} from "../entity/Entity";
+import {EPSG3857} from "../proj/EPSG3857";
+import {CORNERSIDE, E, N, NOPSORD, NW, OPSIDE, S, SE, SIDEFLIP, W} from "../quadTree/quadTree";
+import type {TypedArray} from "../utils/shared";
+import {NormalsArray} from "../utils/normalsArray";
+import {Handler} from "../webgl/Handler";
+import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import type {ITerrainWorkerData} from "../utils/TerrainWorker";
+import {Layer} from "../layer/Layer";
+import {LonLat} from "../LonLat";
+import {Material} from "../layer/Material";
+import {Node} from "../quadTree/Node";
+import {Planet} from "../scene/Planet";
+import {PlanetCamera} from "../camera/PlanetCamera";
+import type {Camera} from "../camera/Camera";
+import {ShaderProgram} from "../webgl/ShaderProgram";
+import {Proj} from "../proj/Proj";
+import {Sphere} from "../bv/Sphere";
+import type {NumberArray6} from "../bv/Sphere";
+import {Slice} from "./Slice";
+import {Ray} from "../math/Ray";
+import {Vec3} from "../math/Vec3";
+import type {IPlainSegmentWorkerData} from "../utils/PlainSegmentWorker";
+import {MAX_LAT} from "../mercator";
+import {QuadTreeStrategy} from "../quadTree";
 
 export function getTileCellIndex(coordinate: number, tileSize: number, worldEdge: number): number {
     return Math.floor(Math.abs(worldEdge - coordinate) / tileSize);
@@ -871,7 +870,7 @@ class Segment {
             this.elevationData = new Float32Array(elevations.length);
             this.elevationData.set(elevations);
 
-            this.planet._terrainWorker.make({ segment: this, elevations: _elevations });
+            this.planet._terrainWorker.make({segment: this, elevations: _elevations});
 
             this.plainVerticesHigh = null;
             this.plainVerticesLow = null;
@@ -898,9 +897,9 @@ class Segment {
                 n.appliedTerrainNodeId = this.node.nodeId;
                 n.equalizedSideWithNodeId[N] =
                     n.equalizedSideWithNodeId[E] =
-                    n.equalizedSideWithNodeId[S] =
-                    n.equalizedSideWithNodeId[W] =
-                        n.appliedTerrainNodeId;
+                        n.equalizedSideWithNodeId[S] =
+                            n.equalizedSideWithNodeId[W] =
+                                n.appliedTerrainNodeId;
 
                 if (!this._inTheQueue) {
                     this.planet._normalMapCreator.queue(this);
@@ -944,9 +943,9 @@ class Segment {
                 n.appliedTerrainNodeId = this.node.nodeId;
                 n.equalizedSideWithNodeId[N] =
                     n.equalizedSideWithNodeId[E] =
-                    n.equalizedSideWithNodeId[S] =
-                    n.equalizedSideWithNodeId[W] =
-                        n.appliedTerrainNodeId;
+                        n.equalizedSideWithNodeId[S] =
+                            n.equalizedSideWithNodeId[W] =
+                                n.appliedTerrainNodeId;
 
                 this.readyToEngage = true;
                 this.terrainReady = true;
@@ -1339,9 +1338,9 @@ class Segment {
             n.appliedTerrainNodeId = n.nodeId;
             n.equalizedSideWithNodeId[N] =
                 n.equalizedSideWithNodeId[E] =
-                n.equalizedSideWithNodeId[S] =
-                n.equalizedSideWithNodeId[W] =
-                    n.appliedTerrainNodeId;
+                    n.equalizedSideWithNodeId[S] =
+                        n.equalizedSideWithNodeId[W] =
+                            n.appliedTerrainNodeId;
 
             this.terrainReady = true;
             this.terrainIsLoading = false;
@@ -1491,9 +1490,9 @@ class Segment {
             this._appliedNeighborsZoomNodeId[side] === t.node.nodeId &&
             (t.tileZoom === this.tileZoom ||
                 this._appliedNeighborsVersion[side] ===
-                    (this._appliedNeighborsInside[side]
-                        ? t._normalMapArraysVersion
-                        : t._normalMapSideVersion[this.opside[side]]))
+                (this._appliedNeighborsInside[side]
+                    ? t._normalMapArraysVersion
+                    : t._normalMapSideVersion[this.opside[side]]))
         );
     }
 
@@ -1845,109 +1844,102 @@ class Segment {
             pn = pn.parentNode;
         }
 
-        let dZ2 = 1 << (this.tileZoom - pn.segment.tileZoom);
-
-        let offsetX = this.tileX - pn.segment.tileX * dZ2,
-            offsetY = this.tileY - pn.segment.tileY * dZ2;
-
-        const pseg = pn.segment;
+        const pseg = pn.segment,
+            dZ2 = 1 << (this.tileZoom - pseg.tileZoom),
+            gridSize = pseg.gridSize / dZ2;
 
         this.minTerrainRadius = pseg.minTerrainRadius;
         this.maxTerrainRadius = pseg.maxTerrainRadius;
 
-        const rtc_x = pseg._relativeCenter.x,
-            rtc_y = pseg._relativeCenter.y,
-            rtc_z = pseg._relativeCenter.z;
+        if (pseg.terrainReady && pseg.tileZoom >= this.planet.terrain!.minZoom && gridSize >= 1.0) {
+            // The corners are the parent grid vertices
+            const i0 = gridSize * (this.tileY - pseg.tileY * dZ2),
+                j0 = gridSize * (this.tileX - pseg.tileX * dZ2),
+                pnGsOne = pseg.gridSize + 1,
+                pVerts = pseg.renderVertices!,
+                rtc = pseg._relativeCenter;
 
-        if (pseg.terrainReady && pseg.tileZoom >= this.planet.terrain!.minZoom) {
-            let gridSize = pseg.gridSize / dZ2;
+            const setCorner = (out: Vec3, i: number, j: number) => {
+                const k = 3 * (i * pnGsOne + j);
+                out.set(pVerts[k] + rtc.x, pVerts[k + 1] + rtc.y, pVerts[k + 2] + rtc.z);
+            };
 
-            if (gridSize >= 1.0) {
-                //
-                // (*) Get parent whole bounding volume
-                //
-                this.bsphere.center.x = pseg.bsphere.center.x;
-                this.bsphere.center.y = pseg.bsphere.center.y;
-                this.bsphere.center.z = pseg.bsphere.center.z;
-                this.bsphere.radius = pseg.bsphere.radius;
+            setCorner(this._sw, i0 + gridSize, j0);
+            setCorner(this._nw, i0, j0);
+            setCorner(this._ne, i0, j0 + gridSize);
+            setCorner(this._se, i0 + gridSize, j0 + gridSize);
 
-                let i0 = gridSize * offsetY;
-                let j0 = gridSize * offsetX;
-
-                let pnGsOne = pseg.gridSize + 1;
-
-                let ind_sw = 3 * ((i0 + gridSize) * pnGsOne + j0),
-                    ind_nw = 3 * (i0 * pnGsOne + j0),
-                    ind_ne = 3 * (i0 * pnGsOne + j0 + gridSize),
-                    ind_se = 3 * ((i0 + gridSize) * pnGsOne + j0 + gridSize);
-
-                let pVerts = pseg.renderVertices!;
-
-                let v_sw = new Vec3(pVerts[ind_sw] + rtc_x, pVerts[ind_sw + 1] + rtc_y, pVerts[ind_sw + 2] + rtc_z),
-                    v_ne = new Vec3(pVerts[ind_ne] + rtc_x, pVerts[ind_ne + 1] + rtc_y, pVerts[ind_ne + 2] + rtc_z);
-
-                // check for segment zoom
-                let v_nw = new Vec3(pVerts[ind_nw] + rtc_x, pVerts[ind_nw + 1] + rtc_y, pVerts[ind_nw + 2] + rtc_z),
-                    v_se = new Vec3(pVerts[ind_se] + rtc_x, pVerts[ind_se + 1] + rtc_y, pVerts[ind_se + 2] + rtc_z);
-
-                this._sw.copy(v_sw);
-                this._nw.copy(v_nw);
-                this._ne.copy(v_ne);
-                this._se.copy(v_se);
-            } else {
-                let i0 = Math.floor(gridSize * offsetY),
-                    j0 = Math.floor(gridSize * offsetX);
-
-                let insideSize = 1.0 / gridSize;
-
-                let t_i0 = offsetY - insideSize * i0,
-                    t_j0 = offsetX - insideSize * j0;
-
-                let bigOne;
-                if (pseg.gridSize === 1) {
-                    bigOne = pseg.renderVertices!;
-                } else {
-                    bigOne = getMatrixSubArray64(pseg.renderVertices!, pseg.gridSize, i0, j0, 1);
-                }
-
-                let v_lt = new Vec3(bigOne[0] + rtc_x, bigOne[1] + rtc_y, bigOne[2] + rtc_z),
-                    v_rb = new Vec3(bigOne[9] + rtc_x, bigOne[10] + rtc_y, bigOne[11] + rtc_z);
-
-                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
-                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
-                    ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
-                    vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
-
-                let vi_y = t_i0,
-                    vi_x = t_j0;
-
-                let coords_lt, coords_rb;
-
-                if (vi_y + vi_x < insideSize) {
-                    coords_lt = Vec3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
-                } else {
-                    coords_lt = Vec3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(
-                        v_rb
-                    );
-                }
-
-                vi_y = t_i0 + 1;
-                vi_x = t_j0 + 1;
-
-                if (vi_y + vi_x < insideSize) {
-                    coords_rb = Vec3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
-                } else {
-                    coords_rb = Vec3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(
-                        v_rb
-                    );
-                }
-
-                this._createExtentNormals();
-                this.setBoundingVolume3v(coords_lt, coords_rb);
-            }
+            // The parent volume holds the segment
+            this.bsphere.center.copy(pseg.bsphere.center);
+            this.bsphere.radius = pseg.bsphere.radius;
         } else {
-            this.createBoundsByExtent();
+            // Inside one cell of a far parent, a plane through its vertices is off the curved surface
+            this._createExtentNormals();
+            this.setBoundsByRadii(this.minTerrainRadius, this.maxTerrainRadius);
         }
+    }
+
+    protected _getBoundsPoints(): Vec3[] {
+        const e = this._extentLonLat,
+            el = this.planet.ellipsoid,
+            west = e.southWest.lon,
+            east = e.northEast.lon,
+            south = e.southWest.lat,
+            north = e.northEast.lat,
+            lons = [west, east],
+            lats = [south, north],
+            points: Vec3[] = [];
+
+        if (west < -90 && east > -90) lons.push(-90);
+        if (west < 0 && east > 0) lons.push(0);
+        if (west < 90 && east > 90) lons.push(90);
+        if (south < 0 && north > 0) lats.push(0);
+
+        for (let i = 0; i < lats.length; i++) {
+            for (let j = 0; j < lons.length; j++) {
+                points.push(el.geodeticToCartesian(lons[j], lats[i]));
+            }
+        }
+
+        return points;
+    }
+
+    /**
+     * Sets the tile bounding volume between the terrain radii.
+     * @param {number} minRadius - Least terrain radius.
+     * @param {number} maxRadius - Greatest terrain radius.
+     */
+    public setBoundsByRadii(minRadius: number, maxRadius: number) {
+        const points = this._getBoundsPoints(),
+            hasRange = minRadius > 0 && minRadius <= maxRadius;
+
+        let xmin = Infinity,
+            ymin = Infinity,
+            zmin = Infinity,
+            xmax = -Infinity,
+            ymax = -Infinity,
+            zmax = -Infinity;
+
+        for (let i = 0; i < points.length; i++) {
+            const p = points[i],
+                r = p.length();
+
+            for (let j = 0; j < 2; j++) {
+                const k = hasRange ? (j ? maxRadius : minRadius) / r : 1.0,
+                    x = p.x * k,
+                    y = p.y * k,
+                    z = p.z * k;
+
+                if (x < xmin) xmin = x;
+                if (x > xmax) xmax = x;
+                if (y < ymin) ymin = y;
+                if (y > ymax) ymax = y;
+                if (z < zmin) zmin = z;
+                if (z > zmax) zmax = z;
+            }
+        }
+
+        this.setBoundingVolume(xmin, ymin, zmin, xmax, ymax, zmax);
     }
 
     public setBoundingSphere(x: number, y: number, z: number, v: Vec3) {
@@ -2098,12 +2090,11 @@ class Segment {
         const extent = this._extent;
         const pole = mercator.POLE;
 
-        // this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
-        // this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
-        this.tileX = getTileCellIndex(extent.getCenter().lon, extent.getWidth(), -pole);
-        this.tileY = getTileCellIndex(extent.getCenter().lat, extent.getHeight(), pole);
+        const p2 = this.powTileZoom;
+        const size = mercator.POLE2 / p2;
 
-        const p2 = this.powTileZoom; //Math.pow(2, tileZoom);
+        this.tileX = getTileCellIndex(extent.getCenter().lon, size, -pole);
+        this.tileY = getTileCellIndex(extent.getCenter().lat, size, pole);
 
         this.tileXE = (this.tileX + 1) % p2;
         this.tileXW = (p2 + this.tileX - 1) % p2;
@@ -2841,4 +2832,4 @@ class Segment {
     }
 }
 
-export { Segment };
+export {Segment};

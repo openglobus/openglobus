@@ -82,6 +82,7 @@ export interface IPlanetParams {
     maxGridSize?: number;
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
+    aerialPerspectiveEnabled?: boolean;
     transitionOpacityEnabled?: boolean;
     atmosphereParameters?: IAtmosphereParams;
     minDistanceBeforeMemClear?: number;
@@ -158,6 +159,8 @@ type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
  * @param {number} [options.specularMinCameraHeight=160000] - Minimal camera height for the specular mask; it fades in up to three times this height. The Earth sea mask is coarse and spills onto land when zoomed in; use 0 for planets without such a mask.
  * @param {number} [options.nightMinCameraHeight=3000000] - Minimal camera height for night lights; they fade in up to three times this height. 0 shows them at full brightness at any height.
  * @param {boolean} [options.atmosphereEnabled=false] - Enables atmosphere rendering.
+ * @param {boolean} [options.aerialPerspectiveEnabled=true] - Enables the atmosphere aerial perspective on the surface
+ * when the camera is low. It is over atmosphereParameters.aerialPerspective.
  * @param {boolean} [options.transitionOpacityEnabled] - Enables terrain transition opacity blending.
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
  * @param {number} [options.minDistanceBeforeMemClear] - Camera travel distance threshold before automatic memory cleanup.
@@ -432,6 +435,10 @@ export class Planet extends Scene {
         this.ellipsoid = options.ellipsoid || wgs84;
 
         this._atmosphere = new Atmosphere(options.atmosphereParameters);
+
+        if (options.aerialPerspectiveEnabled != undefined) {
+            this._atmosphere.aerialPerspective = options.aerialPerspectiveEnabled;
+        }
 
         this._shadeMode = normalizeShadeMode(options.shadeMode ?? SHADE_PHONG);
 
@@ -728,6 +735,24 @@ export class Planet extends Scene {
      */
     public get atmosphereEnabled(): boolean {
         return this._atmosphereEnabled;
+    }
+
+    /**
+     * Enables or disables the atmosphere aerial perspective on the surface when the camera is low.
+     * @public
+     * @param {boolean} enabled - Aerial perspective activity flag.
+     */
+    public set aerialPerspectiveEnabled(enabled: boolean) {
+        this._atmosphere.aerialPerspective = enabled;
+    }
+
+    /**
+     * Returns aerial perspective activity flag.
+     * @public
+     * @returns {boolean} - `true` when aerial perspective is enabled.
+     */
+    public get aerialPerspectiveEnabled(): boolean {
+        return this._atmosphere.aerialPerspective;
     }
 
     /**
