@@ -1,4 +1,4 @@
-import { Vec3 } from "./math/Vec3";
+import {Vec3} from "./math/Vec3";
 
 /** @const */
 export const TWO_PI = 2.0 * Math.PI;
@@ -269,7 +269,12 @@ export function exp2(n: number): number {
  * @returns {number} -
  */
 export function pow2i(n: number): number {
-    return 2 << (n - 1);
+    return n < 31 ? 1 << n : POW2[n];
+}
+
+const POW2: number[] = [];
+for (let i = 0; i < 64; i++) {
+    POW2.push(2 ** i);
 }
 
 /**

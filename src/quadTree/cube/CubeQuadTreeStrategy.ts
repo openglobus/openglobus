@@ -1,3 +1,4 @@
+import { pow2i } from "../../math";
 import { Extent } from "../../Extent";
 import { LonLat } from "../../LonLat";
 import { PlanetCamera } from "../../camera";
@@ -50,7 +51,7 @@ export class CubeQuadTreeStrategy extends QuadTreeStrategy {
     public override getTileXY(lonLat: LonLat, zoom: number): [number, number, number, number] {
         const p = (this.projection as CubeProj).fromLonLat(lonLat),
             face = Math.floor(p.lon),
-            pz = 1 << zoom;
+            pz = pow2i(zoom);
 
         return [Math.floor((p.lon - face) * pz), Math.min(Math.floor((1.0 - p.lat) * pz), pz - 1), zoom, face];
     }
@@ -64,7 +65,7 @@ export class CubeQuadTreeStrategy extends QuadTreeStrategy {
     ): [number, number] {
         const p = (this.projection as CubeProj).fromLonLat(lonLat),
             face = Math.floor(p.lon),
-            pz = 1 << z,
+            pz = pow2i(z),
             cells = gridSize - 1;
 
         return [Math.floor(((1.0 - p.lat) * pz - y) * cells), Math.floor(((p.lon - face) * pz - x) * cells)];

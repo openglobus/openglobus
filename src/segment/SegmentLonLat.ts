@@ -1,3 +1,4 @@
+import { pow2i } from "../math";
 import * as mercator from "../mercator";
 import { EPSG4326 } from "../proj/EPSG4326";
 import { Extent } from "../Extent";
@@ -71,7 +72,7 @@ class SegmentLonLat extends Segment {
 
     protected _assignTileXIndexes(extent: Extent) {
         this.tileX = getTileCellIndex(extent.getCenter().lon, extent.getWidth(), -180);
-        let p2 = 1 << this.tileZoom;
+        let p2 = pow2i(this.tileZoom);
         this.tileXE = (this.tileX + 1) % p2;
         this.tileXW = (p2 + this.tileX - 1) % p2;
     }

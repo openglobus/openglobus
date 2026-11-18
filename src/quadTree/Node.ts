@@ -2,7 +2,7 @@ import { Extent } from "../Extent";
 import { binaryInsert, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
 import { getMedian } from "../terrain/terrainUtils";
 import { LonLat } from "../LonLat";
-import { MAX, MIN } from "../math";
+import { MAX, MIN, pow2i } from "../math";
 import { Segment } from "../segment/Segment";
 import { QuadTreeStrategy } from "./QuadTreeStrategy";
 
@@ -855,7 +855,7 @@ class Node {
             }
         }
 
-        const dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
+        const dZ2 = pow2i(seg.tileZoom - pn.segment.tileZoom);
 
         seg._normalMapSource = pn.segment;
         seg.normalMapTexture = pn.segment.normalMapTexture;
@@ -881,7 +881,7 @@ class Node {
             return;
         }
 
-        let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1), // 2 * Math.pow(2, dZ-1)
+        let dZ2 = pow2i(seg.tileZoom - pn.segment.tileZoom),
             offsetX = seg.tileX - pn.segment.tileX * dZ2,
             offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
@@ -1209,7 +1209,7 @@ class Node {
                 dz = ns.tileZoom - seg.tileZoom;
 
             if (dz >= 0) {
-                if (nPos === pos * (1 << dz)) {
+                if (nPos === pos * pow2i(dz)) {
                     return n;
                 }
             } else {
@@ -1237,7 +1237,7 @@ class Node {
             offset = 0;
 
         while (pNode.segment.tileZoom > neighbourZoom) {
-            offset += PARTOFFSET[pNode.partId][side] / (1 << (pNode.segment.tileZoom - neighbourZoom));
+            offset += PARTOFFSET[pNode.partId][side] / pow2i(pNode.segment.tileZoom - neighbourZoom);
             pNode = pNode.parentNode!;
         }
 

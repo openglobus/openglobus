@@ -8,7 +8,7 @@ import { wgs84 } from "../../src/ellipsoid/wgs84";
 //
 // The deepest zooms: a 30 zoom tile is a few centimeters, its Web Mercator coordinates are millions of meters.
 //
-const MAX_ZOOM = 30;
+const MAX_ZOOM = 35;
 
 const GRID_SIZE_BY_ZOOM = [64, 32, 16, 8];
 for (let z = GRID_SIZE_BY_ZOOM.length; z <= MAX_ZOOM; z++) GRID_SIZE_BY_ZOOM.push(4);
@@ -115,7 +115,7 @@ describe("tile indexes on the deep zooms", () => {
         for (let z = 20; z <= MAX_ZOOM; z++) {
             const s = path[z].segment,
                 e = s.getExtent(),
-                size = mercator.POLE2 / (1 << z);
+                size = mercator.POLE2 / 2 ** z;
 
             // Within a thousandth of the tile, the index is off by whole tiles when it is wrong
             expect(Math.abs(e.southWest.lon - (-mercator.POLE + s.tileX * size))).toBeLessThan(size * 1e-3);
