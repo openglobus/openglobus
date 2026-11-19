@@ -229,6 +229,104 @@ export class Ray {
         return Vec3.add(this.origin, this.direction.scaleTo(t));
     }
 
+    /**
+     * Returns the distance along the ray to where it enters the sphere, in lengths of the direction vector:
+     * 0 when the origin is inside the sphere, Infinity when the ray misses it or the sphere is behind the origin.
+     * Allocates nothing.
+     * @public
+     * @param {Sphere} sphere - Sphere object.
+     * @returns {number} -
+     */
+    public hitSphereDistance(sphere: Sphere): number {
+        const o = this.origin,
+            d = this.direction,
+            c = sphere.center,
+            ox = o.x - c.x,
+            oy = o.y - c.y,
+            oz = o.z - c.z,
+            cc = ox * ox + oy * oy + oz * oz - sphere.radius * sphere.radius;
+
+        if (cc <= 0) {
+            return 0;
+        }
+
+        const a = d.x * d.x + d.y * d.y + d.z * d.z,
+            // half of b of the quadratic, negative when the ray goes toward the sphere centre
+            b = ox * d.x + oy * d.y + oz * d.z;
+
+        if (a === 0 || b >= 0) {
+            return Infinity;
+        }
+
+        const disc = b * b - a * cc;
+
+        if (disc < 0) {
+            return Infinity;
+        }
+
+        return (-b - Math.sqrt(disc)) / a;
+    }
+
+    /**
+     * Returns the distance along the ray to the triangle, hit from either side, in lengths of the direction vector.
+     * Infinity when the ray misses the triangle, the triangle is behind the origin, the ray is parallel to it,
+     * or the triangle has no area. Allocates nothing.
+     * @public
+     * @param {Vec3} v0 - First triangle corner coordinate.
+     * @param {Vec3} v1 - Second triangle corner coordinate.
+     * @param {Vec3} v2 - Third triangle corner coordinate.
+     * @param {number} [margin=0] - How far outside of the triangle, in barycentric coordinates, it is still hit.
+     * @returns {number} -
+     */
+    public hitTriangleDistance(v0: Vec3, v1: Vec3, v2: Vec3, margin: number = 0): number {
+        const d = this.direction,
+            o = this.origin,
+            e1x = v1.x - v0.x,
+            e1y = v1.y - v0.y,
+            e1z = v1.z - v0.z,
+            e2x = v2.x - v0.x,
+            e2y = v2.y - v0.y,
+            e2z = v2.z - v0.z,
+            px = d.y * e2z - d.z * e2y,
+            py = d.z * e2x - d.x * e2z,
+            pz = d.x * e2y - d.y * e2x,
+            det = e1x * px + e1y * py + e1z * pz;
+
+        // The ray is parallel to the triangle, or the triangle has no area
+        if (
+            det * det <=
+            1e-24 *
+                (e1x * e1x + e1y * e1y + e1z * e1z) *
+                (e2x * e2x + e2y * e2y + e2z * e2z) *
+                (d.x * d.x + d.y * d.y + d.z * d.z)
+        ) {
+            return Infinity;
+        }
+
+        const inv = 1.0 / det,
+            sx = o.x - v0.x,
+            sy = o.y - v0.y,
+            sz = o.z - v0.z,
+            u = (sx * px + sy * py + sz * pz) * inv;
+
+        if (u < -margin || u > 1 + margin) {
+            return Infinity;
+        }
+
+        const qx = sy * e1z - sz * e1y,
+            qy = sz * e1x - sx * e1z,
+            qz = sx * e1y - sy * e1x,
+            w = (d.x * qx + d.y * qy + d.z * qz) * inv;
+
+        if (w < -margin || u + w > 1 + margin) {
+            return Infinity;
+        }
+
+        const t = (e2x * qx + e2y * qy + e2z * qz) * inv;
+
+        return t >= 0 ? t : Infinity;
+    }
+
     public hitBox(box: Box) {
         //
         // TODO

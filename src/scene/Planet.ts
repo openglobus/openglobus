@@ -55,6 +55,7 @@ import { wgs84 } from "../ellipsoid/wgs84";
 import type { WebGLBufferExt, WebGLContextExt, WebGLTextureExt, IDefaultTextureParams } from "../webgl/Handler";
 import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Segment } from "../segment/Segment";
+import { getSegmentRayDistance } from "../segment/segmentRaycast";
 import type { AtmosphereParameters } from "../shaders/atmos/atmos";
 import { AtmosphereDeferredShading } from "../renderer/AtmosphereDeferredShading";
 import { PhongDeferredShading } from "../renderer/PhongDeferredShading";
@@ -117,6 +118,18 @@ export type PlanetEventsList = [
  * @default
  */
 const DEFAULT_MAX_NODES = 400;
+
+/**
+ * A segment the ray of Planet.getRayDistanceTerrain may hit, with the distance where the ray enters its
+ * bounding sphere.
+ */
+interface IRayCandidate {
+    entry: number;
+    seg: Segment | null;
+}
+
+// The candidates of Planet.getRayDistanceTerrain; the entries are reused between calls
+const _rayCandidates: IRayCandidate[] = [];
 
 const ATMOSPHERE_OPACITY_MIN_ALTITUDE = 1500000.0;
 const LOW_ALTITUDE_ATMOSPHERE_MIN_OPACITY = 0.1;
@@ -2485,6 +2498,97 @@ export class Planet extends Scene {
         if (distance) {
             let ray = this.renderer!.activeCamera!.getRay(ms.x, ms.y);
             return ray.origin.add(ray.direction.scaleTo(distance));
+        }
+    }
+
+    /**
+     * Returns the distance along the ray to where it first hits the terrain, as it is drawn, or Infinity when it
+     * hits no terrain. The distance is in lengths of ray.direction, so it is in metres for a normalized ray such
+     * as camera.getRay(x, y). Only the terrain segments rendered in the last frame are taken into account, and
+     * nothing but the terrain: unlike getDistanceFromPixel, it does not see 3D objects and does not use the
+     * depth buffer.
+     * @public
+     * @param {Ray} ray - Ray, cartesian coordinates.
+     * @returns {number} -
+     */
+    public getRayDistanceTerrain(ray: Ray): number {
+        const nodes = this.quadTreeStrategy._renderedNodes,
+            candidates = _rayCandidates;
+
+        let n = 0;
+
+        // The segments whose bounding sphere the ray passes, sorted by where it enters the sphere
+        for (let i = 0; i < nodes.length; i++) {
+            const seg = nodes[i].segment;
+
+            if (!seg || !seg.renderVertices) {
+                continue;
+            }
+
+            const bs = seg.bsphere;
+
+            let entry = 0;
+
+            if (bs && bs.radius > 0) {
+                entry = ray.hitSphereDistance(bs);
+                if (entry === Infinity) {
+                    continue;
+                }
+            }
+
+            let c = candidates[n];
+            if (!c) {
+                c = candidates[n] = { entry: 0, seg: null };
+            }
+
+            // insertion by entry: there are only a few candidates
+            let k = n++;
+            while (k > 0 && candidates[k - 1].entry > entry) {
+                candidates[k] = candidates[k - 1];
+                k--;
+            }
+            candidates[k] = c;
+            c.entry = entry;
+            c.seg = seg;
+        }
+
+        let best = Infinity;
+
+        for (let i = 0; i < n; i++) {
+            const c = candidates[i];
+            if (c.entry >= best) {
+                break;
+            }
+            const t = getSegmentRayDistance(c.seg!, ray, best);
+            if (t < best) {
+                best = t;
+            }
+        }
+
+        // The entries are kept for the next call, the segments are not
+        for (let i = 0; i < n; i++) {
+            candidates[i].seg = null;
+        }
+
+        return best;
+    }
+
+    /**
+     * Returns where the ray first hits the terrain, as it is drawn, or undefined when it hits no terrain.
+     * Only the terrain segments rendered in the last frame are taken into account, see getRayDistanceTerrain.
+     * @public
+     * @param {Ray} ray - Ray, cartesian coordinates.
+     * @param {Vec3} [res] - Result.
+     * @returns {Vec3 | undefined} -
+     */
+    public getRayIntersectionTerrain(ray: Ray, res: Vec3 = new Vec3()): Vec3 | undefined {
+        const t = this.getRayDistanceTerrain(ray);
+        if (t !== Infinity) {
+            return res.set(
+                ray.origin.x + ray.direction.x * t,
+                ray.origin.y + ray.direction.y * t,
+                ray.origin.z + ray.direction.z * t
+            );
         }
     }
 
