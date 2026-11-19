@@ -1,7 +1,8 @@
 import type { IBaseTileMaterialLayerParams } from "../BaseTileMaterialLayer";
-import type { Pool, TypedArray } from "geotiff";
+import type { Pool } from "geotiff";
 import type { Extent } from "../../Extent";
 import type { Segment } from "../../segment/Segment";
+import type { TypedArray } from "../../utils/shared";
 
 export type ColorScaleName =
     | "viridis"
@@ -133,6 +134,26 @@ export type ProjFunc = (code: number) =>
     | undefined;
 
 /**
+ * Options shared by raster readers.
+ */
+export interface IRasterReaderParams {
+    /** Custom NoData value. Set to null or NaN to disable nodata masking. */
+    nodata?: NoDataValue;
+
+    /** Alias for nodata */
+    noData?: NoDataValue;
+
+    /** Optional CRS code or definition, e.g. 2193 or "EPSG:2193" */
+    crs?: number | string;
+
+    /** Rendering and band options */
+    renderOptions?: IGeoTIFFRenderOptions;
+
+    /** Custom projection mapping function for non-standard CRS */
+    projFunc?: ProjFunc;
+}
+
+/**
  * Options shared by a single GeoTIFF source and by the reader that opens it.
  */
 export interface IGeoTIFFSourceCommon {
@@ -166,27 +187,21 @@ export interface IGeoTIFFSourceItem extends IGeoTIFFSourceCommon {
 /**
  * Options used by a GeoTIFF reader.
  */
-export interface IGeoTIFFReaderParams extends IGeoTIFFSourceCommon {
+export interface IGeoTIFFReaderParams extends IRasterReaderParams, IGeoTIFFSourceCommon {
     /** Multiple GeoTIFF/COG sources (like OpenLayers) */
     sources?: IGeoTIFFSourceItem[];
 
     /** When true, merges multiple sources spatially as a mosaic instead of stacking bands */
     mosaic?: boolean;
 
-    /** Rendering and band options */
-    renderOptions?: IGeoTIFFRenderOptions;
-
     /** Custom geotiff Worker Pool instance. It belongs to the caller and is never destroyed by a reader. */
     geotiffWorkerPool?: Pool;
 
     /** Number of decompression workers. Uses a shared pool if not set. */
     workerPoolSize?: number;
-
-    /** Custom projection mapping function for non-standard CRS */
-    projFunc?: ProjFunc;
 }
 
-export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams, IGeoTIFFReaderParams {
+export interface IRasterLayerParams extends IBaseTileMaterialLayerParams, IRasterReaderParams {
     /** Output tile size (default: 256) */
     tileSize?: number;
 
@@ -194,15 +209,73 @@ export interface IGeoTIFFLayerParams extends IBaseTileMaterialLayerParams, IGeoT
     cacheSize?: number;
 }
 
-export interface IGeoTIFFReader {
-    options: IGeoTIFFReaderParams;
+export interface IGeoTIFFLayerParams extends IRasterLayerParams, IGeoTIFFReaderParams {}
+
+/**
+ * Index or coordinate label of an extra GeoZarr dimension, a list of them makes the samples of the variable.
+ */
+export type GeoZarrDimensionValue = number | string | (number | string)[];
+
+/**
+ * Options used by a GeoZarr reader.
+ */
+export interface IGeoZarrReaderParams extends IRasterReaderParams {
+    /** URL of the Zarr store, v2 or v3. */
+    url?: string;
+
+    /** Path of the multiscales group inside the store, e.g. "measurements/reflectance". */
+    group?: string;
+
+    /** Names of the band arrays of every pyramid level, e.g. ["b04", "b03", "b02"], every band is a sample. */
+    bands?: string[];
+
+    /** Name of one n-D array of every pyramid level, instead of bands. "" is the level array itself. */
+    variable?: string;
+
+    /**
+     * Index (number) or coordinate label (string) of every extra dimension, such as time, band or depth, the
+     * first index when not set. In the variable mode one dimension may take a list, its entries are the samples.
+     */
+    dimensions?: Record<string, GeoZarrDimensionValue>;
+
+    /** HTTP request options of the Zarr store, such as headers or credentials. */
+    storeOptions?: RequestInit;
+
+    /**
+     * Reads the end of a file, the shard index, by a suffix range request "bytes=-n" instead of a HEAD request
+     * and a range. True by default, some S3 servers do not send CORS headers for HEAD requests. Servers without
+     * suffix ranges, such as Azure Blob Storage, need false.
+     */
+    useSuffixRequest?: boolean;
+
+    /** Bounding box [minX, minY, maxX, maxY] in the CRS units, when the store has no georeference. */
+    bbox?: [number, number, number, number];
+}
+
+/**
+ * Extra (not spatial) dimension of a GeoZarr variable.
+ */
+export interface IGeoZarrDimension {
+    name: string;
+    /** Axis of the dimension in the array. */
+    axisIndex: number;
+    size: number;
+    /** Coordinate labels, ISO dates for a CF time axis. */
+    values?: (number | string)[];
+    units?: string;
+}
+
+export interface IRasterReader<P extends IRasterReaderParams = IRasterReaderParams> {
+    options: P;
     metadata: IGeoTIFFMetadata | null;
     extentWgs84: Extent;
     crsCode: number;
     isReady: boolean;
-    workerPool: Pool | null;
 
-    init(src?: GeoTIFFSource | IGeoTIFFSourceItem[]): Promise<IGeoTIFFMetadata>;
+    /**
+     * Opens the source: a GeoTIFF source or sources, or a GeoZarr store, by the reader.
+     */
+    init(src?: unknown): Promise<IGeoTIFFMetadata>;
 
     /**
      * Applies rendering options that affect decoding, such as nodata masking and the resampling method.
@@ -219,6 +292,11 @@ export interface IGeoTIFFReader {
     getNativeZoom(rootTileWidth: number, tileSize: number): number;
 
     destroy(): void;
+}
+
+export interface IGeoTIFFReader extends IRasterReader<IGeoTIFFReaderParams> {
+    workerPool: Pool | null;
+    init(src?: GeoTIFFSource | IGeoTIFFSourceItem[]): Promise<IGeoTIFFMetadata>;
 }
 
 export interface IGeoTIFFMetadata {
