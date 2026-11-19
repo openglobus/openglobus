@@ -238,19 +238,6 @@ class Renderer {
     protected _depthRefreshRequired: boolean;
     protected _depthReadInverseProjectionViews: Mat4[] = [];
 
-    /**
-     * Read the depth buffer back together with the picking buffer after mouse moves, touch starts and touch ends,
-     * so that getDistanceFromPixel and getCartesianFromPixel see objects too, not only the terrain.
-     * Without it the depth buffer is read only on markForDepthRefresh and by the async methods: a read is a
-     * synchronous GPU round trip that can stall a slow device for a hundred milliseconds or more, and the
-     * Planet terrain methods find the terrain from its geometry anyway.
-     * @public
-     * @type {boolean}
-     */
-    public readDepthOnPointerEvents: boolean = true;
-
-    protected _inDepthReadCallback: boolean = false;
-
     protected _pickingReadAt: number;
 
     // The pointer has moved since the last picking readback, it is made when the interval passes
@@ -1620,8 +1607,6 @@ class Renderer {
             touchTrigger ||
             this._depthRefreshRequired;
 
-        const refreshDepth = this._depthRefreshRequired || (refreshPicking && this.readDepthOnPointerEvents);
-
         let h = this.handler,
             gl = h.gl!;
 
@@ -1753,9 +1738,6 @@ class Renderer {
 
         if (refreshPicking) {
             this._readPickingBuffer();
-        }
-
-        if (refreshDepth) {
             this._readDepthBuffer();
         }
 
@@ -1925,15 +1907,7 @@ class Renderer {
 
         this.depthFramebuffer!.readPixelBuffersAsync(() => {
             this._depthReadInverseProjectionViews = inverseProjectionViews;
-            if (callback) {
-                // The callback asked for this read: its pixels are what it wants, also if the view moved since
-                this._inDepthReadCallback = true;
-                try {
-                    callback();
-                } finally {
-                    this._inDepthReadCallback = false;
-                }
-            }
+            callback && callback();
         });
     }
 
@@ -2002,9 +1976,6 @@ class Renderer {
 
         if (!invPV) return;
 
-        // Without the reads on pointer events the last read can be from any earlier view
-        if (!this.readDepthOnPointerEvents && !this._inDepthReadCallback && !this._isDepthReadCurrent()) return;
-
         let ndcZ = camera.depthZeroToOne ? depth : depth * 2.0 - 1.0;
         let ndc = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, ndcZ, 1.0);
         let d = invPV.mulVec4(ndc).affinity().toVec3().subA(camera.eye);
@@ -2015,33 +1986,6 @@ class Renderer {
         }
 
         return camera.isOrthographic ? zView : d.length();
-    }
-
-    /**
-     * Whether the depth buffer was read with the camera as it is now. Read with another view, its pixels are
-     * not what is under them now. Checked only when the depth buffer is not read on pointer events.
-     * @protected
-     * @returns {boolean} -
-     */
-    protected _isDepthReadCurrent(): boolean {
-        const read = this._depthReadInverseProjectionViews,
-            frustums = this.activeCamera.frustums;
-
-        if (read.length !== frustums.length) {
-            return false;
-        }
-
-        for (let i = 0; i < read.length; i++) {
-            const a = read[i]._m,
-                b = frustums[i].inverseProjectionViewMatrix._m;
-            for (let k = 0; k < 16; k++) {
-                if (a[k] !== b[k]) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     /**

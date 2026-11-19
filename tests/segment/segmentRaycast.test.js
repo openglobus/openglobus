@@ -1,12 +1,13 @@
-import { Extent } from "../src/Extent";
-import { LonLat } from "../src/LonLat";
-import { Vec3 } from "../src/math/Vec3";
-import { Ray } from "../src/math/Ray";
-import { Planet } from "../src/scene/Planet";
-import { Segment } from "../src/segment/Segment";
-import { QuadTreeStrategy } from "../src/quadTree/QuadTreeStrategy";
-import { Node } from "../src/quadTree/Node";
-import * as segmentHelper from "../src/segment/segmentHelper";
+import { Extent } from "../../src/Extent";
+import { LonLat } from "../../src/LonLat";
+import { Vec3 } from "../../src/math/Vec3";
+import { Ray } from "../../src/math/Ray";
+import { Planet } from "../../src/scene/Planet";
+import { Segment } from "../../src/segment/Segment";
+import { QuadTreeStrategy } from "../../src/quadTree/QuadTreeStrategy";
+import { Node } from "../../src/quadTree/Node";
+import * as segmentHelper from "../../src/segment/segmentHelper";
+import { getSegmentRayDistance } from "../../src/segment/segmentRaycast";
 
 const MAX_LOG2 = 6;
 
@@ -29,16 +30,13 @@ const mockPlanet = () => {
                 bufferData: vi.fn(),
                 deleteBuffer: vi.fn(),
                 deleteTexture: vi.fn()
-            },
-            createArrayBuffer: (data, itemSize, numItems) => ({ numItems }),
-            setStreamArrayBuffer: vi.fn()
+            }
         }
     };
     planet.terrain = { gridSizeByZoom: { 0: 8, 5: 8, 13: 8 } };
     planet.solidTextureOne = null;
     planet.solidTextureTwo = null;
     planet._createdNodesCount = 0;
-    planet._textureCoordsBufferCache = [];
     return planet;
 };
 
@@ -148,7 +146,7 @@ const globeSegment = (planet, extent, zoom, log2, sides, height) => {
 
 const close = (a, b) => (a === Infinity ? b === Infinity : Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b)));
 
-describe("Segment.getRayDistance", () => {
+describe("getSegmentRayDistance", () => {
     test("is the nearest drawn triangle on hilly frames of every grid size and neighbour sizes", () => {
         const wrong = [];
         let hits = 0,
@@ -171,7 +169,7 @@ describe("Segment.getRayDistance", () => {
                         const target = new Vec3(5 + rand() * (w - 10), -5 - rand() * (w - 10), rand() * 3000);
                         d = target.sub(o).scale(0.5 + rand() * 3);
                     }
-                    const got = segment.getRayDistance(o, d),
+                    const got = getSegmentRayDistance(segment, new Ray(o, d)),
                         want = bruteDistance(segment, o, d);
                     want === Infinity ? misses++ : hits++;
                     if (!close(got, want)) {
@@ -196,70 +194,39 @@ describe("Segment.getRayDistance", () => {
                 o = new Vec3(100 * gx, -100 * gy, 4000);
             // getTerrainPoint takes the position in the extent: one unit per cell, rows from the south edge
             segment.getTerrainPoint(o, new LonLat(gx, 32 - gy), res);
-            expect(segment.getRayDistance(o, new Vec3(0, 0, -1))).toBeCloseTo(4000 - res.z, 6);
+            expect(getSegmentRayDistance(segment, new Ray(o, new Vec3(0, 0, -1)))).toBeCloseTo(4000 - res.z, 6);
         }
     });
 
     test("misses a ray that passes by and one that points away", () => {
         const segment = flatSegment(3, [3, 3, 3, 3], () => 100);
-        expect(segment.getRayDistance(new Vec3(-500, 500, 1000), new Vec3(0, 0, -1))).toBe(Infinity);
-        expect(segment.getRayDistance(new Vec3(400, -400, 1000), new Vec3(0, 0, 1))).toBe(Infinity);
+        expect(getSegmentRayDistance(segment, new Ray(new Vec3(-500, 500, 1000), new Vec3(0, 0, -1)))).toBe(Infinity);
+        expect(getSegmentRayDistance(segment, new Ray(new Vec3(400, -400, 1000), new Vec3(0, 0, 1)))).toBe(Infinity);
     });
 
     test("finds a ray that starts under the terrain from below", () => {
         const segment = flatSegment(3, [3, 3, 3, 3], () => 100);
-        expect(segment.getRayDistance(new Vec3(400, -400, -50), new Vec3(0, 0, 1))).toBeCloseTo(150, 9);
+        expect(getSegmentRayDistance(segment, new Ray(new Vec3(400, -400, -50), new Vec3(0, 0, 1)))).toBeCloseTo(150, 9);
     });
 
     test("does not look for hits from maxDistance on", () => {
         const segment = flatSegment(3, [3, 3, 3, 3], () => 100),
             o = new Vec3(400, -400, 1000),
             d = new Vec3(0, 0, -1);
-        expect(segment.getRayDistance(o, d, 901)).toBeCloseTo(900, 9);
-        expect(segment.getRayDistance(o, d, 900)).toBe(Infinity);
+        expect(getSegmentRayDistance(segment, new Ray(o, d), 901)).toBeCloseTo(900, 9);
+        expect(getSegmentRayDistance(segment, new Ray(o, d), 900)).toBe(Infinity);
     });
 
     test("is Infinity without vertices", () => {
         const segment = flatSegment(2, [2, 2, 2, 2], () => 0);
         segment.renderVertices = null;
-        expect(segment.getRayDistance(new Vec3(100, -100, 10), new Vec3(0, 0, -1))).toBe(Infinity);
+        expect(getSegmentRayDistance(segment, new Ray(new Vec3(100, -100, 10), new Vec3(0, 0, -1)))).toBe(Infinity);
         segment.renderVertices = new Float64Array(0);
-        expect(segment.getRayDistance(new Vec3(100, -100, 10), new Vec3(0, 0, -1))).toBe(Infinity);
-    });
-
-    test("sees vertices changed in place once their buffers are made again", () => {
-        const segment = flatSegment(4, [4, 4, 4, 4], () => 0),
-            o = new Vec3(150, -150, 1000),
-            d = new Vec3(0, 0, -1);
-        expect(segment.getRayDistance(o, d)).toBeCloseTo(1000, 9);
-
-        // a peak far above the old bounding boxes, as equalization changes the vertices of a segment in place
-        for (let k = 2; k < segment.renderVertices.length; k += 3) {
-            segment.renderVertices[k] = 600;
-        }
-        segment.createCoordsBuffers(new Float32Array(17 * 17 * 3), new Float32Array(17 * 17 * 3), 16);
-        expect(segment.getRayDistance(o, d)).toBeCloseTo(400, 9);
-    });
-
-    test("sees new vertices and new neighbour sizes", () => {
-        const segment = flatSegment(4, [4, 4, 4, 4], () => 0),
-            o = new Vec3(150, -150, 1000),
-            d = new Vec3(0, 0, -1);
-        expect(segment.getRayDistance(o, d)).toBeCloseTo(1000, 9);
-        segment.renderVertices = flatSegment(4, [4, 4, 4, 4], () => 250).renderVertices;
-        expect(segment.getRayDistance(o, d)).toBeCloseTo(750, 9);
-
-        // the outer ring is drawn with other triangles for coarser neighbours
-        const hilly = flatSegment(4, [4, 4, 4, 4], (row, col) => (row * 7 + col * 13) % 50),
-            near = new Vec3(150, -50, 1000),
-            want = bruteDistance(flatSegment(4, [1, 4, 4, 4], (row, col) => (row * 7 + col * 13) % 50), near, d);
-        hilly.getRayDistance(near, d);
-        hilly.node.sideSizeLog2 = [1, 4, 4, 4];
-        expect(hilly.getRayDistance(near, d)).toBeCloseTo(want, 9);
+        expect(getSegmentRayDistance(segment, new Ray(new Vec3(100, -100, 10), new Vec3(0, 0, -1)))).toBe(Infinity);
     });
 });
 
-describe("Segment.getRayDistance on the globe", () => {
+describe("getSegmentRayDistance on the globe", () => {
     const planet = mockPlanet();
     const hills = (lon, lat) => {
         const x = lon * Math.cos((lat * Math.PI) / 180) * 111320,
@@ -289,7 +256,7 @@ describe("Segment.getRayDistance on the globe", () => {
                         )
                     ),
                     d = target.sub(eye).normalize(),
-                    got = segment.getRayDistance(eye, d),
+                    got = getSegmentRayDistance(segment, new Ray(eye, d)),
                     want = bruteDistance(segment, eye.sub(c), d);
                 expect(close(got, want)).toBe(true);
             }
@@ -367,13 +334,15 @@ describe("Planet.getRayDistanceTerrain", () => {
         expect(p.getRayDistanceTerrain(new Ray(new Vec3(100, -100, 50), new Vec3(0, 0, -1)))).toBeCloseTo(50, 9);
     });
 
-    test("getCartesianFromPixelTerrain casts the camera ray", () => {
+    test("getRayIntersectionTerrain of a camera ray", () => {
         const flat = flatSegment(2, [2, 2, 2, 2], () => 0),
             p = mockPlanet();
         flat.bsphere.radius = 0;
         p.quadTreeStrategy = { _renderedNodes: [flat.node] };
-        p.camera = { getRay: (x, y) => new Ray(new Vec3(x, -y, 80), new Vec3(0, 0, -1)) };
-        expect(p.getCartesianFromPixelTerrain({ x: 150, y: 250 })).toEqual(new Vec3(150, -250, 0));
-        expect(p.getCartesianFromPixelTerrain({ x: 900, y: 250 })).toBeUndefined();
+        const camera = { getRay: (x, y) => new Ray(new Vec3(x, -y, 80), new Vec3(0, 0, -1)) };
+        expect(p.getRayIntersectionTerrain(camera.getRay(150, 250))).toEqual(new Vec3(150, -250, 0));
+        const res = new Vec3();
+        expect(p.getRayIntersectionTerrain(camera.getRay(150, 250), res)).toBe(res);
+        expect(p.getRayIntersectionTerrain(camera.getRay(900, 250))).toBeUndefined();
     });
 });

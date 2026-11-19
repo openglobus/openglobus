@@ -115,125 +115,6 @@ let _xyzRtc = new Vec3(),
 let _ray = new Ray(),
     _rayEx = new Ray();
 
-/**
- * Cells per side of a block in the ray test of Segment.getRayDistance: the ray is tested against the bounding box
- * of every block and against the triangles of the blocks it passes through.
- */
-const RAY_BLOCK_CELLS = 8;
-
-/**
- * How far outside of a triangle, in barycentric coordinates, the ray of Segment.getRayDistance still hits it,
- * so that it does not slip through the edge between two triangles by rounding.
- */
-const RAY_TRIANGLE_MARGIN = 1e-7;
-
-/**
- * Bounding boxes of the blocks of cells of a segment, in the frame of its render vertices.
- */
-interface IRayBlocks {
-    vertices: Float64Array;
-    sides: number;
-    blocksPerSide: number;
-    blockCells: number;
-    // min x, y, z and max x, y, z of every block
-    boxes: Float64Array;
-}
-
-// The ray of Segment.getRayDistance in the frame of the render vertices: origin, direction and 1 / direction.
-const _rayO = new Float64Array(3),
-    _rayD = new Float64Array(3),
-    _rayInvD = new Float64Array(3);
-
-/**
- * Distance along the ray _rayO, _rayD to where it enters the box at boxes[i], 0 when it starts inside of it
- * and Infinity when it misses it.
- */
-function rayBoxEntry(boxes: Float64Array, i: number): number {
-    let tmin = 0,
-        tmax = Infinity;
-    for (let a = 0; a < 3; a++) {
-        const lo = boxes[i + a],
-            hi = boxes[i + 3 + a],
-            o = _rayO[a];
-        if (_rayD[a] === 0) {
-            if (o < lo || o > hi) {
-                return Infinity;
-            }
-            continue;
-        }
-        let t1 = (lo - o) * _rayInvD[a],
-            t2 = (hi - o) * _rayInvD[a];
-        if (t1 > t2) {
-            const t = t1;
-            t1 = t2;
-            t2 = t;
-        }
-        if (t1 > tmin) tmin = t1;
-        if (t2 < tmax) tmax = t2;
-        if (tmin > tmax) {
-            return Infinity;
-        }
-    }
-    return tmin;
-}
-
-/**
- * Distance along the ray _rayO, _rayD to the triangle of the vertices at v[i0], v[i1] and v[i2] from either side,
- * Infinity when the ray misses it or the triangle has no area.
- */
-function rayTriangleDistance(v: Float64Array, i0: number, i1: number, i2: number): number {
-    const ax = v[i0],
-        ay = v[i0 + 1],
-        az = v[i0 + 2],
-        e1x = v[i1] - ax,
-        e1y = v[i1 + 1] - ay,
-        e1z = v[i1 + 2] - az,
-        e2x = v[i2] - ax,
-        e2y = v[i2 + 1] - ay,
-        e2z = v[i2 + 2] - az,
-        dx = _rayD[0],
-        dy = _rayD[1],
-        dz = _rayD[2],
-        px = dy * e2z - dz * e2y,
-        py = dz * e2x - dx * e2z,
-        pz = dx * e2y - dy * e2x,
-        det = e1x * px + e1y * py + e1z * pz;
-
-    // The ray is parallel to the triangle, or the triangle has no area (the collapsed pole row of a tile)
-    if (
-        det * det <=
-        1e-24 *
-            (e1x * e1x + e1y * e1y + e1z * e1z) *
-            (e2x * e2x + e2y * e2y + e2z * e2z) *
-            (dx * dx + dy * dy + dz * dz)
-    ) {
-        return Infinity;
-    }
-
-    const inv = 1.0 / det,
-        sx = _rayO[0] - ax,
-        sy = _rayO[1] - ay,
-        sz = _rayO[2] - az,
-        u = (sx * px + sy * py + sz * pz) * inv;
-
-    if (u < -RAY_TRIANGLE_MARGIN || u > 1 + RAY_TRIANGLE_MARGIN) {
-        return Infinity;
-    }
-
-    const qx = sy * e1z - sz * e1y,
-        qy = sz * e1x - sx * e1z,
-        qz = sx * e1y - sy * e1x,
-        w = (dx * qx + dy * qy + dz * qz) * inv;
-
-    if (w < -RAY_TRIANGLE_MARGIN || u + w > 1 + RAY_TRIANGLE_MARGIN) {
-        return Infinity;
-    }
-
-    const t = (e2x * qx + e2y * qy + e2z * qz) * inv;
-
-    return t >= 0 ? t : Infinity;
-}
-
 const _S = new Array(4);
 _S[N] = 0;
 _S[E] = 1;
@@ -548,12 +429,6 @@ class Segment {
     public quadTreeStrategy: QuadTreeStrategy;
 
     public _relativeCenter: Vec3;
-
-    /**
-     * Block bounding boxes for getRayDistance, made on first use for the current render vertices.
-     */
-    protected _rayBlocks: IRayBlocks | null;
-
     public _rtcEyePositionHigh: Float32Array;
     public _rtcEyePositionLow: Float32Array;
 
@@ -573,8 +448,6 @@ class Segment {
         this.planet = quadTreeStrategy.planet;
 
         this.handler = quadTreeStrategy.planet.renderer!.handler;
-
-        this._rayBlocks = null;
 
         this.bsphere = new Sphere();
 
@@ -660,7 +533,6 @@ class Segment {
         this.renderVertices = null;
         this.renderVerticesHigh = null;
         this.renderVerticesLow = null;
-        this._rayBlocks = null;
 
         this.normalMapTexture = null;
         this.normalMapTextureBias = new Float32Array(3);
@@ -954,148 +826,6 @@ class Segment {
             _resRtc.z + this._relativeCenter.z
         );
         return sign * _xyzRtc.distance(_resRtc);
-    }
-
-    /**
-     * Returns the distance along the ray to the nearest drawn triangle of the segment, hit from either side.
-     * The distance is in lengths of the direction vector, Infinity when the ray misses the segment, it has no
-     * vertices yet, or the hit is not closer than maxDistance.
-     * @public
-     * @param {Vec3} origin - Ray origin, cartesian coordinates.
-     * @param {Vec3} direction - Ray direction.
-     * @param {number} [maxDistance=Infinity] - Hits from this distance on are not looked for.
-     * @returns {number} -
-     */
-    public getRayDistance(origin: Vec3, direction: Vec3, maxDistance: number = Infinity): number {
-        const verts = this.renderVertices;
-
-        if (!verts || !verts.length) {
-            return Infinity;
-        }
-
-        const size = Math.round(Math.sqrt(verts.length / 3)) - 1;
-
-        if (size < 1) {
-            return Infinity;
-        }
-
-        const sides = this.node.sideSizeLog2,
-            cells = segmentHelper.getInstance().getCellTriangles(Math.log2(size), sides),
-            blocks = this._getRayBlocks(verts, size, sides),
-            c = this._relativeCenter;
-
-        _rayO[0] = origin.x - c.x;
-        _rayO[1] = origin.y - c.y;
-        _rayO[2] = origin.z - c.z;
-        _rayD[0] = direction.x;
-        _rayD[1] = direction.y;
-        _rayD[2] = direction.z;
-        _rayInvD[0] = 1.0 / direction.x;
-        _rayInvD[1] = 1.0 / direction.y;
-        _rayInvD[2] = 1.0 / direction.z;
-
-        const tri = cells.vertices,
-            start = cells.start,
-            perSide = blocks.blocksPerSide,
-            blockCells = blocks.blockCells,
-            boxes = blocks.boxes;
-
-        let best = maxDistance,
-            hit = false;
-
-        for (let by = 0; by < perSide; by++) {
-            for (let bx = 0; bx < perSide; bx++) {
-                if (rayBoxEntry(boxes, (by * perSide + bx) * 6) >= best) {
-                    continue;
-                }
-
-                const row1 = Math.min((by + 1) * blockCells, size),
-                    col1 = Math.min((bx + 1) * blockCells, size);
-
-                for (let row = by * blockCells; row < row1; row++) {
-                    for (let col = bx * blockCells; col < col1; col++) {
-                        const cell = row * size + col;
-                        // A triangle of the outer ring can be listed in several cells, it is then tested again
-                        for (let i = start[cell] * 3, last = start[cell + 1] * 3; i < last; i += 3) {
-                            const t = rayTriangleDistance(verts, tri[i] * 3, tri[i + 1] * 3, tri[i + 2] * 3);
-                            if (t < best) {
-                                best = t;
-                                hit = true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return hit ? best : Infinity;
-    }
-
-    /**
-     * Bounding boxes of the blocks of RAY_BLOCK_CELLS x RAY_BLOCK_CELLS cells around the triangles drawn in them.
-     * Made again for other vertices, other neighbour sizes (they change the triangles of the outer ring), and after
-     * the vertices are changed in place, see createCoordsBuffers.
-     */
-    protected _getRayBlocks(verts: Float64Array, size: number, sides: number[]): IRayBlocks {
-        // neighbour sizes are below 16
-        const sidesKey = ((sides[0] * 16 + sides[1]) * 16 + sides[2]) * 16 + sides[3];
-
-        let blocks = this._rayBlocks;
-
-        if (blocks && blocks.vertices === verts && blocks.sides === sidesKey) {
-            return blocks;
-        }
-
-        const cells = segmentHelper
-                .getInstance()
-                .getCellTriangles(Math.log2(size), sides as [number, number, number, number]),
-            tri = cells.vertices,
-            start = cells.start,
-            blockCells = Math.min(RAY_BLOCK_CELLS, size),
-            perSide = Math.ceil(size / blockCells),
-            boxes = new Float64Array(perSide * perSide * 6);
-
-        for (let by = 0; by < perSide; by++) {
-            for (let bx = 0; bx < perSide; bx++) {
-                const b = (by * perSide + bx) * 6,
-                    row1 = Math.min((by + 1) * blockCells, size),
-                    col1 = Math.min((bx + 1) * blockCells, size);
-
-                boxes[b] = boxes[b + 1] = boxes[b + 2] = Infinity;
-                boxes[b + 3] = boxes[b + 4] = boxes[b + 5] = -Infinity;
-
-                for (let row = by * blockCells; row < row1; row++) {
-                    for (let col = bx * blockCells; col < col1; col++) {
-                        const cell = row * size + col;
-                        for (let i = start[cell] * 3, last = start[cell + 1] * 3; i < last; i++) {
-                            const k = tri[i] * 3;
-                            for (let a = 0; a < 3; a++) {
-                                const x = verts[k + a];
-                                if (x < boxes[b + a]) boxes[b + a] = x;
-                                if (x > boxes[b + 3 + a]) boxes[b + 3 + a] = x;
-                            }
-                        }
-                    }
-                }
-
-                // A margin for the rounding of the triangle test: a millionth of the box size
-                for (let a = 0; a < 3; a++) {
-                    const m = 1e-6 * Math.max(1.0, boxes[b + 3 + a] - boxes[b + a]);
-                    boxes[b + a] -= m;
-                    boxes[b + 3 + a] += m;
-                }
-            }
-        }
-
-        this._rayBlocks = blocks = {
-            vertices: verts,
-            sides: sidesKey,
-            blocksPerSide: perSide,
-            blockCells: blockCells,
-            boxes: boxes
-        };
-
-        return blocks;
     }
 
     /**
@@ -1953,7 +1683,6 @@ class Segment {
         this.renderVertices = null;
         this.renderVerticesHigh = null;
         this.renderVerticesLow = null;
-        this._rayBlocks = null;
 
         this._deleteSkirtBuffers();
 
@@ -2044,7 +1773,6 @@ class Segment {
         this.renderVertices = null;
         this.renderVerticesHigh = null;
         this.renderVerticesLow = null;
-        this._rayBlocks = null;
 
         //@ts-ignore
         this.normalMapTextureBias = null;
@@ -2319,9 +2047,6 @@ class Segment {
     public createCoordsBuffers(verticesHigh: Float32Array, verticesLow: Float32Array, gridSize: number) {
         const gsgs = (gridSize + 1) * (gridSize + 1);
         const h = this.handler;
-
-        // The drawn surface changes, also when the render vertices were changed in place (equalization)
-        this._rayBlocks = null;
 
         if (this.vertexPositionBufferHigh && this.vertexPositionBufferHigh.numItems === gsgs) {
             h.setStreamArrayBuffer(this.vertexPositionBufferHigh!, verticesHigh);

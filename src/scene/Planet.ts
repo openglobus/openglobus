@@ -55,6 +55,7 @@ import { wgs84 } from "../ellipsoid/wgs84";
 import type { WebGLBufferExt, WebGLContextExt, WebGLTextureExt, IDefaultTextureParams } from "../webgl/Handler";
 import { ShaderProgram } from "../webgl/ShaderProgram";
 import { Segment } from "../segment/Segment";
+import { getSegmentRayDistance } from "../segment/segmentRaycast";
 import type { AtmosphereParameters } from "../shaders/atmos/atmos";
 import { AtmosphereDeferredShading } from "../renderer/AtmosphereDeferredShading";
 import { PhongDeferredShading } from "../renderer/PhongDeferredShading";
@@ -117,8 +118,17 @@ export type PlanetEventsList = [
  */
 const DEFAULT_MAX_NODES = 400;
 
-// Segments the ray of Planet.getRayDistanceTerrain may hit, reused between calls
-const _rayCandidates: { entry: number; seg: Segment }[] = [];
+/**
+ * A segment the ray of Planet.getRayDistanceTerrain may hit, with the distance where the ray enters its
+ * bounding sphere.
+ */
+interface IRayCandidate {
+    entry: number;
+    seg: Segment | null;
+}
+
+// The candidates of Planet.getRayDistanceTerrain; the entries are reused between calls
+const _rayCandidates: IRayCandidate[] = [];
 
 const ATMOSPHERE_OPACITY_MIN_ALTITUDE = 1500000.0;
 const LOW_ALTITUDE_ATMOSPHERE_MIN_OPACITY = 0.1;
@@ -2447,83 +2457,89 @@ export class Planet extends Scene {
      * @returns {Vec3 | undefined} -
      */
     public getCartesianFromMouseTerrain(): Vec3 | undefined {
-        return this.getCartesianFromPixelTerrain(this.renderer!.events.mouseState);
+        let ms = this.renderer!.events.mouseState;
+        let distance = this.getDistanceFromPixel(ms);
+        if (distance) {
+            let ray = this.renderer!.activeCamera!.getRay(ms.x, ms.y);
+            return ray.origin.add(ray.direction.scaleTo(distance));
+        }
     }
 
     /**
-     * Returns the distance along the ray to where it first hits the drawn terrain of the rendered segments,
-     * in lengths of the ray direction, or Infinity when it hits none of them.
-     * The terrain is the geometry of the last rendered frame, the depth buffer is not used.
+     * Returns the distance along the ray to where it first hits the terrain, as it is drawn, or Infinity when it
+     * hits no terrain. The distance is in lengths of ray.direction, so it is in metres for a normalized ray such
+     * as camera.getRay(x, y). Only the terrain segments rendered in the last frame are taken into account, and
+     * nothing but the terrain: unlike getDistanceFromPixel, it does not see 3D objects and does not use the
+     * depth buffer.
      * @public
      * @param {Ray} ray - Ray, cartesian coordinates.
      * @returns {number} -
      */
     public getRayDistanceTerrain(ray: Ray): number {
-        const o = ray.origin,
-            d = ray.direction,
-            dd = d.dot(d),
-            nodes = this.quadTreeStrategy._renderedNodes,
+        const nodes = this.quadTreeStrategy._renderedNodes,
             candidates = _rayCandidates;
 
-        candidates.length = 0;
+        let n = 0;
 
-        // The segments whose bounding sphere the ray passes, by where it enters the sphere
+        // The segments whose bounding sphere the ray passes, sorted by where it enters the sphere
         for (let i = 0; i < nodes.length; i++) {
-            const seg = nodes[i].segment,
-                bs = seg && seg.bsphere;
+            const seg = nodes[i].segment;
 
             if (!seg || !seg.renderVertices) {
                 continue;
             }
 
+            const bs = seg.bsphere;
+
             let entry = 0;
 
             if (bs && bs.radius > 0) {
-                const lx = bs.center.x - o.x,
-                    ly = bs.center.y - o.y,
-                    lz = bs.center.z - o.z,
-                    tca = (lx * d.x + ly * d.y + lz * d.z) / dd,
-                    d2 = lx * lx + ly * ly + lz * lz - tca * tca * dd,
-                    r2 = bs.radius * bs.radius;
-
-                if (d2 > r2) {
+                entry = ray.hitSphereDistance(bs);
+                if (entry === Infinity) {
                     continue;
                 }
-
-                const thc = Math.sqrt((r2 - d2) / dd);
-
-                if (tca + thc < 0) {
-                    continue;
-                }
-
-                entry = Math.max(0, tca - thc);
             }
 
-            candidates.push({ entry, seg });
-        }
+            let c = candidates[n];
+            if (!c) {
+                c = candidates[n] = { entry: 0, seg: null };
+            }
 
-        candidates.sort((a, b) => a.entry - b.entry);
+            // insertion by entry: there are only a few candidates
+            let k = n++;
+            while (k > 0 && candidates[k - 1].entry > entry) {
+                candidates[k] = candidates[k - 1];
+                k--;
+            }
+            candidates[k] = c;
+            c.entry = entry;
+            c.seg = seg;
+        }
 
         let best = Infinity;
 
-        for (let i = 0; i < candidates.length; i++) {
+        for (let i = 0; i < n; i++) {
             const c = candidates[i];
             if (c.entry >= best) {
                 break;
             }
-            const t = c.seg.getRayDistance(o, d, best);
+            const t = getSegmentRayDistance(c.seg!, ray, best);
             if (t < best) {
                 best = t;
             }
         }
 
-        candidates.length = 0;
+        // The entries are kept for the next call, the segments are not
+        for (let i = 0; i < n; i++) {
+            candidates[i].seg = null;
+        }
 
         return best;
     }
 
     /**
-     * Returns where the ray first hits the drawn terrain of the rendered segments, or undefined.
+     * Returns where the ray first hits the terrain, as it is drawn, or undefined when it hits no terrain.
+     * Only the terrain segments rendered in the last frame are taken into account, see getRayDistanceTerrain.
      * @public
      * @param {Ray} ray - Ray, cartesian coordinates.
      * @param {Vec3} [res] - Result.
@@ -2543,13 +2559,17 @@ export class Planet extends Scene {
     /**
      * Returns screen coordinates cartesian coordinates on the current terrain.
      * position or null if input coordinates is outside the planet.
-     * The point is found on the drawn terrain geometry, see getRayIntersectionTerrain.
      * @public
      * @param {Vec2 | IBaseInputState} px - Pixel screen 2d coordinates.
      * @returns {Vec3 | undefined} -
      */
     public getCartesianFromPixelTerrain(px: Vec2 | IBaseInputState): Vec3 | undefined {
-        return this.getRayIntersectionTerrain(this.camera.getRay(px.x, px.y));
+        let distance = this.getDistanceFromPixel(px);
+        if (distance) {
+            let cam = this.camera;
+            let ray = cam.getRay(px.x, px.y);
+            return ray.origin.add(ray.direction.scaleTo(distance));
+        }
     }
 
     /**
@@ -2612,8 +2632,7 @@ export class Planet extends Scene {
      * @returns {number} -
      */
     public getDistanceFromPixel(px: Vec2 | IBaseInputState): number {
-        const t = this.getRayDistanceTerrain(this.renderer!.activeCamera!.getRay(px.x, px.y));
-        return t !== Infinity ? t : this.getDistanceFromPixelEllipsoid(px) || 0;
+        return this.renderer!.getDistanceFromPixel(px) || this.getDistanceFromPixelEllipsoid(px) || 0;
     }
 
     /**
