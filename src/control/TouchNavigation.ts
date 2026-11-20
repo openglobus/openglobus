@@ -2,7 +2,7 @@ import { Control } from "./Control";
 import type { IControlParams } from "./Control";
 import { Key } from "../Lock";
 import { LonLat } from "../LonLat";
-import { math } from "../index";
+import * as math from "../math";
 import { Quat } from "../math/Quat";
 import { Ray } from "../math/Ray";
 import { Sphere } from "../bv/Sphere";

@@ -1,3 +1,9 @@
+/** Max projectors per forward draw call, MAX_PROJECTORS in projectors.glsl. */
+export const MAX_FORWARD_PROJECTORS = 8;
+
+/** Max image/video sources per forward draw call, PROJECTOR_MAX_SOURCES in projectors.glsl. */
+export const MAX_FORWARD_PROJECTOR_SOURCES = 3;
+
 // Projectors take start (depth array) .. start + MAX_FORWARD_PROJECTOR_SOURCES (image/video sources),
 // so the projector block must end below the shadow start.
 export const DEFAULT_PROJECTOR_TEXTURE_UNIT_START = 6;

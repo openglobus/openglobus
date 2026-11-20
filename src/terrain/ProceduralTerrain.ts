@@ -1,8 +1,5 @@
-import { createEvents } from "../Events";
 import { EmptyTerrain } from "./EmptyTerrain";
 import type { IEmptyTerrainParams, ITerrainCacheInfo } from "./EmptyTerrain";
-import { TERRAIN_EVENTS } from "./GlobusTerrain";
-import type { TerrainEvents } from "./GlobusTerrain";
 import {
     createHeightsLevels,
     createHeightsLevelsSource,
@@ -79,8 +76,6 @@ type TileHeights = {
  * });
  */
 class ProceduralTerrain extends EmptyTerrain {
-    public events: TerrainEvents;
-
     protected _loading: number;
 
     protected _getHeights: GetHeightsFunc;
@@ -105,7 +100,6 @@ class ProceduralTerrain extends EmptyTerrain {
             name: name || "ProceduralTerrain"
         });
 
-        this.events = createEvents(TERRAIN_EVENTS, this);
         this.isEmpty = false;
         this.equalizeNormals = true;
         this.plainGridSize = options.plainGridSize || 128;

@@ -13,7 +13,7 @@ import type { Planet } from "../../scene/Planet";
 import type { Scene } from "../../scene/Scene";
 import type { EntityCollection } from "../../entity/EntityCollection";
 import { Framebuffer } from "../../webgl";
-import { Vector } from "../../layer/Vector";
+import type { Vector } from "../../layer/Vector";
 import type { ShadowMap } from "../shadows/ShadowMap";
 import type { DepthCameraHandler } from "./DepthCameraHandler";
 
@@ -858,8 +858,8 @@ export class DepthCamera {
         const layers = planet.layers;
 
         for (let i = 0; i < layers.length; i++) {
-            const layer = layers[i];
-            if (!(layer instanceof Vector) || !layer.getVisibility()) {
+            const layer = layers[i] as Vector;
+            if (!layer.isVector || !layer.getVisibility()) {
                 continue;
             }
 

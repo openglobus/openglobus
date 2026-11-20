@@ -9,7 +9,16 @@ import { Vec3 } from "../math/Vec3";
 import * as math from "../math";
 import type { PlanetCamera } from "../camera/PlanetCamera";
 import type { LonLat } from "../LonLat";
-import tzlookup from "@photostructure/tz-lookup";
+
+type TzLookup = (lat: number, lon: number) => string;
+
+// The built-in time zone data is large, loaded on the first lookup.
+let tzlookup: TzLookup | null = null;
+let tzlookupLoading: Promise<TzLookup> | null = null;
+
+function loadTzLookup(): Promise<TzLookup> {
+    return (tzlookupLoading ??= import("@photostructure/tz-lookup").then((m) => (tzlookup = m.default)));
+}
 
 /**
  * Minimal julian date change that moves the sunlight position, about 30 seconds.
@@ -264,7 +273,18 @@ export class Sun extends Control {
             this._loadTimeZoneProvider(p);
         }
 
-        return tzlookup(lonLat.lat, lonLat.lon);
+        if (tzlookup) {
+            return tzlookup(lonLat.lat, lonLat.lon);
+        }
+
+        loadTzLookup().then(() => {
+            this._localLon = NaN;
+            this._localLat = NaN;
+            this._localJd = NaN;
+            this.renderer && this.renderer.requestRedraw();
+        });
+
+        return null;
     }
 
     protected _loadTimeZoneProvider(p: ITimeZoneLookup) {

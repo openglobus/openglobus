@@ -1,6 +1,4 @@
 import * as mercator from "../mercator";
-import { createEvents } from "../Events";
-import type { EventsHandler } from "../Events";
 import { createExtent, stringTemplate } from "../utils/shared";
 import type { TypedArray } from "../utils/shared";
 import { EmptyTerrain } from "./EmptyTerrain";
@@ -58,8 +56,6 @@ type TileData = {
  * @fires loadend
  */
 class GlobusTerrain extends EmptyTerrain {
-    public events: TerrainEvents;
-
     protected _s: string[];
 
     protected _requestCount: number;
@@ -102,8 +98,6 @@ class GlobusTerrain extends EmptyTerrain {
         });
 
         this._s = options.subdomains || ["a", "b", "c"];
-
-        this.events = createEvents(TERRAIN_EVENTS, this);
 
         this._requestCount = 0;
 
@@ -480,22 +474,7 @@ class GlobusTerrain extends EmptyTerrain {
     }
 }
 
-export type TerrainEventsList = ["load", "loadend"];
-
-export type TerrainEvents = EventsHandler<TerrainEventsList>;
-
-export const TERRAIN_EVENTS: TerrainEventsList = [
-    /**
-     * Triggered when the current elevation tile has loaded but before rendering.
-     * @event og.terrain.GlobusTerrain#load
-     */
-    "load",
-
-    /**
-     * Triggered when all elevation tiles have loaded or loading has stopped.
-     * @event og.terrain.GlobusTerrain#loadend
-     */
-    "loadend"
-];
+export { TERRAIN_EVENTS } from "./EmptyTerrain";
+export type { TerrainEventsList, TerrainEvents } from "./EmptyTerrain";
 
 export { GlobusTerrain };

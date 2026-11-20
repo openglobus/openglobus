@@ -5,28 +5,13 @@
     "main": "lib/og.es.js",
     "types": "lib/index.d.ts",
     "sideEffects": [
-        "./lib/og.css"
+        "./lib/og.css",
+        "./lib/og.es.js"
     ],
     "exports": {
         ".": {
             "import": "./lib/og.es.js",
             "types": "./lib/index.d.ts"
-        },
-        "./core": {
-            "import": "./lib/core.js",
-            "types": "./lib/core.d.ts"
-        },
-        "./terrain": {
-            "import": "./lib/terrain.js",
-            "types": "./lib/terrain.d.ts"
-        },
-        "./renderer": {
-            "import": "./lib/renderer.js",
-            "types": "./lib/renderer.d.ts"
-        },
-        "./controls": {
-            "import": "./lib/controls.js",
-            "types": "./lib/controls.d.ts"
         },
         "./styles": {
             "import": "./lib/og.css"
@@ -42,11 +27,14 @@
         "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.js -d ./docs",
         "serve_docs": "http-server -p 8088 -c-1 --cors",
         "serve": "http-server -p 3000 -c-1 --cors",
-        "build": "vite build --mode production && npm run dts",
+        "build": "npm run build:prod",
+        "build:prod": "vite build --mode production && npm run dts",
+        "build:all": "vite build --mode all && npm run dts",
         "clean": "rm -rf ./lib ./docs",
         "dev": "vite build --watch --mode development",
         "test:watch": "vitest",
         "test": "vitest run --reporter=verbose",
+        "test:bundle": "vitest run tests/bundle/bundle.test.js",
         "lint": "eslint src/",
         "format": "prettier --write src css",
         "format:check": "prettier --check src css",
@@ -71,7 +59,6 @@
         "@babel/preset-typescript": "^7.27.0",
         "@eslint-community/eslint-utils": "^4.6.1",
         "@eslint/js": "^10.0.1",
-        "@rollup/plugin-terser": "^1.0.0",
         "@types/draco3d": "^1.4.10",
         "@types/earcut": "~3.0.0",
         "@types/node": "^22.15.3",
