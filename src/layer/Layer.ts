@@ -1,3 +1,4 @@
+import { pow2i } from "../math";
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
 import { createColorRGB } from "../utils/shared";
@@ -417,7 +418,7 @@ class Layer {
     static getTMS(x: number, y: number, z: number): { x: number; y: number; z: number } {
         return {
             x: x,
-            y: (1 << z) - y - 1,
+            y: pow2i(z) - y - 1,
             z: z
         };
     }

@@ -128,6 +128,7 @@ class LabelHandler extends BaseBillboardHandler {
     public override add(label: Label) {
         if (!label._handler) {
             label._handler = this;
+            label._setRTCPosition();
             this.assignFontAtlas(label);
             this.refresh();
         }
@@ -178,6 +179,7 @@ class LabelHandler extends BaseBillboardHandler {
 
             this._insertBillboardByOpacity(label._handlerIndex, this._isBillboardOpaque(label));
 
+            label.updateRTCPosition();
             label.update();
 
             this.refresh();
@@ -395,8 +397,10 @@ class LabelHandler extends BaseBillboardHandler {
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
-        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+        this._updateRTCEyePosition();
+        gl.uniform3fv(shu.eyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(shu.eyePositionLow, this._rtcEyePositionLow);
+        gl.uniform3fv(shu.relativeCenter, this._relativeCenterArr);
         gl.uniform4f(
             shu.scaleByDistance,
             ec.scaleByDistance[0],
@@ -510,8 +514,10 @@ class LabelHandler extends BaseBillboardHandler {
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
-        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+        this._updateRTCEyePosition();
+        gl.uniform3fv(shu.eyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(shu.eyePositionLow, this._rtcEyePositionLow);
+        gl.uniform3fv(shu.relativeCenter, this._relativeCenterArr);
         gl.uniform4f(
             shu.scaleByDistance,
             ec.scaleByDistance[0],

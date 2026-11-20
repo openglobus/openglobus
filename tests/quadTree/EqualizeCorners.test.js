@@ -1,6 +1,18 @@
 import { E, N, NE, NW, S, SE, SW, W } from "../../src/quadTree/quadTree";
-import { Vec3 } from "../../src/math/Vec3";
-import { GRID_SIZE_BY_ZOOM, STRATEGIES, createCut, createRandom, createStrategy, tileRect } from "./quadTreeScene";
+import {
+    GRID_SIZE_BY_ZOOM,
+    STRATEGIES,
+    createCut,
+    createRandom,
+    createStrategy,
+    drawFrame,
+    drawnSide,
+    engage,
+    link,
+    pointAt,
+    settle,
+    tileRect
+} from "./quadTreeScene";
 
 const TOLERANCE = 1e-6;
 
@@ -32,39 +44,6 @@ function setVertices(node, world, random, version = 0) {
 
     node.appliedTerrainNodeId = node.nodeId + version * 1e9;
     node.equalizedSideWithNodeId = new Array(4).fill(node.appliedTerrainNodeId);
-}
-
-function vertexOnSide(seg, side, k) {
-    const gs = seg.gridSize,
-        one = gs + 1,
-        index = side === N ? k : side === S ? gs * one + k : side === E ? k * one + gs : k * one,
-        v = seg.renderVertices,
-        c = seg._relativeCenter;
-    return new Vec3(v[index * 3] + c.x, v[index * 3 + 1] + c.y, v[index * 3 + 2] + c.z);
-}
-
-// The side as it is drawn: the vertices the side size keeps, at positions from 0 to 1 along the side
-function drawnSide(node, side) {
-    const seg = node.segment,
-        count = 1 << node.sideSizeLog2[side],
-        step = seg.gridSize / count,
-        points = [];
-    for (let k = 0; k <= count; k++) {
-        points.push({ t: k / count, p: vertexOnSide(seg, side, k * step) });
-    }
-    return points;
-}
-
-function pointAt(points, t) {
-    for (let i = 1; i < points.length; i++) {
-        if (t <= points[i].t) {
-            const a = points[i - 1],
-                b = points[i],
-                f = (t - a.t) / (b.t - a.t);
-            return a.p.add(b.p.sub(a.p).scaleTo(f));
-        }
-    }
-    return points[points.length - 1].p;
 }
 
 /** The biggest gap between the drawn sides of the node and of its neighbour of the same or a lower zoom. */
@@ -99,41 +78,6 @@ function collectGaps(nodes) {
         }
     }
     return gaps;
-}
-
-function link(qts, nodes) {
-    const opaque = [];
-    qts._neighborFrame++;
-    nodes.forEach((n) => qts._addOpaqueNode(opaque, n));
-    qts._linkOpaqueNodes(opaque);
-}
-
-// As Planet draws a frame: from the end of the list, the deepest nodes first
-function drawFrame(qts, nodes, reversed = false) {
-    link(qts, nodes);
-    for (let i = 0; i < nodes.length; i++) {
-        const seg = nodes[reversed ? i : nodes.length - 1 - i].segment;
-        seg.equalize();
-    }
-}
-
-function engage(nodes) {
-    let uploads = 0;
-    for (const node of nodes) {
-        uploads += node.segment.readyToEngage ? 1 : 0;
-        node.segment.readyToEngage = false;
-    }
-    return uploads;
-}
-
-// Draws the frames the segment corners ask for, returns their count
-function settle(qts, nodes, reversed = false) {
-    let frames = 0;
-    do {
-        drawFrame(qts, nodes, reversed);
-        frames++;
-    } while (engage(nodes) > 0 && frames < 8);
-    return frames;
 }
 
 function setNodes(nodes, world, random) {
@@ -205,6 +149,47 @@ describe.each(WORLDS)("corners of the equalized segments of $name", (world) => {
                 }
             }
             expect(settle(qts, nodes)).toBeLessThanOrEqual(4);
+            expect(collectGaps(nodes)).toEqual([]);
+        }
+    });
+
+    test.each(SEEDS)("a side doesn't keep the old terrain of a tile after its new terrain comes, seed %i", (seed) => {
+        for (const [firstReversed, secondReversed] of [
+            [false, false],
+            [false, true],
+            [true, false],
+            [true, true]
+        ]) {
+            const { qts, nodes, random } = createScene(world, seed);
+
+            settle(qts, nodes);
+
+            // A tile with a neighbour of the same zoom gets terrain whose heights are far above the others
+            link(qts, nodes);
+            const node = nodes.find((n) =>
+                n.neighbors.some((list) => list.length === 1 && list[0].segment.tileZoom === n.segment.tileZoom)
+            );
+            setVertices(node, world, () => 100 + random(), 1);
+            settle(qts, nodes, firstReversed);
+
+            // Then its next terrain comes with ordinary heights
+            setVertices(node, world, random, 2);
+            settle(qts, nodes, secondReversed);
+
+            const high = [];
+            for (let side = N; side <= W; side++) {
+                for (const n of node.neighbors[side]) {
+                    for (const [seg, s] of [
+                        [node, side],
+                        [n, OPPOSITE[side]]
+                    ]) {
+                        for (const { p } of drawnSide(seg, s)) {
+                            if (p.z > 50) high.push({ tile: seg.segment.tileIndex, side: s });
+                        }
+                    }
+                }
+            }
+            expect(high).toEqual([]);
             expect(collectGaps(nodes)).toEqual([]);
         }
     });
@@ -320,6 +305,18 @@ describe("corner cases of the equalized segments", () => {
 
         return { qts, nodes };
     }
+
+    test("two tiles that each took their side from the parent of the other meet", () => {
+        // Neighbours of the same zoom with different parents, the east side of a is the west side of b
+        const { qts, nodes } = setup((root, at) => [at(NW), at(NE), at(NW, NE), at(NE, NW)]);
+        const [parentA, parentB, a, b] = nodes;
+
+        settle(qts, [a, parentB]);
+        settle(qts, [parentA, b]);
+        settle(qts, [a, b]);
+
+        expect(collectGaps([a, b])).toEqual([]);
+    });
 
     test("a lower zoom diagonal pair around a point of deeper tiles agrees", () => {
         const { qts, nodes } = setup((root, at) => {

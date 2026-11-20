@@ -1,5 +1,6 @@
 import { Control, type IControlParams } from "../Control";
 import { Dialog } from "../../ui/Dialog";
+import { Checkbox } from "../../ui/Checkbox";
 import { Slider } from "../../ui/Slider";
 import { ToggleButton } from "../../ui/ToggleButton";
 import { View } from "../../ui/View";
@@ -43,7 +44,19 @@ const TEMPLATE = `<div class="og-atmosphere og-options-container">
 
          <div class="og-option og-atmosphere-sunAngularRadius"></div>
          <div class="og-option og-atmosphere-sunIntensity"></div>
+         <div class="og-option og-atmosphere-scatteringColorR"></div>
+         <div class="og-option og-atmosphere-scatteringColorG"></div>
+         <div class="og-option og-atmosphere-scatteringColorB"></div>
          <div class="og-option og-atmosphere-groundAlbedo"></div>
+
+       <div class="og-emptyline-2"></div>
+
+         <div class="og-option og-atmosphere-aerialPerspective"></div>
+         <div class="og-option og-atmosphere-aerialPerspectiveStrength"></div>
+         <div class="og-option og-atmosphere-aerialPerspectiveAerosol"></div>
+         <div class="og-option og-atmosphere-aerialPerspectiveStartFactor"></div>
+         <div class="og-option og-atmosphere-aerialPerspectiveSlope"></div>
+         <div class="og-option og-atmosphere-aerialPerspectiveFade"></div>
 
     </div>`;
 
@@ -72,9 +85,18 @@ export class AtmosphereConfig extends Control {
     public $ozoneAbsorptionCoefficientC: HTMLElement | null;
     public $sunAngularRadius: HTMLElement | null;
     public $sunIntensity: HTMLElement | null;
+    public $scatteringColorR: HTMLElement | null;
+    public $scatteringColorG: HTMLElement | null;
+    public $scatteringColorB: HTMLElement | null;
     public $groundAlbedo: HTMLElement | null;
     public $ozoneDensityHeight: HTMLElement | null;
     public $ozoneDensityWide: HTMLElement | null;
+    public $aerialPerspective: HTMLElement | null;
+    public $aerialPerspectiveStrength: HTMLElement | null;
+    public $aerialPerspectiveAerosol: HTMLElement | null;
+    public $aerialPerspectiveStartFactor: HTMLElement | null;
+    public $aerialPerspectiveSlope: HTMLElement | null;
+    public $aerialPerspectiveFade: HTMLElement | null;
 
     protected _rayleight: Slider;
     protected _mie: Slider;
@@ -90,10 +112,20 @@ export class AtmosphereConfig extends Control {
     protected _ozoneAbsorptionCoefficientC: Slider;
     protected _sunAngularRadius: Slider;
     protected _sunIntensity: Slider;
+    protected _scatteringColorR: Slider;
+    protected _scatteringColorG: Slider;
+    protected _scatteringColorB: Slider;
     protected _groundAlbedo: Slider;
     protected _equatorialRadius: Slider;
     protected _ozoneDensityHeight: Slider;
     protected _ozoneDensityWide: Slider;
+    protected _aerialPerspective: Checkbox;
+    protected _aerialPerspectiveStrength: Slider;
+    protected _aerialPerspectiveAerosol: Slider;
+    protected _aerialPerspectiveStartFactor: Slider;
+    protected _aerialPerspectiveSlope: Slider;
+    protected _aerialPerspectiveFadeStart: Slider;
+    protected _aerialPerspectiveFadeEnd: Slider;
 
     protected _parameters: AtmosphereParameters;
 
@@ -114,9 +146,18 @@ export class AtmosphereConfig extends Control {
         this.$ozoneAbsorptionCoefficientC = null;
         this.$sunAngularRadius = null;
         this.$sunIntensity = null;
+        this.$scatteringColorR = null;
+        this.$scatteringColorG = null;
+        this.$scatteringColorB = null;
         this.$groundAlbedo = null;
         this.$ozoneDensityHeight = null;
         this.$ozoneDensityWide = null;
+        this.$aerialPerspective = null;
+        this.$aerialPerspectiveStrength = null;
+        this.$aerialPerspectiveAerosol = null;
+        this.$aerialPerspectiveStartFactor = null;
+        this.$aerialPerspectiveSlope = null;
+        this.$aerialPerspectiveFade = null;
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-atmosphere_button"],
@@ -129,7 +170,10 @@ export class AtmosphereConfig extends Control {
             useHide: true,
             top: 60,
             left: 60,
-            width: 720
+            width: 720,
+            height: 480,
+            minWidth: 360,
+            minHeight: 200
         });
 
         this._dialog.events.on("visibility", (v: boolean) => {
@@ -235,9 +279,58 @@ export class AtmosphereConfig extends Control {
             max: 10
         });
 
+        this._scatteringColorR = new Slider({
+            label: "Scattering Color R",
+            max: 2
+        });
+
+        this._scatteringColorG = new Slider({
+            label: "Scattering Color G",
+            max: 2
+        });
+
+        this._scatteringColorB = new Slider({
+            label: "Scattering Color B",
+            max: 2
+        });
+
         this._groundAlbedo = new Slider({
             label: "Ground Albedo (GROUND_ALBEDO)",
             max: 10 * 0.05
+        });
+
+        this._aerialPerspective = new Checkbox({
+            label: "Aerial Perspective"
+        });
+
+        this._aerialPerspectiveStrength = new Slider({
+            label: "Aerial Perspective Strength",
+            max: 10
+        });
+
+        this._aerialPerspectiveAerosol = new Slider({
+            label: "Aerial Perspective Aerosol",
+            max: 10
+        });
+
+        this._aerialPerspectiveStartFactor = new Slider({
+            label: "Aerial Perspective Start Factor",
+            max: 50
+        });
+
+        this._aerialPerspectiveSlope = new Slider({
+            label: "Aerial Perspective Slope",
+            max: 1
+        });
+
+        this._aerialPerspectiveFadeStart = new Slider({
+            label: "Aerial Perspective Fade Start",
+            max: 1000000.0
+        });
+
+        this._aerialPerspectiveFadeEnd = new Slider({
+            label: "Aerial Perspective Fade End",
+            max: 1000000.0
         });
 
         this._parameters = {
@@ -257,6 +350,7 @@ export class AtmosphereConfig extends Control {
             ozoneAbsorptionCoefficient_2: 0,
             SUN_ANGULAR_RADIUS: 0,
             SUN_INTENSITY: 0,
+            scatteringColor: [0, 0, 0],
             ozoneDensityHeight: 0,
             ozoneDensityWide: 0,
             disableSunDisk: false
@@ -304,9 +398,28 @@ export class AtmosphereConfig extends Control {
             );
             this.$sunAngularRadius = this._panel.el.querySelector(".og-option.og-atmosphere-sunAngularRadius");
             this.$sunIntensity = this._panel.el.querySelector(".og-option.og-atmosphere-sunIntensity");
+            this.$scatteringColorR = this._panel.el.querySelector(".og-option.og-atmosphere-scatteringColorR");
+            this.$scatteringColorG = this._panel.el.querySelector(".og-option.og-atmosphere-scatteringColorG");
+            this.$scatteringColorB = this._panel.el.querySelector(".og-option.og-atmosphere-scatteringColorB");
             this.$groundAlbedo = this._panel.el.querySelector(".og-option.og-atmosphere-groundAlbedo");
             this.$ozoneDensityHeight = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneDensityHeight");
             this.$ozoneDensityWide = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneDensityWide");
+            this.$aerialPerspective = this._panel.el.querySelector(".og-option.og-atmosphere-aerialPerspective");
+            this.$aerialPerspectiveStrength = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-aerialPerspectiveStrength"
+            );
+            this.$aerialPerspectiveAerosol = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-aerialPerspectiveAerosol"
+            );
+            this.$aerialPerspectiveStartFactor = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-aerialPerspectiveStartFactor"
+            );
+            this.$aerialPerspectiveSlope = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-aerialPerspectiveSlope"
+            );
+            this.$aerialPerspectiveFade = this._panel.el.querySelector(
+                ".og-option.og-atmosphere-aerialPerspectiveFade"
+            );
         }
 
         this._toggleBtn.events.on("change", (isActive: boolean) => {
@@ -328,9 +441,19 @@ export class AtmosphereConfig extends Control {
         this._ozoneAbsorptionCoefficientC.appendTo(this.$ozoneAbsorptionCoefficientC!);
         this._sunAngularRadius.appendTo(this.$sunAngularRadius!);
         this._sunIntensity.appendTo(this.$sunIntensity!);
+        this._scatteringColorR.appendTo(this.$scatteringColorR!);
+        this._scatteringColorG.appendTo(this.$scatteringColorG!);
+        this._scatteringColorB.appendTo(this.$scatteringColorB!);
         this._groundAlbedo.appendTo(this.$groundAlbedo!);
         this._ozoneDensityHeight.appendTo(this.$ozoneDensityHeight!);
         this._ozoneDensityWide.appendTo(this.$ozoneDensityWide!);
+        this._aerialPerspective.appendTo(this.$aerialPerspective!);
+        this._aerialPerspectiveStrength.appendTo(this.$aerialPerspectiveStrength!);
+        this._aerialPerspectiveAerosol.appendTo(this.$aerialPerspectiveAerosol!);
+        this._aerialPerspectiveStartFactor.appendTo(this.$aerialPerspectiveStartFactor!);
+        this._aerialPerspectiveSlope.appendTo(this.$aerialPerspectiveSlope!);
+        this._aerialPerspectiveFadeStart.appendTo(this.$aerialPerspectiveFade!);
+        this._aerialPerspectiveFadeEnd.appendTo(this.$aerialPerspectiveFade!);
 
         if (this.planet) {
             this._parameters = this.planet.atmosphereControl.parameters;
@@ -354,9 +477,22 @@ export class AtmosphereConfig extends Control {
             this._ozoneAbsorptionCoefficientC.value = this._parameters.ozoneAbsorptionCoefficient_2;
             this._sunAngularRadius.value = this._parameters.SUN_ANGULAR_RADIUS;
             this._sunIntensity.value = this._parameters.SUN_INTENSITY;
+            this._parameters.scatteringColor ??= [1.0, 1.0, 1.0];
+            this._scatteringColorR.value = this._parameters.scatteringColor[0];
+            this._scatteringColorG.value = this._parameters.scatteringColor[1];
+            this._scatteringColorB.value = this._parameters.scatteringColor[2];
             this._groundAlbedo.value = this._parameters.GROUND_ALBEDO;
             this._ozoneDensityHeight.value = this._parameters.ozoneDensityHeight;
             this._ozoneDensityWide.value = this._parameters.ozoneDensityWide;
+
+            const atmos = this.planet.atmosphereControl;
+            this._aerialPerspective.checked = atmos.aerialPerspective;
+            this._aerialPerspectiveStrength.value = atmos.aerialPerspectiveStrength;
+            this._aerialPerspectiveAerosol.value = atmos.aerialPerspectiveAerosol;
+            this._aerialPerspectiveStartFactor.value = atmos.aerialPerspectiveStartFactor;
+            this._aerialPerspectiveSlope.value = atmos.aerialPerspectiveSlope;
+            this._aerialPerspectiveFadeStart.value = atmos.aerialPerspectiveFadeStart;
+            this._aerialPerspectiveFadeEnd.value = atmos.aerialPerspectiveFadeEnd;
         }
 
         this._rayleight.events.on("change", (val: number) => {
@@ -434,6 +570,21 @@ export class AtmosphereConfig extends Control {
             this._update();
         });
 
+        this._scatteringColorR.events.on("change", (val: number) => {
+            this._parameters.scatteringColor![0] = val;
+            this._update();
+        });
+
+        this._scatteringColorG.events.on("change", (val: number) => {
+            this._parameters.scatteringColor![1] = val;
+            this._update();
+        });
+
+        this._scatteringColorB.events.on("change", (val: number) => {
+            this._parameters.scatteringColor![2] = val;
+            this._update();
+        });
+
         this._groundAlbedo.events.on("change", (val: number) => {
             this._parameters.GROUND_ALBEDO = val;
             this._update();
@@ -447,6 +598,34 @@ export class AtmosphereConfig extends Control {
         this._ozoneDensityWide.events.on("change", (val: number) => {
             this._parameters.ozoneDensityWide = val;
             this._update();
+        });
+
+        this._aerialPerspective.events.on("change", (val: boolean) => {
+            if (this.planet) this.planet.atmosphereControl.aerialPerspective = val;
+        });
+
+        this._aerialPerspectiveStrength.events.on("change", (val: number) => {
+            if (this.planet) this.planet.atmosphereControl.aerialPerspectiveStrength = val;
+        });
+
+        this._aerialPerspectiveAerosol.events.on("change", (val: number) => {
+            if (this.planet) this.planet.atmosphereControl.aerialPerspectiveAerosol = val;
+        });
+
+        this._aerialPerspectiveStartFactor.events.on("change", (val: number) => {
+            if (this.planet) this.planet.atmosphereControl.aerialPerspectiveStartFactor = val;
+        });
+
+        this._aerialPerspectiveSlope.events.on("change", (val: number) => {
+            if (this.planet) this.planet.atmosphereControl.aerialPerspectiveSlope = val;
+        });
+
+        this._aerialPerspectiveFadeStart.events.on("change", (val: number) => {
+            if (this.planet) this.planet.atmosphereControl.aerialPerspectiveFadeStart = val;
+        });
+
+        this._aerialPerspectiveFadeEnd.events.on("change", (val: number) => {
+            if (this.planet) this.planet.atmosphereControl.aerialPerspectiveFadeEnd = val;
         });
     }
 

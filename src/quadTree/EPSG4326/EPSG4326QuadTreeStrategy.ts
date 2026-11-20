@@ -8,6 +8,7 @@ import { PlanetCamera } from "../../camera";
 export class EPSG4326QuadTreeStrategy extends QuadTreeStrategy {
     constructor(params: QuadTreeStrategyParams) {
         super({ name: "EPSG4326", proj: EPSG4326, ...params });
+        this.rootTileWidth = 180;
     }
 
     public override init(camera: PlanetCamera) {

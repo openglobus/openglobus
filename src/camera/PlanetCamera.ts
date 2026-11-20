@@ -52,6 +52,11 @@ function getAlignedUp(forward: Vec3, preferredUp: Vec3): Vec3 {
     return up.normalize();
 }
 
+function getHorizon(height: number, radius: number): number {
+    let h = Math.max(height, 0);
+    return Math.sqrt(h * (2 * radius - h));
+}
+
 function getFlightAngles(q: Quat): [number, number] {
     let pitch = q.getPitch();
     if (Math.cos(pitch) > FLIGHT_VERTICAL_COS) {
@@ -390,7 +395,7 @@ class PlanetCamera extends Camera {
 
         for (let i = renderedNodes.length - 1; i >= 0; i--) {
             const seg = renderedNodes[i].segment;
-            if (seg && seg._extentLonLat && seg._extentLonLat.isInside(centerLonLat)) {
+            if (seg && seg.isLonLatInside(centerLonLat)) {
                 if (!bestSegment || seg.tileZoom > bestSegment.tileZoom) {
                     bestSegment = seg;
                 }
@@ -583,7 +588,7 @@ class PlanetCamera extends Camera {
 
         // A near flight goes straight, a straight path through the planet goes by the arc
         let isLinear = params.linearPath || this.eye.distance(cartesian) <= LINEAR_FLIGHT_DISTANCE;
-        if (isLinear && !this.isVisible(cartesian)) {
+        if (isLinear && !this._isFlightVisible(cartesian)) {
             isLinear = false;
             params.amplitude = 1.0;
         }
@@ -947,6 +952,18 @@ class PlanetCamera extends Camera {
     public isVisible(poi: Vec3): boolean {
         let e = this.eye.length();
         return this.eye.distance(poi) < Math.sqrt(e * e - this.planet.ellipsoid.equatorialSizeSqr);
+    }
+
+    /**
+     * Checks whether the straight flight to the point stays over the horizon,
+     * by the eye and the point heights over the ellipsoid.
+     * @protected
+     */
+    protected _isFlightVisible(poi: Vec3): boolean {
+        let h = this.planet.ellipsoid.cartesianToLonLat(poi).height;
+        return (
+            this.eye.distance(poi) < getHorizon(this._lonLat.height, this.eye.length()) + getHorizon(h, poi.length())
+        );
     }
 
     /**

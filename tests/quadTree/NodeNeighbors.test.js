@@ -50,7 +50,7 @@ function legacyCommonSide(nodeA, nodeB) {
     const as = nodeA.segment;
     const bs = nodeB.segment;
 
-    if (as.tileZoom === bs.tileZoom && as._tileGroup === bs._tileGroup) {
+    if (as.tileZoom === bs.tileZoom && as.tileGroup === bs.tileGroup) {
         return legacyNeighborSide(as, bs);
     } else {
         const a = as._extentLonLat;
@@ -70,7 +70,7 @@ function legacyCommonSide(nodeA, nodeB) {
             b_sw_lon = b_sw.lon,
             b_sw_lat = b_sw.lat;
 
-        if (as._tileGroup === bs._tileGroup) {
+        if (as.tileGroup === bs.tileGroup) {
             if (
                 a_ne_lon === b_sw_lon &&
                 ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
@@ -107,32 +107,32 @@ function legacyCommonSide(nodeA, nodeB) {
         }
 
         if (
-            as._tileGroup === TILEGROUP_COMMON &&
-            bs._tileGroup === TILEGROUP_NORTH &&
+            as.tileGroup === TILEGROUP_COMMON &&
+            bs.tileGroup === TILEGROUP_NORTH &&
             as.tileY === 0 &&
             bs.tileY === bs.powTileZoom - 1 &&
             ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
         ) {
             return N;
         } else if (
-            as._tileGroup === TILEGROUP_COMMON &&
-            bs._tileGroup === TILEGROUP_SOUTH &&
+            as.tileGroup === TILEGROUP_COMMON &&
+            bs.tileGroup === TILEGROUP_SOUTH &&
             as.tileY === as.powTileZoom - 1 &&
             bs.tileY === 0 &&
             ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
         ) {
             return S;
         } else if (
-            as._tileGroup === TILEGROUP_SOUTH &&
-            bs._tileGroup === TILEGROUP_COMMON &&
+            as.tileGroup === TILEGROUP_SOUTH &&
+            bs.tileGroup === TILEGROUP_COMMON &&
             as.tileY === 0 &&
             bs.tileY === bs.powTileZoom - 1 &&
             ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
         ) {
             return N;
         } else if (
-            as._tileGroup === TILEGROUP_NORTH &&
-            bs._tileGroup === TILEGROUP_COMMON &&
+            as.tileGroup === TILEGROUP_NORTH &&
+            bs.tileGroup === TILEGROUP_COMMON &&
             as.tileY === as.powTileZoom - 1 &&
             bs.tileY === 0 &&
             ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))

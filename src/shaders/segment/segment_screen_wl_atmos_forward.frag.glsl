@@ -8,9 +8,7 @@ precision highp float;
 #include "../atmos/common.glsl"
 #include "./nightEmission.glsl"
 #include "../common/lighting.glsl"
-#include "../common/projectors.glsl"
-#include "../common/shadows.glsl"
-#include "../common/cascadeShadows.glsl"
+#include "../common/lightingFeatures.glsl"
 
 uniform vec4 specular;
 uniform vec3 diffuse;
@@ -21,11 +19,7 @@ uniform vec3 lightPosition;
 uniform sampler2D uNormalMap;
 uniform sampler2D nightTexture;
 uniform sampler2D specularTexture;
-uniform sampler2D transmittanceTexture;
-uniform sampler2D scatteringTexture;
-
-#include "../atmos/lut_helpers.glsl"
-#include "../atmos/atmosGroundColor.glsl"
+uniform sampler2D atmosLutTexture;
 
 uniform sampler2D defaultTexture;
 uniform sampler2D samplerArr[SLICE_SIZE];
@@ -46,6 +40,10 @@ uniform float frameOpacity;
 uniform vec3 cameraPosition;
 uniform vec3 cameraForward;
 uniform float isOrthographic;
+
+#include "../atmos/lut_helpers.glsl"
+#include "../atmos/atmosGroundColor.glsl"
+#include "../atmos/aerialPerspective.glsl"
 
 in vec4 vTextureCoord;
 in vec3 v_worldVertex;
@@ -69,10 +67,8 @@ void main(void) {
     vec3 normal = normalize((texNormal - 0.5) * 2.0);
     vec4 projectorDecal;
     vec3 projectorLight;
-    applyProjectors(v_rtcPos, normal, projectorDecal, projectorLight);
-    float shadowVisibility =
-        getShadowMapsDirectVisibility(v_rtcPos, normal) *
-        getCascadeShadowDirectVisibility(v_rtcPos, normal);
+    applyLightingFeatureProjectors(v_rtcPos, normal, projectorDecal, projectorLight);
+    float shadowVisibility = getLightingFeatureShadowVisibility(v_rtcPos, normal);
 
     if (shadeMode == SHADE_UNLIT) {
         diffuseColor.rgb = applyProjectorDecal(diffuseColor.rgb, projectorDecal);
@@ -96,15 +92,9 @@ void main(void) {
     vec4 lightWeighting;
     vec3 specularWeighting;
 
-    float fadingOpacity;
-    vec4 atmosColor;
-
     vec3 rayOrigin;
     vec3 rayDirection;
     getAtmosViewRay(v_worldVertex, cameraPosition, cameraForward, isOrthographic, rayOrigin, rayDirection);
-    vec3 viewDir = normalize(-rayDirection);
-
-    atmosGroundColor(v_worldVertex, normal, rayOrigin, rayDirection, lightPosition, atmosColor);
 
     vec3 sunIlluminance;
     getSunIlluminance(v_worldVertex, normalize(lightPosition), sunIlluminance);
@@ -145,16 +135,20 @@ void main(void) {
     lightWeighting.rgb = applyDirectLightVisibility(lightWeighting.rgb, ambient, 1.0, shadowVisibility);
     specularWeighting *= shadowVisibility;
 
-    getAtmosFadingOpacity(v_worldVertex, cameraPosition, atmosFadeDist, atmosMaxMinOpacity, fadingOpacity);
-    fadingOpacity *= atmosColor.a;
-    getSunIlluminance(cameraPosition, viewDir, sunIlluminance);
-    specularWeighting *= mix(vec3(1.0), sunIlluminance, atmosColor.a);
-
     diffuseColor = vec4(
     applyProjectorDecal(
-        mix(diffuseColor.rgb * lightWeighting.rgb + emission, atmosColor.rgb, fadingOpacity) +
-        diffuseColor.rgb * projectorLight +
-        specularWeighting,
+        applyAtmosphereToSurface(
+            v_worldVertex,
+            v_rtcPos,
+            normal,
+            cameraPosition,
+            rayOrigin,
+            rayDirection,
+            lightPosition,
+            diffuseColor.rgb * lightWeighting.rgb + emission,
+            specularWeighting
+        ) +
+        diffuseColor.rgb * projectorLight,
         projectorDecal
     ),
     diffuseColor.a

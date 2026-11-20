@@ -6,7 +6,11 @@ import transmittance_frag from "./transmittance.frag.glsl";
 import scattering_vert from "./scattering.vert.glsl";
 import scattering_frag from "./scattering.frag.glsl";
 
+import aerial_perspective_vert from "./aerialPerspective.vert.glsl";
+import aerial_perspective_frag from "./aerialPerspective.frag.glsl";
+
 import { stringTemplate2 } from "../../utils/shared";
+import type { NumberArray3 } from "../../math/Vec3";
 
 export interface AtmosphereParameters {
     ATMOS_HEIGHT: number;
@@ -25,6 +29,7 @@ export interface AtmosphereParameters {
     ozoneAbsorptionCoefficient_2: number;
     SUN_ANGULAR_RADIUS: number;
     SUN_INTENSITY: number;
+    scatteringColor?: NumberArray3;
     ozoneDensityHeight: number;
     ozoneDensityWide: number;
     disableSunDisk?: boolean;
@@ -48,6 +53,7 @@ export interface AtmosphereParameters {
  * ozoneAbsorptionCoefficient_2: 0.085
  * SUN_ANGULAR_RADIUS: 0.004685
  * SUN_INTENSITY: 1.0
+ * scatteringColor: [0.5, 0.8, 1.2]
  * ozoneDensityHeight: 25e3
  * ozoneDensityWide: 15e3
  * disableSunDisk: false
@@ -69,6 +75,7 @@ export const DEFAULT_PARAMS: AtmosphereParameters = {
     ozoneAbsorptionCoefficient_2: 0.09,
     SUN_ANGULAR_RADIUS: 0.004685,
     SUN_INTENSITY: 0.78, //1.0
+    scatteringColor: [0.5, 0.8, 1.2],
     ozoneDensityHeight: 25e3,
     ozoneDensityWide: 15e3,
     disableSunDisk: false
@@ -91,6 +98,7 @@ export const MARS_PARAMS: AtmosphereParameters = {
     ozoneAbsorptionCoefficient_2: 0.8,
     SUN_ANGULAR_RADIUS: 0.004685,
     SUN_INTENSITY: 1.0,
+    scatteringColor: [1.0, 1.0, 1.0],
     ozoneDensityHeight: 10e3,
     ozoneDensityWide: 30e3,
     disableSunDisk: false
@@ -113,6 +121,7 @@ export function scattering(atmosParams?: AtmosphereParameters): ShaderProgram {
     return new ShaderProgram("scattering", {
         uniforms: {
             iResolution: "vec2",
+            fragCoordOffset: "vec2",
             transmittanceTexture: "sampler2d"
         },
         attributes: {
@@ -120,6 +129,31 @@ export function scattering(atmosParams?: AtmosphereParameters): ShaderProgram {
         },
         vertexShader: scattering_vert,
         fragmentShader: stringTemplate2(scattering_frag, atmosParams || DEFAULT_PARAMS)
+    });
+}
+
+// width - view azimuth from the sun, height - view zenith angle, depth - distance
+export const AERIAL_PERSPECTIVE_LUT_SIZE = { width: 64, height: 64, depth: 32 };
+
+export function aerialPerspective(atmosParams?: AtmosphereParameters): ShaderProgram {
+    return new ShaderProgram("aerialPerspective", {
+        uniforms: {
+            atmosLutTexture: "sampler2d",
+            cameraParams: "vec2",
+            depthParams: "vec2",
+            densityScale: "vec2",
+            slice: "float"
+        },
+        attributes: {
+            corners: "vec2"
+        },
+        vertexShader: aerial_perspective_vert,
+        fragmentShader: stringTemplate2(aerial_perspective_frag, {
+            ...(atmosParams || DEFAULT_PARAMS),
+            AP_WIDTH: AERIAL_PERSPECTIVE_LUT_SIZE.width,
+            AP_HEIGHT: AERIAL_PERSPECTIVE_LUT_SIZE.height,
+            AP_DEPTH: AERIAL_PERSPECTIVE_LUT_SIZE.depth
+        })
     });
 }
 

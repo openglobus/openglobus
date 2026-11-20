@@ -14,7 +14,7 @@ import segment_colorPicking_frag from "./segment_colorPicking.frag.glsl";
 import segment_depth_vert from "./segment_depth.vert.glsl";
 import segment_depth_frag from "./segment_depth.frag.glsl";
 import { stringTemplate2 } from "../../utils/shared";
-import { cascadeShadowUniforms, projectorShaderParams, projectorUniforms, shadowMapUniforms } from "../common/uniforms";
+import { lightingFeatureDefines, lightingFeatureUniforms, projectorShaderParams } from "../common/uniforms";
 
 // REMEMBER!
 // src*(1)+dest*(1-src.alpha)
@@ -66,6 +66,7 @@ export function segment_screen_deferred(): ShaderProgram {
 
 export function segment_screen_wl_forward_noatmos(): ShaderProgram {
     return new ShaderProgram("segment_screen_wl_forward", {
+        defines: lightingFeatureDefines,
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -92,9 +93,7 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
             transitionOpacity: "float",
             shadeMode: "float",
             frameOpacity: "float",
-            ...projectorUniforms,
-            ...shadowMapUniforms,
-            ...cascadeShadowUniforms
+            ...lightingFeatureUniforms
         },
         attributes: {
             aVertexPositionHigh: "vec3",
@@ -108,6 +107,7 @@ export function segment_screen_wl_forward_noatmos(): ShaderProgram {
 
 export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameters = DEFAULT_PARAMS): ShaderProgram {
     return new ShaderProgram("segment_screen_wl_forward", {
+        defines: lightingFeatureDefines,
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
@@ -131,8 +131,12 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4",
-            transmittanceTexture: "sampler2D",
-            scatteringTexture: "sampler2D",
+            atmosLutTexture: "sampler2d",
+            aerialPerspectiveTexture: "sampler3d",
+            aerialPerspectiveFrame: "mat3",
+            aerialPerspectiveParams: "vec4",
+            aerialPerspectiveStartDistance: "float",
+            aerialPerspectiveIntensity: "float",
             atmosFadeDist: "vec2",
             atmosMaxMinOpacity: "vec3",
             specularFactor: "float",
@@ -140,9 +144,7 @@ export function segment_screen_wl_forward_atmos(atmosParams: AtmosphereParameter
             transitionOpacity: "float",
             shadeMode: "float",
             frameOpacity: "float",
-            ...projectorUniforms,
-            ...shadowMapUniforms,
-            ...cascadeShadowUniforms
+            ...lightingFeatureUniforms
         },
         attributes: {
             aVertexPositionHigh: "vec3",

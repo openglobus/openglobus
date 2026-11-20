@@ -20,6 +20,7 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 uniform vec3 eyePositionHigh;
 uniform vec3 eyePositionLow;
+uniform vec3 relativeCenter;
 uniform vec4 uScaleByDistance;
 uniform float uFocusDistance;
 uniform float opacity;
@@ -32,8 +33,8 @@ const vec3 ZERO3 = vec3(0.0);
 
 void main() {
 
-    vec3 a_positions = a_positionsHigh + a_positionsLow;
-    vec3 cameraPos = eyePositionHigh + eyePositionLow;
+    vec3 a_positions = a_positionsHigh + a_positionsLow + relativeCenter;
+    vec3 cameraPos = eyePositionHigh + eyePositionLow + relativeCenter;
 
     v_texCoords = a_texCoord;
     vec3 look = a_positions - cameraPos;
@@ -47,8 +48,8 @@ void main() {
 
     float distMetric = uFocusDistance > 0.0 ? uFocusDistance : lookDist;
     float scd = uScaleByDistance[2] > uScaleByDistance[1]
-        ? 1.0 - smoothstep(uScaleByDistance[1], uScaleByDistance[2], distMetric)
-        : 1.0;
+    ? 1.0 - smoothstep(uScaleByDistance[1], uScaleByDistance[2], distMetric)
+    : 1.0;
     scd *= uScaleByDistance[3];
 
     mat4 viewMatrixRTE = viewMatrix;

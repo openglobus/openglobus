@@ -1,3 +1,4 @@
+import { pow2i } from "../math";
 import type { EventsHandler } from "../Events";
 import { Layer } from "./Layer";
 import type { ILayerParams, LayerEventsList } from "./Layer";
@@ -168,7 +169,7 @@ export abstract class BaseTileMaterialLayer extends Layer {
                 material.appliedNode = pn;
                 material.appliedNodeId = pn.nodeId;
                 material.texture = psegm.texture;
-                const dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+                const dZ2 = 1.0 / pow2i(segment.tileZoom - pn.segment.tileZoom);
                 material.texOffset[0] = segment.tileX * dZ2 - pn.segment.tileX;
                 material.texOffset[1] = segment.tileY * dZ2 - pn.segment.tileY;
                 material.texOffset[2] = dZ2;
@@ -198,7 +199,7 @@ export abstract class BaseTileMaterialLayer extends Layer {
             material.appliedNode = pn;
             material.appliedNodeId = pn.nodeId;
             material.texture = psegm.texture;
-            const dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+            const dZ2 = 1.0 / pow2i(segment.tileZoom - pn.segment.tileZoom);
             material.texOffset[0] = segment.tileX * dZ2 - pn.segment.tileX;
             material.texOffset[1] = segment.tileY * dZ2 - pn.segment.tileY;
             material.texOffset[2] = dZ2;

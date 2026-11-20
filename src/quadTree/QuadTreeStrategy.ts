@@ -17,8 +17,8 @@ import { createEvents, EventsHandler } from "../Events";
 
 export type QuadTreeStrategyEventsList = ["rendercompleted", "terraincompleted"];
 
-const CUR_LOD_SIZE = 256; //px
-const MIN_LOD_SIZE = 512; //px
+const CUR_LOD_SIZE = 230; //px
+const MIN_LOD_SIZE = 350; //px
 const MAX_LOD_SIZE = 256; //px
 
 const HORIZON_TANGENT = 0.81;
@@ -45,6 +45,14 @@ export class QuadTreeStrategy {
     public readonly planet: Planet;
 
     public disableNeighbors: boolean = false;
+
+    /**
+     * Width of a root tile in degrees of longitude, a tile of the zoom is 2^zoom times narrower. The native zoom of
+     * a raster source is found by it.
+     * @public
+     * @type {number}
+     */
+    public rootTileWidth: number = 360;
 
     /**
      * grid tree list.
@@ -163,6 +171,11 @@ export class QuadTreeStrategy {
     public _cornerMoved: boolean = false;
 
     protected _opaqueNodesIds: number[] = [];
+
+    /**
+     * Normal map creator version the normal map edges were compared at, see Segment._checkNormalMapEdges.
+     */
+    protected _normalMapEdgesVersion: number = -1;
 
     /**
      * False while a node only the view cameras render waits for its terrain. Keeps the frames coming in the
@@ -631,6 +644,16 @@ export class QuadTreeStrategy {
 
         ids.length = opaqueNodes.length;
 
+        // The edges change only with the nodes on the screen or with a new normal map
+        const terrain = this.planet && this.planet.terrain,
+            nmc = this.planet && this.planet._normalMapCreator;
+        if (terrain && terrain.equalizeNormals && nmc && (changed || nmc.__version__ !== this._normalMapEdgesVersion)) {
+            this._normalMapEdgesVersion = nmc.__version__;
+            for (let i = 0; i < opaqueNodes.length; i++) {
+                opaqueNodes[i].segment._checkNormalMapEdges();
+            }
+        }
+
         this._cornersChanged = changed;
         this._cornerMoved = false;
     }
@@ -742,7 +765,7 @@ export class QuadTreeStrategy {
      * @returns {Node | null} -
      */
     public getNodeByLonLat(lonLat: LonLat, zoom: number = Infinity): Node | null {
-        let node: Node | undefined = this._quadTreeList.find((root) => root.segment.getExtentLonLat().isInside(lonLat));
+        let node: Node | undefined = this._quadTreeList.find((root) => root.segment.isLonLatInside(lonLat));
 
         if (!node) {
             return null;
@@ -764,7 +787,7 @@ export class QuadTreeStrategy {
         let z = zoom,
             x: number,
             y: number,
-            pz = 1 << z;
+            pz = math.pow2i(z);
 
         x = getTileCellIndex(lonLat.lon, 360 / pz, -180);
         y = getTileCellIndex(lonLat.lat, 180 / pz, 90);

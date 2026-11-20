@@ -31,7 +31,7 @@ import { ScaleControl } from "./control/ScaleControl";
 import { Sun } from "./control/Sun";
 import { TouchNavigation } from "./control/TouchNavigation";
 import { Renderer } from "./renderer/Renderer";
-import type { HTMLDivElementExt } from "./renderer/Renderer";
+import type { HdrFormat, HTMLDivElementExt } from "./renderer/Renderer";
 import { Scene } from "./scene/Scene";
 import { Extent } from "./Extent";
 import type { IAtmosphereParams } from "./control/atmosphere/Atmosphere";
@@ -45,6 +45,7 @@ export interface IGlobeParams {
     skybox?: Scene;
     pixelRatio?: number;
     msaa?: number;
+    hdrFormat?: HdrFormat;
     deferredDisabled?: boolean;
     name?: string;
     frustums?: NumberArray2[];
@@ -62,6 +63,7 @@ export interface IGlobeParams {
     quadTreeStrategyPrototype?: typeof QuadTreeStrategy;
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
+    aerialPerspectiveEnabled?: boolean;
     transitionOpacityEnabled?: boolean;
     terrain?: EmptyTerrain | EmptyTerrain[];
     controls?: Control[];
@@ -171,9 +173,14 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {number} [options.loadingBatchSize=12] -
  * @param {number} [options.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
  * @param {number} [options.msaa=0] - MSAA antialiasing parameter: 2,4,8,16. Default is 0.
+ * @param {string} [options.hdrFormat="RGBA16F"] - Format of the forward and HDR render targets: "RGBA16F",
+ * "SRGB8_ALPHA8" or "RGBA8". The 8-bit ones halve their memory traffic but clip colors above 1.0, so they
+ * suit scenes without the atmosphere.
  * @param {boolean} [options.deferredDisabled=false] - Disables deferred and WOIT pipelines and renders objects with forward shaders.
  * @param {number} [options.pixelRatio] - Device pixel ratio. Default is current screen DPI.
  * @param {boolean} [options.atmosphereEnabled] - Enables atmosphere effect.
+ * @param {boolean} [options.aerialPerspectiveEnabled=true] - Enables the atmosphere aerial perspective on the surface
+ * when the camera is low.
  * @param {boolean} [options.transtitionOpacityEnabled] - Enables terrain smooth opacity transition effect.
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
  * @param {number} [options.gamma] - Gamma
@@ -281,6 +288,7 @@ class Globe {
                 autoActivate: false,
                 idleMode: options.idleMode,
                 msaa: options.msaa,
+                hdrFormat: options.hdrFormat,
                 deferredDisabled: options.deferredDisabled,
                 fontsSrc: options.fontsSrc,
                 gamma: options.gamma,
@@ -324,6 +332,7 @@ class Globe {
             quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
             maxLoadingRequests: options.maxLoadingRequests,
             atmosphereEnabled: options.atmosphereEnabled != undefined ? options.atmosphereEnabled : true,
+            aerialPerspectiveEnabled: options.aerialPerspectiveEnabled,
             transitionOpacityEnabled: options.transitionOpacityEnabled,
             atmosphereParameters: options.atmosphereParameters,
             minDistanceBeforeMemClear: options.minDistanceBeforeMemClear,

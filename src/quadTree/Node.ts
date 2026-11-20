@@ -1,9 +1,8 @@
 import { Extent } from "../Extent";
-import { EPSG3857 } from "../proj/EPSG3857";
-import { binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
+import { binaryInsert, getMatrixSubArray64, getMatrixSubArrayBoundsExt } from "../utils/shared";
 import { getMedian } from "../terrain/terrainUtils";
 import { LonLat } from "../LonLat";
-import { MAX, MIN } from "../math";
+import { MAX, MIN, pow2i } from "../math";
 import { Segment } from "../segment/Segment";
 import { QuadTreeStrategy } from "./QuadTreeStrategy";
 
@@ -15,14 +14,17 @@ import {
     N,
     NE,
     NEIGHBOUR,
+    NOPSORD,
     NOTRENDERING,
     NW,
     OPPART,
     OPSIDE,
     PARTOFFSET,
     RENDERING,
+    ROOTPART,
     S,
     SE,
+    SIDEFLIP,
     SW,
     W,
     WALKTHROUGH
@@ -138,7 +140,8 @@ class Node {
         this.quadTreeStrategy = quadTreeStrategy;
         this.parentNode = parent;
         this.partId = partId;
-        this.nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
+        const nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
+        this.nodeId = parent && (parent.nodeId < 0 || nodeId > Number.MAX_SAFE_INTEGER) ? -2 - this.__id : nodeId;
         this.state = null;
         this.prevState = null;
         this.appliedTerrainNodeId = -1;
@@ -306,14 +309,7 @@ class Node {
 
         // Search a node which the camera is flying over.
         if (!this.parentNode || this.parentNode._cameraInside) {
-            let inside;
-            if (seg._projection.id === EPSG3857.id) {
-                inside = seg._extent.isInside(cam._lonLatMerc);
-            } else {
-                inside = seg._extent.isInside(cam._lonLat);
-            }
-
-            if (inside) {
+            if (seg._extent.isInside(seg.getInsideLonLat(cam))) {
                 cam._insideSegment = seg;
                 this._cameraInside = true;
             }
@@ -765,7 +761,7 @@ class Node {
     }
 
     public applyNeighbor(node: Node, side: number) {
-        const opcs = OPSIDE[side];
+        const opcs = this.segment.opside[side];
 
         if (this.neighbors[side].length === 0 || node.neighbors[opcs].length === 0) {
             const ap = this.segment;
@@ -820,16 +816,18 @@ class Node {
             pn = pn.parentNode;
         }
 
+        let mirror = OPPART[OPSIDE[side]];
+
         if (part === -1) {
             const rootNeighbor = pn.rootNeighbors && pn.rootNeighbors[side];
             if (!rootNeighbor) {
                 return;
             }
             pn = rootNeighbor;
+            mirror = ROOTPART[side][this.segment.opside[side]];
         }
 
-        const mirror = OPPART[OPSIDE[side]],
-            zoom = this.segment.tileZoom;
+        const zoom = this.segment.tileZoom;
 
         // Fading can leave a parent and its child opaque in one frame, so the walk doesn't stop at the first one
         for (let i = depth - 1; i >= 0 && pn.nodes.length; i--) {
@@ -850,10 +848,16 @@ class Node {
         let pn: Node = this;
         while (pn.parentNode && !pn.segment.normalMapReady) {
             pn = pn.parentNode;
+
+            const ps = pn.segment;
+            if (!ps.normalMapReady && !ps.terrainIsLoading && ps.terrainExists && !ps._inTheQueue) {
+                ps.planet._normalMapCreator.queue(ps);
+            }
         }
 
-        const dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
+        const dZ2 = pow2i(seg.tileZoom - pn.segment.tileZoom);
 
+        seg._normalMapSource = pn.segment;
         seg.normalMapTexture = pn.segment.normalMapTexture;
         seg.normalMapTextureBias[0] = seg.tileX - pn.segment.tileX * dZ2;
         seg.normalMapTextureBias[1] = seg.tileY - pn.segment.tileY * dZ2;
@@ -877,7 +881,7 @@ class Node {
             return;
         }
 
-        let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1), // 2 * Math.pow(2, dZ-1)
+        let dZ2 = pow2i(seg.tileZoom - pn.segment.tileZoom),
             offsetX = seg.tileX - pn.segment.tileX * dZ2,
             offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
@@ -922,7 +926,7 @@ class Node {
                 BOUNDS,
                 getR2Buffer(len / 3)
             );
-        } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
+        } else if (gridSizeExt >= 1 && pn.segment.terrainExists && pseg.normalMapVertices) {
             seg.gridSize = gridSizeExt;
 
             let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
@@ -950,12 +954,29 @@ class Node {
             let i0 = Math.floor(gridSize * offsetY),
                 j0 = Math.floor(gridSize * offsetX);
 
-            let bigOne;
-            if (pseg.gridSize === 1) {
-                bigOne = pseg.terrainVertices!;
-            } else {
-                bigOne = getMatrixSubArray64(pseg.terrainVertices!, pseg.gridSize, i0, j0, 1);
+            let bigOne = getMatrixSubArray64(pseg.terrainVertices!, pseg.gridSize, i0, j0, 1);
+
+            const el = seg.planet.ellipsoid,
+                prtc = pseg._relativeCenter,
+                pe = pseg.getExtent(),
+                cellWidth = pe.getWidth() / pseg.gridSize,
+                cellHeight = pe.getHeight() / pseg.gridSize,
+                cellWest = pe.southWest.lon + j0 * cellWidth,
+                cellNorth = pe.northEast.lat - i0 * cellHeight;
+
+            for (let k = 0; k < 4; k++) {
+                const s = el.lonLatToCartesian(
+                        pseg.getLonLat(cellWest + (k & 1) * cellWidth, cellNorth - (k >> 1) * cellHeight)
+                    ),
+                    k3 = k * 3;
+                bigOne[k3] += prtc.x - s.x;
+                bigOne[k3 + 1] += prtc.y - s.y;
+                bigOne[k3 + 2] += prtc.z - s.z;
             }
+
+            const se = seg.getExtent(),
+                segWidth = se.getWidth(),
+                segHeight = se.getHeight();
 
             let insideSize = 1.0 / gridSize;
 
@@ -992,7 +1013,15 @@ class Node {
                         .addA(v_rb);
                 }
 
-                coords.addA(pseg._relativeCenter);
+                // The height over the vertex surface point
+                coords.addA(
+                    el.lonLatToCartesian(
+                        seg.getLonLat(
+                            se.southWest.lon + _vertOrder[i].x * segWidth,
+                            se.northEast.lat - _vertOrder[i].y * segHeight
+                        )
+                    )
+                );
                 let dstCoords = coords.sub(seg._relativeCenter);
 
                 Vec3.doubleToTwoFloats(dstCoords, _tempHigh, _tempLow);
@@ -1059,25 +1088,10 @@ class Node {
                     this.equalizedSideWithNodeId[W] =
                         this.appliedTerrainNodeId;
 
+                // The normal map is the parent one, see whileNormalMapCreating
                 if (pn.segment.terrainExists) {
                     seg.normalMapVertices = renderVertices;
                     seg.fileGridSize = Math.sqrt(renderVertices.length / 3) - 1;
-
-                    let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1,
-                        fgsZ = fgs / dZ2;
-
-                    if (fgs > 1) {
-                        seg.normalMapNormals = getMatrixSubArray32(
-                            pseg.normalMapNormals!,
-                            fgs,
-                            fgsZ * offsetY,
-                            fgsZ * offsetX,
-                            fgsZ
-                        );
-                    } else {
-                        // TODO: interpolation
-                        seg.normalMapNormals = pseg.normalMapNormals;
-                    }
                 }
             }
         }
@@ -1181,18 +1195,21 @@ class Node {
     public getCornerNeighbor(side: number, corner: number): Node | null | undefined {
         const list = this.neighbors[side],
             seg = this.segment,
-            alongX = side === N || side === S,
-            far = alongX ? corner & 1 : corner >> 1,
-            pos = (alongX ? seg.tileX : seg.tileY) + far;
+            far = NOPSORD[side][corner],
+            // The tile index along the side: x along the N and S sides, y along the E and W ones
+            pos = (side & 1 ? seg.tileY : seg.tileX) + far,
+            opcs = seg.opside[side],
+            flip = SIDEFLIP[side][opcs];
 
         for (let i = 0; i < list.length; i++) {
             const n = list[i],
                 ns = n.segment,
-                nPos = (alongX ? ns.tileX : ns.tileY) + far,
+                nIndex = opcs & 1 ? ns.tileY : ns.tileX,
+                nPos = (flip ? ns.powTileZoom - 1 - nIndex : nIndex) + far,
                 dz = ns.tileZoom - seg.tileZoom;
 
             if (dz >= 0) {
-                if (nPos === pos * (1 << dz)) {
+                if (nPos === pos * pow2i(dz)) {
                     return n;
                 }
             } else {
@@ -1203,13 +1220,24 @@ class Node {
         return null;
     }
 
+    /**
+     * Returns the corner of the neighbors behind the side that lies in the same point as the corner of this node.
+     * @public
+     * @param {number} side - The side that the corner belongs to.
+     * @param {number} corner - Corner index, NW, NE, SW or SE.
+     * @returns {number} -
+     */
+    public getNeighborCorner(side: number, corner: number): number {
+        return ROOTPART[side][this.segment.opside[side]][corner];
+    }
+
     public getOffsetOppositeNeighbourSide(neighbourNode: Node, side: number): number {
         let pNode: Node = this,
             neighbourZoom = neighbourNode.segment.tileZoom,
             offset = 0;
 
         while (pNode.segment.tileZoom > neighbourZoom) {
-            offset += PARTOFFSET[pNode.partId][side] / (1 << (pNode.segment.tileZoom - neighbourZoom));
+            offset += PARTOFFSET[pNode.partId][side] / pow2i(pNode.segment.tileZoom - neighbourZoom);
             pNode = pNode.parentNode!;
         }
 

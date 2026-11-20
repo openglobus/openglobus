@@ -1,3 +1,4 @@
+import { pow2i } from "../math";
 import { Extent } from "../Extent";
 import { Node } from "../quadTree/Node";
 import { SegmentLonLat } from "./SegmentLonLat";
@@ -14,7 +15,7 @@ export class SegmentLonLatEqui extends SegmentLonLat {
         super(node, quadTreeStrategy, tileZoom, extent);
         this._projection = equi;
         this.isPole = false;
-        this._tileGroup = TILEGROUP_COMMON;
+        this.tileGroup = TILEGROUP_COMMON;
     }
 
     protected override _getMaxZoom(): number {
@@ -43,7 +44,7 @@ export class SegmentLonLatEqui extends SegmentLonLat {
     protected override _assignTileXIndexes(extent: Extent) {
         let lon = extent.getCenter().lon;
         this.tileX = getTileCellIndex(lon, extent.getWidth(), -180);
-        let p2 = (1 << this.tileZoom) * 2;
+        let p2 = pow2i(this.tileZoom) * 2;
         this.tileXE = (this.tileX + 1) % p2;
         this.tileXW = (p2 + this.tileX - 1) % p2;
     }

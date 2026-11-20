@@ -219,6 +219,30 @@ describe("PlanetCamera linear flight", () => {
             expect(height).toBeGreaterThan(14000);
         }
     });
+
+    // The ground at 25 degrees latitude is 3.8 km below the equatorial radius
+    test.each([2000, 0.001])("a low flight at %s m goes straight and keeps the pitch", (height) => {
+        const camera = planetCamera(height),
+            el = camera.planet.ellipsoid,
+            d = height / 111000;
+
+        camera.setLonLat(new LonLat(24.5, 25, height), new LonLat(24.5 + 2 * d, 25 + 2 * d, 0));
+        camera.update();
+
+        const start = camera.eye.clone(),
+            target = el.lonLatToCartesian(new LonLat(24.5 + 3 * d, 25, height));
+        camera.flyCartesian(target, { look: new LonLat(24.5 + 5 * d, 25 + 2 * d, 0), preventLock: true });
+
+        expect(camera._isFlightVisible(target)).toBe(true);
+
+        const chord = target.sub(start).normalize();
+        for (let progress = 0.1; progress < 1; progress += 0.1) {
+            const frame = camera._flight.fly(progress),
+                pitch = Math.asin(-frame.n.dot(el.getSurfaceNormal3v(frame.eye))) / RADIANS;
+            expect(frame.eye.sub(start).normalize().dot(chord)).toBeCloseTo(1, 6);
+            expect(pitch).toBeGreaterThan(-45);
+        }
+    });
 });
 
 describe("PlanetCamera orthographic instant views", () => {

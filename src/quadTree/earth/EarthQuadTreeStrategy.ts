@@ -1,3 +1,4 @@
+import { pow2i } from "../../math";
 import * as mercator from "../../mercator";
 import { Extent } from "../../Extent";
 import { Node } from "../Node";
@@ -39,7 +40,7 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
     }
 
     public override collectVisibleNode(node: Node) {
-        let tg = node.segment._tileGroup;
+        let tg = node.segment.tileGroup;
         if (tg === TILEGROUP_NORTH) {
             this._visibleNodesNorth[node.nodeId] = node;
         } else if (tg === TILEGROUP_SOUTH) {
@@ -104,7 +105,7 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
             z = zoom,
             x: number,
             y: number,
-            pz = 1 << z; /*Math.pow(2, z)*/
+            pz = pow2i(z);
 
         if (tileGroup === TILEGROUP_NORTH) {
             x = getTileCellIndex(lonLat.lon, 360 / pz, -180);

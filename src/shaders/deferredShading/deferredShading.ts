@@ -1,11 +1,13 @@
 import { ShaderProgram } from "../../webgl/ShaderProgram";
-import { cascadeShadowUniforms, shadowMapUniforms } from "../common/uniforms";
+import { stringTemplate2 } from "../../utils/shared";
+import { projectorShaderParams, shadowFeatureDefines, shadowFeatureUniforms } from "../common/uniforms";
 
 import deferred_vert from "./deferredShading.vert.glsl";
 import deferred_frag from "./deferredShading.frag.glsl";
 
 export function deferredShading(): ShaderProgram {
     return new ShaderProgram("deferredShading", {
+        defines: shadowFeatureDefines,
         uniforms: {
             normalMatrix: "mat3",
             baseTexture: "sampler2d",
@@ -17,13 +19,12 @@ export function deferredShading(): ShaderProgram {
             lightDiffuse: "vec3",
             lightSpecular: "vec4",
             frameOpacity: "float",
-            ...shadowMapUniforms,
-            ...cascadeShadowUniforms
+            ...shadowFeatureUniforms
         },
         attributes: {
             corners: "vec3"
         },
         vertexShader: deferred_vert,
-        fragmentShader: deferred_frag
+        fragmentShader: stringTemplate2(deferred_frag, projectorShaderParams)
     });
 }

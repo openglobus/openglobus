@@ -13,6 +13,8 @@ import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import { BaseBillboard } from "./BaseBillboard";
 import { srgbToLinear } from "../../utils/colorSpace";
 
+const _rtcPosition = new Vec3();
+
 const PICKINGCOLOR_BUFFER = 0;
 const POSITION_BUFFER = 1;
 const SIZE_BUFFER = 2;
@@ -43,6 +45,11 @@ class BaseBillboardHandler {
 
     protected _billboards: BaseBillboard[];
     protected _opaqueCounterIndex: number;
+
+    public _relativeCenter: Vec3;
+    protected _relativeCenterArr: Float32Array;
+    protected _rtcEyePositionHigh: Float32Array;
+    protected _rtcEyePositionLow: Float32Array;
 
     protected _positionHighBuffer: WebGLBufferExt | null;
     protected _positionLowBuffer: WebGLBufferExt | null;
@@ -105,6 +112,11 @@ class BaseBillboardHandler {
 
         this._billboards = [];
         this._opaqueCounterIndex = 0;
+
+        this._relativeCenter = new Vec3();
+        this._relativeCenterArr = new Float32Array(3);
+        this._rtcEyePositionHigh = new Float32Array(3);
+        this._rtcEyePositionLow = new Float32Array(3);
 
         this._positionHighBuffer = null;
         this._positionLowBuffer = null;
@@ -371,9 +383,45 @@ class BaseBillboardHandler {
         if (billboard._handlerIndex == -1) {
             billboard._isReady = true;
             billboard._handler = this;
+            billboard._setRTCPosition();
             billboard._handlerIndex = this._billboards.length;
             this._billboards.push(billboard);
         }
+    }
+
+    /**
+     * Splits the position relative to the center into two 32-bit floats.
+     * @public
+     * @param {Vec3} pos - Cartesian position.
+     * @param {Vec3} rtcPositionHigh - Out high part.
+     * @param {Vec3} rtcPositionLow - Out low part.
+     */
+    public getRTCPosition(pos: Vec3, rtcPositionHigh: Vec3, rtcPositionLow: Vec3) {
+        const c = this._relativeCenter;
+        _rtcPosition.set(pos.x - c.x, pos.y - c.y, pos.z - c.z);
+        Vec3.doubleToTwoFloats(_rtcPosition, rtcPositionHigh, rtcPositionLow);
+    }
+
+    /**
+     * Sets the center the positions are relative to, near the camera they keep the precision.
+     * @public
+     * @param {Vec3} c - Center.
+     */
+    public setRelativeCenter(c: Vec3) {
+        this._relativeCenter.copy(c);
+        this._relativeCenterArr[0] = c.x;
+        this._relativeCenterArr[1] = c.y;
+        this._relativeCenterArr[2] = c.z;
+        for (let i = 0; i < this._billboards.length; i++) {
+            this._billboards[i].updateRTCPosition();
+        }
+    }
+
+    protected _updateRTCEyePosition() {
+        const e = this._renderer!.activeCamera.eye,
+            c = this._relativeCenter;
+        _rtcPosition.set(e.x - c.x, e.y - c.y, e.z - c.z);
+        Vec3.doubleToTwoFloat32Array(_rtcPosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
     }
 
     protected _displayPASS(
@@ -408,8 +456,10 @@ class BaseBillboardHandler {
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
 
-        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
+        this._updateRTCEyePosition();
+        gl.uniform3fv(shu.eyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(shu.eyePositionLow, this._rtcEyePositionLow);
+        gl.uniform3fv(shu.relativeCenter, this._relativeCenterArr);
 
         gl.uniform4f(
             shu.uScaleByDistance,
@@ -484,8 +534,10 @@ class BaseBillboardHandler {
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
 
-        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
+        this._updateRTCEyePosition();
+        gl.uniform3fv(shu.eyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(shu.eyePositionLow, this._rtcEyePositionLow);
+        gl.uniform3fv(shu.relativeCenter, this._relativeCenterArr);
 
         gl.uniform4f(
             shu.uScaleByDistance,
