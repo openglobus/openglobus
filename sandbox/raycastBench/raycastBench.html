@@ -1,0 +1,780 @@
+<html>
+    <head>
+        <title>OpenGlobus - Terrain raycast benchmark</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+                overflow: hidden;
+            }
+            #overlay {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+            #panel {
+                position: absolute;
+                left: 8px;
+                top: 8px;
+                width: 380px;
+                padding: 8px 10px;
+                background: rgba(20, 22, 26, 0.85);
+                color: #e8e8e8;
+                font: 12px sans-serif;
+                border-radius: 4px;
+            }
+            #panel .title {
+                font-weight: bold;
+                font-size: 13px;
+                margin-bottom: 6px;
+            }
+            #panel .row {
+                margin: 5px 0;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                align-items: center;
+            }
+            #panel button,
+            #panel select {
+                font: 11px sans-serif;
+            }
+            #panel pre {
+                margin: 6px 0 0 0;
+                font: 11px monospace;
+                white-space: pre-wrap;
+            }
+            #legendLabels {
+                display: flex;
+                justify-content: space-between;
+                font: 10px monospace;
+                width: 300px;
+            }
+            .swatch {
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                margin-right: 3px;
+                vertical-align: middle;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="globus" style="position: absolute; width: 100%; height: 100%"></div>
+        <canvas id="overlay"></canvas>
+        <div id="panel">
+            <div class="title">Terrain raycast: Planet.getRayDistanceTerrain</div>
+            <div class="row">
+                Grid
+                <select id="grid">
+                    <option value="default">default (up to 64)</option>
+                    <option value="128">128 at all zooms</option>
+                    <option value="256">256 at all zooms</option>
+                </select>
+            </div>
+            <div class="row" id="views">
+                View
+                <button data-h="300" data-pitch="0">300 m, down</button>
+                <button data-h="300" data-pitch="85">300 m, 85°</button>
+                <button data-h="2000" data-pitch="45">2 km, 45°</button>
+                <button data-h="2000" data-pitch="88">2 km, 88°</button>
+                <button data-h="20000" data-pitch="0">20 km, down</button>
+                <button data-h="20000" data-pitch="85">20 km, 85°</button>
+            </div>
+            <div class="row">
+                Heat map
+                <select id="metric">
+                    <option value="ms">time per pick</option>
+                    <option value="tris">triangles tested</option>
+                    <option value="diff">depth vs raycast, metres</option>
+                    <option value="rel">depth vs raycast, % of distance</option>
+                </select>
+                <select id="res">
+                    <option value="16">16 columns</option>
+                    <option value="32" selected>32 columns</option>
+                    <option value="64">64 columns</option>
+                </select>
+                <button id="heat">Compute</button>
+                <button id="clear">Clear</button>
+            </div>
+            <div class="row">
+                <label><input type="checkbox" id="auto" checked /> recompute when the view settles</label>
+                <label><input type="checkbox" id="live" checked /> pick under the cursor</label>
+            </div>
+            <div class="row">
+                Opacity <input type="range" id="opacity" min="0" max="1" step="0.05" value="0.5" />
+            </div>
+            <canvas id="legendBar" width="300" height="10"></canvas>
+            <div id="legendLabels"></div>
+            <div id="legendNote"></div>
+            <div class="row">
+                Depth buffer
+                <button id="depthBench">Depth read ×10</button>
+            </div>
+            <pre id="depth"></pre>
+            <pre id="readbacks"></pre>
+            <pre id="terrain"></pre>
+            <pre id="stats"></pre>
+            <pre id="pick"></pre>
+            <pre id="out"></pre>
+        </div>
+        <script type="module" id="og-sandbox-script">
+            import { Globe, ProceduralTerrain, CanvasTiles, LonLat, Ray } from "../../lib/og.es.js";
+            //
+            // Cost of Planet.getRayDistanceTerrain on procedural mountains, for the segment grid sizes given by
+            // ?grid=default (the RgbTerrain grids, up to 64), ?grid=128 or ?grid=256 (all zooms).
+            //
+            // On the screen:
+            //  - heat map: a grid of rays over the view, each cell coloured by the time of one pick, or by the
+            //    number of triangles it tested (log scale, legend in the panel); sky cells stay clear;
+            //    or by how far the depth buffer point of the same pixel is from the raycast hit (metres or % of
+            //    the distance; one depth read per map, taken when it starts);
+            //  - under the cursor: the raycast hit (green circle) and the depth buffer point of
+            //    renderer.getCartesianFromPixel (magenta square), with the time, the triangles and their distance;
+            //  - depth read timing: "Depth read ×10" asks og for depth reads (getCartesianFromPixelAsync) and shows
+            //    the time until the data is there and the main thread time inside getBufferSubData / readPixels;
+            //    the panel also follows og's own picking and depth reads, made after pointer moves.
+            // For scripts: window.bench({ h, pitch }) and window.loadingSeries({ h, pitch, lon, lat }).
+            //
+            const params = new URLSearchParams(location.search),
+                grid = params.get("grid") || "default",
+                GRID = grid === "default" ? 64 : Number(grid),
+                LON = 10.0,
+                LAT = 61.0;
+
+            // Mountains in Mercator metres: 0 to ~2600 m, slopes up to ~1
+            function height(x, y) {
+                const h =
+                    1200 +
+                    900 * Math.sin(x / 2300) * Math.cos(y / 3100) +
+                    400 * Math.sin(x / 700 + y / 900) +
+                    150 * Math.sin(x / 230) * Math.sin(y / 170);
+                return Math.max(0, h);
+            }
+
+            function getHeights(segment) {
+                const e = segment.getExtent(),
+                    gs = GRID + 1,
+                    stepX = e.getWidth() / GRID,
+                    stepY = e.getHeight() / GRID,
+                    heights = new Float32Array(gs * gs);
+                for (let i = 0; i < gs; i++) {
+                    for (let j = 0; j < gs; j++) {
+                        heights[i * gs + j] = height(e.southWest.lon + j * stepX, e.northEast.lat - i * stepY);
+                    }
+                }
+                return heights;
+            }
+
+            const terrain = new ProceduralTerrain("Mountains", {
+                getHeights,
+                plainGridSize: GRID,
+                minZoom: 0,
+                maxZoom: 21,
+                gridSizeByZoom: grid === "default" ? undefined : new Array(22).fill(GRID)
+            });
+
+            // Plain grey ground, so that the heat map colours read well over the shaded relief
+            const greyTile = document.createElement("canvas");
+            greyTile.width = greyTile.height = 16;
+            greyTile.getContext("2d").fillStyle = "#9aa0a6";
+            greyTile.getContext("2d").fillRect(0, 0, 16, 16);
+            const grey = new CanvasTiles("Grey", {
+                isBaseLayer: true,
+                drawTile: (material, applyCanvas) => applyCanvas(greyTile)
+            });
+
+            const globe = new Globe({
+                target: "globus",
+                name: "Earth",
+                terrain,
+                layers: [grey],
+                maxGridSize: 256,
+                atmosphereEnabled: false
+            });
+            window.globe = globe;
+
+            const planet = globe.planet,
+                cam = planet.camera,
+                handler = planet.renderer.handler,
+                $ = (id) => document.getElementById(id);
+
+            //
+            // GPU readbacks: the main thread time inside getBufferSubData (the copy of a pixel buffer, made once
+            // the fence of an async read is signalled) and readPixels (into the pixel buffer)
+            //
+            const GL = WebGL2RenderingContext.prototype,
+                glGetBufferSubData = GL.getBufferSubData,
+                glReadPixels = GL.readPixels,
+                readbacks = { seq: 0, log: [] };
+
+            function logReadback(fn, t0, bytes) {
+                readbacks.log.push({ seq: ++readbacks.seq, fn, at: t0, ms: performance.now() - t0, bytes });
+                if (readbacks.log.length > 2000) readbacks.log.splice(0, 1000);
+            }
+            GL.getBufferSubData = function (target, offset, dst, ...rest) {
+                const t0 = performance.now(),
+                    r = glGetBufferSubData.call(this, target, offset, dst, ...rest);
+                logReadback("getBufferSubData", t0, dst ? dst.byteLength : 0);
+                return r;
+            };
+            GL.readPixels = function (...a) {
+                const t0 = performance.now(),
+                    r = glReadPixels.apply(this, a);
+                // into a pixel buffer: (x, y, w, h, format, type, offset)
+                logReadback("readPixels", t0, a[2] * a[3] * 4 * (a[5] === this.FLOAT ? 4 : 1));
+                return r;
+            };
+
+            // One depth read through og (PBO + fence + getBufferSubData); og skips a read while one is pending,
+            // so it is asked again until it comes
+            async function depthRead() {
+                const c = handler.canvas;
+                for (let attempt = 0; attempt < 10; attempt++) {
+                    const from = readbacks.seq,
+                        t0 = performance.now(),
+                        done = await Promise.race([
+                            planet.renderer.getCartesianFromPixelAsync({ x: c.width / 2, y: c.height / 2 }).then(() => true),
+                            sleep(1500).then(() => false)
+                        ]);
+                    if (done) {
+                        const calls = readbacks.log.filter((e) => e.seq > from && e.at >= t0);
+                        return {
+                            latency: performance.now() - t0,
+                            blocked: calls.reduce((a, e) => a + e.ms, 0),
+                            // the data copied to the CPU
+                            bytes: calls
+                                .filter((e) => e.fn === "getBufferSubData")
+                                .reduce((a, e) => a + e.bytes, 0),
+                            calls: calls.length
+                        };
+                    }
+                }
+                return null;
+            }
+
+            const groundAt = (lon, lat) => {
+                const m = new LonLat(lon, lat).forwardMercator();
+                return height(m.lon, m.lat);
+            };
+
+            const frame = () => new Promise((r) => requestAnimationFrame(() => r()));
+            const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+            // Puts the camera h metres above the ground at (lon, lat), looking along heading with pitch from nadir
+            function setView(lon, lat, h, pitch, heading = 0) {
+                const g = groundAt(lon, lat),
+                    off = h * Math.tan((Math.max(pitch, 0.01) * Math.PI) / 180),
+                    hd = (heading * Math.PI) / 180;
+                cam.setLonLat(
+                    new LonLat(lon, lat, g + h),
+                    new LonLat(
+                        lon + (off * Math.sin(hd)) / (111320 * Math.cos((lat * Math.PI) / 180)),
+                        lat + (off * Math.cos(hd)) / 111320,
+                        g
+                    )
+                );
+            }
+
+            const terrainState = () => {
+                const rn = planet.quadTreeStrategy._renderedNodes,
+                    grids = {};
+                let ready = 0;
+                for (const n of rn) {
+                    const v = n.segment.renderVertices,
+                        k = v ? Math.round(Math.sqrt(v.length / 3)) - 1 : "none";
+                    grids[k] = (grids[k] || 0) + 1;
+                    if (n.segment.terrainReady) ready++;
+                }
+                return { nodes: rn.length, ready, grids };
+            };
+
+            // Waits until the rendered segments stop changing and at least minReady of them have their terrain
+            async function settle(maxMs = 60000, minReady = 0.95) {
+                let last = "",
+                    stable = 0;
+                const t0 = performance.now();
+                while (performance.now() - t0 < maxMs) {
+                    await sleep(300);
+                    const s = terrainState(),
+                        sig = s.nodes + ":" + s.ready;
+                    stable = sig === last ? stable + 1 : 0;
+                    last = sig;
+                    if (stable >= 5 && s.ready >= minReady * s.nodes) break;
+                }
+                return performance.now() - t0;
+            }
+
+            const P = Ray.prototype,
+                hitTriangleDistance = P.hitTriangleDistance,
+                hitSphereDistance = P.hitSphereDistance;
+
+            // Triangles tested by one pick, and bounding spheres the ray passes
+            function countsOf(ray) {
+                let tris = 0,
+                    spheres = 0;
+                P.hitTriangleDistance = function (...a) {
+                    tris++;
+                    return hitTriangleDistance.apply(this, a);
+                };
+                P.hitSphereDistance = function (...a) {
+                    const t = hitSphereDistance.apply(this, a);
+                    if (t !== Infinity) spheres++;
+                    return t;
+                };
+                try {
+                    planet.getRayDistanceTerrain(ray);
+                } finally {
+                    P.hitTriangleDistance = hitTriangleDistance;
+                    P.hitSphereDistance = hitSphereDistance;
+                }
+                return { tris, spheres };
+            }
+
+            // Time of one pick: repeated until minMs pass (the timer has a coarse resolution)
+            function timeOf(ray, minMs = 1, maxReps = 100) {
+                let t = planet.getRayDistanceTerrain(ray),
+                    n = 0,
+                    el = 0;
+                const t0 = performance.now();
+                while (el < minMs && n < maxReps) {
+                    t = planet.getRayDistanceTerrain(ray);
+                    n++;
+                    el = performance.now() - t0;
+                }
+                return { t, ms: el / n };
+            }
+
+            // Time per call of every ray of a cols x rows grid on the canvas, repeated for at least minMs each
+            function measure(cols = 7, rows = 7, minMs = 15) {
+                const W = handler.canvas.width,
+                    H = handler.canvas.height,
+                    calls = [];
+                for (let j = 0; j < rows; j++) {
+                    for (let i = 0; i < cols; i++) {
+                        const ray = cam.getRay((W * (i + 0.5)) / cols, (H * (j + 0.5)) / rows),
+                            { t, ms } = timeOf(ray, minMs, 2000);
+                        calls.push({ ms, sky: t === Infinity, tris: countsOf(ray).tris });
+                    }
+                }
+                const s = (a) => [...a].sort((x, y) => x - y),
+                    ms = s(calls.map((c) => c.ms)),
+                    tris = s(calls.map((c) => c.tris));
+                return {
+                    rays: calls.length,
+                    sky: calls.filter((c) => c.sky).length,
+                    msMedian: ms[ms.length >> 1],
+                    msMean: ms.reduce((a, b) => a + b, 0) / ms.length,
+                    msMax: ms[ms.length - 1],
+                    trisMedian: tris[tris.length >> 1],
+                    trisMax: tris[tris.length - 1],
+                    usPerTriangle:
+                        (1000 * calls.reduce((a, c) => a + c.ms, 0)) /
+                        Math.max(
+                            1,
+                            calls.reduce((a, c) => a + c.tris, 0)
+                        )
+                };
+            }
+
+            //
+            // Colour scale, log: green (cheap) to red (expensive)
+            //
+            const SCALES = {
+                ms: { lo: 0.01, hi: 50, ticks: [0.01, 0.1, 1, 10, 50], fmt: (v) => (v < 1 ? v : v.toFixed(0)) + " ms" },
+                tris: {
+                    lo: 100,
+                    hi: 1e6,
+                    ticks: [100, 1e3, 1e4, 1e5, 1e6],
+                    fmt: (v) => (v >= 1e6 ? v / 1e6 + "M" : v >= 1e3 ? v / 1e3 + "k" : v)
+                },
+                diff: { lo: 0.01, hi: 1000, ticks: [0.01, 0.1, 1, 10, 100, 1000], fmt: (v) => v + " m" },
+                rel: { lo: 1e-5, hi: 0.1, ticks: [1e-5, 1e-4, 1e-3, 1e-2, 0.1], fmt: (v) => v * 100 + "%" }
+            };
+            // Cells where only one of the two finds terrain, in the depth comparison
+            const RAY_ONLY = "#00e5ff",
+                DEPTH_ONLY = "#ff3cf5";
+
+            const valueOf = (c, metric) =>
+                metric === "ms" ? c.ms : metric === "tris" ? c.tris : metric === "diff" ? c.diff : c.rel;
+
+            function colorOf(v, metric) {
+                const s = SCALES[metric],
+                    f = Math.min(1, Math.max(0, Math.log(v / s.lo) / Math.log(s.hi / s.lo)));
+                return `hsl(${Math.round(120 * (1 - f))}, 90%, 48%)`;
+            }
+
+            function drawLegend() {
+                const metric = $("metric").value,
+                    s = SCALES[metric],
+                    bar = $("legendBar"),
+                    c = bar.getContext("2d");
+                for (let x = 0; x < bar.width; x++) {
+                    c.fillStyle = colorOf(s.lo * Math.pow(s.hi / s.lo, x / (bar.width - 1)), metric);
+                    c.fillRect(x, 0, 1, bar.height);
+                }
+                $("legendLabels").innerHTML = s.ticks.map((t) => `<span>${s.fmt(t)}</span>`).join("");
+                $("legendNote").innerHTML =
+                    metric === "diff" || metric === "rel"
+                        ? `<span class="swatch" style="background:${RAY_ONLY}"></span>terrain by raycast only ` +
+                          `<span class="swatch" style="background:${DEPTH_ONLY}"></span>by depth buffer only`
+                        : "";
+            }
+
+            //
+            // Overlay: heat map cells and the pick markers
+            //
+            const overlay = $("overlay"),
+                ctx = overlay.getContext("2d");
+
+            const heat = { cells: [], cols: 0, rows: 0, next: 0, running: false, t0: 0, ms: 0, gen: 0 };
+            let pick = null;
+
+            function syncOverlay() {
+                if (overlay.width !== handler.canvas.width || overlay.height !== handler.canvas.height) {
+                    overlay.width = handler.canvas.width;
+                    overlay.height = handler.canvas.height;
+                }
+            }
+
+            function draw() {
+                syncOverlay();
+                ctx.clearRect(0, 0, overlay.width, overlay.height);
+                const metric = $("metric").value,
+                    cw = overlay.width / heat.cols,
+                    ch = overlay.height / heat.rows;
+                ctx.globalAlpha = Number($("opacity").value);
+                for (let k = 0; k < heat.next; k++) {
+                    const c = heat.cells[k];
+                    if (!c) continue;
+                    let color;
+                    if (metric === "diff" || metric === "rel") {
+                        if (c.sky && !c.depthHit) continue;
+                        color = c.sky ? DEPTH_ONLY : !c.depthHit ? RAY_ONLY : colorOf(Math.max(valueOf(c, metric), 1e-12), metric);
+                    } else {
+                        if (c.sky) continue;
+                        color = colorOf(valueOf(c, metric), metric);
+                    }
+                    const i = k % heat.cols,
+                        j = Math.floor(k / heat.cols),
+                        x0 = Math.round(i * cw),
+                        y0 = Math.round(j * ch);
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x0, y0, Math.round((i + 1) * cw) - x0, Math.round((j + 1) * ch) - y0);
+                }
+                ctx.globalAlpha = 1;
+                if (heat.running) {
+                    // progress line under the cells done so far
+                    ctx.fillStyle = "#fff";
+                    ctx.fillRect(0, overlay.height - 3, (overlay.width * heat.next) / heat.cells.length, 3);
+                }
+                if (pick && $("live").checked) {
+                    const r = handler.pixelRatio || 1;
+                    if (pick.depthPx) {
+                        ctx.strokeStyle = "#ff3cf5";
+                        ctx.lineWidth = 2 * r;
+                        ctx.strokeRect(pick.depthPx.x - 6 * r, pick.depthPx.y - 6 * r, 12 * r, 12 * r);
+                    }
+                    if (pick.hitPx) {
+                        ctx.strokeStyle = "#00ff6a";
+                        ctx.lineWidth = 2 * r;
+                        ctx.beginPath();
+                        ctx.arc(pick.hitPx.x, pick.hitPx.y, 8 * r, 0, 2 * Math.PI);
+                        ctx.moveTo(pick.hitPx.x - 13 * r, pick.hitPx.y);
+                        ctx.lineTo(pick.hitPx.x + 13 * r, pick.hitPx.y);
+                        ctx.moveTo(pick.hitPx.x, pick.hitPx.y - 13 * r);
+                        ctx.lineTo(pick.hitPx.x, pick.hitPx.y + 13 * r);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            async function startHeat() {
+                const gen = ++heat.gen;
+                heat.running = false;
+                heat.next = 0;
+                heat.depth = null;
+                $("stats").textContent = "depth read for the map...";
+                const depth = await depthRead();
+                if (gen !== heat.gen) return;
+                heat.depth = depth;
+                syncOverlay();
+                heat.cols = Number($("res").value);
+                heat.rows = Math.max(1, Math.round((heat.cols * overlay.height) / overlay.width));
+                heat.cells = new Array(heat.cols * heat.rows);
+                heat.next = 0;
+                heat.ms = 0;
+                heat.t0 = performance.now();
+                heat.lookupMs = 0;
+                heat.running = true;
+                requestAnimationFrame(() => stepHeat(gen));
+            }
+
+            // A slice of cells per frame, so that the globe stays responsive and the map fills in on the screen
+            function stepHeat(gen) {
+                if (!heat.running || gen !== heat.gen) return;
+                const W = handler.canvas.width,
+                    H = handler.canvas.height,
+                    end = performance.now() + 12;
+                while (heat.next < heat.cells.length && performance.now() < end) {
+                    const k = heat.next,
+                        px = (W * ((k % heat.cols) + 0.5)) / heat.cols,
+                        py = (H * (Math.floor(k / heat.cols) + 0.5)) / heat.rows,
+                        ray = Object.assign(cam.getRay(px, py), { x: px, y: py }),
+                        { t, ms } = timeOf(ray),
+                        t1 = performance.now(),
+                        // the depth buffer point of the same pixel, from the read taken at the start of the map
+                        dp = planet.renderer.getCartesianFromPixel({ x: ray.x, y: ray.y });
+                    heat.lookupMs += performance.now() - t1;
+                    const hit = t !== Infinity ? ray.origin.add(ray.direction.scaleTo(t)) : null,
+                        diff = hit && dp ? hit.distance(dp) : null;
+                    heat.cells[k] = {
+                        ms,
+                        sky: t === Infinity,
+                        depthHit: !!dp,
+                        diff,
+                        rel: diff != null ? diff / t : null,
+                        ...countsOf(ray)
+                    };
+                    heat.ms += ms;
+                    heat.next++;
+                }
+                draw();
+                if (heat.next < heat.cells.length) {
+                    requestAnimationFrame(() => stepHeat(gen));
+                } else {
+                    heat.running = false;
+                    draw();
+                    showStats();
+                }
+            }
+
+            function showStats() {
+                const cells = heat.cells.slice(0, heat.next).filter((c) => c && !c.sky);
+                if (!cells.length) {
+                    $("stats").textContent = "";
+                    return;
+                }
+                const q = (a, p) => a[Math.min(a.length - 1, Math.floor(p * a.length))],
+                    ms = cells.map((c) => c.ms).sort((a, b) => a - b),
+                    tris = cells.map((c) => c.tris).sort((a, b) => a - b),
+                    trisSum = tris.reduce((a, b) => a + b, 0);
+                $("stats").textContent =
+                    `heat map ${heat.cols}x${heat.rows}: ${cells.length} rays on terrain, ${heat.next - cells.length} to the sky\n` +
+                    `time per pick   median ${q(ms, 0.5).toFixed(3)}  p95 ${q(ms, 0.95).toFixed(3)}  max ${ms[ms.length - 1].toFixed(3)} ms\n` +
+                    `triangles/pick  median ${q(tris, 0.5)}  p95 ${q(tris, 0.95)}  max ${tris[tris.length - 1]}\n` +
+                    `cost per triangle ${((1000 * heat.ms) / Math.max(1, trisSum)).toFixed(3)} µs`;
+                const all = heat.cells.slice(0, heat.next),
+                    both = all.filter((c) => c.diff != null),
+                    d = heat.depth;
+                if (d && both.length) {
+                    const diff = both.map((c) => c.diff).sort((a, b) => a - b),
+                        rel = both.map((c) => c.rel).sort((a, b) => a - b);
+                    $("stats").textContent +=
+                        `\n\ndepth buffer vs raycast, ${both.length} pixels with terrain in both:\n` +
+                        `distance  median ${q(diff, 0.5).toFixed(2)}  p95 ${q(diff, 0.95).toFixed(2)}  max ${diff[diff.length - 1].toFixed(1)} m\n` +
+                        `relative  median ${(100 * q(rel, 0.5)).toFixed(3)}%  p95 ${(100 * q(rel, 0.95)).toFixed(3)}%\n` +
+                        `terrain by raycast only ${all.filter((c) => !c.sky && !c.depthHit).length}, ` +
+                        `by depth buffer only ${all.filter((c) => c.sky && c.depthHit).length}\n` +
+                        `depth read for this map: data after ${d.latency.toFixed(1)} ms, main thread ` +
+                        `${d.blocked.toFixed(1)} ms in ${d.calls} GL calls (${Math.round(d.bytes / 1024)} KB)\n` +
+                        `then ${((1000 * heat.lookupMs) / Math.max(1, all.length)).toFixed(1)} µs per pixel lookup; ` +
+                        `raycast ${q(ms, 0.5).toFixed(3)} ms per pick (median)`;
+                }
+            }
+
+            function showTerrain() {
+                const s = terrainState();
+                $("terrain").textContent =
+                    `grid ${grid}  segments ${s.nodes}, terrain ready ${s.ready}\n` +
+                    `grid sizes ${Object.entries(s.grids)
+                        .map(([k, n]) => `${k}:${n}`)
+                        .join(" ")}  camera ${Math.round(cam.getAltitude())} m`;
+            }
+
+            //
+            // Pick under the cursor
+            //
+            let pointer = null,
+                pickPending = false;
+
+            function requestPick() {
+                if (!pickPending && pointer && $("live").checked) {
+                    pickPending = true;
+                    requestAnimationFrame(doPick);
+                }
+            }
+
+            function doPick() {
+                pickPending = false;
+                if (!pointer) return;
+                const ray = cam.getRay(pointer.x, pointer.y),
+                    { t, ms } = timeOf(ray, 0.5, 50),
+                    counts = countsOf(ray),
+                    hit = t !== Infinity ? ray.origin.add(ray.direction.scaleTo(t)) : null,
+                    // the depth buffer point of the renderer, read back by og after pointer moves
+                    depth = planet.renderer.getCartesianFromPixel(pointer);
+                pick = {
+                    hitPx: hit ? cam.project3v(hit) : null,
+                    depthPx: depth ? cam.project3v(depth) : null
+                };
+                const ci = Math.floor((pointer.x / handler.canvas.width) * heat.cols),
+                    cj = Math.floor((pointer.y / handler.canvas.height) * heat.rows),
+                    cell = heat.cols && heat.cells[cj * heat.cols + ci],
+                    cellText =
+                        cell && cj * heat.cols + ci < heat.next
+                            ? `\nheat map cell: ${cell.sky ? "sky, " : ""}${cell.ms.toFixed(3)} ms, ${cell.tris} triangles`
+                            : "";
+                $("pick").textContent = hit
+                    ? `cursor: ${ms.toFixed(3)} ms per pick, ${counts.tris} triangles, ${counts.spheres} spheres passed\n` +
+                      `distance ${t.toFixed(1)} m` +
+                      (depth ? `, depth buffer point ${hit.distance(depth).toFixed(1)} m away` : ", no depth buffer point")
+                    : `cursor: sky, ${ms.toFixed(3)} ms per pick, ${counts.spheres} spheres passed`;
+                $("pick").textContent += cellText;
+                draw();
+            }
+
+            handler.canvas.addEventListener("pointermove", (e) => {
+                const r = handler.pixelRatio || 1,
+                    b = handler.canvas.getBoundingClientRect();
+                pointer = { x: (e.clientX - b.left) * r, y: (e.clientY - b.top) * r };
+                requestPick();
+            });
+            handler.canvas.addEventListener("pointerleave", () => {
+                pointer = null;
+                pick = null;
+                $("pick").textContent = "";
+                draw();
+            });
+
+            //
+            // The view moved: the heat map no longer matches it; recompute when it settles
+            //
+            let settleTimer = null;
+            cam.events.on("viewchange", () => {
+                if (heat.running || heat.next) {
+                    heat.running = false;
+                    heat.gen++;
+                    heat.next = 0;
+                    $("stats").textContent = "";
+                }
+                requestPick();
+                draw();
+                clearTimeout(settleTimer);
+                settleTimer = setTimeout(async () => {
+                    if (!$("auto").checked) return;
+                    const gen = heat.gen;
+                    await settle(20000, 0.95);
+                    if (gen === heat.gen) startHeat();
+                }, 400);
+            });
+
+            //
+            // Depth reads on demand, and og's own readbacks
+            //
+            $("depthBench").addEventListener("click", async () => {
+                $("depth").textContent = "depth reads...";
+                const reads = [];
+                for (let i = 0; i < 10; i++) {
+                    const r = await depthRead();
+                    if (r) reads.push(r);
+                    await sleep(100);
+                }
+                if (!reads.length) {
+                    $("depth").textContent = "no depth read came back";
+                    return;
+                }
+                const s = (f) => reads.map(f).sort((a, b) => a - b),
+                    lat = s((r) => r.latency),
+                    blk = s((r) => r.blocked),
+                    med = (a) => a[a.length >> 1];
+                $("depth").textContent =
+                    `depth read ×${reads.length} (getCartesianFromPixelAsync):\n` +
+                    `data after   median ${med(lat).toFixed(1)}  max ${lat[lat.length - 1].toFixed(1)} ms\n` +
+                    `main thread  median ${med(blk).toFixed(2)}  max ${blk[blk.length - 1].toFixed(2)} ms ` +
+                    `in getBufferSubData / readPixels (${Math.round(reads[0].bytes / 1024)} KB per read)`;
+            });
+
+            setInterval(() => {
+                const now = performance.now(),
+                    recent = readbacks.log.filter((e) => now - e.at < 2000 && e.fn === "getBufferSubData");
+                $("readbacks").textContent = recent.length
+                    ? `og readbacks, last 2 s: ${recent.length} buffer copies, main thread ` +
+                      `${recent.reduce((a, e) => a + e.ms, 0).toFixed(1)} ms, longest ${Math.max(...recent.map((e) => e.ms)).toFixed(2)} ms`
+                    : "og readbacks, last 2 s: none";
+            }, 500);
+
+            //
+            // Panel
+            //
+            $("grid").value = grid;
+            $("grid").addEventListener("change", (e) => {
+                params.set("grid", e.target.value);
+                location.search = params.toString();
+            });
+            for (const b of $("views").querySelectorAll("button")) {
+                b.addEventListener("click", () => setView(LON, LAT, Number(b.dataset.h), Number(b.dataset.pitch)));
+            }
+            $("heat").addEventListener("click", startHeat);
+            $("clear").addEventListener("click", () => {
+                heat.running = false;
+                heat.gen++;
+                heat.next = 0;
+                $("stats").textContent = "";
+                draw();
+            });
+            $("metric").addEventListener("change", () => {
+                drawLegend();
+                draw();
+            });
+            window.depthRead = depthRead;
+            $("res").addEventListener("change", startHeat);
+            $("opacity").addEventListener("input", draw);
+            $("live").addEventListener("change", draw);
+            drawLegend();
+            setInterval(showTerrain, 500);
+
+            setView(LON, LAT, 2000, 45);
+
+            const show = (o) => ($("out").textContent = JSON.stringify(o, null, 1));
+
+            /**
+             * Settled view: { h, pitch, heading?, lon?, lat? } -> time per call over a 7 x 7 grid of rays.
+             */
+            window.bench = async ({ h, pitch, heading = 0, lon = LON, lat = LAT }) => {
+                setView(lon, lat, h, pitch, heading);
+                const settleMs = await settle();
+                await frame();
+                const r = { grid, h, pitch, settleMs: Math.round(settleMs), ...terrainState(), ...measure() };
+                show(r);
+                return r;
+            };
+
+            /**
+             * Right after a jump to a new place: the time per call (3 x 3 rays) every 250 ms for durationMs,
+             * while the terrain loads.
+             */
+            window.loadingSeries = async ({ h, pitch, heading = 0, lon, lat, durationMs = 6000 }) => {
+                setView(lon, lat, h, pitch, heading);
+                const series = [],
+                    t0 = performance.now();
+                while (performance.now() - t0 < durationMs) {
+                    await frame();
+                    series.push({ at: Math.round(performance.now() - t0), ...terrainState(), ...measure(3, 3, 5) });
+                    await sleep(250);
+                }
+                show(series[series.length - 1]);
+                return series;
+            };
+
+            window.heatmap = { start: startHeat, state: heat };
+            window.benchReady = true;
+        </script>
+    </body>
+</html>
