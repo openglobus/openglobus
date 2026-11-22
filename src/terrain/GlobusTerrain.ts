@@ -398,7 +398,8 @@ class GlobusTerrain extends EmptyTerrain {
             s: this._getSubdomain(),
             x: x.toString(),
             y: y.toString(),
-            z: z.toString()
+            z: z.toString(),
+            f: tileGroup.toString()
         });
     }
 
