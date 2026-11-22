@@ -10,6 +10,7 @@ import {
 } from "./RgbTerrain";
 import type { IRgbTerrainParams, RgbTerrainEncoding, RgbToHeightFunc } from "./RgbTerrain";
 import { GlobusRgbTerrain } from "./GlobusRgbTerrain";
+import { CubeRgbTerrain } from "./CubeRgbTerrain";
 import { MapterhornTerrain } from "./MapterhornTerrain";
 import { ProceduralTerrain } from "./ProceduralTerrain";
 import type {
@@ -27,6 +28,7 @@ export {
     RgbTerrain,
     BilTerrain,
     GlobusRgbTerrain,
+    CubeRgbTerrain,
     MapterhornTerrain,
     ProceduralTerrain,
     GeoTiffTerrain

@@ -1,4 +1,5 @@
 import { pow2i } from "../../math";
+import { getGridCells } from "../../terrain/terrainUtils";
 import { Extent } from "../../Extent";
 import { LonLat } from "../../LonLat";
 import { PlanetCamera } from "../../camera";
@@ -66,9 +67,14 @@ export class CubeQuadTreeStrategy extends QuadTreeStrategy {
         const p = (this.projection as CubeProj).fromLonLat(lonLat),
             face = Math.floor(p.lon),
             pz = pow2i(z),
-            cells = gridSize - 1;
+            cells = getGridCells(gridSize),
+            last = gridSize - 1;
 
-        return [Math.floor(((1.0 - p.lat) * pz - y) * cells), Math.floor(((p.lon - face) * pz - x) * cells)];
+        // The pixels of 2^n images are areas, (2^n + 1) grids are of vertices
+        return [
+            Math.min(Math.floor(((1.0 - p.lat) * pz - y) * cells), last),
+            Math.min(Math.floor(((p.lon - face) * pz - x) * cells), last)
+        ];
     }
 }
 
