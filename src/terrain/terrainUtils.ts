@@ -75,8 +75,14 @@ export function getSubdivisionLevels(
 ): number {
     let isNative = tileZoom < maxNativeZoom,
         cells = isNative ? getGridCells(size) : getVertexGridCells(size),
-        lastZoom = isNative ? Math.min(maxZoom, maxNativeZoom - 1) : maxZoom;
-    return Math.max(0, Math.min(lastZoom - tileZoom, Math.floor(Math.log2(cells / gridSize))));
+        lastZoom = isNative ? Math.min(maxZoom, maxNativeZoom - 1) : maxZoom,
+        levels = 0;
+
+    while (tileZoom + levels < lastZoom && cells >> (levels + 1) >= gridSize) {
+        levels++;
+    }
+
+    return levels;
 }
 
 function isNoDataValue(noDataValues: number[] | TypedArray, ndMin: number, ndMax: number, h: number): boolean {
