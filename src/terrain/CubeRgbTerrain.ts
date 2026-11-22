@@ -21,7 +21,6 @@ import { Segment } from "../segment/Segment";
  */
 class CubeRgbTerrain extends RgbTerrain {
     constructor(name: string | null, options: IRgbTerrainParams) {
-        // The heights are over the planet ellipsoid, the Earth geoid of GlobusTerrain is only by geoidSrc
         super(name || "CubeRgbTerrain", { ...options, geoidSrc: options.geoidSrc || "" });
     }
 
@@ -29,9 +28,6 @@ class CubeRgbTerrain extends RgbTerrain {
         return this._extent.overlaps(segment.getExtentLonLat());
     }
 
-    /**
-     * There are no images deeper than maxNativeZoom, their levels have the maxNativeZoom pixels.
-     */
     public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number): boolean {
         return super.getHeightAsync(
             lonLat,
