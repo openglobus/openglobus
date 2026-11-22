@@ -1,3 +1,4 @@
+import { MAGMA_RGBA, PLASMA_RGBA } from "./MatplotlibColorScales";
 import type { ColorScaleName, ColorStop, IMultiBandRenderOptions, ISingleBandRenderOptions } from "./types";
 
 export type TypedRasterArray =
@@ -18,6 +19,8 @@ interface ColorScaleDefinition {
 }
 
 export const COLORSCALES: Record<string, ColorScaleDefinition> = {
+    magma: { colors: MAGMA_RGBA },
+    plasma: { colors: PLASMA_RGBA },
     viridis: {
         colors: new Uint8Array([
             68, 1, 84, 255, 68, 2, 86, 255, 69, 4, 87, 255, 69, 5, 89, 255, 70, 7, 90, 255, 70, 8, 92, 255, 70, 10, 93,
