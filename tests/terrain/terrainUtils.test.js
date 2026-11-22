@@ -10,6 +10,7 @@ import {
     getEdgeHeight,
     getGroundHeight,
     getMeshHeights,
+    getGridCells,
     getSubdivisionLevels,
     getVertexGridCells,
     RGB_ENCODING_RGB,
@@ -50,11 +51,47 @@ test("getSubdivisionLevels keeps native zoom levels down to the pixels, and goes
     expect(getSubdivisionLevels(512, 128, 5, 17, 14)).toBe(2);
     // Above the native zooms only
     expect(getSubdivisionLevels(512, 128, 17, 21, 17)).toBe(3);
-    // Native and above
-    expect(getSubdivisionLevels(256, 128, 13, 17, 14)).toBe(2);
+    // The maxNativeZoom tile finer than the grid comes with its own image, not as a level
+    expect(getSubdivisionLevels(256, 128, 13, 17, 14)).toBe(0);
+    expect(getSubdivisionLevels(256, 128, 12, 17, 14)).toBe(1);
+    expect(getSubdivisionLevels(512, 128, 12, 17, 14)).toBe(1);
+    // The maxNativeZoom tile makes the levels above
+    expect(getSubdivisionLevels(256, 128, 14, 17, 14)).toBe(2);
     // Limited by the max zoom
     expect(getSubdivisionLevels(512, 128, 17, 19, 17)).toBe(2);
     expect(getSubdivisionLevels(9, 4, 0, 10, 0)).toBe(1);
+});
+
+test("getSubdivisionLevels is the zoom by zoom halving of the cells, maxNativeZoom can be far away", () => {
+    const byZooms = (size, gridSize, tileZoom, maxZoom, maxNativeZoom) => {
+        let levels = 0;
+        for (let k = 1; tileZoom + k <= maxZoom; k++) {
+            const z = tileZoom + k,
+                cells = z > maxNativeZoom ? getVertexGridCells(size) : getGridCells(size);
+            if ((z === maxNativeZoom && cells > gridSize) || cells >> k < gridSize) {
+                break;
+            }
+            levels = k;
+        }
+        return levels;
+    };
+
+    for (const size of [9, 64, 256, 257, 512]) {
+        for (const gridSize of [4, 32, 64, 128, 256]) {
+            for (const maxNativeZoom of [0, 3, 7, 12, 17, 100, Infinity]) {
+                for (let tileZoom = 0; tileZoom <= 20; tileZoom++) {
+                    for (const maxZoom of [tileZoom, tileZoom + 1, 10, 17, 22]) {
+                        expect(getSubdivisionLevels(size, gridSize, tileZoom, maxZoom, maxNativeZoom)).toBe(
+                            byZooms(size, gridSize, tileZoom, maxZoom, maxNativeZoom)
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    // maxNativeZoom far away: the pixel levels as before, every other zoom is a level of its parent
+    expect(getSubdivisionLevels(256, 128, 15, 22, Infinity)).toBe(1);
 });
 
 test("createVertexGrid places vertices at pixel centers and corners, including extrapolated edges", () => {
