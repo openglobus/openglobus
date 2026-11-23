@@ -1,7 +1,6 @@
 import path from "node:path";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import terser from "@rollup/plugin-terser";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import forceTerserPlugin from "./vite-plugin-force-terser.js";
 import glsl from "vite-plugin-glsl";
@@ -14,11 +13,21 @@ const __dirname = path.dirname(__filename);
 const escapeGlslTemplatePlaceholders = (shader: string) => shader.replace(/\$\{/g, "\\${");
 
 /**
- * @param {{ mode: 'development' | 'production' }} param0
+ * Production chunks, each is a module in src/ with everything it imports.
+ * A module imported by several groups goes to the first of them.
+ */
+const CHUNK_GROUPS = ["core", "planet", "strategy", "layer", "terrain", "proj4", "geotiff", "control", "ui"];
+
+/**
+ * Modes: production is the chunked minified library, development is one unminified file,
+ * all is the whole library in one minified file.
+ * @param {{ mode: 'development' | 'production' | 'all' }} param0
  * @returns {import('vite').UserConfig}
  */
-export default function ({ mode }: { mode: "development" | "production" }) {
+export default function ({ mode }: { mode: "development" | "production" | "all" }) {
     const isDev = mode === "development";
+    const isChunked = mode === "production";
+    const entry = path.resolve(__dirname, "./src/index.ts");
     const ogVersion = JSON.parse(readFileSync(path.resolve(__dirname, "./package.json"), "utf8")).version;
 
     return {
@@ -28,32 +37,37 @@ export default function ({ mode }: { mode: "development" | "production" }) {
         build: {
             minify: !isDev,
             lib: {
-                entry: ["./src/index.ts"],
+                // The chunk groups are entries too, rolldown needs them in the module graph.
+                entry: Object.fromEntries([
+                    ["og", entry],
+                    ...(isChunked ? CHUNK_GROUPS.map((g) => [g, `./src/${g}.ts`]) : [])
+                ]),
                 name: "og",
-                fileName: (format) => `og.${format}.js`,
+                fileName: (format, name) => (name === "og" ? `og.${format}.js` : `groups/${name}.js`),
                 formats: ["es"],
                 cssFileName: "og"
             },
             emptyOutDir: true,
             outDir: path.resolve(__dirname, "./lib"),
-            sourcemap: true,
+            sourcemap: !isChunked,
             rollupOptions: {
                 output: {
                     assetFileNames: `[name][extname]`,
                     sourcemapExcludeSources: !isDev,
-                    codeSplitting: false
-                },
-                plugins: !isDev
-                    ? [
-                          terser({
-                              compress: true,
-                              mangle: true,
-                              format: {
-                                  comments: false
-                              }
+                    // One file inlines the lazy imports too.
+                    ...(!isChunked
+                        ? { codeSplitting: false }
+                        : {
+                              codeSplitting: {
+                                  groups: CHUNK_GROUPS.map((name, i) => ({
+                                      name,
+                                      test: `/src/${name}.ts`,
+                                      priority: CHUNK_GROUPS.length - i
+                                  }))
+                              },
+                              chunkFileNames: "chunks/[name].js"
                           })
-                      ]
-                    : [] // important no plugins for development mode
+                }
             }
         },
         plugins: [
@@ -68,8 +82,7 @@ export default function ({ mode }: { mode: "development" | "production" }) {
                 watch: true,
                 root: "/"
             }),
-            // this works for esm modules
-            !isDev && forceTerserPlugin({ filePath: "./lib/og.es.js" }),
+            !isDev && forceTerserPlugin(),
             viteStaticCopy({
                 targets: [
                     {

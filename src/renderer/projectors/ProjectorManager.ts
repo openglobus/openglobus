@@ -2,7 +2,11 @@ import { cons } from "../../cons";
 import type { ShaderProgram } from "../../webgl/ShaderProgram";
 import type { DepthCamera } from "../depthCamera/DepthCamera";
 import type { Renderer } from "../Renderer";
-import { DEFAULT_PROJECTOR_TEXTURE_UNIT_START } from "../textureUnits";
+import {
+    DEFAULT_PROJECTOR_TEXTURE_UNIT_START,
+    MAX_FORWARD_PROJECTOR_SOURCES,
+    MAX_FORWARD_PROJECTORS
+} from "../textureUnits";
 import { Projector } from "./Projector";
 import type { ProjectorSource, ProjectorSourceKind } from "./Projector";
 
@@ -13,20 +17,7 @@ import type { ProjectorSource, ProjectorSourceKind } from "./Projector";
 export const MAX_PROJECTOR_LAYERS = 64;
 const INITIAL_PROJECTOR_LAYERS = 8;
 
-/**
- * Maximum number of projectors processed in a single shader invocation.
- * Used by forward / WOIT paths as top-K by priority per draw call.
- * Deferred projector pass binds one projector per draw. Sizes MAX_PROJECTORS in projectors.glsl.
- */
-export const MAX_FORWARD_PROJECTORS = 8;
-
-/**
- * Maximum number of distinct image/video/texture sources sampled in one forward draw call
- * (`u_projectorSource[]`, PROJECTOR_MAX_SOURCES in projectors.glsl). Projectors beyond it render
- * their solid color. Limited by the free texture units between the projector depth array and shadows,
- * at most 3 (see sampleProjectorSource()).
- */
-export const MAX_FORWARD_PROJECTOR_SOURCES = 3;
+export { MAX_FORWARD_PROJECTORS, MAX_FORWARD_PROJECTOR_SOURCES };
 
 interface IProjectorSource {
     source: ProjectorSource;
