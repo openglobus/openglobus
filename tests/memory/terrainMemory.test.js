@@ -185,7 +185,8 @@ describe("elevation cache of RgbTerrain", () => {
         const at = (z) => rows.find((r) => r.zoom === z);
 
         expect(at(8).tiles).toBe(5);
-        expect(at(11).tiles).toBe(21);
+        // The maxNativeZoom 12 tile comes with its own image, it is not a level of 11
+        expect(at(11).tiles).toBe(1);
         expect(at(12).tiles).toBe(21);
         expect(at(13).tiles).toBe(21);
         expect(at(12)["now: all the levels, MB"]).toBeCloseTo(5.29, 1);

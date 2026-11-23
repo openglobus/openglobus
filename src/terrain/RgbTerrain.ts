@@ -1,11 +1,10 @@
 import { Extent } from "../Extent";
-import { getTileExtent } from "../mercator";
 import type { IGlobusTerrainParams } from "./GlobusTerrain";
 import { GlobusTerrain } from "./GlobusTerrain";
 import { isPowerOfTwo, pow2i } from "../math";
 import { Layer } from "../layer/Layer";
 import { LonLat } from "../LonLat";
-import { Segment } from "../segment/Segment";
+import { getTileCellExtent, Segment } from "../segment/Segment";
 import type { TypedArray } from "../utils/shared";
 import { binarySearchFast } from "../utils/shared";
 import type { IResponse } from "../utils/Loader";
@@ -303,19 +302,14 @@ class RgbTerrain extends GlobusTerrain {
             let d = 1 << k;
             for (let i = 0; i < d; i++) {
                 for (let j = 0; j < d; j++, offset += tileLength) {
-                    let x = tileX * d + j,
-                        y = tileY * d + i,
-                        z = tileZoom + k;
-                    let tileIndex = Layer.getTileIndex(x, y, z, tileGroup);
+                    let tileIndex = Layer.getTileIndex(tileX * d + j, tileY * d + i, tileZoom + k, tileGroup);
                     let cache = this.getElevationCache(tileIndex);
                     // Don't replace data the child tile got from its own image
                     if (!cache || !cache.heights) {
                         this.setElevationCache(tileIndex, {
                             heights: heights.subarray(offset, offset + tileLength),
-                            //
-                            // @todo: must work for any grids
-                            //
-                            extent: getTileExtent(x, y, z)
+                            // The tile extent is in the native coordinates of the segment, so is the child one
+                            extent: getTileCellExtent(j, i, k, extent)
                         });
                     }
                 }

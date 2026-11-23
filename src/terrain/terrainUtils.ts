@@ -56,7 +56,9 @@ export function getVertexGridCells(size: number): number {
 
 /**
  * Returns subdivision levels of the image tile. Native zoom levels are not finer than the image pixels,
- * finer data comes with their own tiles. Levels above the native zooms go down to the vertex grid.
+ * finer data comes with their own tiles. The maxNativeZoom tile of an image finer than the grid is not a level,
+ * it comes with its own image, and the levels above the native zooms are made of it. Levels above the native
+ * zooms go down to the vertex grid.
  * @param {number} size - Image size.
  * @param {number} gridSize - Tile grid size.
  * @param {number} tileZoom - Image tile zoom.
@@ -71,15 +73,13 @@ export function getSubdivisionLevels(
     maxZoom: number,
     maxNativeZoom: number
 ): number {
-    let pixelCells = getGridCells(size),
-        vertexCells = getVertexGridCells(size),
+    let isNative = tileZoom < maxNativeZoom,
+        cells = isNative ? getGridCells(size) : getVertexGridCells(size),
+        lastZoom = isNative ? Math.min(maxZoom, maxNativeZoom - 1) : maxZoom,
         levels = 0;
 
-    for (let k = 1; tileZoom + k <= maxZoom; k++) {
-        if ((tileZoom + k > maxNativeZoom ? vertexCells : pixelCells) >> k < gridSize) {
-            break;
-        }
-        levels = k;
+    while (tileZoom + levels < lastZoom && cells >> (levels + 1) >= gridSize) {
+        levels++;
     }
 
     return levels;
