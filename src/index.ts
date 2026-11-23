@@ -5,7 +5,7 @@ import * as math from "./math";
 import * as mercator from "./mercator";
 import * as utils from "./utils/shared";
 import * as bv from "./bv/index";
-import * as control from "./control/index";
+import * as control from "./control";
 import * as scene from "./scene/index";
 import * as terrain from "./terrain/index";
 import * as layer from "./layer/index";
@@ -198,3 +198,5 @@ export {
     Loader,
     IResponse
 };
+
+export * from "./control";

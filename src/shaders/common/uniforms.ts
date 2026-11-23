@@ -1,4 +1,4 @@
-import { MAX_FORWARD_PROJECTOR_SOURCES, MAX_FORWARD_PROJECTORS } from "../../renderer/projectors/ProjectorManager";
+import { MAX_FORWARD_PROJECTOR_SOURCES, MAX_FORWARD_PROJECTORS } from "../../renderer/textureUnits";
 import { variantBit } from "../../webgl/ShaderProgram";
 
 /** Array sizes for projectors.glsl, filled in with stringTemplate2() by every program that includes it. */
