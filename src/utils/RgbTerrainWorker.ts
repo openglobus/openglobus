@@ -9,6 +9,7 @@ export interface IRgbTerrainWorkerTask {
     segment: Segment;
     bitmap: ImageBitmap;
     params: IRgbHeightsParams;
+    isActual?: () => boolean;
     callback: (heights: Float32Array | null) => void;
 }
 
@@ -31,7 +32,7 @@ class RgbTerrainWorker extends BaseWorker<IRgbTerrainWorkerTask> {
     }
 
     public override make(task: IRgbTerrainWorkerTask) {
-        if (task.segment.plainReady && task.segment.terrainIsLoading) {
+        if (task.isActual ? task.isActual() : task.segment.plainReady && task.segment.terrainIsLoading) {
             if (this._workerQueue.length) {
                 let w = this._workerQueue.pop()!;
 
@@ -63,6 +64,7 @@ class RgbTerrainWorker extends BaseWorker<IRgbTerrainWorkerTask> {
             }
         } else {
             task.bitmap.close();
+            task.callback(null);
             this.check();
         }
     }

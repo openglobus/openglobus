@@ -123,10 +123,12 @@ class BilTerrain extends GlobusTerrain {
                     y = tileY * 2 + i,
                     z = tileZoom + 1;
                 let tileIndex = Layer.getTileIndex(x, y, z, tileGroup);
-                this.setElevationCache(tileIndex, {
-                    heights: outChildrenElevations[i][j],
-                    extent: getTileExtent(x, y, z)
-                });
+                if (this._tileStatus.peek(tileIndex) !== true) {
+                    this.setElevationCache(tileIndex, {
+                        heights: outChildrenElevations[i][j],
+                        extent: getTileExtent(x, y, z)
+                    });
+                }
             }
         }
 
