@@ -75,7 +75,7 @@ export const DEFAULT_PARAMS: AtmosphereParameters = {
     ozoneAbsorptionCoefficient_2: 0.09,
     SUN_ANGULAR_RADIUS: 0.004685,
     SUN_INTENSITY: 0.78, //1.0
-    scatteringColor: [0.5, 0.8, 1.2],
+    scatteringColor: [0.8, 0.8, 1.2],
     ozoneDensityHeight: 25e3,
     ozoneDensityWide: 15e3,
     disableSunDisk: false
