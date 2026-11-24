@@ -17,7 +17,7 @@ export class MapterhornTerrain extends RgbTerrain {
             imageSize: 512,
             plainGridSize: 256,
             maxNativeZoom: 12,
-            maxZoom: 17,
+            maxZoom: 19,
             attribution: `<a href="https://mapterhorn.com" target="_blank">Mapterhorn</a>`,
             iconSrc: MAPTERHORN_TERRAIN_ICON_SRC,
             ...options
