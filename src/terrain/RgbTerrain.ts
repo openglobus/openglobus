@@ -198,11 +198,7 @@ class RgbTerrain extends GlobusTerrain {
         );
     }
 
-    protected _getHeightsParams(
-        segment: Segment | null,
-        tileZoom: number,
-        preventChildren: boolean
-    ): IRgbHeightsParams {
+    protected _getHeightsParams(segment: Segment | null, levels: number): IRgbHeightsParams {
         const size = this._imageSize,
             gridSize = this.plainGridSize;
 
@@ -244,7 +240,7 @@ class RgbTerrain extends GlobusTerrain {
             decode: decode,
             size: size,
             gridSize: gridSize,
-            levels: preventChildren ? 0 : this._getTileLevels(tileZoom),
+            levels: levels,
             noDataHeight: this.noDataValues.length ? this.noDataValues[0] : 0
         };
     }
@@ -337,7 +333,7 @@ class RgbTerrain extends GlobusTerrain {
             return;
         }
 
-        let p = this._getHeightsParams(segment, segment.tileZoom, segment.tileZoom === this.maxZoom),
+        let p = this._getHeightsParams(segment, this._getTileLevels(segment.tileZoom)),
             extent = segment.getExtent();
 
         getRgbTerrainWorker().make({
@@ -382,7 +378,7 @@ class RgbTerrain extends GlobusTerrain {
 
         let parent = pn && pn.segment;
 
-        if (!parent || segment.tileZoom - parent.tileZoom > this._getTileLevels(parent.tileZoom)) {
+        if (!parent || segment.tileZoom - parent.tileZoom > this._getTileLevels(parent.tileZoom, 0)) {
             super._applyParentHeights(segment);
             return;
         }
@@ -425,9 +421,15 @@ class RgbTerrain extends GlobusTerrain {
                 } else if (response.status === "error") {
                     let s = response.statusCode;
                     if (s != undefined && s >= 400 && s < 500) {
+                        // The parent tile is missing too, the next loaded parent stands for the segments
                         this._tileStatus.set(parentSegment.tileIndex, false);
+                        this._parentLevelsWaiting.delete(parentSegment.tileIndex);
+                        for (let seg of segments) {
+                            this._applyParentHeights(seg);
+                        }
+                    } else {
+                        done();
                     }
-                    done();
                 } else {
                     // The segments load again
                     this._parentLevelsWaiting.delete(parentSegment.tileIndex);
@@ -442,18 +444,16 @@ class RgbTerrain extends GlobusTerrain {
     /**
      * Levels of the tile of the zoom, they go down to the vertex grid, to maxZoom. When not every zoom is loaded the
      * native tiles make one level of their pixels, it stands for the tile under them, every other native zoom is loaded.
+     * The tile that stands for the missing ones under it goes down to the vertex grid, nativeZoom is 0 there.
      * @protected
      */
-    protected _getTileLevels(tileZoom: number): number {
+    protected _getTileLevels(
+        tileZoom: number,
+        nativeZoom: number = this.loadEveryZoom ? 0 : this.maxNativeZoom
+    ): number {
         return tileZoom === this.maxZoom
             ? 0
-            : getSubdivisionLevels(
-                  this._imageSize,
-                  this.plainGridSize,
-                  tileZoom,
-                  this.maxZoom,
-                  this.loadEveryZoom ? 0 : this.maxNativeZoom
-              );
+            : getSubdivisionLevels(this._imageSize, this.plainGridSize, tileZoom, this.maxZoom, nativeZoom);
     }
 
     protected _cacheParentLevels(
@@ -463,8 +463,10 @@ class RgbTerrain extends GlobusTerrain {
         isWaiting: () => boolean,
         callback: () => void
     ) {
+        let levels = this._getTileLevels(parent.tileZoom, 0);
+
         if (!this._isWorkerDecoding(data)) {
-            this._createHeights(
+            this._createHeightsLevels(
                 data,
                 parent,
                 parent.tileGroup,
@@ -472,13 +474,13 @@ class RgbTerrain extends GlobusTerrain {
                 parent.tileY,
                 parent.tileZoom,
                 extent,
-                parent.tileZoom === this.maxZoom
+                levels
             );
             callback();
             return;
         }
 
-        let p = this._getHeightsParams(parent, parent.tileZoom, parent.tileZoom === this.maxZoom);
+        let p = this._getHeightsParams(parent, levels);
 
         getRgbTerrainWorker().make({
             segment: parent,
@@ -513,6 +515,28 @@ class RgbTerrain extends GlobusTerrain {
         extent: Extent,
         preventChildren: boolean
     ): TypedArray | number[] {
+        return this._createHeightsLevels(
+            data,
+            segment,
+            tileGroup,
+            tileX,
+            tileY,
+            tileZoom,
+            extent,
+            preventChildren ? 0 : this._getTileLevels(tileZoom)
+        );
+    }
+
+    protected _createHeightsLevels(
+        data: HTMLImageElement | ImageBitmap,
+        segment: Segment | null,
+        tileGroup: number,
+        tileX: number,
+        tileY: number,
+        tileZoom: number,
+        extent: Extent,
+        levels: number
+    ): TypedArray | number[] {
         this._ctx.clearRect(0, 0, this._imageSize, this._imageSize);
         this._ctx.drawImage(data, 0, 0);
         let rgbaData = this._ctx.getImageData(0, 0, this._imageSize, this._imageSize).data;
@@ -528,7 +552,7 @@ class RgbTerrain extends GlobusTerrain {
             return outCurrenElevations;
         }
 
-        let p = this._getHeightsParams(segment, tileZoom, preventChildren);
+        let p = this._getHeightsParams(segment, levels);
 
         let heights = createHeightsLevels(
             p.size,

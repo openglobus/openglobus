@@ -244,10 +244,9 @@ test("getHeightAsync takes the parent tile where the tile is not loaded", async 
 // segments are recorded. The deferred responses come with flushLoads().
 function createLoadingTerrain(
     response = () => ({ status: "ready", data: {} }),
-    { deferred = false, maxZoom = 7, loadEveryZoom = true } = {}
+    { deferred = false, maxZoom = 7, maxNativeZoom = 5, loadEveryZoom = true } = {}
 ) {
-    // maxNativeZoom 5
-    const { qts, terrain } = createCubeTerrain(CubeQuadTreeStrategy, { maxZoom, loadEveryZoom }),
+    const { qts, terrain } = createCubeTerrain(CubeQuadTreeStrategy, { maxZoom, maxNativeZoom, loadEveryZoom }),
         applied = new Map(),
         loads = [];
 
@@ -430,6 +429,47 @@ test("the parent tile of a segment with no tile is the nearest loaded one", () =
     terrain.loadTerrain(s7);
     expect(requested()).toEqual(["5", "5"]);
     expect(applied.get(s7)).toBe(cached(s7));
+});
+
+test.each([false, true])(
+    "loadEveryZoom %s: two missing zooms in a row under a native tile take its level, it is the nearest loaded parent",
+    (loadEveryZoom) => {
+        const { terrain, branch, applied, requested, cached } = createLoadingTerrain(notFoundOn(3, 4), {
+                loadEveryZoom
+            }),
+            [s2, s3, s4] = branch.slice(2);
+
+        [s2, s3, s4].forEach((s) => terrain.loadTerrain(s));
+
+        // Not every zoom loaded, the zoom 3 tile is the level of the zoom 2 one, it is found missing when
+        // it is loaded again for the zoom 4 segment, then the zoom 2 one is
+        expect(requested()).toEqual(loadEveryZoom ? ["2", "3", "4"] : ["2", "4", "3", "2"]);
+        expect(applied.get(s4)).toBeInstanceOf(Float32Array);
+        expect(applied.get(s4)).toBe(cached(s4));
+        expect(cached(s4).buffer).toBe(cached(s2).buffer);
+
+        [s3, s4].forEach((s) => terrain.loadTerrain(s));
+        expect(requested().length).toBe(loadEveryZoom ? 3 : 4);
+    }
+);
+
+test("maxNativeZoom deeper than the tiles of the server: the segments under the last tile take its levels", () => {
+    // The Moon example, the tiles are up to the zoom 5
+    const { terrain, branch, applied, requested, cached } = createLoadingTerrain(notFoundOn(6, 7), {
+            loadEveryZoom: false,
+            maxNativeZoom: 14
+        }),
+        [s4, s5, s6, s7] = branch.slice(4);
+
+    [s4, s5, s6, s7].forEach((s) => terrain.loadTerrain(s));
+
+    // The zoom 5 tile is the level of the zoom 4 one, it is loaded for the missing zoom 6 one with the zoom 7 level
+    expect(requested()).toEqual(["4", "6", "5"]);
+    for (const s of [s6, s7]) {
+        expect(applied.get(s)).toBeInstanceOf(Float32Array);
+        expect(applied.get(s)).toBe(cached(s));
+        expect(cached(s).buffer).toBe(cached(s5).buffer);
+    }
 });
 
 test("a segment deeper than the levels of the nearest parent tile takes the parent mesh, nothing is loaded", () => {

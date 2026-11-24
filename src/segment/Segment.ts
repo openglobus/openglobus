@@ -884,13 +884,16 @@ class Segment {
     }
 
     /**
-     * Keep plain elevation segment for rendering
-     *
-     * 'this.tileZoom <= this.planet.terrain.maxZoom' it means, that the segment is plain
-     *
+     * Segment with no elevations keeps the mesh of the parent with elevations, whileTerrainLoading has applied it.
+     * With no such parent the segment is plain.
      */
     public elevationsNotExists() {
-        if (this.planet && this.tileZoom <= this.planet.terrain!.maxNativeZoom) {
+        let pn = this.node && this.node.parentNode;
+        while (pn && !pn.segment.terrainExists) {
+            pn = pn.parentNode;
+        }
+
+        if (this.planet && !pn) {
             if (this.plainReady && this.terrainIsLoading) {
                 this.terrainIsLoading = false;
 
