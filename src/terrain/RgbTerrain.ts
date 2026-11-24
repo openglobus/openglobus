@@ -108,6 +108,8 @@ class RgbTerrain extends GlobusTerrain {
 
     protected _encoding: number;
 
+    protected _parentLevelsWaiting: Map<string, Segment[]> = new Map();
+
     constructor(name: string | null, options: IRgbTerrainParams = {}) {
         super(name || "RgbTerrain", {
             equalizeVertices: options.equalizeVertices != undefined ? options.equalizeVertices : true,
@@ -217,10 +219,7 @@ class RgbTerrain extends GlobusTerrain {
             skipPositiveHeights: false
         };
 
-        //
-        // Getting parent segment terrain data, for zero and nodata values for the current segment
-        //
-        if (segment && segment.tileZoom > this.maxNativeZoom) {
+        if (segment) {
             let pn = segment.node;
             while (pn && !pn.segment.terrainExists) {
                 pn = pn.parentNode!;
@@ -245,10 +244,7 @@ class RgbTerrain extends GlobusTerrain {
             decode: decode,
             size: size,
             gridSize: gridSize,
-            levels: preventChildren
-                ? 0
-                : getSubdivisionLevels(size, gridSize, tileZoom, this.maxZoom, this.maxNativeZoom),
-            // Vertices with no data around them get the first no data value, the terrain worker recognizes it
+            levels: preventChildren ? 0 : this._getTileLevels(tileZoom),
             noDataHeight: this.noDataValues.length ? this.noDataValues[0] : 0
         };
     }
@@ -302,9 +298,10 @@ class RgbTerrain extends GlobusTerrain {
             let d = 1 << k;
             for (let i = 0; i < d; i++) {
                 for (let j = 0; j < d; j++, offset += tileLength) {
-                    let tileIndex = Layer.getTileIndex(tileX * d + j, tileY * d + i, tileZoom + k, tileGroup);
-                    let cache = this.getElevationCache(tileIndex);
-                    if (!cache || !cache.heights || tileZoom > this.maxNativeZoom) {
+                    let x = tileX * d + j,
+                        y = tileY * d + i,
+                        tileIndex = Layer.getTileIndex(x, y, tileZoom + k, tileGroup);
+                    if (this._isNearestLoadedParent(x, y, tileZoom + k, tileZoom, tileGroup)) {
                         this.setElevationCache(tileIndex, {
                             heights: heights.subarray(offset, offset + tileLength),
                             extent: getTileCellExtent(j, i, k, extent)
@@ -325,13 +322,23 @@ class RgbTerrain extends GlobusTerrain {
         return outCurrenElevations;
     }
 
+    protected _isNearestLoadedParent(x: number, y: number, z: number, parentZoom: number, tileGroup: number): boolean {
+        for (let k = 0; z - k > parentZoom; k++) {
+            if (this._tileStatus.peek(Layer.getTileIndex(x >> k, y >> k, z - k, tileGroup)) === true) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     protected override _onTerrainLoaded(segment: Segment, data: HTMLImageElement | ImageBitmap) {
         if (!this._isWorkerDecoding(data)) {
             super._onTerrainLoaded(segment, data);
             return;
         }
 
-        let p = this._getHeightsParams(segment, segment.tileZoom, segment.tileZoom === this.maxZoom);
+        let p = this._getHeightsParams(segment, segment.tileZoom, segment.tileZoom === this.maxZoom),
+            extent = segment.getExtent();
 
         getRgbTerrainWorker().make({
             segment: segment,
@@ -351,13 +358,147 @@ class RgbTerrain extends GlobusTerrain {
                           segment.tileX,
                           segment.tileY,
                           segment.tileZoom,
-                          segment.getExtent()
+                          extent
                       )
                     : null;
 
                 if (segment.plainReady && segment.terrainIsLoading) {
                     this._applyElevationsData(segment, elevations);
                 }
+            }
+        });
+    }
+
+    protected override _applyParentHeights(segment: Segment) {
+        if (!segment.node || !segment.terrainIsLoading || this.getElevationCache(segment.tileIndex)) {
+            super._applyParentHeights(segment);
+            return;
+        }
+
+        let pn = segment.node.parentNode;
+        while (pn && this._tileStatus.peek(pn.segment.tileIndex) === false) {
+            pn = pn.parentNode;
+        }
+
+        let parent = pn && pn.segment;
+
+        if (!parent || segment.tileZoom - parent.tileZoom > this._getTileLevels(parent.tileZoom)) {
+            super._applyParentHeights(segment);
+            return;
+        }
+
+        let waiting = this._parentLevelsWaiting.get(parent.tileIndex);
+        if (waiting) {
+            waiting.push(segment);
+            return;
+        }
+
+        let parentSegment = parent,
+            parentExtent = parent.getExtent(),
+            segments = [segment];
+
+        this._parentLevelsWaiting.set(parentSegment.tileIndex, segments);
+
+        const isWaiting = () => segments.some((s) => s.plainReady && s.terrainIsLoading);
+
+        const done = () => {
+            this._parentLevelsWaiting.delete(parentSegment.tileIndex);
+            for (let s of segments) {
+                super._applyParentHeights(s);
+            }
+        };
+
+        this._loader.load(
+            {
+                sender: this,
+                src: this._getHTTPRequestString(parentSegment),
+                segment: parentSegment,
+                type: this._dataType,
+                options: {
+                    cache: this._cache
+                },
+                filter: isWaiting
+            },
+            (response: IResponse) => {
+                if (response.status === "ready") {
+                    this._cacheParentLevels(parentSegment, parentExtent, response.data, isWaiting, done);
+                } else if (response.status === "error") {
+                    let s = response.statusCode;
+                    if (s != undefined && s >= 400 && s < 500) {
+                        this._tileStatus.set(parentSegment.tileIndex, false);
+                    }
+                    done();
+                } else {
+                    // The segments load again
+                    this._parentLevelsWaiting.delete(parentSegment.tileIndex);
+                    for (let s of segments) {
+                        s.terrainIsLoading = false;
+                    }
+                }
+            }
+        );
+    }
+
+    /**
+     * Levels of the tile of the zoom, they go down to the vertex grid, to maxZoom. When not every zoom is loaded the
+     * native tiles make one level of their pixels, it stands for the tile under them, every other native zoom is loaded.
+     * @protected
+     */
+    protected _getTileLevels(tileZoom: number): number {
+        return tileZoom === this.maxZoom
+            ? 0
+            : getSubdivisionLevels(
+                  this._imageSize,
+                  this.plainGridSize,
+                  tileZoom,
+                  this.maxZoom,
+                  this.loadEveryZoom ? 0 : this.maxNativeZoom
+              );
+    }
+
+    protected _cacheParentLevels(
+        parent: Segment,
+        extent: Extent,
+        data: HTMLImageElement | ImageBitmap,
+        isWaiting: () => boolean,
+        callback: () => void
+    ) {
+        if (!this._isWorkerDecoding(data)) {
+            this._createHeights(
+                data,
+                parent,
+                parent.tileGroup,
+                parent.tileX,
+                parent.tileY,
+                parent.tileZoom,
+                extent,
+                parent.tileZoom === this.maxZoom
+            );
+            callback();
+            return;
+        }
+
+        let p = this._getHeightsParams(parent, parent.tileZoom, parent.tileZoom === this.maxZoom);
+
+        getRgbTerrainWorker().make({
+            segment: parent,
+            bitmap: data as ImageBitmap,
+            params: p,
+            isActual: isWaiting,
+            callback: (heights: Float32Array | null) => {
+                if (!this._planet) return;
+                if (heights) {
+                    this._cacheHeightsLevels(
+                        heights,
+                        p,
+                        parent.tileGroup,
+                        parent.tileX,
+                        parent.tileY,
+                        parent.tileZoom,
+                        extent
+                    );
+                }
+                callback();
             }
         });
     }

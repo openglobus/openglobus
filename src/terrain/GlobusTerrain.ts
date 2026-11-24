@@ -23,6 +23,7 @@ export interface IGlobusTerrainParams extends IEmptyTerrainParams {
     plainGridSize?: number;
     heightFactor?: number;
     elevationCacheSize?: number;
+    loadEveryZoom?: boolean;
     /**
      * Fetch RequestCache value
      * https://developer.mozilla.org/en-US/docs/Web/API/Request/cache
@@ -36,8 +37,8 @@ type TileData = {
     extent: Extent | null;
 };
 
-/** Tiles deeper than maxNativeZoom that are known to be missing. */
-const MISSING_TILES_CACHE_SIZE = 10000;
+/** Tiles known to be on the server or not. */
+const TILE_STATUS_CACHE_SIZE = 10000;
 
 /**
  * Class that loads segment elevation data, converts it to the array and passes it to the planet segment.
@@ -47,13 +48,14 @@ const MISSING_TILES_CACHE_SIZE = 10000;
  * @param {IGlobusTerrainParams} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.
  * @param {number} [options.maxZoom=14] - Maximal visible zoom index when terrain handler works.
- * @param {number} [options.maxNativeZoom=14] - Last zoom of the tiles everywhere. The deeper tiles are loaded too where
- * they are, where the server has no tile, the heights made of the parent tile stand for it.
+ * @param {number} [options.maxNativeZoom=14] - Last zoom with tiles everywhere, getHeightAsync reads heights there.
  * @param {string} [options.url="https://{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm"] - Terrain source URL template.
  * @param {Array.<number>} [options.gridSizeByZoom] - Segment triangulation grid sizes where array index matches segment zoom index.
  * @param {number} [options.plainGridSize=32] - Elevation grid size. Default is 32x32. Must be power of two.
  * @param {number} [options.heightFactor=1] - Elevation height multiplier.
- * @param {number} [options.elevationCacheSize=700] - Number of tiles which heights are kept in the cache.
+ * @param {number} [options.elevationCacheSize=1000] - Number of tiles which heights are kept in the cache.
+ * @param {boolean} [options.loadEveryZoom=false] - Loads the tiles of every zoom. By default up to maxNativeZoom a tile
+ * the level of its parent stands for is not loaded: fewer requests, coarser heights on every other zoom.
  * @param {FetchCache} [options.cache="default"] - Fetch cache mode.
  *
  * @fires load
@@ -80,10 +82,17 @@ class GlobusTerrain extends EmptyTerrain {
     protected _elevationCache: LRUCache<string, TileData>;
 
     /**
-     * Tiles deeper than maxNativeZoom the server has not, they are not requested again.
+     * Whether the server has the tile: true for a loaded tile, false for the one it has not (4xx). The tiles that are
+     * not here are requested, the missing ones are not requested again.
      * @protected
      */
-    protected _missingTiles: LRUCache<string, boolean>;
+    protected _tileStatus: LRUCache<string, boolean>;
+
+    /**
+     * Loads the tiles of every zoom, else up to maxNativeZoom a tile the level of its parent stands for is not loaded.
+     * @public
+     */
+    public loadEveryZoom: boolean;
 
     protected _fetchCache: Record<string, Promise<any>>;
 
@@ -141,9 +150,11 @@ class GlobusTerrain extends EmptyTerrain {
 
         this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 
-        this._elevationCache = new LRUCache(options.elevationCacheSize || 700);
+        this._elevationCache = new LRUCache(options.elevationCacheSize || 1000);
 
-        this._missingTiles = new LRUCache(MISSING_TILES_CACHE_SIZE);
+        this._tileStatus = new LRUCache(TILE_STATUS_CACHE_SIZE);
+
+        this.loadEveryZoom = options.loadEveryZoom ?? false;
 
         this._fetchCache = {};
 
@@ -168,7 +179,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     public override clearCache() {
         this._elevationCache.clear();
-        this._missingTiles.clear();
+        this._tileStatus.clear();
 
         for (let c in this._fetchCache) {
             //@ts-ignore
@@ -327,38 +338,19 @@ class GlobusTerrain extends EmptyTerrain {
             segment.terrainIsLoading = true;
 
             if (this.isReadyToLoad(segment)) {
-                let cache = this.getElevationCache(segment.tileIndex);
+                let status = this._tileStatus.get(segment.tileIndex),
+                    // A loaded tile, or a native one when not every zoom is loaded, takes its cached heights
+                    cache =
+                        status || (!this.loadEveryZoom && segment.tileZoom <= this.maxNativeZoom)
+                            ? this.getElevationCache(segment.tileIndex)
+                            : undefined;
 
-                let isLoading =
-                    segment.tileZoom > this.maxNativeZoom ? !this._missingTiles.has(segment.tileIndex) : !cache;
-
-                if (!isLoading) {
-                    this._applyElevationsData(segment, cache ? cache.heights : null);
+                if (status === false) {
+                    this._applyParentHeights(segment);
+                } else if (cache) {
+                    this._applyElevationsData(segment, cache.heights);
                 } else {
-                    this._loader.load(
-                        {
-                            sender: this,
-                            src: this._getHTTPRequestString(segment),
-                            segment: segment,
-                            type: this._dataType,
-                            options: {
-                                cache: this._cache
-                            },
-                            filter: () =>
-                                (segment.plainReady && segment.node.getState() !== NOTRENDERING) || forceLoading
-                        },
-                        (response: IResponse) => {
-                            if (response.status === "ready") {
-                                this._onTerrainLoaded(segment, response.data);
-                            } else if (response.status === "abort") {
-                                segment.terrainIsLoading = false;
-                            } else if (response.status === "error") {
-                                this._onTerrainError(segment, response);
-                            } else {
-                                segment.terrainIsLoading = false;
-                            }
-                        }
-                    );
+                    this._loadTile(segment, forceLoading);
                 }
             } else {
                 segment.elevationsNotExists();
@@ -368,17 +360,43 @@ class GlobusTerrain extends EmptyTerrain {
         }
     }
 
-    protected _onTerrainError(segment: Segment, response: IResponse) {
-        if (segment.tileZoom <= this.maxNativeZoom) {
-            this._applyElevationsData(segment, null);
-            return;
-        }
+    protected _loadTile(segment: Segment, forceLoading: boolean) {
+        this._loader.load(
+            {
+                sender: this,
+                src: this._getHTTPRequestString(segment),
+                segment: segment,
+                type: this._dataType,
+                options: {
+                    cache: this._cache
+                },
+                filter: () => (segment.plainReady && segment.node.getState() !== NOTRENDERING) || forceLoading
+            },
+            (response: IResponse) => {
+                if (response.status === "ready") {
+                    this._tileStatus.set(segment.tileIndex, true);
+                    this._onTerrainLoaded(segment, response.data);
+                } else if (response.status === "abort") {
+                    segment.terrainIsLoading = false;
+                } else if (response.status === "error") {
+                    this._onTerrainError(segment, response);
+                } else {
+                    segment.terrainIsLoading = false;
+                }
+            }
+        );
+    }
 
+    protected _onTerrainError(segment: Segment, response: IResponse) {
         let s = response.statusCode;
         if (s != undefined && s >= 400 && s < 500) {
-            this._missingTiles.set(segment.tileIndex, true);
+            this._tileStatus.set(segment.tileIndex, false);
         }
 
+        this._applyParentHeights(segment);
+    }
+
+    protected _applyParentHeights(segment: Segment) {
         let cache = this.getElevationCache(segment.tileIndex);
         this._applyElevationsData(segment, cache ? cache.heights : null);
     }
@@ -390,6 +408,10 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {any} data - Loaded data.
      */
     protected _onTerrainLoaded(segment: Segment, data: any) {
+        if (!segment.node) {
+            return;
+        }
+
         let heights = this._createHeights(
             data,
             segment,

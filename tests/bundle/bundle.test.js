@@ -8,6 +8,8 @@ import { build } from "vite";
 const LIB_DIR = path.resolve(__dirname, "../../lib");
 const LIB = path.join(LIB_DIR, "og.es.js");
 const CHUNKED = fs.existsSync(path.join(LIB_DIR, "chunks"));
+// The development build (`npm run dev`) is one unminified file, the comments of its modules look like imports
+const DEVELOPMENT = fs.existsSync(LIB) && fs.readFileSync(LIB, "utf8").split("\n").length > 10000;
 const FIXTURES = path.resolve(__dirname, "fixtures");
 const VERSION = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../../package.json"), "utf8")).version;
 
@@ -117,7 +119,7 @@ describe.skipIf(!fs.existsSync(LIB))("built library", () => {
     }, 120000);
 });
 
-describe.skipIf(!fs.existsSync(LIB) || CHUNKED)("one file library", () => {
+describe.skipIf(!fs.existsSync(LIB) || CHUNKED || DEVELOPMENT)("one file library", () => {
     test("has everything inside, the lazy imports too", () => {
         expect(readLibGraph().get("og.es.js")).toEqual([]);
         expect(fs.readFileSync(LIB, "utf8")).not.toMatch(/import\(\s*["']\.\.?\//);

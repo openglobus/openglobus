@@ -132,9 +132,7 @@ describe("segment arrays in the main thread", () => {
 
         const s = createSegmentArrays(Z, gridSize, MAPTERHORN.plainGridSize),
             t = s.terrain,
-            meshVertices = 65 * 65;
-
-        expect(gridSize).toBe(64);
+            meshVertices = (gridSize + 1) * (gridSize + 1);
 
         // The plain stage is the mesh only: vertices, their high and low parts, normals
         expect(Object.keys(s.plain).sort()).toEqual(

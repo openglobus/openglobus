@@ -80,7 +80,7 @@ test("RgbTerrain getHeightAsync does not repeat failed requests, clearCache drop
 test("RgbTerrain elevation cache keeps the least recently used tiles up to elevationCacheSize", () => {
     const tile = (k) => ({ heights: new Float32Array([k]), extent: null });
 
-    expect(createTerrain()._elevationCache.capacity).toBe(700);
+    expect(createTerrain()._elevationCache.capacity).toBe(1000);
 
     const terrain = createTerrain({ elevationCacheSize: 2 });
     terrain.setElevationCache("a", tile(1));
