@@ -304,11 +304,9 @@ class RgbTerrain extends GlobusTerrain {
                 for (let j = 0; j < d; j++, offset += tileLength) {
                     let tileIndex = Layer.getTileIndex(tileX * d + j, tileY * d + i, tileZoom + k, tileGroup);
                     let cache = this.getElevationCache(tileIndex);
-                    // Don't replace data the child tile got from its own image
-                    if (!cache || !cache.heights) {
+                    if (!cache || !cache.heights || tileZoom > this.maxNativeZoom) {
                         this.setElevationCache(tileIndex, {
                             heights: heights.subarray(offset, offset + tileLength),
-                            // The tile extent is in the native coordinates of the segment, so is the child one
                             extent: getTileCellExtent(j, i, k, extent)
                         });
                     }

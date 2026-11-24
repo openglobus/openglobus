@@ -12,6 +12,7 @@ export interface IResponse {
     status: string;
     data?: any;
     msg?: string;
+    statusCode?: number;
 }
 
 type IResponseCallback = (response: IResponse) => void;
@@ -109,9 +110,11 @@ export class Loader<T extends Obj<T>> {
     }
 
     public fetch(params: QueryParams<T>) {
+        let statusCode: number | undefined;
         return fetch(params.src, params.options || {})
             .then((response: Response) => {
                 if (!response.ok) {
+                    statusCode = response.status;
                     throw Error(`Unable to load '${params.src}'`);
                 }
                 return this._promises[params.type || "blob"](response);
@@ -122,7 +125,7 @@ export class Loader<T extends Obj<T>> {
             })
 
             .catch((err: Error) => {
-                return { status: "error", msg: err.toString() };
+                return { status: "error", msg: err.toString(), statusCode };
             });
     }
 
@@ -182,9 +185,12 @@ export class Loader<T extends Obj<T>> {
             if (!p.filter || p.filter(p)) {
                 this._loading++;
 
+                let statusCode: number | undefined;
+
                 return fetch(p.src!, p.options || {})
                     .then((response: Response) => {
                         if (!response.ok) {
+                            statusCode = response.status;
                             throw Error(`Unable to load '${p.src}'`);
                         }
                         return this._promises[p.type || "blob"](response);
@@ -195,7 +201,7 @@ export class Loader<T extends Obj<T>> {
                     })
                     .catch((err: Error) => {
                         this._loading--;
-                        this._handleResponse(q, { status: "error", msg: err.toString() });
+                        this._handleResponse(q, { status: "error", msg: err.toString(), statusCode });
                     });
             } else {
                 this._handleResponse(q, { status: "abort" });

@@ -1709,13 +1709,12 @@ export class Planet extends Scene {
             this._updateAtmosphereMaxMinOpacity();
         }
 
-        // free memory
+        // free memory, the terrain caches are limited by themselves (LRU)
         if (
             !this.disableMemClear &&
             this._createdNodesCount > this._maxNodes &&
             this._distBeforeMemClear > this._minDistanceBeforeMemClear
         ) {
-            this.terrain!.clearCache();
             this.memClear();
         }
 

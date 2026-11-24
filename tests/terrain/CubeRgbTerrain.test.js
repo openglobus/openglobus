@@ -240,6 +240,109 @@ test("getHeightAsync takes the parent tile where the tile is not loaded", async 
     expect(height).toBeGreaterThan(-10000);
 });
 
+// The terrain loads the segments by loadTerrain, the response of a tile is response(src), the heights given to the
+// segments are recorded
+function createLoadingTerrain(response = () => ({ status: "ready", data: {} })) {
+    // maxNativeZoom 5, maxZoom 7
+    const { qts, terrain } = createCubeTerrain(CubeQuadTreeStrategy),
+        applied = new Map();
+
+    terrain._planet.terrainLock = { isFree: () => true };
+    terrain._loader.load = vi.fn((params, callback) => callback(response(params.src)));
+    terrain._applyElevationsData = vi.fn((segment, heights) => applied.set(segment, heights));
+
+    // The first child of every node of the face 1 down to maxZoom
+    let node = qts.quadTreeList[1];
+    const branch = [node.segment];
+    while (node.segment.tileZoom < terrain.maxZoom) {
+        node.createChildNodes();
+        node = node.nodes[0];
+        branch.push(node.segment);
+    }
+
+    const requested = () => terrain._loader.load.mock.calls.map((c) => c[0].src.split("/")[3]);
+    const cached = (s) => terrain.getElevationCache(s.tileIndex).heights;
+
+    return { terrain, branch, applied, requested, cached };
+}
+
+test("the tiles deeper than maxNativeZoom are requested over the cache, their levels replace the coarser ones", () => {
+    const { terrain, branch, applied, requested, cached } = createLoadingTerrain(),
+        [s5, s6, s7] = branch.slice(5);
+
+    // The maxNativeZoom tile caches the levels of the zooms 6 and 7
+    terrain.loadTerrain(s5);
+    const made6of5 = cached(s6),
+        made7of5 = cached(s7);
+
+    // The zoom 6 tile is requested anyway, its own heights and levels replace the ones made of the zoom 5 tile
+    terrain.loadTerrain(s6);
+    expect(requested()).toEqual(["5", "6"]);
+    expect(cached(s6)).not.toBe(made6of5);
+    expect(cached(s7)).not.toBe(made7of5);
+    expect(applied.get(s6)).toBe(cached(s6));
+    const made7of6 = cached(s7);
+
+    // The cached maxNativeZoom tile is not requested again
+    terrain.loadTerrain(s5);
+    expect(requested()).toEqual(["5", "6"]);
+
+    // The zoom 5 tile made again doesn't replace the levels of the zoom 6 one
+    terrain._elevationCache.delete(s5.tileIndex);
+    terrain.loadTerrain(s5);
+    expect(requested()).toEqual(["5", "6", "5"]);
+    expect(cached(s7)).toBe(made7of6);
+});
+
+test("a deeper tile the server has not takes the cached heights and is not requested again", () => {
+    const { terrain, branch, applied, requested, cached } = createLoadingTerrain((src) =>
+            src.includes("/6/") ? { status: "error", statusCode: 404 } : { status: "ready", data: {} }
+        ),
+        [s5, s6] = branch.slice(5);
+
+    terrain.loadTerrain(s5);
+    terrain.loadTerrain(s6);
+    expect(applied.get(s6)).toBe(cached(s6));
+
+    terrain.loadTerrain(s6);
+    expect(requested()).toEqual(["5", "6"]);
+
+    // clearCache forgets the missing tiles
+    terrain.clearCache();
+    terrain.loadTerrain(s6);
+    expect(requested()).toEqual(["5", "6", "6"]);
+});
+
+test.each([
+    ["a failed request", { status: "error" }],
+    ["a server error", { status: "error", statusCode: 503 }]
+])("a deeper tile of %s takes the cached heights and is requested again", (_, error) => {
+    const { terrain, branch, applied, requested, cached } = createLoadingTerrain((src) =>
+            src.includes("/6/") ? error : { status: "ready", data: {} }
+        ),
+        [s5, s6] = branch.slice(5);
+
+    terrain.loadTerrain(s5);
+    terrain.loadTerrain(s6);
+    expect(applied.get(s6)).toBe(cached(s6));
+
+    terrain.loadTerrain(s6);
+    expect(requested()).toEqual(["5", "6", "6"]);
+});
+
+test("a tile up to maxNativeZoom that is not loaded has no heights, it is requested again", () => {
+    const { terrain, branch, applied, requested } = createLoadingTerrain((src) =>
+            src.includes("/4/") ? { status: "error", statusCode: 404 } : { status: "ready", data: {} }
+        ),
+        s4 = branch[4];
+
+    terrain.loadTerrain(s4);
+    expect(applied.get(s4)).toBe(null);
+
+    terrain.loadTerrain(s4);
+    expect(requested()).toEqual(["4", "4"]);
+});
+
 test("CubeRgbTerrain has no geoid unless it is given, RgbTerrain keeps the Earth one", () => {
     expect(new CubeRgbTerrain(null, { url: URL }).geoid.src).toBe(null);
     expect(new CubeRgbTerrain(null, { url: URL, geoidSrc: "./g.pgm" }).geoid.src).toBe("./g.pgm");

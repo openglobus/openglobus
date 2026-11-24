@@ -36,6 +36,9 @@ type TileData = {
     extent: Extent | null;
 };
 
+/** Tiles deeper than maxNativeZoom that are known to be missing. */
+const MISSING_TILES_CACHE_SIZE = 10000;
+
 /**
  * Class that loads segment elevation data, converts it to the array and passes it to the planet segment.
  * @class
@@ -44,7 +47,8 @@ type TileData = {
  * @param {IGlobusTerrainParams} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.
  * @param {number} [options.maxZoom=14] - Maximal visible zoom index when terrain handler works.
- * @param {number} [options.maxNativeZoom=14] - Maximal available terrain zoom level.
+ * @param {number} [options.maxNativeZoom=14] - Last zoom of the tiles everywhere. The deeper tiles are loaded too where
+ * they are, where the server has no tile, the heights made of the parent tile stand for it.
  * @param {string} [options.url="https://{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm"] - Terrain source URL template.
  * @param {Array.<number>} [options.gridSizeByZoom] - Segment triangulation grid sizes where array index matches segment zoom index.
  * @param {number} [options.plainGridSize=32] - Elevation grid size. Default is 32x32. Must be power of two.
@@ -74,6 +78,12 @@ class GlobusTerrain extends EmptyTerrain {
     protected _dataType: string;
 
     protected _elevationCache: LRUCache<string, TileData>;
+
+    /**
+     * Tiles deeper than maxNativeZoom the server has not, they are not requested again.
+     * @protected
+     */
+    protected _missingTiles: LRUCache<string, boolean>;
 
     protected _fetchCache: Record<string, Promise<any>>;
 
@@ -133,6 +143,8 @@ class GlobusTerrain extends EmptyTerrain {
 
         this._elevationCache = new LRUCache(options.elevationCacheSize || 700);
 
+        this._missingTiles = new LRUCache(MISSING_TILES_CACHE_SIZE);
+
         this._fetchCache = {};
 
         this._cache = options.cache || "default";
@@ -156,6 +168,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     public override clearCache() {
         this._elevationCache.clear();
+        this._missingTiles.clear();
 
         for (let c in this._fetchCache) {
             //@ts-ignore
@@ -316,8 +329,11 @@ class GlobusTerrain extends EmptyTerrain {
             if (this.isReadyToLoad(segment)) {
                 let cache = this.getElevationCache(segment.tileIndex);
 
-                if (cache) {
-                    this._applyElevationsData(segment, cache.heights);
+                let isLoading =
+                    segment.tileZoom > this.maxNativeZoom ? !this._missingTiles.has(segment.tileIndex) : !cache;
+
+                if (!isLoading) {
+                    this._applyElevationsData(segment, cache ? cache.heights : null);
                 } else {
                     this._loader.load(
                         {
@@ -337,7 +353,7 @@ class GlobusTerrain extends EmptyTerrain {
                             } else if (response.status === "abort") {
                                 segment.terrainIsLoading = false;
                             } else if (response.status === "error") {
-                                this._applyElevationsData(segment, null);
+                                this._onTerrainError(segment, response);
                             } else {
                                 segment.terrainIsLoading = false;
                             }
@@ -350,6 +366,21 @@ class GlobusTerrain extends EmptyTerrain {
         } else {
             segment.terrainIsLoading = false;
         }
+    }
+
+    protected _onTerrainError(segment: Segment, response: IResponse) {
+        if (segment.tileZoom <= this.maxNativeZoom) {
+            this._applyElevationsData(segment, null);
+            return;
+        }
+
+        let s = response.statusCode;
+        if (s != undefined && s >= 400 && s < 500) {
+            this._missingTiles.set(segment.tileIndex, true);
+        }
+
+        let cache = this.getElevationCache(segment.tileIndex);
+        this._applyElevationsData(segment, cache ? cache.heights : null);
     }
 
     /**
