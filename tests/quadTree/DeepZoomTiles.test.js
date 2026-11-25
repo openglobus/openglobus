@@ -53,6 +53,12 @@ function surfacePoint(seg, u, v) {
     );
 }
 
+// The surface point raised to the radius along the ellipsoid normal, as the terrain vertices
+function raiseTo(p, r) {
+    const n = wgs84.getSurfaceNormal3v(p);
+    return p.add(n.scaleTo((r - p.length()) / n.dot(p.normal())));
+}
+
 // Surface points of the tile in a 5 x 5 grid, raised to the radii
 function tileSurface(seg, radii) {
     const points = [];
@@ -60,7 +66,7 @@ function tileSurface(seg, radii) {
         for (let j = 0; j <= 4; j++) {
             const p = surfacePoint(seg, j / 4, i / 4);
             for (const r of radii) {
-                points.push(r ? p.scaleTo(r / p.length()) : p);
+                points.push(r ? raiseTo(p, r) : p);
             }
         }
     }

@@ -1915,6 +1915,7 @@ class Segment {
      */
     public setBoundsByRadii(minRadius: number, maxRadius: number) {
         const points = this._getBoundsPoints(),
+            ir2 = this.planet.ellipsoid._invRadii2,
             hasRange = minRadius > 0 && minRadius <= maxRadius;
 
         let xmin = Infinity,
@@ -1926,21 +1927,33 @@ class Segment {
 
         for (let i = 0; i < points.length; i++) {
             const p = points[i],
-                r = p.length();
+                mx = p.x * ir2.x,
+                my = p.y * ir2.y,
+                mz = p.z * ir2.z;
 
-            for (let j = 0; j < 2; j++) {
-                const k = hasRange ? (j ? maxRadius : minRadius) / r : 1.0,
-                    x = p.x * k,
-                    y = p.y * k,
-                    z = p.z * k;
+            let k0 = 0.0,
+                k1 = 0.0;
 
-                if (x < xmin) xmin = x;
-                if (x > xmax) xmax = x;
-                if (y < ymin) ymin = y;
-                if (y > ymax) ymax = y;
-                if (z < zmin) zmin = z;
-                if (z > zmax) zmax = z;
+            if (hasRange) {
+                const r = p.length(),
+                    s = r / (mx * p.x + my * p.y + mz * p.z);
+                k0 = (minRadius - r) * s;
+                k1 = (maxRadius - r) * s;
             }
+
+            const x0 = p.x + mx * k0,
+                x1 = p.x + mx * k1,
+                y0 = p.y + my * k0,
+                y1 = p.y + my * k1,
+                z0 = p.z + mz * k0,
+                z1 = p.z + mz * k1;
+
+            xmin = Math.min(xmin, x0, x1);
+            xmax = Math.max(xmax, x0, x1);
+            ymin = Math.min(ymin, y0, y1);
+            ymax = Math.max(ymax, y0, y1);
+            zmin = Math.min(zmin, z0, z1);
+            zmax = Math.max(zmax, z0, z1);
         }
 
         this.setBoundingVolume(xmin, ymin, zmin, xmax, ymax, zmax);
