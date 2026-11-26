@@ -51,6 +51,12 @@ test("Geometry color getters return copies of the internal style colors", () => 
     expect(geometry.getStrokeColor4v().toArray()).toEqual([0.9, 1.0, 0.0, 0.25]);
 });
 
+test("Geometry line width is 3 by default, 0 is kept: no line", () => {
+    expect(makeGeometry()._style.lineWidth).toBe(3);
+    expect(makeGeometry({ lineWidth: 0 })._style.lineWidth).toBe(0);
+    expect(makeGeometry({ lineWidth: 2 })._style.lineWidth).toBe(2);
+});
+
 test("Geometry color getters reflect the setters", () => {
     const geometry = makeGeometry();
 

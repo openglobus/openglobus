@@ -261,7 +261,7 @@ class Geometry {
             fillColor: utils.createColorRGBA(options.style.fillColor, new Vec4(0.19, 0.62, 0.85, 0.4)),
             lineColor: utils.createColorRGBA(options.style.lineColor, new Vec4(0.19, 0.62, 0.85, 1)),
             strokeColor: utils.createColorRGBA(options.style.strokeColor, new Vec4(1, 1, 1, 0.95)),
-            lineWidth: options.style.lineWidth || 3,
+            lineWidth: options.style.lineWidth ?? 3,
             strokeWidth: options.style.strokeWidth || 0
         };
 

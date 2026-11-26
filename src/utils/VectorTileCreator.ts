@@ -119,6 +119,12 @@ ${proj}
 
                 void main(){
                     vColor = color;
+
+                    if (thickness <= 0.0) {
+                        gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+                        return;
+                    }
+
                     float eps = 2.0 / max(viewport.x, viewport.y);
 
                     float w, wNext, wPrev;
