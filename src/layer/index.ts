@@ -12,3 +12,5 @@ export * from "./OpenStreetMap";
 export * from "./Bing";
 export * from "./GeoTIFFLayer";
 export * as geotiff from "./geotiff/index";
+export * from "./MVTLayer";
+export * as mvt from "./mvt/index";
