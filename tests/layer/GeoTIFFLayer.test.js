@@ -75,6 +75,22 @@ describe("ColorScale & Palette", () => {
         expect(lut[3]).toBe(255); // Alpha channel
     });
 
+    it.each([
+        ["magma", [0, 0, 4, 255], [183, 55, 121, 255], [252, 253, 191, 255]],
+        ["plasma", [13, 8, 135, 255], [204, 71, 120, 255], [240, 249, 33, 255]]
+    ])("renders the reference %s color scale instead of the viridis fallback", (name, first, middle, last) => {
+        const lut = buildColorLUT({ colorScale: name });
+        const viridis = buildColorLUT({ colorScale: "viridis" });
+        expect(Array.from(lut.slice(0, 4))).toEqual(first);
+        expect(Array.from(lut.slice(128 * 4, 129 * 4))).toEqual(middle);
+        expect(Array.from(lut.slice(255 * 4, 256 * 4))).toEqual(last);
+        expect(lut).not.toEqual(viridis);
+
+        const raster = new Float32Array([0, 128, 255]);
+        const rendered = renderSingleBandToImageData(raster, 3, 1, { colorScale: name, domain: [0, 255] });
+        expect(Array.from(rendered.data)).toEqual([...first, ...middle, ...last]);
+    });
+
     it("should build 256-color LUT for custom color stops", () => {
         const lut = buildColorLUT({
             colors: [
