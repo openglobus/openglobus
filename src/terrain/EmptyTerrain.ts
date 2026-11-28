@@ -37,7 +37,7 @@ export interface IEmptyTerrainParams {
     minZoom?: number;
     maxZoom?: number;
     maxNativeZoom?: number;
-    geoidSrc?: string;
+    geoidSrc?: string | null;
     geoid?: Geoid;
     gridSizeByZoom?: number[];
     maxHeight?: number;
@@ -71,8 +71,8 @@ export type UrlRewriteFunc = (
  * @param {number} [options.maxZoom=19] - Maximal visible zoom index when terrain handler works.
  * @param {number} [options.maxNativeZoom=19] - Maximal available terrain zoom level.
  * @param {Array.<number>} [options.gridSizeByZoom] - Segment triangulation grid sizes by zoom index.
- * @param {Geoid} [options.geoid] - Geoid model instance.
- * @param {string} [options.geoidSrc] - URL to geoid model source.
+ * @param {Geoid} [options.geoid] - Geoid model instance, it is taken instead of geoidSrc.
+ * @param {string|null} [options.geoidSrc] - Geoid model URL, null for no geoid. Undefined is the same as not given.
  * @param {number} [options.maxHeight=8848] - The highest terrain point over the ellipsoid, in meters. Segments behind the horizon of a point this high are not rendered.
  */
 class EmptyTerrain {

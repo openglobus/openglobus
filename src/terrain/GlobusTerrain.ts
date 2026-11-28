@@ -57,6 +57,8 @@ const TILE_STATUS_CACHE_SIZE = 10000;
  * @param {boolean} [options.loadEveryZoom=false] - Loads the tiles of every zoom. By default up to maxNativeZoom a tile
  * the level of its parent stands for is not loaded: fewer requests, coarser heights on every other zoom.
  * @param {FetchCache} [options.cache="default"] - Fetch cache mode.
+ * @param {string|null} [options.geoidSrc="https://openglobus.org/geoid/egm84-30.pgm"] - Geoid model URL, null for no
+ * geoid. Undefined is the same as not given.
  *
  * @fires load
  * @fires loadend
@@ -111,9 +113,9 @@ class GlobusTerrain extends EmptyTerrain {
 
     constructor(name: string = "", options: IGlobusTerrainParams = {}) {
         super({
-            geoidSrc: "https://openglobus.org/geoid/egm84-30.pgm",
             maxNativeZoom: options.maxNativeZoom || 14,
-            ...options
+            ...options,
+            geoidSrc: options.geoidSrc !== undefined ? options.geoidSrc : "https://openglobus.org/geoid/egm84-30.pgm"
         });
 
         this._s = options.subdomains || ["a", "b", "c"];

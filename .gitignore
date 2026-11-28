@@ -10,3 +10,4 @@ lib
 **/.DS_Store
 examples
 *.tsbuildinfo
+/bench-tmp

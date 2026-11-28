@@ -32,7 +32,8 @@ export interface IGeoTiffTerrainParams extends IProceduralTerrainCommon, IGeoTIF
  * @param {number} [options.maxNativeZoom] - Last zoom of the GeoTIFF reads, by default, the first zoom which
  * sampleSize pixels are not larger than the GeoTIFF ones, of the most detailed source in a mosaic. The tile size is
  * the one of the planet quad tree strategy. Deeper segments are its subdivision levels.
- * @param {string} [options.geoidSrc="https://openglobus.org/geoid/egm84-30.pgm"] - Geoid of the heights.
+ * @param {string|null} [options.geoidSrc="https://openglobus.org/geoid/egm84-30.pgm"] - Geoid model URL, null for no
+ * geoid. Undefined is the same as not given.
  * @param {Array.<number>} [options.noDataValues=[-10000]] - Heights of no data, GeoTIFF nodata pixels
  * become the first one.
  * @param {number | null} [options.nodata] - GeoTIFF nodata value, from the GeoTIFF by default.
@@ -53,9 +54,9 @@ class GeoTiffTerrain extends ProceduralTerrain {
         super(name || "GeoTiffTerrain", {
             plainGridSize: 128,
             maxZoom: TERRAIN_GRID_SIZE_BY_ZOOM.length - 1,
-            geoidSrc: "https://openglobus.org/geoid/egm84-30.pgm",
             noDataValues: [-10000],
             ...options,
+            geoidSrc: options.geoidSrc !== undefined ? options.geoidSrc : "https://openglobus.org/geoid/egm84-30.pgm",
             getHeights: (segment) => this._readHeights(segment)
         });
 
